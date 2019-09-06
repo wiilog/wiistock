@@ -141,7 +141,7 @@ function submitAction(modal, path, table, callback, close) {
         if (wrongNumberInputs.length > 0) {
             wrongNumberInputs.forEach(function (elem) {
                 // cas particulier alertes
-                if (elem.prop('name') == 'limitSecurity' || elem.prop('name') == 'limitAlert') {
+                if (elem.prop('name') == 'limitSecurity' || elem.prop('name') == 'limitWarning') {
                     if (msg.indexOf('seuil de sécurité') == -1) {
                         msg += "Le seuil d'alerte doit être supérieur au seuil de sécurité.";
                     }

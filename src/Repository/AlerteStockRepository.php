@@ -25,7 +25,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-    public function countLimitSecurityReached()
+    public function countAlertsSecurityActive()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -58,7 +58,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-	public function countLimitReached()
+	public function countAlertsWarningActive()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -67,7 +67,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
 			WHERE (
-					(ra.typeQuantite = :qte_ref AND (ra.quantiteStock <= a.limitAlert OR ra.quantiteStock <= a.limitSecurity))
+					(ra.typeQuantite = :qte_ref AND (ra.quantiteStock <= a.limitWarning OR ra.quantiteStock <= a.limitSecurity))
 					OR
 					(ra.typeQuantite = :qte_art AND 
 						(
@@ -77,7 +77,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 							JOIN af1.referenceArticle refart1
 							JOIN art1.statut s1
 							WHERE s1.nom =:active AND refart1 = ra)
-							<= a.limitAlert
+							<= a.limitWarning
 						OR
 							(SELECT SUM(art2.quantite)
 							FROM App\Entity\Article art2

@@ -62,8 +62,25 @@ class AlerteExpiryController extends AbstractController
 			$refs = [];
 
             foreach ($alertes as $alerte) {
+            	// cas d'une alerte sur toutes les réf
 				if (!$alerte->getRefArticle()) {
-					$refs[] = [$alerte];
+
+					$delay = $alerte->getNbPeriod() . ' ' . $alerte->getTypePeriod();
+					if ($alerte->getNbPeriod() > 1 && $alerte->getTypePeriod() != 'mois') $delay .= 's';
+
+					$rows[] = [
+						'Référence' => 'toutes',
+						'Date péremption' => '-',
+						'Délai alerte' => $delay,
+						'Active' => $this->alerteService->isAlerteExpiryActive($alerte),
+						'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
+						'Actions' => $this->renderView('alerte_expiry/datatableAlerteExpiryRow.html.twig', [
+							'alertesId' => [$alerte->getId()],
+							'allRef' => true
+						]),
+					];
+
+				// cas d'une alerte sur une réf
 				} else {
 					$refId = $alerte->getRefArticle()->getId();
 					$refs[$refId][] = $alerte;
@@ -98,6 +115,7 @@ class AlerteExpiryController extends AbstractController
 					'Utilisateur' => $user,
 					'Actions' => $this->renderView('alerte_expiry/datatableAlerteExpiryRow.html.twig', [
 						'alertesId' => $alertesId,
+						'allRef' => false
 					]),
                 ];
             }
@@ -108,12 +126,15 @@ class AlerteExpiryController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
-     */
+	/**
+	 * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
+	 * @param string|null $filter
+	 * @return Response
+	 */
     public function index($filter = null): Response
     {
-    	$nbAlerts = $this->alerteExpiryRepository->countDateReached();
+    	$nbAlerts = $this->alerteExpiryRepository->countAlertsExpiryActive()
+			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
 
         return $this->render('alerte_expiry/index.html.twig', [
         	'nbAlerts' => $nbAlerts,
@@ -164,6 +185,31 @@ class AlerteExpiryController extends AbstractController
 
         throw new XmlHttpException('404 not found');
     }
+
+	/**
+	 * @Route("/voir", name="show_alerte", options={"expose"=true})
+	 * @param Request $request
+	 * @return Response
+	 * @throws \Exception
+	 */
+    public function show(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$alerte = $this->alerteExpiryRepository->find($data);
+			$listRef = $this->referenceArticleRepository->findWithExpiryDateUpTo($alerte->getNbPeriod(), $alerte->getTypePeriod());
+			$html = $this->renderView('alerte_expiry/modalShowAlerteExpiryContent.html.twig', [
+				'nbPeriod' => $alerte->getNbPeriod(),
+				'typePeriod' => $alerte->getTypePeriod(),
+				'listRef' => $listRef,
+			]);
+			return new JsonResponse($html);
+		}
+		throw new NotFoundHttpException('404');
+	}
 
     /**
      * @Route("/api-modifier", name="alerte_expiry_api_edit", options={"expose"=true}, methods="GET|POST")

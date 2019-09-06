@@ -49,26 +49,14 @@ function updateLimitsMinMax(elem)
 {
     let $modalBody = elem.closest('.modal-body');
     let $limitSecurity = $modalBody.find('#limitSecurity');
-    let $limitAlert = $modalBody.find('#limitAlert');
+    let $limitWarning = $modalBody.find('#limitWarning');
 
-    $limitSecurity.attr('max', $limitAlert.val());
-    $limitAlert.attr('min', $limitSecurity.val());
+    $limitSecurity.attr('max', $limitWarning.val());
+    $limitWarning.attr('min', $limitSecurity.val());
 }
 
 function displayErrorAlertStock(data) {
     let modal = $("#modalNewAlerteStock");
     let msg = data.msg;
     displayError(modal, msg, data.success);
-}
-
-function filterActiveAlerts($elem)
-{
-    if ($elem.is(':checked')) {
-        // tableAlerteStock
-        // .columns()
-        // .search()
-        // .draw();
-        // TODO CG
-    } else {
-    }
 }

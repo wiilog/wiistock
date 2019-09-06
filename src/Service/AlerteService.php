@@ -10,9 +10,9 @@ use App\Entity\CategorieStatut;
 use App\Entity\ReferenceArticle;
 use App\Repository\AlerteExpiryRepository;
 
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use Symfony\Component\Routing\RouterInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
 class AlerteService
 {
@@ -26,11 +26,17 @@ class AlerteService
 	 */
     private $statutRepository;
 
+	/**
+	 * @var ReferenceArticleRepository
+	 */
+    private $referenceArticleRepository;
 
-    public function __construct(StatutRepository $statutRepository, AlerteExpiryRepository $alerteExpiryRepository)
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, AlerteExpiryRepository $alerteExpiryRepository)
     {
 		$this->alerteExpiryRepository = $alerteExpiryRepository;
 		$this->statutRepository = $statutRepository;
+		$this->referenceArticleRepository = $referenceArticleRepository;
     }
 
 	/**
@@ -65,7 +71,11 @@ class AlerteService
 
 			return $now >= $dateAlerte;
 		} else {
-			//TODO CG cas alerte sur toutes réf
+			$nbPeriod = $alerte->getNbPeriod();
+			$typePeriod = $alerte->getTypePeriod();
+			$countRef = $this->referenceArticleRepository->countWithExpiryDateUpTo($nbPeriod, $typePeriod);
+
+			return $countRef > 0;
 		}
 	}
 
@@ -101,7 +111,7 @@ class AlerteService
 			if ($onlySecurityAlert) {
 				return $stockRef <= $alerte->getLimitSecurity();
 			} else {
-				return $stockRef <= $alerte->getLimitSecurity() || $stockRef <= $alerte->getLimitAlert();
+				return $stockRef <= $alerte->getLimitSecurity() || $stockRef <= $alerte->getLimitWarning();
 			}
 
 		} else {

@@ -36,7 +36,7 @@ class AlerteStock
 	/**
 	 * @ORM\Column(type="integer", nullable=true)
 	 */
-	private $limitAlert;
+	private $limitWarning;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="alertesStock")
@@ -119,14 +119,14 @@ class AlerteStock
         return $this->label;
     }
 
-    public function getLimitAlert(): ?int
+    public function getLimitWarning(): ?int
     {
-        return $this->limitAlert;
+        return $this->limitWarning;
     }
 
-    public function setLimitAlert(?int $limitAlert): self
+    public function setLimitWarning(?int $limitWarning): self
     {
-        $this->limitAlert = $limitAlert;
+        $this->limitWarning = $limitWarning;
 
         return $this;
     }

@@ -96,7 +96,7 @@ class AlerteStockController extends AbstractController
                 $rows[] = [
                     'id' => $alerte->getId(),
                     'Code' => $alerte->getNumero(),
-                    "SeuilAlerte" => $alerte->getLimitAlert(),
+                    "SeuilAlerte" => $alerte->getLimitWarning(),
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
                     'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
                     'QuantiteStock' => $quantiteStock,
@@ -119,7 +119,7 @@ class AlerteStockController extends AbstractController
      */
     public function index($filter = null): Response
     {
-    	$nbAlerts = $this->alerteStockRepository->countLimitReached();
+    	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
 
         return $this->render('alerte_stock/index.html.twig', [
 			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
@@ -158,7 +158,7 @@ class AlerteStockController extends AbstractController
 				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 				$alerte
 					->setNumero('AS-' . $date->format('YmdHis'))
-					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
+					->setLimitWarning($data['limitWarning'] ? $data['limitWarning'] : null)
 					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
 					->setUser($this->getUser())
 					->setRefArticle($refArticle);
@@ -209,7 +209,7 @@ class AlerteStockController extends AbstractController
 
             if ($alerte) {
             	$alerte
-					->setLimitAlert($data['limitAlert'] == '' ? null : $data['limitAlert'])
+					->setLimitWarning($data['limitWarning'] == '' ? null : $data['limitWarning'])
 					->setLimitSecurity($data['limitSecurity'] == '' ? null : $data['limitSecurity']);
 			}
             $em = $this->getDoctrine()->getManager();
