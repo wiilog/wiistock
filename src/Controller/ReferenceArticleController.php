@@ -713,15 +713,19 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/autocomplete", name="get_ref_articles", options={"expose"=true})
-     */
-    public function getRefArticles(Request $request)
+	/**
+	 * @Route("/autocomplete/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+	 *
+	 * @param Request $request
+	 * @param bool $activeOnly
+	 * @return JsonResponse
+	 */
+    public function getRefArticles(Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search);
+            $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search, $activeOnly);
 
             return new JsonResponse(['results' => $refArticles]);
         }

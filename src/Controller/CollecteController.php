@@ -449,7 +449,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
-
+//TODO CG dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
             $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
             $collecteReference->setQuantite(intval($data['quantite']));
             $em->flush();

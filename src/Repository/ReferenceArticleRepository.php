@@ -91,14 +91,27 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getIdAndLibelleBySearch($search)
+	/**
+	 * @param string $search
+	 * @param bool $activeOnly
+	 * @return mixed
+	 */
+    public function getIdAndLibelleBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT r.id, r.reference as text
+
+        $dql = "SELECT r.id, r.reference as text
           FROM App\Entity\ReferenceArticle r
-          WHERE r.reference LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+          LEFT JOIN r.statut s
+          WHERE r.reference LIKE :search";
+
+        if ($activeOnly) {
+        	$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+		}
+
+        $query = $em
+			->createQuery($dql)
+			->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
     }

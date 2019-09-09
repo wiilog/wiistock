@@ -14,7 +14,7 @@
         {% endif %}
     </label>
     <select class="ajax-autocomplete data form-control" {{ disabled }} value='{{ligneArticle.reference}}' id='referenceEdit'  name='reference'
-    onclick="ajaxAuto()">
+    onclick="ajaxAutoRefArticleInit($(this))">
         <option class=" refAjax" value="{{ligneArticle.reference.id}}">{{ligneArticle.reference}}</option>
     </select>
 </div>
