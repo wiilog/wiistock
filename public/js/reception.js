@@ -3,7 +3,13 @@ $('.select2').select2();
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
-    order: [[1, "desc"]],
+    order: [[0, "desc"]],
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 0
+        }
+    ],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -18,6 +24,22 @@ let table = $('#tableReception_id').DataTable({
         { "data": 'Statut' },
         { "data": 'Actions' }
     ],
+});
+
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
 });
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
