@@ -126,21 +126,21 @@ class AlerteExpiryController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
-	 * @param string|null $filter
-	 * @return Response
-	 */
-    public function index($filter = null): Response
-    {
-    	$nbAlerts = $this->alerteExpiryRepository->countAlertsExpiryActive()
-			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
-
-        return $this->render('alerte_expiry/index.html.twig', [
-        	'nbAlerts' => $nbAlerts,
-			'filter' => $filter == 'active'
-		]);
-    }
+//	/**
+//	 * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
+//	 * @param string|null $filter
+//	 * @return Response
+//	 */
+//    public function index($filter = null): Response
+//    {
+//    	$nbAlerts = $this->alerteExpiryRepository->countAlertsExpiryActive()
+//			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
+//
+//        return $this->render('alerte_expiry/index.html.twig', [
+//        	'nbAlerts' => $nbAlerts,
+//			'filter' => $filter == 'active'
+//		]);
+//    }
 
     /**
      * @Route("/creer", name="alerte_expiry_new", options={"expose"=true}, methods={"GET", "POST"})
