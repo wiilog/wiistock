@@ -150,7 +150,20 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $type;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\AnomalyInv", mappedBy="utilisateur")
+     */
+    private $anomaly;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="operator")
+     */
+    private $mvtInventories;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\HistoryCategory", inversedBy="operator")
+     */
+    private $historyCategory;
 
     public function __construct()
     {
@@ -167,6 +180,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
+        $this->mvtInventories = new ArrayCollection();
+        $this->anomaly = new ArrayCollection();
     }
 
     public function getId()
@@ -727,6 +742,80 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MvtInventory[]
+     */
+    public function getMvtInventories(): Collection
+    {
+        return $this->mvtInventories;
+    }
+
+    public function addMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if (!$this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories[] = $mvtInventory;
+            $mvtInventory->setOperator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if ($this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories->removeElement($mvtInventory);
+            // set the owning side to null (unless already changed)
+            if ($mvtInventory->getOperator() === $this) {
+                $mvtInventory->setOperator(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getHistoryCategory(): ?HistoryCategory
+    {
+        return $this->historyCategory;
+    }
+
+    public function setHistoryCategory(?HistoryCategory $historyCategory): self
+    {
+        $this->historyCategory = $historyCategory;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AnomalyInv[]
+     */
+    public function getAnomaly(): Collection
+    {
+        return $this->anomaly;
+    }
+
+    public function addAnomaly(AnomalyInv $anomaly): self
+    {
+        if (!$this->anomaly->contains($anomaly)) {
+            $this->anomaly[] = $anomaly;
+            $anomaly->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnomaly(AnomalyInv $anomaly): self
+    {
+        if ($this->anomaly->contains($anomaly)) {
+            $this->anomaly->removeElement($anomaly);
+            // set the owning side to null (unless already changed)
+            if ($anomaly->getUtilisateur() === $this) {
+                $anomaly->setUtilisateur(null);
+            }
+        }
 
         return $this;
     }

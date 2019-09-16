@@ -111,6 +111,26 @@ class ReferenceArticle
 	 */
 	private $mouvements;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="refArticle")
+     */
+    private $category;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="refArticle")
+     */
+    private $mvtInventories;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="refArticle")
+     */
+    private $historyCategories;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\MissionInv", mappedBy="refArticle")
+     */
+    private $missionInvs;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -122,6 +142,9 @@ class ReferenceArticle
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->mvtInventories = new ArrayCollection();
+        $this->historyCategories = new ArrayCollection();
+        $this->missionInvs = new ArrayCollection();
     }
 
     public function getId()
@@ -485,6 +508,108 @@ class ReferenceArticle
                 $mouvement->setRefArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MvtInventory[]
+     */
+    public function getMvtInventories(): Collection
+    {
+        return $this->mvtInventories;
+    }
+
+    public function addMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if (!$this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories[] = $mvtInventory;
+            $mvtInventory->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if ($this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories->removeElement($mvtInventory);
+            // set the owning side to null (unless already changed)
+            if ($mvtInventory->getRefArticle() === $this) {
+                $mvtInventory->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HistoryCategory[]
+     */
+    public function getHistoryCategories(): Collection
+    {
+        return $this->historyCategories;
+    }
+
+    public function addHistoryCategory(HistoryCategory $historyCategory): self
+    {
+        if (!$this->historyCategories->contains($historyCategory)) {
+            $this->historyCategories[] = $historyCategory;
+            $historyCategory->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoryCategory(HistoryCategory $historyCategory): self
+    {
+        if ($this->historyCategories->contains($historyCategory)) {
+            $this->historyCategories->removeElement($historyCategory);
+            // set the owning side to null (unless already changed)
+            if ($historyCategory->getRefArticle() === $this) {
+                $historyCategory->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MissionInv[]
+     */
+    public function getMissionInvs(): Collection
+    {
+        return $this->missionInvs;
+    }
+
+    public function addMissionInv(MissionInv $missionInv): self
+    {
+        if (!$this->missionInvs->contains($missionInv)) {
+            $this->missionInvs[] = $missionInv;
+            $missionInv->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMissionInv(MissionInv $missionInv): self
+    {
+        if ($this->missionInvs->contains($missionInv)) {
+            $this->missionInvs->removeElement($missionInv);
+            $missionInv->removeRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getCategory(): ?CategoryInv
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?CategoryInv $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }

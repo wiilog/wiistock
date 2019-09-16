@@ -108,6 +108,26 @@ class Article
      */
     private $reception;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="article")
+     */
+    private $category;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="article")
+     */
+    private $mvtInventories;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="article")
+     */
+    private $historyCategories;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MissionInv", mappedBy="ManyToOne")
+     */
+    private $missionInvs;
+
 
     public function __construct()
     {
@@ -115,6 +135,9 @@ class Article
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
+        $this->mvtInventories = new ArrayCollection();
+        $this->historyCategories = new ArrayCollection();
+        $this->missionInvs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -376,6 +399,111 @@ class Article
                 $mouvement->setArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MvtInventory[]
+     */
+    public function getMvtInventories(): Collection
+    {
+        return $this->mvtInventories;
+    }
+
+    public function addMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if (!$this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories[] = $mvtInventory;
+            $mvtInventory->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if ($this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories->removeElement($mvtInventory);
+            // set the owning side to null (unless already changed)
+            if ($mvtInventory->getArticle() === $this) {
+                $mvtInventory->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HistoryCategory[]
+     */
+    public function getHistoryCategories(): Collection
+    {
+        return $this->historyCategories;
+    }
+
+    public function addHistoryCategory(HistoryCategory $historyCategory): self
+    {
+        if (!$this->historyCategories->contains($historyCategory)) {
+            $this->historyCategories[] = $historyCategory;
+            $historyCategory->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoryCategory(HistoryCategory $historyCategory): self
+    {
+        if ($this->historyCategories->contains($historyCategory)) {
+            $this->historyCategories->removeElement($historyCategory);
+            // set the owning side to null (unless already changed)
+            if ($historyCategory->getArticle() === $this) {
+                $historyCategory->setArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MissionInv[]
+     */
+    public function getMissionInvs(): Collection
+    {
+        return $this->missionInvs;
+    }
+
+    public function addMissionInv(MissionInv $missionInv): self
+    {
+        if (!$this->missionInvs->contains($missionInv)) {
+            $this->missionInvs[] = $missionInv;
+            $missionInv->setManyToOne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMissionInv(MissionInv $missionInv): self
+    {
+        if ($this->missionInvs->contains($missionInv)) {
+            $this->missionInvs->removeElement($missionInv);
+            // set the owning side to null (unless already changed)
+            if ($missionInv->getManyToOne() === $this) {
+                $missionInv->setManyToOne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCategory(): ?CategoryInv
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?CategoryInv $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }

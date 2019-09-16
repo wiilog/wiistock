@@ -58,6 +58,11 @@ class Emplacement
      */
     private $isDeliveryPoint;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="location", orphanRemoval=true)
+     */
+    private $mvtInventories;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -67,6 +72,7 @@ class Emplacement
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->mvtInventories = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -297,6 +303,37 @@ class Emplacement
     public function setIsDeliveryPoint(?bool $isDeliveryPoint): self
     {
         $this->isDeliveryPoint = $isDeliveryPoint;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MvtInventory[]
+     */
+    public function getMvtInventories(): Collection
+    {
+        return $this->mvtInventories;
+    }
+
+    public function addMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if (!$this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories[] = $mvtInventory;
+            $mvtInventory->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    {
+        if ($this->mvtInventories->contains($mvtInventory)) {
+            $this->mvtInventories->removeElement($mvtInventory);
+            // set the owning side to null (unless already changed)
+            if ($mvtInventory->getLocation() === $this) {
+                $mvtInventory->setLocation(null);
+            }
+        }
 
         return $this;
     }
