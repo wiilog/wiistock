@@ -109,25 +109,9 @@ class Article
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="article")
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
      */
-    private $category;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="article")
-     */
-    private $entryInventories;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="article")
-     */
-    private $historyCategories;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MissionInv", mappedBy="ManyToOne")
-     */
-    private $missionInvs;
-
+    private $inventoryEntries;
 
     public function __construct()
     {
@@ -135,9 +119,7 @@ class Article
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
-        $this->entryInventories = new ArrayCollection();
-        $this->historyCategories = new ArrayCollection();
-        $this->missionInvs = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -424,106 +406,32 @@ class Article
     }
 
 	/**
-	 * @return Collection|EntryInventory[]
+	 * @return Collection|InventoryEntry[]
 	 */
-	public function getEntryInventories(): Collection
+	public function getInventoryEntries(): Collection
 	{
-		return $this->entryInventories;
+		return $this->inventoryEntries;
 	}
 
-	public function addEntryInventory(EntryInventory $entryInventory): self
+	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
 	{
-		if (!$this->entryInventories->contains($entryInventory)) {
-			$this->entryInventories[] = $entryInventory;
-			$entryInventory->setArticle($this);
+		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries[] = $inventoryEntry;
+			$inventoryEntry->setArticle($this);
 		}
 
 		return $this;
 	}
 
-	public function removeEntryInventory(EntryInventory $entryInventory): self
+	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
 	{
-		if ($this->entryInventories->contains($entryInventory)) {
-			$this->entryInventories->removeElement($entryInventory);
+		if ($this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries->removeElement($inventoryEntry);
 			// set the owning side to null (unless already changed)
-			if ($entryInventory->getArticle() === $this) {
-				$entryInventory->setArticle(null);
+			if ($inventoryEntry->getArticle() === $this) {
+				$inventoryEntry->setArticle(null);
 			}
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @return Collection|HistoryCategory[]
-	 */
-	public function getHistoryCategories(): Collection
-	{
-		return $this->historyCategories;
-	}
-
-	public function addHistoryCategory(HistoryCategory $historyCategory): self
-	{
-		if (!$this->historyCategories->contains($historyCategory)) {
-			$this->historyCategories[] = $historyCategory;
-			$historyCategory->setArticle($this);
-		}
-
-		return $this;
-	}
-
-	public function removeHistoryCategory(HistoryCategory $historyCategory): self
-	{
-		if ($this->historyCategories->contains($historyCategory)) {
-			$this->historyCategories->removeElement($historyCategory);
-			// set the owning side to null (unless already changed)
-			if ($historyCategory->getArticle() === $this) {
-				$historyCategory->setArticle(null);
-			}
-		}
-
-		return $this;
-	}
-
-	/**
-	 * @return Collection|MissionInv[]
-	 */
-	public function getMissionInvs(): Collection
-	{
-		return $this->missionInvs;
-	}
-
-	public function addMissionInv(MissionInv $missionInv): self
-	{
-		if (!$this->missionInvs->contains($missionInv)) {
-			$this->missionInvs[] = $missionInv;
-			$missionInv->setManyToOne($this);
-		}
-
-		return $this;
-	}
-
-	public function removeMissionInv(MissionInv $missionInv): self
-	{
-		if ($this->missionInvs->contains($missionInv)) {
-			$this->missionInvs->removeElement($missionInv);
-			// set the owning side to null (unless already changed)
-			if ($missionInv->getManyToOne() === $this) {
-				$missionInv->setManyToOne(null);
-			}
-		}
-
-		return $this;
-	}
-
-	public function getCategory(): ?CategoryInv
-	{
-		return $this->category;
-	}
-
-	public function setCategory(?CategoryInv $category): self
-	{
-		$this->category = $category;
 
 		return $this;
 	}

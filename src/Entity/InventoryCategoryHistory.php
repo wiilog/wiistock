@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\HistoryCategoryRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\InventoryCategoryHistoryRepository")
  */
-class HistoryCategory
+class InventoryCategoryHistory
 {
     /**
      * @ORM\Id()
@@ -19,16 +19,16 @@ class HistoryCategory
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="historyCategories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $categoryBefore;
+    private $inventoryCategoryBefore;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="historyCategoriesAfter")
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $categoryAfter;
+    private $inventoryCategoryAfter;
 
     /**
      * @ORM\Column(type="date")
@@ -36,17 +36,12 @@ class HistoryCategory
     private $date;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="historyCategory")
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="inventoryCategoryHistory")
      */
     private $operator;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="historyCategories")
-     */
-    private $article;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="historyCategories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="inventoryCategoryHistory")
      */
     private $refArticle;
 
@@ -60,26 +55,26 @@ class HistoryCategory
         return $this->id;
     }
 
-    public function getCategoryBefore(): ?CategoryInv
+    public function getInventoryCategoryBefore(): ?InventoryCategory
     {
-        return $this->categoryBefore;
+        return $this->inventoryCategoryBefore;
     }
 
-    public function setCategoryBefore(?CategoryInv $categoryBefore): self
+    public function setInventoryCategoryBefore(?InventoryCategory $inventoryCategoryBefore): self
     {
-        $this->categoryBefore = $categoryBefore;
+        $this->inventoryCategoryBefore = $inventoryCategoryBefore;
 
         return $this;
     }
 
-    public function getCategoryAfter(): ?CategoryInv
+    public function getInventoryCategoryAfter(): ?InventoryCategory
     {
-        return $this->categoryAfter;
+        return $this->inventoryCategoryAfter;
     }
 
-    public function setCategoryAfter(?CategoryInv $categoryAfter): self
+    public function setInventoryCategoryAfter(?InventoryCategory $inventoryCategoryAfter): self
     {
-        $this->categoryAfter = $categoryAfter;
+        $this->inventoryCategoryAfter = $inventoryCategoryAfter;
 
         return $this;
     }
@@ -108,7 +103,7 @@ class HistoryCategory
     {
         if (!$this->operator->contains($operator)) {
             $this->operator[] = $operator;
-            $operator->setHistoryCategory($this);
+            $operator->setInventoryCategoryHistory($this);
         }
 
         return $this;
@@ -119,22 +114,10 @@ class HistoryCategory
         if ($this->operator->contains($operator)) {
             $this->operator->removeElement($operator);
             // set the owning side to null (unless already changed)
-            if ($operator->getHistoryCategory() === $this) {
-                $operator->setHistoryCategory(null);
+            if ($operator->getInventoryCategoryHistory() === $this) {
+                $operator->setInventoryCategoryHistory(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getArticle(): ?Article
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Article $article): self
-    {
-        $this->article = $article;
 
         return $this;
     }

@@ -151,19 +151,19 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $type;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AnomalyInv", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryAnomaly", mappedBy="operator")
      */
-    private $anomaly;
+    private $anomalies;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="operator")
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
      */
-    private $entryInventories;
+    private $inventoryEntries;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\HistoryCategory", inversedBy="operator")
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategoryHistory", inversedBy="operator")
      */
-    private $historyCategory;
+    private $inventoryCategoryHistory;
 
     public function __construct()
     {
@@ -180,8 +180,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
-        $this->entryInventories = new ArrayCollection();
-        $this->anomaly = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->anomalies = new ArrayCollection();
     }
 
     public function getId()
@@ -770,73 +770,73 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|EntryInventory[]
+     * @return Collection|InventoryEntry[]
      */
-    public function getEntryInventories(): Collection
+    public function getInventoryEntries(): Collection
     {
-        return $this->entryInventories;
+        return $this->inventoryEntries;
     }
 
-    public function addEntryInventory(EntryInventory $entryInventory): self
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if (!$this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories[] = $entryInventory;
-            $entryInventory->setOperator($this);
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setOperator($this);
         }
 
         return $this;
     }
 
-    public function removeEntryInventory(EntryInventory $entryInventory): self
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if ($this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories->removeElement($entryInventory);
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
             // set the owning side to null (unless already changed)
-            if ($entryInventory->getOperator() === $this) {
-                $entryInventory->setOperator(null);
+            if ($inventoryEntry->getOperator() === $this) {
+                $inventoryEntry->setOperator(null);
             }
         }
 
         return $this;
     }
 
-    public function getHistoryCategory(): ?HistoryCategory
+    public function getInventoryCategoryHistory(): ?InventoryCategoryHistory
     {
-        return $this->historyCategory;
+        return $this->inventoryCategoryHistory;
     }
 
-    public function setHistoryCategory(?HistoryCategory $historyCategory): self
+    public function setInventoryCategoryHistory(?InventoryCategoryHistory $inventoryCategoryHistory): self
     {
-        $this->historyCategory = $historyCategory;
+        $this->inventoryCategoryHistory = $inventoryCategoryHistory;
 
         return $this;
     }
 
     /**
-     * @return Collection|AnomalyInv[]
+     * @return Collection|InventoryAnomaly[]
      */
-    public function getAnomaly(): Collection
+    public function getAnomalies(): Collection
     {
-        return $this->anomaly;
+        return $this->anomalies;
     }
 
-    public function addAnomaly(AnomalyInv $anomaly): self
+    public function addAnomaly(InventoryAnomaly $anomaly): self
     {
-        if (!$this->anomaly->contains($anomaly)) {
-            $this->anomaly[] = $anomaly;
-            $anomaly->setUtilisateur($this);
+        if (!$this->anomalies->contains($anomaly)) {
+            $this->anomalies[] = $anomaly;
+            $anomaly->setOperator($this);
         }
 
         return $this;
     }
 
-    public function removeAnomaly(AnomalyInv $anomaly): self
+    public function removeAnomaly(InventoryAnomaly $anomaly): self
     {
-        if ($this->anomaly->contains($anomaly)) {
-            $this->anomaly->removeElement($anomaly);
+        if ($this->anomalies->contains($anomaly)) {
+            $this->anomalies->removeElement($anomaly);
             // set the owning side to null (unless already changed)
-            if ($anomaly->getUtilisateur() === $this) {
-                $anomaly->setUtilisateur(null);
+            if ($anomaly->getOperator() === $this) {
+                $anomaly->setOperator(null);
             }
         }
 

@@ -63,10 +63,6 @@ class Emplacement
 	 */
     private $isActive;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="location", orphanRemoval=true)
-     */
-    private $entryInventories;
 
     public function __construct()
     {
@@ -75,7 +71,6 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->entryInventories = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -291,34 +286,4 @@ class Emplacement
         return $this;
     }
 
-    /**
-     * @return Collection|EntryInventory[]
-     */
-    public function getEntryInventories(): Collection
-    {
-        return $this->entryInventories;
-    }
-
-    public function addEntryInventory(EntryInventory $entryInventory): self
-    {
-        if (!$this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories[] = $entryInventory;
-            $entryInventory->setLocation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEntryInventory(EntryInventory $entryInventory): self
-    {
-        if ($this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories->removeElement($entryInventory);
-            // set the owning side to null (unless already changed)
-            if ($entryInventory->getLocation() === $this) {
-                $entryInventory->setLocation(null);
-            }
-        }
-
-        return $this;
-    }
 }

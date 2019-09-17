@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\MissionInvRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\InventoryMissionRepository")
  */
-class MissionInv
+class InventoryMission
 {
     /**
      * @ORM\Id()
@@ -29,13 +29,14 @@ class MissionInv
     private $endPrevDate;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", inversedBy="missionInvs")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", inversedBy="inventoryMissions")
      */
-    private $refArticle;
+    private $refArticles;
+
 
     public function __construct()
     {
-        $this->refArticle = new ArrayCollection();
+        $this->refArticles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -70,9 +71,9 @@ class MissionInv
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getRefArticle(): Collection
+    public function getRefArticles(): Collection
     {
-        return $this->refArticle;
+        return $this->refArticles;
     }
 
     public function addRefArticle(ReferenceArticle $refArticle): self

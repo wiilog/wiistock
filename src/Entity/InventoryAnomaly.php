@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\AnomalyInvRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\InventoryAnomalyRepository")
  */
-class AnomalyInv
+class InventoryAnomaly
 {
     /**
      * @ORM\Id()
@@ -27,9 +27,15 @@ class AnomalyInv
     private $treatmentDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="anomaly")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="anomalies")
      */
-    private $utilisateur;
+    private $operator;
+
+	/**
+	 * @ORM\OneToOne(targetEntity="App\Entity\MouvementStock")
+	 */
+    private $mvtRegulation;
+
 
     public function getId(): ?int
     {
@@ -72,14 +78,14 @@ class AnomalyInv
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateur
+    public function getMvtRegulation(): ?MouvementStock
     {
-        return $this->utilisateur;
+        return $this->mvtRegulation;
     }
 
-    public function setUtilisateur(?Utilisateur $utilisateur): self
+    public function setMvtRegulation(?MouvementStock $mvtRegulation): self
     {
-        $this->utilisateur = $utilisateur;
+        $this->mvtRegulation = $mvtRegulation;
 
         return $this;
     }

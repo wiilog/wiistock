@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\MvtInventoryRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\InventoryEntryRepository")
  */
-class EntryInventory
+class InventoryEntry
 {
     /**
      * @ORM\Id()
@@ -22,17 +22,17 @@ class EntryInventory
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="entryInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="inventoryEntries")
      */
     private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="entryInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="inventoryEntries")
      */
     private $article;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="entryInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="inventoryEntries")
      * @ORM\JoinColumn(nullable=false)
      */
     private $operator;
@@ -43,7 +43,7 @@ class EntryInventory
     private $quantity;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="entryInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
      * @ORM\JoinColumn(nullable=false)
      */
     private $location;

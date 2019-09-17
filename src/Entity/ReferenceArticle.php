@@ -117,29 +117,27 @@ class ReferenceArticle
 	private $expiryDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="refArticle")
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
      */
     private $category;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="refArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="refArticle")
      */
-    private $entryInventories;
+    private $inventoryEntries;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="refArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryCategoryHistory", mappedBy="refArticle")
      */
-    private $historyCategories;
+    private $inventoryCategoryHistory;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\MissionInv", mappedBy="refArticle")
+     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", mappedBy="refArticles")
      */
-    private $missionInvs;
+    private $inventoryMissions;
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
-        $this->demandes = new ArrayCollection();
         $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
@@ -147,9 +145,9 @@ class ReferenceArticle
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->entryInventories = new ArrayCollection();
-        $this->historyCategories = new ArrayCollection();
-        $this->missionInvs = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->inventoryCategoryHistory = new ArrayCollection();
+        $this->inventoryMissions = new ArrayCollection();
     }
 
     public function getId()
@@ -573,30 +571,30 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|EntryInventory[]
+     * @return Collection|InventoryEntry[]
      */
-    public function getEntryInventories(): Collection
+    public function getInventoryEntries(): Collection
     {
-        return $this->entryInventories;
+        return $this->inventoryEntries;
     }
 
-    public function addEntryInventory(EntryInventory $entryInventory): self
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if (!$this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories[] = $entryInventory;
-            $entryInventory->setRefArticle($this);
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeEntryInventory(EntryInventory $entryInventory): self
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if ($this->entryInventories->contains($entryInventory)) {
-            $this->entryInventories->removeElement($entryInventory);
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
             // set the owning side to null (unless already changed)
-            if ($entryInventory->getRefArticle() === $this) {
-                $entryInventory->setRefArticle(null);
+            if ($inventoryEntry->getRefArticle() === $this) {
+                $inventoryEntry->setRefArticle(null);
             }
         }
 
@@ -604,30 +602,30 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|HistoryCategory[]
+     * @return Collection|InventoryCategoryHistory[]
      */
-    public function getHistoryCategories(): Collection
+    public function getInventoryCategoryHistory(): Collection
     {
-        return $this->historyCategories;
+        return $this->inventoryCategoryHistory;
     }
 
-    public function addHistoryCategory(HistoryCategory $historyCategory): self
+    public function addInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
     {
-        if (!$this->historyCategories->contains($historyCategory)) {
-            $this->historyCategories[] = $historyCategory;
-            $historyCategory->setRefArticle($this);
+        if (!$this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory[] = $inventoryCategoryHistory;
+            $inventoryCategoryHistory->setRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeHistoryCategory(HistoryCategory $historyCategory): self
+    public function removeInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
     {
-        if ($this->historyCategories->contains($historyCategory)) {
-            $this->historyCategories->removeElement($historyCategory);
+        if ($this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory->removeElement($inventoryCategoryHistory);
             // set the owning side to null (unless already changed)
-            if ($historyCategory->getRefArticle() === $this) {
-                $historyCategory->setRefArticle(null);
+            if ($inventoryCategoryHistory->getRefArticle() === $this) {
+                $inventoryCategoryHistory->setRefArticle(null);
             }
         }
 
@@ -635,43 +633,51 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|MissionInv[]
+     * @return Collection|InventoryMission[]
      */
-    public function getMissionInvs(): Collection
+    public function getInventoryMission(): Collection
     {
-        return $this->missionInvs;
+        return $this->inventoryMission;
     }
 
-    public function addMissionInv(MissionInv $missionInv): self
+    public function addInventoryMission(InventoryMission $inventoryMission): self
     {
-        if (!$this->missionInvs->contains($missionInv)) {
-            $this->missionInvs[] = $missionInv;
-            $missionInv->addRefArticle($this);
+        if (!$this->inventoryMission->contains($inventoryMission)) {
+            $this->inventoryMission[] = $inventoryMission;
+            $inventoryMission->addRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeMissionInv(MissionInv $missionInv): self
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
     {
-        if ($this->missionInvs->contains($missionInv)) {
-            $this->missionInvs->removeElement($missionInv);
-            $missionInv->removeRefArticle($this);
+        if ($this->inventoryMission->contains($inventoryMission)) {
+            $this->inventoryMission->removeElement($inventoryMission);
+            $inventoryMission->removeRefArticle($this);
         }
 
         return $this;
     }
 
-    public function getCategory(): ?CategoryInv
+    public function getCategory(): ?InventoryCategory
     {
         return $this->category;
     }
 
-    public function setCategory(?CategoryInv $category): self
+    public function setCategory(?InventoryCategory $category): self
     {
         $this->category = $category;
 
         return $this;
+    }
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
     }
 
 }
