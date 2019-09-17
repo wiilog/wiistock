@@ -12,7 +12,9 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         "url": pathEmplacement,
         "type": "POST",
         'dataSrc': function (json) {
-            console.log(json);
+            if (!$(".statutVisible").val()) {
+                tableEmplacement.column('Actif / Inactif:name').visible(false);
+            }
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }
@@ -21,9 +23,11 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         overrideSearch();
     },
     columns: [
-        {"data": 'Nom'},
-        {"data": 'Description'},
-        {"data": 'Actions'}
+        {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
+        {"data": 'Description', 'name': 'Description', 'title': 'Description'},
+        {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
+        {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
     buttons: [
         'copy', 'excel', 'pdf'
@@ -45,18 +49,19 @@ let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
 
-function checkAndDeleteRow(icon) {
+function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
     let id = icon.data('id');
     let param = JSON.stringify(id);
 
     $.post(Routing.generate('emplacement_check_delete'), param, function (resp) {
         modalBody.html(resp.html);
+        submitDeleteEmplacement.attr('value', id);
+
         if (resp.delete == false) {
-            submitDeleteEmplacement.hide();
+            submitDeleteEmplacement.text('Désactiver');
         } else {
-            submitDeleteEmplacement.show();
-            submitDeleteEmplacement.attr('value', id);
+            submitDeleteEmplacement.text('Supprimer');
         }
     });
 }
@@ -71,18 +76,19 @@ function overrideSearch() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
     $input.on('keyup', function (e) {
+        let $printButton = $('.emplacement').find('.printButton');
         if (e.key === 'Enter') {
             if ($input.val() === '') {
-                $('.emplacement').find('.printButton').addClass('btn-disabled');
-                $('.emplacement').find('.printButton').removeClass('btn-primary');
+                $printButton.addClass('btn-disabled');
+                $printButton.removeClass('btn-primary');
             } else {
-                $('.emplacement').find('.printButton').removeClass('btn-disabled');
-                $('.emplacement').find('.printButton').addClass('btn-primary');
+                $printButton.removeClass('btn-disabled');
+                $printButton.addClass('btn-primary');
             }
             tableEmplacement.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
-            $('.emplacement').find('.printButton').addClass('btn-disabled');
-            $('.emplacement').find('.printButton').removeClass('btn-primary');
+            $printButton.addClass('btn-disabled');
+            $printButton.removeClass('btn-primary');
         }
     });
     $input.attr('placeholder', 'entrée pour valider');

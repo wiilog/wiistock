@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
@@ -21,9 +21,9 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -36,9 +36,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FournisseurRepository
@@ -71,10 +71,10 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
@@ -170,9 +170,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             ];
 
             foreach ($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typePdt->getLabel() . ')';
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);
                 } else {
@@ -245,9 +245,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             ];
 
             foreach ($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typePdt->getLabel() . ')';
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);
                 } else {

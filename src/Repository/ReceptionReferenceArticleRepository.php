@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -19,7 +20,11 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ReceptionReferenceArticle::class);
     }
 
-    public function getByReception($reception)
+	/**
+	 * @param Reception $reception
+	 * @return ReceptionReferenceArticle[]|null
+	 */
+    public function findByReception($reception)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -44,7 +49,7 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();;
     }
 
-	public function countByFournisseur($fournisseurId)
+	public function countByFournisseurId($fournisseurId)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -53,6 +58,18 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 			WHERE rra.fournisseur = :fournisseurId"
 		)->setParameter('fournisseurId', $fournisseurId);
 
+		return $query->getSingleScalarResult();
+	}
+
+	public function countByReceptionId($receptionId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT COUNT(rra)
+            FROM App\Entity\ReceptionReferenceArticle rra
+            WHERE rra.reception = :receptionId'
+		)->setParameter('receptionId', $receptionId);;
 		return $query->getSingleScalarResult();
 	}
 

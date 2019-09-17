@@ -136,7 +136,7 @@ class MouvementStockController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mouvement = $this->mouvementStockRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Collecte;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -56,4 +57,22 @@ class CollecteRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countByUser($user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(c)
+            FROM App\Entity\Collecte c
+            WHERE c.demandeur = :user"
+		)->setParameter('user', $user);
+
+		return $query->getSingleScalarResult();
+	}
 }

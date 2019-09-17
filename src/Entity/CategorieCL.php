@@ -16,6 +16,7 @@ class CategorieCL
     const ARTICLE = 'article';
     const RECEPTION = 'réception';
     const DEMANDE_LIVRAISON = 'demande livraison';
+    const DEMANDE_COLLECTE = 'demande collecte';
     const AUCUNE = 'aucune';
 
     /**
@@ -31,7 +32,7 @@ class CategorieCL
     private $label;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="categorieCL")
+     * @ORM\OneToMany(targetEntity="App\Entity\ChampLibre", mappedBy="categorieCL")
      */
     private $champsLibres;
 
@@ -58,14 +59,37 @@ class CategorieCL
     }
 
     /**
-     * @return Collection|ChampsLibre[]
+     * @return Collection|ChampLibre[]
      */
     public function getChampsLibres(): Collection
     {
         return $this->champsLibres;
     }
 
-    public function addChampsLibre(ChampsLibre $champsLibre): self
+    public function addChampLibre(ChampLibre $champLibre): self
+    {
+        if (!$this->champsLibres->contains($champLibre)) {
+            $this->champsLibres[] = $champLibre;
+            $champLibre->setCategorieCL($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChampLibre(ChampLibre $champLibre): self
+    {
+        if ($this->champsLibres->contains($champLibre)) {
+            $this->champsLibres->removeElement($champLibre);
+            // set the owning side to null (unless already changed)
+            if ($champLibre->getCategorieCL() === $this) {
+                $champLibre->setCategorieCL(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addChampsLibre(ChampLibre $champsLibre): self
     {
         if (!$this->champsLibres->contains($champsLibre)) {
             $this->champsLibres[] = $champsLibre;
@@ -75,7 +99,7 @@ class CategorieCL
         return $this;
     }
 
-    public function removeChampsLibre(ChampsLibre $champsLibre): self
+    public function removeChampsLibre(ChampLibre $champsLibre): self
     {
         if ($this->champsLibres->contains($champsLibre)) {
             $this->champsLibres->removeElement($champsLibre);

@@ -43,6 +43,11 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param string $label
+	 * @return Emplacement|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -68,26 +73,33 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function getIdAndLibelleBySearch($search)
+    public function getIdAndLabelActiveBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
           "SELECT e.id, e.label as text
           FROM App\Entity\Emplacement e
-          WHERE e.label LIKE :search"
+          WHERE e.label LIKE :search
+          AND e.isActive = 1
+          "
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
     }
 
-    public function findByParams($params = null)
+    public function findByParamsAndIncludingInactive($params = null, $includingInactive)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('a')
-            ->from('App\Entity\Emplacement', 'a');
+            ->select('e')
+            ->from('App\Entity\Emplacement', 'e');
+
+        if (!$includingInactive) {
+        	$qb->where('e.isActive = 1');
+		}
 
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
@@ -98,7 +110,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.description LIKE :value')
+                        ->andWhere('e.label LIKE :value OR e.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = count($qb->getQuery()->getResult());
@@ -116,8 +128,8 @@ class EmplacementRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Emplacement a
+            "SELECT COUNT(e)
+            FROM App\Entity\Emplacement e
            "
         );
 
@@ -133,7 +145,7 @@ class EmplacementRepository extends ServiceEntityRepository
             FROM App\Entity\Emplacement e
             WHERE e.label IN 
             (SELECT v.valeur
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
             JOIN v.articleReference a
             WHERE c.label LIKE 'adresse%' AND v.valeur is not null AND a =:refArticle)"

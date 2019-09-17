@@ -54,5 +54,4 @@ class MouvementTracaRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
-
 }

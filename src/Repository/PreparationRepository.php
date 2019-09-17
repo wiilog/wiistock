@@ -32,7 +32,6 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-
     public function getByStatusLabelAndUser($statusLabel, $statutEnCoursLabel, $user)
     {
         $entityManager = $this->getEntityManager();
@@ -52,5 +51,23 @@ class PreparationRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countByUser($user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(p)
+            FROM App\Entity\Preparation p
+            WHERE p.utilisateur = :user"
+		)->setParameter('user', $user);
+
+		return $query->getSingleScalarResult();
+	}
 
 }

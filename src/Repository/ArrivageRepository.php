@@ -19,6 +19,11 @@ class ArrivageRepository extends ServiceEntityRepository
         parent::__construct($registry, Arrivage::class);
     }
 
+	/**
+	 * @param string $dateMin
+	 * @param string $dateMax
+	 * @return Arrivage[]|null
+	 */
     public function findByDates($dateMin, $dateMax)
     {
         $entityManager = $this->getEntityManager();

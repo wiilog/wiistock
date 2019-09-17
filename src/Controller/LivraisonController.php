@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\LigneArticle;
 use App\Entity\Livraison;
@@ -24,8 +24,8 @@ use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ChampsLibreRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
 
@@ -64,14 +64,14 @@ class LivraisonController extends AbstractController
     private $categorieCLRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -124,12 +124,12 @@ class LivraisonController extends AbstractController
     private $mailerService;
 
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ChampsLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -212,8 +212,8 @@ class LivraisonController extends AbstractController
                 ->setUtilisateur($this->getUser())
                 ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-            /** @var Demande $demande */
+            $demande = $this->demandeRepository->findOneByLivraison($livraison);
+
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
@@ -227,7 +227,7 @@ class LivraisonController extends AbstractController
             );
 
             // quantités gérées à la référence
-            $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
+            $ligneArticles = $this->ligneArticleRepository->findByDemande($demande);
 
             foreach ($ligneArticles as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();
@@ -291,13 +291,12 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            $demande = $this->demandeRepository->findOneByLivraison($livraison);
             $data = [];
             if ($demande) {
                 $rows = [];
-                $articles = $this->articleRepository->getByDemande($demande);
+                $articles = $this->articleRepository->findByDemande($demande);
                 foreach ($articles as $article) {
-                    /** @var Article $article */
                     $rows[] = [
                         "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ? $article->getLabel() : '',
@@ -355,7 +354,7 @@ class LivraisonController extends AbstractController
 
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -398,7 +397,7 @@ class LivraisonController extends AbstractController
 
             $headers = [];
             // en-têtes champs libres DL
-            $clDL = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+            $clDL = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
 			foreach ($clDL as $champLibre) {
 				$headers[] = $champLibre->getLabel();
 			}
@@ -407,7 +406,7 @@ class LivraisonController extends AbstractController
             $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
 
 			// en-têtes champs libres articles
-            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
+            $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
             foreach ($clAR as $champLibre) {
                 $headers[] = $champLibre->getLabel();
             }
@@ -420,12 +419,12 @@ class LivraisonController extends AbstractController
 
             $listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
-				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
+				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
 			}
 
-            foreach ($livraisons as $livraison) { /** @var Demande $livraison */
+            foreach ($livraisons as $livraison) {
 
-				foreach ($livraison->getLigneArticle() as $ligneArticle) { /** @var LigneArticle $ligneArticle */
+				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
 
 					// champs libres de la demande
@@ -448,9 +447,9 @@ class LivraisonController extends AbstractController
                     $champsLibresArt = [];
 
                     foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
+                        $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
                         foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
+                            $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
                             if ($valeurChampRefArticle) {
                                 $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                             }
@@ -466,7 +465,7 @@ class LivraisonController extends AbstractController
 
                     $data[] = $livraisonData;
                 }
-                foreach ($this->articleRepository->getByDemande($livraison) as $article) {
+                foreach ($this->articleRepository->findByDemande($livraison) as $article) {
                     $livraisonData = [];
 
                     // champs libres de la demande
@@ -487,9 +486,9 @@ class LivraisonController extends AbstractController
                     // champs libres de l'article
                     $champsLibresArt = [];
                     foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+                        $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
                         foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
+                            $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                             if ($valeurChampRefArticle) {
                                 $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                             }
@@ -514,8 +513,8 @@ class LivraisonController extends AbstractController
 
 	/**
 	 * @param Demande $livraison
-	 * @param ChampsLibre[] $listChampsLibresDL
-	 * @param ChampsLibre[] $cls
+	 * @param ChampLibre[] $listChampsLibresDL
+	 * @param ChampLibre[] $cls
 	 * @param array $livraisonData
 	 * @throws NonUniqueResultException
 	 */
@@ -523,7 +522,7 @@ class LivraisonController extends AbstractController
 	{
 		$champsLibresDL = [];
 		foreach ($listChampsLibresDL as $champLibre) {
-			$valeurChampDL = $this->valeurChampsLibreRepository->findOneByDemandeLivraisonAndChampsLibre($livraison, $champLibre);
+			$valeurChampDL = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($livraison, $champLibre);
 			if ($valeurChampDL) {
 				$champsLibresDL[$champLibre->getLabel()] = $valeurChampDL->getValeur();
 			}

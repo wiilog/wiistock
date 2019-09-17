@@ -19,6 +19,10 @@ class TypeRepository extends ServiceEntityRepository
         parent::__construct($registry, Type::class);
     }
 
+	/**
+	 * @param string $categoryLabel
+	 * @return Type[]
+	 */
     public function findByCategoryLabel($categoryLabel)
     {
         $em = $this->getEntityManager();
@@ -88,6 +92,12 @@ class TypeRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param string $categoryLabel
+	 * @param string $typeLabel
+	 * @return Type|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByCategoryLabelAndLabel($categoryLabel, $typeLabel)
 	{
 		$entityManager = $this->getEntityManager();

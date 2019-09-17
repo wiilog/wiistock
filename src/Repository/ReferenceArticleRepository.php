@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\AlerteExpiry;
 use App\Entity\Article;
 use App\Entity\Demande;
-use App\Entity\Filter;
+use App\Entity\FiltreRef;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -90,23 +91,37 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getIdAndLibelleBySearch($search)
+	/**
+	 * @param string $search
+	 * @param bool $activeOnly
+	 * @return mixed
+	 */
+    public function getIdAndLibelleBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT r.id, r.reference as text
+
+        $dql = "SELECT r.id, r.reference as text
           FROM App\Entity\ReferenceArticle r
-          WHERE r.reference LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+          LEFT JOIN r.statut s
+          WHERE r.reference LIKE :search";
+
+        if ($activeOnly) {
+        	$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+		}
+
+        $query = $em
+			->createQuery($dql)
+			->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
     }
 
+    //TODO CG remplacer par $ref->getQuantiteStock()
     public function getQuantiteStockById($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT r. quantiteStock
+            "SELECT r.quantiteStock
             FROM App\Entity\ReferenceArticle r
             WHERE r.id = $id
            "
@@ -154,7 +169,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 //TODO filtres et/ou
 
                 // cas particulier champ référence article fournisseur
-                if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
+                if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
                     $qb
                         ->leftJoin('ra.articlesFournisseur', 'af')
                         ->andWhere('af.reference LIKE :reference')
@@ -492,6 +507,101 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		    'statutLabel' => $statutLabel,
             'user' => $user
         ]);
+
+		return $query->execute();
+	}
+
+    public function countByEmplacement($emplacementId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.emplacement e
+            WHERE e.id =:emplacementId
+           "
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
+
+	/**
+	 * @param int $nbPeriod
+	 * @param string $typePeriod
+	 * @return int|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countWithExpiryDateUpTo($nbPeriod, $typePeriod)
+	{
+		switch($typePeriod) {
+			case AlerteExpiry::TYPE_PERIOD_DAY:
+				$typePeriod = 'day';
+				break;
+			case AlerteExpiry::TYPE_PERIOD_WEEK:
+				$typePeriod = 'week';
+				break;
+			case AlerteExpiry::TYPE_PERIOD_MONTH:
+				$typePeriod = 'month';
+				break;
+			default:
+				return 0;
+		}
+
+		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$now->setTime(0,0);
+		$now = $now->format('Y-m-d H:i:s');
+
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */"
+			SELECT COUNT(ra)
+			FROM App\Entity\ReferenceArticle ra
+			WHERE ra.expiryDate IS NOT NULL
+			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
+		")->setParameters([
+			'nbPeriod' => $nbPeriod,
+		]);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param int $nbPeriod
+	 * @param string $typePeriod
+	 * @return int|null
+	 * @throws \Exception
+	 */
+	public function findWithExpiryDateUpTo($nbPeriod, $typePeriod)
+	{
+		switch($typePeriod) {
+			case AlerteExpiry::TYPE_PERIOD_DAY:
+				$typePeriod = 'day';
+				break;
+			case AlerteExpiry::TYPE_PERIOD_WEEK:
+				$typePeriod = 'week';
+				break;
+			case AlerteExpiry::TYPE_PERIOD_MONTH:
+				$typePeriod = 'month';
+				break;
+			default:
+				return 0;
+		}
+
+		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$now->setTime(0,0);
+		$now = $now->format('Y-m-d H:i:s');
+
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */"
+			SELECT ra
+			FROM App\Entity\ReferenceArticle ra
+			WHERE ra.expiryDate IS NOT NULL
+			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
+			ORDER BY ra.expiryDate")
+			->setParameters([
+			'nbPeriod' => $nbPeriod,
+		]);
 
 		return $query->execute();
 	}

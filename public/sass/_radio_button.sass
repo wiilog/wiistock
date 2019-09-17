@@ -17,3 +17,25 @@
   .not-active
     color: $blueGT
     background-color: white
+  //.active
+  //  &:hover
+  //    background-color: white
+  //    color: $blueGT
+
+.radio-btn
+  .btn-danger
+    border-radius: 0
+    border: 1px solid $redDanger
+    &.active
+      color: white
+      background-color: $redDanger
+      margin: 0
+      &:hover
+        background-color: white !important
+        color: $redDanger !important
+    &.not-active
+      color: $redDanger !important
+      background-color: white
+      &:hover
+        background-color: $redDanger !important
+        color: white !important

@@ -42,9 +42,9 @@ class ReferenceArticle
     private $quantiteDisponible;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteRefArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="refArticle")
      */
-    private $RefArticleAlerte;
+    private $alertesStock;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -62,7 +62,7 @@ class ReferenceArticle
     private $ligneArticles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="articleReference")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="articleReference")
      */
     private $valeurChampsLibres;
 
@@ -111,11 +111,17 @@ class ReferenceArticle
 	 */
 	private $mouvements;
 
+	/**
+	 * @ORM\Column(type="date", nullable=true)
+	 */
+	private $expiryDate;
+
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->RefArticleAlerte = new ArrayCollection();
+        $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -171,30 +177,30 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|Alerte[]
+     * @return Collection|AlerteStock[]
      */
-    public function getRefArticleAlerte(): Collection
+    public function getAlertesStock(): Collection
     {
-        return $this->RefArticleAlerte;
+        return $this->alertesStock;
     }
 
-    public function addRefArticleAlerte(Alerte $refArticleAlerte): self
+    public function addRefArticleAlerte(AlerteStock $refArticleAlerte): self
     {
-        if (!$this->RefArticleAlerte->contains($refArticleAlerte)) {
-            $this->RefArticleAlerte[] = $refArticleAlerte;
-            $refArticleAlerte->setAlerteRefArticle($this);
+        if (!$this->alertesStock->contains($refArticleAlerte)) {
+            $this->alertesStock[] = $refArticleAlerte;
+            $refArticleAlerte->setRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeRefArticleAlerte(Alerte $refArticleAlerte): self
+    public function removeRefArticleAlerte(AlerteStock $refArticleAlerte): self
     {
-        if ($this->RefArticleAlerte->contains($refArticleAlerte)) {
-            $this->RefArticleAlerte->removeElement($refArticleAlerte);
+        if ($this->alertesStock->contains($refArticleAlerte)) {
+            $this->alertesStock->removeElement($refArticleAlerte);
             // set the owning side to null (unless already changed)
-            if ($refArticleAlerte->getAlerteRefArticle() === $this) {
-                $refArticleAlerte->setAlerteRefArticle(null);
+            if ($refArticleAlerte->getRefArticle() === $this) {
+                $refArticleAlerte->setRefArticle(null);
             }
         }
 
@@ -257,28 +263,28 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampsLibres(): Collection
     {
         return $this->valeurChampsLibres;
     }
 
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticleReference($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampLibre;
+            $valeurChampLibre->addArticleReference($this);
         }
 
         return $this;
     }
 
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticleReference($this);
+        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampLibre);
+            $valeurChampLibre->removeArticleReference($this);
         }
 
         return $this;
@@ -485,6 +491,61 @@ class ReferenceArticle
                 $mouvement->setRefArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function addAlertesStock(AlerteStock $alertesStock): self
+    {
+        if (!$this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock[] = $alertesStock;
+            $alertesStock->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlertesStock(AlerteStock $alertesStock): self
+    {
+        if ($this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock->removeElement($alertesStock);
+            // set the owning side to null (unless already changed)
+            if ($alertesStock->getRefArticle() === $this) {
+                $alertesStock->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function getExpiryDate(): ?\DateTimeInterface
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
+    {
+        $this->expiryDate = $expiryDate;
 
         return $this;
     }

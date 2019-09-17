@@ -21,7 +21,7 @@
                 <li>
                     <div class="menu-header">
                         <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.4.4</div>
+                        <div class="version"> V1.4.6</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -79,7 +79,7 @@
                                 <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
                             {% endif %}
                             {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
-                                <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
+                                <li><a href="{{ path('manutention_index') }}" class="sub-item">• Manutention</a></li>
                             {% endif %}
                         </ul>
                     </li>
@@ -87,14 +87,11 @@
 
                 <!-- RECEPTION -->
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-                    <li class="menu-item has-submenu">
-                        <a href="#">
+                    <li class="menu-item">
+                        <a href="{{ path("reception_index") }}">
                             <i class="fas fa-arrow-alt-circle-down "></i>
                             <h4>Réception</h4>
                         </a>
-                        <ul class="sidemenu-sub">
-                            <li><a href="{{ path("reception_index") }}" class="sub-item">• Réception</a></li>
-                        </ul>
                     </li>
                 {% endif %}
 
@@ -193,8 +190,20 @@
                             <li>
                                 <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
                             </li>
-                            <li>
-                                <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                            <li class="sub-item has-subitems">
+                                <a href="#" class="sub-item-title">• Alertes</a>
+                                <ul>
+                                    <li class="sub-sub-item">
+                                        <a href="{{ path('alerte_stock_index') }}">
+                                            Alertes de stock
+                                        </a>
+                                    </li>
+{#                                    <li class="sub-sub-item">#}
+{#                                        <a href="{{ path('alerte_expiry_index') }}">#}
+{#                                            Alertes de péremption#}
+{#                                        </a>#}
+{#                                    </li>#}
+                                </ul>
                             </li>
                             <li>
                                 <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
@@ -204,6 +213,9 @@
                             </li>
                             <li>
                                 <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('prefixe_demande') }}" class="sub-item">• Préfixage noms demandes</a>
                             </li>
                         </ul>
                     </li>

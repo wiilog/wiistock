@@ -8,6 +8,24 @@ $('#utilisateur').select2({
     }
 });
 
+let $submitSearchArrivage = $('#submitSearchArrivage');
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ARRIVAGE);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchArrivage.click();
+    }, 'json');
+});
+
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
@@ -35,8 +53,32 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableArrivage.column('Date:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
 
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
@@ -412,7 +454,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }
@@ -500,12 +542,16 @@ function checkZero(data) {
     return data;
 }
 
-$('#submitSearchArrivage').on('click', function () {
-
+$submitSearchArrivage.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+
+    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
+
     tableArrivage
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
@@ -516,28 +562,6 @@ $('#submitSearchArrivage').on('click', function () {
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = tableArrivage.column('Date:name').index();
-            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
     tableArrivage
         .draw();
 });

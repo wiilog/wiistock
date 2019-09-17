@@ -1,3 +1,13 @@
+const PAGE_DEM_COLLECTE = 'dcollecte';
+const PAGE_DEM_LIVRAISON = 'dlivraison';
+const PAGE_MANUT = 'manutention';
+const PAGE_ORDRE_COLLECTE = 'ocollecte';
+const PAGE_ORDRE_LIVRAISON = 'olivraison';
+const PAGE_PREPA = 'prépa';
+const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_MVT_STOCK = 'mvt_stock';
+const PAGE_MVT_TRACA = 'mvt_traca';
+
 /**
  * Initialise une fenêtre modale
  *
@@ -21,33 +31,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 }
 
 function submitAction(modal, path, table, callback, close) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-
-        if (this.readyState == 4 && this.status == 200) {
-            $('.errorMessage').html(JSON.parse(this.responseText));
-            data = JSON.parse(this.responseText);
-
-            if (data.redirect) {
-                window.location.href = data.redirect;
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            table.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-
-            clearModal(modal);
-
-            if (callback !== null) callback(data);
-        }
-    };
-
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -55,19 +38,23 @@ function submitAction(modal, path, table, callback, close) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
+
     inputs.each(function () {
         let val = $(this).val();
         let name = $(this).attr("name");
         Data[name] = val;
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed')
+            && (val === undefined || val === '' || val === null)
+            && $(this).is(':disabled') === false) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
             $(this).next().find('.select2-selection').addClass('is-invalid');
-        }else{
+
+        } else {
             $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
@@ -78,7 +65,10 @@ function submitAction(modal, path, table, callback, close) {
             if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
-            }else{
+            } else if (!isNaN(val)) {
+                $(this).removeClass('is-invalid');
+            }
+            if ($(this).is(':disabled') === true) {
                 $(this).removeClass('is-invalid');
             }
         }
@@ -109,13 +99,31 @@ function submitAction(modal, path, table, callback, close) {
         Data[$(this).attr("name")] = $(this).attr('value');
     });
     modal.find(".elem").remove();
+
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
-        Json = {};
-        Json = JSON.stringify(Data);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
+
+        $.post(path, JSON.stringify(Data), function(data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                // pour mise à jour des données d'en-tête après modification
+                if (data.entete) {
+                    $('.zone-entete').html(data.entete)
+                }
+                table.ajax.reload(function (json) {
+                    if (data !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                });
+
+                clearModal(modal);
+
+                if (callback !== null) callback(data);
+        }, 'json');
+
     } else {
 
         // ... sinon on construit les messages d'erreur
@@ -132,30 +140,36 @@ function submitAction(modal, path, table, callback, close) {
         // cas où les champs number ne respectent pas les valeurs imposées (min et max)
         if (wrongNumberInputs.length > 0) {
             wrongNumberInputs.forEach(function (elem) {
-                let label = elem.closest('.form-group').find('label').text();
-
-                msg += 'La valeur du champ ' + label.replace(/\*/, '');
-
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                // cas particulier alertes
+                if (elem.prop('name') == 'limitSecurity' || elem.prop('name') == 'limitWarning') {
+                    if (msg.indexOf('seuil de sécurité') == -1) {
+                        msg += "Le seuil d'alerte doit être supérieur au seuil de sécurité.";
                     }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
+                } else {
+                    let label = elem.closest('.form-group').find('label').text();
+                    if (elem.is(':disabled') === false) {
+                        msg += 'La valeur du champ ' + label.replace(/\*/, '');
+
+                        let min = elem.attr('min');
+                        let max = elem.attr('max');
+
+                        if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                            if (min > max) {
+                                msg += " doit être inférieure à " + max + ".<br>";
+                            } else {
+                                msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                            }
+                        } else if (typeof (min) == 'undefined') {
+                            msg += ' doit être inférieure à ' + max + ".<br>";
+                        } else if (typeof (max) == 'undefined') {
+                            msg += ' doit être supérieure à ' + min + ".<br>";
+                        } else if (min < 1) {
+                            msg += ' ne peut pas être rempli'
+                        }
+                    }
                 }
-
-            })
+            });
         }
-
         modal.find('.error-msg').html(msg);
     }
 }
@@ -171,15 +185,16 @@ function deleteRow(button, modal, submit) {
 //SHOW
 /**
  * Initialise une fenêtre modale
- * 
+ *
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} button le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
- * 
+ *
  */
 function showRow(button, path, modal) {
     let id = button.data('id');
     let params = JSON.stringify(id);
+
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
@@ -190,35 +205,16 @@ function showRow(button, path, modal) {
 /**
  * La fonction modifie les valeurs d'une modale modifier avec les valeurs data-attibute.
  * Ces valeurs peuvent être trouvées dans datatableLigneArticleRow.html.twig
- * 
+ *
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {Document} modal la modalde modification
  * @param {Document} submit le bouton de validation du form pour le edit
- *  
+ *
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            modal.find('.modal-body').html(dataReponse);
-            ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-            ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-            if ($('#typageModif').val() !== undefined) {   //TODO Moche
-                defaultValueForTypage($('#typageModif'), '-edit');
-            }
 
-            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
-
-            if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
-
-            if (editorToInit) initEditor(editor);
-        }
-    }
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -229,8 +225,25 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+
+    $.post(path, JSON.stringify(json), function(resp) {
+
+        modal.find('.modal-body').html(resp);
+        ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+        if ($('#typageModif').val() !== undefined) {   //TODO Moche
+            defaultValueForTypage($('#typageModif'), '-edit');
+        }
+
+        toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+
+        if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+
+        if (editorToInit) initEditor(editor);
+    }, 'json');
+
 }
 
 function setMaxQuantityEdit(select) {
@@ -421,10 +434,9 @@ function ajaxAutoCompleteTransporteurInit(select) {
 }
 
 let ajaxAutoRefArticleInit = function (select) {
-
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles'),
+            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
             dataType: 'json',
             delay: 250,
         },
@@ -434,8 +446,10 @@ let ajaxAutoRefArticleInit = function (select) {
             },
             searching: function () {
                 return 'Recherche en cours...';
-            }
-        },
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }        },
         minimumInputLength: 1,
     });
 }
@@ -453,6 +467,9 @@ function ajaxAutoFournisseurInit(select) {
             },
             searching: function () {
                 return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
             }
         },
         minimumInputLength: 1,
@@ -500,8 +517,8 @@ function clearDiv() {
     $('.clear').html('');
 }
 
-function clearErrorMsg(div) {
-    div.closest('.modal').find('.error-msg').html('');
+function clearErrorMsg($div) {
+    $div.closest('.modal').find('.error-msg').html('');
 }
 
 function displayError(modal, msg, data) {
@@ -522,6 +539,8 @@ function clearModal(modal) {
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+        //TODO CG protection ?
     });
     // on vide tous les select2
     let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
@@ -557,4 +576,57 @@ function adjustScalesForDoc(response) {
     let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
     // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
+}
+
+function alertErrorMsg(data) {
+    if (data !== true) {
+        let $alertDanger = $('#alerts').find('.alert-danger');
+        $alertDanger.removeClass('d-none');
+        $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger.find('.error-msg').html(data);
+    }
+}
+
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
+    let path = Routing.generate('filter_sup_new');
+    let params = {};
+    if (dateMin) params.dateMin = dateMin;
+    if (dateMax) params.dateMax = dateMax;
+    if (statut) params.statut = statut;
+    if (user) params.user = user;
+    if (type) params.type = type;
+    if (location) params.location = location;
+    if (colis) params.colis = colis;
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), 'json');
+}
+
+function checkAndDeleteRow(icon, modalName, route, submit) {
+    let $modalBody = $(modalName).find('.modal-body');
+    let $submit = $(submit);
+    let id = icon.data('id');
+
+    let param = JSON.stringify(id);
+
+    $.post(Routing.generate(route), param, function(resp) {
+        $modalBody.html(resp.html);
+        if (resp.delete == false) {
+            $submit.hide();
+        } else {
+            $submit.show();
+            $submit.attr('value', id);
+        }
+    });
+}
+
+function toggleActiveButton($button, table) {
+    $button.toggleClass('active');
+    $button.toggleClass('not-active');
+
+    let value = $button.hasClass('active') ? 'true' : '';
+    table
+        .columns('Active:name')
+        .search(value)
+        .draw();
 }

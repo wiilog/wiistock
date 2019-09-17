@@ -16,7 +16,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -105,9 +105,9 @@ class ArrivageController extends AbstractController
     private $specificService;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var LitigeRepository
@@ -115,7 +115,7 @@ class ArrivageController extends AbstractController
     private $litigeRepository;
 
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -128,7 +128,7 @@ class ArrivageController extends AbstractController
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
     }
@@ -360,7 +360,7 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -455,7 +455,7 @@ class ArrivageController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $this->arrivageRepository->find($data['arrivage']);
 
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
@@ -616,7 +616,6 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
@@ -693,7 +692,6 @@ class ArrivageController extends AbstractController
             $data[] = $headers;
 
             foreach ($arrivages as $arrivage) {
-                /** @var Arrivage $arrivage */
                 $arrivageData = [];
 
                 $arrivageData[] = $arrivage->getNumeroArrivage();

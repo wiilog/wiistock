@@ -28,7 +28,6 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
     {
         $rolesLabels = [
             Role::NO_ACCESS_USER,
-            Role::DEM_SAFRAN
         ];
 
         foreach ($rolesLabels as $roleLabel) {

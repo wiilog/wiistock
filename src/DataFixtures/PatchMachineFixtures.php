@@ -2,8 +2,8 @@
 
 namespace App\DataFixtures;
 
-use App\Repository\ChampsLibreRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -15,20 +15,20 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 {
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
 
-    public function __construct(ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository)
+    public function __construct(ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository)
     {
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -43,7 +43,7 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-        $listElements = $this->champsLibreRepository->getIdAndElementsWithMachine();
+        $listElements = $this->champLibreRepository->getIdAndElementsWithMachine();
 //        foreach($listElements as $elements){
 //            $i = 0;
 //            while($i < count($rows)) {
@@ -75,14 +75,14 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
                 }
             }
             $newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
-            $champsLibre = $this->champsLibreRepository->find($elements['id']);
+            $champsLibre = $this->champLibreRepository->find($elements['id']);
             $champsLibre->setElements(array_unique($newElements));
 
             //remplace toutes les valeurs champs libre
-            $listValeurChampsLibres = $this->valeurChampsLibreRepository->findByCL($elements['id']);
-            foreach($listValeurChampsLibres as $valeurChampsLibre){
-                $newValeur = $colEyelit[array_search($valeurChampsLibre->getValeur(), $colMachines)];
-                $valeurChampsLibre->setValeur($newValeur);
+            $listValeurChampsLibres = $this->valeurChampLibreRepository->findByCL($elements['id']);
+            foreach($listValeurChampsLibres as $valeurChampLibre){
+                $newValeur = $colEyelit[array_search($valeurChampLibre->getValeur(), $colMachines)];
+                $valeurChampLibre->setValeur($newValeur);
             }
         }
         $manager->flush();
