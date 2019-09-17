@@ -109,11 +109,6 @@ class Article
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryInv", inversedBy="article")
-     */
-    private $category;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="article")
      */
     private $entryInventories;
@@ -123,12 +118,6 @@ class Article
      */
     private $historyCategories;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MissionInv", mappedBy="ManyToOne")
-     */
-    private $missionInvs;
-
-
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
@@ -137,7 +126,6 @@ class Article
         $this->valeurChampsLibres = new ArrayCollection();
         $this->entryInventories = new ArrayCollection();
         $this->historyCategories = new ArrayCollection();
-        $this->missionInvs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -481,49 +469,6 @@ class Article
 				$historyCategory->setArticle(null);
 			}
 		}
-
-		return $this;
-	}
-
-	/**
-	 * @return Collection|MissionInv[]
-	 */
-	public function getMissionInvs(): Collection
-	{
-		return $this->missionInvs;
-	}
-
-	public function addMissionInv(MissionInv $missionInv): self
-	{
-		if (!$this->missionInvs->contains($missionInv)) {
-			$this->missionInvs[] = $missionInv;
-			$missionInv->setManyToOne($this);
-		}
-
-		return $this;
-	}
-
-	public function removeMissionInv(MissionInv $missionInv): self
-	{
-		if ($this->missionInvs->contains($missionInv)) {
-			$this->missionInvs->removeElement($missionInv);
-			// set the owning side to null (unless already changed)
-			if ($missionInv->getManyToOne() === $this) {
-				$missionInv->setManyToOne(null);
-			}
-		}
-
-		return $this;
-	}
-
-	public function getCategory(): ?CategoryInv
-	{
-		return $this->category;
-	}
-
-	public function setCategory(?CategoryInv $category): self
-	{
-		$this->category = $category;
 
 		return $this;
 	}
