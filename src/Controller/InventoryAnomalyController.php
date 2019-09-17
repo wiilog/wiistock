@@ -14,11 +14,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use App\Service\UserService;
 
-
 /**
- * @Route("/saisie_inventaire")
+ * @Route("/inventaire/anomalie")
  */
-class SaisieInventaireController extends AbstractController
+class InventoryAnomalyController extends AbstractController
 {
     /**
      * @var UserService
@@ -31,7 +30,7 @@ class SaisieInventaireController extends AbstractController
     }
 
     /**
-     * @Route("/", name="saisie_inventaire_index")
+     * @Route("/", name="inventory_anomaly_index")
      */
     public function index()
     {
@@ -39,7 +38,7 @@ class SaisieInventaireController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('saisie_inventaire/index.html.twig', [
+        return $this->render('anomalie_inventaire/index.html.twig', [
 
         ]);
     }

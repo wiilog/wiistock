@@ -16,9 +16,9 @@ use App\Service\UserService;
 
 
 /**
- * @Route("/missions_inventaire")
+ * @Route("/inventaire/mission")
  */
-class MissionInventaireController extends AbstractController
+class InventoryMissionController extends AbstractController
 {
     /**
      * @var UserService
@@ -31,7 +31,7 @@ class MissionInventaireController extends AbstractController
     }
 
     /**
-     * @Route("/", name="mission_inventaire_index")
+     * @Route("/", name="inventory_mission_index")
      */
     public function index()
     {
