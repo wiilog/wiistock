@@ -29,25 +29,9 @@ class MissionInv
     private $endPrevDate;
 
     /**
-     * @ORM\Column(type="date")
-     */
-    private $startStockDate;
-
-    /**
-     * @ORM\Column(type="date")
-     */
-    private $endRealDate;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", inversedBy="missionInvs")
      */
     private $refArticle;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="missionInvs")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $ManyToOne;
 
     public function __construct()
     {
@@ -83,30 +67,6 @@ class MissionInv
         return $this;
     }
 
-    public function getStartStockDate(): ?\DateTimeInterface
-    {
-        return $this->startStockDate;
-    }
-
-    public function setStartStockDate(\DateTimeInterface $startStockDate): self
-    {
-        $this->startStockDate = $startStockDate;
-
-        return $this;
-    }
-
-    public function getEndRealDate(): ?\DateTimeInterface
-    {
-        return $this->endRealDate;
-    }
-
-    public function setEndRealDate(\DateTimeInterface $endRealDate): self
-    {
-        $this->endRealDate = $endRealDate;
-
-        return $this;
-    }
-
     /**
      * @return Collection|ReferenceArticle[]
      */
@@ -129,18 +89,6 @@ class MissionInv
         if ($this->refArticle->contains($refArticle)) {
             $this->refArticle->removeElement($refArticle);
         }
-
-        return $this;
-    }
-
-    public function getManyToOne(): ?Article
-    {
-        return $this->ManyToOne;
-    }
-
-    public function setManyToOne(?Article $ManyToOne): self
-    {
-        $this->ManyToOne = $ManyToOne;
 
         return $this;
     }

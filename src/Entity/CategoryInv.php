@@ -24,14 +24,9 @@ class CategoryInv
     private $label;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\FrequencyInv", inversedBy="categoryInvs")
+     * @ORM\ManyToOne(targetEntity="App\Entity\FrequencyInv", inversedBy="categoryInvs")
      */
     private $frequency;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="category")
-     */
-    private $article;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="category")
@@ -47,6 +42,11 @@ class CategoryInv
      * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="categoryAfter")
      */
     private $historyCategoriesAfter;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $permanent;
 
     public function __construct()
     {
@@ -125,37 +125,6 @@ class CategoryInv
             // set the owning side to null (unless already changed)
             if ($historyCategory->getCategoryBefore() === $this) {
                 $historyCategory->setCategoryBefore(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticle(): Collection
-    {
-        return $this->article;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->article->contains($article)) {
-            $this->article[] = $article;
-            $article->setCategory($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->article->contains($article)) {
-            $this->article->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getCategory() === $this) {
-                $article->setCategory(null);
             }
         }
 

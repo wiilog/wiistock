@@ -114,7 +114,7 @@ class Article
     private $category;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="article")
+     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="article")
      */
     private $mvtInventories;
 
@@ -404,14 +404,14 @@ class Article
     }
 
     /**
-     * @return Collection|MvtInventory[]
+     * @return Collection|EntryInventory[]
      */
     public function getMvtInventories(): Collection
     {
         return $this->mvtInventories;
     }
 
-    public function addMvtInventory(MvtInventory $mvtInventory): self
+    public function addMvtInventory(EntryInventory $mvtInventory): self
     {
         if (!$this->mvtInventories->contains($mvtInventory)) {
             $this->mvtInventories[] = $mvtInventory;
@@ -421,7 +421,7 @@ class Article
         return $this;
     }
 
-    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    public function removeMvtInventory(EntryInventory $mvtInventory): self
     {
         if ($this->mvtInventories->contains($mvtInventory)) {
             $this->mvtInventories->removeElement($mvtInventory);

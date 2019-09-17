@@ -59,7 +59,7 @@ class Emplacement
     private $isDeliveryPoint;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="location", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="location", orphanRemoval=true)
      */
     private $mvtInventories;
 
@@ -308,14 +308,14 @@ class Emplacement
     }
 
     /**
-     * @return Collection|MvtInventory[]
+     * @return Collection|EntryInventory[]
      */
     public function getMvtInventories(): Collection
     {
         return $this->mvtInventories;
     }
 
-    public function addMvtInventory(MvtInventory $mvtInventory): self
+    public function addMvtInventory(EntryInventory $mvtInventory): self
     {
         if (!$this->mvtInventories->contains($mvtInventory)) {
             $this->mvtInventories[] = $mvtInventory;
@@ -325,7 +325,7 @@ class Emplacement
         return $this;
     }
 
-    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    public function removeMvtInventory(EntryInventory $mvtInventory): self
     {
         if ($this->mvtInventories->contains($mvtInventory)) {
             $this->mvtInventories->removeElement($mvtInventory);

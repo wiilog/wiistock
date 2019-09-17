@@ -24,7 +24,7 @@ class FrequencyInv
     private $label;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CategoryInv", mappedBy="frequency")
+     * @ORM\OneToMany(targetEntity="App\Entity\CategoryInv", mappedBy="frequency")
      */
     private $categoryInvs;
 
