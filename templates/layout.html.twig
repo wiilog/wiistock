@@ -32,6 +32,21 @@
                     </a>
                 </li>
 
+                <!-- INVENTAIRE   -->
+                {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h4>Inventaire</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("saisie_inventaire_index") }}" class="sub-item">• Saisie d'inventaire</a></li>
+                            <li><a href="{{ path("mission_inventaire_index") }}" class="sub-item">• Missions d'inventaire</a></li>
+                            <li><a href="{{ path("anomalie_inventaire_index") }}" class="sub-item">• Anomalies</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
                 <!-- ARRIVAGE   -->
                 {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
@@ -45,6 +60,7 @@
                         </ul>
                     </li>
                 {% endif %}
+
                 <!-- DEMANDE   -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
