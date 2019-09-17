@@ -124,7 +124,7 @@ class ReferenceArticle
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="refArticle")
      */
-    private $mvtInventories;
+    private $entryInventories;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="refArticle")
@@ -147,7 +147,7 @@ class ReferenceArticle
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->mvtInventories = new ArrayCollection();
+        $this->entryInventories = new ArrayCollection();
         $this->historyCategories = new ArrayCollection();
         $this->missionInvs = new ArrayCollection();
     }
@@ -575,28 +575,28 @@ class ReferenceArticle
     /**
      * @return Collection|EntryInventory[]
      */
-    public function getMvtInventories(): Collection
+    public function getEntryInventories(): Collection
     {
-        return $this->mvtInventories;
+        return $this->entryInventories;
     }
 
-    public function addMvtInventory(EntryInventory $mvtInventory): self
+    public function addEntryInventory(EntryInventory $entryInventory): self
     {
-        if (!$this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories[] = $mvtInventory;
-            $mvtInventory->setRefArticle($this);
+        if (!$this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories[] = $entryInventory;
+            $entryInventory->setRefArticle($this);
         }
 
         return $this;
     }
 
-    public function removeMvtInventory(EntryInventory $mvtInventory): self
+    public function removeEntryInventory(EntryInventory $entryInventory): self
     {
-        if ($this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories->removeElement($mvtInventory);
+        if ($this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories->removeElement($entryInventory);
             // set the owning side to null (unless already changed)
-            if ($mvtInventory->getRefArticle() === $this) {
-                $mvtInventory->setRefArticle(null);
+            if ($entryInventory->getRefArticle() === $this) {
+                $entryInventory->setRefArticle(null);
             }
         }
 

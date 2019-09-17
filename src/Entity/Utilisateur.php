@@ -158,7 +158,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="operator")
      */
-    private $mvtInventories;
+    private $entryInventories;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\HistoryCategory", inversedBy="operator")
@@ -180,7 +180,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
-        $this->mvtInventories = new ArrayCollection();
+        $this->entryInventories = new ArrayCollection();
         $this->anomaly = new ArrayCollection();
     }
 
@@ -772,28 +772,28 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|EntryInventory[]
      */
-    public function getMvtInventories(): Collection
+    public function getEntryInventories(): Collection
     {
-        return $this->mvtInventories;
+        return $this->entryInventories;
     }
 
-    public function addMvtInventory(EntryInventory $mvtInventory): self
+    public function addEntryInventory(EntryInventory $entryInventory): self
     {
-        if (!$this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories[] = $mvtInventory;
-            $mvtInventory->setOperator($this);
+        if (!$this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories[] = $entryInventory;
+            $entryInventory->setOperator($this);
         }
 
         return $this;
     }
 
-    public function removeMvtInventory(EntryInventory $mvtInventory): self
+    public function removeEntryInventory(EntryInventory $entryInventory): self
     {
-        if ($this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories->removeElement($mvtInventory);
+        if ($this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories->removeElement($entryInventory);
             // set the owning side to null (unless already changed)
-            if ($mvtInventory->getOperator() === $this) {
-                $mvtInventory->setOperator(null);
+            if ($entryInventory->getOperator() === $this) {
+                $entryInventory->setOperator(null);
             }
         }
 

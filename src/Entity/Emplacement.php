@@ -66,7 +66,7 @@ class Emplacement
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="location", orphanRemoval=true)
      */
-    private $mvtInventories;
+    private $entryInventories;
 
     public function __construct()
     {
@@ -75,7 +75,7 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->mvtInventories = new ArrayCollection();
+        $this->entryInventories = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -294,28 +294,28 @@ class Emplacement
     /**
      * @return Collection|EntryInventory[]
      */
-    public function getMvtInventories(): Collection
+    public function getEntryInventories(): Collection
     {
-        return $this->mvtInventories;
+        return $this->entryInventories;
     }
 
-    public function addMvtInventory(EntryInventory $mvtInventory): self
+    public function addEntryInventory(EntryInventory $entryInventory): self
     {
-        if (!$this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories[] = $mvtInventory;
-            $mvtInventory->setLocation($this);
+        if (!$this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories[] = $entryInventory;
+            $entryInventory->setLocation($this);
         }
 
         return $this;
     }
 
-    public function removeMvtInventory(EntryInventory $mvtInventory): self
+    public function removeEntryInventory(EntryInventory $entryInventory): self
     {
-        if ($this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories->removeElement($mvtInventory);
+        if ($this->entryInventories->contains($entryInventory)) {
+            $this->entryInventories->removeElement($entryInventory);
             // set the owning side to null (unless already changed)
-            if ($mvtInventory->getLocation() === $this) {
-                $mvtInventory->setLocation(null);
+            if ($entryInventory->getLocation() === $this) {
+                $entryInventory->setLocation(null);
             }
         }
 

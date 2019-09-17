@@ -22,17 +22,17 @@ class EntryInventory
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mvtInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="entryInventories")
      */
     private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="mvtInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="entryInventories")
      */
     private $article;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="mvtInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="entryInventories")
      * @ORM\JoinColumn(nullable=false)
      */
     private $operator;
@@ -43,7 +43,7 @@ class EntryInventory
     private $quantity;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="mvtInventories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="entryInventories")
      * @ORM\JoinColumn(nullable=false)
      */
     private $location;

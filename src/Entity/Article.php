@@ -114,9 +114,9 @@ class Article
     private $category;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="article")
+     * @ORM\OneToMany(targetEntity="App\Entity\EntryInventory", mappedBy="article")
      */
-    private $mvtInventories;
+    private $entryInventories;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\HistoryCategory", mappedBy="article")
@@ -135,7 +135,7 @@ class Article
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
-        $this->mvtInventories = new ArrayCollection();
+        $this->entryInventories = new ArrayCollection();
         $this->historyCategories = new ArrayCollection();
         $this->missionInvs = new ArrayCollection();
     }
@@ -424,30 +424,30 @@ class Article
     }
 
 	/**
-	 * @return Collection|MvtInventory[]
+	 * @return Collection|EntryInventory[]
 	 */
-	public function getMvtInventories(): Collection
+	public function getEntryInventories(): Collection
 	{
-		return $this->mvtInventories;
+		return $this->entryInventories;
 	}
 
-	public function addMvtInventory(MvtInventory $mvtInventory): self
+	public function addEntryInventory(EntryInventory $entryInventory): self
 	{
-		if (!$this->mvtInventories->contains($mvtInventory)) {
-			$this->mvtInventories[] = $mvtInventory;
-			$mvtInventory->setArticle($this);
+		if (!$this->entryInventories->contains($entryInventory)) {
+			$this->entryInventories[] = $entryInventory;
+			$entryInventory->setArticle($this);
 		}
 
 		return $this;
 	}
 
-	public function removeMvtInventory(MvtInventory $mvtInventory): self
+	public function removeEntryInventory(EntryInventory $entryInventory): self
 	{
-		if ($this->mvtInventories->contains($mvtInventory)) {
-			$this->mvtInventories->removeElement($mvtInventory);
+		if ($this->entryInventories->contains($entryInventory)) {
+			$this->entryInventories->removeElement($entryInventory);
 			// set the owning side to null (unless already changed)
-			if ($mvtInventory->getArticle() === $this) {
-				$mvtInventory->setArticle(null);
+			if ($entryInventory->getArticle() === $this) {
+				$entryInventory->setArticle(null);
 			}
 		}
 
