@@ -295,13 +295,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$numberOfRowsInserted++;
 
 						$emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
-						/** @var Emplacement $emplacement */
 
 						if ($emplacement) {
 
 							$isDepose = $type === MouvementTraca::TYPE_DEPOSE;
-							$colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
-							/**@var Colis $colis */
+							$colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
 							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
 							    $fournisseur = $this->fournisseurRepository->findOneByColis($colis);

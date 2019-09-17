@@ -41,7 +41,7 @@
       display: none
       list-style-type: none
       background-color: $red
-      width: 200px
+      width: 250px
       position: absolute
       top: 0
       left: 100%
@@ -55,6 +55,26 @@
         &:hover
           color: $greyDark
           background-color: $grey
+      .sub-sub-item
+        display: none
+        background-color: $greyDark
+        &:hover
+          color: $greyDark
+          background-color: $grey
+      .sub-item:hover
+        .sub-sub-item
+          display: block
+          padding-top: 10px
+          padding-bottom: 10px
+          padding-left: 30px
+      .has-subitems
+        padding: 10px 0
+        .sub-item-title
+          padding: 10px 18px
+        &:hover
+          background-color: $red
+          color: white
+
   h4
     font-size: 16px
     font-weight: 700

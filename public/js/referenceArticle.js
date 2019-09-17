@@ -6,29 +6,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
     });
 }
 
-function submitActionRefArticle(modal, path, callback = function () { }, close = true) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            $('.errorMessage').html(JSON.parse(this.responseText))
-            data = JSON.parse(this.responseText);
-            if (data.new) {
-                tableRefArticle.row.add(data.new).draw(false);
-            } else if (data.delete) {
-                tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
-            } else if (data.edit) {
-                tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
-                tableRefArticle.row.add(data.edit).draw(false);
-            }
-            callback(data, modal);
-            initRemove();
-            clearModalRefArticle(modal, data);
-
-        } else if (this.readyState == 4 && this.status == 250) {
-            $('#cannotDeleteArticle').click();
-        }
-    };
-
+function submitActionRefArticle(modal, path, callback = null, close = true) {
     if (path === Routing.generate('save_column_visible', true)) {
         tableColumnVisible.search('').draw()
     }
@@ -37,27 +15,39 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
 
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
-        if (close == true) {
-            modal.find('.close').click();
-        }
+        if (close == true) modal.find('.close').click();
+
+        $.post(path, JSON.stringify(Data), function(data) {
+
+            if (data.new) {
+                tableRefArticle.row.add(data.new).draw(false);
+            } else if (data.delete) {
+                tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+            } else if (data.edit) {
+                tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                tableRefArticle.row.add(data.edit).draw(false);
+            }
+            if (callback !== null) callback(data, modal);
+
+            initRemove();
+            clearModalRefArticle(modal, data);
+        });
+
         modal.find('.error-msg').html('');
-        Json = {};
-        Json = JSON.stringify(Data);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
+
     } else {
         // ... sinon on construit les messages d'erreur
         let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
+
 }
 
 function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
     let msg = '';
-    console.log(doublonRef);
 
     if(doublonRef ){
-        msg+= 'Il n\'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>'
+        msg+= "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
     }
 
     // cas où il manque des champs obligatoires
@@ -141,7 +131,7 @@ function getDataFromModal(modal) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }
@@ -219,7 +209,7 @@ InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVis
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
-let urlNewFilter = Routing.generate('filter_new', true);
+let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
 let url = Routing.generate('ref_article_api', true);
@@ -350,7 +340,7 @@ function initRemove() {
 function removeFilter() {
     $(this).remove();
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function () {
+    $.post(Routing.generate('filter_ref_delete', true), params, function () {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });

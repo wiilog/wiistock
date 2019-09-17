@@ -28,7 +28,7 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
 		$i = 0;
 		dump(count($doublons) . ' références en doublon.');
 
-		foreach ($doublons as $doublon) { /** @var Article $doublon */
+		foreach ($doublons as $doublon) {
 			$refArray = explode('-', $doublon->getReference());
 			$newRef = $refArray[0] . '-' . $i;
 			$doublon->setReference($newRef);

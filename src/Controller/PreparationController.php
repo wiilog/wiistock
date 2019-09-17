@@ -264,14 +264,14 @@ class PreparationController extends AbstractController
             if ($demande) {
                 $rows = [];
 
-                $lignesArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
+                $lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
                 foreach ($lignesArticles as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
                     $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                        $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                        $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
-                    /** @var $ligneArticle LigneArticle */
+
                     $rows[] = [
                         "Référence" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
@@ -284,9 +284,8 @@ class PreparationController extends AbstractController
                     ];
                 }
 
-                $articles = $this->articleRepository->getByDemande($demande);
+                $articles = $this->articleRepository->findByDemande($demande);
                 foreach ($articles as $ligneArticle) {
-                    /** @var Article $ligneArticle */
                     $rows[] = [
                         "Référence" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',

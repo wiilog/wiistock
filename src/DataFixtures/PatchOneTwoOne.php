@@ -2,10 +2,10 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\ChampsLibre;
-use App\Repository\ChampsLibreRepository;
+use App\Entity\ChampLibre;
+use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -18,12 +18,12 @@ class PatchOneTwoOne extends Fixture implements FixtureGroupInterface
 	private $encoder;
 
 	/**
-	 * @var ChampsLibreRepository
+	 * @var ChampLibreRepository
 	 */
 	private $champLibreRepository;
 
 	/**
-	 * @var ValeurChampsLibreRepository
+	 * @var ValeurChampLibreRepository
 	 */
 	private $valeurChampLibreRepository;
 
@@ -33,7 +33,7 @@ class PatchOneTwoOne extends Fixture implements FixtureGroupInterface
 	private $typeRepository;
 
 
-	public function __construct(TypeRepository $typeRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, ChampsLibreRepository $champLibreRepository, UserPasswordEncoderInterface $encoder)
+	public function __construct(TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, UserPasswordEncoderInterface $encoder)
 	{
 		$this->encoder = $encoder;
 		$this->champLibreRepository = $champLibreRepository;
@@ -54,7 +54,7 @@ class PatchOneTwoOne extends Fixture implements FixtureGroupInterface
 				return;
 			}
 
-			$champLibre->setTypage(ChampsLibre::TYPE_LIST);
+			$champLibre->setTypage(ChampLibre::TYPE_LIST);
 
 			$valeursChampsLibresMachine = $this->valeurChampLibreRepository->findBy(['champLibre' => $champLibre->getId()]);
 			$elements = [];

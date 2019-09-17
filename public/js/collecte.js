@@ -93,8 +93,32 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Quantité', 'title': 'Quantité'},
         {"data": 'Actions', 'title': 'Actions'}
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = table.column('Création:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
 
 let modal = $("#modalNewArticle");
 let submit = $("#submitNewArticle");
@@ -110,6 +134,30 @@ let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+
+let $submitSearchCollecte = $('#submitSearchCollecte');
+
+// applique les filtres si pré-remplis
+$(function() {
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchCollecte.click();
+    }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_DEM_COLLECTE);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchCollecte.click();
+    }, 'json');
+});
 
 function ajaxGetCollecteArticle(select) {
     let $selection = $('#selection');
@@ -165,12 +213,15 @@ function initNewCollecteEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
-$('#submitSearchCollecte').on('click', function () {
+$submitSearchCollecte.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     let demandeurPiped = demandeurString.split(',').join('|')
+    let type = $('#type').val();
+    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
 
     table
         .columns('Statut:name')
@@ -187,46 +238,8 @@ $('#submitSearchCollecte').on('click', function () {
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = table.column('Création:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-    table
-        .draw();
+    table.draw();
 });
-
-// function destinationCollecte(button) {
-//     let sel = $(button).data('title');
-//     let tog = $(button).data('toggle');
-//     if ($(button).hasClass('not-active')) {
-//         if ($("#destination").val() == "0") {
-//             $("#destination").val("1");
-//         } else {
-//             $("#destination").val("0");
-//         }
-//     }
-//
-//     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-//     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-// }
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({id: collecteId});
@@ -247,7 +260,6 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
-                // toggleRequiredChampsLibres($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor('.editor-container-edit');
             } else {
@@ -261,9 +273,9 @@ let ajaxEditArticle = function (select) {
     xhttp.send(JSON.stringify(json));
 }
 
-$('#submitSearchCollecte').on('keypress', function (e) {
+//TODO MH utilisé ?
+$submitSearchCollecte.on('keypress', function (e) {
     if (e.which === 13) {
-        $('#submitSearchCollecte').click();
+        $submitSearchCollecte.click();
     }
 });
-

@@ -200,14 +200,13 @@ class OrdreCollecteController extends AbstractController
             }
 
             // on modifie la quantité des articles de référence liés à la collecte
-            $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
+            $ligneArticles = $this->collecteReferenceRepository->findByCollecte($collecte->getDemandeCollecte());
 
             $addToStock = $demandeCollecte->getStockOrDestruct();
 
             // cas de mise en stockage
             if ($addToStock) {
                 foreach ($ligneArticles as $ligneArticle) {
-                    /** @var  CollecteReference $ligneArticle */
                     $refArticle = $ligneArticle->getReferenceArticle();
                     $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
                 }
@@ -244,9 +243,8 @@ class OrdreCollecteController extends AbstractController
             if ($demande) {
                 $rows = [];
 
-                $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
+                $ligneArticle = $this->collecteReferenceRepository->findByCollecte($demande->getId());
                 foreach ($ligneArticle as $ligneArticle) {
-                    /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
 
                     $rows[] = [
@@ -262,9 +260,8 @@ class OrdreCollecteController extends AbstractController
                     ];
                 }
 
-                $articles = $this->articleRepository->getByCollecte($demande->getId());
+                $articles = $this->articleRepository->findByCollecteId($demande->getId());
                 foreach ($articles as $article) {
-                    /** @var Article $article */
                     $rows[] = [
                         'Référence' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         'Libellé' => $article->getLabel(),
@@ -323,7 +320,7 @@ class OrdreCollecteController extends AbstractController
      */
     public function apiEditArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -369,7 +366,7 @@ class OrdreCollecteController extends AbstractController
 
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }

@@ -85,6 +85,31 @@ let tableDemande = $('#table_demande').DataTable({
     ],
 });
 
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableDemande.column('Date:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 // recherche par défaut demandeur = utilisateur courant
 // let demandeur = $('.current-username').val();
 // if (demandeur !== undefined) {
@@ -111,6 +136,8 @@ let urlEditDemande = Routing.generate('demande_edit', true);
 let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
+
+let $submitSearchDemandeLivraison = $('#submitSearchDemandeLivraison');
 
 function getCompareStock(submit) {
 
@@ -147,47 +174,29 @@ function setMaxQuantity(select) {
     }, 'json');
 }
 
+// applique les filtres si pré-remplis
+$(function() {
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchDemandeLivraison.click();
+    }
 
-$('.ajax-autocomplete').select2({
-    ajax: {
-        url: Routing.generate('get_ref_articles'),
-        dataType: 'json',
-        delay: 250,
-    },
-    language: {
-        inputTooShort: function () {
-            return 'Veuillez entrer au moins 1 caractère.';
-        },
-        searching: function () {
-            return 'Recherche en cours...';
-        },
-        noResults: function () {
-            return 'Aucun résultat.';
-        }
-    },
-    minimumInputLength: 1,
-});
-
-
-let ajaxAuto = function () {
-
-    $('.ajax-autocomplete').select2({
-        ajax: {
-            url: Routing.generate('get_ref_articles'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_DEM_LIVRAISON);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
             }
-        },
-        minimumInputLength: 1,
-    });
-}
+        });
+        if (data.length > 0)$submitSearchDemandeLivraison.click();
+    }, 'json');
+
+    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
+});
 
 let editorNewLivraisonAlreadyDone = false;
 
@@ -199,12 +208,17 @@ function initNewLivraisonEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
-$('#submitSearchDemandeLivraison').on('click', function () {
+$submitSearchDemandeLivraison.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
+
     tableDemande
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
@@ -220,30 +234,7 @@ $('#submitSearchDemandeLivraison').on('click', function () {
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = tableDemande.column('Date:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-    tableDemande
-        .draw();
+    tableDemande.draw();
 });
 
 function ajaxGetAndFillArticle(select) {
@@ -302,28 +293,23 @@ function validateLivraison(livraisonId, elem) {
 }
 
 let ajaxEditArticle = function (select) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('#editNewArticle').html(dataReponse);
-                let quantityToTake = $('#quantityToTake');
-                let valMax = $('#quantite').val();
-
-                let attrMax = quantityToTake.find('input').attr('max');
-                if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
-                quantityToTake.removeClass('d-none');
-                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    let json = {id: select.val(), isADemand: 1};
     let path = Routing.generate('article_api_edit', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+    let params = {id: select.val(), isADemand: 1};
+
+    $.post(path, JSON.stringify(params), function(data) {
+        if (data) {
+            $('#editNewArticle').html(data);
+            let quantityToTake = $('#quantityToTake');
+            let valMax = $('#quantite').val();
+
+            let attrMax = quantityToTake.find('input').attr('max');
+            if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
+            quantityToTake.removeClass('d-none');
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        } else {
+            //TODO gérer erreur
+        }
+    });
 }
 
 let generateCSVDemande = function () {
@@ -384,10 +370,8 @@ function checkZero(data) {
     return data;
 }
 
-$('#submitSearchDemandeLivraison').on('keypress', function (e) {
+$submitSearchDemandeLivraison.on('keypress', function (e) {
     if (e.which === 13) {
-        $('#submitSearchDemandeLivraison').click();
+        $submitSearchDemandeLivraison.click();
     }
 });
-
-

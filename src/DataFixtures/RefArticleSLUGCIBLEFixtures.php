@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
@@ -17,9 +17,9 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -33,9 +33,9 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -58,10 +58,10 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -149,9 +149,9 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
             ];
 
             foreach($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typeSlugcible->getLabel() . ')';
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);
                 } else {

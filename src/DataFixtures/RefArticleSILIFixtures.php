@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -31,9 +31,9 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -65,10 +65,10 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
      */
     private $articleFournisseurRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -137,7 +137,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             ];
 
             foreach ($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typeSili->getLabel() . ')';
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {

@@ -16,7 +16,12 @@
 
     {% for champLibre in champsLibres %}
     <div class="col-6">
-        <p><strong>{{ champLibre.label|capitalize }} :</strong> {{ champLibre.valeur }}</p>
+        {% if champLibre.typage == 'booleen' %}
+            {% set value = (champLibre.valeur == 1) ? 'oui' : 'non' %}
+        {% else %}
+            {% set value = champLibre.valeur %}
+        {% endif %}
+        <p><strong>{{ champLibre.label|capitalize }} :</strong> {{ value }}</p>
     </div>
     {% endfor %}
 

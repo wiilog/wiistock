@@ -2,22 +2,21 @@
 
 namespace App\Controller;
 
+use App\Repository\AlerteExpiryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\SeuilAlerteService;
 
 use App\Repository\EmplacementRepository;
-use App\Repository\AlerteRepository;
+use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\ServiceRepository;
+use App\Repository\ManutentionRepository;
 
 use App\Entity\Collecte;
-use App\Entity\Livraison;
 use App\Entity\Demande;
-use App\Entity\Service;
+use App\Entity\Manutention;
 
 /**
  * @Route("/accueil")
@@ -25,9 +24,9 @@ use App\Entity\Service;
 class AccueilController extends AbstractController
 {
     /**
-     * @var AlerteRepository
+     * @var AlerteStockRepository
      */
-    private $alerteRepository;
+    private $alerteStockRepository;
 
     /**
      * @var CollecteRepository
@@ -40,11 +39,6 @@ class AccueilController extends AbstractController
     private $statutRepository;
 
     /**
-     * @var SeuilAlerteServic
-     */
-    private $seuilAlerteService;
-
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
@@ -55,19 +49,24 @@ class AccueilController extends AbstractController
     private $demandeRepository;
 
     /**
-     * @var ServiceRepository
+     * @var ManutentionRepository
      */
-    private $serviceRepository;
+    private $manutentionRepository;
 
-    public function __construct(ServiceRepository $serviceRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+	/**
+	 * @var AlerteExpiryRepository
+	 */
+    private $alerteExpiryRepository;
+
+    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->alerteRepository = $alerteRepository;
+        $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->seuilAlerteService = $seuilAlerteService;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->serviceRepository = $serviceRepository;
+        $this->manutentionRepository = $manutentionRepository;
+        $this->alerteExpiryRepository = $alerteExpiryRepository;
     }
 
     /**
@@ -75,7 +74,10 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
+    	$nbAlertsSecurity = $this->alerteStockRepository->countAlertsSecurityActive();
+    	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
+    	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
+			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -86,11 +88,13 @@ class AccueilController extends AbstractController
         $statutDemandeP = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE);
         $nbrDemandeLivraisonP = $this->demandeRepository->countByStatut($statutDemandeP);
 
-        $statutServiceAT = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
-        $nbrDemandeManutentionAT = $this->serviceRepository->countByStatut($statutServiceAT);
+        $statutManutAT = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+        $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
         return $this->render('accueil/index.html.twig', [
-            'nbAlerte' => $nbAlerte,
+            'nbAlerts' => $nbAlerts,
+            'nbAlertsSecurity' => $nbAlertsSecurity,
+            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

@@ -105,7 +105,7 @@ class FournisseurController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -127,7 +127,7 @@ class FournisseurController extends AbstractController
      */
     public function apiEdit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -146,7 +146,7 @@ class FournisseurController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -154,7 +154,7 @@ class FournisseurController extends AbstractController
             $fournisseur = $this->fournisseurRepository->find($data['id']);
             $fournisseur
                 ->setNom($data['nom'])
-                ->setCodeReference($data['CodeReference']);
+                ->setCodeReference($data['codeReference']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();
@@ -205,7 +205,7 @@ class FournisseurController extends AbstractController
     	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
     	if ($receptions > 0) $usedBy[] = 'réceptions';
 
-		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
 		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
 
 		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
@@ -223,7 +223,7 @@ class FournisseurController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }

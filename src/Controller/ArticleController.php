@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -12,7 +11,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
-use App\Repository\FilterRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -20,8 +18,8 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\ValeurChampsLibreRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -44,14 +42,14 @@ class ArticleController extends Controller
 {
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -128,12 +126,12 @@ class ArticleController extends Controller
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -159,7 +157,7 @@ class ArticleController extends Controller
         }
 
         return $this->render('article/index.html.twig', [
-            'valeurChampsLibre' => null,
+            'valeurChampLibre' => null,
 //            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
         ]);
     }
@@ -196,10 +194,10 @@ class ArticleController extends Controller
             $typeArticle = $refArticle->getType();
             $typeArticleLabel = $typeArticle->getLabel();
 
-            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $champsLibres = [];
             foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+                $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
@@ -241,7 +239,7 @@ class ArticleController extends Controller
      */
     public function editApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $article = $this->articleRepository->find((int)$data['id']);
             if ($article) {
@@ -260,7 +258,7 @@ class ArticleController extends Controller
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = $this->articleDataService->newArticle($data);
 
             return new JsonResponse($response);
@@ -273,7 +271,7 @@ class ArticleController extends Controller
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($data['article']) {
                 $this->articleDataService->editArticle($data);
                 $json = true;
@@ -290,16 +288,21 @@ class ArticleController extends Controller
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
-                return new JsonResponse(false, 250);
-            }
+
+			// on vérifie que l'article n'est plus utilisé
+			$articleIsUsed = $this->isArticleUsed($article);
+
+			if ($articleIsUsed) {
+				return new JsonResponse(false);
+			}
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
@@ -309,6 +312,44 @@ class ArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/verification", name="article_check_delete", options={"expose"=true})
+	 */
+	public function checkArticleCanBeDeleted(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$article = $this->articleRepository->find($articleId);
+			$articleIsUsed = $this->isArticleUsed($article);
+
+			if (!$articleIsUsed) {
+				$delete = true;
+				$html = $this->renderView('article/modalDeleteArticleRight.html.twig');
+			} else {
+				$delete = false;
+				$html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
+			}
+
+			return new JsonResponse(['delete' => $delete, 'html' => $html]);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @param Article $article
+	 * @return bool
+	 */
+	private function isArticleUsed($article)
+	{
+		if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+			return true;
+		}
+		return false;
+	}
 
     /**
      * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})
@@ -374,7 +415,7 @@ class ArticleController extends Controller
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'valeurChampsLibre' => null,
+                    'valeurChampLibre' => null,
 //                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
                 ]);
             } else {
@@ -394,6 +435,7 @@ class ArticleController extends Controller
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $articleFournisseur = $this->articleFournisseurRepository
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
+
             if (count($articleFournisseur) === 0) {
                 $json =  [
                     'error' => 'Aucune référence fournisseur trouvée.'
@@ -401,7 +443,7 @@ class ArticleController extends Controller
             } elseif (count($articleFournisseur) > 0) {
                 $typeArticle = $refArticle->getType();
 
-                $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
                 $json = [
                     'content' => $this->renderView(
                         'article/modalNewArticleContent.html.twig',
@@ -514,7 +556,7 @@ class ArticleController extends Controller
             $data = [];
             $data['values'] = [];
             $headersCL = [];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
@@ -536,7 +578,7 @@ class ArticleController extends Controller
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
             $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement'];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
             return new JsonResponse($data);
@@ -545,26 +587,26 @@ class ArticleController extends Controller
     }
 
 	/**
-	 * @param Article $ref
+	 * @param Article $article
 	 * @param array $listTypes
 	 * @param $headers
 	 * @return string
 	 */
-    public function buildInfos(Article $ref, $listTypes, $headers)
+    public function buildInfos(Article $article, $listTypes, $headers)
     {
-        $refData[] = $ref->getReference() ? $ref->getReference() : '';
-        $refData[] = $ref->getLabel() ? $ref->getLabel() : '';
-        $refData[] = $ref->getQuantite() ? $ref->getQuantite() : '';
-        $refData[] = $ref->getType() ? ($ref->getType()->getLabel() ? $ref->getType()->getLabel() : '') : '';
-        $refData[] = $ref->getStatut() ? $ref->getStatut()->getNom() : '';
-        $refData[] = strip_tags($ref->getCommentaire());
-        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $refData[] = $article->getReference() ? $article->getReference() : '';
+        $refData[] = $article->getLabel() ? $article->getLabel() : '';
+        $refData[] = $article->getQuantite() ? $article->getQuantite() : '';
+        $refData[] = $article->getType() ? ($article->getType()->getLabel() ? $article->getType()->getLabel() : '') : '';
+        $refData[] = $article->getStatut() ? $article->getStatut()->getNom() : '';
+        $refData[] = strip_tags($article->getCommentaire());
+        $refData[] = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
         $champsLibres = [];
         foreach ($listTypes as $type) {
 			$typeArticle = $this->typeRepository->find($type['id']);
-            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($ref->getId(), $champLibre);
+                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
             }
         }
@@ -593,7 +635,6 @@ class ArticleController extends Controller
             }
             $articlesString = array_slice($articlesString, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();

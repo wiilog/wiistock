@@ -6,9 +6,9 @@ use App\Entity\Emplacement;
 
 use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -18,14 +18,14 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements FixtureGroupInterface
 {
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -38,17 +38,17 @@ class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements F
     private $emplacementRepository;
 
 
-    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, EmplacementRepository $emplacementRepository, ChampsLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $listAdresses = $this->valeurChampsLibreRepository->getValeurAdresse();
+        $listAdresses = $this->valeurChampLibreRepository->getValeurAdresse();
 
 		foreach($listAdresses as $adresse){
 			if(!$this->emplacementRepository->findOneByLabel($adresse['valeur'])){
@@ -69,7 +69,7 @@ class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements F
             }
         }
 
-        $this->champsLibreRepository->deleteByLabel('adresse');
+        $this->champLibreRepository->deleteByLabel('adresse');
         $manager->flush();
     }
 

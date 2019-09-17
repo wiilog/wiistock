@@ -31,4 +31,19 @@ class ReceptionRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function getLastNumeroByPrefixeAndDate($prefixe, $date)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			'SELECT r.numeroReception as numero
+			FROM App\Entity\Reception r
+			WHERE r.numeroReception LIKE :value
+			ORDER BY r.date DESC'
+		)->setParameter('value', $prefixe . $date . '%');
+
+		$result = $query->execute();
+		return $result ? $result[0]['numero'] : null;
+	}
+
 }

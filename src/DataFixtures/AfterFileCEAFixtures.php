@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
@@ -13,9 +13,9 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 
@@ -34,9 +34,9 @@ class AfterFileCEAFixtures extends Fixture
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -69,7 +69,7 @@ class AfterFileCEAFixtures extends Fixture
     private $articleFournisseurRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
     private $valeurChampLibreRepository;
 
@@ -83,12 +83,12 @@ class AfterFileCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -101,8 +101,8 @@ class AfterFileCEAFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $clCodeProjet = $this->champsLibreRepository->findOneByLabel('code projet');
-        $clDestinataire = $this->champsLibreRepository->findOneByLabel('destinataire');
+        $clCodeProjet = $this->champLibreRepository->findOneByLabel('code projet');
+        $clDestinataire = $this->champLibreRepository->findOneByLabel('destinataire');
         $siliTypeDemande = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, 'sili');
         $path = "src/DataFixtures/demandes.csv";
         $file = fopen($path, "r");
@@ -117,10 +117,10 @@ class AfterFileCEAFixtures extends Fixture
             if (empty($row[0])) continue;
             $demande = $this->demandeRepository->find($row[0]);
             if ($demande->getType() !== $siliTypeDemande) $demande->setType($siliTypeDemande);
-            $valeurChampLibreCP = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $clCodeProjet);
-            $valeurChampLibreDestinataire = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $clDestinataire);
+            $valeurChampLibreCP = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $clCodeProjet);
+            $valeurChampLibreDestinataire = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $clDestinataire);
             if (empty($valeurChampLibreCP)) {
-                $valeurChampLibreCP = new ValeurChampsLibre();
+                $valeurChampLibreCP = new ValeurChampLibre();
                 $manager->persist($valeurChampLibreCP);
             }
 			$valeurChampLibreCP
@@ -129,7 +129,7 @@ class AfterFileCEAFixtures extends Fixture
 				->setChampLibre($clCodeProjet);
 
             if (empty($valeurChampLibreDestinataire)) {
-                $valeurChampLibreDestinataire = new ValeurChampsLibre();
+                $valeurChampLibreDestinataire = new ValeurChampLibre();
                 $manager->persist($valeurChampLibreDestinataire);
             }
 			$valeurChampLibreDestinataire

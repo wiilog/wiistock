@@ -6,7 +6,7 @@ use App\Entity\CategoryType;
 use App\Entity\Type;
 
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
@@ -15,7 +15,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 
@@ -34,9 +34,9 @@ class TransfertDonneesCEAFixtures extends Fixture
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -69,7 +69,7 @@ class TransfertDonneesCEAFixtures extends Fixture
     private $articleFournisseurRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
     private $valeurChampLibreRepository;
 
@@ -83,12 +83,12 @@ class TransfertDonneesCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -102,8 +102,8 @@ class TransfertDonneesCEAFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $siliType = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_SILI);
-        $clCodeProjet = $this->champsLibreRepository->findOneByLabel('code projet');
-        $clDestinataire = $this->champsLibreRepository->findOneByLabel('destinataire');
+        $clCodeProjet = $this->champLibreRepository->findOneByLabel('code projet');
+        $clDestinataire = $this->champLibreRepository->findOneByLabel('destinataire');
         $toPut = 'demande' . ';' . 'numéro' . ';' . 'codeProjet' . ';' . 'destinataire' . PHP_EOL;
         $path = "src/DataFixtures/demandes.csv";
         file_put_contents($path, $toPut);
@@ -113,8 +113,8 @@ class TransfertDonneesCEAFixtures extends Fixture
             if (count($articles) > 0) {
 
                 $article = $articles[0];
-                $valeurCodeProjet = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($clCodeProjet->getId(), $article->getId())->getValeur();
-                $valeurDestinataire = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($clDestinataire->getId(), $article->getId())->getValeur();
+                $valeurCodeProjet = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $clCodeProjet)->getValeur();
+                $valeurDestinataire = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($clDestinataire, $article)->getValeur();
 
                 $specialChars = ['├®', '├¿', '├º', '├á', '├½', '├ë'];
                 $normalChars = ['é', 'è', 'ç', 'à', 'ë', 'É'];

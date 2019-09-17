@@ -41,7 +41,6 @@ class MailerService
     public function sendMail($subject, $content, $to)
     {
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
-        /** @var MailerServer $mailerServer */
         if ($mailerServer) {
             $from = $mailerServer->getUser() ? $mailerServer->getUser() : '';
             $password = $mailerServer->getPassword() ? $mailerServer->getPassword() : '';
@@ -68,7 +67,7 @@ class MailerService
                 }
             }
             $content .= '</p>';
-            $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr', 'matteo.hevin@wiilog.fr'];
+            $to = ['test@wiilog.fr'];
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
