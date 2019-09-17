@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalNewCategorie" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-dialog modal modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Créer une catégorie</h5>
@@ -9,9 +9,26 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="mb-3 form-group">
-                    <label for="label">Nom*</label>
+                    <label for="label">Label*</label>
                     <input type="text" class="data form-control needed" name="label">
                 </div>
+            </div>
+
+            <div class="modal-body container-fluid">
+                <label for="label">Fréquence*</label>
+                <select name="frequency" id="frequencies" class="data form-control needed">
+                    {% for frequency in frequencies %}
+                    <option value="{{ frequency.id }}">{{ frequency.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="modal-body container-fluid">
+                <label class="switch">
+                    <input class="checkbox data" type="checkbox" name="permanent">
+                    <span class="slider round"></span>
+                </label>
+                Permanent
             </div>
 
             <div class="error-msg p-4"></div>
