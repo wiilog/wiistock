@@ -70,9 +70,9 @@ class Statut
     private $referenceArticles;
 
     /** 
-     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="statut")
      */
-    private $services;
+    private $manutentions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
@@ -90,7 +90,7 @@ class Statut
         $this->collectes = new ArrayCollection();
 //        $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->services = new ArrayCollection();
+        $this->manutentions = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
 //        $this->user = new ArrayCollection();
     }
@@ -346,31 +346,31 @@ class Statut
 
 
     /**
-    * @return Collection|Service[]
+    * @return Collection|Manutention[]
      */
-    public function getServices(): Collection
+    public function getManutentions(): Collection
     {
-        return $this->services;
+        return $this->manutentions;
     }
 
-    public function addService(Service $service): self
+    public function addManutention(Manutention $manutention): self
     {
-        if (!$this->services->contains($service)) {
-            $this->services[] = $service;
-            $service->setStatut($this);
+        if (!$this->manutentions->contains($manutention)) {
+            $this->manutentions[] = $manutention;
+            $manutention->setStatut($this);
         }
 
         return $this;
     }
 
 
-    public function removeService(Service $service): self
+    public function removeManutention(Manutention $manutention): self
     {
-        if ($this->services->contains($service)) {
-            $this->services->removeElement($service);
+        if ($this->manutentions->contains($manutention)) {
+            $this->manutentions->removeElement($manutention);
             // set the owning side to null (unless already changed)
-            if ($service->getStatut() === $this) {
-                $service->setStatut(null);
+            if ($manutention->getStatut() === $this) {
+                $manutention->setStatut(null);
             }
         }
 

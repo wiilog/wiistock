@@ -6,12 +6,12 @@
     <h1>Liste des champs libres pour le type {{type.label}} </h1>
 
     <div>
-        <a href="" data-toggle="modal" data-target="#modalNewChampsLibre" class="btn btn-primary" onclick="clearModal('#modalNewChampsLibre')">
+        <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary" onclick="clearModal('#modalNewChampLibre')">
             <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
         </a>
     </div>
    
-    <table id="tableChampslibre_id" class="table table-striped table-bordered" style="width:100%">
+    <table id="tableChamplibre_id" class="table table-striped table-bordered" style="width:100%">
         <thead>
         <tr>
             <th>Label</th>
@@ -31,8 +31,8 @@
     <a href="{{ path('champ_libre_index') }}" class="btn">Retour à la liste</a>
 
 
-    {% include "champ_libre/modalNewChampsLibre.html.twig" %}
-    {% include "champ_libre/modalDeleteChampsLibre.html.twig" %}
+    {% include "champ_libre/modalNewChampLibre.html.twig" %}
+    {% include "champ_libre/modalDeleteChampLibre.html.twig" %}
     {% include "champ_libre/modalEditChampLibre.html.twig" %}
 
     {% endblock %}
@@ -40,5 +40,5 @@
     <script>
         let id = {{type.id}}
     </script>
-    <script src="{{asset('js/champsLibre.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
     {% endblock javascript %}

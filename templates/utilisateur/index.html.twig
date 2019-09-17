@@ -4,7 +4,6 @@
 
 {% block page_content %}
 
-<button class="btn" id="cantDelete" data-target='#modalCannotDeleteUser' data-toggle='modal' hidden></button>
 <h1>Utilisateurs</h1>
 <div>
     <form method="POST" name="role">
@@ -16,24 +15,12 @@
             </div>
             <div class="col-12">
                 <table id="tableUser_id" class="table table-striped table-bordered" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Nom d'utilisateur</th>
-                            <th>Email</th>
-                            <th>Dernière connexion</th>
-                            <th>Rôle</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
                 </table>
             </div>
         </div>
     </form>
 </div>
 
-{% include "utilisateur/modalCannotDelete.html.twig" %}
 {% include "utilisateur/modalDeleteUser.html.twig" %}
 {% include "utilisateur/modalNewUser.html.twig" %}
 {% include "utilisateur/modalEditUser.html.twig" %}

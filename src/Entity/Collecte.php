@@ -85,12 +85,17 @@ class Collecte
 	 */
 	private $mouvements;
 
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="demandesCollecte")
+	 */
+	private $valeurChampLibre;
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -289,6 +294,32 @@ class Collecte
             if ($mouvement->getCollecteOrder() === $this) {
                 $mouvement->setCollecteOrder(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ValeurChampLibre[]
+     */
+    public function getValeurChampLibre(): Collection
+    {
+        return $this->valeurChampLibre;
+    }
+
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
+    {
+        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre[] = $valeurChampLibre;
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
+    {
+        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
 
         return $this;

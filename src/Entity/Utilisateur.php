@@ -77,9 +77,9 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $demandes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteUtilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="user")
      */
-    private $UtilisateurAlertes;
+    private $alertesStock;
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="demandeur")
      */
@@ -105,12 +105,12 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $apiKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="demandeur")
      */
-    private $services;
+    private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="utilisateur", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
 
@@ -169,12 +169,12 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->UtilisateurAlertes = new ArrayCollection();
+        $this->alertesStock = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->services = new ArrayCollection();
+        $this->manutentions = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
@@ -328,27 +328,27 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
     /**
-     * @return Collection|Alerte[]
+     * @return Collection|AlerteStock[]
      */
-    public function getUtilisateurAlertes(): Collection
+    public function getAlertesStock(): Collection
     {
-        return $this->UtilisateurAlertes;
+        return $this->alertesStock;
     }
-    public function addUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function addUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
     {
-        if (!$this->UtilisateurAlertes->contains($utilisateurAlerte)) {
-            $this->UtilisateurAlertes[] = $utilisateurAlerte;
-            $utilisateurAlerte->setAlerteUtilisateur($this);
+        if (!$this->alertesStock->contains($utilisateurAlerte)) {
+            $this->alertesStock[] = $utilisateurAlerte;
+            $utilisateurAlerte->setUser($this);
         }
         return $this;
     }
-    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function removeUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
     {
-        if ($this->UtilisateurAlertes->contains($utilisateurAlerte)) {
-            $this->UtilisateurAlertes->removeElement($utilisateurAlerte);
+        if ($this->alertesStock->contains($utilisateurAlerte)) {
+            $this->alertesStock->removeElement($utilisateurAlerte);
             // set the owning side to null (unless already changed)
-            if ($utilisateurAlerte->getAlerteUtilisateur() === $this) {
-                $utilisateurAlerte->setAlerteUtilisateur(null);
+            if ($utilisateurAlerte->getUser() === $this) {
+                $utilisateurAlerte->setUser(null);
             }
         }
         return $this;
@@ -481,30 +481,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Service[]
+     * @return Collection|Manutention[]
      */
-    public function getServices(): Collection
+    public function getManutentions(): Collection
     {
-        return $this->services;
+        return $this->manutentions;
     }
 
-    public function addService(Service $service): self
+    public function addManutention(Manutention $manutention): self
     {
-        if (!$this->services->contains($service)) {
-            $this->services[] = $service;
-            $service->setDemandeur($this);
+        if (!$this->manutentions->contains($manutention)) {
+            $this->manutentions[] = $manutention;
+            $manutention->setDemandeur($this);
         }
 
         return $this;
     }
 
-    public function removeService(Service $service): self
+    public function removeManutention(Manutention $manutention): self
     {
-        if ($this->services->contains($service)) {
-            $this->services->removeElement($service);
+        if ($this->manutentions->contains($manutention)) {
+            $this->manutentions->removeElement($manutention);
             // set the owning side to null (unless already changed)
-            if ($service->getDemandeur() === $this) {
-                $service->setDemandeur(null);
+            if ($manutention->getDemandeur() === $this) {
+                $manutention->setDemandeur(null);
             }
         }
 
@@ -512,14 +512,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Filter[]
+     * @return Collection|FiltreRef[]
      */
     public function getFilters(): Collection
     {
         return $this->filters;
     }
 
-    public function addFilter(Filter $filter): self
+    public function addFilter(FiltreRef $filter): self
     {
         if (!$this->filters->contains($filter)) {
             $this->filters[] = $filter;
@@ -529,7 +529,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeFilter(Filter $filter): self
+    public function removeFilter(FiltreRef $filter): self
     {
         if ($this->filters->contains($filter)) {
             $this->filters->removeElement($filter);
@@ -742,6 +742,29 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function addAlertesStock(AlerteStock $alertesStock): self
+    {
+        if (!$this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock[] = $alertesStock;
+            $alertesStock->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlertesStock(AlerteStock $alertesStock): self
+    {
+        if ($this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock->removeElement($alertesStock);
+            // set the owning side to null (unless already changed)
+            if ($alertesStock->getUser() === $this) {
+                $alertesStock->setUser(null);
+            }
+        }
 
         return $this;
     }

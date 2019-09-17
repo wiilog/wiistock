@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Type;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
@@ -16,7 +16,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -29,9 +29,9 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FournisseurRepository
@@ -59,10 +59,10 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $emplacementRepository;
 
 
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
@@ -74,117 +74,117 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $listFieldsRefArticlePDT = [
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE']],
-            ['label' => 'zone', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'équipementier', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "réf équipementier", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "machine", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "prix du stock final", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE']],
+            ['label' => 'zone', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'équipementier', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "réf équipementier", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "machine", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "stock mini", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "prix du stock final", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "alerte mini", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampLibre::TYPE_NUMBER],
         ];
         $listFieldsArticlePDT = [
-            ['label' => "prix unitaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "prix unitaire", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampLibre::TYPE_DATE],
         ];
         $listFieldsRefArticleCSP = [
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD']],
-            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "prix du stock final", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD']],
+            ['label' => "stock mini", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "prix du stock final", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "alerte mini", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampLibre::TYPE_NUMBER],
         ];
         $listFieldsArticleCSP = [
-            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "prix unitaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "péremptions", 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "date entrée", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "prix unitaire", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "péremptions", 'type' => ChampLibre::TYPE_DATE],
         ];
         $listFieldsSILI = [
-            ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SILICIUM']],
-            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "projet", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date fin de projet", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "lot", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "sortie", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "jours de péremption", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'diamètre', 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'n° lot autre', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'n° lot Léti', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "projet 3", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
+            ['label' => 'adresse', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['SILICIUM']],
+            ['label' => "alerte mini", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => 'date', 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "projet", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "demandeur", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date fin de projet", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "lot", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "sortie", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "commentaire", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "jours de péremption", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => 'diamètre', 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => 'n° lot autre', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'n° lot Léti', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "projet 3", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "mois de stock", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
         ];
         $listFieldsSILIInt = [
-            ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SIL_INTERNE']],
-            ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => 'diamètre', 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'n° lot autre', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'n° lot Léti', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "projet 3", 'type' => ChampsLibre::TYPE_TEXT],
-//            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12', '13']],
+            ['label' => 'adresse', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['SIL_INTERNE']],
+            ['label' => 'date', 'type' => ChampLibre::TYPE_DATE],
+            ['label' => 'diamètre', 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => 'n° lot autre', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'n° lot Léti', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "demandeur", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "projet 3", 'type' => ChampLibre::TYPE_TEXT],
+//            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "commentaire", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "mois de stock", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12', '13']],
         ];
         $listFieldsSILIExt = [
-            ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SIL_EXTERNE']],
-            ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "projet", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'date fin de projet', 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => 'lot', 'type' => ChampsLibre::TYPE_TEXT],
-//            ['label' => 'sortie', 'type' => ChampsLibre::TYPE_TEXT],
-//            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
-//            ['label' => "jours de péremption", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'adresse', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['SIL_EXTERNE']],
+            ['label' => 'date', 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "projet", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "demandeur", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'date fin de projet', 'type' => ChampLibre::TYPE_DATE],
+            ['label' => 'lot', 'type' => ChampLibre::TYPE_TEXT],
+//            ['label' => 'sortie', 'type' => ChampLibre::TYPE_TEXT],
+//            ['label' => "commentaire", 'type' => ChampLibre::TYPE_TEXT],
+//            ['label' => "jours de péremption", 'type' => ChampLibre::TYPE_NUMBER],
         ];
         $listFieldsMOB = [
-            ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['MOBILIER SB', 'MOBILIER TERTIAIRE']],
-            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'adresse', 'col' => 2, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['MOBILIER SB', 'MOBILIER TERTIAIRE']],
+            ['label' => "stock mini", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "prix unitaire", 'col' => 9, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "prix du stock final", 'col' => 11, 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "alerte mini", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampLibre::TYPE_NUMBER],
         ];
         $listFieldsSLUGCIBLE = [
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CIBLE / SLUGS']],
-            ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'réf équipementier', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'machine', 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'prix unitaire', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => 'prix du stock final', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'famille produit', 'type' => ChampLibre::TYPE_LIST, 'elements' => ['CIBLE / SLUGS']],
+            ['label' => 'zone', 'col' => 5, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'équipementier', 'col' => 6, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'réf équipementier', 'col' => 7, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => 'machine', 'col' => 8, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "stock mini", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampLibre::TYPE_NUMBER],
+            ['label' => 'prix unitaire', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => 'prix du stock final', 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "alerte mini", 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampLibre::TYPE_NUMBER],
         ];
 
         // patch pour champs libres articles -> articles de référence
         $listFieldsRefArticlePDT = [
-            ['label' => "prix unitaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "adresse", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "prix unitaire", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "adresse", 'type' => ChampLibre::TYPE_TEXT],
         ];
 
         $listFieldsRefArticleCSP = [
-            ['label' => "adresse", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "péremptions", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "adresse", 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "prix unitaire", 'col' => 9, 'type' => ChampLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'col' => 10, 'type' => ChampLibre::TYPE_DATE],
+            ['label' => "péremptions", 'col' => 14, 'type' => ChampLibre::TYPE_DATE],
         ];
 
 
@@ -237,17 +237,17 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         $type = $this->typeRepository->findOneBy(['label' => $typeLabel]);
         $label = $field['label'] . ' (' . $type->getLabel() . ')';
 
-        $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+        $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
 
         if (empty($cl)) {
-            $cl = new ChampsLibre();
+            $cl = new ChampLibre();
             $cl
                 ->setLabel($label)
                 ->setTypage($field['type'])
                 ->setCategorieCL($this->categorieCLRepository->findOneByLabel($categorieCLLabel))
                 ->setType($type);
 
-            if ($field['type'] == ChampsLibre::TYPE_LIST) {
+            if ($field['type'] == ChampLibre::TYPE_LIST) {
                 $cl->setElements($field['elements']);
             }
             $manager->persist($cl);

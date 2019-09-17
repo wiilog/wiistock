@@ -5,7 +5,6 @@
 {% block page_content %}
 
 <h1>Articles</h1>
-<button class="btn" id="cannotDeleteArticle" data-target='#modalCannotDeleteArticle' data-toggle='modal' hidden></button>
 <div class='d-flex justify-content-end'>
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
@@ -22,27 +21,16 @@
 <input type="hidden" id="listArticleIdToPrint">
 
 <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-
-    <thead>
-        <tr>
-            <th>Référence</th>
-            <th>Statut</th>
-            <th>Libellé</th>
-            <th>Référence article</th>
-            <th>Quantité</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-
 </table>
-    {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+
+{% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+<input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+
 <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 {% include "article/modalModifyArticle.html.twig" %}
 {% include "article/modalShowArticle.html.twig" %}
 {% include "article/modalNewArticle.html.twig" %}
 {% include "article/modalDeleteArticle.html.twig" %}
-{% include "article/modalCantDeleteArticle.html.twig" %}
 {% include "dimensions_etiquettes/modalNoParamsEtiquettes.html.twig" %}
 <div class="d-none" id="barcodes"></div>
 

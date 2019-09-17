@@ -13,6 +13,24 @@ $('#emplacement').select2({
     }
 });
 
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_MVT_STOCK);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else if (element.field == 'emplacement') {
+                $('#emplacement').val(element.value).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0) $submitSearchMvt.click();
+    }, 'json');
+});
+
 let pathMvt = Routing.generate('mouvement_stock_api', true);
 let tableMvt = $('#tableMvts').DataTable({
     "language": {
@@ -34,66 +52,74 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let emplacement = $('#emplacement').val();
+        if (emplacement !== '') {
+            let originIndex = tableMvt.column('origine:name').index();
+            let destinationIndex = tableMvt.column('destination:name').index();
+            return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
+        } else {
+            return true;
+        }
+    }
+);
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableMvt.column('date:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
-$('#submitSearchMvt').on('click', function () {
-
+let $submitSearchMvt = $('#submitSearchMvt');
+$submitSearchMvt.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let emplacement = $('#emplacement').val();
-    let article = $('#colis').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
+
+    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeurPiped, null, emplacement);
 
     tableMvt
         .columns('type:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
+
     tableMvt
         .columns('operateur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
-    tableMvt
-        .columns('origine:name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('destination.name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refArticle:name')
-        .search(article)
-        .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = tableMvt.column('date:name').index();
-            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-    tableMvt
-        .draw();
+    tableMvt.draw();
 });
 
 function checkZero(data) {

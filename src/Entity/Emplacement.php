@@ -58,6 +58,11 @@ class Emplacement
      */
     private $isDeliveryPoint;
 
+	/**
+	 * @ORM\Column(type="boolean", nullable=false, options={"default":1})
+	 */
+    private $isActive;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MvtInventory", mappedBy="location", orphanRemoval=true)
      */
@@ -66,11 +71,9 @@ class Emplacement
     public function __construct()
     {
         $this->articles = new ArrayCollection();
-        $this->position = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-        $this->mouvements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->mvtInventories = new ArrayCollection();
     }
@@ -203,37 +206,6 @@ class Emplacement
     }
 
     /**
-     * @return Collection|MouvementStock[]
-     */
-    public function getMouvements(): Collection
-    {
-        return $this->mouvements;
-    }
-
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
-            $this->mouvements[] = $mouvement;
-            $mouvement->setEmplacementFrom($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
-            $this->mouvements->removeElement($mouvement);
-            // set the owning side to null (unless already changed)
-            if ($mouvement->getEmplacementFrom() === $this) {
-                $mouvement->setEmplacementFrom(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Article[]
      */
     public function getArticles(): Collection
@@ -303,6 +275,18 @@ class Emplacement
     public function setIsDeliveryPoint(?bool $isDeliveryPoint): self
     {
         $this->isDeliveryPoint = $isDeliveryPoint;
+
+        return $this;
+    }
+
+    public function getIsActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(?bool $isActive): self
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }

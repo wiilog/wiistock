@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -18,7 +19,12 @@ class CollecteReferenceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CollecteReference::class);
     }
-    public function getByCollecte($collecte)
+
+	/**
+	 * @param Collecte|int $collecte
+	 * @return CollecteReference[]|null
+	 */
+    public function findByCollecte($collecte)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

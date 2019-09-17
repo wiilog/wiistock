@@ -85,7 +85,7 @@ class Article
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="article")
      */
     private $valeurChampsLibres;
 
@@ -301,28 +301,28 @@ class Article
         return $this;
     }
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampsLibres(): Collection
     {
         return $this->valeurChampsLibres;
     }
 
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticle($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampLibre;
+            $valeurChampLibre->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticle($this);
+        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampLibre);
+            $valeurChampLibre->removeArticle($this);
         }
 
         return $this;
@@ -403,108 +403,128 @@ class Article
         return $this;
     }
 
-    /**
-     * @return Collection|MvtInventory[]
-     */
-    public function getMvtInventories(): Collection
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
     {
-        return $this->mvtInventories;
-    }
-
-    public function addMvtInventory(MvtInventory $mvtInventory): self
-    {
-        if (!$this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories[] = $mvtInventory;
-            $mvtInventory->setArticle($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removeMvtInventory(MvtInventory $mvtInventory): self
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
     {
-        if ($this->mvtInventories->contains($mvtInventory)) {
-            $this->mvtInventories->removeElement($mvtInventory);
-            // set the owning side to null (unless already changed)
-            if ($mvtInventory->getArticle() === $this) {
-                $mvtInventory->setArticle(null);
-            }
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticle($this);
         }
 
         return $this;
     }
 
-    /**
-     * @return Collection|HistoryCategory[]
-     */
-    public function getHistoryCategories(): Collection
-    {
-        return $this->historyCategories;
-    }
+	/**
+	 * @return Collection|MvtInventory[]
+	 */
+	public function getMvtInventories(): Collection
+	{
+		return $this->mvtInventories;
+	}
 
-    public function addHistoryCategory(HistoryCategory $historyCategory): self
-    {
-        if (!$this->historyCategories->contains($historyCategory)) {
-            $this->historyCategories[] = $historyCategory;
-            $historyCategory->setArticle($this);
-        }
+	public function addMvtInventory(MvtInventory $mvtInventory): self
+	{
+		if (!$this->mvtInventories->contains($mvtInventory)) {
+			$this->mvtInventories[] = $mvtInventory;
+			$mvtInventory->setArticle($this);
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    public function removeHistoryCategory(HistoryCategory $historyCategory): self
-    {
-        if ($this->historyCategories->contains($historyCategory)) {
-            $this->historyCategories->removeElement($historyCategory);
-            // set the owning side to null (unless already changed)
-            if ($historyCategory->getArticle() === $this) {
-                $historyCategory->setArticle(null);
-            }
-        }
+	public function removeMvtInventory(MvtInventory $mvtInventory): self
+	{
+		if ($this->mvtInventories->contains($mvtInventory)) {
+			$this->mvtInventories->removeElement($mvtInventory);
+			// set the owning side to null (unless already changed)
+			if ($mvtInventory->getArticle() === $this) {
+				$mvtInventory->setArticle(null);
+			}
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    /**
-     * @return Collection|MissionInv[]
-     */
-    public function getMissionInvs(): Collection
-    {
-        return $this->missionInvs;
-    }
+	/**
+	 * @return Collection|HistoryCategory[]
+	 */
+	public function getHistoryCategories(): Collection
+	{
+		return $this->historyCategories;
+	}
 
-    public function addMissionInv(MissionInv $missionInv): self
-    {
-        if (!$this->missionInvs->contains($missionInv)) {
-            $this->missionInvs[] = $missionInv;
-            $missionInv->setManyToOne($this);
-        }
+	public function addHistoryCategory(HistoryCategory $historyCategory): self
+	{
+		if (!$this->historyCategories->contains($historyCategory)) {
+			$this->historyCategories[] = $historyCategory;
+			$historyCategory->setArticle($this);
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    public function removeMissionInv(MissionInv $missionInv): self
-    {
-        if ($this->missionInvs->contains($missionInv)) {
-            $this->missionInvs->removeElement($missionInv);
-            // set the owning side to null (unless already changed)
-            if ($missionInv->getManyToOne() === $this) {
-                $missionInv->setManyToOne(null);
-            }
-        }
+	public function removeHistoryCategory(HistoryCategory $historyCategory): self
+	{
+		if ($this->historyCategories->contains($historyCategory)) {
+			$this->historyCategories->removeElement($historyCategory);
+			// set the owning side to null (unless already changed)
+			if ($historyCategory->getArticle() === $this) {
+				$historyCategory->setArticle(null);
+			}
+		}
 
-        return $this;
-    }
+		return $this;
+	}
 
-    public function getCategory(): ?CategoryInv
-    {
-        return $this->category;
-    }
+	/**
+	 * @return Collection|MissionInv[]
+	 */
+	public function getMissionInvs(): Collection
+	{
+		return $this->missionInvs;
+	}
 
-    public function setCategory(?CategoryInv $category): self
-    {
-        $this->category = $category;
+	public function addMissionInv(MissionInv $missionInv): self
+	{
+		if (!$this->missionInvs->contains($missionInv)) {
+			$this->missionInvs[] = $missionInv;
+			$missionInv->setManyToOne($this);
+		}
 
-        return $this;
-    }
+		return $this;
+	}
+
+	public function removeMissionInv(MissionInv $missionInv): self
+	{
+		if ($this->missionInvs->contains($missionInv)) {
+			$this->missionInvs->removeElement($missionInv);
+			// set the owning side to null (unless already changed)
+			if ($missionInv->getManyToOne() === $this) {
+				$missionInv->setManyToOne(null);
+			}
+		}
+
+		return $this;
+	}
+
+	public function getCategory(): ?CategoryInv
+	{
+		return $this->category;
+	}
+
+	public function setCategory(?CategoryInv $category): self
+	{
+		$this->category = $category;
+
+		return $this;
+	}
 }

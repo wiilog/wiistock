@@ -5,8 +5,8 @@
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
-    <div onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
-         data-target='#modalDeleteUser' data-toggle='modal' data-id='{{ idUser }}'>
+    <div onclick="checkAndDeleteRow($(this), '#modalDeleteUser', 'user_check_delete', '#submitDeleteUser')"
+         data-id='{{ idUser }}' data-target='#modalDeleteUser' data-toggle='modal'>
         <div class="btn btn-col-action">
             <i class='fas fa-trash'></i>
         </div>
