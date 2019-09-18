@@ -121,7 +121,7 @@ class UserService
 
     public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES, $user = null)
     {
-        if (!$user) $user = $this->user();
+        if (!$user) $user = $this->user;
 
         $role = $this->getUserRole($user);
 		$actions = $role ? $role->getActions() : [];
