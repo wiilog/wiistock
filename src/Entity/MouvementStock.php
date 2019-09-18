@@ -82,9 +82,11 @@ class MouvementStock
 	 */
 	private $preparationOrder;
 
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+	private $comment;
 
-    public function __construct()
-    {}
 
     public function getId(): ?int
     {
@@ -231,6 +233,18 @@ class MouvementStock
     public function setEmplacementTo(?Emplacement $emplacementTo): self
     {
         $this->emplacementTo = $emplacementTo;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
 
         return $this;
     }

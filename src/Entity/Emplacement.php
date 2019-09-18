@@ -285,4 +285,5 @@ class Emplacement
 
         return $this;
     }
+
 }
