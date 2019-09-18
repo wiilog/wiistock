@@ -17,8 +17,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Entity\InventoryCategory;
-use App\Entity\InventoryFrequency;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
@@ -249,7 +247,7 @@ class RefArticleDataService
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
-        $categori = $this->inventoryCategoryRepository->findAll();
+        $categories = $this->inventoryCategoryRepository->findAll();
         $typeChampLibre =  [];
         foreach ($types as $type) {
             $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -281,7 +279,7 @@ class RefArticleDataService
             'articlesFournisseur' => ($data['listArticlesFournisseur']),
             'totalQuantity' => $data['totalQuantity'],
             'articles' => $articlesFournisseur,
-            'categories' => $categori,
+            'categories' => $categories,
             'isADemand' => $isADemand
         ]);
         return $view;
@@ -301,7 +299,7 @@ class RefArticleDataService
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
-        $categori = $this->inventoryCategoryRepository->find($data['categorie']);
+        $category = $this->inventoryCategoryRepository->find($data['categorie']);
         $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
@@ -329,7 +327,7 @@ class RefArticleDataService
                         $entityManager->persist($articleFournisseur);
                     }
                 }
-                if (isset($data['categorie'])) $refArticle->setCategory($categori);
+                if (isset($data['categorie'])) $refArticle->setCategory($category);
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);

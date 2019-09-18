@@ -373,14 +373,14 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
-            $categori = $this->inventoryCategoryRepository->find($data['categorie']);
+            $category = $this->inventoryCategoryRepository->find($data['categorie']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
                 ->setType($type)
-                ->setCategory($categori)
+                ->setCategory($category)
                 ->setEmplacement($emplacement);
 
             if ($statut) $refArticle->setStatut($statut);
