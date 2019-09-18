@@ -33,10 +33,16 @@ class InventoryMission
      */
     private $refArticles;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="mission")
+	 */
+    private $entries;
+
 
     public function __construct()
     {
         $this->refArticles = new ArrayCollection();
+        $this->entries = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -89,6 +95,37 @@ class InventoryMission
     {
         if ($this->refArticle->contains($refArticle)) {
             $this->refArticle->removeElement($refArticle);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getEntries(): Collection
+    {
+        return $this->entries;
+    }
+
+    public function addEntry(InventoryEntry $entry): self
+    {
+        if (!$this->entries->contains($entry)) {
+            $this->entries[] = $entry;
+            $entry->setMission($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEntry(InventoryEntry $entry): self
+    {
+        if ($this->entries->contains($entry)) {
+            $this->entries->removeElement($entry);
+            // set the owning side to null (unless already changed)
+            if ($entry->getMission() === $this) {
+                $entry->setMission(null);
+            }
         }
 
         return $this;
