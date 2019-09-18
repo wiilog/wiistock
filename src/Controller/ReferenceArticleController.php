@@ -20,6 +20,8 @@ use App\Entity\Collecte;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\InventoryCategoryRepository;
+use App\Repository\InventoryFrequencyRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -174,11 +176,21 @@ class ReferenceArticleController extends Controller
     private $dimensionsEtiquettesRepository;
 
     /**
+     * @var InventoryFrequencyRepository
+     */
+    private $inventoryFrequencyRepository;
+
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
+
+    /**
      * @var object|string
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -203,6 +215,8 @@ class ReferenceArticleController extends Controller
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
+        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
@@ -359,12 +373,14 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
+            $categori = $this->inventoryCategoryRepository->find($data['categorie']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
                 ->setType($type)
+                ->setCategory($categori)
                 ->setEmplacement($emplacement);
 
             if ($statut) $refArticle->setStatut($statut);
@@ -557,6 +573,7 @@ class ReferenceArticleController extends Controller
 		});
 
         $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $inventoryCategories = $this->inventoryCategoryRepository->findAll();
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
@@ -580,6 +597,7 @@ class ReferenceArticleController extends Controller
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
+            'categories' => $inventoryCategories,
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
