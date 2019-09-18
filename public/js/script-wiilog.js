@@ -521,8 +521,8 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
-function displayError(modal, msg, data) {
-    if (data === false) {
+function displayError(modal, msg, success) {
+    if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
         modal.find('.close').click();
