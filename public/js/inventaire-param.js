@@ -30,6 +30,11 @@ let SubmitDeleteCategory = $("#submitDeleteCategory");
 let urlDeleteCategory = Routing.generate('category_delete', true)
 InitialiserModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, tableCategories);
 
+let ModalDeleteFrequency = $("#modalNewFrequency");
+let SubmitDeleteFrequency = $("#submitNewFrequency");
+let urlDeleteFrequency = Routing.generate('frequency_new', true)
+InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, null, displayErrorFrequency, false);
+
 function displayErrorCategorie(data) {
     let modal = $("#modalNewCategorie");
     let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
@@ -39,5 +44,11 @@ function displayErrorCategorie(data) {
 function displayErrorCategorieEdit(data) {
     let modal = $("#modalEditCategory");
     let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    displayError(modal, msg, data);
+}
+
+function displayErrorFrequency(data) {
+    let modal = $("#modalNewFrequency");
+    let msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }

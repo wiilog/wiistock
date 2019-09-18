@@ -27,7 +27,7 @@ use App\Entity\ReferenceArticle;
 /**
  * @Route("/parametres_inventaire")
  */
-class InventaireParamController extends AbstractController
+class InventoryParamController extends AbstractController
 {
     /**
      * @var UserService
@@ -256,6 +256,38 @@ class InventaireParamController extends AbstractController
             $entityManager->remove($category);
             $entityManager->flush();
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/creer-frequence", name="frequency_new", options={"expose"=true}, methods="GET|POST")
+     */
+    public function newFrequency(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getEntityManager();
+
+            // on vérifie que le label n'est pas déjà utilisé
+            $labelExist = $this->inventoryFrequencyRepository->countByLabel($data['label']);
+
+            if (!$labelExist) {
+
+                $frequency = new InventoryFrequency();
+                $frequency
+                    ->setLabel($data['label'])
+                    ->setNbMonths($data['nbMonths']);
+
+                $em->persist($frequency);
+                $em->flush();
+                return new JsonResponse();
+            } else {
+                return new JsonResponse(false);
+            }
         }
         throw new NotFoundHttpException('404');
     }
