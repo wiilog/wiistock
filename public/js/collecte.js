@@ -254,23 +254,14 @@ function validateCollecte(collecteId) {
 }
 
 let ajaxEditArticle = function (select) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('#editNewArticle').html(dataReponse);
-                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor('.editor-container-edit');
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    let json = {id: select.val(), isADemand: 1};
     let path = Routing.generate('article_api_edit', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+    let params = {id: select.val(), isADemand: 1};
+
+    $.post(path, JSON.stringify(params), function(data) {
+        $('#editNewArticle').html(data);
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        initEditor('.editor-container-edit');
+    }, 'json');
 }
 
 //TODO MH utilisé ?
