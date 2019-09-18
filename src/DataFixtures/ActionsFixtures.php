@@ -148,6 +148,29 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
+        // actions de type lister
+        $menus = [
+            Menu::INVENTAIRE
+        ];
+
+        $actionLabels = [Action::LIST];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
+            }
+        }
+
         $manager->flush();
     }
 
