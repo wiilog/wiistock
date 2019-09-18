@@ -48,6 +48,12 @@ class InventoryEntry
      */
     private $location;
 
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\InventoryMission", inversedBy="entries")
+	 */
+    private $mission;
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,6 +127,18 @@ class InventoryEntry
     public function setLocation(?Emplacement $location): self
     {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function getMission(): ?InventoryMission
+    {
+        return $this->mission;
+    }
+
+    public function setMission(?InventoryMission $mission): self
+    {
+        $this->mission = $mission;
 
         return $this;
     }

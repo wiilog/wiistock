@@ -36,6 +36,11 @@ class InventoryAnomaly
 	 */
     private $mvtRegulation;
 
+	/**
+	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryEntry")
+	 */
+    private $entry;
+
 
     public function getId(): ?int
     {
@@ -86,6 +91,18 @@ class InventoryAnomaly
     public function setMvtRegulation(?MouvementStock $mvtRegulation): self
     {
         $this->mvtRegulation = $mvtRegulation;
+
+        return $this;
+    }
+
+    public function getEntry(): ?InventoryEntry
+    {
+        return $this->entry;
+    }
+
+    public function setEntry(?InventoryEntry $entry): self
+    {
+        $this->entry = $entry;
 
         return $this;
     }
