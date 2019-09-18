@@ -153,7 +153,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Menu::INVENTAIRE
         ];
 
-        $actionLabels = [Action::LIST];
+        $actionLabels = [Action::LIST, Action::SEE_STOCK_QUANTITY, Action::INVENTORY_MANAGER];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {

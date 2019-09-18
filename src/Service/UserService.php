@@ -110,24 +110,20 @@ class UserService
         $this->preparationRepository = $preparationRepository;
     }
 
-
-    public function getCurrentUser()
+    public function getUserRole($user = null)
     {
-        return $this->user;
-    }
-
-    public function getCurrentUserRole()
-    {
-        $user = $this->user;
+        if (!$user) $user = $this->user;
 
         $role = $user ? $user->getRole() : null;
 
         return $role;
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
+    public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES, $user = null)
     {
-        $role = $this->getCurrentUserRole();
+        if (!$user) $user = $this->user();
+
+        $role = $this->getUserRole($user);
 		$actions = $role ? $role->getActions() : [];
 
         $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
