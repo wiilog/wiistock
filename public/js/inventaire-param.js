@@ -20,10 +20,24 @@ let submitNewCategorie = $("#submitNewCategorie");
 let urlNewCategorie = Routing.generate('categorie_new', true);
 InitialiserModal(modalNewCategorie, submitNewCategorie, urlNewCategorie, tableCategories, displayErrorCategorie, false);
 
+let modalEditCategory = $('#modalEditCategory');
+let submitEditCategory = $('#submitEditCategory');
+let urlEditCategory = Routing.generate('category_edit', true);
+InitialiserModal(modalEditCategory, submitEditCategory, urlEditCategory, tableCategories, displayErrorCategorieEdit, false, false);
 
+let ModalDeleteCategory = $("#modalDeleteCategory");
+let SubmitDeleteCategory = $("#submitDeleteCategory");
+let urlDeleteCategory = Routing.generate('category_delete', true)
+InitialiserModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, tableCategories);
 
 function displayErrorCategorie(data) {
     let modal = $("#modalNewCategorie");
+    let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    displayError(modal, msg, data);
+}
+
+function displayErrorCategorieEdit(data) {
+    let modal = $("#modalEditCategory");
     let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }

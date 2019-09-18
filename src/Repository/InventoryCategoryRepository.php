@@ -36,4 +36,22 @@ class InventoryCategoryRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function countByLabelDiff($label, $categoryLabel)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            "SELECT count(r)
+            FROM App\Entity\InventoryCategory r
+            WHERE r.label = :label AND r.label != :categoryLabel"
+        )->setParameters([
+            'label' => $label,
+            'categoryLabel' => $categoryLabel
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
+
 }

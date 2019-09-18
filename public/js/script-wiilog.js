@@ -24,13 +24,13 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
-function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
+function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitAction(modal, path, table, callback, close);
+        submitAction(modal, path, table, callback, close, clear);
     });
 }
 
-function submitAction(modal, path, table, callback, close) {
+function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -119,7 +119,7 @@ function submitAction(modal, path, table, callback, close) {
                     }
                 });
 
-                clearModal(modal);
+                if (clear) clearModal(modal);
 
                 if (callback !== null) callback(data);
         }, 'json');
