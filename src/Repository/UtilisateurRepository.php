@@ -24,6 +24,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT COUNT(u)
             FROM App\Entity\Utilisateur u
             WHERE u.email = :email"
@@ -32,10 +33,24 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->getSingleScalarResult();
 	}
 
+	public function countByUsername($username)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(u)
+			FROM App\Entity\Utilisateur u 
+			WHERE u.username = :username"
+		)->setParameter('username', $username);
+
+		return $query->getSingleScalarResult();
+	}
+
 	public function countApiKey($apiKey)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT COUNT(u)
             FROM App\Entity\Utilisateur u
             WHERE u.apiKey = :apiKey"
@@ -48,6 +63,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT u.id, u.username
             FROM App\Entity\Utilisateur u
             ORDER BY u.username
@@ -61,6 +77,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT u
             FROM App\Entity\Utilisateur u
             WHERE u.id <> :id"
@@ -85,6 +102,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+			/** @lang DQL */
 			"SELECT u
           FROM App\Entity\Utilisateur u
           WHERE u.username = :search"
@@ -97,6 +115,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT COUNT(u)
             FROM App\Entity\Utilisateur u
             JOIN u.role r
@@ -109,6 +128,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT u
             FROM App\Entity\Utilisateur u
             WHERE u.email = :email"
@@ -121,6 +141,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT u
             FROM App\Entity\Utilisateur u
             WHERE u.token = :token"
@@ -133,6 +154,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT u
             FROM App\Entity\Utilisateur u
             WHERE u.apiKey = :key"
@@ -182,6 +204,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
+			/** @lang DQL */
 			"SELECT COUNT(a)
             FROM App\Entity\Utilisateur a
            "
@@ -194,6 +217,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+			/** @lang DQL */
 			"SELECT u FROM App\Entity\Utilisateur u
             ORDER BY u.username
             "
