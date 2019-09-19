@@ -19,13 +19,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Menu;
-use App\Entity\Utilisateur;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
-use App\Entity\ReferenceArticle;
 
 /**
- * @Route("/parametres_inventaire")
+ * @Route("/parametres-inventaire")
  */
 class InventoryParamController extends AbstractController
 {
@@ -93,16 +91,12 @@ class InventoryParamController extends AbstractController
             $rows = [];
             foreach ($categories as $category) {
                 $url['edit'] = $this->generateUrl('category_api_edit', ['id' => $category->getId()]);
-                if ($category->getPermanent() == true) {
-                    $permanent = 'oui';
-                } else {
-                    $permanent = 'non';
-                }
+
                 $rows[] =
                     [
                         'Label' => $category->getLabel(),
                         'Frequence' => $category->getFrequency()->getLabel(),
-                        'Permanent' => $permanent,
+                        'Permanent' => $category->getPermanent() ? 'oui' : 'non',
                         'Actions' => $category->getId(),
                         'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
                             'url' => $url,
@@ -162,17 +156,10 @@ class InventoryParamController extends AbstractController
 
             $category = $this->inventoryCategoryRepository->find($data['id']);
             $frequencies = $this->inventoryFrequencyRepository->findAll();
-            $categoryFrequency = $category->getFrequency();
-            if ($permanentCheck = $category->getPermanent() == true) {
-                $permanent = true;
-            } else {
-                $permanent = false;
-            }
+
             $json = $this->renderView('inventaire_param/modalEditCategoryContent.html.twig', [
                 'category' => $category,
                 'frequencies' => $frequencies,
-                'categoryFrequency' => $categoryFrequency,
-                'permanent' => $permanent,
             ]);
 
             return new JsonResponse($json);

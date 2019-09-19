@@ -611,9 +611,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(d)
-            FROM App\Entity\ReferenceArticle d
-            WHERE d.category = :category"
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.category = :category"
         )->setParameter('category', $category);
 
         return $query->getSingleScalarResult();

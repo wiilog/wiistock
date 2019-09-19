@@ -12,9 +12,9 @@
         <div class="col-12 form-group">
             <label for="label">Fréquence*</label>
             <select name="frequency" id="frequencies" class="data form-control needed">
-                <option value="{{ categoryFrequency.id }}">{{ categoryFrequency.label }}</option>
+                <option value="{{ category.frequency.id }}">{{ category.frequency.label }}</option>
                 {% for frequency in frequencies %}
-                    {% if frequency.label != categoryFrequency.label %}
+                    {% if frequency.label != category.frequency.label %}
                         <option value="{{ frequency.id }}">{{ frequency.label }}</option>
                     {% endif %}
                 {% endfor %}
@@ -23,7 +23,7 @@
 
         <div class="form-group col-12">
             <label class="switch">
-                {% if permanent %}
+                {% if category.permanent %}
                     <input class="checkbox data" type="checkbox" name="permanent" checked>
                     <span class="slider round"></span>
                 {% else %}

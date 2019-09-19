@@ -29,9 +29,10 @@ class InventoryCategoryRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         $query = $em->createQuery(
-            "SELECT count(r)
-            FROM App\Entity\InventoryCategory r
-            WHERE r.label = :label"
+        	/** @lang DQL */
+            "SELECT count(ic)
+            FROM App\Entity\InventoryCategory ic
+            WHERE ic.label = :label"
         )->setParameter('label', $label);
 
         return $query->getSingleScalarResult();
@@ -42,9 +43,10 @@ class InventoryCategoryRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         $query = $em->createQuery(
-            "SELECT count(r)
-            FROM App\Entity\InventoryCategory r
-            WHERE r.label = :label AND r.label != :categoryLabel"
+        	/** @lang DQL */
+            "SELECT count(ic)
+            FROM App\Entity\InventoryCategory ic
+            WHERE ic.label = :label AND ic.label != :categoryLabel"
         )->setParameters([
             'label' => $label,
             'categoryLabel' => $categoryLabel
