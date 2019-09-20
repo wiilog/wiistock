@@ -782,11 +782,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							dump($newEntry->getQuantity());
 							dump($refArticle->getQuantiteStock());
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+								dump('anomalie');
 								$anomaly = new InventoryAnomaly();
 								$anomaly
 									->setEntry($newEntry)
 									->setQuantityStock($refArticle->getQuantiteStock());
 								$em->persist($anomaly);
+								$em->flush();
 							}
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
@@ -794,16 +796,18 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							dump($newEntry->getQuantity());
 							dump($article->getQuantite());
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
+								dump('anomalie');
 								$anomaly = new InventoryAnomaly();
 								$anomaly
 									->setEntry($newEntry)
 									->setQuantityStock($article->getQuantite());
 								$em->persist($anomaly);
+								$em->flush();
 							}
 						}
 						$em->persist($newEntry);
-						$em->flush();
 					}
+					$em->flush();
 					$numberOfRowsInserted++;
 				}
 				$s = $numberOfRowsInserted > 1 ? 's' : '';
