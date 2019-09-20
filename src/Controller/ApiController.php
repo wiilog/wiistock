@@ -750,7 +750,87 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	public function addInventoryEntries(Request $request)
 	{
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			dump($data);
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+				$numberOfRowsInserted = 0;
+//				foreach ($data['mouvements'] as $mvt) {
+//					if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+//						$refEmplacement = $mvt['ref_emplacement'];
+//						$refArticle = $mvt['ref_article'];
+//						$type = $mvt['type'];
+//
+//						$toInsert = new MouvementTraca();
+//						$toInsert
+//							->setRefArticle($refArticle)
+//							->setRefEmplacement($refEmplacement)
+//							->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
+//							->setDate($mvt['date'])
+//							->setType($type);
+//						$em->persist($toInsert);
+//						$numberOfRowsInserted++;
+//
+//						$emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
+//
+//						if ($emplacement) {
+//
+//							$isDepose = $type === MouvementTraca::TYPE_DEPOSE;
+//							$colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
+//
+//							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+//								$fournisseur = $this->fournisseurRepository->findOneByColis($colis);
+//								$arrivage = $colis->getArrivage();
+//								$destinataire = $arrivage->getDestinataire();
+//								if ($this->mailerServerRepository->findOneMailerServer()) {
+//									$dateArray = explode('_', $toInsert->getDate());
+//									$date = new DateTime($dateArray[0]);
+//									$this->mailerService->sendMail(
+//										'FOLLOW GT // Dépose effectuée',
+//										$this->renderView(
+//											'mails/mailDeposeTraca.html.twig',
+//											[
+//												'title' => 'Votre colis a été livré.',
+//												'colis' => $colis->getCode(),
+//												'emplacement' => $emplacement,
+//												'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
+//												'date' => $date,
+//												'operateur' => $toInsert->getOperateur(),
+//												'pjs' => $arrivage->getPiecesJointes()
+//											]
+//										),
+//										$destinataire->getEmail()
+//									);
+//								} else {
+//									$this->logger->critical('Parametrage mail non defini.');
+//								}
+//							}
+//						} else {
+//							$emplacement = new Emplacement();
+//							$emplacement->setLabel($refEmplacement);
+//							$em->persist($emplacement);
+//							$em->flush();
+//						}
+//					}
+//				}
+//				$em->flush();
+
+				$s = $numberOfRowsInserted > 0 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
 		}
 	}
 
@@ -779,7 +859,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
-
+dump($data['inventoryMission']);
         return $data;
     }
 
