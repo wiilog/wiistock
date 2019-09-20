@@ -779,7 +779,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						if ($entry['is_ref']) {
 							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
 							$newEntry->setRefArticle($refArticle);
-
+							dump($newEntry->getQuantity());
+							dump($refArticle->getQuantiteStock());
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
 								$anomaly = new InventoryAnomaly();
 								$anomaly
@@ -790,7 +791,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
 							$newEntry->setArticle($article);
-
+							dump($newEntry->getQuantity());
+							dump($article->getQuantite());
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$anomaly = new InventoryAnomaly();
 								$anomaly
@@ -800,13 +802,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							}
 
 							$em->persist($newEntry);
-							$numberOfRowsInserted++;
 						}
 					}
+					$numberOfRowsInserted++;
 				}
 					$em->flush();
 
-					$s = $numberOfRowsInserted > 0 ? 's' : '';
+					$s = $numberOfRowsInserted > 1 ? 's' : '';
 					$this->successDataMsg['success'] = true;
 					$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
 						"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
