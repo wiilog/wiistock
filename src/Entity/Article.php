@@ -113,6 +113,11 @@ class Article
      */
     private $inventoryEntries;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
+     */
+    private $inventoryMission;
+
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
@@ -409,30 +414,42 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-	{
-		return $this->inventoryEntries;
-	}
+      	{
+      		return $this->inventoryEntries;
+      	}
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries[] = $inventoryEntry;
-			$inventoryEntry->setArticle($this);
-		}
-
-		return $this;
-	}
+      	{
+      		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+      			$this->inventoryEntries[] = $inventoryEntry;
+      			$inventoryEntry->setArticle($this);
+      		}
+      
+      		return $this;
+      	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if ($this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries->removeElement($inventoryEntry);
-			// set the owning side to null (unless already changed)
-			if ($inventoryEntry->getArticle() === $this) {
-				$inventoryEntry->setArticle(null);
-			}
-		}
+      	{
+      		if ($this->inventoryEntries->contains($inventoryEntry)) {
+      			$this->inventoryEntries->removeElement($inventoryEntry);
+      			// set the owning side to null (unless already changed)
+      			if ($inventoryEntry->getArticle() === $this) {
+      				$inventoryEntry->setArticle(null);
+      			}
+      		}
+      
+      		return $this;
+      	}
 
-		return $this;
-	}
+    public function getInventoryMission(): ?InventoryMission
+    {
+        return $this->inventoryMission;
+    }
+
+    public function setInventoryMission(?InventoryMission $inventoryMission): self
+    {
+        $this->inventoryMission = $inventoryMission;
+
+        return $this;
+    }
 }

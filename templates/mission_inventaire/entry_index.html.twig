@@ -1,0 +1,16 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Références articles de la mission{% endblock %}
+
+{% block page_content %}
+    <h1>Références articles de la mission</h1>
+
+    <input type="text" value="{{ missionId }}" id="missionId" hidden>
+    <table id="tableMissionInv" class="table table-striped table-bordered w-100">
+    </table>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/mission-inventaire.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
