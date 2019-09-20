@@ -743,6 +743,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
+	/**
+	 * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
+	 * @Rest\Get("/api/addInventoryEntries")
+	 * @Rest\View()	 */
+	public function addInventoryEntries(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			dump($data);
+		}
+	}
+
     private function getDataArray($user)
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
