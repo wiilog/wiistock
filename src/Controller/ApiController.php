@@ -13,6 +13,8 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\InventoryAnomaly;
+use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -759,71 +761,55 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
-//				foreach ($data['mouvements'] as $mvt) {
-//					if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-//						$refEmplacement = $mvt['ref_emplacement'];
-//						$refArticle = $mvt['ref_article'];
-//						$type = $mvt['type'];
-//
-//						$toInsert = new MouvementTraca();
-//						$toInsert
-//							->setRefArticle($refArticle)
-//							->setRefEmplacement($refEmplacement)
-//							->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
-//							->setDate($mvt['date'])
-//							->setType($type);
-//						$em->persist($toInsert);
-//						$numberOfRowsInserted++;
-//
-//						$emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
-//
-//						if ($emplacement) {
-//
-//							$isDepose = $type === MouvementTraca::TYPE_DEPOSE;
-//							$colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
-//
-//							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
-//								$fournisseur = $this->fournisseurRepository->findOneByColis($colis);
-//								$arrivage = $colis->getArrivage();
-//								$destinataire = $arrivage->getDestinataire();
-//								if ($this->mailerServerRepository->findOneMailerServer()) {
-//									$dateArray = explode('_', $toInsert->getDate());
-//									$date = new DateTime($dateArray[0]);
-//									$this->mailerService->sendMail(
-//										'FOLLOW GT // Dépose effectuée',
-//										$this->renderView(
-//											'mails/mailDeposeTraca.html.twig',
-//											[
-//												'title' => 'Votre colis a été livré.',
-//												'colis' => $colis->getCode(),
-//												'emplacement' => $emplacement,
-//												'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
-//												'date' => $date,
-//												'operateur' => $toInsert->getOperateur(),
-//												'pjs' => $arrivage->getPiecesJointes()
-//											]
-//										),
-//										$destinataire->getEmail()
-//									);
-//								} else {
-//									$this->logger->critical('Parametrage mail non defini.');
-//								}
-//							}
-//						} else {
-//							$emplacement = new Emplacement();
-//							$emplacement->setLabel($refEmplacement);
-//							$em->persist($emplacement);
-//							$em->flush();
-//						}
-//					}
-//				}
-//				$em->flush();
+				dump($data);
+				foreach ($data['entries'] as $entry) {
+					$newEntry = new InventoryEntry();
 
-				$s = $numberOfRowsInserted > 0 ? 's' : '';
-				$this->successDataMsg['success'] = true;
-				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+					$mission = $this->inventoryMissionRepository->find($entry['id_mission']);
+					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
+					if ($mission && $location) {
+						$newEntry
+							->setMission($mission)
+							->setDate(new DateTime($entry['date']))
+							->setQuantity($entry['quantity'])
+							->setOperator($nomadUser)
+							->setLocation($location);
+
+						if ($entry['is_ref']) {
+							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
+							$newEntry->setRefArticle($refArticle);
+
+							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+								$anomaly = new InventoryAnomaly();
+								$anomaly
+									->setEntry($newEntry)
+									->setQuantityStock($refArticle->getQuantiteStock());
+								$em->persist($anomaly);
+							}
+						} else {
+							$article = $this->articleRepository->findOneByReference($entry['reference']);
+							$newEntry->setArticle($article);
+
+							if ($newEntry->getQuantity() !== $article->getQuantite()) {
+								$anomaly = new InventoryAnomaly();
+								$anomaly
+									->setEntry($newEntry)
+									->setQuantityStock($article->getQuantite());
+								$em->persist($anomaly);
+							}
+
+							$em->persist($newEntry);
+							$numberOfRowsInserted++;
+						}
+					}
+				}
+					$em->flush();
+
+					$s = $numberOfRowsInserted > 0 ? 's' : '';
+					$this->successDataMsg['success'] = true;
+					$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+						"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
 			} else {
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
