@@ -53,6 +53,11 @@ class InventoryEntry
 	 */
     private $mission;
 
+	/**
+	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryAnomaly", inversedBy="entry")
+	 */
+    private $anomaly;
+
 
     public function getId(): ?int
     {
@@ -139,6 +144,18 @@ class InventoryEntry
     public function setMission(?InventoryMission $mission): self
     {
         $this->mission = $mission;
+
+        return $this;
+    }
+
+    public function getAnomaly(): ?InventoryAnomaly
+    {
+        return $this->anomaly;
+    }
+
+    public function setAnomaly(?InventoryAnomaly $anomaly): self
+    {
+        $this->anomaly = $anomaly;
 
         return $this;
     }

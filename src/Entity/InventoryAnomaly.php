@@ -37,7 +37,7 @@ class InventoryAnomaly
     private $mvtRegulation;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryEntry")
+	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryEntry", mappedBy="anomaly")
 	 */
     private $entry;
 
