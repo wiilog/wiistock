@@ -800,18 +800,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 									->setQuantityStock($article->getQuantite());
 								$em->persist($anomaly);
 							}
-
-							$em->persist($newEntry);
 						}
+						$em->persist($newEntry);
+						$em->flush();
 					}
 					$numberOfRowsInserted++;
 				}
-					$em->flush();
-
-					$s = $numberOfRowsInserted > 1 ? 's' : '';
-					$this->successDataMsg['success'] = true;
-					$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-						"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+				$s = $numberOfRowsInserted > 1 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
 			} else {
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
