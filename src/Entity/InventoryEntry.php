@@ -53,10 +53,10 @@ class InventoryEntry
 	 */
     private $mission;
 
-	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryAnomaly", inversedBy="entry")
+    /**
+	 * @ORM\OneToOne(targetEntity="App\Entity\MouvementStock", mappedBy="entry")
 	 */
-    private $anomaly;
+    private $mouvementStock;
 
 
     public function getId(): ?int
@@ -148,15 +148,16 @@ class InventoryEntry
         return $this;
     }
 
-    public function getAnomaly(): ?InventoryAnomaly
+    public function getMouvementStock(): ?MouvementStock
     {
-        return $this->anomaly;
+        return $this->mouvementStock;
     }
 
-    public function setAnomaly(?InventoryAnomaly $anomaly): self
+    public function setMouvementStock(?MouvementStock $mouvementStock): self
     {
-        $this->anomaly = $anomaly;
+        $this->mouvementStock = $mouvementStock;
 
         return $this;
     }
+
 }

@@ -13,7 +13,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
-use App\Entity\InventoryAnomaly;
 use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -779,35 +778,20 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						if ($entry['is_ref']) {
 							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
 							$newEntry->setRefArticle($refArticle);
-							dump($newEntry->getQuantity());
-							dump($refArticle->getQuantiteStock());
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-								dump('anomalie');
-								$anomaly = new InventoryAnomaly();
-								$anomaly
-									->setEntry($newEntry)
-									->setQuantityStock($refArticle->getQuantiteStock());
-								$em->persist($anomaly);
-								$em->flush();
+								$refArticle->setHasInventoryAnomaly(true);
 							}
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
 							$newEntry->setArticle($article);
-							dump($newEntry->getQuantity());
-							dump($article->getQuantite());
+
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
-								dump('anomalie');
-								$anomaly = new InventoryAnomaly();
-								$anomaly
-									->setEntry($newEntry)
-									->setQuantityStock($article->getQuantite());
-								$em->persist($anomaly);
-								$em->flush();
+								$article->setHasInventoryAnomaly(true);
 							}
 						}
 						$em->persist($newEntry);
+						$em->flush();
 					}
-					$em->flush();
 					$numberOfRowsInserted++;
 				}
 				$s = $numberOfRowsInserted > 1 ? 's' : '';
