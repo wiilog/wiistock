@@ -8,18 +8,20 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 
 use App\Repository\ColisRepository;
+use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
@@ -36,6 +38,7 @@ use App\Repository\FournisseurRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\MailerService;
+use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\FOSRestController;
@@ -163,27 +166,41 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-    /**
-     * ApiController constructor.
-     * @param LoggerInterface $logger
-     * @param MailerServerRepository $mailerServerRepository
-     * @param MailerService $mailerService
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param ReferenceArticleRepository $referenceArticleRepository
-     * @param UtilisateurRepository $utilisateurRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ArticleRepository $articleRepository
-     * @param EmplacementRepository $emplacementRepository
-     * @param PieceJointeRepository $pieceJointeRepository
-     * @param PreparationRepository $preparationRepository
-     * @param StatutRepository $statutRepository
-     * @param ArticleDataService $articleDataService
-	 * @param LivraisonRepository $livraisonRepository
-	 * @param MouvementStockRepository $mouvementRepository
+
+	/**
+	 * @var InventoryMissionRepository
+	 */
+    private $inventoryMissionRepository;
+
+	/**
+	 * @var UserService
+	 */
+    private $userService;
+
+	/**
+	 * ApiController constructor.
+	 * @param InventoryMissionRepository $inventoryMissionRepository
+	 * @param FournisseurRepository $fournisseurRepository
 	 * @param LigneArticleRepository $ligneArticleRepository
-     */
-    public function __construct(FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+	 * @param MouvementStockRepository $mouvementRepository
+	 * @param LivraisonRepository $livraisonRepository
+	 * @param ArticleDataService $articleDataService
+	 * @param StatutRepository $statutRepository
+	 * @param PreparationRepository $preparationRepository
+	 * @param PieceJointeRepository $pieceJointeRepository
+	 * @param LoggerInterface $logger
+	 * @param MailerServerRepository $mailerServerRepository
+	 * @param MailerService $mailerService
+	 * @param ColisRepository $colisRepository
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 * @param ReferenceArticleRepository $referenceArticleRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param UserPasswordEncoderInterface $passwordEncoder
+	 * @param ArticleRepository $articleRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param UserService $userService
+	 */
+    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -204,6 +221,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->mouvementRepository = $mouvementRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->inventoryMissionRepository = $inventoryMissionRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -735,14 +754,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
+        $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
+        $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
-			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison)
+			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
+			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
+			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
+			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
+
         return $data;
     }
 
