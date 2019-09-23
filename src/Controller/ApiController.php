@@ -760,7 +760,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
-				dump($data);
+
 				foreach ($data['entries'] as $entry) {
 					$newEntry = new InventoryEntry();
 
@@ -837,7 +837,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
-dump($data['inventoryMission']);
+
         return $data;
     }
 
