@@ -5,6 +5,10 @@
 {% block page_content %}
     <h1>Références articles de la mission</h1>
 
+    <a href="{{ path('inventory_mission_index') }}" class="btn btn-primary">
+        <span class="fa fa-arrow-circle-left mr-2"></span>Retour
+    </a>
+
     <input type="text" value="{{ missionId }}" id="missionId" hidden>
     <table id="tableMissionInv" class="table table-striped table-bordered w-100">
     </table>

@@ -142,7 +142,7 @@ class InventoryMissionController extends AbstractController
                 [
                     'Article' => $ref['libelle'],
                     'Date' => $refDate,
-                    'Anomaly' => 'test'
+                    'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
         }
         foreach ($artArray as $article) {
@@ -153,7 +153,7 @@ class InventoryMissionController extends AbstractController
                 [
                     'Article' => $article['label'],
                     'Date' => $artDate,
-                    'Anomaly' => 'test'
+                    'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
         }
         $data['data'] = $rows;

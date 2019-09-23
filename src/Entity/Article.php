@@ -435,14 +435,15 @@ class Article
 	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if ($this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries->removeElement($inventoryEntry);
-			// set the owning side to null (unless already changed)
-			if ($inventoryEntry->getArticle() === $this) {
-				$inventoryEntry->setArticle(null);
-			}
-		}
+    {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getArticle() === $this) {
+                $inventoryEntry->setArticle(null);
+            }
+        }
+    }
 
     public function getInventoryMission(): ?InventoryMission
     {
@@ -455,8 +456,6 @@ class Article
 
         return $this;
     }
-		return $this;
-	}
 
     public function getHasInventoryAnomaly(): ?bool
     {

@@ -623,7 +623,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT ra.libelle, e.date
+            "SELECT ra.libelle, e.date, ra.hasInventoryAnomaly
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.inventoryMissions m
             LEFT JOIN ra.inventoryEntries e
