@@ -359,11 +359,13 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
+            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
+                ->setPrixUnitaire($price)
                 ->setType($type)
                 ->setEmplacement($emplacement);
 

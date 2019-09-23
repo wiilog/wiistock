@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
+use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -94,4 +95,56 @@ class MouvementStockRepository extends ServiceEntityRepository
 		]);
 		return $query->execute();
 	}
+
+    /**
+     * @param string $types
+     * @return mixed
+     */
+	public function countByTypes($types)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+        "SELECT COUNT(m) 
+            FROM App\Entity\MouvementStock m 
+            WHERE m.type 
+            IN (:types)"
+        )->setParameter('types', $types);
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param $type
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countAllMouvementStock()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT COUNT(m) FROM App\Entity\MouvementStock m"
+        );
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalPriceRefArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * ra.prixUnitaire) FROM App\Entity\MouvementStock m JOIN m.refArticle ra WHERE ra.typeQuantite = 'reference'"
+            );
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalPriceArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * a.prixUnitaire) FROM App\Entity\MouvementStock m JOIN m.article a"
+        );
+        return $query->getSingleScalarResult();
+    }
 }

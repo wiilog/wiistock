@@ -334,6 +334,15 @@ a:hover {
   font-weight: bold;
 }
 
+.carreNbrIndicateur {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+}
+
+.sizeNbrFiabilite {
+  font-size: 3rem;
+}
+
 .alert-danger {
   padding: 10px;
   text-align: center;
@@ -677,19 +686,25 @@ a:hover {
 }
 
 .radio-btn .btn-danger {
-  color: white;
-  background-color: #bd2130;
   border-radius: 0;
-  margin: 0;
   border: 1px solid #bd2130;
 }
-.radio-btn .btn-danger:hover {
-  background-color: #bd2130 !important;
-  color: white !important;
+.radio-btn .btn-danger.active {
+  color: white;
+  background-color: #bd2130;
+  margin: 0;
 }
-.radio-btn .btn-danger .not-active {
+.radio-btn .btn-danger.active:hover {
+  background-color: white !important;
+  color: #bd2130 !important;
+}
+.radio-btn .btn-danger.not-active {
   color: #bd2130 !important;
   background-color: white;
+}
+.radio-btn .btn-danger.not-active:hover {
+  background-color: #bd2130 !important;
+  color: white !important;
 }
 
 .filter {

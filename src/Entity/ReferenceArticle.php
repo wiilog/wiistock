@@ -136,6 +136,11 @@ class ReferenceArticle
      */
     private $inventoryMissions;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
     public function __construct()
     {
         $this->alertesStock = new ArrayCollection();
@@ -680,4 +685,16 @@ class ReferenceArticle
         return $this->inventoryMissions;
     }
 
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
 }

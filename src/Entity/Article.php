@@ -113,6 +113,11 @@ class Article
      */
     private $inventoryEntries;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
@@ -338,6 +343,18 @@ class Article
     public function setQuantiteAPrelever(?int $quantiteAPrelever): self
     {
         $this->quantiteAPrelever = $quantiteAPrelever;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
 
         return $this;
     }

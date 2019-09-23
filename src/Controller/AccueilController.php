@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\MouvementStock;
 use App\Repository\AlerteExpiryRepository;
+use App\Repository\MouvementStockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -53,12 +55,17 @@ class AccueilController extends AbstractController
      */
     private $manutentionRepository;
 
+    /**
+     * @var MouvementStockRepository
+     */
+    private $mouvementStockRepository;
+
 	/**
 	 * @var AlerteExpiryRepository
 	 */
     private $alerteExpiryRepository;
 
-    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -67,6 +74,7 @@ class AccueilController extends AbstractController
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
     }
 
     /**
@@ -78,6 +86,19 @@ class AccueilController extends AbstractController
     	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
     	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
 			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
+    	$types = [
+    	    MouvementStock::TYPE_ENTREE_INVENTAIRE,
+            MouvementStock::TYPE_SORTIE_INVENTAIRE
+        ];
+        $nbrDeMouvementDeCorrection = $this->mouvementStockRepository->countByTypes($types);
+    	$allMouvementStock = $this->mouvementStockRepository->countAllMouvementStock();
+        $nbrFiabiliteReference = $nbrDeMouvementDeCorrection / $allMouvementStock * 100;
+
+        $totalRefArticle = $this->mouvementStockRepository->countTotalPriceRefArticle();
+        $totalArticle = $this->mouvementStockRepository->countTotalPriceArticle();
+        $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
+        dump($nbrFiabiliteMonetaire);
+
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -100,6 +121,8 @@ class AccueilController extends AbstractController
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
             'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
             'emplacements' => $this->emplacementRepository->findAll(),
+            'nbrFiabiliteReference' => $nbrFiabiliteReference,
+            'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
         ]);
     }
 }

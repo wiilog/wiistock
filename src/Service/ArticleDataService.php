@@ -409,10 +409,12 @@ class ArticleDataService
 //		}
 
         $entityManager = $this->em;
+        $price = max(0, $data['prix']);
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 $article
+                    ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
                     ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0)// protection contre quantités négatives
@@ -476,12 +478,14 @@ class ArticleDataService
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
+        $price = max(0, $data['prix']);
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
         $toInsert
             ->setLabel($data['libelle'])
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
+            ->setPrixUnitaire($price)
             ->setReference($referenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))

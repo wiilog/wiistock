@@ -20,6 +20,8 @@ class Action
     const EXPORT = 'exporter';
     const YES = 'oui';
     const CHOIX = 'choix';
+    const REFERENCE = 'fiabilité par réference';
+    const MONETAIRE = 'fiabilité par monétaire';
 
     /**
      * @ORM\Id()

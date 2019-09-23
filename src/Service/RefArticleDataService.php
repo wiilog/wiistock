@@ -275,6 +275,7 @@ class RefArticleDataService
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
+        $price = max(0, $data['prix']);
         $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
@@ -302,6 +303,7 @@ class RefArticleDataService
                         $entityManager->persist($articleFournisseur);
                     }
                 }
+                if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
