@@ -13,6 +13,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -740,6 +741,74 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			}
 
 			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
+	 * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
+	 * @Rest\Get("/api/addInventoryEntries")
+	 * @Rest\View()	 */
+	public function addInventoryEntries(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+				$numberOfRowsInserted = 0;
+
+				foreach ($data['entries'] as $entry) {
+					$newEntry = new InventoryEntry();
+
+					$mission = $this->inventoryMissionRepository->find($entry['id_mission']);
+					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
+
+					if ($mission && $location) {
+						$newEntry
+							->setMission($mission)
+							->setDate(new DateTime($entry['date']))
+							->setQuantity($entry['quantity'])
+							->setOperator($nomadUser)
+							->setLocation($location);
+
+						if ($entry['is_ref']) {
+							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
+							$newEntry->setRefArticle($refArticle);
+							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+								dump($refArticle->getId());
+								$refArticle->setHasInventoryAnomaly(true);
+								$em->flush();
+							}
+						} else {
+							$article = $this->articleRepository->findOneByReference($entry['reference']);
+							$newEntry->setArticle($article);
+
+							if ($newEntry->getQuantity() !== $article->getQuantite()) {
+								$article->setHasInventoryAnomaly(true);
+								dump($article->getId());
+								$em->flush();
+							}
+						}
+						$em->persist($newEntry);
+						$em->flush();
+					}
+					$numberOfRowsInserted++;
+				}
+				$s = $numberOfRowsInserted > 1 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
 		}
 	}
 
