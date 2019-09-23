@@ -826,6 +826,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
+        $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
+        $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
@@ -836,6 +839,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
+			'anomalies' => array_merge($refAnomalies, $artAnomalies),
         ];
 
         return $data;

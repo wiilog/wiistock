@@ -65,4 +65,32 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function getInventoryRefAnomalies()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, ra.emplacement as location, 1 as is_ref
+			FROM App\Entity\ReferenceArticle ra
+			WHERE ra.hasInventoryAnomaly = 1"
+		);
+
+		return $query->execute();
+	}
+
+	public function getInventoryArtAnomalies()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT a.reference, a.emplacement as location, 0 as is_ref
+			FROM App\Entity\Article a
+			WHERE a.hasInventoryAnomaly = 1"
+		);
+
+		return $query->execute();
+	}
+
+
 }
