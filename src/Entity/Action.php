@@ -19,7 +19,8 @@ class Action
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';
     const YES = 'oui';
-    const CHOIX = 'choix';
+    const SEE_STOCK_QUANTITY = 'voir quantité stock réelle';
+    const INVENTORY_MANAGER = "gestionnaire d'inventaire";
 
     /**
      * @ORM\Id()
