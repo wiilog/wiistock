@@ -53,6 +53,11 @@ class InventoryEntry
 	 */
     private $mission;
 
+    /**
+	 * @ORM\OneToOne(targetEntity="App\Entity\MouvementStock", mappedBy="entry")
+	 */
+    private $mouvementStock;
+
 
     public function getId(): ?int
     {
@@ -142,4 +147,17 @@ class InventoryEntry
 
         return $this;
     }
+
+    public function getMouvementStock(): ?MouvementStock
+    {
+        return $this->mouvementStock;
+    }
+
+    public function setMouvementStock(?MouvementStock $mouvementStock): self
+    {
+        $this->mouvementStock = $mouvementStock;
+
+        return $this;
+    }
+
 }

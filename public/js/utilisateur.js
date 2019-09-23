@@ -23,12 +23,12 @@ let tableUser = $('#tableUser_id').DataTable({
 let modalNewUser = $("#modalNewUser");
 let submitNewUser = $("#submitNewUser");
 let pathNewUser = Routing.generate('user_new', true);
-InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, alertErrorMsg);
+InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, displayErrorUser, false);
 
 let modalEditUser = $("#modalEditUser");
 let submitEditUser = $("#submitEditUser");
 let pathEditUser = Routing.generate('user_edit', true);
-InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, alertErrorMsg);
+InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, displayErrorUser, false);
 
 let modalDeleteUser = $("#modalDeleteUser");
 let submitDeleteUser = $("#submitDeleteUser");
@@ -42,4 +42,9 @@ function editRole(select) {
     });
 
     $.post(Routing.generate('user_edit_role'), params, 'json');
+}
+
+function displayErrorUser(data) {
+    let modal = data.action === 'new' ? modalNewUser : modalEditUser;
+    displayError(modal, data.msg, data.success);
 }
