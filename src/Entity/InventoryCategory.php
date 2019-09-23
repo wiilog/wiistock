@@ -62,27 +62,16 @@ class InventoryCategory
     }
 
     /**
-     * @return Collection|InventoryFrequency[]
+     * @return InventoryFrequency
      */
-    public function getFrequency(): Collection
+    public function getFrequency(): InventoryFrequency
     {
         return $this->frequency;
     }
 
-    public function addFrequency(InventoryFrequency $frequency): self
+    public function setFrequency(?InventoryFrequency $frequency): self
     {
-        if (!$this->frequency->contains($frequency)) {
-            $this->frequency[] = $frequency;
-        }
-
-        return $this;
-    }
-
-    public function removeFrequency(InventoryFrequency $frequency): self
-    {
-        if ($this->frequency->contains($frequency)) {
-            $this->frequency->removeElement($frequency);
-        }
+        $this->frequency = $frequency;
 
         return $this;
     }
@@ -126,13 +115,6 @@ class InventoryCategory
     public function setPermanent(bool $permanent): self
     {
         $this->permanent = $permanent;
-
-        return $this;
-    }
-
-    public function setFrequency(?InventoryFrequency $frequency): self
-    {
-        $this->frequency = $frequency;
 
         return $this;
     }

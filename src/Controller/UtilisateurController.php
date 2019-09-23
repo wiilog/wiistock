@@ -114,14 +114,34 @@ class UtilisateurController extends Controller
             // validation du mot de passe
             $result = $this->passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
-                return new JsonResponse($result['message']);
-            }
-            // validation de l'email
+				return new JsonResponse([
+					'success' => false,
+					'msg' => $result['message'],
+					'action' => 'new'
+				]);
+
+			}
+            // unicité de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
 
             if ($emailAlreadyUsed) {
-                return new JsonResponse('Un compte existe déjà avec cet email.');
+				return new JsonResponse([
+					'success' => false,
+					'msg' => 'Cette adresse email est déjà utilisée.',
+					'action' => 'new'
+				]);
             }
+
+			// unicité de l'username
+			$usernameAlreadyUsed = intval($this->utilisateurRepository->countByUsername($data['username']));
+
+			if ($usernameAlreadyUsed) {
+				return new JsonResponse([
+					'success' => false,
+					'msg' => "Ce nom d'utilisateur est déjà utilisé.",
+					'action' => 'new'
+				]);
+			}
 
             $utilisateur = new Utilisateur();
 
@@ -146,7 +166,7 @@ class UtilisateurController extends Controller
             $em->persist($utilisateur);
             $em->flush();
 
-            return new JsonResponse(true);
+			return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -183,29 +203,51 @@ class UtilisateurController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $utilisateur = $this->utilisateurRepository->find($data['user']);
+            $utilisateur = $this->utilisateurRepository->find($data['id']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
-                return new JsonResponse($result['message']);
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => $result['message'],
+					'action' => 'edit'
+				]);
             }
 
-            // validation de l'email
+            // unicité de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
 
             if ($emailAlreadyUsed && $data['email'] != $utilisateur->getEmail()) {
-                return new JsonResponse('Un compte existe déjà avec cet email.');
-                //TODO gérer retour erreur propre
-            }
+				return new JsonResponse([
+					'success' => false,
+					'msg' => 'Cette adresse email est déjà utilisée.',
+					'action' => 'edit'
+				]);
+			}
+
+			// unicité de l'username
+			$usernameAlreadyUsed = intval($this->utilisateurRepository->countByUsername($data['username']));
+
+			if ($usernameAlreadyUsed && $data['username'] != $utilisateur->getUsername()) {
+				return new JsonResponse([
+					'success' => false,
+					'msg' => "Ce nom d'utilisateur est déjà utilisé.",
+					'action' => 'edit'
+				]);
+			}
 
             //vérification que l'user connecté ne se désactive pas
-            if (($data['user']) == $this->getUser()->getId() &&
+            if (($data['id']) == $this->getUser()->getId() &&
                 $utilisateur->getStatus() == true &&
                 $data['status'] == 'inactive') {
-                return new JsonResponse('Un utilisateur connecté ne peut pas se désactiver lui-même.');
-            }
+				return new JsonResponse([
+						'success' => false,
+						'msg' => 'Vous ne pouvez pas désactiver votre propre compte.',
+						'action' => 'edit'
+				]);
+			}
 
-            $type = $this->typeRepository->find($data['type']);
+            $type = $data['type'] ? $this->typeRepository->find($data['type']) : null;
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
@@ -220,7 +262,7 @@ class UtilisateurController extends Controller
             $em->persist($utilisateur);
             $em->flush();
 
-            return new JsonResponse(true);
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException('404');
     }

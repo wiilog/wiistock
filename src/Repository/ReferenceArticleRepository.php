@@ -605,4 +605,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+    public function countByCategory($category)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.category = :category"
+        )->setParameter('category', $category);
+
+        return $query->getSingleScalarResult();
+    }
 }
