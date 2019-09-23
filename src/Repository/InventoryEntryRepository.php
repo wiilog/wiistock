@@ -20,17 +20,4 @@ class InventoryEntryRepository extends ServiceEntityRepository
         parent::__construct($registry, InventoryEntry::class);
     }
 
-    public function findOneByMissionId($mission)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-            "SELECT e
-            FROM App\Entity\InventoryEntry e
-            WHERE e.mission = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->getOneOrNullResult();
-    }
-
 }

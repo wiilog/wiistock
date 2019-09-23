@@ -6,16 +6,12 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
-use App\Entity\InventoryEntry;
-use App\Entity\ReferenceArticle;
-use App\Entity\Article;
 
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
-use phpDocumentor\Reflection\Types\String_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,7 +76,7 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="invMissions_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
     {
@@ -116,13 +112,13 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            return $this->render('mission_inventaire/entry_index.html.twig', [
+            return $this->render('mission_inventaire/show.html.twig', [
                 'missionId' => $mission->getId(),
             ]);
     }
 
     /**
-     * @Route("/donnees/api/{id}", name="invEntry_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
     public function entryApi(InventoryMission $mission)
     {

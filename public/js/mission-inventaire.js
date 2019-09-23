@@ -1,4 +1,4 @@
-let pathMissions = Routing.generate('invMissions_api', true);
+let pathMissions = Routing.generate('inv_missions_api', true);
 let tableMissions = $('#tableMissionsInv').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -16,7 +16,7 @@ let tableMissions = $('#tableMissionsInv').DataTable({
 
 
 let mission = $('#missionId').val();
-let pathMission = Routing.generate('invEntry_api', { id: mission}, true);
+let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
 let tableMission = $('#tableMissionInv').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -26,8 +26,8 @@ let tableMission = $('#tableMissionInv').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'Article', 'title' : 'Reférence article ou article' },
-        { "data": 'Date', 'title' : 'Date' },
+        { "data": 'Article', 'title' : 'Reférence' },
+        { "data": 'Date', 'title' : 'Date de saisie' },
         { "data": 'Anomaly', 'title' : 'Anomalie' }
     ],
 });
