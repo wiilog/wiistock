@@ -26,7 +26,7 @@ let tableMission = $('#tableMissionInv').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'RefArticle', 'title' : 'Reférence article' },
+        { "data": 'Article', 'title' : 'Reférence article ou article' },
         { "data": 'Date', 'title' : 'Date' },
         { "data": 'Anomaly', 'title' : 'Anomalie' }
     ],

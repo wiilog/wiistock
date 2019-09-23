@@ -8,11 +8,12 @@ use App\Entity\Menu;
 use App\Entity\InventoryMission;
 use App\Entity\InventoryEntry;
 use App\Entity\ReferenceArticle;
+use App\Entity\Article;
 
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
-
+use App\Repository\ArticleRepository;
 
 use phpDocumentor\Reflection\Types\String_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,12 +51,18 @@ class InventoryMissionController extends AbstractController
      */
     private $referenceArticleRepository;
 
-    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository)
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -124,8 +131,7 @@ class InventoryMissionController extends AbstractController
         }
 
         $refArray = $this->referenceArticleRepository->getByMission($mission);
-        $artArray = $mission->getArticles();
-        dump($artArray);
+        $artArray = $this->articleRepository->getByMission($mission);
 
         $rows = [];
         foreach ($refArray as $ref) {
@@ -134,8 +140,19 @@ class InventoryMissionController extends AbstractController
                $refDate = $ref['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'RefArticle' => $ref['libelle'],
+                    'Article' => $ref['libelle'],
                     'Date' => $refDate,
+                    'Anomaly' => 'test'
+                ];
+        }
+        foreach ($artArray as $article) {
+            $artDate = null;
+            if ($article['date'] != null)
+                $artDate = $article['date']->format('d/m/Y');
+            $rows[] =
+                [
+                    'Article' => $article['label'],
+                    'Date' => $artDate,
                     'Anomaly' => 'test'
                 ];
         }
