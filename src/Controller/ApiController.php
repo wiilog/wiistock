@@ -779,7 +779,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
 							$newEntry->setRefArticle($refArticle);
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+								dump($refArticle->getId());
 								$refArticle->setHasInventoryAnomaly(true);
+								$em->flush();
 							}
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
@@ -787,6 +789,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
+								dump($article->getId());
+								$em->flush();
 							}
 						}
 						$em->persist($newEntry);
