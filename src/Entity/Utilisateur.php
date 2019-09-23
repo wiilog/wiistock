@@ -151,11 +151,6 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $type;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\InventoryAnomaly", mappedBy="operator")
-     */
-    private $anomalies;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
      */
     private $inventoryEntries;
@@ -181,7 +176,6 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
-        $this->anomalies = new ArrayCollection();
     }
 
     public function getId()
@@ -812,34 +806,4 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    /**
-     * @return Collection|InventoryAnomaly[]
-     */
-    public function getAnomalies(): Collection
-    {
-        return $this->anomalies;
-    }
-
-    public function addAnomaly(InventoryAnomaly $anomaly): self
-    {
-        if (!$this->anomalies->contains($anomaly)) {
-            $this->anomalies[] = $anomaly;
-            $anomaly->setOperator($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAnomaly(InventoryAnomaly $anomaly): self
-    {
-        if ($this->anomalies->contains($anomaly)) {
-            $this->anomalies->removeElement($anomaly);
-            // set the owning side to null (unless already changed)
-            if ($anomaly->getOperator() === $this) {
-                $anomaly->setOperator(null);
-            }
-        }
-
-        return $this;
-    }
 }

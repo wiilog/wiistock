@@ -87,6 +87,11 @@ class MouvementStock
 	 */
 	private $comment;
 
+	/**
+	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryEntry", inversedBy="mouvementStock")
+	 */
+	private $entry;
+
 
     public function getId(): ?int
     {
@@ -245,6 +250,18 @@ class MouvementStock
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getEntry(): ?InventoryEntry
+    {
+        return $this->entry;
+    }
+
+    public function setEntry(?InventoryEntry $entry): self
+    {
+        $this->entry = $entry;
 
         return $this;
     }
