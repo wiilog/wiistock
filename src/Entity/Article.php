@@ -113,6 +113,11 @@ class Article
      */
     private $inventoryEntries;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
+     */
+    private $inventoryMission;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 */
@@ -415,9 +420,9 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-	{
-		return $this->inventoryEntries;
-	}
+    {
+        return $this->inventoryEntries;
+    }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
 	{
@@ -430,17 +435,27 @@ class Article
 	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if ($this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries->removeElement($inventoryEntry);
-			// set the owning side to null (unless already changed)
-			if ($inventoryEntry->getArticle() === $this) {
-				$inventoryEntry->setArticle(null);
-			}
-		}
+    {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getArticle() === $this) {
+                $inventoryEntry->setArticle(null);
+            }
+        }
+    }
 
-		return $this;
-	}
+    public function getInventoryMission(): ?InventoryMission
+    {
+        return $this->inventoryMission;
+    }
+
+    public function setInventoryMission(?InventoryMission $inventoryMission): self
+    {
+        $this->inventoryMission = $inventoryMission;
+
+        return $this;
+    }
 
     public function getHasInventoryAnomaly(): ?bool
     {

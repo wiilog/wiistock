@@ -4,4 +4,14 @@
 
 {% block page_content %}
 
+    {% include 'filters/filtersMissionInv.html.twig' with {'btnName' : 'submitSearchMission'} %}
+
+    <h1>Missions d'inventaire</h1>
+
+    <table id="tableMissionsInv" class="table table-striped table-bordered w-100">
+    </table>
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/mission-inventaire.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
