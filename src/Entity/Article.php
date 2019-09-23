@@ -118,6 +118,11 @@ class Article
 	 */
 	private $hasInventoryAnomaly = false;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateLastInventory;
+
 
     public function __construct()
     {
@@ -415,32 +420,32 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-      	{
-      		return $this->inventoryEntries;
-      	}
+	{
+		return $this->inventoryEntries;
+	}
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-      	{
-      		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-      			$this->inventoryEntries[] = $inventoryEntry;
-      			$inventoryEntry->setArticle($this);
-      		}
-      
-      		return $this;
-      	}
+	{
+		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries[] = $inventoryEntry;
+			$inventoryEntry->setArticle($this);
+		}
+
+		return $this;
+	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-      	{
-      		if ($this->inventoryEntries->contains($inventoryEntry)) {
-      			$this->inventoryEntries->removeElement($inventoryEntry);
-      			// set the owning side to null (unless already changed)
-      			if ($inventoryEntry->getArticle() === $this) {
-      				$inventoryEntry->setArticle(null);
-      			}
-      		}
-      
-      		return $this;
-      	}
+	{
+		if ($this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries->removeElement($inventoryEntry);
+			// set the owning side to null (unless already changed)
+			if ($inventoryEntry->getArticle() === $this) {
+				$inventoryEntry->setArticle(null);
+			}
+		}
+
+		return $this;
+	}
 
     public function getHasInventoryAnomaly(): ?bool
     {
@@ -450,6 +455,18 @@ class Article
     public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
     {
         $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    public function getDateLastInventory(): ?\DateTimeInterface
+    {
+        return $this->dateLastInventory;
+    }
+
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    {
+        $this->dateLastInventory = $dateLastInventory;
 
         return $this;
     }

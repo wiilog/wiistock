@@ -755,9 +755,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			$response->headers->set('Content-Type', 'application/json');
 			$response->headers->set('Access-Control-Allow-Origin', '*');
 			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            dump($data);
 
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
+			    dump($data);
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
 
