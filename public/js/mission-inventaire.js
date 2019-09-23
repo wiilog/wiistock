@@ -10,6 +10,7 @@ let tableMissions = $('#tableMissionsInv').DataTable({
     columns:[
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
+        { "data": 'Rate', 'title' : 'Taux d\'avancement' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
 });

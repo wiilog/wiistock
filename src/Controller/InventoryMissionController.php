@@ -90,12 +90,21 @@ class InventoryMissionController extends AbstractController
             }
 
             $missions = $this->inventoryMissionRepository->findAll();
+
             $rows = [];
             foreach ($missions as $mission) {
+                $artRate = $this->articleRepository->countByMission($mission);
+                $refRate = $this->referenceArticleRepository->countByMission($mission);
+                $rateMin = (int)$refRate[0][1] + (int)$artRate[0][1];
+                $rateMax = (int)$refRate[0][2] + (int)$artRate[0][2];
+                $rateBar = $rateMin * 100 / $rateMax;
                 $rows[] =
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
+                        'Rate' => $this->renderView('mission_inventaire/datatableMissionsBar.html.twig', [
+                            'rateBar' => $rateBar
+                        ]),
                         'Actions' => $this->renderView('mission_inventaire/datatableMissionsRow.html.twig', [
                             'missionId' => $mission->getId(),
                         ]),
