@@ -121,44 +121,44 @@ class InventoryAnomalyController extends AbstractController
 			}
 
 			$isRef = $data['isRef'];
-			$stockDiff = (int)$data['stockDiff'];
+			$newQuantity = (int)$data['newQuantity'];
 
 			$em = $this->getDoctrine()->getManager();
 			if ($isRef) {
 				$refOrArt = $this->referenceArticleRepository->findOneByReference($data['reference']);
+				$quantity = $refOrArt->getQuantiteStock();
 			} else {
 				$refOrArt = $this->articleRepository->findOneByReference($data['reference']);
+				$quantity = $refOrArt->getQuantite();
 			}
 
-			if ($data['choice'] == 'confirm') {
+			$diff = $newQuantity - $quantity;
+
+			if ($data['choice'] == 'confirm' && $diff != 0) {
 				$mvt = new MouvementStock();
 				$mvt
 					->setUser($this->getUser())
 					->setDate(new \DateTime('now'))
 					->setComment($data['comment']);
 
-				$isRef ? $mvt->setRefArticle($refOrArt) : $mvt->setArticle($refOrArt);
+				if ($isRef) {
+					$mvt->setRefArticle($refOrArt);
+					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
+					$refOrArt->setQuantiteStock($newQuantity);
+				} else {
+					$mvt->setArticle($refOrArt);
+					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
+					$refOrArt->setQuantite($newQuantity);
+				}
 
-				if ($stockDiff < 0) {
+				if ($diff < 0) {
 					$mvt
 						->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
-						->setQuantity(-$stockDiff);
-					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
-					if ($isRef) {
-						$refOrArt->setQuantiteStock($refOrArt->getQuantiteStock() - $stockDiff);
-					} else {
-						$refOrArt->setQuantite($refOrArt->getQuantite() - $stockDiff);
-					}
+						->setQuantity(-$diff);
 				} else {
 					$mvt
 						->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
-						->setQuantity($stockDiff);
-					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
-					if ($isRef) {
-						$refOrArt->setQuantiteStock($refOrArt->getQuantiteStock() + $stockDiff);
-					} else {
-						$refOrArt->setQuantite($refOrArt->getQuantite() + $stockDiff);
-					}
+						->setQuantity($diff);
 				}
 				$em->persist($mvt);
 			}
