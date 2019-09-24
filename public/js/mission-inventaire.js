@@ -10,10 +10,13 @@ let tableMissions = $('#tableMissionsInv').DataTable({
     columns:[
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
+        { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
+    "columnDefs": [
+        {"visible" : false, "targets" : 2}
+    ],
 });
-
 
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
@@ -35,6 +38,13 @@ let tableMission = $('#tableMissionInv').DataTable({
 let $submitSearchMission = $('#submitSearchMission');
 
 $submitSearchMission.on('click', function () {
+
+    let anomaly = $('#anomalyFilter').val();
+
+    tableMissions
+        .columns('anomaly:name')
+        .search(anomaly)
+        .draw();
 
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
