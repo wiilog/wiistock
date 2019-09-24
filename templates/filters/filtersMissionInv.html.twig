@@ -1,0 +1,23 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block dateFilter %}
+    <div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">De</div>
+            </div>
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+        </div>
+    </div>
+{% endblock %}
+
+{% block statusFilter %}
+{% endblock %}
+{% block userFilter %}
+{% endblock %}
+{% block typeFilter %}
+{% endblock %}
