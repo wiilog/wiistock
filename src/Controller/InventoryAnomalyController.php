@@ -12,6 +12,8 @@ use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\InventoryService;
+use App\Service\InventoryServiceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,13 +54,19 @@ class InventoryAnomalyController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
+
+    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->inventoryService = $inventoryService;
     }
 
 	/**
@@ -120,51 +128,7 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$isRef = $data['isRef'];
-			$newQuantity = (int)$data['newQuantity'];
-
-			$em = $this->getDoctrine()->getManager();
-			if ($isRef) {
-				$refOrArt = $this->referenceArticleRepository->findOneByReference($data['reference']);
-				$quantity = $refOrArt->getQuantiteStock();
-			} else {
-				$refOrArt = $this->articleRepository->findOneByReference($data['reference']);
-				$quantity = $refOrArt->getQuantite();
-			}
-
-			$diff = $newQuantity - $quantity;
-
-			if ($data['choice'] == 'confirm' && $diff != 0) {
-				$mvt = new MouvementStock();
-				$mvt
-					->setUser($this->getUser())
-					->setDate(new \DateTime('now'))
-					->setComment($data['comment']);
-
-				if ($isRef) {
-					$mvt->setRefArticle($refOrArt);
-					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
-					$refOrArt->setQuantiteStock($newQuantity);
-				} else {
-					$mvt->setArticle($refOrArt);
-					//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
-					$refOrArt->setQuantite($newQuantity);
-				}
-
-				if ($diff < 0) {
-					$mvt
-						->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
-						->setQuantity(-$diff);
-				} else {
-					$mvt
-						->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
-						->setQuantity($diff);
-				}
-				$em->persist($mvt);
-			}
-
-			$refOrArt->setHasInventoryAnomaly(false);
-			$em->flush();
+			$this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['choice'], $data['comment']);
 
 			return new JsonResponse($data['choice'] == 'confirm');
 		}
