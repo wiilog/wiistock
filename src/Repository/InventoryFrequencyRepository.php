@@ -19,4 +19,21 @@ class InventoryFrequencyRepository extends ServiceEntityRepository
         parent::__construct($registry, InventoryFrequency::class);
     }
 
+    /**
+     * @param string $label
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countByLabel($label)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            "SELECT count(ic)
+            FROM App\Entity\InventoryFrequency ic
+            WHERE ic.label = :label"
+        )->setParameter('label', $label);
+
+        return $query->getSingleScalarResult();
+    }
 }

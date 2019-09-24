@@ -91,7 +91,6 @@ class MouvementStock
 	 */
 	private $comment;
 
-
     public function getId(): ?int
     {
         return $this->id;

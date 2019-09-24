@@ -440,31 +440,22 @@ let ajaxPlusDemandeContent = function (button, demande) {
     xhttp.send(Json);
 }
 
-//TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
     let modalFooter = select.closest('.modal').find('.modal-footer');
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('.editChampLibre').html(dataReponse);
-                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
-                // initEditor('.editor-container-edit');
-                modalFooter.removeClass('d-none');
-                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    modalFooter.addClass('d-none');
-    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+    let params = { id: select.val(), isADemand: 1 };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        if (data) {
+            $('.editChampLibre').html(data);
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
+            $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
+            modalFooter.removeClass('d-none');
+            setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
+        }
+    }, 'json');
+    modalFooter.addClass('d-none');
 }
 
 //initialisation editeur de texte une seule fois
@@ -478,16 +469,6 @@ function initNewReferenceArticleEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     clearModal(modal);
 };
-
-// var editorEditRefArticleAlreadyDone = false;
-// function initEditRefArticleEditor(modal) {
-//
-//     if (!editorEditRefArticleAlreadyDone) {
-//         initEditorInModal(modal);
-//         editorEditRefArticleAlreadyDone = true;
-//
-//     }
-// };
 
 function loadSpinnerAR(div) {
     div.removeClass('d-flex');

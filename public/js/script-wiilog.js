@@ -24,13 +24,13 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
-function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
+function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitAction(modal, path, table, callback, close);
+        submitAction(modal, path, table, callback, close, clear);
     });
 }
 
-function submitAction(modal, path, table, callback, close) {
+function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -113,13 +113,15 @@ function submitAction(modal, path, table, callback, close) {
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
                 }
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                });
+                if (table) {
+                    table.ajax.reload(function (json) {
+                        if (data !== undefined) {
+                            $('#myInput').val(json.lastInput);
+                        }
+                    });
+                }
 
-                clearModal(modal);
+                if (clear) clearModal(modal);
 
                 if (callback !== null) callback(data);
         }, 'json');
@@ -521,8 +523,8 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
-function displayError(modal, msg, data) {
-    if (data === false) {
+function displayError(modal, msg, success) {
+    if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
         modal.find('.close').click();

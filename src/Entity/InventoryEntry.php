@@ -53,7 +53,6 @@ class InventoryEntry
 	 */
     private $mission;
 
-
     public function getId(): ?int
     {
         return $this->id;
@@ -142,4 +141,5 @@ class InventoryEntry
 
         return $this;
     }
+
 }

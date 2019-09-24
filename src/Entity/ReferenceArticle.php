@@ -141,6 +141,12 @@ class ReferenceArticle
      */
     private $prixUnitaire;
 
+	/**
+	 * @ORM\Column(type="boolean")
+	 */
+    private $hasInventoryAnomaly = false;
+
+
     public function __construct()
     {
         $this->alertesStock = new ArrayCollection();
@@ -697,4 +703,16 @@ class ReferenceArticle
 
         return $this;
     }
+    public function getHasInventoryAnomaly(): ?bool
+    {
+        return $this->hasInventoryAnomaly;
+    }
+
+    public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
+    {
+        $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
 }
