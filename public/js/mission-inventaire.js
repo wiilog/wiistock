@@ -1,3 +1,8 @@
+$(function () {
+    initSearch(tableMission);
+    initSearch(tableMissions);
+})
+
 let pathMissions = Routing.generate('inv_missions_api', true);
 let tableMissions = $('#tableMissionsInv').DataTable({
     "language": {
@@ -29,28 +34,40 @@ let tableMission = $('#tableMissionInv').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'Article', 'title' : 'Reférence' },
-        { "data": 'Date', 'title' : 'Date de saisie' },
-        { "data": 'Anomaly', 'title' : 'Anomalie' }
+        { "data": 'Ref', 'title' : 'Reférence' },
+        { "data": 'Label', 'title' : 'Libellé' },
+        { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
+        { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
     ],
 });
 
 let $submitSearchMission = $('#submitSearchMission');
-
 $submitSearchMission.on('click', function () {
-
     let anomaly = $('#anomalyFilter').val();
-
     tableMissions
         .columns('anomaly:name')
         .search(anomaly)
         .draw();
+});
 
+let $submitSearchMissionRef = $('#submitSearchMissionRef');
+$submitSearchMissionRef.on('click', function() {
+    let anomaly = $('#anomalyFilter').val();
+    tableMission
+        .columns('anomaly:name')
+        .search(anomaly === 'true' ? 'oui':'non')
+        .draw();
+})
+
+function initSearch(table) {
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let indexDate = tableMissions.column('date:name').index();
+            let indexDate = table.column('date:name').index();
+
+            if (typeof indexDate === "undefined") return true;
+
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
             if (
@@ -68,6 +85,4 @@ $submitSearchMission.on('click', function () {
             return false;
         }
     );
-    tableMissions
-        .draw();
-});
+}

@@ -487,7 +487,7 @@ class ArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         	/** @lang DQL */
-            "SELECT a.label, e.date, a.hasInventoryAnomaly
+            "SELECT a.label, a.reference, e.date, a.hasInventoryAnomaly
             FROM App\Entity\Article a
             JOIN a.inventoryMission m
             LEFT JOIN a.inventoryEntries e

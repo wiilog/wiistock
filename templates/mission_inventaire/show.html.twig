@@ -3,11 +3,20 @@
 {% block title %}Références et articles de la mission{% endblock %}
 
 {% block page_content %}
-    <h1 class="mb-5">Références et articles de la mission</h1>
+    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
+    </div>
 
-    <input value="{{ missionId }}" id="missionId" hidden>
-    <table id="tableMissionInv" class="table table-striped table-bordered w-100">
-    </table>
+    {% include 'filters/filtersMissionInv.html.twig' with {'btnName' : 'submitSearchMissionRef'} %}
+
+    <div class="container-fluid">
+
+        <h1>Références et articles de la mission</h1>
+
+        <table id="tableMissionInv" class="table table-striped table-bordered w-100">
+        </table>
+
+        <input value="{{ missionId }}" id="missionId" hidden>
+    </div>
 
     <a href="{{ path('inventory_mission_index') }}" class="btn btn-action">
         Retour à la liste

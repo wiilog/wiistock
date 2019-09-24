@@ -89,15 +89,12 @@ class InventoryMissionController extends AbstractController
             $rows = [];
             foreach ($missions as $mission) {
                 $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
-                if ($anomaly != 0)
-                    $anomalyRow = true;
-                else
-                    $anomalyRow = false;
+
                 $rows[] =
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
-                        'Anomaly' => $anomalyRow,
+                        'Anomaly' => $anomaly != 0,
                         'Actions' => $this->renderView('mission_inventaire/datatableMissionsRow.html.twig', [
                             'missionId' => $mission->getId(),
                         ]),
@@ -142,7 +139,8 @@ class InventoryMissionController extends AbstractController
                $refDate = $ref['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $ref['libelle'],
+                    'Label' => $ref['libelle'],
+                    'Ref' => $ref['reference'],
                     'Date' => $refDate,
                     'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
