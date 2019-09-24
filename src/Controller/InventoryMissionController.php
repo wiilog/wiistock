@@ -70,7 +70,7 @@ class InventoryMissionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('mission_inventaire/index.html.twig', [
+        return $this->render('inventaire/index.html.twig', [
 
         ]);
     }
@@ -92,7 +92,7 @@ class InventoryMissionController extends AbstractController
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
-                        'Actions' => $this->renderView('mission_inventaire/datatableMissionsRow.html.twig', [
+                        'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
                             'missionId' => $mission->getId(),
                         ]),
                     ];
@@ -112,7 +112,7 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            return $this->render('mission_inventaire/show.html.twig', [
+            return $this->render('inventaire/show.html.twig', [
                 'missionId' => $mission->getId(),
             ]);
     }
@@ -120,7 +120,7 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function entryApi(InventoryMission $mission)
+    public function show(InventoryMission $mission)
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
