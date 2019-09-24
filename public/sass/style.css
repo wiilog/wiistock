@@ -223,6 +223,11 @@ a:hover {
   color: #b2b2b2;
 }
 
+.progress-bar {
+  background-color: #130078;
+  font-family: "Montserrat", Helvetica, Arial, sans-serif;
+}
+
 /* Login    
  * *================= 
  * */

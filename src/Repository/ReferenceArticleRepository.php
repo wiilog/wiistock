@@ -637,13 +637,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT COUNT(e), COUNT(ra)
+            "SELECT COUNT(e) as entryRef, COUNT(ra) as ref
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.inventoryMissions m
             LEFT JOIN ra.inventoryEntries e
             WHERE m = :mission"
         )->setParameter('mission', $mission);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 }

@@ -95,9 +95,9 @@ class InventoryMissionController extends AbstractController
             foreach ($missions as $mission) {
                 $artRate = $this->articleRepository->countByMission($mission);
                 $refRate = $this->referenceArticleRepository->countByMission($mission);
-                $rateMin = (int)$refRate[0][1] + (int)$artRate[0][1];
-                $rateMax = (int)$refRate[0][2] + (int)$artRate[0][2];
-                $rateBar = $rateMin * 100 / $rateMax;
+                $rateMin = (int)$refRate['entryRef'] + (int)$artRate['entryArt'];
+                $rateMax = (int)$refRate['ref'] + (int)$artRate['art'];
+                $rateBar = $rateMax !== 0 ? $rateMin * 100 / $rateMax : 0;
                 $rows[] =
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),

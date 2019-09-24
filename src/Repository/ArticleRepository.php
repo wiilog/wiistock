@@ -490,13 +490,13 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT COUNT(e), COUNT(a)
+            "SELECT COUNT(e) as entryArt, COUNT(a) as art
             FROM App\Entity\Article a
             JOIN a.inventoryMission m
             LEFT JOIN a.inventoryEntries e
             WHERE m = :mission"
         )->setParameter('mission', $mission);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 }
