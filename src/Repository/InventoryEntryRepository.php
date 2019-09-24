@@ -20,4 +20,16 @@ class InventoryEntryRepository extends ServiceEntityRepository
         parent::__construct($registry, InventoryEntry::class);
     }
 
+
+    public function getByMission($mission)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT e
+            FROM App\Entity\InventoryEntry e
+            WHERE e.mission = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->execute();
+    }
 }

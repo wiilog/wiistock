@@ -4,7 +4,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\InventoryMission;
 use App\Entity\Menu;
+use App\Entity\InventoryEntry;
+
+use App\Repository\InventoryEntryRepository;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,22 +30,60 @@ class InventoryEntryController extends AbstractController
      */
     private $userService;
 
-    public function __construct(UserService $userService)
+    /**
+     * @var InventoryEntryRepository
+     */
+    private $inventoryEntryRepository;
+
+    public function __construct(UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
     {
         $this->userService = $userService;
+        $this->inventoryEntryRepository = $inventoryEntryRepository;
     }
 
     /**
-     * @Route("/", name="inventory_entry_index")
+     * @Route("/voir/{id}", name="inventory_entry_index", options={"expose"=true}, methods="GET|POST")
      */
-    public function index()
+    public function entry_index(InventoryMission $mission)
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
         return $this->render('saisie_inventaire/index.html.twig', [
-
+            'missionId' => $mission->getId(),
         ]);
     }
+
+    /**
+     * @Route("/donnees/api/{id}", name="entries_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function entryApi(InventoryMission $mission)
+    {
+        if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $entries = $this->inventoryEntryRepository->getByMission($mission);
+
+        $rows = [];
+        foreach ($entries as $entry) {
+            $article = $entry->getArticle();
+            if ($article == null)
+                $article = $entry->getRefArticle()->getLibelle();
+            else
+                $article = $article->getLabel();
+            $rows[] =
+                [
+                    'Article' => $article,
+                    'Operator' => $entry->getOperator()->getUsername(),
+                    'Location' => $entry->getLocation()->getLabel(),
+                    'Date' => $entry->getDate()->format('d/m/Y'),
+                    'Quantity' => $entry->getQuantity()
+                ];
+        }
+        $data['data'] = $rows;
+        return new JsonResponse($data);
+    }
+
 }
