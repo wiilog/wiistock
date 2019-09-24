@@ -86,4 +86,41 @@ class InventoryEntryController extends AbstractController
         return new JsonResponse($data);
     }
 
+    /**
+     * @Route("/saisies-infos", name="get_entries_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getEntriesIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $entries = $this->inventoryEntryRepository->getByMission($data['missionId']);
+
+            $headers = [];
+            $headers = array_merge($headers, ['Référence ou article', 'Operateur', 'Emplacement', 'Date de saisie', 'Quantité']);
+
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($entries as $entry) {
+                $entryData = [];
+                $article = $entry->getArticle();
+                if ($article == null)
+                    $article = $entry->getRefArticle()->getLibelle();
+                else
+                    $article = $article->getLabel();
+
+                $entryData[] = $article;
+                $entryData[] = $entry->getOperator()->getUsername();
+                $entryData[] = $entry->getLocation()->getLabel();
+                $entryData[] = $entry->getDate()->format('d/m/Y');
+                $entryData[] = $entry->getQuantity();
+
+                $data[] = $entryData;
+            }
+
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 }

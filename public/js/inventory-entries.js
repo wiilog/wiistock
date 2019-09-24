@@ -18,12 +18,14 @@ let tableEntries = $('#tableMissionEntries').DataTable({
 });
 
 function generateCSVEntries () {
-    let params = JSON.stringify(data);
-    let path = Routing.generate('get_mouvements_stock_for_csv', true);
+    let missionId = $('#missionId').val();
+    let params = {
+        missionId: missionId,
+    };
+    let path = Routing.generate('get_entries_for_csv', true);
 
-    $.post(path, params, function(response) {
+    $.post(path, JSON.stringify(params), function(response) {
         if (response) {
-            $('.error-msg').empty();
             let csv = "";
             $.each(response, function (index, value) {
                 csv += value.join(';');
@@ -35,10 +37,7 @@ function generateCSVEntries () {
 }
 
 let mFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilename = 'export-mouvements-stock-' + date + '.csv';
+    let exportedFilename = 'export-entries' + '.csv';
     let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilename);
