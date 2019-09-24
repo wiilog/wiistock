@@ -632,4 +632,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getArticlesByMissionId($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a
+            FROM App\Entity\Article a
+            JOIN a.inventoryMission m
+            LEFT JOIN a.inventoryEntries ie
+            WHERE m = :mission AND ie.id is null"
+        )->setParameter('mission', $mission);
+
+        return $query->execute();
+    }
+
+    public function getRefArticlesByMissionId($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.inventoryMissions m
+            LEFT JOIN ra.inventoryEntries ie
+            WHERE m = :mission AND ie.id is null"
+        )->setParameter('mission', $mission);
+
+        return $query->execute();
+    }
 }

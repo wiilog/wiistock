@@ -161,4 +161,51 @@ class InventoryMissionController extends AbstractController
         $data['data'] = $rows;
         return new JsonResponse($data);
     }
+
+
+    /**
+     * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getMouvementIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $articles = $this->referenceArticleRepository->getArticlesByMissionId($data['missionId']);
+            $refArticles = $this->referenceArticleRepository->getRefArticlesByMissionId($data['missionId']);
+            $missionDate = $this->inventoryMissionRepository->getDatesByMission($data['missionId']);
+
+            $missionHeader = [];
+            $missionHeader = array_merge($missionHeader, [$missionDate[0]['startPrevDate']->format('d/m/Y'), $missionDate[0]['endPrevDate']->format('d/m/Y')]);
+
+            $headers = [];
+            $headers = array_merge($headers, ['label', 'quantité', 'emplacement']);
+
+            $data = [];
+            $data[] = $missionHeader;
+            $data[] = $headers;
+
+            foreach ($articles as $article) {
+                $articleData = [];
+
+                $articleData[] = $article->getLabel();
+                $articleData[] = $article->getQuantite();
+                $articleData[] = $article->getEmplacement()->getLabel();
+
+                $data[] = $articleData;
+            }
+
+            foreach ($refArticles as $refArticle) {
+                $refArticleData = [];
+
+                $refArticleData[] = $refArticle->getLibelle();
+                $refArticleData[] = $refArticle->getQuantiteStock();
+                $refArticleData[] = $refArticle->getEmplacement()->getLabel();
+
+                $data[] = $refArticleData;
+            }
+
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 }
