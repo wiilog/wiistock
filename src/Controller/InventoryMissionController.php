@@ -101,7 +101,7 @@ class InventoryMissionController extends AbstractController
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
                         'Anomaly' => $anomaly != 0,
-                        'Rate' => $this->renderView('mission_inventaire/datatableMissionsBar.html.twig', [
+                        'Rate' => $this->renderView('inventaire/datatableMissionsBar.html.twig', [
                             'rateBar' => $rateBar
                         ]),
                         'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
