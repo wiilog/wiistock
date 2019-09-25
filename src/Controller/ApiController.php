@@ -767,7 +767,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-			    dump($data);
+			    dump('test');
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
 
