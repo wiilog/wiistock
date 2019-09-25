@@ -24,6 +24,15 @@ let tableMissions = $('#tableMissionsInv').DataTable({
     ],
 });
 
+let modalNewMission = $("#modalNewMission");
+let submitNewMission = $("#submitNewMission");
+let urlNewMission = Routing.generate('mission_new', true);
+InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, null, false);
+
+let ModalDeleteMission = $("#modalDeleteMission");
+let $submitDeleteMission = $("#submitDeleteMission");
+let urlDeleteMission = Routing.generate('mission_delete', true)
+InitialiserModal(ModalDeleteMission, SubmitDeleteMission, urlDeleteMission, tableMissions);
 
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);

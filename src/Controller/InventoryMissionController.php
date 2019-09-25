@@ -21,6 +21,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use App\Service\UserService;
 
+use DateTime;
+
 
 /**
  * @Route("/inventaire/mission")
@@ -113,6 +115,76 @@ class InventoryMissionController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST")
+     */
+    public function new(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getEntityManager();
+
+                $mission = new InventoryMission();
+                $mission
+                    ->setStartPrevDate(DateTime::createFromFormat('Y-m-d', $data['startDate']))
+                    ->setEndPrevDate(DateTime::createFromFormat('Y-m-d', $data['endDate']));
+
+                $em->persist($mission);
+                $em->flush();
+
+                return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/verification", name="mission_check_delete", options={"expose"=true})
+     */
+    public function checkUserCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            //$missionIsUsed = $this->inventoryMissionRepository
+
+            if (!$missionIsUsed) {
+                $delete = true;
+                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function delete(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $category = $this->inventoryCategoryRepository->find($data['category']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($category);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
