@@ -11,6 +11,8 @@ use App\Repository\ReferenceArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Validator\Constraints\Date;
+use DateTime;
 
 class InventoryService
 {
@@ -82,6 +84,7 @@ class InventoryService
 		}
 
 		$refOrArt->setHasInventoryAnomaly(false);
+		$refOrArt->setDateLastInventory(new DateTime('now'));
 		$em->flush();
 	}
 }

@@ -809,7 +809,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 $em->flush();
                             }
                         }
-                        dump('newEntry');
                         $em->persist($newEntry);
                         $em->flush();
                     }
