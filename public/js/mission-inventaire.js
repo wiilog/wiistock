@@ -20,7 +20,7 @@ let tableMissions = $('#tableMissionsInv').DataTable({
         { "data": 'Actions', 'title' : 'Actions' }
     ],
     "columnDefs": [
-        {"visible" : false, "targets" : 2}
+        {"visible" : false, "targets" : 3}
     ],
 });
 
