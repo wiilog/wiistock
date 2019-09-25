@@ -357,14 +357,27 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countActiveArticles()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            JOIN a.statut s
+            WHERE s.nom = :active"
+		)->setParameter('active', Article::STATUT_ACTIF);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function countAll()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
-            FROM App\Entity\Article a
-           "
-        );
+            FROM App\Entity\Article a"
+		);
 
         return $query->getSingleScalarResult();
     }

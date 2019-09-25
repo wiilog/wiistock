@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\ReferenceArticle;
@@ -405,6 +406,25 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle ra
            "
         );
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countActiveTypeRefRef()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.statut s
+            WHERE s.nom = :active
+            AND ra.typeQuantite = :typeQuantite
+            "
+		)->setParameters([
+			'active' => ReferenceArticle::STATUT_ACTIF,
+			'typeQuantite' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+		]);
 
         return $query->getSingleScalarResult();
     }

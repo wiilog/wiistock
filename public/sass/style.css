@@ -228,6 +228,11 @@ a:hover {
   border: none;
 }
 
+.progress-bar {
+  background-color: #130078;
+  font-family: "Montserrat", Helvetica, Arial, sans-serif;
+}
+
 /* Login    
  * *================= 
  * */
@@ -344,7 +349,7 @@ a:hover {
   border-radius: 10px;
 }
 
-.sizeNbrFiabilite {
+.big-font {
   font-size: 3rem;
 }
 

@@ -39,18 +39,15 @@ class='accueil-back'
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 carreNbrIndicateur">
-                    <a href="">
-                        <p ><strong> Indicateur de fiabilité par référence : </strong><br></p>
-                        <p class="sizeNbrFiabilite">{{ nbrFiabiliteReference|round }}%</p>
-                    </a>
+                    <p><span class="bold">Indicateur de fiabilité par référence :</span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span></p>
                 </div>
                 <div class="col-7 mb-1 mt-1 carreNbrIndicateur">
-                    <a href="">
-                        <p ><strong> Indicateur de fiabilité monétaire : </strong><br></p>
-                        <p class="sizeNbrFiabilite">{{ nbrFiabiliteMonetaire|round }}€</p>
-                    </a>
+                    <p><span class="bold"> Indicateur de fiabilité monétaire : </span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteMonetaire|round }}€</span></p>
                 </div>
-{#                <div class="col-7 mb-1 mt-1 alerte">#}
+
+                {#                <div class="col-7 mb-1 mt-1 alerte">#}
 {#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
 {#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}
 {#                    </a>#}

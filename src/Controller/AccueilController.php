@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\MouvementStock;
 use App\Repository\AlerteExpiryRepository;
+use App\Repository\ArticleRepository;
 use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -61,11 +63,21 @@ class AccueilController extends AbstractController
     private $mouvementStockRepository;
 
 	/**
+	 * @var ReferenceArticleRepository
+	 */
+    private $refArticleRepository;
+
+	/**
+	 * @var ArticleRepository
+	 */
+    private $articleRepository;
+
+	/**
 	 * @var AlerteExpiryRepository
 	 */
     private $alerteExpiryRepository;
 
-    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
+    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -75,6 +87,8 @@ class AccueilController extends AbstractController
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
+        $this->refArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -90,9 +104,9 @@ class AccueilController extends AbstractController
     	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
-        $nbrDeMouvementDeCorrection = $this->mouvementStockRepository->countByTypes($types);
-    	$allMouvementStock = $this->mouvementStockRepository->countAllMouvementStock();
-        $nbrFiabiliteReference = $nbrDeMouvementDeCorrection / $allMouvementStock * 100;
+        $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
+    	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
         $totalRefArticle = $this->mouvementStockRepository->countTotalPriceRefArticle();
         $totalArticle = $this->mouvementStockRepository->countTotalPriceArticle();
