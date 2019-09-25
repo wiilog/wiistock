@@ -777,50 +777,50 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
 					if ($mission && $location) {
-					    dump('newEntry');
-					    $newDate = new DateTime($entry['date']);
-						$newEntry
+                        $newDate = new DateTime($entry['date']);
+                        $newEntry
 							->setMission($mission)
 							->setDate($newDate)
 							->setQuantity($entry['quantity'])
 							->setOperator($nomadUser)
 							->setLocation($location);
 
-						if ($entry['is_ref']) {
-							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
-							$newEntry->setRefArticle($refArticle);
-							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-								dump($refArticle->getId());
-								$refArticle->setHasInventoryAnomaly(true);
-								$em->flush();
-							}
-							else
+                        if ($entry['is_ref']) {
+                            $refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
+                            $newEntry->setRefArticle($refArticle);
+                            if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+                                dump($refArticle->getId());
+                                $refArticle->setHasInventoryAnomaly(true);
+                                $em->flush();
+                            }
+                            else
                             {
                                 $refArticle->setDateLastInventory($newDate);
                                 $em->flush();
                             }
-						} else {
-							$article = $this->articleRepository->findOneByReference($entry['reference']);
-							$newEntry->setArticle($article);
+                        } else {
+                            $article = $this->articleRepository->findOneByReference($entry['reference']);
+                            $newEntry->setArticle($article);
 
-							if ($newEntry->getQuantity() !== $article->getQuantite()) {
-								$article->setHasInventoryAnomaly(true);
-								dump($article->getId());
-								$em->flush();
-							}
-						}
-						$em->persist($newEntry);
-						$em->flush();
-					}
-					$numberOfRowsInserted++;
-				}
-				$s = $numberOfRowsInserted > 1 ? 's' : '';
-				$this->successDataMsg['success'] = true;
-				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+                            if ($newEntry->getQuantity() !== $article->getQuantite()) {
+                                $article->setHasInventoryAnomaly(true);
+                                dump($article->getId());
+                                $em->flush();
+                            }
+                        }
+                        dump('newEntry');
+                        $em->persist($newEntry);
+                        $em->flush();
+                    }
+                    $numberOfRowsInserted++;
+                }
+                $s = $numberOfRowsInserted > 1 ? 's' : '';
+                $this->successDataMsg['success'] = true;
+                $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
 					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
-			} else {
-				$this->successDataMsg['success'] = false;
-				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            } else {
+                $this->successDataMsg['success'] = false;
+                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
 			}
 
 			$response->setContent(json_encode($this->successDataMsg));
