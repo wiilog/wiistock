@@ -152,18 +152,21 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $missionIsUsed = $this->inventoryMissionRepository->countArtRefByMission($missionId);
+            $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
+            $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
 
-            dump($missionIsUsed);
+            if ($missionArt != 0 || $missionRef != 0)
+                $missionIsUsed = false;
+            else
+                $missionIsUsed = true;
 
-//            if (!$missionIsUsed) {
-//                $delete = true;
-//                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
-//            } else {
-//                $delete = false;
-//                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
-//            }
-
+            if ($missionIsUsed == true) {
+                $delete = true;
+                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+            }
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
@@ -179,10 +182,11 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $category = $this->inventoryCategoryRepository->find($data['category']);
+            dump($data);
+            $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($category);
+            $entityManager->remove($mission);
             $entityManager->flush();
             return new JsonResponse();
         }
