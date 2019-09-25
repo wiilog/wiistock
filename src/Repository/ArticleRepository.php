@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
+use App\Entity\InventoryMission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -376,6 +377,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+		/** @lang DQL */
 			"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.quantite > :limit"
@@ -391,6 +393,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+		/** @lang DQL */
 			"SELECT a1
 			FROM App\Entity\Article a1
 			WHERE a1.reference IN (
@@ -406,6 +409,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+			/** @lang DQL */
 			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
@@ -451,7 +455,8 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT a
+		/** @lang DQL */
+		"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.reference = :reference"
 		)->setParameter('reference', $reference);
@@ -463,6 +468,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
             "SELECT COUNT(a)
 			FROM App\Entity\Article a
 			JOIN a.emplacement e
@@ -472,11 +478,16 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param InventoryMission $mission
+	 * @return mixed
+	 */
     public function getByMission($mission)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT a.label, e.date, a.hasInventoryAnomaly
+        	/** @lang DQL */
+            "SELECT a.label, a.reference, e.date, a.hasInventoryAnomaly
             FROM App\Entity\Article a
             JOIN a.inventoryMission m
             LEFT JOIN a.inventoryEntries e

@@ -65,4 +65,19 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function countByMissionAnomaly($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\InventoryMission m
+            JOIN m.articles a
+            JOIN m.refArticles ra
+            WHERE m = :mission AND (a.hasInventoryAnomaly = true OR ra.hasInventoryAnomaly = true)"
+        )->setParameter('mission', $mission);
+
+        return $query->getSingleScalarResult();
+    }
 }

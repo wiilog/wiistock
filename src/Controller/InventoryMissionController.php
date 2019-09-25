@@ -6,16 +6,12 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
-use App\Entity\InventoryEntry;
-use App\Entity\ReferenceArticle;
-use App\Entity\Article;
 
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
-use phpDocumentor\Reflection\Types\String_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,7 +76,7 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="invMissions_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
     {
@@ -93,6 +89,8 @@ class InventoryMissionController extends AbstractController
 
             $rows = [];
             foreach ($missions as $mission) {
+                $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
+
                 $artRate = $this->articleRepository->countByMission($mission);
                 $refRate = $this->referenceArticleRepository->countByMission($mission);
                 $rateMin = (int)$refRate['entryRef'] + (int)$artRate['entryArt'];
@@ -102,6 +100,7 @@ class InventoryMissionController extends AbstractController
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
+                        'Anomaly' => $anomaly != 0,
                         'Rate' => $this->renderView('mission_inventaire/datatableMissionsBar.html.twig', [
                             'rateBar' => $rateBar
                         ]),
@@ -125,13 +124,13 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            return $this->render('mission_inventaire/entry_index.html.twig', [
+            return $this->render('mission_inventaire/show.html.twig', [
                 'missionId' => $mission->getId(),
             ]);
     }
 
     /**
-     * @Route("/donnees/api/{id}", name="invEntry_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
     public function entryApi(InventoryMission $mission)
     {
@@ -149,7 +148,8 @@ class InventoryMissionController extends AbstractController
                $refDate = $ref['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $ref['libelle'],
+                    'Label' => $ref['libelle'],
+                    'Ref' => $ref['reference'],
                     'Date' => $refDate,
                     'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
@@ -160,7 +160,8 @@ class InventoryMissionController extends AbstractController
                 $artDate = $article['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $article['label'],
+                    'Label' => $article['label'],
+                    'Ref' => $article['reference'],
                     'Date' => $artDate,
                     'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];

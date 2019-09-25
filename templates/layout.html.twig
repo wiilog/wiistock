@@ -32,20 +32,6 @@
                     </a>
                 </li>
 
-                <!-- INVENTAIRE   -->
-                {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
-                    <li class="menu-item has-submenu">
-                        <a href="#">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h4>Inventaire</h4>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li><a href="{{ path("inventory_entry_index") }}" class="sub-item">• Saisie d'inventaire</a></li>
-                            <li><a href="{{ path("inventory_mission_index") }}" class="sub-item">• Missions d'inventaire</a></li>
-                        </ul>
-                    </li>
-                {% endif %}
-
                 <!-- ARRIVAGE   -->
                 {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
@@ -143,10 +129,15 @@
                             <li>
                                 <a href="{{ path('mouvement_stock_index') }}" class="sub-item">• Mouvement de stock</a>
                             </li>
+                            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
+                            <li>
+                                <a href="{{ path('inventory_mission_index') }}" class="sub-item">• Inventaire</a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </li>
                 {% endif %}
-
+                
                 <!-- REFERENTIEL -->
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
