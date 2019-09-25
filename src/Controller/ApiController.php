@@ -792,9 +792,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 dump($refArticle->getId());
                                 $refArticle->setHasInventoryAnomaly(true);
                                 $em->flush();
-                            }
-                            else
-                            {
+                            } else {
                                 $refArticle->setDateLastInventory($newDate);
                                 $em->flush();
                             }
@@ -805,6 +803,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             if ($newEntry->getQuantity() !== $article->getQuantite()) {
                                 $article->setHasInventoryAnomaly(true);
                                 dump($article->getId());
+                                $em->flush();
+                            } else {
+                                $article->setDateLastInventory($newDate);
                                 $em->flush();
                             }
                         }
