@@ -1,0 +1,23 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block moreFilters %}
+
+    <div>
+        <div class="input-group maxw-250px">
+            <select class="form-control" name="anomalyFilter" id="anomalyFilter">
+                <option value="">Anomalie</option>
+                <option value="true">Avec anomalie</option>
+                <option value="false">Sans anomalie</option>
+            </select>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block statusFilter %}
+{% endblock %}
+{% block userFilter %}
+{% endblock %}
+{% block typeFilter %}
+{% endblock %}

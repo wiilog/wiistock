@@ -14,6 +14,8 @@ class MouvementStock
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
 	const TYPE_TRANSFERT = 'transfert';
+	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
+	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -86,12 +88,6 @@ class MouvementStock
 	 * @ORM\Column(type="text", nullable=true)
 	 */
 	private $comment;
-
-	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\InventoryEntry", inversedBy="mouvementStock")
-	 */
-	private $entry;
-
 
     public function getId(): ?int
     {
@@ -250,18 +246,6 @@ class MouvementStock
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
-
-        return $this;
-    }
-
-    public function getEntry(): ?InventoryEntry
-    {
-        return $this->entry;
-    }
-
-    public function setEntry(?InventoryEntry $entry): self
-    {
-        $this->entry = $entry;
 
         return $this;
     }

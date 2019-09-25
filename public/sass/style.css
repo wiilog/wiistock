@@ -223,6 +223,11 @@ a:hover {
   color: #b2b2b2;
 }
 
+.no-disabled {
+  background-color: white;
+  border: none;
+}
+
 /* Login    
  * *================= 
  * */

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\InventoryEntry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
