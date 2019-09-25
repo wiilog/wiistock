@@ -74,7 +74,7 @@ class InventoryAnomalyController extends AbstractController
 	 */
     public function showAnomalies()
 	{
-		if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+		if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER)) {
 			return $this->redirectToRoute('access_denied');
 		}
 
@@ -91,10 +91,10 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
-			$artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+            $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
+            $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
 
-			$anomalies = array_merge($refAnomalies, $artAnomalies);
+            $anomalies = array_merge($refAnomalies, $artAnomalies);
 
 			$rows = [];
 			foreach ($anomalies as $anomaly) {

@@ -13,7 +13,7 @@
             <div class="col">
                 <h1>Missions d'inventaire</h1>
             </div>
-            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
                 <div class="col text-right">
                     <a href="{{ path('show_anomalies') }}" class="btn btn-primary">
                         <span class="fa fa-alert mr-2"></span>Gérer les anomalies
