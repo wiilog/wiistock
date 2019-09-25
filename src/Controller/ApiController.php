@@ -767,7 +767,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-			    dump('test');
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
 
@@ -778,6 +777,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
 					if ($mission && $location) {
+					    dump('newEntry');
 					    $newDate = new DateTime($entry['date']);
 						$newEntry
 							->setMission($mission)
