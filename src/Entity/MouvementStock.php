@@ -16,9 +16,10 @@ class MouvementStock
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
 	const TYPE_TRANSFERT = 'transfert';
-	const TYPE_ENTREE_INVENTAIRE = 'entrée inventaire';
-	const TYPE_SORTIE_INVENTAIRE = 'sortie inventaire';
-    /**
+	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
+	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
+    //TOD0 CG TYPE ENTREE INVENTAIRE + TYPE
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

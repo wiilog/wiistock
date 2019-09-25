@@ -35,6 +35,8 @@
         </div>
     </div>
     {% endblock %}
+
+    {% block userFilter %}
     <div>
         <div class="input-group">
             <select class="form-control data" name="utilisateur" id="utilisateur" multiple="multiple" >
@@ -44,6 +46,9 @@
             </select>
         </div>
     </div>
+    {% endblock %}
+
+    {% block typeFilter %}
     {% if types is defined %}
     <div>
         <div class="input-group">
@@ -60,6 +65,7 @@
         <input class="current-username" hidden value="{{ app.user.username }}">
     </div>
     {% endif %}
+    {% endblock %}
 
     <div>
         <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
