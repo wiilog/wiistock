@@ -109,7 +109,6 @@ let tableArticle = $('#tableArticle_id').DataTable({
 });
 
 let prepasToSplit = [];
-let articlesChosen = {};
 let actualIndex = 0;
 let startPreparation = function (value) {
     let path1 = Routing.generate('need_splitting', true);
@@ -118,7 +117,6 @@ let startPreparation = function (value) {
     $.post(path1, JSON.stringify(params), function (needSplitting) {
         if (!needSplitting) {
             let path2 = Routing.generate('preparation_take_articles', true);
-            params.articles = articlesChosen;
 
             $.post(path2, JSON.stringify(params), function (data) {
                 $('#startPreparation').addClass('d-none');
@@ -143,7 +141,17 @@ let startPreparation = function (value) {
 };
 
 function submitSplitting(submit) {
-    if ($('#scissionTitle').attr('data-restant') <= 0) {
+    let $inputs = $('#tableSplittingArticles').find('.input');
+
+    let articlesChosen = {};
+    $inputs.each(function() {
+        if ($(this).val() !== '' && $(this).val() > 0) {
+            let id = $(this).data('id');
+            articlesChosen[id] = $(this).val();
+        }
+    });
+
+    if (parseFloat($('#quantiteRestante').html()) === 0) {
         let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
@@ -178,56 +186,37 @@ function submitSplitting(submit) {
     }
 }
 
-function typeInput(input) {
-    if (input.data('typed') !== input.val()) {
-        limitInput(input);
-        let newVal;
-        if (input.data('typed')) {
-            if (input.data('typed') > (input.val() === '' ? 0 : input.val())) {
-                newVal = parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') - input.val());
-            } else {
-                newVal = parseFloat($('#scissionTitle').attr('data-restant')) - (input.val() - input.data('typed'));
-            }
-        } else {
-            if (input.val() !== '') newVal = $('#scissionTitle').attr('data-restant') - input.val();
+function updateRemainingQuantity() {
+    let $inputs = $('#tableSplittingArticles').find('.input');
+
+    let totalQuantityTaken = 0;
+    $inputs.each(function() {
+        if ($(this).val() != '') {
+            totalQuantityTaken += parseFloat($(this).val());
         }
-        let toSee = 0;
-        $('#scissionTitle').attr('data-restant', newVal);
-        if ($('#scissionTitle').attr('data-restant') > 0) {
-            toSee = $('#scissionTitle').attr('data-restant');
-        }
-        $('#quantiteRestante').html('Quantité restante : ' + toSee);
-        input.data('typed', input.val());
-    }
+    });
+    let quantityToTake = $('#scissionTitle').data('quantity-to-take');
+    $('#quantiteRestante').html(String(quantityToTake - totalQuantityTaken));
 }
 
-function addToScissionAll(checkbox) {
-    let toSee = 0;
-    let input = $('#' + checkbox.data('id'));
-    if (!checkbox.is(':checked')) {
-        if ($('#scissionTitle').attr('data-restant') < 0) {
-            $('#scissionTitle').attr('data-restant', input.val());
-        } else {
-            $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
-        }
-        input.prop('disabled', false);
-        input.val('');
-        limitInput(input);
+function addToScissionAll($checkbox) {
+    let $input = $checkbox.closest('td').find('.input');
+
+    if (!$checkbox.is(':checked')) {
+        $input.prop('disabled', false);
+        $input.val('');
+        limitInput($input);
     } else {
-        if (parseFloat($('#scissionTitle').attr('data-restant')) > 0) {
-            input.val(checkbox.data('quantite'));
-            limitInput(input);
-            input.prop('disabled', true);
-            $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
+        if (parseFloat($('#quantiteRestante').html()) > 0) {
+            $input.val($checkbox.data('quantite'));
+            limitInput($input);
+            $input.prop('disabled', true);
         } else {
-            checkbox.prop('checked', false);
+            $checkbox.prop('checked', false);
         }
     }
-    if ($('#scissionTitle').attr('data-restant') > 0) {
-        toSee = $('#scissionTitle').attr('data-restant');
-    }
-    $('#quantiteRestante').html('Quantité restante : ' + toSee);
-    $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref'));
+
+    updateRemainingQuantity();
 }
 
 function limitInput(input) {
@@ -240,16 +229,14 @@ function limitInput(input) {
     if (input.val().includes(',')) {
 
     }
-    let id = input.data('id');
-    let restant = Math.min(
-        parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') ? parseFloat(input.data('typed')) : 0),
-        input.data('quantite'));
-    if (input.val() !== '') {
-        input.val(Math.min(input.val(), (restant >= 0 ? restant : 0)));
-    }
-    articlesChosen[id] = input.val();
-}
 
-function exitScissionModal() {
-    articlesChosen = {};
+    let max = Math.min(
+        parseFloat($('#quantiteRestante').html()),
+        input.data('quantite')
+    );
+
+    if (input.val() !== '') {
+        input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
+    }
+
 }
