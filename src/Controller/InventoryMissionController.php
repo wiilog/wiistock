@@ -151,7 +151,8 @@ class InventoryMissionController extends AbstractController
                 $artDate = $article['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $article['label'],
+                    'Label' => $article['label'],
+                    'Ref' => $article['reference'],
                     'Date' => $artDate,
                     'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
