@@ -86,12 +86,24 @@ class InventoryMissionController extends AbstractController
             }
 
             $missions = $this->inventoryMissionRepository->findAll();
+
             $rows = [];
             foreach ($missions as $mission) {
+                $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
+
+                $artRate = $this->articleRepository->countByMission($mission);
+                $refRate = $this->referenceArticleRepository->countByMission($mission);
+                $rateMin = (int)$refRate['entryRef'] + (int)$artRate['entryArt'];
+                $rateMax = (int)$refRate['ref'] + (int)$artRate['art'];
+                $rateBar = $rateMax !== 0 ? $rateMin * 100 / $rateMax : 0;
                 $rows[] =
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
+                        'Anomaly' => $anomaly != 0,
+                        'Rate' => $this->renderView('mission_inventaire/datatableMissionsBar.html.twig', [
+                            'rateBar' => $rateBar
+                        ]),
                         'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
                             'missionId' => $mission->getId(),
                         ]),
@@ -136,7 +148,8 @@ class InventoryMissionController extends AbstractController
                $refDate = $ref['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $ref['libelle'],
+                    'Label' => $ref['libelle'],
+                    'Ref' => $ref['reference'],
                     'Date' => $refDate,
                     'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
@@ -147,7 +160,8 @@ class InventoryMissionController extends AbstractController
                 $artDate = $article['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $article['label'],
+                    'Label' => $article['label'],
+                    'Ref' => $article['reference'],
                     'Date' => $artDate,
                     'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];

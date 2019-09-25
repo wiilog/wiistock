@@ -1,19 +1,19 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block dateFilter %}
+{% block moreFilters %}
+
     <div>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <div class="input-group-text">De</div>
-            </div>
-            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
-            <div class="input-group-prepend">
-                <div class="input-group-text">Au</div>
-            </div>
-            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+        <div class="input-group maxw-250px">
+            <select class="form-control" name="anomalyFilter" id="anomalyFilter">
+                <option value="">Anomalie</option>
+                <option value="true">Avec anomalie</option>
+                <option value="false">Sans anomalie</option>
+            </select>
         </div>
     </div>
+
 {% endblock %}
+
 
 {% block statusFilter %}
 {% endblock %}
