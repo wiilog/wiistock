@@ -11,14 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class MouvementStock
 {
-    const TYPE = 'mouvement_stock';
-
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
 	const TYPE_TRANSFERT = 'transfert';
 	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
 	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
-    //TOD0 CG TYPE ENTREE INVENTAIRE + TYPE
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()

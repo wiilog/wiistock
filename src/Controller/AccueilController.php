@@ -87,8 +87,8 @@ class AccueilController extends AbstractController
     	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
 			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
     	$types = [
-    	    MouvementStock::TYPE_ENTREE_INVENTAIRE,
-            MouvementStock::TYPE_SORTIE_INVENTAIRE
+    	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
+            MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
         $nbrDeMouvementDeCorrection = $this->mouvementStockRepository->countByTypes($types);
     	$allMouvementStock = $this->mouvementStockRepository->countAllMouvementStock();

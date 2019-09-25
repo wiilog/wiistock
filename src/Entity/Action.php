@@ -21,8 +21,6 @@ class Action
     const YES = 'oui';
     const SEE_STOCK_QUANTITY = 'voir quantité stock réelle';
     const INVENTORY_MANAGER = "gestionnaire d'inventaire";
-    const CHOIX = 'choix';
-    //TODO CG
     const REFERENCE = 'fiabilité par réference';
     const MONETAIRE = 'fiabilité par monétaire';
 
