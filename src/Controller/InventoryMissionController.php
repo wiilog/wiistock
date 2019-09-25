@@ -123,7 +123,7 @@ class InventoryMissionController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -148,19 +148,21 @@ class InventoryMissionController extends AbstractController
     public function checkUserCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            //$missionIsUsed = $this->inventoryMissionRepository
+            $missionIsUsed = $this->inventoryMissionRepository->countArtRefByMission($missionId);
 
-            if (!$missionIsUsed) {
-                $delete = true;
-                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
-            } else {
-                $delete = false;
-                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
-            }
+            dump($missionIsUsed);
+
+//            if (!$missionIsUsed) {
+//                $delete = true;
+//                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
+//            } else {
+//                $delete = false;
+//                $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+//            }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
@@ -173,7 +175,7 @@ class InventoryMissionController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE)) {
+            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
