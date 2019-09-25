@@ -97,8 +97,6 @@ class AccueilController extends AbstractController
         $totalRefArticle = $this->mouvementStockRepository->countTotalPriceRefArticle();
         $totalArticle = $this->mouvementStockRepository->countTotalPriceArticle();
         $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
-        dump($nbrFiabiliteMonetaire);
-
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);

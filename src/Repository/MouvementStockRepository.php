@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
-use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 

@@ -169,7 +169,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
-        // actions de type indicateur accuueil
+        // actions du menu accueil
         $menus = [
             Menu::INDICS_ACCUEIL
         ];
