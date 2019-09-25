@@ -796,19 +796,18 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 $refArticle->setDateLastInventory($newDate);
                                 $em->flush();
                             }
-//                        } else {
-//                            $article = $this->articleRepository->findOneByReference($entry['reference']);
-//                            $newEntry->setArticle($article);
-//
-//                            if ($newEntry->getQuantity() !== $article->getQuantite()) {
-//                                $article->setHasInventoryAnomaly(true);
-//                                dump($article->getId());
-//                                $em->flush();
-//                            } else {
-//                                $article->setDateLastInventory($newDate);
-//                                $em->flush();
-//                            }
-//                        }
+                        } else {
+                            $article = $this->articleRepository->findOneByReference($entry['reference']);
+                            $newEntry->setArticle($article);
+
+                            if ($newEntry->getQuantity() !== $article->getQuantite()) {
+                                $article->setHasInventoryAnomaly(true);
+                                dump($article->getId());
+                                $em->flush();
+                            } else {
+                                $article->setDateLastInventory($newDate);
+                                $em->flush();
+                            }
                         }
                         dump('newEntry');
                         $em->persist($newEntry);
