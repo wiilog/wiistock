@@ -97,7 +97,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @param bool $activeOnly
 	 * @return mixed
 	 */
-    public function getIdAndLibelleBySearch($search, $activeOnly = false)
+    public function getIdAndRefBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
 
@@ -666,4 +666,5 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
 }

@@ -176,6 +176,26 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	public function getIdAndRefBySearch($search, $activeOnly = false)
+	{
+		$em = $this->getEntityManager();
+
+		$dql = "SELECT a.id, a.reference as text
+          FROM App\Entity\Article a
+          LEFT JOIN a.statut s
+          WHERE a.reference LIKE :search";
+
+		if ($activeOnly) {
+			$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+		}
+
+		$query = $em
+			->createQuery($dql)
+			->setParameter('search', '%' . $search . '%');
+
+		return $query->execute();
+	}
+
     public function getRefByRecep($id)
     {
         $entityManager = $this->getEntityManager();

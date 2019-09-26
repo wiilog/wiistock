@@ -52,7 +52,7 @@ class InventoryMissionController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -70,9 +70,7 @@ class InventoryMissionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('inventaire/index.html.twig', [
-
-        ]);
+        return $this->render('inventaire/index.html.twig');
     }
 
     /**
@@ -101,7 +99,7 @@ class InventoryMissionController extends AbstractController
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
                         'Anomaly' => $anomaly != 0,
-                        'Rate' => $this->renderView('mission_inventaire/datatableMissionsBar.html.twig', [
+                        'Rate' => $this->renderView('inventaire/datatableMissionsBar.html.twig', [
                             'rateBar' => $rateBar
                         ]),
                         'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
@@ -116,9 +114,9 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="entry_index", options={"expose"=true}, methods="GET|POST")
+     * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      */
-    public function entry_index(InventoryMission $mission)
+    public function show(InventoryMission $mission)
     {
             if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
@@ -132,7 +130,7 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function show(InventoryMission $mission)
+    public function entryApi(InventoryMission $mission)
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -168,5 +166,54 @@ class InventoryMissionController extends AbstractController
         }
         $data['data'] = $rows;
         return new JsonResponse($data);
+    }
+
+
+    /**
+     * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getMouvementIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        	$mission = $this->inventoryMissionRepository->find($data['missionId']);
+
+            $articles = $mission->getArticles();
+            $refArticles = $mission->getRefArticles();
+            $missionStartDate = $mission->getStartPrevDate();
+            $missionEndDate = $mission->getEndPrevDate();
+
+            $missionHeader = ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')];
+            $headers = ['référence', 'label', 'quantité', 'emplacement'];
+
+            $data = [];
+            $data[] = $missionHeader;
+            $data[] = $headers;
+
+            foreach ($articles as $article) {
+                $articleData = [];
+
+                $articleData[] = $article->getReference();
+                $articleData[] = $article->getLabel();
+                $articleData[] = $article->getQuantite();
+                $articleData[] = $article->getEmplacement()->getLabel();
+
+                $data[] = $articleData;
+            }
+
+            foreach ($refArticles as $refArticle) {
+                $refArticleData = [];
+
+                $refArticleData[] = $refArticle->getReference();
+                $refArticleData[] = $refArticle->getLibelle();
+                $refArticleData[] = $refArticle->getQuantiteStock();
+                $refArticleData[] = $refArticle->getEmplacement()->getLabel();
+
+                $data[] = $refArticleData;
+            }
+
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }
