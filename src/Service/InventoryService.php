@@ -81,7 +81,9 @@ class InventoryService
 			$em->persist($mvt);
 		}
 
-		$refOrArt->setHasInventoryAnomaly(false);
+		$refOrArt
+			->setHasInventoryAnomaly(false)
+			->setDateLastInventory(new DateTime('now'));
 		$em->flush();
 	}
 }

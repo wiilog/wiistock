@@ -763,11 +763,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			$response->headers->set('Content-Type', 'application/json');
 			$response->headers->set('Access-Control-Allow-Origin', '*');
 			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-            dump($data);
 
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-			    dump($data);
 				$em = $this->getDoctrine()->getManager();
 				$numberOfRowsInserted = 0;
 
@@ -790,22 +788,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
 							$newEntry->setRefArticle($refArticle);
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-								dump($refArticle->getId());
 								$refArticle->setHasInventoryAnomaly(true);
-								$em->flush();
-							}
-							else
-                            {
+							} else {
                                 $refArticle->setDateLastInventory($newDate);
-                                $em->flush();
                             }
+							$em->flush();
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
 							$newEntry->setArticle($article);
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
-								dump($article->getId());
 								$em->flush();
 							}
 						}
