@@ -776,9 +776,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
 					if ($mission && $location) {
-						$newEntry
+                        $newDate = new DateTime($entry['date']);
+                        $newEntry
 							->setMission($mission)
-							->setDate(new DateTime($entry['date']))
+							->setDate($newDate)
 							->setQuantity($entry['quantity'])
 							->setOperator($nomadUser)
 							->setLocation($location);
@@ -787,17 +788,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
 							$newEntry->setRefArticle($refArticle);
 							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-								dump($refArticle->getId());
 								$refArticle->setHasInventoryAnomaly(true);
-								$em->flush();
-							}
+							} else {
+                                $refArticle->setDateLastInventory($newDate);
+                            }
+							$em->flush();
 						} else {
 							$article = $this->articleRepository->findOneByReference($entry['reference']);
 							$newEntry->setArticle($article);
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
-								dump($article->getId());
 								$em->flush();
 							}
 						}

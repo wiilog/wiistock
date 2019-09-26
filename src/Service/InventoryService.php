@@ -2,15 +2,15 @@
 
 namespace App\Service;
 
-use App\Entity\Article;
 use App\Entity\MouvementStock;
-use App\Entity\ReferenceArticle;
 
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
+
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
+use DateTime;
 
 class InventoryService
 {
@@ -81,7 +81,9 @@ class InventoryService
 			$em->persist($mvt);
 		}
 
-		$refOrArt->setHasInventoryAnomaly(false);
+		$refOrArt
+			->setHasInventoryAnomaly(false)
+			->setDateLastInventory(new DateTime('now'));
 		$em->flush();
 	}
 }

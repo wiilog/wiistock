@@ -1,15 +1,17 @@
 <div class="d-flex">
     <div>
-        <a href="{{ path('entry_index', {'id': missionId}) }}">
+        <a href="{{ path('inventory_mission_show', {'id': missionId}) }}">
             <div class="btn btn-col-action">
                 <i class='fas fa-eye'></i>
             </div>
         </a>
     </div>
-    <div onclick="checkAndDeleteRow($(this), '#modalDeleteMission', 'mission_check_delete', '#submitDeleteMission')"
-         data-id='{{ missionId }}' data-target='#modalDeleteMission' data-toggle='modal'>
-        <div class="btn btn-col-action">
-            <i class='fas fa-trash'></i>
-        </div>
-    </div>
+
+{#    <div>#}
+{#        <a href="{{ path('inventory_entry_index', {'id': missionId}) }}">#}
+{#            <div class="btn btn-col-action">#}
+{#                <i class='fas fa-clipboard-list'></i>#}
+{#            </div>#}
+{#        </a>#}
+{#    </div>#}
 </div>

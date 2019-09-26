@@ -141,6 +141,11 @@ class ReferenceArticle
 	 */
     private $hasInventoryAnomaly = false;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateLastInventory;
+
 
     public function __construct()
     {
@@ -694,6 +699,18 @@ class ReferenceArticle
     public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
     {
         $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    public function getDateLastInventory(): ?\DateTimeInterface
+    {
+        return $this->dateLastInventory;
+    }
+
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    {
+        $this->dateLastInventory = $dateLastInventory;
 
         return $this;
     }
