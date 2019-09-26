@@ -1,3 +1,47 @@
+$(function () {
+    initSearchDate(tableEntries);
+
+    $('.select2').select2();
+
+    $('#utilisateur').select2({
+        placeholder: {
+            text: 'Opérateur',
+        }
+    });
+
+    $('#emplacement').select2({
+        placeholder: {
+            id: 0,
+            text: 'Emplacement',
+        }
+    });
+
+    $('.ajax-autocomplete-inv-entries').select2({
+        ajax: {
+            url: Routing.generate('get_ref_and_articles', {activeOnly: 0}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        allowClear: true,
+        placeholder: {
+            id: 0,
+            text: 'Référence',
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 3,
+    });
+});
+
 let mission = $('#missionId').val();
 let pathEntry = Routing.generate('entries_api', { id: mission}, true);
 let tableEntries = $('#tableMissionEntries').DataTable({
@@ -9,22 +53,40 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'Article', 'title' : 'Reférence ou  Article' },
-        { "data": 'Operator', 'title' : 'Operator' },
-        { "data": 'Location', 'title' : 'Emplacement' },
-        { "data": 'Date', 'title' : 'Date de saisie' },
+        { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },
+        { "data": 'Label', 'title' : 'Libellé' },
+        { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
+        { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
+        { "data": 'Operator', 'title' : 'Opérateur', 'name': 'operator' },
         { "data": 'Quantity', 'title' : 'Quantité' }
     ],
 });
 
+let $submitSearchEntry = $('#submitSearchEntry');
+$submitSearchEntry.on('click', function () {
+    let emplacement = $('#emplacement').val();
+    let operator = $('#utilisateur').val();
+    let reference = $('#reference').text();
+    let operatorStr = operator.toString();
+    let operatorPiped = operatorStr.split(',').join('|')
+    tableEntries
+        .columns('operator:name')
+        .search(operatorPiped ? '^' + operatorPiped + '$' : '', true, false)
+        .draw();
+    tableEntries
+        .columns('location:name')
+        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
+        .draw();
+    tableEntries
+        .columns('reference:name')
+        .search(reference ? '^' + reference + '$' : '', true, false)
+        .draw();
+});
+
 function generateCSVEntries () {
-    let missionId = $('#missionId').val();
-    let params = {
-        missionId: missionId,
-    };
     let path = Routing.generate('get_entries_for_csv', true);
 
-    $.post(path, JSON.stringify(params), function(response) {
+    $.post(path, function(response) {
         if (response) {
             let csv = "";
             $.each(response, function (index, value) {

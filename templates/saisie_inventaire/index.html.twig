@@ -3,7 +3,10 @@
 {% block title %}Saisie d'inventaire{% endblock %}
 
 {% block page_content %}
+    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
     </div>
+
+    {% include 'filters/filtersEntryInv.html.twig' with {'btnName' : 'submitSearchEntry'} %}
 
     <div class="container-fluid">
 
@@ -13,7 +16,6 @@
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
 
-        <input value="{{ missionId }}" id="missionId" hidden>
         <table id="tableMissionEntries" class="table table-striped table-bordered w-100">
         </table>
     </div>

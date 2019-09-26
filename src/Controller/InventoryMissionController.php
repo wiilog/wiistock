@@ -70,9 +70,7 @@ class InventoryMissionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('inventaire/index.html.twig', [
-
-        ]);
+        return $this->render('inventaire/index.html.twig');
     }
 
     /**
@@ -116,9 +114,9 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="entry_index", options={"expose"=true}, methods="GET|POST")
+     * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
      */
-    public function entry_index(InventoryMission $mission)
+    public function show(InventoryMission $mission)
     {
             if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
@@ -132,7 +130,7 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function show(InventoryMission $mission)
+    public function entryApi(InventoryMission $mission)
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');

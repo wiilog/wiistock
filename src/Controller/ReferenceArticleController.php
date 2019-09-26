@@ -732,7 +732,7 @@ class ReferenceArticleController extends Controller
     }
 
 	/**
-	 * @Route("/autocomplete/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/autocomplete-ref/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
 	 *
 	 * @param Request $request
 	 * @param bool $activeOnly
@@ -743,12 +743,32 @@ class ReferenceArticleController extends Controller
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search, $activeOnly);
+            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
 
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/autocomplete-ref-and-article/{activeOnly}", name="get_ref_and_articles", options={"expose"=true}, methods="GET|POST")
+	 *
+	 * @param Request $request
+	 * @param bool $activeOnly
+	 * @return JsonResponse
+	 */
+	public function getRefAndArticles(Request $request, $activeOnly = false)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$search = $request->query->get('term');
+
+			$refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
+			$articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+
+			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
+		}
+		throw new NotFoundHttpException("404");
+	}
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
