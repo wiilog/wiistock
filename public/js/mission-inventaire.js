@@ -88,3 +88,40 @@ function initSearch(table) {
         }
     );
 }
+
+function generateCSVMission () {
+    let params = {
+        missionId: $('#missionId').val(),
+    };
+    let path = Routing.generate('get_mission_for_csv', true);
+
+    $.post(path, JSON.stringify(params), function(response) {
+        if (response) {
+            let csv = "";
+            $.each(response, function (index, value) {
+                csv += value.join(';');
+                csv += '\n';
+            });
+            mFile(csv);
+        }
+    }, 'json');
+}
+
+let mFile = function (csv) {
+    let exportedFilenmae = 'export-mission' + '.csv';
+    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        let link = document.createElement("a");
+        if (link.download !== undefined) {
+            let url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+};

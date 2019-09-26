@@ -646,4 +646,5 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
 }
