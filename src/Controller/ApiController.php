@@ -38,6 +38,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 
 use App\Service\ArticleDataService;
+use App\Service\InventoryService;
 use App\Service\MailerService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
@@ -179,7 +180,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $userService;
 
 	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
+
+	/**
 	 * ApiController constructor.
+	 * @param InventoryService $inventoryService
+	 * @param UserService $userService
 	 * @param InventoryMissionRepository $inventoryMissionRepository
 	 * @param FournisseurRepository $fournisseurRepository
 	 * @param LigneArticleRepository $ligneArticleRepository
@@ -199,9 +207,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param UserPasswordEncoderInterface $passwordEncoder
 	 * @param ArticleRepository $articleRepository
 	 * @param EmplacementRepository $emplacementRepository
-	 * @param UserService $userService
 	 */
-    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -224,6 +231,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->fournisseurRepository = $fournisseurRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
+        $this->inventoryService =$inventoryService;
     }
 
     /**
@@ -834,6 +842,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
+        $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
+        $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
@@ -844,6 +855,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
+			'anomalies' => array_merge($refAnomalies, $artAnomalies),
         ];
 
         return $data;
@@ -873,5 +885,40 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $key = md5(microtime() . rand());
         return $key;
     }
+
+	/**
+	 * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
+	 * @Rest\Get("/api/treatAnomalies")
+	 * @Rest\View()	 */
+	public function treatAnomalies(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$numberOfRowsInserted = 0;
+
+				foreach ($data['anomalies'] as $anomaly) {
+					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment']);
+					$numberOfRowsInserted++;
+				}
+
+				$s = $numberOfRowsInserted > 1 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisé' . $s;
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
+		}
+	}
 
 }

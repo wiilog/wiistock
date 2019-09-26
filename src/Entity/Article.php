@@ -113,6 +113,11 @@ class Article
      */
     private $inventoryEntries;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
+     */
+    private $inventoryMission;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 */
