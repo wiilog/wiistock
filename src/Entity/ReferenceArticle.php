@@ -136,6 +136,11 @@ class ReferenceArticle
      */
     private $inventoryMissions;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 */
@@ -664,6 +669,18 @@ class ReferenceArticle
     public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
     {
         $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
 
         return $this;
     }

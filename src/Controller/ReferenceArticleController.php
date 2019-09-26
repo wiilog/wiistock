@@ -374,11 +374,13 @@ class ReferenceArticleController extends Controller
             }
             $refArticle = new ReferenceArticle();
             $category = $this->inventoryCategoryRepository->find($data['categorie']);
+            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
+                ->setPrixUnitaire($price)
                 ->setType($type)
                 ->setCategory($category)
                 ->setEmplacement($emplacement);

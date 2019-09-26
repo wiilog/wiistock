@@ -300,6 +300,7 @@ class RefArticleDataService
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
         $category = $this->inventoryCategoryRepository->find($data['categorie']);
+        $price = max(0, $data['prix']);
         $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
@@ -328,6 +329,7 @@ class RefArticleDataService
                     }
                 }
                 if (isset($data['categorie'])) $refArticle->setCategory($category);
+                if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);

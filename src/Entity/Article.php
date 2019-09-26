@@ -118,6 +118,11 @@ class Article
      */
     private $inventoryMissions;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 */
@@ -355,6 +360,18 @@ class Article
     public function setQuantiteAPrelever(?int $quantiteAPrelever): self
     {
         $this->quantiteAPrelever = $quantiteAPrelever;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
 
         return $this;
     }

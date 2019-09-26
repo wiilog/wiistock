@@ -835,9 +835,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
-        $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
-        $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
-
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
@@ -848,7 +845,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
-			'anomalies' => array_merge($refAnomalies, $artAnomalies),
         ];
 
         return $data;
@@ -863,6 +859,29 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 				$this->successDataMsg['success'] = true;
 				$this->successDataMsg['data'] = $this->getDataArray($nomadUser);
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
+	 * @Rest\Post("/api/getAnomalies", name="api-get-anomalies")
+	 */
+	public function getAnomalies(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
+				$artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data'] = array_merge($refAnomalies, $artAnomalies);
 
 			} else {
 				$this->successDataMsg['success'] = false;
