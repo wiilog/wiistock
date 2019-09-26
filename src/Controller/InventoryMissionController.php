@@ -52,7 +52,7 @@ class InventoryMissionController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -177,15 +177,15 @@ class InventoryMissionController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->referenceArticleRepository->getArticlesByMissionId($data['missionId']);
-            $refArticles = $this->referenceArticleRepository->getRefArticlesByMissionId($data['missionId']);
-            $missionDate = $this->inventoryMissionRepository->getDatesByMission($data['missionId']);
+        	$mission = $this->inventoryMissionRepository->find($data['missionId']);
 
-            $missionHeader = [];
-            $missionHeader = array_merge($missionHeader, [$missionDate[0]['startPrevDate']->format('d/m/Y'), $missionDate[0]['endPrevDate']->format('d/m/Y')]);
+            $articles = $mission->getArticles();
+            $refArticles = $mission->getRefArticles();
+            $missionStartDate = $mission->getStartPrevDate();
+            $missionEndDate = $mission->getEndPrevDate();
 
-            $headers = [];
-            $headers = array_merge($headers, ['label', 'quantité', 'emplacement']);
+            $missionHeader = ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')];
+            $headers = ['référence', 'label', 'quantité', 'emplacement'];
 
             $data = [];
             $data[] = $missionHeader;
@@ -194,6 +194,7 @@ class InventoryMissionController extends AbstractController
             foreach ($articles as $article) {
                 $articleData = [];
 
+                $articleData[] = $article->getReference();
                 $articleData[] = $article->getLabel();
                 $articleData[] = $article->getQuantite();
                 $articleData[] = $article->getEmplacement()->getLabel();
@@ -204,6 +205,7 @@ class InventoryMissionController extends AbstractController
             foreach ($refArticles as $refArticle) {
                 $refArticleData = [];
 
+                $refArticleData[] = $refArticle->getReference();
                 $refArticleData[] = $refArticle->getLibelle();
                 $refArticleData[] = $refArticle->getQuantiteStock();
                 $refArticleData[] = $refArticle->getEmplacement()->getLabel();

@@ -109,16 +109,4 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-
-    public function getDatesByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT m.startPrevDate, m.endPrevDate
-            FROM App\Entity\InventoryMission m
-            WHERE m = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->execute();
-    }
 }
