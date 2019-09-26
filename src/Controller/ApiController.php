@@ -776,8 +776,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
 					if ($mission && $location) {
-					    $newDate = new DateTime($entry['date']);
-						$newEntry
+                        $newDate = new DateTime($entry['date']);
+                        $newEntry
 							->setMission($mission)
 							->setDate($newDate)
 							->setQuantity($entry['quantity'])
