@@ -108,8 +108,17 @@ class AccueilController extends AbstractController
     	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
         $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
-        $totalRefArticle = $this->mouvementStockRepository->countTotalPriceRefArticle();
-        $totalArticle = $this->mouvementStockRepository->countTotalPriceArticle();
+        $totalEntryRefArticle = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
+        $totalExitRefArticle = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
+        $totalRefArticle = $totalEntryRefArticle - ($totalExitRefArticle);
+        $totalEntryArticle = $this->mouvementStockRepository->countTotalEntryPriceArticle();
+        $totalExitArticle = $this->mouvementStockRepository->countTotalExitPriceArticle();
+        $totalArticle = $totalEntryArticle - $totalExitArticle;
+
+        dump($totalRefArticle);
+        dump($totalEntryRefArticle);
+        dump($totalExitRefArticle);
+
         $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);

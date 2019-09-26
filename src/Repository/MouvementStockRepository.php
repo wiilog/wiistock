@@ -127,22 +127,54 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalPriceRefArticle()
+    public function countTotalEntryPriceRefArticle()
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             /** @lang DQL */
-            "SELECT SUM(m.quantity * ra.prixUnitaire) FROM App\Entity\MouvementStock m JOIN m.refArticle ra WHERE ra.typeQuantite = 'reference'"
+            "select SUM(m.quantity * ra.prixUnitaire)
+                FROM App\Entity\MouvementStock m 
+                JOIN m.refArticle ra
+                WHERE m.type = 'entrée inventaire'"
             );
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalPriceArticle()
+    public function countTotalExitPriceRefArticle()
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             /** @lang DQL */
-            "SELECT SUM(m.quantity * a.prixUnitaire) FROM App\Entity\MouvementStock m JOIN m.article a"
+            "SELECT SUM(m.quantity * ra.prixUnitaire)
+                    FROM App\Entity\MouvementStock m
+                    JOIN m.refArticle ra
+                    WHERE m.type = 'sortie inventaire'"
+        );
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalEntryPriceArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * a.prixUnitaire) 
+                    FROM App\Entity\MouvementStock m 
+                    JOIN m.article a 
+                    WHERE m.type = 'entrée inventaire'"
+        );
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalExitPriceArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * a.prixUnitaire)
+                    FROM App\Entity\MouvementStock m
+                    JOIN m.article a
+                    WHERE m.type = 'sortie inventaire'"
         );
         return $query->getSingleScalarResult();
     }
