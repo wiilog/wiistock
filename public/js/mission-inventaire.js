@@ -1,7 +1,45 @@
 $(function () {
     initSearchDate(tableMission);
     initSearchDate(tableMissions);
-})
+
+    $('.select2').select2();
+
+    $('#articlesSelect').select2({
+        ajax: {
+            url: Routing.generate('get_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        allowClear: true,
+        minimumInputLength: 1,
+    });
+
+    $('#refArticlesSelect').select2({
+        ajax: {
+            url: Routing.generate('get_refArticles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        allowClear: true,
+        minimumInputLength: 1,
+    });
+});
 
 let pathMissions = Routing.generate('inv_missions_api', true);
 let tableMissions = $('#tableMissionsInv').DataTable({
@@ -51,6 +89,11 @@ let tableMission = $('#tableMissionInv').DataTable({
         { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
     ],
 });
+
+let modalAddToMission = $("#modalAddToMission");
+let submitAddToMission = $("#submitAddToMission");
+let urlAddToMission = Routing.generate('add_to_mission', true);
+InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, null);
 
 let $submitSearchMission = $('#submitSearchMission');
 $submitSearchMission.on('click', function () {

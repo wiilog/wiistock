@@ -1,0 +1,40 @@
+<form method="" class="modal fade" id="modalAddToMission" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter des références ou des articles</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <input type="text" class="data" value="{{ missionId }}" name="missionId" hidden>
+            <div class="modal-body modal-input container-fluid">
+                <label for="">Articles : </label>
+                <select name="articles" class="form-control ajax-autocomplete-article data select2" id="articlesSelect" style="width: 200px" multiple="multiple">
+                    <option></option>
+                    {% for article in articles %}
+                        <option value="{{article.id}}">
+                            {{article.reference}}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <label for="">Références articles : </label>
+                <select name="refArticles" class="form-control ajax-autocomplete-article data select2" id="refArticlesSelect" style="width: 200px" multiple="multiple">
+                    {% for refArticle in refArticles %}
+                        <option value="{{refArticle.id}}">
+                            {{refArticle.reference}}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitAddToMission" type="button" class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

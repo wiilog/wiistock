@@ -12,16 +12,15 @@
         <h1>Missions d'inventaire</h1>
         <div class="row justify-content-end">
                 {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
-                    <div class="text-right">
-                        <a href="{{ path('inventory_entry_index') }}" class="btn btn-primary">
-                            <span class="fa fa-clipboard-list mr-2"></span>Voir les saisies
-                        </a>
-                    </div>
-                    <div class="text-right">
-                        <a href="{{ path('show_anomalies') }}" class="btn btn-primary">
-                            <span class="fa fa-alert mr-2"></span>Gérer les anomalies
-                        </a>
-                    </div>
+                    <a href="" data-toggle="modal" data-target="#modalNewMission" class="btn btn-primary">
+                        <span class="fa fa-plus mr-2"></span>Nouvelle mission
+                    </a>
+                    <a href="{{ path('inventory_entry_index') }}" class="btn btn-primary">
+                        <span class="fa fa-clipboard-list mr-2"></span>Voir les saisies
+                    </a>
+                    <a href="{{ path('show_anomalies') }}" class="btn btn-primary">
+                        <span class="fa fa-alert mr-2"></span>Gérer les anomalies
+                    </a>
                 {% endif %}
         </div>
 

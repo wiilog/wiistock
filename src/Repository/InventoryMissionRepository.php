@@ -115,7 +115,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Article a
-            JOIN a.inventoryMission m
+            JOIN a.inventoryMissions m
             WHERE m.id = :mission"
         )->setParameter('mission', $mission);
 
