@@ -3,10 +3,9 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="scissionTitle" data-restant="{{ quantite }}">Choix d'articles pour la
+                <h5 class="modal-title" id="scissionTitle" data-quantity-to-take="{{ quantite }}">Choix d'articles pour la
                     référence {{ reference }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        onclick="exitScissionModal()">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -38,22 +37,25 @@
                                     <span class="slider round"></span>
                                 </label>
                                 <label class="pr-2 pl-2">Quantité : </label>
-                                <input id="{{ article.id }}" class="input" data-ref="{{ reference }}"
+                                <input id="{{ article.id }}" class="input w-25" data-ref="{{ reference }}"
                                        data-total="{{ quantiteArt }}"
                                        data-quantite="{{ quantiteArt }}" type="number"
                                        data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                       max="{{ quantiteArt }}" oninput="typeInput($(this))"  style="width: 25%">
+                                       max="{{ quantiteArt }}" onclick="limitInput($(this)), updateRemainingQuantity($(this))"
+                                       onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
-                <div id="quantiteRestante" class="pt-2 pr-2 bold text-right">Quantité restante : {{ quantite }}</div>
+                <div class="pt-2 pr-2 bold text-right">Quantité restante :
+                    <span id="quantiteRestante">{{ quantite }}</span>
+                </div>
             </div>
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
-                <div class="btn" data-dismiss="modal" onclick="exitScissionModal()">Fermer</div>
-                <div class="btn btn-primary" data-ref={{ referenceId }} data-qtt="{{ quantite }}"
+                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" data-ref="{{ referenceId }}" data-qtt="{{ quantite }}"
                      data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}"
                      onclick="submitSplitting($(this))">Enregistrer
                 </div>
