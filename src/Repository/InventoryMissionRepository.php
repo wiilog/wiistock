@@ -33,7 +33,6 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		JOIN im.refArticles ra
 		LEFT JOIN ra.inventoryEntries ie
 		LEFT JOIN ra.emplacement e
-		WHERE ra.typeQuantite = '" . ReferenceArticle::TYPE_QUANTITE_REFERENCE . "'
 		AND im.startPrevDate <= '" . $now . "'
 		AND im.endPrevDate >= '" . $now . "'
 		AND ie.id is null"
@@ -52,12 +51,9 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		/** @lang DQL */
 		"SELECT im.id as id_mission, a.reference, e.label as location, 0 as is_ref, ie.id as ieid
 		FROM App\Entity\InventoryMission im
-		JOIN im.refArticles ra
-		JOIN ra.articlesFournisseur af
-		JOIN af.articles a
+		JOIN im.articles
 		LEFT JOIN a.inventoryEntries ie
 		LEFT JOIN a.emplacement e
-		WHERE ra.typeQuantite = '" . ReferenceArticle::TYPE_QUANTITE_ARTICLE . "'
 		AND im.startPrevDate <= '" . $now . "'
 		AND im.endPrevDate >= '" . $now . "'
 		AND ie.id is null"
