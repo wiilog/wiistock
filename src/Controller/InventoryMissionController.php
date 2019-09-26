@@ -70,7 +70,7 @@ class InventoryMissionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('mission_inventaire/index.html.twig', [
+        return $this->render('inventaire/index.html.twig', [
 
         ]);
     }
@@ -86,19 +86,25 @@ class InventoryMissionController extends AbstractController
             }
 
             $missions = $this->inventoryMissionRepository->findAll();
+
             $rows = [];
             foreach ($missions as $mission) {
                 $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
-                if ($anomaly != 0)
-                    $anomalyRow = true;
-                else
-                    $anomalyRow = false;
+
+                $artRate = $this->articleRepository->countByMission($mission);
+                $refRate = $this->referenceArticleRepository->countByMission($mission);
+                $rateMin = (int)$refRate['entryRef'] + (int)$artRate['entryArt'];
+                $rateMax = (int)$refRate['ref'] + (int)$artRate['art'];
+                $rateBar = $rateMax !== 0 ? $rateMin * 100 / $rateMax : 0;
                 $rows[] =
                     [
                         'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
                         'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
-                        'Anomaly' => $anomalyRow,
-                        'Actions' => $this->renderView('mission_inventaire/datatableMissionsRow.html.twig', [
+                        'Anomaly' => $anomaly != 0,
+                        'Rate' => $this->renderView('inventaire/datatableMissionsBar.html.twig', [
+                            'rateBar' => $rateBar
+                        ]),
+                        'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
                             'missionId' => $mission->getId(),
                         ]),
                     ];
@@ -118,7 +124,7 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            return $this->render('mission_inventaire/show.html.twig', [
+            return $this->render('inventaire/show.html.twig', [
                 'missionId' => $mission->getId(),
             ]);
     }
@@ -126,7 +132,7 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function entryApi(InventoryMission $mission)
+    public function show(InventoryMission $mission)
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -142,7 +148,8 @@ class InventoryMissionController extends AbstractController
                $refDate = $ref['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $ref['libelle'],
+                    'Label' => $ref['libelle'],
+                    'Ref' => $ref['reference'],
                     'Date' => $refDate,
                     'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];
@@ -153,7 +160,8 @@ class InventoryMissionController extends AbstractController
                 $artDate = $article['date']->format('d/m/Y');
             $rows[] =
                 [
-                    'Article' => $article['label'],
+                    'Label' => $article['label'],
+                    'Ref' => $article['reference'],
                     'Date' => $artDate,
                     'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
                 ];

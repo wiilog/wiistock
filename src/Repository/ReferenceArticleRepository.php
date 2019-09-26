@@ -623,7 +623,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT ra.libelle, e.date, ra.hasInventoryAnomaly
+            "SELECT ra.libelle, ra.reference, e.date, ra.hasInventoryAnomaly
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.inventoryMissions m
             LEFT JOIN ra.inventoryEntries e
@@ -633,31 +633,45 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getArticlesByMissionId($mission)
+    public function countByMission($mission)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT a
+            "SELECT COUNT(e) as entryRef, COUNT(ra) as ref
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.inventoryMissions m
+            LEFT JOIN ra.inventoryEntries e
+            WHERE m = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->getOneOrNullResult();
+    }
+
+	public function getArticlesByMissionId($mission)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
             FROM App\Entity\Article a
             JOIN a.inventoryMission m
             LEFT JOIN a.inventoryEntries ie
             WHERE m = :mission AND ie.id is null"
-        )->setParameter('mission', $mission);
+		)->setParameter('mission', $mission);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
-    public function getRefArticlesByMissionId($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra
+	public function getRefArticlesByMissionId($mission)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT ra
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.inventoryMissions m
             LEFT JOIN ra.inventoryEntries ie
             WHERE m = :mission AND ie.id is null"
-        )->setParameter('mission', $mission);
+		)->setParameter('mission', $mission);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 }

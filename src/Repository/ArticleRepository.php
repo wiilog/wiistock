@@ -487,7 +487,7 @@ class ArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         	/** @lang DQL */
-            "SELECT a.label, e.date, a.hasInventoryAnomaly
+            "SELECT a.label, a.reference, e.date, a.hasInventoryAnomaly
             FROM App\Entity\Article a
             JOIN a.inventoryMission m
             LEFT JOIN a.inventoryEntries e
@@ -495,5 +495,19 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('mission', $mission);
 
         return $query->execute();
+    }
+
+    public function countByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(e) as entryArt, COUNT(a) as art
+            FROM App\Entity\Article a
+            JOIN a.inventoryMission m
+            LEFT JOIN a.inventoryEntries e
+            WHERE m = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->getOneOrNullResult();
     }
 }

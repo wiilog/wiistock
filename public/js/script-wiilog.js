@@ -589,6 +589,15 @@ function alertErrorMsg(data) {
     }
 }
 
+function alertSuccessMsg(data) {
+    if (data !== true) {
+        let $alertSuccess = $('#alerts').find('.alert-success');
+        $alertSuccess.removeClass('d-none');
+        $alertSuccess.delay(2000).fadeOut(2000);
+        $alertSuccess.find('.confirm-msg').html(data);
+    }
+}
+
 function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};

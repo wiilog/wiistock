@@ -81,6 +81,35 @@ class InventoryMissionRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	public function getInventoryRefAnomalies()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref
+			FROM App\Entity\ReferenceArticle ra
+			JOIN ra.emplacement e
+			WHERE ra.hasInventoryAnomaly = 1"
+		);
+
+		return $query->execute();
+	}
+
+	public function getInventoryArtAnomalies()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref
+			FROM App\Entity\Article a
+			JOIN a.emplacement e
+			WHERE a.hasInventoryAnomaly = 1"
+		);
+
+		return $query->execute();
+	}
+
+
     public function getDatesByMission($mission)
     {
         $em = $this->getEntityManager();
