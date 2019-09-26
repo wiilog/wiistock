@@ -159,26 +159,30 @@ function submitSplitting(submit) {
             'demande': submit.data('demande'),
             'refArticle': submit.data('ref')
         };
-        $.post(path, JSON.stringify(params), function () {
-            $('#modalSplitting').find('.close').click();
-            if (actualIndex + 1 < prepasToSplit.length) {
-                articlesChosen = [];
-                actualIndex++;
-                $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable({
-                    "language": {
-                        url: "/js/i18n/dataTableLanguage.json",
-                    },
-                });
-                $('#startSplitting').click();
+        $.post(path, JSON.stringify(params), function (resp) {
+            if (resp == true) {
+                $('#modalSplitting').find('.close').click();
+                if (actualIndex + 1 < prepasToSplit.length) {
+                    articlesChosen = [];
+                    actualIndex++;
+                    $('#splittingContent').html(prepasToSplit[actualIndex]);
+                    $('#tableSplittingArticles').DataTable({
+                        "language": {
+                            url: "/js/i18n/dataTableLanguage.json",
+                        },
+                    });
+                    $('#startSplitting').click();
+                } else {
+                    let path = Routing.generate('preparation_take_articles', true);
+                    $.post(path, JSON.stringify(params), function (data) {
+                        $('#startPreparation').addClass('d-none');
+                        $('#finishPreparation').removeClass('d-none');
+                        tableArticle.ajax.reload();
+                        $('#statutPreparation').html(data);
+                    });
+                }
             } else {
-                let path = Routing.generate('preparation_take_articles', true);
-                $.post(path, JSON.stringify(params), function (data) {
-                    $('#startPreparation').addClass('d-none');
-                    $('#finishPreparation').removeClass('d-none');
-                    tableArticle.ajax.reload();
-                    $('#statutPreparation').html(data);
-                });
+                $('#modalSplitting').find('.error-msg').html("Les quantités ne correspondent pas.")
             }
         })
     } else {

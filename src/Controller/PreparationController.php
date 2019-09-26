@@ -405,23 +405,33 @@ class PreparationController extends AbstractController
     public function submitSplitting(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $demande = $this->demandeRepository->find($data['demande']);
-            $i = 0;
-            foreach ($data['articles'] as $idArticle => $quantite) {
-                $article = $this->articleRepository->find($idArticle);
-                if ($quantite !== '' && $quantite > 0) {
-                    $article->setQuantiteAPrelever($quantite);
-                    $article->setDemande($demande);
-                }
-                $i++;
-                if ($i === count($data['articles'])) {
-                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                    $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
-                }
-            }
-            $em->flush();
-            return new JsonResponse();
+			$totalQuantity = 0;
+			foreach ($data['articles'] as $id => $quantity) {
+				$totalQuantity += $quantity;
+			}
+
+			if ($totalQuantity == $data['quantite']) {
+				$em = $this->getDoctrine()->getManager();
+				$demande = $this->demandeRepository->find($data['demande']);
+				$i = 0;
+				foreach ($data['articles'] as $idArticle => $quantite) {
+					$article = $this->articleRepository->find($idArticle);
+					if ($quantite !== '' && $quantite > 0) {
+						$article->setQuantiteAPrelever($quantite);
+						$article->setDemande($demande);
+					}
+					$i++;
+					if ($i === count($data['articles'])) {
+						$refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+						$em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+					}
+				}
+				$em->flush();
+				$resp = true;
+			} else {
+				$resp = false;
+			}
+            return new JsonResponse($resp);
         }
         throw new NotFoundHttpException('404');
     }
