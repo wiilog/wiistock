@@ -110,14 +110,10 @@ class AccueilController extends AbstractController
 
         $totalEntryRefArticle = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
         $totalExitRefArticle = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
-        $totalRefArticle = $totalEntryRefArticle - ($totalExitRefArticle);
+        $totalRefArticle = $totalEntryRefArticle - $totalExitRefArticle;
         $totalEntryArticle = $this->mouvementStockRepository->countTotalEntryPriceArticle();
         $totalExitArticle = $this->mouvementStockRepository->countTotalExitPriceArticle();
         $totalArticle = $totalEntryArticle - $totalExitArticle;
-
-        dump($totalRefArticle);
-        dump($totalEntryRefArticle);
-        dump($totalExitRefArticle);
 
         $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
 

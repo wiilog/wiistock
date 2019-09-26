@@ -112,31 +112,16 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param $type
-     * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function countAllMouvementStock()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT COUNT(m) FROM App\Entity\MouvementStock m"
-        );
-        return $query->getSingleScalarResult();
-    }
-
     public function countTotalEntryPriceRefArticle()
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             /** @lang DQL */
-            "select SUM(m.quantity * ra.prixUnitaire)
-                FROM App\Entity\MouvementStock m 
-                JOIN m.refArticle ra
-                WHERE m.type = 'entrée inventaire'"
-            );
+			"SELECT SUM(m.quantity * ra.prixUnitaire)
+			FROM App\Entity\MouvementStock m 
+			JOIN m.refArticle ra
+			WHERE m.type = :entreeInv"
+            )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
         return $query->getSingleScalarResult();
     }
 
@@ -146,10 +131,10 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             /** @lang DQL */
             "SELECT SUM(m.quantity * ra.prixUnitaire)
-                    FROM App\Entity\MouvementStock m
-                    JOIN m.refArticle ra
-                    WHERE m.type = 'sortie inventaire'"
-        );
+			FROM App\Entity\MouvementStock m
+			JOIN m.refArticle ra
+			WHERE m.type = :sortieInv"
+        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
         return $query->getSingleScalarResult();
     }
 
@@ -159,10 +144,10 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             /** @lang DQL */
             "SELECT SUM(m.quantity * a.prixUnitaire) 
-                    FROM App\Entity\MouvementStock m 
-                    JOIN m.article a 
-                    WHERE m.type = 'entrée inventaire'"
-        );
+			FROM App\Entity\MouvementStock m 
+			JOIN m.article a 
+			WHERE m.type = :entreeInv"
+        )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
         return $query->getSingleScalarResult();
     }
 
@@ -172,10 +157,10 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             /** @lang DQL */
             "SELECT SUM(m.quantity * a.prixUnitaire)
-                    FROM App\Entity\MouvementStock m
-                    JOIN m.article a
-                    WHERE m.type = 'sortie inventaire'"
-        );
+			FROM App\Entity\MouvementStock m
+			JOIN m.article a
+			WHERE m.type = :sortieInv"
+        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
         return $query->getSingleScalarResult();
     }
 }
