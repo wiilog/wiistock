@@ -235,21 +235,19 @@ function addToScissionAll($checkbox) {
     if (!$checkbox.is(':checked')) {
         $input.prop('disabled', false);
         $input.val('');
-        limitInput($input);
+        limitInputAndUpdateRemainingQuantity($input);
     } else {
         if (parseFloat($('#quantiteRestante').html()) > 0) {
             $input.val($checkbox.data('quantite'));
-            limitInput($input);
+            limitInputAndUpdateRemainingQuantity($input);
             $input.prop('disabled', true);
         } else {
             $checkbox.prop('checked', false);
         }
     }
-
-    updateRemainingQuantity();
 }
 
-function limitInput(input) {
+function limitInputAndUpdateRemainingQuantity(input) {
     if (input.val().includes('.')) {
         input.val(Math.trunc(input.val()));
     }
@@ -269,4 +267,5 @@ function limitInput(input) {
         input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
     }
 
+    updateRemainingQuantity();
 }

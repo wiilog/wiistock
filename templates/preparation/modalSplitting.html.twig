@@ -41,8 +41,8 @@
                                        data-total="{{ quantiteArt }}"
                                        data-quantite="{{ quantiteArt }}" type="number"
                                        data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                       max="{{ quantiteArt }}" onclick="limitInput($(this)), updateRemainingQuantity($(this))"
-                                       onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
+                                       max="{{ quantiteArt }}" onclick="limitInputAndUpdateRemainingQuantity($(this))"
+                                       onkeyup="limitInputAndUpdateRemainingQuantity($(this))">
                             </td>
                         </tr>
                     {% endfor %}
