@@ -13,6 +13,9 @@
         <h1>Références et articles de la mission</h1>
 
         <div class ="row">
+            <a href="" data-toggle="modal" data-target="#modalAddToMission" class="btn btn-primary">
+                <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
+            </a>
             <div class="btn btn-primary" onclick='generateCSVMission()'>
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
@@ -27,6 +30,8 @@
     <a href="{{ path('inventory_mission_index') }}" class="btn btn-action">
         Retour à la liste
     </a>
+
+    {% include 'inventaire/modalAddToMission.html.twig' %}
 {% endblock %}
 
 {% block javascript %}

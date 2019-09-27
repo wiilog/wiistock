@@ -105,4 +105,29 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function countArtByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            JOIN a.inventoryMissions m
+            WHERE m.id = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countRefArtByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.inventoryMissions m
+            WHERE m.id = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->getSingleScalarResult();
+    }
 }

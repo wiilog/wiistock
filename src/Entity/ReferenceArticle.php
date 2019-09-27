@@ -136,6 +136,11 @@ class ReferenceArticle
      */
     private $inventoryMissions;
 
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 */
@@ -643,33 +648,6 @@ class ReferenceArticle
         return $this;
     }
 
-    /**
-     * @return Collection|InventoryMission[]
-     */
-    public function getInventoryMission(): Collection
-    {
-        return $this->inventoryMission;
-    }
-
-    public function addInventoryMission(InventoryMission $inventoryMission): self
-    {
-        if (!$this->inventoryMission->contains($inventoryMission)) {
-            $this->inventoryMission[] = $inventoryMission;
-            $inventoryMission->addRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeInventoryMission(InventoryMission $inventoryMission): self
-    {
-        if ($this->inventoryMission->contains($inventoryMission)) {
-            $this->inventoryMission->removeElement($inventoryMission);
-            $inventoryMission->removeRefArticle($this);
-        }
-
-        return $this;
-    }
 
     public function getCategory(): ?InventoryCategory
     {
@@ -683,14 +661,6 @@ class ReferenceArticle
         return $this;
     }
 
-    /**
-     * @return Collection|InventoryMission[]
-     */
-    public function getInventoryMissions(): Collection
-    {
-        return $this->inventoryMissions;
-    }
-
     public function getHasInventoryAnomaly(): ?bool
     {
         return $this->hasInventoryAnomaly;
@@ -699,6 +669,46 @@ class ReferenceArticle
     public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
     {
         $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
+    }
+
+    public function addInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if (!$this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions[] = $inventoryMission;
+            $inventoryMission->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if ($this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions->removeElement($inventoryMission);
+            $inventoryMission->removeRefArticle($this);
+        }
 
         return $this;
     }

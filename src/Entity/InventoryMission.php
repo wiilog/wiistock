@@ -39,7 +39,7 @@ class InventoryMission
     private $entries;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="inventoryMission")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", mappedBy="inventoryMissions")
      */
     private $articles;
 
@@ -90,8 +90,8 @@ class InventoryMission
 
     public function addRefArticle(ReferenceArticle $refArticle): self
     {
-        if (!$this->refArticle->contains($refArticle)) {
-            $this->refArticle[] = $refArticle;
+        if (!$this->refArticles->contains($refArticle)) {
+            $this->refArticles[] = $refArticle;
         }
 
         return $this;
@@ -99,8 +99,8 @@ class InventoryMission
 
     public function removeRefArticle(ReferenceArticle $refArticle): self
     {
-        if ($this->refArticle->contains($refArticle)) {
-            $this->refArticle->removeElement($refArticle);
+        if ($this->refArticles->contains($refArticle)) {
+            $this->refArticles->removeElement($refArticle);
         }
 
         return $this;
@@ -149,7 +149,7 @@ class InventoryMission
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
-            $article->setInventoryMission($this);
+            $article->addInventoryMission($this);
         }
 
         return $this;
@@ -159,12 +159,10 @@ class InventoryMission
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getInventoryMission() === $this) {
-                $article->setInventoryMission(null);
-            }
+            $article->removeInventoryMission($this);
         }
 
         return $this;
     }
+
 }
