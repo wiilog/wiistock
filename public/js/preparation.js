@@ -225,8 +225,19 @@ function updateRemainingQuantity() {
             totalQuantityTaken += parseFloat($(this).val());
         }
     });
+
     let quantityToTake = $('#scissionTitle').data('quantity-to-take');
-    $('#quantiteRestante').html(String(quantityToTake - totalQuantityTaken));
+    let remainingQuantity = quantityToTake - totalQuantityTaken;
+    $('#quantiteRestante').html(String(Math.max(0, remainingQuantity)));
+
+    if (remainingQuantity < 0) {
+        let s = remainingQuantity < -1 ? 's' : '';
+        $('#modalSplitting').find('.error-msg').html('(' + -remainingQuantity + ' article' + s + ' en trop)');
+        $('#quantiteRestante').parent().addClass('red');
+    } else {
+        $('#modalSplitting').find('.error-msg').html('');
+        $('#quantiteRestante').parent().removeClass('red');
+    }
 }
 
 function addToScissionAll($checkbox) {
@@ -249,24 +260,36 @@ function addToScissionAll($checkbox) {
     updateRemainingQuantity();
 }
 
-function limitInput(input) {
-    if (input.val().includes('.')) {
-        input.val(Math.trunc(input.val()));
-    }
-    if (input.val().includes('-')) {
-        input.val(input.val().replace('-', ''));
-    }
-    if (input.val().includes(',')) {
+function limitInput($input) {
+    // if (input.val().includes('.')) {
+    //     input.val(Math.trunc(input.val()));
+    // }
+    // if (input.val().includes('-')) {
+    //     input.val(input.val().replace('-', ''));
+    // }
+    // if (input.val().includes(',')) {
+    //
+    // }
+    //
 
+    // vérification quantité disponible référence
+    let value = $input.val();
+    let thisMax = $input.attr('max');
+    if (value > thisMax) {
+        $input.parent().find('.row-error-msg').html('max : ' + thisMax);
+    } else {
+        $input.parent().find('.row-error-msg').html('');
     }
 
-    let max = Math.min(
-        parseFloat($('#quantiteRestante').html()),
-        input.data('quantite')
-    );
-
-    if (input.val() !== '') {
-        input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
-    }
+    // let max = Math.min(
+    //     parseFloat($('#quantiteRestante').html()),
+    //     $input.data('quantite')
+    // );
+    //
+    // if ($input.val() !== '' && $input.val() > max) {
+    //     console.log($input.val() + ' > ' + max);
+    //     $input.parent().find('.error-msg').html('valeur max : ' + max);
+    // //     input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
+    // }
 
 }
