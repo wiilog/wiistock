@@ -272,7 +272,6 @@ class ReceptionController extends AbstractController
      */
     public function apiEdit(Request  $request): Response
     {
-
         if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
