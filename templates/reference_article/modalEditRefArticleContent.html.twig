@@ -91,7 +91,7 @@
             <label class="mtb-auto mr-2" for="quantite">Quantité</label>
             {# si on est sur une demande, la quantité ne doit pas être modifiée #}
             {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
-            <input {{ disabledOnDemand }} class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
+            <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
                 name="quantite" id="quantite">
 
         </div>
