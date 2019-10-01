@@ -135,7 +135,7 @@ class EmplacementController extends AbstractController
             }
 
             // on vérifie que l'emplacement n'existe pas déjà
-            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel($data['Label']);
+            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel(trim($data['Label']));
             if ($emplacementAlreadyExist) {
                 return new JsonResponse(false);
             }
