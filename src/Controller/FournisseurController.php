@@ -110,13 +110,25 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+			// unicité du code fournisseur
+			$codeAlreadyUsed = intval($this->fournisseurRepository->countByCode($data['Code']));
+
+			if ($codeAlreadyUsed) {
+				return new JsonResponse([
+					'success' => false,
+					'msg' => "Ce code fournisseur est déjà utilisé.",
+				]);
+			}
+
             $em = $this->getDoctrine()->getEntityManager();
             $fournisseur = new Fournisseur();
-            $fournisseur->setNom($data["Nom"]);
-            $fournisseur->setCodeReference($data["Code"]);
+            $fournisseur
+				->setNom($data["Nom"])
+				->setCodeReference($data["Code"]);
             $em->persist($fournisseur);
             $em->flush();
-            return new JsonResponse($data);
+
+			return new JsonResponse(['success' => true]);
         }
 
         throw new NotFoundHttpException("404");

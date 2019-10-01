@@ -21,7 +21,7 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
 let modalNewFournisseur = $("#modalNewFournisseur"); 
 let submitNewFournisseur = $("#submitNewFournisseur");
 let urlNewFournisseur = Routing.generate('fournisseur_new', true);
-InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur);
+InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur, displayErrorFournisseur, false);
 
 let ModalDeleteFournisseur = $("#modalDeleteFournisseur");
 let SubmitDeleteFournisseur = $("#submitDeleteFournisseur");
@@ -32,3 +32,8 @@ let modalModifyFournisseur = $('#modalEditFournisseur');
 let submitModifyFournisseur = $('#submitEditFournisseur');
 let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
 InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
+
+function displayErrorFournisseur(data) {
+    let modal = $('#modalNewFournisseur');
+    displayError(modal, data.msg, data.success);
+}
