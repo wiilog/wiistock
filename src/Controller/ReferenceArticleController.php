@@ -271,10 +271,10 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
-                        "title" => 'Quantité',
+                        "title" => 'Quantité disponible',
                         "data" => 'Quantité',
-                        'name' => 'Quantité',
-                        "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+                        'name' => 'Quantité disponible',
+                        "class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Emplacement',
@@ -511,7 +511,7 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
         $champF[] = [
-            'label' => 'Quantité',
+            'label' => 'Quantité disponible',
             'id' => 0,
             'typage' => 'number'
         ];

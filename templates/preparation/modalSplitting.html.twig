@@ -41,8 +41,9 @@
                                        data-total="{{ quantiteArt }}"
                                        data-quantite="{{ quantiteArt }}" type="number"
                                        data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                       max="{{ quantiteArt }}" onclick="limitInput($(this)), updateRemainingQuantity($(this))"
+                                       min=0 max="{{ quantiteArt }}" onclick="limitInput($(this)), updateRemainingQuantity($(this))"
                                        onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
+                                <div class="row-error-msg pl-2 bold text-center"></div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -52,10 +53,10 @@
                     <span id="quantiteRestante">{{ quantite }}</span>
                 </div>
             </div>
-            <div class="error-msg p-4"></div>
+            <div class="error-msg text-right pr-4 pb-4"></div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-primary" data-ref="{{ referenceId }}" data-qtt="{{ quantite }}"
+                <div class="btn btn-primary submit" data-ref="{{ referenceId }}" data-qtt="{{ quantite }}"
                      data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}"
                      onclick="submitSplitting($(this))">Enregistrer
                 </div>

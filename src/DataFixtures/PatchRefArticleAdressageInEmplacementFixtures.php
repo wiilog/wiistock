@@ -53,7 +53,9 @@ class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements F
 		foreach($listAdresses as $adresse){
 			if(!$this->emplacementRepository->findOneByLabel($adresse['valeur'])){
 				$emplacement = new Emplacement();
-				$emplacement->setLabel($adresse['valeur']);
+				$emplacement
+					->setLabel($adresse['valeur'])
+					->setIsActive(true);
 				$manager->persist($emplacement);
 			}
 		}

@@ -278,8 +278,7 @@ function showOrHideColumn(check) {
     let column = tableRefArticle.column(columnName + ':name');
     
     column.visible(!column.visible());
-   
-    
+
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
     tableRefArticleColumn.find('th, td').removeClass('hide');
     tableRefArticleColumn.find('th, td').addClass('display');
