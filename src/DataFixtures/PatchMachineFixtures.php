@@ -37,7 +37,7 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
         $file = fopen($path, "r");
 
         $rows = [];
-        while (($data = fgetcsv($file, 1000, ",")) !== false) {
+        while (($data = fgetcsv($file, 1000, ";")) !== false) {
             $rows[] = $data;
         }
 
@@ -64,26 +64,30 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 //            }
 //        }
 
-        foreach($listElements as $elements){
-            $colEyelit = $colMachines= [];
-            foreach($rows as $row){
-                    $colMachines [] = $row[0];
-                if($row[1] != '?'){
-                    $colEyelit [] = $row[1];
-                } else {
-                    $colEyelit [] = $row[0];
-                }
-            }
-            $newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
-            $champsLibre = $this->champLibreRepository->find($elements['id']);
-            $champsLibre->setElements(array_unique($newElements));
+		$colEyelit = $colMachines = [];
+		$colEyelitToMachine = [];
+		foreach($rows as $row){
+			$colEyelitToMachine[$row[0]] = $row[1];
+			$colMachines [] = $row[0];
+			$colEyelit [] = $row[1];
+		}
 
-            //remplace toutes les valeurs champs libre
-            $listValeurChampsLibres = $this->valeurChampLibreRepository->findByCL($elements['id']);
-            foreach($listValeurChampsLibres as $valeurChampLibre){
-                $newValeur = $colEyelit[array_search($valeurChampLibre->getValeur(), $colMachines)];
-                $valeurChampLibre->setValeur($newValeur);
-            }
+        foreach($listElements as $elements){
+        	if ($elements['elements']) {
+        		// modifie la liste des éléments du champ libre
+            	$newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
+            	$champsLibre = $this->champLibreRepository->find($elements['id']);
+            	$champsLibre->setElements(array_unique($newElements));
+
+				// remplace toutes les valeurs champs libre
+				$listValeurChampsLibres = $this->valeurChampLibreRepository->findByCL($elements['id']);
+				foreach($listValeurChampsLibres as $valeurChampLibre){
+					if (isset($colEyelitToMachine[$valeurChampLibre->getValeur()])) {
+						$newValue = $colEyelitToMachine[$valeurChampLibre->getValeur()];
+						$valeurChampLibre->setValeur($newValue);
+					}
+				}
+        	}
         }
         $manager->flush();
         fclose($file);
