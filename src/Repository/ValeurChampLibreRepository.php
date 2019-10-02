@@ -356,6 +356,10 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 	    return $query->execute();
     }
 
+	/**
+	 * @param int $champLibreId
+	 * @return ValeurChampLibre[]
+	 */
     public function findByCL($champLibreId){
         $em = $this->getEntityManager();
         $query = $em->createQuery(

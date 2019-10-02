@@ -87,6 +87,11 @@ class ChampLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+	/**
+	 * @param string $label
+	 * @return ChampLibre|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
