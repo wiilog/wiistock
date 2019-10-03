@@ -52,3 +52,45 @@ function displayErrorFrequency(data) {
     let msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }
+
+function importFile() {
+    let path = Routing.generate('update_category', true);
+    let formData = new FormData();
+    let files = $('#importExcel')[0].files;
+    let fileToSend = files[0];
+    let fileName = $('#importExcel')[0].files[0]['name'];
+    let extension = fileName.split('.').pop();
+    if (extension == "csv")
+    {
+        formData.append('file', fileToSend);
+        $.ajax({
+            url: path,
+            data: formData,
+            type: "post",
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: "json",
+            success: function (data) {
+                if (data.success == true)
+                {
+                    alertSuccessMsg(data);
+                }
+                else if (data.success == false)
+                {
+                    let exportedFilenmae = 'log-error.txt';
+                    let pathFile = '../uploads/log/';
+                    let pathWithFileName = pathFile.concat(data.nameFile);
+                    let link = document.createElement("a");
+                    console.log(link);
+                    link.setAttribute("href", pathWithFileName);
+                    link.setAttribute("download", exportedFilenmae);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        });
+    }
+}
