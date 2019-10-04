@@ -843,7 +843,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
-			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
 
