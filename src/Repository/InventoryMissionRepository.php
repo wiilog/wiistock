@@ -85,8 +85,9 @@ class InventoryMissionRepository extends ServiceEntityRepository
 			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
-			WHERE ra.hasInventoryAnomaly = 1"
-		);
+			WHERE ra.hasInventoryAnomaly = 1
+			AND ra.typeQuantite = :typeQteRef"
+		)->setParameter('typeQteRef', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
 		return $query->execute();
 	}
