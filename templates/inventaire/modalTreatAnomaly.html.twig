@@ -22,21 +22,16 @@
                     <div class="input-group radio-btn">
                         <div class="form-group">
                             <label hidden>Quantité</label>
-                            <span class="btn active h-100" data-toggle="choice"
-                                  data-title="cancel"
-                                  onclick="toggleRadioButton($(this)), toggleNeeded($(this))">
-                                Lever l'anomalie
-                            </span><span class="btn not-active h-100" data-toggle="choice"
-                                         data-title="confirm"
-                                         onclick="toggleRadioButton($(this)), toggleNeeded($(this))">Saisir la quantité
+                            <span class="btn h-100" data-toggle="choice"
+                                         data-title="confirm">Saisir la quantité
                                 <input type="number" class="form-control inline data pr-0" name="newQuantity">
                             </span>
                         </div>
-                        <div class="form-group w-100 comment invisible">
+                        <div class="form-group w-100 comment">
                             <label for="comment">Commentaire</label>
                             <textarea class="form-control data" name="comment" id="comment" rows="3"></textarea>
                         </div>
-                        <input type="hidden" name="choice" id="choice" class="data" value="cancel">
+                        <input type="hidden" name="choice" id="choice" class="data" value="confirm">
                     </div>
                 </div>
                 <input class="isRef data" name="isRef" hidden>

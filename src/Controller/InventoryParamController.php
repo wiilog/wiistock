@@ -278,4 +278,74 @@ class InventoryParamController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/MisAJour_Categorie", name="update_category", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateCategory(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+
+
+            $file = $request->files->get('file');
+
+            $delimiters = array(
+                ';' => 0,
+                ',' => 0,
+                "\t" => 0,
+                "|" => 0
+            );
+
+            $fileDetectDelimiter = fopen($file, "r");
+            $firstLine = fgets($fileDetectDelimiter);
+            fclose($fileDetectDelimiter);
+            foreach ($delimiters as $delimiter => $count) {
+                $count = count(str_getcsv($firstLine, $delimiter));
+            }
+
+            $delimiter = array_search(max($delimiters), $delimiters);
+
+            $rows = [];
+
+            $fileOpen = fopen($file->getPathname(), "r");
+            while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
+                $rows[] = array_map('utf8_encode', $data);
+            }
+
+            $path = '../public/uploads/log/';
+            $nameFile = uniqid() . ".txt";
+            $uri = $path . $nameFile;
+            $myFile = fopen($uri, "w");
+            $success = true;
+
+            foreach ($rows as $row)
+            {
+                dump($row);
+                dump($rows);
+                $inventoryCategory = $this->inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
+                $refArticle = $this->referenceArticleRepository->findOneBy(['reference' => $row[0]]);
+                if (!empty($refArticle) && !empty($inventoryCategory))
+                {
+                    $refArticle->setCategory($inventoryCategory);
+                    $em->persist($refArticle);
+                    $em->flush();
+                }
+                else
+                {
+                    $success = false;
+                    if (empty($refArticle)) {
+                        fwrite($myFile, "La référence " . "'" . $row[0] . "n'existe pas. \n");
+                    }
+                    if (empty($inventoryCategory))
+                    {
+                        fwrite($myFile, "La categorie " . "'" . $row[1] . "n'existe pas. \n" );
+                    }
+                }
+            }
+            fclose($myFile);
+
+            return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
+        }
+    }
 }
