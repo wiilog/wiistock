@@ -125,6 +125,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 data = JSON.parse(this.responseText);
+                console.log(select);
                 if (data === false) {
                     $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
                 } else {
