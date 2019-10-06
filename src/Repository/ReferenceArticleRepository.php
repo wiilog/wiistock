@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -686,7 +687,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             LEFT JOIN im.refArticles ra
             WHERE im.id = :missionId"
         )->setParameter('missionId', $mission->getId());
-dump($query->getSQL());
+
         return $query->getSingleScalarResult();
     }
 
@@ -698,6 +699,25 @@ dump($query->getSQL());
           FROM App\Entity\ReferenceArticle ra
           WHERE ra.reference LIKE :search"
         )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+
+    /**
+     * @param InventoryFrequency $frequency
+     * @return ReferenceArticle[]
+     */
+    public function findByFrequency($frequency)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.category c
+            WHERE c.frequency = :frequency ORDER BY ra.emplacement"
+        )->setParameter('frequency', $frequency);
 
         return $query->execute();
     }

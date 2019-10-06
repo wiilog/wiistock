@@ -251,7 +251,6 @@ class InventoryMissionController extends AbstractController
 
         $rows = [];
         foreach ($refArray as $ref) {
-            // TODO HM
             $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref['id']);
             if ($refDate != null)
                $refDate = $refDate['date']->format('d/m/Y');
@@ -294,6 +293,7 @@ class InventoryMissionController extends AbstractController
 
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
+
             foreach ($data['articles'] as $articleId) {
                 $article = $this->articleRepository->find($articleId);
                 $article->addInventoryMission($mission);
@@ -314,7 +314,6 @@ class InventoryMissionController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
-
 
     /**
      * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})

@@ -134,4 +134,16 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findByDate($date)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT m
+            FROM App\Entity\InventoryMission m
+            WHERE m.startPrevDate = :date"
+        )->setParameter('date', $date);
+
+        return $query->getOneOrNullResult();
+    }
 }
