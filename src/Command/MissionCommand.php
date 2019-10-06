@@ -75,8 +75,9 @@ class MissionCommand extends Command
     {
         $now = new \DateTime('now');
         $frequencies = $this->inventoryFrequencyRepository->findAll();
+
         $monday = new \DateTime('now');
-        $monday->add(new \DateInterval('P1D'));
+        $monday->modify('next monday');
         $mission = $this->inventoryMissionRepository->findByDate($monday->format('Y/m/d'));
 
         foreach ($frequencies as $frequency) {
