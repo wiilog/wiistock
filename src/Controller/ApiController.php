@@ -900,7 +900,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	/**
 	 * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
 	 * @Rest\Get("/api/treatAnomalies")
-	 * @Rest\View()	 */
+	 */
 	public function treatAnomalies(Request $request)
 	{
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
