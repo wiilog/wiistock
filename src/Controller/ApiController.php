@@ -914,7 +914,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$numberOfRowsInserted = 0;
 
 				foreach ($data['anomalies'] as $anomaly) {
-					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment']);
+					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment'], $nomadUser);
 					$numberOfRowsInserted++;
 				}
 
