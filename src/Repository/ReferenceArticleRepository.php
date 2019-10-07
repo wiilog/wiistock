@@ -701,4 +701,17 @@ dump($query->getSQL());
 
         return $query->execute();
     }
+
+    public function findByRef($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.refArticle = :id"
+        )->setParameter('id', $id);
+
+        return $query->execute();
+    }
 }

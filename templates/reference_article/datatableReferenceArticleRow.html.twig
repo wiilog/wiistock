@@ -26,6 +26,15 @@
         </div>
     </div>
     {% endif %}
+
+    <div>
+        <div class="btn btn-col-action"
+             onclick="showRowMouvements($(this))"
+             data-id='{{ idRefArticle }}' data-target='#modalShowMouvements' data-toggle='modal'>
+            <i class='fas fa-list'></i>
+        </div>
+    </div>
+
     <div>
         <div class="btn btn-col-action"
         onclick="clearModal('#modalPlusDemande'), clearDemandeContent(), recupIdRefArticle($(this))" data-id='{{ idRefArticle }}'
