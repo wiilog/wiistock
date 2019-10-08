@@ -66,16 +66,14 @@ class InventoryService
 				->setQuantity(abs($diff));
 
 			$emplacement = $refOrArt->getEmplacement();
+			$mvt->setEmplacementFrom($emplacement);
+			$mvt->setEmplacementTo($emplacement);
 			if ($isRef) {
 				$mvt->setRefArticle($refOrArt);
-				$mvt->setEmplacementFrom($emplacement);
-                $mvt->setEmplacementTo($emplacement);
 				//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
 				$refOrArt->setQuantiteStock($newQuantity);
 			} else {
 				$mvt->setArticle($refOrArt);
-                $mvt->setEmplacementFrom($emplacement);
-                $mvt->setEmplacementTo($emplacement);
 				//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
 				$refOrArt->setQuantite($newQuantity);
 			}
