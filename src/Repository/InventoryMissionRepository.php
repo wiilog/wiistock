@@ -163,24 +163,17 @@ class InventoryMissionRepository extends ServiceEntityRepository
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         //Filter by date
-        if (!empty($params->get('dateMin')) && !empty($params->get('dateMax'))) {
+		$qb->leftJoin('ra.inventoryEntries', 'ie');
+        
+        if (!empty($params->get('dateMin'))) {
+			$qb
+				->andWhere('ie.date >= :dateMin')
+				->setParameter('dateMin', $params->get('dateMin'));
+			$countQuery = count($qb->getQuery()->getResult());
+			$allArticleDataTable = $qb->getQuery();
+		}
+        if (!empty($params->get('dateMax'))) {
             $qb
-                ->leftJoin('ra.inventoryEntries', 'ie')
-                ->andWhere('ie.date BETWEEN :dateMin AND :dateMax')
-                ->setParameter('dateMin', $params->get('dateMin'))
-                ->setParameter('dateMax',$params->get('dateMax'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allArticleDataTable = $qb->getQuery();
-        } else if (!empty($params->get('dateMin')) && empty($params->get('dateMax'))) {
-            $qb
-                ->leftJoin('ra.inventoryEntries', 'ie')
-                ->andWhere('ie.date >= :dateMin')
-                ->setParameter('dateMin', $params->get('dateMin'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allArticleDataTable = $qb->getQuery();
-        } else if (empty($params->get('dateMin')) && !empty($params->get('dateMax'))) {
-            $qb
-                ->leftJoin('ra.inventoryEntries', 'ie')
                 ->andWhere('ie.date <= :dateMax')
                 ->setParameter('dateMax', $params->get('dateMax'));
             $countQuery = count($qb->getQuery()->getResult());
