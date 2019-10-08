@@ -673,8 +673,8 @@ function displayActifOrInactif(select){
     });
 }
 
-function initDatatable(id) {
-    let pathRefMouvements = Routing.generate('refMouvements_api', { 'id': id }, true);
+function initDatatableMovements(id) {
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
     let tableRefMouvements = $('#tableMouvements').DataTable({
         "language": {
             url: "/js/i18n/dataTableLanguage.json",
@@ -698,12 +698,12 @@ function showRowMouvements(button) {
 
     let id = button.data('id');
     let params = JSON.stringify(id);
-    let path = Routing.generate('refMouvements_show', true);
+    let path = Routing.generate('ref_mouvements_list', true);
     let modal = $('#modalShowMouvements');
 
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
-        initDatatable(id);
+        initDatatableMovements(id);
     }, 'json');
 }
 

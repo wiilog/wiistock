@@ -1187,9 +1187,9 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/show-mouvements", name="refMouvements_show", options={"expose"=true}, methods="GET|POST")
+     * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST")
      */
-    public function show_mouvements(Request $request): Response
+    public function showMovements(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -1198,20 +1198,20 @@ class ReferenceArticleController extends Controller
             }
 
            return new JsonResponse($this->renderView('reference_article/modalShowMouvementsContent.html.twig', [
-               'refLabel' => $name
+               'refLabel' => $name?? ''
            ]));
         }
         throw new NotFoundHttpException('404');
     }
 
     /**
-     * @Route("/mouvements-api/{id}", name="refMouvements_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function api_test(Request $request, $id): Response
+    public function apiMouvements(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) {
 
-            $mouvements = $this->referenceArticleRepository->findByRef($id);
+            $mouvements = $this->mouvementStockRepository->findByRef($id);
 
             $rows = [];
             foreach ($mouvements as $mouvement) {
