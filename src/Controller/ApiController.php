@@ -791,6 +791,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 								$refArticle->setHasInventoryAnomaly(true);
 							} else {
                                 $refArticle->setDateLastInventory($newDate);
+                                $refArticle->setHasInventoryAnomaly(false);
                             }
 							$em->flush();
 						} else {
@@ -799,8 +800,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
-								$em->flush();
+							} else {
+								$article->setHasInventoryAnomaly(false);
 							}
+							$em->flush();
 						}
 						$em->persist($newEntry);
 						$em->flush();
@@ -843,7 +846,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
-			'canSeeQuantityStock' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::SEE_STOCK_QUANTITY, $user) ? 1 : 0,
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
 
@@ -901,7 +903,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	/**
 	 * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
 	 * @Rest\Get("/api/treatAnomalies")
-	 * @Rest\View()	 */
+	 */
 	public function treatAnomalies(Request $request)
 	{
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -915,14 +917,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$numberOfRowsInserted = 0;
 
 				foreach ($data['anomalies'] as $anomaly) {
-					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment']);
+					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment'], $nomadUser);
 					$numberOfRowsInserted++;
 				}
 
 				$s = $numberOfRowsInserted > 1 ? 's' : '';
 				$this->successDataMsg['success'] = true;
 				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-					"Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisé' . $s;
+					"Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s;
 			} else {
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
