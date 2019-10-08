@@ -791,6 +791,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 								$refArticle->setHasInventoryAnomaly(true);
 							} else {
                                 $refArticle->setDateLastInventory($newDate);
+                                $refArticle->setHasInventoryAnomaly(false);
                             }
 							$em->flush();
 						} else {
