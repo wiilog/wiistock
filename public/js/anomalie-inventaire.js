@@ -27,7 +27,6 @@ function showModalAnomaly($button) {
     $modal.find('.isRef').val(isRef);
     $modal.find('.quantity').text(quantity);
     $modal.find('.location').text(location);
-
 }
 
 let modalTreatAnomaly = $('#modalTreatAnomaly');
@@ -39,6 +38,8 @@ InitialiserModal(modalTreatAnomaly, submitTreatAnomaly, urlTreatAnomaly, table, 
 function alertSuccessMsgAnomaly(data)
 {
     if (data) {
+        alertSuccessMsg("L'anomalie a bien été traitée.");
+    } else {
         alertSuccessMsg("Un mouvement de stock correctif vient d'être créé.");
     }
 }

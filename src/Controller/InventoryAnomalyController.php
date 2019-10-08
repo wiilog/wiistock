@@ -127,10 +127,10 @@ class InventoryAnomalyController extends AbstractController
 			if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER)) {
 				return $this->redirectToRoute('access_denied');
 			}
-//TODO CG
-			$this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['choice'], $data['comment'], $this->getUser());
 
-			return new JsonResponse($data['choice'] == 'confirm');
+			$quantitiesAreEqual = $this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['comment'], $this->getUser());
+
+			return new JsonResponse($quantitiesAreEqual);
 		}
 		throw new NotFoundHttpException("404");
 	}

@@ -24,14 +24,13 @@
                             <label hidden>Quantité</label>
                             <span class="btn h-100" data-toggle="choice"
                                          data-title="confirm">Saisir la quantité
-                                <input type="number" class="form-control inline data pr-0" name="newQuantity">
+                                <input type="number" class="form-control inline data pr-0" name="newQuantity" min="0">
                             </span>
                         </div>
                         <div class="form-group w-100 comment">
                             <label for="comment">Commentaire</label>
                             <textarea class="form-control data" name="comment" id="comment" rows="3"></textarea>
                         </div>
-                        <input type="hidden" name="choice" id="choice" class="data" value="confirm">
                     </div>
                 </div>
                 <input class="isRef data" name="isRef" hidden>
