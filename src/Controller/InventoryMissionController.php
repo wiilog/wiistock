@@ -249,7 +249,6 @@ class InventoryMissionController extends AbstractController
      */
     public function entryApi(InventoryMission $mission, Request $request): Response
     {
-        $data = json_decode($request->getContent(), true);
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }

@@ -88,16 +88,6 @@ $submitSearchMissionRef.on('click', function() {
     dateMaxFilter.val(dateMax);
     anomalyFilter.val(anomaly);
 
-
-//     let params = {
-//         dateMin: dateMinFilter.val(),
-//         dateMax: dateMaxFilter.val(),
-// //        anomaly: anomalyFilter.val()
-//     };
-//     let path = Routing.generate('inv_entry_api',{ id: mission}, true);
-//     $.post(path, JSON.stringify(params), function(response) {
-//
-//     }, 'json');
     tableMission.draw();
 });
 

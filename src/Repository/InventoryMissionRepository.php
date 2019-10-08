@@ -147,7 +147,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allArticleDataTable = null;
-        //Filter VALUE
+        //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
@@ -221,7 +221,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allArticleDataTable = null;
-        // Filter VALUE
+        // Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
