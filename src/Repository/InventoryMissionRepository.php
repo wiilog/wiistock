@@ -33,7 +33,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		JOIN im.refArticles ra
 		LEFT JOIN ra.inventoryEntries ie
 		LEFT JOIN ra.emplacement e
-		AND im.startPrevDate <= '" . $now . "'
+		WHERE im.startPrevDate <= '" . $now . "'
 		AND im.endPrevDate >= '" . $now . "'
 		AND ie.id is null"
 		);
@@ -51,10 +51,10 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		/** @lang DQL */
 		"SELECT im.id as id_mission, a.reference, e.label as location, 0 as is_ref, ie.id as ieid
 		FROM App\Entity\InventoryMission im
-		JOIN im.articles
+		JOIN im.articles a
 		LEFT JOIN a.inventoryEntries ie
 		LEFT JOIN a.emplacement e
-		AND im.startPrevDate <= '" . $now . "'
+		WHERE im.startPrevDate <= '" . $now . "'
 		AND im.endPrevDate >= '" . $now . "'
 		AND ie.id is null"
 		);
@@ -82,11 +82,12 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref
+			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref, 0 as treated
 			FROM App\Entity\ReferenceArticle ra
-			JOIN ra.emplacement e
-			WHERE ra.hasInventoryAnomaly = 1"
-		);
+			LEFT JOIN ra.emplacement e
+			WHERE ra.hasInventoryAnomaly = 1
+			AND ra.typeQuantite = :typeQteRef"
+		)->setParameter('typeQteRef', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
 		return $query->execute();
 	}
@@ -96,9 +97,9 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref
+			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref, 0 as treated
 			FROM App\Entity\Article a
-			JOIN a.emplacement e
+			LEFT JOIN a.emplacement e
 			WHERE a.hasInventoryAnomaly = 1"
 		);
 
