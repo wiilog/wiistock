@@ -800,8 +800,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
-								$em->flush();
+							} else {
+								$article->setHasInventoryAnomaly(false);
 							}
+							$em->flush();
 						}
 						$em->persist($newEntry);
 						$em->flush();
