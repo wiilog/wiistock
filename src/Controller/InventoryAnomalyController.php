@@ -128,7 +128,7 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['choice'], $data['comment']);
+			$this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['choice'], $data['comment'], $this->getUser());
 
 			return new JsonResponse($data['choice'] == 'confirm');
 		}

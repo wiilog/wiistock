@@ -82,7 +82,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref
+			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref, 0 as treated
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			WHERE ra.hasInventoryAnomaly = 1
@@ -97,7 +97,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref
+			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref, 0 as treated
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			WHERE a.hasInventoryAnomaly = 1"
