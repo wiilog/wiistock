@@ -19,7 +19,6 @@ class Action
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';
     const YES = 'oui';
-    const SEE_STOCK_QUANTITY = 'voir quantité stock réelle';
     const INVENTORY_MANAGER = "gestionnaire d'inventaire";
     const REFERENCE = 'fiabilité par réference';
     const MONETAIRE = 'fiabilité par monétaire';

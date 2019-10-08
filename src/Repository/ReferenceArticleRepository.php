@@ -686,7 +686,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             LEFT JOIN im.refArticles ra
             WHERE im.id = :missionId"
         )->setParameter('missionId', $mission->getId());
-dump($query->getSQL());
+
         return $query->getSingleScalarResult();
     }
 
@@ -701,4 +701,5 @@ dump($query->getSQL());
 
         return $query->execute();
     }
+
 }

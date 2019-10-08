@@ -366,6 +366,25 @@ class ArticleController extends Controller
     }
 
     /**
+     * @Route("/autocomplete-art/{activeOnly}", name="get_articles", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @param bool $activeOnly
+     * @return JsonResponse
+     */
+    public function getArticles(Request $request, $activeOnly = false)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+
+            return new JsonResponse(['results' => $articles]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
      */
     public function getCollecteArticleByRefArticle(Request $request): Response

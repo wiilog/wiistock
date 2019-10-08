@@ -43,7 +43,7 @@ class InventoryService
 		$this->user = $security->getUser();
     }
 
-	public function doTreatAnomaly($reference, $isRef, $newQuantity, $choice, $comment)
+	public function doTreatAnomaly($reference, $isRef, $newQuantity, $choice, $comment, $user)
 	{
 		$em = $this->em;
 
@@ -60,7 +60,7 @@ class InventoryService
 		if ($choice == 'confirm' && $diff != 0) {
 			$mvt = new MouvementStock();
 			$mvt
-				->setUser($this->user)
+				->setUser($user)
 				->setDate(new \DateTime('now'))
 				->setComment($comment)
 				->setQuantity(abs($diff));
