@@ -49,11 +49,16 @@ class AddEmplacementToRefFixtures extends Fixture implements FixtureGroupInterfa
             $ref = $this->referenceArticleRepository->findOneByReference($row[0]);
             $emplacement = $this->emplacementRepository->findOneByLabel($row[2]);
 
-            if ($ref && $emplacement) {
-                $ref->setEmplacement($emplacement);
-                $manager->flush();
-            }
-            dump('ERREUR dans le fichier');
+            if ($ref) {
+            	if ($emplacement) {
+					$ref->setEmplacement($emplacement);
+					$manager->flush();
+				} else {
+            		dump('emplacement non trouvé : ' . $row[2]);
+				}
+            } else {
+            	dump('référence non trouvée : ' . $row[0]);
+			}
         }
         fclose($file);
     }
