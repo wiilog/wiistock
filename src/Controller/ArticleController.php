@@ -488,7 +488,6 @@ class ArticleController extends Controller
     public function ajaxFournisseurByRefArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
             if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
