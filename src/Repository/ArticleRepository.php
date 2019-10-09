@@ -459,6 +459,22 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 */
+	public function findByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->execute();
+	}
+
     public function countByEmplacement($emplacementId)
     {
         $em = $this->getEntityManager();

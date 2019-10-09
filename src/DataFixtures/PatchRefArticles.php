@@ -34,7 +34,7 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 		$doublons = $this->articleRepository->findDoublons();
-		$counter = 1;
+		$counter = 0;
 
 		$saveLastRefToRestart = null;
 		foreach ($doublons as $doublon) {
@@ -42,22 +42,24 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
 			$reference = $refArray[0];
 
 			if ($reference != $saveLastRefToRestart) {
-			    $counter = 1;
+			    $counter = 0;
             }
             $saveLastRefToRestart = $reference;
 
-            $formattedCounter = sprintf('%05u', $counter);
-            $referenceRef = $doublon->getArticleFournisseur()->getReferenceArticle()->getReference();
-			$newRef = $referenceRef . $formattedDate . $formattedCounter;
-			$doublon->setReference($newRef);
-			$counter++;
-		}
+			do {
+				$counter++;
+				$formattedCounter = sprintf('%05u', $counter);
+				$referenceRef = $doublon->getArticleFournisseur()->getReferenceArticle()->getReference();
+				$newRef = $referenceRef . $formattedDate . $formattedCounter;
+			} while ($this->articleRepository->findByReference($newRef));
 
-		$manager->flush();
+			$doublon->setReference($newRef);
+			$manager->flush();
+		}
 	}
 
 	public static function getGroups():array {
-		return ['refarticles'];
+		return ['doublons-articles'];
 	}
 
 }
