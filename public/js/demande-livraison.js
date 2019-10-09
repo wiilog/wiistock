@@ -21,7 +21,7 @@ let tableArticle = $('#table-lignes').DataTable({
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité'},
+        {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Actions', 'title': 'Actions'}
     ],

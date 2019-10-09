@@ -193,7 +193,8 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 	/**
 	 * @param Reception $reception
 	 * @param ChampLibre $champLibre
-	 * @return mixed
+	 * @return ValeurChampLibre|null
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByReceptionAndChampLibre($reception, $champLibre)
     {
@@ -207,7 +208,7 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
             'receptionvcl' => $reception->getValeurChampLibre(),
             "champLibre" => $champLibre
         ]);
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 
 	/**
@@ -355,6 +356,10 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 	    return $query->execute();
     }
 
+	/**
+	 * @param int $champLibreId
+	 * @return ValeurChampLibre[]
+	 */
     public function findByCL($champLibreId){
         $em = $this->getEntityManager();
         $query = $em->createQuery(

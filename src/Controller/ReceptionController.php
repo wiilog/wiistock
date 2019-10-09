@@ -272,7 +272,6 @@ class ReceptionController extends AbstractController
      */
     public function apiEdit(Request  $request): Response
     {
-
         if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -709,8 +708,9 @@ class ReceptionController extends AbstractController
                         $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
                     }
                 }
-                $reception->setStatut($statut);
-                $reception->setDateCommande(new \DateTime('now'));
+                $reception
+					->setStatut($statut)
+					->setDateCommande(new \DateTime('now'));
                 $em->flush();
 
                 return new JsonResponse(true);
@@ -896,13 +896,23 @@ class ReceptionController extends AbstractController
             } else {
                 $ligne->setQuantite($ligne->getQuantite() + $qtt);
             }
-            $counter = 0;
+
             if ($response['exists'] === true) {
-                for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
+            	$refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
+
+				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+				$formattedDate = $date->format('ym');
+				$references = $this->articleRepository->getReferencesByRefAndDate($refArticle, $formattedDate);
+
+				$highestCpt = 0;
+				foreach ($references as $reference) {
+					$cpt = (int)substr($reference, -5, 5);
+					if ($cpt > $highestCpt) $highestCpt = $cpt;
+				}
+				$counter = $highestCpt + 1;
+
+            	for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
                     for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
-						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-						$ref = $date->format('YmdHis');
-						$refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
 
 						$toInsert = new Article();
 						$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -916,18 +926,21 @@ class ReceptionController extends AbstractController
                             ->setReference($refArticle->getReference())
                             ->setLabel($ligne->getLabel());
                         $em->persist($articleFournisseur);
-                        $toInsert
+
+						$formattedCounter = sprintf('%05u', $counter);
+
+						$toInsert
                             ->setLabel($ligne->getLabel())
                             ->setConform(true)
                             ->setStatut($statut)
-                            ->setReference($ref . '-' . $counter)
+							->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
                             ->setType($refArticle->getType());
                         $em->persist($toInsert);
                         array_push($response['refs'], $toInsert->getReference());
-                        $counter++;
+						$counter++;
                     }
                 }
             }

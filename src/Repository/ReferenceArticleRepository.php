@@ -697,12 +697,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT ra.id as id, ra.reference as text
           FROM App\Entity\ReferenceArticle ra
-          WHERE ra.reference LIKE :search"
+          WHERE ra.reference LIKE :search AND ra.typeQuantite = 'reference'"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
     }
-
 
     /**
      * @param InventoryFrequency $frequency
@@ -721,4 +720,5 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
 }
