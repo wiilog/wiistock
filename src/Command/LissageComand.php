@@ -121,9 +121,11 @@ class LissageComand extends Command
 
             $offset = 0;
             $counter = 1;
-            while ($counter != $nbMission + 1) {
-                if ($counter == $nbMission)
+            foreach ($missions as $mission) {
+                if ($counter == $nbMission) {
+                    dump('filsdgdsqg');
                     $refPerMission = null;
+                }
                 $addArray = array_slice($refsToInv, $offset, $refPerMission);
                 foreach ($addArray as $item) {
                     $mission->addRefArticle($item);
