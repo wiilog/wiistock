@@ -123,7 +123,6 @@ class LissageComand extends Command
             $counter = 1;
             foreach ($missions as $mission) {
                 if ($counter == $nbMission) {
-                    dump('filsdgdsqg');
                     $refPerMission = null;
                 }
                 $addArray = array_slice($refsToInv, $offset, $refPerMission);
