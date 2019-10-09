@@ -601,11 +601,11 @@ function adjustScalesForDoc(response) {
     return doc;
 }
 
-function alertErrorMsg(data) {
+function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
+        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
         $alertDanger.find('.error-msg').html(data);
     }
 }

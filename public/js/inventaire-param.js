@@ -74,7 +74,7 @@ function importFile() {
             success: function (data) {
                 if (data.success == true)
                 {
-                    alertSuccessMsg(data);
+                    alertSuccessMsg("Les catégories ont bien été modifiées.");
                 }
                 else if (data.success == false)
                 {
@@ -82,13 +82,14 @@ function importFile() {
                     let pathFile = '../uploads/log/';
                     let pathWithFileName = pathFile.concat(data.nameFile);
                     let link = document.createElement("a");
-                    console.log(link);
                     link.setAttribute("href", pathWithFileName);
                     link.setAttribute("download", exportedFilenmae);
                     link.style.visibility = 'hidden';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    alertErrorMsg("Le fichier ne s'est pas importé correctement.<br>" +
+                        "<a href='" + pathWithFileName + "' target='_blank' class='underlined'>Veuillez consulter les erreurs en cliquant ici</a>");
                 }
             }
         });
