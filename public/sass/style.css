@@ -358,6 +358,11 @@ a:hover {
   text-align: center;
 }
 
+#curve_chart {
+  height: 250px;
+  width: 700px;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
