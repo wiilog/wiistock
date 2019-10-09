@@ -706,7 +706,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
      * @param InventoryFrequency $frequency
      * @return ReferenceArticle[]
      */
-    public function findByFrequency($frequency)
+    public function findByFrequencyOrderedByLocation($frequency)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -714,7 +714,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             "SELECT ra
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.category c
-            WHERE c.frequency = :frequency ORDER BY ra.emplacement"
+            LEFT JOIN ra.emplacement e
+            WHERE c.frequency = :frequency ORDER BY e.label"
         )->setParameter('frequency', $frequency);
 
         return $query->execute();

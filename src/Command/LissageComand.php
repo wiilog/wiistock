@@ -65,8 +65,8 @@ class LissageComand extends Command
 
     protected function configure()
     {
-        $this->setDescription('This commands generates inventory missions.');
-        $this->setHelp('This command is supposed to be executed at every end of week, via a cron on the server.');
+        $this->setDescription('This commands generates inventory missions for articles and references never inventoried.');
+        $this->setHelp('This command is supposed to be executed at once, at the beginning of inventories.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -83,20 +83,20 @@ class LissageComand extends Command
         }
 
         $nowForMonday = new \DateTime('now');
-        $firstMonday = $nowForMonday->modify('next monday');
+        $monday = $nowForMonday->modify('next monday');
         $nowForSunday = new \DateTime('now');
-        $firstSunday = $nowForSunday->modify('next sunday');
+        $sunday = $nowForSunday->modify('next monday + 6 days');
 
         $counter = 0;
         while ($counter != $maxNbMission * 4) {
             $mission = new InventoryMission();
             $mission
-                ->setStartPrevDate($firstMonday)
-                ->setEndPrevDate($firstSunday);
+                ->setStartPrevDate($monday)
+                ->setEndPrevDate($sunday);
             $this->entityManager->persist($mission);
             $this->entityManager->flush();
-            $firstMonday->add(new \DateInterval('P7D'));
-            $firstSunday->add(new \DateInterval('P7D'));
+            $monday->add(new \DateInterval('P7D'));
+            $sunday->add(new \DateInterval('P7D'));
             $counter++;
         }
 
@@ -104,7 +104,7 @@ class LissageComand extends Command
 
         foreach ($frequencies as $frequency) {
             $nbMonths = $frequency->getNbMonths();
-            $refArticles = $this->referenceArticleRepository->findByFrequency($frequency);
+            $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
             $refsToInv = [];
             foreach ($refArticles as $refArticle) {
                 $refDate = $refArticle->getDateLastInventory();

@@ -104,7 +104,7 @@ class MissionCommand extends Command
 
         foreach ($frequencies as $frequency) {
             $nbMonths = $frequency->getNbMonths();
-            $refArticles = $this->referenceArticleRepository->findByFrequency($frequency);
+            $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
 
             $refsAndArtToInv = [];
             foreach ($refArticles as $refArticle) {
