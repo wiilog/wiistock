@@ -454,6 +454,27 @@ let ajaxAutoRefArticleInit = function (select) {
             }        },
         minimumInputLength: 1,
     });
+};
+
+let ajaxAutoArticlesInit = function (select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articles', {activeOnly: 1}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }        },
+        minimumInputLength: 1,
+    });
 }
 
 function ajaxAutoFournisseurInit(select) {
