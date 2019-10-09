@@ -65,7 +65,7 @@ class LissageComand extends Command
 
     protected function configure()
     {
-        $this->setDescription('This commands generates');
+        $this->setDescription('This commands generates inventory missions.');
         $this->setHelp('This command is supposed to be executed at every end of week, via a cron on the server.');
     }
 

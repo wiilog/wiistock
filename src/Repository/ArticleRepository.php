@@ -6,6 +6,8 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
 use App\Entity\InventoryMission;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -221,6 +223,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param Statut $statut
+	 * @return Article[]
+	 */
 	public function findByRefArticleAndStatut($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();

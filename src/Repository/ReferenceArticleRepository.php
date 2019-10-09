@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
-use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;

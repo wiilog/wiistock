@@ -271,7 +271,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             'count' => $countQuery, 'total' => $countTotal];
     }
 
-    public function findByDate($date)
+    public function findByStartDate($date)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

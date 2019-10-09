@@ -3,9 +3,12 @@
 
 namespace App\Command;
 
+use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
+use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -22,7 +25,6 @@ use function Sodium\add;
 class MissionCommand extends Command
 {
     protected static $defaultName = 'app:generate:mission';
-
 
     /**
      * @var UtilisateurRepository
@@ -54,7 +56,13 @@ class MissionCommand extends Command
      */
     private $inventoryMissionRepository;
 
-    public function __construct(UtilisateurRepository $userRepository, EntityManagerInterface $entityManager, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, InventoryMissionRepository $inventoryMissionRepository)
+	/**
+	 * @var StatutRepository
+	 */
+    private $statutRepository;
+
+
+    public function __construct(StatutRepository $statutRepository, UtilisateurRepository $userRepository, EntityManagerInterface $entityManager, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, InventoryMissionRepository $inventoryMissionRepository)
     {
         parent::__construct();
         $this->userRepository= $userRepository;
@@ -63,11 +71,12 @@ class MissionCommand extends Command
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
+        $this->statutRepository = $statutRepository;
     }
 
     protected function configure()
     {
-        $this->setDescription('This commands generates');
+		$this->setDescription('This commands generates inventory missions.');
         $this->setHelp('This command is supposed to be executed at every end of week, via a cron on the server.');
     }
 
@@ -78,22 +87,54 @@ class MissionCommand extends Command
 
         $monday = new \DateTime('now');
         $monday->modify('next monday');
-        $mission = $this->inventoryMissionRepository->findByDate($monday->format('Y/m/d'));
+        $mission = $this->inventoryMissionRepository->findByStartDate($monday->format('Y/m/d'));
+
+        if (!$mission) {
+        	$mission = new InventoryMission();
+
+        	$sunday = new \DateTime('now');
+        	$sunday->modify('next monday + 6 days');
+
+        	$mission
+				->setStartPrevDate($monday)
+				->setEndPrevDate($sunday);
+        	$this->entityManager->persist($mission);
+        	$this->entityManager->flush();
+		}
 
         foreach ($frequencies as $frequency) {
             $nbMonths = $frequency->getNbMonths();
             $refArticles = $this->referenceArticleRepository->findByFrequency($frequency);
-            $refsToInv = [];
+
+            $refsAndArtToInv = [];
             foreach ($refArticles as $refArticle) {
-                $refDate = $refArticle->getDateLastInventory();
-                $diff = date_diff($refDate, $now)->format('%m');
-                if ($diff >= $nbMonths) {
-                    $refsToInv[] = $refArticle;
-                }
+            	if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+					$refDate = $refArticle->getDateLastInventory();
+					if ($refDate) {
+						$diff = date_diff($refDate, $now)->format('%m');
+						if ($diff >= $nbMonths) {
+							$refsAndArtToInv[] = $refArticle;
+						}
+					}
+				} else {
+            		$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            		$articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+
+            		foreach ($articles as $article) {
+   						$artDate = $article->getDateLastInventory();
+   						if ($artDate) {
+   							$diff = date_diff($artDate, $now)->format('%m');
+   							if ($diff >= $nbMonths) {
+   								$refsAndArtToInv[] = $article;
+							}
+						}
+					}
+				}
             }
-            /** @var ReferenceArticle $ref */
-            foreach ($refsToInv as $ref) {
-                $ref->addInventoryMission($mission);
+
+            /** @var ReferenceArticle $refOrArt */
+            foreach ($refsAndArtToInv as $refOrArt) {
+                $refOrArt->addInventoryMission($mission);
                 $this->entityManager->flush();
             }
         }
