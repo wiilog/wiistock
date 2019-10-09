@@ -377,14 +377,27 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countActiveArticles()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            JOIN a.statut s
+            WHERE s.nom = :active"
+		)->setParameter('active', Article::STATUT_ACTIF);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function countAll()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
-            FROM App\Entity\Article a
-           "
-        );
+            FROM App\Entity\Article a"
+		);
 
         return $query->getSingleScalarResult();
     }
@@ -507,9 +520,9 @@ class ArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         	/** @lang DQL */
-            "SELECT a.label, a.reference, e.date, a.hasInventoryAnomaly
+            "SELECT a.label, a.reference, a.hasInventoryAnomaly, a.id
             FROM App\Entity\Article a
-            JOIN a.inventoryMission m
+            JOIN a.inventoryMissions m
             LEFT JOIN a.inventoryEntries e
             WHERE m = :mission"
         )->setParameter('mission', $mission);
@@ -517,17 +530,52 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+
+    /**
+     * @param InventoryMission $mission
+     * @param int $artId
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getEntryDateByMission($mission, $artId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT e.date
+            FROM App\Entity\InventoryEntry e
+            WHERE e.mission = :mission AND e.article = :art"
+        )->setParameters([
+            'mission' => $mission,
+            'art' => $artId
+        ]);
+        return $query->getOneOrNullResult();
+    }
+
     public function countByMission($mission)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT COUNT(e) as entryArt, COUNT(a) as art
-            FROM App\Entity\Article a
-            JOIN a.inventoryMission m
-            LEFT JOIN a.inventoryEntries e
-            WHERE m = :mission"
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\InventoryMission im
+            LEFT JOIN im.articles a
+            WHERE im = :mission
+"
         )->setParameter('mission', $mission);
 
-        return $query->getOneOrNullResult();
+        return $query->getSingleScalarResult();
+    }
+
+    public function getIdAndReferenceBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a.id as id, a.reference as text
+          FROM App\Entity\Article a
+          WHERE a.reference LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
     }
 }

@@ -34,24 +34,12 @@ let submitTreatAnomaly = $('#submitTreatAnomaly');
 let urlTreatAnomaly = Routing.generate('anomaly_treat', true);
 InitialiserModal(modalTreatAnomaly, submitTreatAnomaly, urlTreatAnomaly, table, alertSuccessMsgAnomaly);
 
-function toggleNeeded($elem) {
-    let $modal = $elem.closest('.modal');
-    let $stockDiff = $modal.find('[name="stockDiff"]');
-
-    if ($elem.data('title') === 'confirm') {
-        $stockDiff.addClass('needed');
-        $modal.find('.comment').removeClass('invisible');
-    } else {
-        $stockDiff.removeClass('needed');
-        $stockDiff.removeClass('is-invalid');
-        $modal.find('.comment').addClass('invisible');
-    }
-    $modal.find('.error-msg').html('');
-}
 
 function alertSuccessMsgAnomaly(data)
 {
     if (data) {
+        alertSuccessMsg("L'anomalie a bien été traitée.");
+    } else {
         alertSuccessMsg("Un mouvement de stock correctif vient d'être créé.");
     }
 }

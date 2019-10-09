@@ -20,4 +20,18 @@ class InventoryEntryRepository extends ServiceEntityRepository
         parent::__construct($registry, InventoryEntry::class);
     }
 
+    public function countByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(ie)
+            FROM App\Entity\InventoryEntry ie
+            WHERE ie.mission = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->getSingleScalarResult();
+    }
+
+
 }

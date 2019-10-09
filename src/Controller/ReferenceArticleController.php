@@ -22,6 +22,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
+use App\Repository\MouvementStockRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -186,11 +187,16 @@ class ReferenceArticleController extends Controller
     private $inventoryCategoryRepository;
 
     /**
+     * @var MouvementStockRepository
+     */
+    private $mouvementStockRepository;
+
+    /**
      * @var object|string
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -217,6 +223,7 @@ class ReferenceArticleController extends Controller
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
@@ -271,10 +278,10 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
-                        "title" => 'Quantité',
+                        "title" => 'Quantité disponible',
                         "data" => 'Quantité',
-                        'name' => 'Quantité',
-                        "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+                        'name' => 'Quantité disponible',
+                        "class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Emplacement',
@@ -374,11 +381,13 @@ class ReferenceArticleController extends Controller
             }
             $refArticle = new ReferenceArticle();
             $category = $this->inventoryCategoryRepository->find($data['categorie']);
+            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
+                ->setPrixUnitaire($price)
                 ->setType($type)
                 ->setCategory($category)
                 ->setEmplacement($emplacement);
@@ -509,7 +518,7 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
         $champF[] = [
-            'label' => 'Quantité',
+            'label' => 'Quantité disponible',
             'id' => 0,
             'typage' => 'number'
         ];
@@ -1175,5 +1184,50 @@ class ReferenceArticleController extends Controller
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST")
+     */
+    public function showMovements(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            if ($ref = $this->referenceArticleRepository->find($data)) {
+                $name = $ref->getLibelle();
+            }
+
+           return new JsonResponse($this->renderView('reference_article/modalShowMouvementsContent.html.twig', [
+               'refLabel' => $name?? ''
+           ]));
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiMouvements(Request $request, $id): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+
+            $mouvements = $this->mouvementStockRepository->findByRef($id);
+
+            $rows = [];
+            foreach ($mouvements as $mouvement) {
+                $rows[] =
+                    [
+                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y') : 'aucune',
+                        'Quantity' => $mouvement->getQuantity(),
+                        'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
+                        'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
+                        'Type' => $mouvement->getType(),
+                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
+                    ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
 }

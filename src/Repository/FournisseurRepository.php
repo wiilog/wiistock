@@ -42,6 +42,19 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	public function countByCode($code)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(f)
+          FROM App\Entity\Fournisseur f
+          WHERE f.codeReference = :code"
+		)->setParameter('code', $code);
+
+		return $query->getSingleScalarResult();
+	}
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();

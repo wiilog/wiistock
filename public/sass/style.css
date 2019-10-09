@@ -94,10 +94,6 @@ a:hover, a:link:hover, a:visited:hover {
   color: inherit;
 }
 
-button:focus {
-  outline: 0 !important;
-}
-
 .container-fluid {
   padding-left: 20px;
   padding-right: 20px;
@@ -194,12 +190,20 @@ a:hover {
   max-width: 250px;
 }
 
+.w-120px {
+  width: 120px;
+}
+
 .w-49 {
   width: 49%;
 }
 
 .w-22 {
   width: 22% !important;
+}
+
+.w-100 + .select2-container {
+  width: 100% !important;
 }
 
 .border-radius-light {
@@ -212,11 +216,6 @@ a:hover {
   background-repeat: no-repeat;
   background-position: center right calc(2.25rem / 4);
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
-}
-
-.commentArrivageAcheteur {
-  min-height: 100px;
-  overflow: auto;
 }
 
 .label {
@@ -297,7 +296,7 @@ a:hover {
   color: #b2b2b2;
 }
 
-.error-msg, .password-error-msg {
+.error-msg, .password-error-msg, .row-error-msg {
   color: #cc0000;
 }
 
@@ -342,6 +341,15 @@ a:hover {
 .alerte .alert-nb {
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+.carreNbrIndicateur {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+}
+
+.big-font {
+  font-size: 3rem;
 }
 
 .alert-danger {
@@ -421,6 +429,10 @@ a:hover {
   background-color: #424242;
   border-color: #424242;
   pointer-events: none;
+}
+
+button:focus {
+  outline: 0 !important;
 }
 
 .sidemenu-bg {
@@ -533,75 +545,51 @@ a:hover {
   background-color: #130078;
   color: white;
 }
-
-.table-hover thead > tr > th:hover {
-  background-color: #130078;
-}
-
 .table .text, .table .glyphicon {
   color: #fcfcfc;
 }
-
-.table > thead > tr > th, .table tbody > tr > td {
-  border: none;
-}
-
 .table tr:hover td {
-  background-color: #14007894;
+  background-color: #140078;
   color: white;
 }
-
-.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
-  vertical-align: middle;
-}
-
 .table .progress {
   width: 75%;
   margin: auto 0;
   border: #130078 1px solid;
 }
-
 .table .progress-blue {
   background-color: #130078;
 }
-
 .table .qty {
   width: 200px;
 }
-
 .table input {
   max-width: 150px;
 }
-
 .table .fa {
   font-size: 25px;
   vertical-align: sub;
   cursor: pointer;
   transition: 0.2s;
 }
-
 .table .fa:hover {
   color: white;
 }
 
+.table-hover thead > tr > th:hover {
+  background-color: #130078;
+}
+
+.table > thead > tr > th, .table tbody > tr > td {
+  border: none;
+}
+
+.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+  vertical-align: middle;
+}
+
 .table-auto td {
   white-space: unset !important;
-}
-
-.mouvList {
-  background-color: #e6e6e6;
-  border: 2px solid #9f9ea1;
-}
-
-.mouvListG {
-  background-color: #e6e6e6;
-  border: 2px solid #9f9ea1;
-  font-weight: bold;
-  width: 100%;
-}
-
-.bg-danger {
-  color: white;
 }
 
 .table .fas {

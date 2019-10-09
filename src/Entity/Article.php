@@ -114,9 +114,14 @@ class Article
     private $inventoryEntries;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
      */
-    private $inventoryMission;
+    private $inventoryMissions;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
 
 	/**
 	 * @ORM\Column(type="boolean")
@@ -136,6 +141,7 @@ class Article
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
+        $this->inventoryMissions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -358,6 +364,18 @@ class Article
         return $this;
     }
 
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
+
     public function getReception(): ?Reception
     {
         return $this->reception;
@@ -425,42 +443,30 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-    {
-        return $this->inventoryEntries;
-    }
+             {
+                 return $this->inventoryEntries;
+             }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries[] = $inventoryEntry;
-			$inventoryEntry->setArticle($this);
-		}
-
-		return $this;
-	}
+         	{
+         		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+         			$this->inventoryEntries[] = $inventoryEntry;
+         			$inventoryEntry->setArticle($this);
+         		}
+         
+         		return $this;
+         	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-    {
-        if ($this->inventoryEntries->contains($inventoryEntry)) {
-            $this->inventoryEntries->removeElement($inventoryEntry);
-            // set the owning side to null (unless already changed)
-            if ($inventoryEntry->getArticle() === $this) {
-                $inventoryEntry->setArticle(null);
-            }
-        }
-    }
-
-    public function getInventoryMission(): ?InventoryMission
-    {
-        return $this->inventoryMission;
-    }
-
-    public function setInventoryMission(?InventoryMission $inventoryMission): self
-    {
-        $this->inventoryMission = $inventoryMission;
-
-        return $this;
-    }
+             {
+                 if ($this->inventoryEntries->contains($inventoryEntry)) {
+                     $this->inventoryEntries->removeElement($inventoryEntry);
+                     // set the owning side to null (unless already changed)
+                     if ($inventoryEntry->getArticle() === $this) {
+                         $inventoryEntry->setArticle(null);
+                     }
+                 }
+             }
 
     public function getHasInventoryAnomaly(): ?bool
     {
@@ -470,6 +476,32 @@ class Article
     public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
     {
         $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
+    }
+
+    public function addInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if (!$this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions[] = $inventoryMission;
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if ($this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions->removeElement($inventoryMission);
+        }
 
         return $this;
     }

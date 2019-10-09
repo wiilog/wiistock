@@ -1,7 +1,9 @@
 $(function () {
     initSearchDate(tableMission);
     initSearchDate(tableMissions);
-})
+
+    $('.select2').select2();
+});
 
 let pathMissions = Routing.generate('inv_missions_api', true);
 let tableMissions = $('#tableMissionsInv').DataTable({
@@ -24,16 +26,32 @@ let tableMissions = $('#tableMissionsInv').DataTable({
     ],
 });
 
+let modalNewMission = $("#modalNewMission");
+let submitNewMission = $("#submitNewMission");
+let urlNewMission = Routing.generate('mission_new', true);
+InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, null);
+
+let modalDeleteMission = $("#modalDeleteMission");
+let submitDeleteMission = $("#submitDeleteMission");
+let urlDeleteMission = Routing.generate('mission_delete', true)
+InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tableMissions);
 
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
 let tableMission = $('#tableMissionInv').DataTable({
+    processing: true,
+    serverSide: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax:{
         "url": pathMission,
-        "type": "POST"
+        "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.anomaly =  $('#anomalyFilter').val();
+        }
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence' },
@@ -42,6 +60,11 @@ let tableMission = $('#tableMissionInv').DataTable({
         { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
     ],
 });
+
+let modalAddToMission = $("#modalAddToMission");
+let submitAddToMission = $("#submitAddToMission");
+let urlAddToMission = Routing.generate('add_to_mission', true);
+InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, null);
 
 let $submitSearchMission = $('#submitSearchMission');
 $submitSearchMission.on('click', function () {
@@ -54,11 +77,18 @@ $submitSearchMission.on('click', function () {
 
 let $submitSearchMissionRef = $('#submitSearchMissionRef');
 $submitSearchMissionRef.on('click', function() {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let anomaly = $('#anomalyFilter').val();
-    tableMission
-        .columns('anomaly:name')
-        .search(anomaly === 'true' ? 'oui':'non')
-        .draw();
+
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let anomalyFilter = $('#anomalyFilter');
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    anomalyFilter.val(anomaly);
+
+    tableMission.draw();
 });
 
 function generateCSVMission () {
