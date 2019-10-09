@@ -279,6 +279,19 @@ class InventoryParamController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+	/**
+	 * @Route("/select-frequences", name="frequency_select", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function getSelectFrequencies(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$frequencies = $this->inventoryFrequencyRepository->findAll();
+
+			return new JsonResponse($this->renderView('inventaire_param/selectFrequencies.html.twig', ['frequencies' => $frequencies]));
+		}
+		throw new NotFoundHttpException('404');
+	}
+
 //    /**
 //     * @Route("/MisAJour_Categorie", name="update_category", options={"expose"=true}, methods="GET|POST")
 //     */
