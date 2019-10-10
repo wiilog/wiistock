@@ -11,7 +11,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class EmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
+class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
 {
 
     /**
@@ -61,6 +61,6 @@ class EmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['emptyLocation'];
+        return ['empty-location'];
     }
 }

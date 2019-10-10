@@ -606,16 +606,4 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function setByEmptyEmplacement($emplacement)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            /** @lang DQL */
-            "UPDATE App\Entity\ReferenceArticle ra
-            SET ra.emplacement = :emplacement
-            WHERE ra.emplacement IS NULL"
-        )->setParameter('emplacement', $emplacement);
-
-        return $query->execute();
-    }
 }
