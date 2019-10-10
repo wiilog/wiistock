@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -126,12 +127,12 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/autocomplete/ref", name="get_refArticles", options={"expose"=true})
      */
-    public function getRefArticlesSelect(Request $request)
+    public function getRefArticlesSelect(Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndReferenceBySearch($search);
+            $refArticles = $this->referenceArticleRepository->getIdAndReferenceBySearch($search, $activeOnly);
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
@@ -140,12 +141,12 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_articles", options={"expose"=true})
      */
-    public function getArticlesSelect(Request $request)
+    public function getArticlesSelect(Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $articles = $this->articleRepository->getIdAndReferenceBySearch($search);
+            $articles = $this->articleRepository->getIdAndReferenceBySearch($search, $activeOnly);
             return new JsonResponse(['results' => $articles]);
         }
         throw new NotFoundHttpException("404");
@@ -291,7 +292,6 @@ class InventoryMissionController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
-
 
     /**
      * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})
