@@ -235,12 +235,8 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $articles = $this->articleRepository->findAll();
-            $refArticles = $this->referenceArticleRepository->findAll();
             return $this->render('inventaire/show.html.twig', [
-                'missionId' => $mission->getId(),
-                'articles' => $articles,
-                'refArticles' => $refArticles,
+                'missionId' => $mission->getId()
             ]);
     }
 

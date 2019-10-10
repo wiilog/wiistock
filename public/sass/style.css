@@ -129,6 +129,10 @@ input:-webkit-autofill {
   font-style: italic;
 }
 
+.underlined {
+  text-decoration: underline !important;
+}
+
 a {
   color: unset;
 }

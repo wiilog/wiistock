@@ -59,3 +59,46 @@ function updateListFrequencies() {
        $('#frequencies').html(data);
     });
 }
+
+function importFile() {
+    let path = Routing.generate('update_category', true);
+    let formData = new FormData();
+    let files = $('#importExcel')[0].files;
+    let fileToSend = files[0];
+    let fileName = $('#importExcel')[0].files[0]['name'];
+    let extension = fileName.split('.').pop();
+    if (extension == "csv")
+    {
+        formData.append('file', fileToSend);
+        $.ajax({
+            url: path,
+            data: formData,
+            type: "post",
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: "json",
+            success: function (data) {
+                if (data.success == true)
+                {
+                    alertSuccessMsg("Les catégories ont bien été modifiées.");
+                }
+                else if (data.success == false)
+                {
+                    let exportedFilenmae = 'log-error.txt';
+                    let pathFile = '../uploads/log/';
+                    let pathWithFileName = pathFile.concat(data.nameFile);
+                    let link = document.createElement("a");
+                    link.setAttribute("href", pathWithFileName);
+                    link.setAttribute("download", exportedFilenmae);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    alertErrorMsg("Le fichier ne s'est pas importé correctement.<br>" +
+                        "<a href='" + pathWithFileName + "' target='_blank' class='underlined'>Veuillez consulter les erreurs en cliquant ici</a>");
+                }
+            }
+        });
+    }
+}
