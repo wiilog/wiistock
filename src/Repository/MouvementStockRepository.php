@@ -104,7 +104,7 @@ class MouvementStockRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-        "SELECT COUNT(m) 
+        "SELECT COUNT(m)
             FROM App\Entity\MouvementStock m 
             WHERE m.type 
             IN (:types)"

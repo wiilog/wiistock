@@ -33,7 +33,7 @@ InitialiserModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, t
 let ModalDeleteFrequency = $("#modalNewFrequency");
 let SubmitDeleteFrequency = $("#submitNewFrequency");
 let urlDeleteFrequency = Routing.generate('frequency_new', true)
-InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, null, displayErrorFrequency, false);
+InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, null, displayErrorFrequencyAndUpdateList, false);
 
 function displayErrorCategorie(data) {
     let modal = $("#modalNewCategorie");
@@ -47,10 +47,17 @@ function displayErrorCategorieEdit(data) {
     displayError(modal, msg, data);
 }
 
-function displayErrorFrequency(data) {
+function displayErrorFrequencyAndUpdateList(data) {
     let modal = $("#modalNewFrequency");
     let msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
+    updateListFrequencies();
+}
+
+function updateListFrequencies() {
+    $.post(Routing.generate('frequency_select', true), function(data) {
+       $('#frequencies').html(data);
+    });
 }
 
 function importFile() {

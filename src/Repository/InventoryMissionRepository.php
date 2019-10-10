@@ -164,7 +164,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
         }
         //Filter by date
 		$qb->leftJoin('ra.inventoryEntries', 'ie');
-        
+
         if (!empty($params->get('dateMin'))) {
 			$qb
 				->andWhere('ie.date >= :dateMin')
@@ -269,5 +269,17 @@ class InventoryMissionRepository extends ServiceEntityRepository
         $query = $qb->getQuery();
         return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
             'count' => $countQuery, 'total' => $countTotal];
+    }
+
+    public function findByStartDate($date)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT m
+            FROM App\Entity\InventoryMission m
+            WHERE m.startPrevDate = :date"
+        )->setParameter('date', $date);
+
+        return $query->getOneOrNullResult();
     }
 }

@@ -279,85 +279,98 @@ class InventoryParamController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
-     */
-    public function updateCategory(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
+	/**
+	 * @Route("/select-frequences", name="frequency_select", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function getSelectFrequencies(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$frequencies = $this->inventoryFrequencyRepository->findAll();
 
-            $file = $request->files->get('file');
+			return new JsonResponse($this->renderView('inventaire_param/selectFrequencies.html.twig', ['frequencies' => $frequencies]));
+		}
+		throw new NotFoundHttpException('404');
+	}
 
-            $delimiters = array(
-                ';' => 0,
-                ',' => 0,
-                "\t" => 0,
-                "|" => 0
-            );
+	/**
+	 * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function updateCategory(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$em = $this->getDoctrine()->getManager();
 
-            $fileDetectDelimiter = fopen($file, "r");
-            $firstLine = fgets($fileDetectDelimiter);
-            fclose($fileDetectDelimiter);
-            foreach ($delimiters as $delimiter => &$count) {
-                $count = count(str_getcsv($firstLine, $delimiter));
-            }
+			$file = $request->files->get('file');
 
-            $delimiter = array_search(max($delimiters), $delimiters);
+			$delimiters = array(
+				';' => 0,
+				',' => 0,
+				"\t" => 0,
+				"|" => 0
+			);
 
-            $rows = [];
-
-            $fileOpen = fopen($file->getPathname(), "r");
-            while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
-                $rows[] = array_map('utf8_encode', $data);
-            }
-
-            if (!file_exists('../public/uploads/log')) {
-            	mkdir('../public/uploads/log', 0777, true);
+			$fileDetectDelimiter = fopen($file, "r");
+			$firstLine = fgets($fileDetectDelimiter);
+			fclose($fileDetectDelimiter);
+			foreach ($delimiters as $delimiter => &$count) {
+				$count = count(str_getcsv($firstLine, $delimiter));
 			}
-            $path = '../public/uploads/log/';
-            $nameFile = uniqid() . ".txt";
-            $uri = $path . $nameFile;
-            $myFile = fopen($uri, "w");
-            $success = true;
 
-            foreach ($rows as $row)
-            {
-                $inventoryCategory = $this->inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
-                $refArticle = $this->referenceArticleRepository->findOneBy(['reference' => $row[0]]);
-                if (!empty($refArticle) && !empty($inventoryCategory))
-                {
-                    $refArticle->setCategory($inventoryCategory);
-                    $em->persist($refArticle);
-                    $em->flush();
-                }
-                else
-                {
-                    $success = false;
-                    if (empty($refArticle)) {
-                        fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
-                    }
-                    if (empty($inventoryCategory))
-                    {
-                        fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
-                    }
-                }
-            }
+			$delimiter = array_search(max($delimiters), $delimiters);
 
-            if ($success) {
-            	$em->flush();
+			$rows = [];
+
+			$fileOpen = fopen($file->getPathname(), "r");
+			while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
+				$rows[] = array_map('utf8_encode', $data);
+			}
+
+			if (!file_exists('../public/uploads/log')) {
+				mkdir('../public/uploads/log', 0777, true);
+			}
+			$path = '../public/uploads/log/';
+			$nameFile = uniqid() . ".txt";
+			$uri = $path . $nameFile;
+			$myFile = fopen($uri, "w");
+			$success = true;
+
+			foreach ($rows as $row)
+			{
+				$inventoryCategory = $this->inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
+				$refArticle = $this->referenceArticleRepository->findOneBy(['reference' => $row[0]]);
+				if (!empty($refArticle) && !empty($inventoryCategory))
+				{
+					$refArticle->setCategory($inventoryCategory);
+					$em->persist($refArticle);
+					$em->flush();
+				}
+				else
+				{
+					$success = false;
+					if (empty($refArticle)) {
+						fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
+					}
+					if (empty($inventoryCategory))
+					{
+						fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
+					}
+				}
+			}
+
+			if ($success) {
+				$em->flush();
 			} else {
-            	fwrite($myFile, "\n\nVotre fichier .csv doit contenir 2 colonnes :\n" .
-            	"- Une avec les références des articles de référence\n" .
-            	"- Une avec les libellés des catégories d'inventaire.\n\n" .
-            	"Il ne doit pas contenir de ligne d'en-tête.\n\n" .
-            	"Merci de vérifier votre fichier.");
+				fwrite($myFile, "\n\nVotre fichier .csv doit contenir 2 colonnes :\n" .
+					"- Une avec les références des articles de référence\n" .
+					"- Une avec les libellés des catégories d'inventaire.\n\n" .
+					"Il ne doit pas contenir de ligne d'en-tête.\n\n" .
+					"Merci de vérifier votre fichier.");
 			}
 
-            fclose($myFile);
+			fclose($myFile);
 
-            return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
-        }
-    }
+			return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
+		}
+	}
 
 }

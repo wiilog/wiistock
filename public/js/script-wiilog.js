@@ -440,7 +440,7 @@ function ajaxAutoCompleteTransporteurInit(select) {
 let ajaxAutoRefArticleInit = function (select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
+            url: Routing.generate('get_refArticles', {activeOnly: 1}, true),
             dataType: 'json',
             delay: 250,
         },
