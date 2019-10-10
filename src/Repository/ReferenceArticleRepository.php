@@ -721,4 +721,31 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param InventoryFrequency $frequency
+     * @return ReferenceArticle[]
+     */
+    public function findByFrequencyNeverInventoriedOrderedByLocation($frequency)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT DISTINCT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN ra.emplacement e
+            LEFT JOIN ra.articlesFournisseur af
+            LEFT JOIN af.articles a
+            WHERE c.frequency = :frequency
+            AND (
+            (ra.typeQuantite = 'reference' AND ra.dateLastInventory is null)
+            OR
+            (ra.typeQuantite = 'article' AND a.dateLastInventory is null)
+            )
+             ORDER BY e.label"
+        )->setParameter('frequency', $frequency);
+
+        return $query->execute();
+    }
+
 }
