@@ -3,13 +3,17 @@
 
 namespace App\Command;
 
+use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\InventoryMission;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\InventoryMissionRepository;
+use App\Repository\StatutRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -52,7 +56,12 @@ class LissageComand extends Command
      */
     private $inventoryMissionRepository;
 
-    public function __construct(UtilisateurRepository $userRepository, EntityManagerInterface $entityManager, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, InventoryMissionRepository $inventoryMissionRepository)
+    /**
+     * @var StatutRepository
+     */
+    private $statutRepository;
+
+    public function __construct(UtilisateurRepository $userRepository, EntityManagerInterface $entityManager, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, InventoryMissionRepository $inventoryMissionRepository, StatutRepository $statutRepository)
     {
         parent::__construct();
         $this->userRepository= $userRepository;
@@ -61,6 +70,7 @@ class LissageComand extends Command
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
+        $this->statutRepository = $statutRepository;
     }
 
     protected function configure()
@@ -105,15 +115,26 @@ class LissageComand extends Command
         foreach ($frequencies as $frequency) {
             $nbMonths = $frequency->getNbMonths();
             $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
-            $refsToInv = [];
+            $refsAndArtsToInv = [];
             foreach ($refArticles as $refArticle) {
-                $refDate = $refArticle->getDateLastInventory();
-                $diff = date_diff($refDate, $now)->format('%m');
-                if ($diff >= $nbMonths) {
-                    $refsToInv[] = $refArticle;
+                if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $refDate = $refArticle->getDateLastInventory();
+                    if (!$refDate) {
+                        $refsAndArtsToInv[] = $refArticle;
+                    }
+                } else {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+                    $articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+
+                    foreach ($articles as $article) {
+                        $artDate = $article->getDateLastInventory();
+                        if (!$artDate) {
+                            $refsAndArtsToInv[] = $article;
+                        }
+                    }
                 }
             }
-            $nbRefToInv = count($refsToInv);
+            $nbRefToInv = count($refsAndArtsToInv);
             $nbMission = $maxNbMission * 4;
             if (($refPerMission = $nbRefToInv / $nbMission) <= 1) {
                 $refPerMission = $nbRefToInv;
@@ -125,7 +146,7 @@ class LissageComand extends Command
                 if ($counter == $nbMission) {
                     $refPerMission = null;
                 }
-                $addArray = array_slice($refsToInv, $offset, $refPerMission);
+                $addArray = array_slice($refsAndArtsToInv, $offset, $refPerMission);
                 foreach ($addArray as $item) {
                     $mission->addRefArticle($item);
                     $this->entityManager->flush();
