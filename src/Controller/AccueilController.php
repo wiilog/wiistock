@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\MouvementStock;
 use App\Repository\AlerteExpiryRepository;
+use App\Repository\ArticleRepository;
+use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -53,12 +57,27 @@ class AccueilController extends AbstractController
      */
     private $manutentionRepository;
 
+    /**
+     * @var MouvementStockRepository
+     */
+    private $mouvementStockRepository;
+
+	/**
+	 * @var ReferenceArticleRepository
+	 */
+    private $refArticleRepository;
+
+	/**
+	 * @var ArticleRepository
+	 */
+    private $articleRepository;
+
 	/**
 	 * @var AlerteExpiryRepository
 	 */
     private $alerteExpiryRepository;
 
-    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -67,6 +86,9 @@ class AccueilController extends AbstractController
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
+        $this->refArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -78,6 +100,22 @@ class AccueilController extends AbstractController
     	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
     	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
 			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
+    	$types = [
+    	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
+            MouvementStock::TYPE_INVENTAIRE_SORTIE
+        ];
+        $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
+    	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+
+        $totalEntryRefArticle = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
+        $totalExitRefArticle = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
+        $totalRefArticle = $totalEntryRefArticle - $totalExitRefArticle;
+        $totalEntryArticle = $this->mouvementStockRepository->countTotalEntryPriceArticle();
+        $totalExitArticle = $this->mouvementStockRepository->countTotalExitPriceArticle();
+        $totalArticle = $totalEntryArticle - $totalExitArticle;
+
+        $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -100,6 +138,8 @@ class AccueilController extends AbstractController
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
             'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
             'emplacements' => $this->emplacementRepository->findAll(),
+            'nbrFiabiliteReference' => $nbrFiabiliteReference,
+            'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
         ]);
     }
 }

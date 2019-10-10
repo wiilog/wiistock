@@ -1,0 +1,45 @@
+<form method="" class="modal fade" id="modalTreatAnomaly" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Traiter une anomalie</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid row">
+                <div class="form-group col-12 mt-2 mb-4">
+                    <span class="ref-title">Référence</span>&nbsp;<input class="reference data no-disabled" name="reference" disabled>
+                </div>
+                <div class="form-group col-12">
+                    Quantité&nbsp;:&nbsp;<span class="quantity bold"></span>
+                </div>
+                <div class="form-group col-12 mt-2 mb-4">
+                    Emplacement&nbsp;:&nbsp;<br><span class="location"></span>
+                </div>
+
+                <div class="form-group col-12">
+                    <div class="input-group radio-btn">
+                        <div class="form-group">
+                            <label hidden>Quantité</label>
+                            <span class="btn h-100" data-toggle="choice"
+                                         data-title="confirm">Saisir la quantité
+                                <input type="number" class="form-control inline data pr-0" name="newQuantity" min="0">
+                            </span>
+                        </div>
+                        <div class="form-group w-100 comment">
+                            <label for="comment">Commentaire</label>
+                            <textarea class="form-control data" name="comment" id="comment" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <input class="isRef data" name="isRef" hidden>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <div id="submitTreatAnomaly" class="btn btn-success">Valider</div>
+            </div>
+        </div>
+    </div>
+</form>

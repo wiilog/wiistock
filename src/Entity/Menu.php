@@ -24,6 +24,7 @@ class Menu
     const INDICS_ACCUEIL = 'INDICAC';
     const ARRIVAGE = 'ARRIVAGE';
     const REFERENTIEL = 'REFERENTIEL';
+    const INVENTAIRE = 'INVENTAIRE';
 
     /**
      * @ORM\Id()

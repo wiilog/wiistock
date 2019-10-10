@@ -1,0 +1,45 @@
+<form method="" class="modal fade" id="modalNewCategorie" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Créer une catégorie</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="mb-3 form-group col-12">
+                        <label for="label">Label*</label>
+                        <input type="text" class="data form-control needed" name="label">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12">
+                        <label for="label">Fréquence*</label>
+                        <select name="frequency" id="frequencies" class="data form-control needed">
+                            <option value="">Frequence</option>
+                            {% for frequency in frequencies %}
+                            <option value="{{ frequency.id }}">{{ frequency.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12">
+                    <label class="switch">
+                        <input class="checkbox data" type="checkbox" name="permanent">
+                        <span class="slider round"></span>
+                    </label>
+                    Permanent
+                    </div>
+                </div>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewCategorie" type="button" class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

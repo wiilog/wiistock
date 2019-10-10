@@ -1,0 +1,37 @@
+<form method="">
+    <div class="modal-body modal-input container-fluid row">
+        <div class="col-12 form-group required d-none">
+            <input type="text" class="form-control data needed" name="category" required="" value="{{ category.id }}">
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="username">Label*</label>
+            <input type="text" class="form-control data needed" name="label" required="" value="{{ category.label }}">
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="label">Fréquence*</label>
+            <select name="frequency" id="frequencies" class="data form-control needed">
+                <option value="{{ category.frequency.id }}">{{ category.frequency.label }}</option>
+                {% for frequency in frequencies %}
+                    {% if frequency.label != category.frequency.label %}
+                        <option value="{{ frequency.id }}">{{ frequency.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group col-12">
+            <label class="switch">
+                {% if category.permanent %}
+                    <input class="checkbox data" type="checkbox" name="permanent" checked>
+                    <span class="slider round"></span>
+                {% else %}
+                <input class="checkbox data" type="checkbox" name="permanent">
+                <span class="slider round"></span>
+                {% endif %}
+            </label>
+            Permanent
+        </div>
+    </div>
+</form>
