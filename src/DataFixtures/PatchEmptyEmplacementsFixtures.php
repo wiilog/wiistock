@@ -41,7 +41,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
         if (!$emplacementDef) {
         	$emplacementDef = new Emplacement();
         	$emplacementDef->setLabel('A définir')
-				->setDescription('A définir')
+				->setDescription('sans emplacement')
 				->setIsDeliveryPoint(false)
 				->setIsActive(true);
 		}
