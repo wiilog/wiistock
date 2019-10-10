@@ -113,7 +113,6 @@ class LissageComand extends Command
         $missions = $this->inventoryMissionRepository->findAll();
 
         foreach ($frequencies as $frequency) {
-            $nbMonths = $frequency->getNbMonths();
             $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
             $refsAndArtsToInv = [];
             foreach ($refArticles as $refArticle) {
