@@ -46,6 +46,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
 				->setIsActive(true);
 		}
         $manager->flush();
+		$emplacementDef = $this->emplacementRepository->findOneByLabel('A définir');
 
 		$query = $this->em->createQuery(
 		/** @lang DQL */
