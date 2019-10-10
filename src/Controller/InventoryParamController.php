@@ -312,8 +312,8 @@ class InventoryParamController extends AbstractController
                 $rows[] = array_map('utf8_encode', $data);
             }
 
-            if (!file_exists('../public/uploads/log')) {
-            	mkdir('../public/uploads/log', 0777, true);
+            if (!file_exists('./uploads/log')) {
+            	mkdir('./uploads/log', 0777, true);
 			}
             $path = '../public/uploads/log/';
             $nameFile = uniqid() . ".txt";
