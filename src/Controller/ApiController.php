@@ -8,18 +8,21 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 
 use App\Repository\ColisRepository;
+use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
@@ -35,7 +38,9 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 
 use App\Service\ArticleDataService;
+use App\Service\InventoryService;
 use App\Service\MailerService;
+use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\FOSRestController;
@@ -163,27 +168,47 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-    /**
-     * ApiController constructor.
-     * @param LoggerInterface $logger
-     * @param MailerServerRepository $mailerServerRepository
-     * @param MailerService $mailerService
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param ReferenceArticleRepository $referenceArticleRepository
-     * @param UtilisateurRepository $utilisateurRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ArticleRepository $articleRepository
-     * @param EmplacementRepository $emplacementRepository
-     * @param PieceJointeRepository $pieceJointeRepository
-     * @param PreparationRepository $preparationRepository
-     * @param StatutRepository $statutRepository
-     * @param ArticleDataService $articleDataService
-	 * @param LivraisonRepository $livraisonRepository
-	 * @param MouvementStockRepository $mouvementRepository
+
+	/**
+	 * @var InventoryMissionRepository
+	 */
+    private $inventoryMissionRepository;
+
+	/**
+	 * @var UserService
+	 */
+    private $userService;
+
+	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
+
+	/**
+	 * ApiController constructor.
+	 * @param InventoryService $inventoryService
+	 * @param UserService $userService
+	 * @param InventoryMissionRepository $inventoryMissionRepository
+	 * @param FournisseurRepository $fournisseurRepository
 	 * @param LigneArticleRepository $ligneArticleRepository
-     */
-    public function __construct(FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+	 * @param MouvementStockRepository $mouvementRepository
+	 * @param LivraisonRepository $livraisonRepository
+	 * @param ArticleDataService $articleDataService
+	 * @param StatutRepository $statutRepository
+	 * @param PreparationRepository $preparationRepository
+	 * @param PieceJointeRepository $pieceJointeRepository
+	 * @param LoggerInterface $logger
+	 * @param MailerServerRepository $mailerServerRepository
+	 * @param MailerService $mailerService
+	 * @param ColisRepository $colisRepository
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 * @param ReferenceArticleRepository $referenceArticleRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param UserPasswordEncoderInterface $passwordEncoder
+	 * @param ArticleRepository $articleRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 */
+    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -204,6 +229,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->mouvementRepository = $mouvementRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->inventoryMissionRepository = $inventoryMissionRepository;
+        $this->userService = $userService;
+        $this->inventoryService =$inventoryService;
     }
 
     /**
@@ -724,6 +752,78 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
+	/**
+	 * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
+	 * @Rest\Get("/api/addInventoryEntries")
+	 * @Rest\View()	 */
+	public function addInventoryEntries(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+				$numberOfRowsInserted = 0;
+
+				foreach ($data['entries'] as $entry) {
+					$newEntry = new InventoryEntry();
+
+					$mission = $this->inventoryMissionRepository->find($entry['id_mission']);
+					$location = $this->emplacementRepository->findOneByLabel($entry['location']);
+
+					if ($mission && $location) {
+                        $newDate = new DateTime($entry['date']);
+                        $newEntry
+							->setMission($mission)
+							->setDate($newDate)
+							->setQuantity($entry['quantity'])
+							->setOperator($nomadUser)
+							->setLocation($location);
+
+						if ($entry['is_ref']) {
+							$refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
+							$newEntry->setRefArticle($refArticle);
+							if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
+								$refArticle->setHasInventoryAnomaly(true);
+							} else {
+                                $refArticle->setDateLastInventory($newDate);
+                                $refArticle->setHasInventoryAnomaly(false);
+                            }
+							$em->flush();
+						} else {
+							$article = $this->articleRepository->findOneByReference($entry['reference']);
+							$newEntry->setArticle($article);
+
+							if ($newEntry->getQuantity() !== $article->getQuantite()) {
+								$article->setHasInventoryAnomaly(true);
+							} else {
+								$article->setHasInventoryAnomaly(false);
+							}
+							$em->flush();
+						}
+						$em->persist($newEntry);
+						$em->flush();
+					}
+					$numberOfRowsInserted++;
+				}
+				$s = $numberOfRowsInserted > 1 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
+		}
+	}
+
     private function getDataArray($user)
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
@@ -735,14 +835,20 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
+        $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
+        $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
-			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison)
+			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
+			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
+			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
+
         return $data;
     }
 
@@ -765,10 +871,68 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
+	/**
+	 * @Rest\Post("/api/getAnomalies", name="api-get-anomalies")
+	 */
+	public function getAnomalies(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
+				$artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data'] = array_merge($refAnomalies, $artAnomalies);
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
     private function apiKeyGenerator()
     {
         $key = md5(microtime() . rand());
         return $key;
     }
+
+	/**
+	 * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
+	 * @Rest\Get("/api/treatAnomalies")
+	 */
+	public function treatAnomalies(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$numberOfRowsInserted = 0;
+
+				foreach ($data['anomalies'] as $anomaly) {
+					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
+					$numberOfRowsInserted++;
+				}
+
+				$s = $numberOfRowsInserted > 1 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					"Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s;
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
+		}
+	}
 
 }

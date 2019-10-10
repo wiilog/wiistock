@@ -16,7 +16,6 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
-
         $.post(path, JSON.stringify(Data), function(data) {
 
             if (data.new) {
@@ -672,5 +671,39 @@ function displayActifOrInactif(select){
     $.post(path, JSON.stringify(params), function(){
         tableRefArticle.ajax.reload();
     });
+}
+
+function initDatatableMovements(id) {
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
+    let tableRefMouvements = $('#tableMouvements').DataTable({
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathRefMouvements,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Quantity', 'title': 'Quantité'},
+            {"data": 'Origin', 'title': 'Origine'},
+            {"data": 'Destination', 'title': 'Destination'},
+            {"data": 'Type', 'title': 'Type'},
+            {"data": 'Operator', 'title': 'Opérateur'}
+        ],
+    });
+}
+
+function showRowMouvements(button) {
+
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+    let path = Routing.generate('ref_mouvements_list', true);
+    let modal = $('#modalShowMouvements');
+
+    $.post(path, params, function (data) {
+        modal.find('.modal-body').html(data);
+        initDatatableMovements(id);
+    }, 'json');
 }
 

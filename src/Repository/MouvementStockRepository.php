@@ -94,4 +94,86 @@ class MouvementStockRepository extends ServiceEntityRepository
 		]);
 		return $query->execute();
 	}
+
+    /**
+     * @param string $types
+     * @return mixed
+     */
+	public function countByTypes($types)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+        "SELECT COUNT(m) 
+            FROM App\Entity\MouvementStock m 
+            WHERE m.type 
+            IN (:types)"
+        )->setParameter('types', $types);
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalEntryPriceRefArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+			"SELECT SUM(m.quantity * ra.prixUnitaire)
+			FROM App\Entity\MouvementStock m 
+			JOIN m.refArticle ra
+			WHERE m.type = :entreeInv"
+            )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalExitPriceRefArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * ra.prixUnitaire)
+			FROM App\Entity\MouvementStock m
+			JOIN m.refArticle ra
+			WHERE m.type = :sortieInv"
+        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalEntryPriceArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * a.prixUnitaire) 
+			FROM App\Entity\MouvementStock m 
+			JOIN m.article a 
+			WHERE m.type = :entreeInv"
+        )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        return $query->getSingleScalarResult();
+    }
+
+    public function countTotalExitPriceArticle()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT SUM(m.quantity * a.prixUnitaire)
+			FROM App\Entity\MouvementStock m
+			JOIN m.article a
+			WHERE m.type = :sortieInv"
+        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        return $query->getSingleScalarResult();
+    }
+
+	public function findByRef($id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.refArticle = :id"
+		)->setParameter('id', $id);
+
+		return $query->execute();
+	}
 }

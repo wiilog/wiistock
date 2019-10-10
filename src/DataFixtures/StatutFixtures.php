@@ -257,6 +257,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 			MouvementStock::TYPE_ENTREE,
 			MouvementStock::TYPE_SORTIE,
 			MouvementStock::TYPE_TRANSFERT,
+            MouvementStock::TYPE_INVENTAIRE_ENTREE,
+            MouvementStock::TYPE_INVENTAIRE_SORTIE,
 		];
 
 		foreach ($statutsNames as $statutName) {

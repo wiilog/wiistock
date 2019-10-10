@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -96,7 +98,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @param bool $activeOnly
 	 * @return mixed
 	 */
-    public function getIdAndLibelleBySearch($search, $activeOnly = false)
+    public function getIdAndRefBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
 
@@ -409,6 +411,25 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function countActiveTypeRefRef()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.statut s
+            WHERE s.nom = :active
+            AND ra.typeQuantite = :typeQuantite
+            "
+		)->setParameters([
+			'active' => ReferenceArticle::STATUT_ACTIF,
+			'typeQuantite' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+		]);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function setQuantiteZeroForType($type)
     {
         $em = $this->getEntityManager();
@@ -605,5 +626,81 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+    public function countByCategory($category)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.category = :category"
+        )->setParameter('category', $category);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function getByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT ra.libelle, ra.reference, ra.hasInventoryAnomaly, ra.id
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.inventoryMissions m
+            LEFT JOIN ra.inventoryEntries e
+            WHERE m = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->execute();
+    }
+
+
+    /**
+     * @param InventoryMission $mission
+     * @param int $refId
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getEntryDateByMission($mission, $refId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT e.date
+            FROM App\Entity\InventoryEntry e
+            WHERE e.mission = :mission AND e.refArticle = :ref"
+        )->setParameters([
+            'mission' => $mission,
+            'ref' => $refId
+        ]);
+        return $query->getOneOrNullResult();
+    }
+
+    public function countByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT COUNT(ra)
+            FROM App\Entity\InventoryMission im
+            LEFT JOIN im.refArticles ra
+            WHERE im.id = :missionId"
+        )->setParameter('missionId', $mission->getId());
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function getIdAndReferenceBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT ra.id as id, ra.reference as text
+          FROM App\Entity\ReferenceArticle ra
+          WHERE ra.reference LIKE :search AND ra.typeQuantite = 'reference'"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
 
 }

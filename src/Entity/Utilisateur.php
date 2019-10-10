@@ -150,7 +150,15 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $type;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
+     */
+    private $inventoryEntries;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategoryHistory", inversedBy="operator")
+     */
+    private $inventoryCategoryHistory;
 
     public function __construct()
     {
@@ -167,6 +175,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
     }
 
     public function getId()
@@ -753,4 +762,48 @@ class Utilisateur implements UserInterface, EquatableInterface
 
         return $this;
     }
+
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getInventoryEntries(): Collection
+    {
+        return $this->inventoryEntries;
+    }
+
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setOperator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getOperator() === $this) {
+                $inventoryEntry->setOperator(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getInventoryCategoryHistory(): ?InventoryCategoryHistory
+    {
+        return $this->inventoryCategoryHistory;
+    }
+
+    public function setInventoryCategoryHistory(?InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        $this->inventoryCategoryHistory = $inventoryCategoryHistory;
+
+        return $this;
+    }
+
 }
