@@ -690,14 +690,25 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndReferenceBySearch($search)
+    public function getIdAndReferenceBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra.id as id, ra.reference as text
-          FROM App\Entity\ReferenceArticle ra
-          WHERE ra.reference LIKE :search AND ra.typeQuantite = 'reference'"
-        )->setParameter('search', '%' . $search . '%');
+
+        $dql = "SELECT r.id, r.reference as text
+          FROM App\Entity\ReferenceArticle r
+          LEFT JOIN r.statut s
+          WHERE r.reference LIKE :search AND r.typeQuantite = :qte_ref";
+
+        if ($activeOnly) {
+            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+        }
+
+        $query = $em
+            ->createQuery($dql)
+            ->setParameters([
+            'search' => '%' . $search . '%',
+            'qte_ref' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+        ]);
 
         return $query->execute();
     }
