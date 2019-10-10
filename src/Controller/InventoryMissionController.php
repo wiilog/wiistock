@@ -161,6 +161,9 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            if ($data['startDate'] > $data['endDate'])
+                return new JsonResponse(false);
+
             $em = $this->getDoctrine()->getEntityManager();
 
             $mission = new InventoryMission();
