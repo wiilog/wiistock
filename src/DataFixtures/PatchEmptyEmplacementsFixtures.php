@@ -45,6 +45,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
 				->setIsDeliveryPoint(false)
 				->setIsActive(true);
 		}
+        $manager->flush();
 
 		$query = $this->em->createQuery(
 		/** @lang DQL */
