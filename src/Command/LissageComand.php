@@ -81,7 +81,6 @@ class LissageComand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $now = new \DateTime('now');
         $frequencies = $this->inventoryFrequencyRepository->findAll();
 
         $maxNbMission = 0;
@@ -147,7 +146,8 @@ class LissageComand extends Command
                 }
                 $addArray = array_slice($refsAndArtsToInv, $offset, $refPerMission);
                 foreach ($addArray as $item) {
-                    $mission->addRefArticle($item);
+//                    $mission->addRefArticle($item);
+                    $item->addInventoryMission($mission);
                     $this->entityManager->flush();
                 }
                 $offset = $refPerMission * $counter;
