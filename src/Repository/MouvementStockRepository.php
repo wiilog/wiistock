@@ -6,6 +6,8 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Types\Type;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -96,19 +98,43 @@ class MouvementStockRepository extends ServiceEntityRepository
 	}
 
     /**
-     * @param string $types
-     * @return mixed
+     * @param string[] $types
+     * @return int
      */
-	public function countByTypes($types)
+	public function countByTypes($types, $dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
+
+        $dql = "SELECT COUNT(m)
+            FROM App\Entity\MouvementStock m
+            WHERE m.type IN (:types)";
+
+
+        if(!empty($dateDebut))
+        {
+            $dql .= " AND m.date > :dateDebut";
+        }
+
+        if(!empty($dateFin))
+        {
+            $dql .= " AND m.date < :dateFin";
+        }
         $query = $em->createQuery(
-        /** @lang DQL */
-        "SELECT COUNT(m) 
-            FROM App\Entity\MouvementStock m 
-            WHERE m.type 
-            IN (:types)"
-        )->setParameter('types', $types);
+            $dql
+        );
+        
+        $query->setParameter('types', $types,Connection::PARAM_STR_ARRAY);
+        if (!empty($dateDebut))
+        {
+            $query->setParameter('dateDebut', $dateDebut);
+        }
+
+        if (!empty($dateFin))
+        {
+            $query->setParameter('dateFin', $dateFin);
+        }
+        
+
         return $query->getSingleScalarResult();
     }
 

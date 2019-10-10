@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\MouvementStock;
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -78,7 +79,12 @@ class AccueilController extends AbstractController
 	 */
     private $alerteExpiryRepository;
 
-    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
+    /**
+     * @var fiabilityByReferenceRepository
+     */
+    private $fiabilityByReferenceRepository;
+
+    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -90,6 +96,7 @@ class AccueilController extends AbstractController
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->refArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
 
     /**
@@ -109,6 +116,12 @@ class AccueilController extends AbstractController
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
     	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
         $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+
+        $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
+
+        $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
+        $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbrFiabiliteReferenceOfThisMonth = (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
 
 
 
@@ -154,6 +167,7 @@ class AccueilController extends AbstractController
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
+            'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
         ]);
     }
 
@@ -188,6 +202,30 @@ class AccueilController extends AbstractController
             $idx += 1;
         }
 
+        $data = $value;
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET|POST")
+     */
+    public function graphiqueReference(): Response
+    {
+
+        $fiabiliteRef = $this->fiabilityByReferenceRepository->findAll();
+        $value[] = [];
+        foreach ($fiabiliteRef as $reference)
+        {
+            $date = $reference->getDate();
+            $indicateur = $reference->getIndicateur();
+            $dateTimeTostr = $date->format('Y-m-d');
+            $month = date("m", strtotime($dateTimeTostr));
+            $month = date("F", mktime(0,0,0, $month, 10));
+            $value[] = [
+                'mois' => $month,
+                'nbr' => $indicateur
+            ];
+        }
         $data = $value;
         return new JsonResponse($data);
     }

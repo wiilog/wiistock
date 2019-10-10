@@ -347,6 +347,7 @@ a:hover {
 .carreNbrIndicateur {
   background-color: rgba(255, 255, 255, 0.7);
   border-radius: 10px;
+  display: flex;
 }
 
 .big-font {
@@ -358,9 +359,9 @@ a:hover {
   text-align: center;
 }
 
-#curve_chart {
-  height: 250px;
-  width: 700px;
+.curve_chart_line {
+  height: 75px;
+  width: 300px;
 }
 
 .btn {
