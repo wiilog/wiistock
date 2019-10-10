@@ -102,3 +102,9 @@ function importFile() {
         });
     }
 }
+
+function showFrequencies() {
+    $.post(Routing.generate('frequency_list', true), function(data) {
+        $('#modalShowFrequencies').find('.modal-body').html(data);
+    });
+}
