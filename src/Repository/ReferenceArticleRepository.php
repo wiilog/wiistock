@@ -150,9 +150,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
-        $qb
-            ->from('App\Entity\ReferenceArticle', 'ra')
-            ->leftJoin('ra.valeurChampsLibres', 'vcl');
+        $qb->from('App\Entity\ReferenceArticle', 'ra');
 
 		foreach ($filters as $filter) {
             $index++;
@@ -251,7 +249,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
-		$qb->select('count(distinct(ra))');
+        if (empty($filters)) {
+        	$qb->select('count(ra)');
+        } else {
+			$qb->select('count(distinct(ra))')
+				->leftJoin('ra.valeurChampsLibres', 'vcl');
+		}
 		$countQuery = $qb->getQuery()->execute();
 
         $qb->select('ra')
