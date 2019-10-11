@@ -8,6 +8,8 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+                <table id="tableFrequencies" class="table table-striped table-bordered w-100">
+                </table>
             </div>
             <div class="modal-footer">
                 <button id="submitNewFrequency" type="button" class="btn btn-success" data-dismiss="modal">Fermer</button>
@@ -15,3 +17,6 @@
         </div>
     </div>
 </form>
+
+    {% include 'inventaire_param/modalEditFrequency.html.twig' %}
+    {% include 'inventaire_param/modalDeleteFrequency.html.twig' %}

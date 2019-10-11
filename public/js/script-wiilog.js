@@ -550,8 +550,8 @@ function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
-        alertSuccessMsg('La fréquence a bien été créée.');
         modal.find('.close').click();
+        alertSuccessMsg(msg);
     }
 }
 
