@@ -701,4 +701,5 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
 }
