@@ -24,6 +24,8 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
+$.fn.dataTable.ext.errMode = () => alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
@@ -438,7 +440,7 @@ function ajaxAutoCompleteTransporteurInit(select) {
 let ajaxAutoRefArticleInit = function (select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
+            url: Routing.generate('get_refArticles', {activeOnly: 1}, true),
             dataType: 'json',
             delay: 250,
         },

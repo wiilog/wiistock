@@ -29,12 +29,18 @@ let tableMissions = $('#tableMissionsInv').DataTable({
 let modalNewMission = $("#modalNewMission");
 let submitNewMission = $("#submitNewMission");
 let urlNewMission = Routing.generate('mission_new', true);
-InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, null);
+InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, displayErrorMision, false);
 
 let modalDeleteMission = $("#modalDeleteMission");
 let submitDeleteMission = $("#submitDeleteMission");
 let urlDeleteMission = Routing.generate('mission_delete', true)
 InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tableMissions);
+
+function displayErrorMision(data) {
+    let modal = $("#modalNewMission");
+    let msg = 'La date de début doit être antérieure à celle de fin.';
+    displayError(modal, msg, data);
+}
 
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
