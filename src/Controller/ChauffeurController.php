@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Chauffeur;
 use App\Entity\Menu;
+use App\Repository\ArrivageRepository;
 use App\Service\UserService;
 use App\Repository\ChauffeurRepository;
 use App\Repository\TransporteurRepository;
@@ -36,11 +37,18 @@ class ChauffeurController extends AbstractController
      */
     private $userService;
 
-    public function __construct(ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, UserService $userService)
+	/**
+	 * @var ArrivageRepository
+	 */
+    private $arrivageRepository;
+
+
+    public function __construct(ArrivageRepository $arrivageRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, UserService $userService)
     {
         $this->chauffeurRepository = $chauffeurRepository;
         $this->transporteurRepository = $transporteurRepository;
         $this->userService = $userService;
+        $this->arrivageRepository = $arrivageRepository;
     }
 
     /**
@@ -74,6 +82,7 @@ class ChauffeurController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
     /**
      * @Route("/", name="chauffeur_index", methods={"GET"})
      */
@@ -170,25 +179,68 @@ class ChauffeurController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="chauffeur_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/verification", name="chauffeur_check_delete", options={"expose"=true}, methods={"GET","POST"})
      */
-    public function delete(Request $request): Response
+    public function checkChauffeurCanBeDeleted(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $chauffeurId = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$chauffeur = $this->chauffeurRepository->find($data['chauffeur']);
+			$chauffeur = $this->chauffeurRepository->find($chauffeurId);
 
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($chauffeur);
-            $entityManager->flush();
-            return new JsonResponse();
+			// on vérifie que le chauffeur n'est plus utilisé
+			$chauffeurIsUsed = $this->isChauffeurUsed($chauffeur);
+
+			if (!$chauffeurIsUsed) {
+				$delete = true;
+				$html = $this->renderView('chauffeur/modalDeleteChauffeurRight.html.twig');
+			} else {
+				$delete = false;
+				$html = $this->renderView('chauffeur/modalDeleteChauffeurWrong.html.twig');
+			}
+
+			return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
 
         throw new NotFoundHttpException("404");
     }
+
+    public function isChauffeurUsed($chauffeur)
+	{
+		return $this->arrivageRepository->countByChauffeur($chauffeur) > 0;
+	}
+
+	/**
+	 * @Route("/supprimer", name="chauffeur_delete",  options={"expose"=true}, methods={"GET", "POST"})
+	 */
+	public function delete(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			if ($chauffeurId = (int)$data['chauffeur']) {
+
+				$chauffeur = $this->chauffeurRepository->find($chauffeurId);
+
+				// on vérifie que le fournisseur n'est plus utilisé
+				$isUsedChauffeur = $this->isChauffeurUsed($chauffeur);
+
+				if ($isUsedChauffeur) {
+					return new JsonResponse(false);
+				}
+
+				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager->remove($chauffeur);
+				$entityManager->flush();
+			}
+			return new JsonResponse();
+		}
+		throw new NotFoundHttpException("404");
+	}
 
     /**
      * @Route("/autocomplete", name="get_Transporteur", options={"expose"=true})
