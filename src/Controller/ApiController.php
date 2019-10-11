@@ -791,6 +791,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 								$refArticle->setHasInventoryAnomaly(true);
 							} else {
                                 $refArticle->setDateLastInventory($newDate);
+                                $refArticle->setHasInventoryAnomaly(false);
                             }
 							$em->flush();
 						} else {
@@ -799,8 +800,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 							if ($newEntry->getQuantity() !== $article->getQuantite()) {
 								$article->setHasInventoryAnomaly(true);
-								$em->flush();
+							} else {
+								$article->setHasInventoryAnomaly(false);
 							}
+							$em->flush();
 						}
 						$em->persist($newEntry);
 						$em->flush();
@@ -914,7 +917,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$numberOfRowsInserted = 0;
 
 				foreach ($data['anomalies'] as $anomaly) {
-					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], 'confirm', $anomaly['comment'], $nomadUser);
+					$this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
 					$numberOfRowsInserted++;
 				}
 

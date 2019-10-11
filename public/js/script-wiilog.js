@@ -24,6 +24,8 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
+$.fn.dataTable.ext.errMode = () => alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
@@ -438,7 +440,28 @@ function ajaxAutoCompleteTransporteurInit(select) {
 let ajaxAutoRefArticleInit = function (select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
+            url: Routing.generate('get_refArticles', {activeOnly: 1}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }        },
+        minimumInputLength: 1,
+    });
+};
+
+let ajaxAutoArticlesInit = function (select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articles', {activeOnly: 1}, true),
             dataType: 'json',
             delay: 250,
         },
@@ -527,6 +550,7 @@ function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
+        alertSuccessMsg('La fréquence a bien été créée.');
         modal.find('.close').click();
     }
 }
@@ -580,22 +604,20 @@ function adjustScalesForDoc(response) {
     return doc;
 }
 
-function alertErrorMsg(data) {
+function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
+        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
         $alertDanger.find('.error-msg').html(data);
     }
 }
 
 function alertSuccessMsg(data) {
-    if (data !== true) {
-        let $alertSuccess = $('#alerts').find('.alert-success');
-        $alertSuccess.removeClass('d-none');
-        $alertSuccess.delay(2000).fadeOut(2000);
-        $alertSuccess.find('.confirm-msg').html(data);
-    }
+    let $alertSuccess = $('#alerts').find('.alert-success');
+    $alertSuccess.removeClass('d-none');
+    $alertSuccess.delay(2000).fadeOut(2000);
+    $alertSuccess.find('.confirm-msg').html(data);
 }
 
 function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {

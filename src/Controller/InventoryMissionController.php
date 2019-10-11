@@ -7,11 +7,13 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\InvMissionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,13 +56,19 @@ class InventoryMissionController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    /**
+     * @var InvMissionService
+     */
+    private $invMissionService;
+
+    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, InvMissionService $invMissionService)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->invMissionService = $invMissionService;
     }
 
     /**
@@ -119,12 +127,12 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/autocomplete/ref", name="get_refArticles", options={"expose"=true})
      */
-    public function getRefArticlesSelect(Request $request)
+    public function getRefArticlesSelect(Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndReferenceBySearch($search);
+            $refArticles = $this->referenceArticleRepository->getIdAndReferenceBySearch($search, $activeOnly);
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
@@ -133,12 +141,12 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_articles", options={"expose"=true})
      */
-    public function getArticlesSelect(Request $request)
+    public function getArticlesSelect(Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $articles = $this->articleRepository->getIdAndReferenceBySearch($search);
+            $articles = $this->articleRepository->getIdAndReferenceBySearch($search, $activeOnly);
             return new JsonResponse(['results' => $articles]);
         }
         throw new NotFoundHttpException("404");
@@ -153,6 +161,9 @@ class InventoryMissionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            if ($data['startDate'] > $data['endDate'])
+                return new JsonResponse(false);
 
             $em = $this->getDoctrine()->getEntityManager();
 
@@ -228,55 +239,22 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $articles = $this->articleRepository->findAll();
-            $refArticles = $this->referenceArticleRepository->findAll();
             return $this->render('inventaire/show.html.twig', [
-                'missionId' => $mission->getId(),
-                'articles' => $articles,
-                'refArticles' => $refArticles,
+                'missionId' => $mission->getId()
             ]);
     }
 
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function entryApi(InventoryMission $mission)
+    public function entryApi(InventoryMission $mission, Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $refArray = $this->referenceArticleRepository->getByMission($mission);
-        $artArray = $this->articleRepository->getByMission($mission);
+        $data = $this->invMissionService->getDataForDatatable($mission, $request->request);
 
-        $rows = [];
-        foreach ($refArray as $ref) {
-            // TODO HM
-            $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref['id']);
-            if ($refDate != null)
-               $refDate = $refDate['date']->format('d/m/Y');
-            $rows[] =
-                [
-                    'Label' => $ref['libelle'],
-                    'Ref' => $ref['reference'],
-                    'Date' => $refDate,
-                    'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
-                ];
-        }
-        foreach ($artArray as $article) {
-            $artDate = $this->articleRepository->getEntryDateByMission($mission, $article['id']);
-            if ($artDate != null) {
-                $artDate = $artDate['date']->format('d/m/Y');
-            }
-            $rows[] =
-                [
-                    'Label' => $article['label'],
-                    'Ref' => $article['reference'],
-                    'Date' => $artDate,
-                    'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
-                ];
-        }
-        $data['data'] = $rows;
         return new JsonResponse($data);
     }
 
@@ -314,7 +292,6 @@ class InventoryMissionController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
-
 
     /**
      * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})

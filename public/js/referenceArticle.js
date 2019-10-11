@@ -673,3 +673,37 @@ function displayActifOrInactif(select){
     });
 }
 
+function initDatatableMovements(id) {
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
+    let tableRefMouvements = $('#tableMouvements').DataTable({
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathRefMouvements,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Quantity', 'title': 'Quantité'},
+            {"data": 'Origin', 'title': 'Origine'},
+            {"data": 'Destination', 'title': 'Destination'},
+            {"data": 'Type', 'title': 'Type'},
+            {"data": 'Operator', 'title': 'Opérateur'}
+        ],
+    });
+}
+
+function showRowMouvements(button) {
+
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+    let path = Routing.generate('ref_mouvements_list', true);
+    let modal = $('#modalShowMouvements');
+
+    $.post(path, params, function (data) {
+        modal.find('.modal-body').html(data);
+        initDatatableMovements(id);
+    }, 'json');
+}
+

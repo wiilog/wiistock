@@ -4,9 +4,9 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
-use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -686,19 +686,77 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             LEFT JOIN im.refArticles ra
             WHERE im.id = :missionId"
         )->setParameter('missionId', $mission->getId());
-dump($query->getSQL());
+
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndReferenceBySearch($search)
+    public function getIdAndReferenceBySearch($search, $activeOnly = false)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra.id as id, ra.reference as text
-          FROM App\Entity\ReferenceArticle ra
-          WHERE ra.reference LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+
+        $dql = "SELECT r.id, r.reference as text
+          FROM App\Entity\ReferenceArticle r
+          LEFT JOIN r.statut s
+          WHERE r.reference LIKE :search AND r.typeQuantite = :qte_ref";
+
+        if ($activeOnly) {
+            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+        }
+
+        $query = $em
+            ->createQuery($dql)
+            ->setParameters([
+            'search' => '%' . $search . '%',
+            'qte_ref' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+        ]);
 
         return $query->execute();
     }
+
+    /**
+     * @param InventoryFrequency $frequency
+     * @return ReferenceArticle[]
+     */
+    public function findByFrequencyOrderedByLocation($frequency)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN ra.emplacement e
+            WHERE c.frequency = :frequency ORDER BY e.label"
+        )->setParameter('frequency', $frequency);
+
+        return $query->execute();
+    }
+
+    /**
+     * @param InventoryFrequency $frequency
+     * @return ReferenceArticle[]
+     */
+    public function findByFrequencyNeverInventoriedOrderedByLocation($frequency)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT DISTINCT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN ra.emplacement e
+            LEFT JOIN ra.articlesFournisseur af
+            LEFT JOIN af.articles a
+            WHERE c.frequency = :frequency
+            AND (
+            (ra.typeQuantite = 'reference' AND ra.dateLastInventory is null)
+            OR
+            (ra.typeQuantite = 'article' AND a.dateLastInventory is null)
+            )
+             ORDER BY e.label"
+        )->setParameter('frequency', $frequency);
+
+        return $query->execute();
+    }
+
 }

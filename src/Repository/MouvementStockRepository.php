@@ -104,7 +104,7 @@ class MouvementStockRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-        "SELECT COUNT(m) 
+        "SELECT COUNT(m)
             FROM App\Entity\MouvementStock m 
             WHERE m.type 
             IN (:types)"
@@ -163,4 +163,17 @@ class MouvementStockRepository extends ServiceEntityRepository
         )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
         return $query->getSingleScalarResult();
     }
+
+	public function findByRef($id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.refArticle = :id"
+		)->setParameter('id', $id);
+
+		return $query->execute();
+	}
 }

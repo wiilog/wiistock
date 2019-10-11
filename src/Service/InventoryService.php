@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\MouvementStock;
 
+use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 
@@ -43,9 +44,19 @@ class InventoryService
 		$this->user = $security->getUser();
     }
 
-	public function doTreatAnomaly($reference, $isRef, $newQuantity, $choice, $comment, $user)
+	/**
+	 * @param string $reference
+	 * @param $isRef
+	 * @param int $newQuantity
+	 * @param string $comment
+	 * @param Utilisateur $user
+	 * @return bool
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function doTreatAnomaly($reference, $isRef, $newQuantity, $comment, $user)
 	{
 		$em = $this->em;
+		$quantitiesAreEqual = true;
 
 		if ($isRef) {
 			$refOrArt = $this->referenceArticleRepository->findOneByReference($reference);
@@ -57,7 +68,7 @@ class InventoryService
 
 		$diff = $newQuantity - $quantity;
 
-		if ($choice == 'confirm' && $diff != 0) {
+		if ($diff != 0) {
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
@@ -65,6 +76,9 @@ class InventoryService
 				->setComment($comment)
 				->setQuantity(abs($diff));
 
+			$emplacement = $refOrArt->getEmplacement();
+			$mvt->setEmplacementFrom($emplacement);
+			$mvt->setEmplacementTo($emplacement);
 			if ($isRef) {
 				$mvt->setRefArticle($refOrArt);
 				//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
@@ -79,11 +93,14 @@ class InventoryService
 			$mvt->setType($typeMvt);
 
 			$em->persist($mvt);
+			$quantitiesAreEqual = false;
 		}
 
 		$refOrArt
 			->setHasInventoryAnomaly(false)
 			->setDateLastInventory(new DateTime('now'));
 		$em->flush();
+
+		return $quantitiesAreEqual;
 	}
 }

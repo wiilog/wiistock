@@ -92,9 +92,10 @@ class FiltreRefRepository extends ServiceEntityRepository
     public function findByUserExceptChampFixe($user, $champFixe) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
             "SELECT f
             FROM App\Entity\FiltreRef f
-            WHERE f.utilisateur =:user AND f.champFixe != :cf"
+            WHERE f.utilisateur =:user AND (f.champFixe != :cf or f.champFixe is null)"
         )->setParameters(['user' => $user, 'cf' => $champFixe]);
         return $query->execute();
     }
