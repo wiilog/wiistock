@@ -249,17 +249,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
-        if (empty($filters)) {
-        	$qb->select('count(ra)');
-        } else {
-			$qb->select('count(distinct(ra))')
-				->leftJoin('ra.valeurChampsLibres', 'vcl');
-		}
-		$countQuery = $qb->getQuery()->execute();
-
-        $qb->select('ra')
-			->distinct();
-
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -344,15 +333,30 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 					}
 					$qb->andWhere(implode(' OR ', $query));
 				}
+            }
+		}
 
-				$countQuery = count($qb->getQuery()->getResult());
-			}
+		// compte éléments filtrés
+		if (empty($filters) && empty($searchValue)) {
+			$qb->select('count(ra)');
+		}
+		else {
+			$qb
+				->select('count(distinct(ra))')
+				->leftJoin('ra.valeurChampsLibres', 'vcl');
+		}
+
+		$countQuery = $qb->getQuery()->execute();
+
+		if (!empty($params)) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
-        $queryResult = $qb->getQuery();
 
-        return ['data' => $queryResult->getResult(), 'count' => $countQuery];
+		$qb->select('ra')
+			->distinct();
+
+        return ['data' => $qb->getQuery()->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)
