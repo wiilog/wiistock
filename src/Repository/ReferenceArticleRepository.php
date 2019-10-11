@@ -151,25 +151,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ];
         //TODO trouver + dynamique
         $qb
-            ->select('ra')
-            ->distinct()
             ->from('App\Entity\ReferenceArticle', 'ra')
+            ->distinct()
             ->leftJoin('ra.valeurChampsLibres', 'vcl');
-
-		$countTotal = count($qb->getQuery()->getResult());
 
 		foreach ($filters as $filter) {
             $index++;
 
-            if ($filter['champFixe'] === 'Statut') {
+            if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
                 if ($filter['value'] === Article::STATUT_ACTIF) {
                     $qb->leftJoin('ra.statut', 'sra');
                     $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
             } else {
-//            $operatorOR = $filter['operator'] == 'or';
-                //TODO filtres et/ou
-
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
                     $qb
@@ -187,10 +181,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             $qb
                                 ->andWhere("ra." . $field . " LIKE :value" . $index)
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
-//                    	$where = "ra." . $field . " LIKE :value" . $index;
-//                    	$operatorOR ? $qb->orWhere($where) : $qb->andWhere($where);
-//                        $qb->setParameter('value' . $index, '%' . $filter['value'] . '%');
-                            //TODO filtres et/ou
                             break;
                         case 'number':
                             $qb->andWhere("ra." . $field . " = " . $filter['value']);
@@ -255,14 +245,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         foreach ($subQueries as $subQuery) {
             $ids = [];
-            foreach ($subQuery as $idArray) {
+            foreach ($subQuery as $idArray) { //TODO optim php natif ?
                 $ids[] = $idArray['id'];
             }
             if (empty($ids)) $ids = 0;
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
-        $countQuery = count($qb->getQuery()->getResult());
+		$qb->select('count(distinct(ra))');
+		$countQuery = $qb->getQuery()->execute();
+
+        $qb->select('ra');
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
@@ -356,7 +349,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		}
         $queryResult = $qb->getQuery();
 
-        return ['data' => $queryResult->getResult(), 'count' => $countQuery, 'total' => $countTotal];
+        return ['data' => $queryResult->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)

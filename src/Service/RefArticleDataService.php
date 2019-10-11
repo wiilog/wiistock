@@ -163,13 +163,6 @@ class RefArticleDataService
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $data = $this->getRefArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
-        return $data;
-    }
-
     /**
      * @param null $params
      * @return array
@@ -189,7 +182,7 @@ class RefArticleDataService
         return [
         	'data' => $rows,
 			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total']
+			'recordsTotal' => $this->referenceArticleRepository->countAll()
 		];
     }
 
