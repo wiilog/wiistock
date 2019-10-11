@@ -741,18 +741,18 @@ class ReferenceArticleController extends Controller
     }
 
 	/**
-	 * @Route("/autocomplete-ref/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
 	 *
 	 * @param Request $request
 	 * @param bool $activeOnly
 	 * @return JsonResponse
 	 */
-    public function getRefArticles(Request $request, $activeOnly = false)
+    public function getRefArticles(Request $request, $activeOnly = false, $typeQuantity = null)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
+            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
 
             return new JsonResponse(['results' => $refArticles]);
         }

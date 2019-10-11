@@ -98,7 +98,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @param bool $activeOnly
 	 * @return mixed
 	 */
-    public function getIdAndRefBySearch($search, $activeOnly = false)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null)
     {
         $em = $this->getEntityManager();
 
@@ -111,9 +111,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         	$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
 		}
 
+        if ($typeQuantity)
+        {
+            $dql .= "  AND r.typeQuantite = :type";
+        }
+
         $query = $em
 			->createQuery($dql)
 			->setParameter('search', '%' . $search . '%');
+        if ($typeQuantity)
+        {
+            $query
+                ->setParameter('type', $typeQuantity);
+        }
 
         return $query->execute();
     }
@@ -690,28 +700,28 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndReferenceBySearch($search, $activeOnly = false)
-    {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT r.id, r.reference as text
-          FROM App\Entity\ReferenceArticle r
-          LEFT JOIN r.statut s
-          WHERE r.reference LIKE :search AND r.typeQuantite = :qte_ref";
-
-        if ($activeOnly) {
-            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
-        }
-
-        $query = $em
-            ->createQuery($dql)
-            ->setParameters([
-            'search' => '%' . $search . '%',
-            'qte_ref' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
-        ]);
-
-        return $query->execute();
-    }
+//    public function getIdAndReferenceBySearch($search, $activeOnly = false)
+//    {
+//        $em = $this->getEntityManager();
+//
+//        $dql = "SELECT r.id, r.reference as text
+//          FROM App\Entity\ReferenceArticle r
+//          LEFT JOIN r.statut s
+//          WHERE r.reference LIKE :search AND r.typeQuantite = :qte_ref";
+//
+//        if ($activeOnly) {
+//            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+//        }
+//
+//        $query = $em
+//            ->createQuery($dql)
+//            ->setParameters([
+//            'search' => '%' . $search . '%',
+//            'qte_ref' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+//        ]);
+//
+//        return $query->execute();
+//    }
 
     /**
      * @param InventoryFrequency $frequency
