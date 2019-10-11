@@ -152,7 +152,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         //TODO trouver + dynamique
         $qb
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->distinct()
             ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
 		foreach ($filters as $filter) {
@@ -255,7 +254,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		$qb->select('count(distinct(ra))');
 		$countQuery = $qb->getQuery()->execute();
 
-        $qb->select('ra');
+        $qb->select('ra')
+			->distinct();
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
