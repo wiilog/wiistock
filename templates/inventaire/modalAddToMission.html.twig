@@ -11,22 +11,11 @@
             <div class="modal-body modal-input container-fluid">
                 <label for="">Articles : </label>
                 <select name="articles" class="form-control ajax-autocomplete-article data select2" id="articlesSelect" style="width: 200px" multiple="multiple">
-                    <option></option>
-                    {% for article in articles %}
-                        <option value="{{article.id}}">
-                            {{article.reference}}
-                        </option>
-                    {% endfor %}
                 </select>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <label for="">Références articles : </label>
-                <select name="refArticles" class="form-control ajax-autocomplete-article data select2" id="refArticlesSelect" style="width: 200px" multiple="multiple">
-                    {% for refArticle in refArticles %}
-                        <option value="{{refArticle.id}}">
-                            {{refArticle.reference}}
-                        </option>
-                    {% endfor %}
+                <select name="refArticles" class="form-control ajax-autocomplete-refArticle data select2" id="refArticlesSelect" style="width: 200px" multiple="multiple">
                 </select>
             </div>
 

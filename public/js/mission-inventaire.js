@@ -3,42 +3,6 @@ $(function () {
     initSearchDate(tableMissions);
 
     $('.select2').select2();
-
-    $('#articlesSelect').select2({
-        ajax: {
-            url: Routing.generate('get_articles'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        allowClear: true,
-        minimumInputLength: 1,
-    });
-
-    $('#refArticlesSelect').select2({
-        ajax: {
-            url: Routing.generate('get_refArticles'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        allowClear: true,
-        minimumInputLength: 1,
-    });
 });
 
 let pathMissions = Routing.generate('inv_missions_api', true);
@@ -75,12 +39,19 @@ InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tabl
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
 let tableMission = $('#tableMissionInv').DataTable({
+    processing: true,
+    serverSide: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax:{
         "url": pathMission,
-        "type": "POST"
+        "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.anomaly =  $('#anomalyFilter').val();
+        }
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence' },
@@ -106,11 +77,28 @@ $submitSearchMission.on('click', function () {
 
 let $submitSearchMissionRef = $('#submitSearchMissionRef');
 $submitSearchMissionRef.on('click', function() {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let anomaly = $('#anomalyFilter').val();
-    tableMission
-        .columns('anomaly:name')
-        .search(anomaly === 'true' ? 'oui':'non')
-        .draw();
+
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let anomalyFilter = $('#anomalyFilter');
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    anomalyFilter.val(anomaly);
+
+
+//     let params = {
+//         dateMin: dateMinFilter.val(),
+//         dateMax: dateMaxFilter.val(),
+// //        anomaly: anomalyFilter.val()
+//     };
+//     let path = Routing.generate('inv_entry_api',{ id: mission}, true);
+//     $.post(path, JSON.stringify(params), function(response) {
+//
+//     }, 'json');
+    tableMission.draw();
 });
 
 function generateCSVMission () {
