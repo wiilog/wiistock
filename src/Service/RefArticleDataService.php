@@ -372,13 +372,29 @@ class RefArticleDataService
     {
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
+//TODO CG cette requête doit remplacer les 2 suivantes
+//
+//		SELECT cl.label, temp.valeur
+// FROM champ_libre cl
+// INNER JOIN type t ON cl.type_id = t.id
+// INNER JOIN reference_article ra on ra.type_id = t.id
+//  LEFT JOIN (
+//		SELECT ra.id raid, vcl.champ_libre_id clid ,vcl.valeur as valeur
+//      FROM valeur_champ_libre vcl
+//      INNER JOIN valeur_champ_libre_reference_article vclra ON vclra.valeur_champ_libre_id = vcl.id
+//      INNER JOIN reference_article ra ON ra.id = vclra.reference_article_id
+//  ) temp ON temp.raid = ra.id AND temp.clid = cl.id
+//WHERE ra.id = 12042
+
         $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
+
         foreach ($champsLibres as $champLibre) {
             $champ = $this->champLibreRepository->find($champLibre['id']);
             $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champ); /** @var ValeurChampLibre $valeur */
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
+
         $totalQuantity = 0;
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
