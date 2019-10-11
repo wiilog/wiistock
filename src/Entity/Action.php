@@ -19,7 +19,9 @@ class Action
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';
     const YES = 'oui';
-    const CHOIX = 'choix';
+    const INVENTORY_MANAGER = "gestionnaire d'inventaire";
+    const REFERENCE = 'fiabilité par réference';
+    const MONETAIRE = 'fiabilité par monétaire';
 
     /**
      * @ORM\Id()

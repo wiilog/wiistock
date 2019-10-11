@@ -39,6 +39,11 @@ class ParamClient
 	 */
     private $backgroundImg;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbWeeksInventory;
+
 
     public function getId(): ?int
     {
@@ -77,6 +82,18 @@ class ParamClient
     public function setBackgroundImg(?string $backgroundImg): self
     {
         $this->backgroundImg = $backgroundImg;
+
+        return $this;
+    }
+
+    public function getNbWeeksInventory(): ?int
+    {
+        return $this->nbWeeksInventory;
+    }
+
+    public function setNbWeeksInventory(int $nbWeeksInventory): self
+    {
+        $this->nbWeeksInventory = $nbWeeksInventory;
 
         return $this;
     }

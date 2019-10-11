@@ -1,0 +1,15 @@
+<table class="table table-striped table-bordered w-100">
+        <tr>
+            <th>Label</th>
+            <th>Fréquence</th>
+            {% for frequency in frequencies %}
+            <tr>
+                <td>
+                    {{ frequency.label }}
+                </td>
+                <td>
+                    {{ frequency.nbMonths }} mois
+                </td>
+            </tr>
+    {% endfor %}
+</table>

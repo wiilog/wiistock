@@ -24,13 +24,15 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
-function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
+$.fn.dataTable.ext.errMode = () => alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+
+function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitAction(modal, path, table, callback, close);
+        submitAction(modal, path, table, callback, close, clear);
     });
 }
 
-function submitAction(modal, path, table, callback, close) {
+function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -113,13 +115,15 @@ function submitAction(modal, path, table, callback, close) {
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
                 }
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                });
+                if (table) {
+                    table.ajax.reload(function (json) {
+                        if (data !== undefined) {
+                            $('#myInput').val(json.lastInput);
+                        }
+                    });
+                }
 
-                clearModal(modal);
+                if (clear) clearModal(modal);
 
                 if (callback !== null) callback(data);
         }, 'json');
@@ -436,7 +440,28 @@ function ajaxAutoCompleteTransporteurInit(select) {
 let ajaxAutoRefArticleInit = function (select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
+            url: Routing.generate('get_refArticles', {activeOnly: 1}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }        },
+        minimumInputLength: 1,
+    });
+};
+
+let ajaxAutoArticlesInit = function (select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articles', {activeOnly: 1}, true),
             dataType: 'json',
             delay: 250,
         },
@@ -525,6 +550,7 @@ function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
+        alertSuccessMsg('La fréquence a bien été créée.');
         modal.find('.close').click();
     }
 }
@@ -578,13 +604,20 @@ function adjustScalesForDoc(response) {
     return doc;
 }
 
-function alertErrorMsg(data) {
+function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
+        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
         $alertDanger.find('.error-msg').html(data);
     }
+}
+
+function alertSuccessMsg(data) {
+    let $alertSuccess = $('#alerts').find('.alert-success');
+    $alertSuccess.removeClass('d-none');
+    $alertSuccess.delay(2000).fadeOut(2000);
+    $alertSuccess.find('.confirm-msg').html(data);
 }
 
 function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
@@ -629,4 +662,32 @@ function toggleActiveButton($button, table) {
         .columns('Active:name')
         .search(value)
         .draw();
+}
+
+function initSearchDate(table) {
+    $.fn.dataTable.ext.search.push(
+        function (settings, data) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let indexDate = table.column('date:name').index();
+
+            if (typeof indexDate === "undefined") return true;
+
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin === "" && dateMax === "")
+                ||
+                (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+    );
 }
