@@ -385,5 +385,4 @@ class InventoryParamController extends AbstractController
 			return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
 		}
 	}
-
 }
