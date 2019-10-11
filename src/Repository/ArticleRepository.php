@@ -5,6 +5,9 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
+use App\Entity\InventoryMission;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -175,6 +178,26 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	public function getIdAndRefBySearch($search, $activeOnly = false)
+	{
+		$em = $this->getEntityManager();
+
+		$dql = "SELECT a.id, a.reference as text
+          FROM App\Entity\Article a
+          LEFT JOIN a.statut s
+          WHERE a.reference LIKE :search";
+
+		if ($activeOnly) {
+			$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+		}
+
+		$query = $em
+			->createQuery($dql)
+			->setParameter('search', '%' . $search . '%');
+
+		return $query->execute();
+	}
+
     public function getRefByRecep($id)
     {
         $entityManager = $this->getEntityManager();
@@ -200,6 +223,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param Statut $statut
+	 * @return Article[]
+	 */
 	public function findByRefArticleAndStatut($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();
@@ -356,14 +384,27 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countActiveArticles()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            JOIN a.statut s
+            WHERE s.nom = :active"
+		)->setParameter('active', Article::STATUT_ACTIF);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function countAll()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
-            FROM App\Entity\Article a
-           "
-        );
+            FROM App\Entity\Article a"
+		);
 
         return $query->getSingleScalarResult();
     }
@@ -376,6 +417,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+		/** @lang DQL */
 			"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.quantite > :limit"
@@ -391,6 +433,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+		/** @lang DQL */
 			"SELECT a1
 			FROM App\Entity\Article a1
 			WHERE a1.reference IN (
@@ -406,6 +449,7 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+			/** @lang DQL */
 			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
@@ -451,7 +495,8 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT a
+		/** @lang DQL */
+		"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.reference = :reference"
 		)->setParameter('reference', $reference);
@@ -459,10 +504,27 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 */
+	public function findByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->execute();
+	}
+
     public function countByEmplacement($emplacementId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
             "SELECT COUNT(a)
 			FROM App\Entity\Article a
 			JOIN a.emplacement e
@@ -470,5 +532,81 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('emplacementId', $emplacementId);
 
         return $query->getSingleScalarResult();
+    }
+
+	/**
+	 * @param InventoryMission $mission
+	 * @return mixed
+	 */
+    public function getByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        	/** @lang DQL */
+            "SELECT a.label, a.reference, a.hasInventoryAnomaly, a.id
+            FROM App\Entity\Article a
+            JOIN a.inventoryMissions m
+            LEFT JOIN a.inventoryEntries e
+            WHERE m = :mission"
+        )->setParameter('mission', $mission);
+
+        return $query->execute();
+    }
+
+
+    /**
+     * @param InventoryMission $mission
+     * @param int $artId
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getEntryDateByMission($mission, $artId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT e.date
+            FROM App\Entity\InventoryEntry e
+            WHERE e.mission = :mission AND e.article = :art"
+        )->setParameters([
+            'mission' => $mission,
+            'art' => $artId
+        ]);
+        return $query->getOneOrNullResult();
+    }
+
+    public function countByMission($mission)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\InventoryMission im
+            LEFT JOIN im.articles a
+            WHERE im = :mission
+"
+        )->setParameter('mission', $mission);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function getIdAndReferenceBySearch($search, $activeOnly = false)
+    {
+        $em = $this->getEntityManager();
+
+        $dql = "SELECT a.id as id, a.reference as text
+          FROM App\Entity\Article a
+          LEFT JOIN a.statut s
+          WHERE a.reference LIKE :search";
+
+        if ($activeOnly) {
+            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+        }
+
+        $query = $em
+            ->createQuery($dql)
+            ->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
     }
 }

@@ -116,11 +116,44 @@ class ReferenceArticle
 	 */
 	private $expiryDate;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
+     */
+    private $category;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="refArticle")
+     */
+    private $inventoryEntries;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryCategoryHistory", mappedBy="refArticle")
+     */
+    private $inventoryCategoryHistory;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", mappedBy="refArticles")
+     */
+    private $inventoryMissions;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
+	/**
+	 * @ORM\Column(type="boolean")
+	 */
+    private $hasInventoryAnomaly = false;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateLastInventory;
+
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
-        $this->demandes = new ArrayCollection();
         $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
@@ -128,6 +161,9 @@ class ReferenceArticle
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->inventoryCategoryHistory = new ArrayCollection();
+        $this->inventoryMissions = new ArrayCollection();
     }
 
     public function getId()
@@ -546,6 +582,145 @@ class ReferenceArticle
     public function setExpiryDate(?\DateTimeInterface $expiryDate): self
     {
         $this->expiryDate = $expiryDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getInventoryEntries(): Collection
+    {
+        return $this->inventoryEntries;
+    }
+
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getRefArticle() === $this) {
+                $inventoryEntry->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryCategoryHistory[]
+     */
+    public function getInventoryCategoryHistory(): Collection
+    {
+        return $this->inventoryCategoryHistory;
+    }
+
+    public function addInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        if (!$this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory[] = $inventoryCategoryHistory;
+            $inventoryCategoryHistory->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        if ($this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory->removeElement($inventoryCategoryHistory);
+            // set the owning side to null (unless already changed)
+            if ($inventoryCategoryHistory->getRefArticle() === $this) {
+                $inventoryCategoryHistory->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+    public function getCategory(): ?InventoryCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?InventoryCategory $category): self
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
+    public function getHasInventoryAnomaly(): ?bool
+    {
+        return $this->hasInventoryAnomaly;
+    }
+
+    public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
+    {
+        $this->hasInventoryAnomaly = $hasInventoryAnomaly;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
+    }
+
+    public function addInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if (!$this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions[] = $inventoryMission;
+            $inventoryMission->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if ($this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions->removeElement($inventoryMission);
+            $inventoryMission->removeRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getDateLastInventory(): ?\DateTimeInterface
+    {
+        return $this->dateLastInventory;
+    }
+
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    {
+        $this->dateLastInventory = $dateLastInventory;
 
         return $this;
     }
