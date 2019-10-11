@@ -346,7 +346,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 				->leftJoin('ra.valeurChampsLibres', 'vcl');
 		}
 
-		$countQuery = $qb->getQuery()->execute();
+		$countQuery = $qb->getQuery()->getSingleScalarResult();
 
 		if (!empty($params)) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
