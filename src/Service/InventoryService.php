@@ -76,6 +76,9 @@ class InventoryService
 				->setComment($comment)
 				->setQuantity(abs($diff));
 
+			$emplacement = $refOrArt->getEmplacement();
+			$mvt->setEmplacementFrom($emplacement);
+			$mvt->setEmplacementTo($emplacement);
 			if ($isRef) {
 				$mvt->setRefArticle($refOrArt);
 				//TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
