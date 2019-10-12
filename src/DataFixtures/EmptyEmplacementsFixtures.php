@@ -36,14 +36,28 @@ class EmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $emplacementDef = $this->emplacementRepository->findOneByLabel('A définir');
-        $query = $this->em->createQuery(
-        /** @lang DQL */
-            "UPDATE App\Entity\ReferenceArticle ra
+
+        if ($emplacementDef) {
+            $query = $this->em->createQuery(
+            /** @lang DQL */
+                "UPDATE App\Entity\ReferenceArticle ra
             SET ra.emplacement = :emplacement
             WHERE ra.emplacement IS NULL"
-        )->setParameter('emplacement', $emplacementDef);
+            )->setParameter('emplacement', $emplacementDef);
 
-        $query->execute();
+            $query->execute();
+
+            $query = $this->em->createQuery(
+            /** @lang DQL */
+                "UPDATE App\Entity\Article a
+            SET a.emplacement = :emplacement
+            WHERE a.emplacement IS NULL"
+            )->setParameter('emplacement', $emplacementDef);
+
+            $query->execute();
+        } else {
+            dump('Emplacement "A DEFINIR" n\'existe pas');
+        }
     }
 
     public static function getGroups():array {
