@@ -131,4 +131,143 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findRefByParamsAndMission($mission, $params = null)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('ra')
+            ->from('App\Entity\ReferenceArticle', 'ra')
+            ->join('ra.inventoryMissions', 'm')
+            ->where('m = :mission')
+            ->setParameter('mission', $mission);
+
+        $countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+        $allArticleDataTable = null;
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+                $countQuery = count($qb->getQuery()->getResult());
+            }
+            $allArticleDataTable = $qb->getQuery();
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+        //Filter by date
+		$qb->leftJoin('ra.inventoryEntries', 'ie');
+        
+        if (!empty($params->get('dateMin'))) {
+			$qb
+				->andWhere('ie.date >= :dateMin')
+				->setParameter('dateMin', $params->get('dateMin'));
+			$countQuery = count($qb->getQuery()->getResult());
+			$allArticleDataTable = $qb->getQuery();
+		}
+        if (!empty($params->get('dateMax'))) {
+            $qb
+                ->andWhere('ie.date <= :dateMax')
+                ->setParameter('dateMax', $params->get('dateMax'));
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        }
+        //Filter by anomaly
+        if (!empty($params->get('anomaly'))) {
+            if ($params->get('anomaly') == "false")
+                $anomaly = false;
+            else
+                $anomaly = true;
+            $qb
+                ->andWhere('ra.hasInventoryAnomaly = :anomaly')
+                ->setParameter('anomaly', $anomaly);
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        }
+        $query = $qb->getQuery();
+        return ['data' => $query ? $query->getResult() : null ,
+            'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
+            'count' => $countQuery,
+            'total' => $countTotal
+        ];
+    }
+
+    public function findArtByParamsAndMission($mission, $params = null)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('a')
+            ->from('App\Entity\Article', 'a')
+            ->join('a.inventoryMissions', 'm')
+            ->where('m = :mission')
+            ->setParameter('mission', $mission);
+
+        $countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+        $allArticleDataTable = null;
+        // Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->leftJoin('a.inventoryEntries', 'ie')
+                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+                $countQuery = count($qb->getQuery()->getResult());
+            }
+            $allArticleDataTable = $qb->getQuery();
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+        // Filter by date
+        if (!empty($params->get('dateMin')) && !empty($params->get('dateMax'))) {
+            $qb
+                ->leftJoin('a.inventoryEntries', 'ie')
+                ->andWhere('ie.date BETWEEN :dateMin AND :dateMax')
+                ->setParameter('dateMin', $params->get('dateMin'))
+                ->setParameter('dateMax',$params->get('dateMax'));
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        } else if (!empty($params->get('dateMin')) && empty($params->get('dateMax'))) {
+            $qb
+                ->leftJoin('a.inventoryEntries', 'ie')
+                ->andWhere('ie.date >= :dateMin')
+                ->setParameter('dateMin', $params->get('dateMin'));
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        } else if (empty($params->get('dateMin')) && !empty($params->get('dateMax'))) {
+            $qb
+                ->leftJoin('a.inventoryEntries', 'ie')
+                ->andWhere('ie.date <= :dateMax')
+                ->setParameter('dateMax', $params->get('dateMax'));
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        }
+        // Filter by anomaly
+        if (!empty($params->get('anomaly'))) {
+            if ($params->get('anomaly') == "false")
+                $anomaly = false;
+            else
+                $anomaly = true;
+            $qb
+                ->andWhere('a.hasInventoryAnomaly = :anomaly')
+                ->setParameter('anomaly', $anomaly);
+            $countQuery = count($qb->getQuery()->getResult());
+            $allArticleDataTable = $qb->getQuery();
+        }
+        $query = $qb->getQuery();
+        return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
+            'count' => $countQuery, 'total' => $countTotal];
+    }
 }

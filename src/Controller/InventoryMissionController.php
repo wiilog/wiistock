@@ -12,6 +12,7 @@ use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\InvMissionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,13 +55,19 @@ class InventoryMissionController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    /**
+     * @var InvMissionService
+     */
+    private $invMissionService;
+
+    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, InvMissionService $invMissionService)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->invMissionService = $invMissionService;
     }
 
     /**
@@ -240,43 +247,14 @@ class InventoryMissionController extends AbstractController
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function entryApi(InventoryMission $mission)
+    public function entryApi(InventoryMission $mission, Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $refArray = $this->referenceArticleRepository->getByMission($mission);
-        $artArray = $this->articleRepository->getByMission($mission);
+        $data = $this->invMissionService->getDataForDatatable($mission, $request->request);
 
-        $rows = [];
-        foreach ($refArray as $ref) {
-            // TODO HM
-            $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref['id']);
-            if ($refDate != null)
-               $refDate = $refDate['date']->format('d/m/Y');
-            $rows[] =
-                [
-                    'Label' => $ref['libelle'],
-                    'Ref' => $ref['reference'],
-                    'Date' => $refDate,
-                    'Anomaly' => $ref['hasInventoryAnomaly'] ? 'oui' : 'non'
-                ];
-        }
-        foreach ($artArray as $article) {
-            $artDate = $this->articleRepository->getEntryDateByMission($mission, $article['id']);
-            if ($artDate != null) {
-                $artDate = $artDate['date']->format('d/m/Y');
-            }
-            $rows[] =
-                [
-                    'Label' => $article['label'],
-                    'Ref' => $article['reference'],
-                    'Date' => $artDate,
-                    'Anomaly' => $article['hasInventoryAnomaly'] ? 'oui' : 'non'
-                ];
-        }
-        $data['data'] = $rows;
         return new JsonResponse($data);
     }
 
