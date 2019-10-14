@@ -24,7 +24,11 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
-$.fn.dataTable.ext.errMode = () => alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+$.fn.dataTable.ext.errMode = (resp) => {
+    console.log(resp);
+    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+}
+
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
