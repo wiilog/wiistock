@@ -234,4 +234,5 @@ class ChampLibreRepository extends ServiceEntityRepository
         );
         return $query->execute();
     }
+
 }

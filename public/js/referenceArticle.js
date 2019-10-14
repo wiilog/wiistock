@@ -219,33 +219,37 @@ $(function () {
 
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        tableRefArticle = $('#tableRefArticle_id').DataTable({
-            processing: true,
-            serverSide: true,
-            sortable: false,
-            ordering: false,
-            paging: true,
-            scrollX: true,
-            order: [[1, 'asc']],
-            ajax: {
-                'url': url,
-                'type': 'POST',
-                'dataSrc': function (json) {
-                    return json.data;
-                }
-            },
-            initComplete: function() {
-                loadSpinnerAR($('#spinner'));
-                initRemove();
-                hideAndShowColumns();
-                overrideSearch();
-            },
-            length: 10,
-            columns: columns,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-        });
+        tableRefArticle = $('#tableRefArticle_id')
+            .on('error.dt', function(e, settings, technote, message) {
+            console.log(message);
+        })
+            .DataTable({
+                processing: true,
+                serverSide: true,
+                sortable: false,
+                ordering: false,
+                paging: true,
+                scrollX: true,
+                order: [[1, 'asc']],
+                ajax: {
+                    'url': url,
+                    'type': 'POST',
+                    'dataSrc': function (json) {
+                        return json.data;
+                    }
+                },
+                initComplete: function() {
+                    loadSpinnerAR($('#spinner'));
+                    initRemove();
+                    hideAndShowColumns();
+                    overrideSearch();
+                },
+                length: 10,
+                columns: columns,
+                language: {
+                    url: "/js/i18n/dataTableLanguage.json",
+                },
+            });
     });
 }
 
