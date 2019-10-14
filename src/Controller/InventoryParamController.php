@@ -447,7 +447,9 @@ class InventoryParamController extends AbstractController
 				$rows[] = array_map('utf8_encode', $data);
 			}
 
-            if (!file_exists('./uploads/log')) {
+			array_shift($rows); // supprime la 1è ligne d'en-têtes
+
+			if (!file_exists('./uploads/log')) {
             	mkdir('./uploads/log', 0777, true);
 			}
 			$path = '../public/uploads/log/';
