@@ -101,6 +101,8 @@ let tableFrequencies = $('#tableFrequencies').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    searching: false,
+    info: false,
     ajax:{
         "url": pathFrequencies,
         "type": "POST"
