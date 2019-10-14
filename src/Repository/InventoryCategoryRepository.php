@@ -55,5 +55,16 @@ class InventoryCategoryRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function countByFrequency($frequency)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(c)
+            FROM App\Entity\InventoryCategory c
+            WHERE c.frequency = :frequency"
+        )->setParameter('frequency', $frequency);
 
+        return $query->getSingleScalarResult();
+    }
 }

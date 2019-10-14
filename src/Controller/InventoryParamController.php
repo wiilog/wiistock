@@ -279,31 +279,140 @@ class InventoryParamController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/select-frequences", name="frequency_select", options={"expose"=true}, methods="GET|POST")
-	 */
-    public function getSelectFrequencies(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest()) {
-			$frequencies = $this->inventoryFrequencyRepository->findAll();
+    /**
+     * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiFrequencies(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-			return new JsonResponse($this->renderView('inventaire_param/selectFrequencies.html.twig', ['frequencies' => $frequencies]));
-		}
-		throw new NotFoundHttpException('404');
-	}
+            $frequencies = $this->inventoryFrequencyRepository->findAll();
+            $rows = [];
+            foreach ($frequencies as $frequency) {
+                $url['edit'] = $this->generateUrl('frequency_api_edit', ['id' => $frequency->getId()]);
 
-	/**
-	 * @Route("/liste-frequences", name="frequency_list", options={"expose"=true}, methods="GET|POST")
-	 */
-	public function getListFrequencies(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest()) {
-			$frequencies = $this->inventoryFrequencyRepository->findAll();
+                $rows[] =
+                    [
+                        'Label' => $frequency->getLabel(),
+                        'NbMonths' => $frequency->getNbMonths() . ' mois',
+                        'Actions' => $frequency->getId(),
+                        'Actions' => $this->renderView('inventaire_param/datatableFrequencyRow.html.twig', [
+                            'url' => $url,
+                            'frequencyId' => $frequency->getId(),
+                        ]),
+                    ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
-			return new JsonResponse($this->renderView('inventaire_param/modalShowFrequenciesContent.html.twig', ['frequencies' => $frequencies]));
-		}
-		throw new NotFoundHttpException('404');
-	}
+    /**
+     * @Route("/apiFrequence-modifier", name="frequency_api_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiEditFrequency(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $frequency = $this->inventoryFrequencyRepository->find($data['id']);
+
+            $json = $this->renderView('inventaire_param/modalEditFrequencyContent.html.twig', [
+                'frequency' => $frequency,
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/frequence-modifier", name="frequency_edit",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function editFrequency(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getEntityManager();
+            $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+            $frequencyLabel = $frequency->getLabel();
+
+            // on vérifie que le label n'est pas déjà utilisé
+            $labelExist = $this->inventoryFrequencyRepository->countByLabelDiff($data['label'], $frequencyLabel);
+
+            if (!$labelExist) {
+                $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
+                $frequency
+                    ->setLabel($data['label'])
+                    ->setNbMonths($data['nbMonths']);
+
+                $em->persist($frequency);
+                $em->flush();
+
+                return new JsonResponse();
+            } else {
+                return new JsonResponse(false);
+            }
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/frequence-verification", name="frequency_check_delete", options={"expose"=true})
+     */
+    public function checkFrequencyCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $frequencyId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $frequencyIsUsed = $this->inventoryCategoryRepository->countByFrequency($frequencyId);
+
+            if (!$frequencyIsUsed) {
+                $delete = true;
+                $html = $this->renderView('inventaire_param/modalDeleteFrequencyRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('inventaire_param/modalDeleteFrequencyWrong.html.twig');
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/frequence-supprimer", name="frequency_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteFrequency(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $frequency = $this->inventoryFrequencyRepository->find($data['category']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($frequency);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+
+
 
 	/**
 	 * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
