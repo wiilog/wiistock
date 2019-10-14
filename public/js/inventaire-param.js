@@ -133,10 +133,12 @@ function displayErrorFrequencyAndUpdateList(data) {
     let msg = null;
     if (data === false) {
         msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
+        displayError(modal, msg, data);
     } else {
+        modal.find('.close').click();
         msg = 'La fréquence a bien été créée.'
+        alertSuccessMsg(msg);
     }
-    displayError(modal, msg, data);
 }
 
 function displayErrorFrequencyEdit(data) {

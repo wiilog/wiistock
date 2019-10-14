@@ -555,7 +555,6 @@ function displayError(modal, msg, success) {
         modal.find('.error-msg').html(msg);
     } else {
         modal.find('.close').click();
-        alertSuccessMsg(msg);
     }
 }
 
