@@ -125,20 +125,6 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete/ref", name="get_refArticles", options={"expose"=true})
-     */
-    public function getRefArticlesSelect(Request $request, $activeOnly = false)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-
-            $refArticles = $this->referenceArticleRepository->getIdAndReferenceBySearch($search, $activeOnly);
-            return new JsonResponse(['results' => $refArticles]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/autocomplete", name="get_articles", options={"expose"=true})
      */
     public function getArticlesSelect(Request $request, $activeOnly = false)
@@ -175,7 +161,7 @@ class InventoryMissionController extends AbstractController
             $em->persist($mission);
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }

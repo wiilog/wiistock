@@ -320,7 +320,7 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getDataForDatatable($request->request);
+            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -741,18 +741,18 @@ class ReferenceArticleController extends Controller
     }
 
 	/**
-	 * @Route("/autocomplete-ref/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
 	 *
 	 * @param Request $request
 	 * @param bool $activeOnly
 	 * @return JsonResponse
 	 */
-    public function getRefArticles(Request $request, $activeOnly = false)
+    public function getRefArticles(Request $request, $activeOnly = false, $typeQuantity = null)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
+            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
 
             return new JsonResponse(['results' => $refArticles]);
         }

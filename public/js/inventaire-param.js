@@ -30,34 +30,27 @@ let SubmitDeleteCategory = $("#submitDeleteCategory");
 let urlDeleteCategory = Routing.generate('category_delete', true)
 InitialiserModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, tableCategories);
 
-let ModalDeleteFrequency = $("#modalNewFrequency");
-let SubmitDeleteFrequency = $("#submitNewFrequency");
-let urlDeleteFrequency = Routing.generate('frequency_new', true)
-InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, null, displayErrorFrequencyAndUpdateList, false);
 
 function displayErrorCategorie(data) {
     let modal = $("#modalNewCategorie");
-    let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    let msg = null;
+    if (data === false) {
+        msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    } else {
+        msg = 'La catégorie a bien été créée.'
+    }
     displayError(modal, msg, data);
 }
 
 function displayErrorCategorieEdit(data) {
     let modal = $("#modalEditCategory");
-    let msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    let msg = null;
+    if (data === false) {
+        msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+    } else {
+        msg = 'La catégorie a bien été modifiée';
+    }
     displayError(modal, msg, data);
-}
-
-function displayErrorFrequencyAndUpdateList(data) {
-    let modal = $("#modalNewFrequency");
-    let msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
-    displayError(modal, msg, data);
-    updateListFrequencies();
-}
-
-function updateListFrequencies() {
-    $.post(Routing.generate('frequency_select', true), function(data) {
-       $('#frequencies').html(data);
-    });
 }
 
 function importFile() {
@@ -103,8 +96,84 @@ function importFile() {
     }
 }
 
-function showFrequencies() {
-    $.post(Routing.generate('frequency_list', true), function(data) {
-        $('#modalShowFrequencies').find('.modal-body').html(data);
+let pathFrequencies = Routing.generate('invParamFrequencies_api', true);
+let tableFrequencies = $('#tableFrequencies').DataTable({
+    "language": {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    ajax:{
+        "url": pathFrequencies,
+        "type": "POST"
+    },
+    columns:[
+        { "data": 'Label', 'title' : 'Label' },
+        { "data": 'NbMonths', 'title' : 'Nombre de mois' },
+        { "data": 'Actions', 'title' : 'Actions' }
+    ],
+});
+
+let ModalNewFrequency = $("#modalNewFrequency");
+let SubmitNewFrequency = $("#submitNewFrequency");
+let urlNewFrequency = Routing.generate('frequency_new', true);
+InitialiserModal(ModalNewFrequency, SubmitNewFrequency, urlNewFrequency, tableFrequencies, displayErrorFrequencyAndUpdateList, false);
+
+
+let modalEditFrequency = $('#modalEditFrequency');
+let submitEditFrequency = $('#submitEditFrequency');
+let urlEditFrequency = Routing.generate('frequency_edit', true);
+InitialiserModal(modalEditFrequency, submitEditFrequency, urlEditFrequency, tableFrequencies, displayErrorFrequencyEdit, false, false);
+
+let ModalDeleteFrequency = $("#modalDeleteFrequency");
+let SubmitDeleteFrequency = $("#submitDeleteFrequency");
+let urlDeleteFrequency = Routing.generate('frequency_delete', true)
+InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, tableFrequencies, openModalShow);
+
+function displayErrorFrequencyAndUpdateList(data) {
+    let modal = $("#modalNewFrequency");
+    let msg = null;
+    if (data === false) {
+        msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
+        displayError(modal, msg, data);
+    } else {
+        modal.find('.close').click();
+        msg = 'La fréquence a bien été créée.'
+        alertSuccessMsg(msg);
+    }
+}
+
+function displayErrorFrequencyEdit(data) {
+    let modal = $("#modalEditFrequency");
+    let msg = null;
+    if (data === false) {
+        msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
+    } else {
+        msg = 'La fréquence a bien été modifiée.';
+    }
+    displayError(modal, msg, data);
+}
+
+function openModalShow(data) {
+    if (data) {
+        $('#showFrequencies').click();
+    }
+}
+
+
+function downloadModele() {
+    const pathFile = '../uploads/modele/';
+    const pathWithFileName = pathFile.concat('modeleImportCategorie.csv');
+    const $link = $('<a/>', {
+        href: pathWithFileName,
+        download: 'modeleImportCategorie.csv',
+        hidden: true
     });
+
+    $('body').append($link);
+    $link.on('click', function (e)  {
+        e.preventDefault();  //stop the browser from following
+        window.location.href = $link.attr('href');
+    });
+
+    $link.trigger('click');
+    $link.remove();
 }

@@ -163,13 +163,6 @@ class RefArticleDataService
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $data = $this->getRefArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
-        return $data;
-    }
-
     /**
      * @param null $params
      * @return array
@@ -189,7 +182,7 @@ class RefArticleDataService
         return [
         	'data' => $rows,
 			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total']
+			'recordsTotal' => $this->referenceArticleRepository->countAll()
 		];
     }
 
@@ -377,15 +370,12 @@ class RefArticleDataService
 
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        foreach ($champsLibres as $champLibre) {
-            $champ = $this->champLibreRepository->find($champLibre['id']);
-            $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champ); /** @var ValeurChampLibre $valeur */
-            $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-        }
+		$rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
+		$rowCL = [];
+		foreach ($rows as $row) {
+			$rowCL[$row['label']] = $row['valeur'];
+		}
+
         $totalQuantity = 0;
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);

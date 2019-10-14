@@ -24,7 +24,11 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * 
  */
 
-$.fn.dataTable.ext.errMode = () => alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+$.fn.dataTable.ext.errMode = (resp) => {
+    console.log(resp);
+    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+}
+
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
@@ -437,10 +441,10 @@ function ajaxAutoCompleteTransporteurInit(select) {
     });
 }
 
-let ajaxAutoRefArticleInit = function (select) {
+let ajaxAutoRefArticleInit = function (select, typeQuantity = null) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_refArticles', {activeOnly: 1}, true),
+            url: Routing.generate('get_ref_articles', {activeOnly: 1, typeQuantity}, true),
             dataType: 'json',
             delay: 250,
         },
@@ -550,7 +554,6 @@ function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
     } else {
-        alertSuccessMsg('La fréquence a bien été créée.');
         modal.find('.close').click();
     }
 }
@@ -569,7 +572,7 @@ function clearModal(modal) {
         //TODO CG protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
