@@ -7,15 +7,4 @@
         </div>
     </div>
 
-    <div>
-        <div class="input-group maxw-250px">
-            <select class="form-control data select2" name="emplacement" id="emplacement">
-                <option></option>
-                {% for emplacement in emplacements %}
-                    <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
 {% endblock %}

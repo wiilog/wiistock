@@ -23,6 +23,8 @@ use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\InventoryCategoryRepository;
+use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
@@ -119,6 +121,16 @@ class RefArticleDataService
      */
     private $user;
 
+    /**
+     * @var InventoryFrequencyRepository
+     */
+    private $inventoryFrequencyRepository;
+
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
+
     private $em;
 
     /**
@@ -127,7 +139,7 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -147,13 +159,8 @@ class RefArticleDataService
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-    }
-
-    public function getDataForDatatable($params = null)
-    {
-        $data = $this->getRefArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
-        return $data;
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
+        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
     /**
@@ -175,7 +182,7 @@ class RefArticleDataService
         return [
         	'data' => $rows,
 			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total']
+			'recordsTotal' => $this->referenceArticleRepository->countAll()
 		];
     }
 
@@ -219,12 +226,21 @@ class RefArticleDataService
         ];
     }
 
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param bool $isADemand
+     * @return string
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
+        $categories = $this->inventoryCategoryRepository->findAll();
         $typeChampLibre =  [];
         foreach ($types as $type) {
             $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -256,6 +272,7 @@ class RefArticleDataService
             'articlesFournisseur' => ($data['listArticlesFournisseur']),
             'totalQuantity' => $data['totalQuantity'],
             'articles' => $articlesFournisseur,
+            'categories' => $categories,
             'isADemand' => $isADemand
         ]);
         return $view;
@@ -275,6 +292,8 @@ class RefArticleDataService
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
+        $category = $this->inventoryCategoryRepository->find($data['categorie']);
+        $price = max(0, $data['prix']);
         $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
@@ -302,6 +321,8 @@ class RefArticleDataService
                         $entityManager->persist($articleFournisseur);
                     }
                 }
+                if (isset($data['categorie'])) $refArticle->setCategory($category);
+                if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
@@ -349,15 +370,12 @@ class RefArticleDataService
 
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        foreach ($champsLibres as $champLibre) {
-            $champ = $this->champLibreRepository->find($champLibre['id']);
-            $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champ); /** @var ValeurChampLibre $valeur */
-            $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-        }
+		$rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
+		$rowCL = [];
+		foreach ($rows as $row) {
+			$rowCL[$row['label']] = $row['valeur'];
+		}
+
         $totalQuantity = 0;
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);

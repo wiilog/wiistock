@@ -126,11 +126,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
-
         // action oui
         $menus = [
-            Menu::PARAM,
-            Menu::INDICS_ACCUEIL
+            Menu::PARAM
         ];
 
         $actionLabel = Action::YES;
@@ -145,6 +143,52 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     ->setMenu($this->getReference('menu-' . $menu));
                 $manager->persist($action);
                 dump("création de l'action " . $menu . " / " . $actionLabel);
+            }
+        }
+
+        // actions de type lister
+        $menus = [
+            Menu::INVENTAIRE
+        ];
+
+        $actionLabels = [Action::LIST, Action::INVENTORY_MANAGER];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
+            }
+        }
+
+        // actions du menu accueil
+        $menus = [
+            Menu::INDICS_ACCUEIL
+        ];
+
+        $actionLabels = [Action::REFERENCE, Action::MONETAIRE];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
             }
         }
 

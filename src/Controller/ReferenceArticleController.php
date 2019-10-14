@@ -20,6 +20,9 @@ use App\Entity\Collecte;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\InventoryCategoryRepository;
+use App\Repository\InventoryFrequencyRepository;
+use App\Repository\MouvementStockRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -174,11 +177,26 @@ class ReferenceArticleController extends Controller
     private $dimensionsEtiquettesRepository;
 
     /**
+     * @var InventoryFrequencyRepository
+     */
+    private $inventoryFrequencyRepository;
+
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
+
+    /**
+     * @var MouvementStockRepository
+     */
+    private $mouvementStockRepository;
+
+    /**
      * @var object|string
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -203,6 +221,9 @@ class ReferenceArticleController extends Controller
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
+        $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
@@ -299,7 +320,7 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getDataForDatatable($request->request);
+            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -359,12 +380,16 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
+            $category = $this->inventoryCategoryRepository->find($data['categorie']);
+            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
+                ->setPrixUnitaire($price)
                 ->setType($type)
+                ->setCategory($category)
                 ->setEmplacement($emplacement);
 
             if ($statut) $refArticle->setStatut($statut);
@@ -557,6 +582,7 @@ class ReferenceArticleController extends Controller
 		});
 
         $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $inventoryCategories = $this->inventoryCategoryRepository->findAll();
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
@@ -580,6 +606,7 @@ class ReferenceArticleController extends Controller
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
+            'categories' => $inventoryCategories,
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
@@ -714,23 +741,43 @@ class ReferenceArticleController extends Controller
     }
 
 	/**
-	 * @Route("/autocomplete/{activeOnly}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
 	 *
 	 * @param Request $request
 	 * @param bool $activeOnly
 	 * @return JsonResponse
 	 */
-    public function getRefArticles(Request $request, $activeOnly = false)
+    public function getRefArticles(Request $request, $activeOnly = false, $typeQuantity = null)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search, $activeOnly);
+            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
 
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/autocomplete-ref-and-article/{activeOnly}", name="get_ref_and_articles", options={"expose"=true}, methods="GET|POST")
+	 *
+	 * @param Request $request
+	 * @param bool $activeOnly
+	 * @return JsonResponse
+	 */
+	public function getRefAndArticles(Request $request, $activeOnly = false)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$search = $request->query->get('term');
+
+			$refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
+			$articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+
+			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
+		}
+		throw new NotFoundHttpException("404");
+	}
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
@@ -1137,5 +1184,50 @@ class ReferenceArticleController extends Controller
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST")
+     */
+    public function showMovements(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            if ($ref = $this->referenceArticleRepository->find($data)) {
+                $name = $ref->getLibelle();
+            }
+
+           return new JsonResponse($this->renderView('reference_article/modalShowMouvementsContent.html.twig', [
+               'refLabel' => $name?? ''
+           ]));
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiMouvements(Request $request, $id): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+
+            $mouvements = $this->mouvementStockRepository->findByRef($id);
+
+            $rows = [];
+            foreach ($mouvements as $mouvement) {
+                $rows[] =
+                    [
+                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y') : 'aucune',
+                        'Quantity' => $mouvement->getQuantity(),
+                        'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
+                        'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
+                        'Type' => $mouvement->getType(),
+                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
+                    ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
 }

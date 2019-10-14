@@ -16,7 +16,6 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
-
         $.post(path, JSON.stringify(Data), function(data) {
 
             if (data.new) {
@@ -220,33 +219,37 @@ $(function () {
 
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        tableRefArticle = $('#tableRefArticle_id').DataTable({
-            processing: true,
-            serverSide: true,
-            sortable: false,
-            ordering: false,
-            paging: true,
-            scrollX: true,
-            order: [[1, 'asc']],
-            ajax: {
-                'url': url,
-                'type': 'POST',
-                'dataSrc': function (json) {
-                    return json.data;
-                }
-            },
-            initComplete: function() {
-                loadSpinnerAR($('#spinner'));
-                initRemove();
-                hideAndShowColumns();
-                overrideSearch();
-            },
-            length: 10,
-            columns: columns,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-        });
+        tableRefArticle = $('#tableRefArticle_id')
+            .on('error.dt', function(e, settings, technote, message) {
+            console.log(message);
+        })
+            .DataTable({
+                processing: true,
+                serverSide: true,
+                sortable: false,
+                ordering: false,
+                paging: true,
+                scrollX: true,
+                order: [[1, 'asc']],
+                ajax: {
+                    'url': url,
+                    'type': 'POST',
+                    'dataSrc': function (json) {
+                        return json.data;
+                    }
+                },
+                initComplete: function() {
+                    loadSpinnerAR($('#spinner'));
+                    initRemove();
+                    hideAndShowColumns();
+                    overrideSearch();
+                },
+                length: 10,
+                columns: columns,
+                language: {
+                    url: "/js/i18n/dataTableLanguage.json",
+                },
+            });
     });
 }
 
@@ -672,5 +675,39 @@ function displayActifOrInactif(select){
     $.post(path, JSON.stringify(params), function(){
         tableRefArticle.ajax.reload();
     });
+}
+
+function initDatatableMovements(id) {
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
+    let tableRefMouvements = $('#tableMouvements').DataTable({
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathRefMouvements,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Quantity', 'title': 'Quantité'},
+            {"data": 'Origin', 'title': 'Origine'},
+            {"data": 'Destination', 'title': 'Destination'},
+            {"data": 'Type', 'title': 'Type'},
+            {"data": 'Operator', 'title': 'Opérateur'}
+        ],
+    });
+}
+
+function showRowMouvements(button) {
+
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+    let path = Routing.generate('ref_mouvements_list', true);
+    let modal = $('#modalShowMouvements');
+
+    $.post(path, params, function (data) {
+        modal.find('.modal-body').html(data);
+        initDatatableMovements(id);
+    }, 'json');
 }
 
