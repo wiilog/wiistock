@@ -320,7 +320,7 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getDataForDatatable($request->request);
+            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

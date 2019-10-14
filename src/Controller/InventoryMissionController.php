@@ -161,7 +161,7 @@ class InventoryMissionController extends AbstractController
             $em->persist($mission);
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
