@@ -572,7 +572,7 @@ function clearModal(modal) {
         //TODO CG protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
