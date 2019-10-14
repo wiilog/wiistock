@@ -110,13 +110,20 @@ function showFrequencies() {
 }
 
 function downloadModele() {
-    let pathFile = '../uploads/modele/';
-    let pathWithFileName = pathFile.concat('modeleImportCategorie.csv');
-    let link = document.createElement("a");
-    link.setAttribute("href", pathWithFileName);
-    link.setAttribute("download", 'modeleImportCategorie.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const pathFile = '../uploads/modele/';
+    const pathWithFileName = pathFile.concat('modeleImportCategorie.csv');
+    const $link = $('<a/>', {
+        href: pathWithFileName,
+        download: 'modeleImportCategorie.csv',
+        hidden: true
+    });
+
+    $('body').append($link);
+    $link.on('click', function (e)  {
+        e.preventDefault();  //stop the browser from following
+        window.location.href = $link.attr('href');
+    });
+
+    $link.trigger('click');
+    $link.remove();
 }
