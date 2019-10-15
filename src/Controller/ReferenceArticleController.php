@@ -1061,8 +1061,8 @@ class ReferenceArticleController extends Controller
     		$arrayF[] = $fournisseurAndAF['nom'];
 		}
 
-    	$stringArticlesFournisseur = implode('/', $arrayAF);
-    	$stringFournisseurs = implode('/', $arrayF);
+    	$stringArticlesFournisseur = implode(' / ', $arrayAF);
+    	$stringFournisseurs = implode(' / ', $arrayF);
 
         $refData[] = $ref->getReference();
         $refData[] = $ref->getLibelle();
