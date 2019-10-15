@@ -380,7 +380,7 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
-            $category = $this->inventoryCategoryRepository->find($data['categorie']);
+
             $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
@@ -389,9 +389,10 @@ class ReferenceArticleController extends Controller
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire($price)
                 ->setType($type)
-                ->setCategory($category)
                 ->setEmplacement($emplacement);
 
+            $category = $this->inventoryCategoryRepository->find($data['categorie']);
+            if ($category) $refArticle->setCategory($category);
             if ($statut) $refArticle->setStatut($statut);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
