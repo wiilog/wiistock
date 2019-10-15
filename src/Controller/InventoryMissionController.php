@@ -125,20 +125,6 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_articles", options={"expose"=true})
-     */
-    public function getArticlesSelect(Request $request, $activeOnly = false)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-
-            $articles = $this->articleRepository->getIdAndReferenceBySearch($search, $activeOnly);
-            return new JsonResponse(['results' => $articles]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST")
      */
     public function new(Request $request): Response
