@@ -38,9 +38,17 @@ InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tabl
 
 function displayErrorMision(data) {
     let modal = $("#modalNewMission");
-    let msg = 'La date de début doit être antérieure à celle de fin.';
-    displayError(modal, msg, data);
+    let msg = null;
+    if (data === false) {
+        msg = 'La date de début doit être antérieure à celle de fin.';
+        displayError(modal, msg, data);
+    } else {
+        modal.find('.close').click();
+        msg = 'La mission d\'inventaire a bien été créée.';
+        alertSuccessMsg(msg);
+    }
 }
+
 
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);

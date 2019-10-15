@@ -8,7 +8,7 @@
 <div class='d-flex justify-content-end'>
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
-        onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), clearNewArticleContent($('#submitNewArticle'))">
+        onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
         <i class="fa fa-plus mr-2"></i>Nouvel article
     </div>
     {% endif %}
