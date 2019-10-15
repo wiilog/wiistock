@@ -1,17 +1,21 @@
 <?php
 
 namespace App\Entity;
-
+use App\Annotation\BarcodeAnnotation as IsBarcode;
+use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints\DateTime;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
  */
 class Arrivage
 {
+
+    use BarcodeTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -81,6 +85,7 @@ class Arrivage
 
     /**
      * @ORM\Column(type="string", length=32, nullable=true)
+     * @IsBarcode(getter="getNumeroArrivage")
      */
     private $numeroArrivage;
 
@@ -299,10 +304,8 @@ class Arrivage
         return $this->numeroArrivage;
     }
 
-    public function setNumeroArrivage(string $numeroArrivage): self
-    {
-        $this->numeroArrivage = $numeroArrivage;
-
+    public function setNumeroArrivage(string $numeroArrivage): self {
+        $this->numeroArrivage = self::stripAccent($numeroArrivage);
         return $this;
     }
 

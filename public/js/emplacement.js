@@ -47,7 +47,7 @@ InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmpla
 let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, closeEditModal, false);
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
@@ -70,6 +70,11 @@ function displayErrorEmplacement(data) {
     let modal = $("#modalNewEmplacement");
     let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
     displayError(modal, msg, data);
+}
+
+function closeEditModal() {
+    const modal = $("#modalEditEmplacement");
+    modal.find('.close').click();
 }
 
 function overrideSearch() {

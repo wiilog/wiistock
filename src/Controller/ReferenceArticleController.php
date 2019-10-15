@@ -407,7 +407,7 @@ class ReferenceArticleController extends Controller
                 if ($refFournisseurAlreadyExist) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => 'Ce nom de référence article fournnisseur existe déjà. Vous ne pouvez pas le recréer.'
+                        'msg' => 'Ce nom de référence article fournisseur existe déjà. Vous ne pouvez pas le recréer.'
                     ]);
                 }
 
@@ -1133,6 +1133,8 @@ class ReferenceArticleController extends Controller
         $data = json_decode($request->getContent(), true);
         $refsString = [];
         $refs = array_slice($refs, $data['start'] ,$data['length']);
+
+        /** @var ReferenceArticle $ref */
         foreach ($refs as $ref) {
             $refsString[] = $ref->getReference();
         }

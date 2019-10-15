@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -21,6 +22,8 @@ class Article
     const STATUT_EN_TRANSIT = 'en transit';
     const CONFORM = 1;
     const NOT_CONFORM = 0;
+
+    use BarcodeTrait;
 
     /**
      * @ORM\Id()
@@ -154,9 +157,8 @@ class Article
         return $this->reference;
     }
 
-    public function setReference(?string $reference): self
-    {
-        $this->reference = $reference;
+    public function setReference(?string $reference): self {
+        $this->reference = self::stripAccent($reference);
 
         return $this;
     }

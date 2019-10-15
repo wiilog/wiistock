@@ -2,13 +2,18 @@
 
 namespace App\Entity;
 
+use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\ORM\Mapping as ORM;
+use App\Annotation\BarcodeAnnotation as IsBarcode;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ColisRepository")
  */
 class Colis
 {
+
+    use BarcodeTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -18,6 +23,7 @@ class Colis
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @IsBarcode(getter="getCode")
      */
     private $code;
 
@@ -31,15 +37,12 @@ class Colis
         return $this->id;
     }
 
-    public function getCode(): ?string
-    {
+    public function getCode(): ?string {
         return $this->code;
     }
 
-    public function setCode(?string $code): self
-    {
-        $this->code = $code;
-
+    public function setCode(?string $code): self {
+        $this->code = self::stripAccent($code);
         return $this;
     }
 

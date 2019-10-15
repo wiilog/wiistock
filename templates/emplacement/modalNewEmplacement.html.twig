@@ -11,7 +11,8 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="label">Nom*</label>
-                    <input type="text" id="Label" class="form-control data needed" name="Label">
+                    <input type="text" id="Label" class="form-control data needed is-barcode" name="Label" maxlength="21"/>
+                    <div class="invalid-feedback">Ce champ ne doit pas contenir d'accent et être composé de maximum 21 caractères</div>
                 </div>
 
                 <div class="form-group">

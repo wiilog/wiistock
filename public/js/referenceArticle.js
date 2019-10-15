@@ -11,10 +11,13 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         tableColumnVisible.search('').draw()
     }
 
-    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
+    let { Data, missingInputs, wrongNumberInputs, doublonRef, invalidBarcode } = getDataFromModal(modal);
+
+    console.log(invalidBarcode);
+
 
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
+    if (!invalidBarcode && missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
         $.post(path, JSON.stringify(Data), function(data) {
 
@@ -34,7 +37,7 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 
         modal.find('.error-msg').html('');
 
-    } else {
+    } else if (missingInputs.length > 0 || wrongNumberInputs.length > 0 || doublonRef) {
         // ... sinon on construit les messages d'erreur
         let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
@@ -95,6 +98,7 @@ function getDataFromModal(modal) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let doublonRef = false;
+    let invalidBarcode = false;
     modal.find('select[name="fournisseur"]').each(function (index) {
         if ($(this).val()) {
             if (fournisseurReferences.eq(index).val()) {
@@ -110,29 +114,36 @@ function getDataFromModal(modal) {
     });
     Data['frl'] = fournisseursWithRefAndLabel;
     inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
+        const $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
         if (!Data[name] || parseInt(Data[name], 10) === 0) {
             Data[name] = val;
         }
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').first().text();
+        if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
+            let label = $input.closest('.form-group').find('label').first().text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
         }
+
+        if ($input.hasClass('is-barcode') && !IsBarcodeValid($input)) {
+            $input.addClass('is-invalid');
+            invalidBarcode = true;
+        }
+
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
-        if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
+        if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
             if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
             }
         }
     });
@@ -141,7 +152,7 @@ function getDataFromModal(modal) {
     checkboxes.each(function () {
         Data[$(this).attr("name")] = $(this).is(':checked');
     });
-    return { Data, missingInputs, wrongNumberInputs, doublonRef };
+    return { Data, missingInputs, wrongNumberInputs, doublonRef, invalidBarcode };
 }
 
 function clearModalRefArticle(modal, data) {
@@ -644,7 +655,7 @@ function getDataAndPrintLabels() {
             $("#barcodes").empty();
             let i = 0;
             response.refs.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
+                $('#barcodes').append('<img id="barcode' + i + '">');
                 JsBarcode("#barcode" + i, code, {
                     format: "CODE128",
                 });
