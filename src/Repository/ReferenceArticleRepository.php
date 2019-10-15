@@ -105,7 +105,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $dql = "SELECT r.id, r.reference as text
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
-          WHERE r.reference LIKE :search";
+          WHERE r.reference LIKE :search ";
 
         if ($activeOnly) {
         	$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
