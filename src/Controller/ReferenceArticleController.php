@@ -391,8 +391,10 @@ class ReferenceArticleController extends Controller
                 ->setType($type)
                 ->setEmplacement($emplacement);
 
-            $category = $this->inventoryCategoryRepository->find($data['categorie']);
-            if ($category) $refArticle->setCategory($category);
+            if ($data['categorie']) {
+            	$category = $this->inventoryCategoryRepository->find($data['categorie']);
+            	if ($category) $refArticle->setCategory($category);
+			}
             if ($statut) $refArticle->setStatut($statut);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
