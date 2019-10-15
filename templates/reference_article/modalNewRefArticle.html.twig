@@ -60,7 +60,7 @@
                     </div>
                     <div class="form-group col-4">
                         <label for="categorie">Catégorie d'inventaire</label>
-                        <select name="categorie" class="form-control data needed">
+                        <select name="categorie" class="form-control data">
                             {% for categorie in categories %}
                                 <option value="{{ categorie.id }}">{{ categorie.label }}</option>
                             {% endfor %}
