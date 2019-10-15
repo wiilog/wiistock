@@ -1010,9 +1010,9 @@ class ReferenceArticleController extends Controller
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
-            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
-            foreach ($articles as $article) {
-                $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
+            $references = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
+            foreach ($references as $reference) {
+                $data['values'][] = $this->buildInfos($reference, $listTypes, $headersCL);
             }
             return new JsonResponse($data);
         }
@@ -1035,7 +1035,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articlesFournisseurs'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1052,27 +1052,17 @@ class ReferenceArticleController extends Controller
 	 */
     public function buildInfos(ReferenceArticle $ref, $listTypes, $headersCL)
     {
-        $articlesFournisseurs = $this->fournisseurRepository->getArtRefByRefArticle($ref);
-        $articlesFToShow = '';
-        $before = '';
-        foreach ($articlesFournisseurs as $articleFournisseur) {
-            if ($before === '')
-                $articlesFToShow = $before . $articleFournisseur['reference'];
-            else
-                $articlesFToShow = $before . '/' .$articleFournisseur['reference'];
-            $before = $articlesFToShow;
-        }
+    	$listFournisseurAndAF = $this->fournisseurRepository->getNameAndRefArticleFournisseur($ref);
 
-        $fournisseurs = $this->fournisseurRepository->getNameByRefArticle($ref);
-        $fournisseursToShow = '';
-        $before = '';
-        foreach ($fournisseurs as $fournisseur) {
-            if ($before === '')
-                $fournisseursToShow = $before . $fournisseur['nom'];
-            else
-                $fournisseursToShow = $before . '/' .$fournisseur['nom'];
-            $before = $fournisseursToShow;
-        }
+    	$arrayAF = $arrayF = [];
+
+    	foreach ($listFournisseurAndAF as $fournisseurAndAF) {
+    		$arrayAF[] = $fournisseurAndAF['reference'];
+    		$arrayF[] = $fournisseurAndAF['nom'];
+		}
+
+    	$stringArticlesFournisseur = implode('/', $arrayAF);
+    	$stringFournisseurs = implode('/', $arrayF);
 
         $refData[] = $ref->getReference();
         $refData[] = $ref->getLibelle();
@@ -1082,8 +1072,8 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getStatut()->getNom();
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $refData[] = $fournisseursToShow;
-        $refData[] = $articlesFToShow;
+        $refData[] = $stringFournisseurs;
+        $refData[] = $stringArticlesFournisseur;
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
