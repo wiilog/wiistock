@@ -83,7 +83,7 @@ class MissionCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $now = new \DateTime('now');
-        $frequencies = $this->inventoryFrequencyRepository->findAll();
+        $frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
 
         $monday = new \DateTime('now');
         $monday->modify('next monday');
@@ -103,6 +103,7 @@ class MissionCommand extends Command
 		}
 
         foreach ($frequencies as $frequency) {
+        	// récupération des réf et articles à inventorier (fonction date dernier inventaire)
             $nbMonths = $frequency->getNbMonths();
             $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
 
@@ -132,11 +133,29 @@ class MissionCommand extends Command
 				}
             }
 
-            /** @var ReferenceArticle $refOrArt */
-            foreach ($refsAndArtToInv as $refOrArt) {
+            foreach ($refsAndArtToInv as $refOrArt) { /** @var ReferenceArticle|Article $refOrArt */
                 $refOrArt->addInventoryMission($mission);
                 $this->entityManager->flush();
             }
-        }
+
+			// lissage des réf et articles jamais inventoriés
+			$nbRefAndArtToInv = $this->referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
+			$nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
+
+			$limit = (int)($nbToInv/($frequency->getNbMonths() * 4));
+
+			$listRefNextMission = $this->referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+			$listArtNextMission = $this->articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+
+			foreach ($listRefNextMission as $ref) {
+				$ref->addInventoryMission($mission);
+			}
+			foreach ($listArtNextMission as $art) {
+				$art->addInventoryMission($mission);
+			}
+
+			$this->entityManager->flush();
+		}
+
     }
 }
