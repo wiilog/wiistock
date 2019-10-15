@@ -36,4 +36,21 @@ class InventoryFrequencyRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+	/**
+	 * @return InventoryFrequency[]
+	 */
+	public function findUsedByCat()
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT if
+			FROM App\Entity\InventoryFrequency if
+			JOIN if.categories c"
+		);
+
+		return $query->execute();
+	}
 }

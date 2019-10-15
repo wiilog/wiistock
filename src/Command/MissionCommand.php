@@ -87,7 +87,7 @@ class MissionCommand extends Command
 
         $monday = new \DateTime('now');
         $monday->modify('next monday');
-        $mission = $this->inventoryMissionRepository->findByStartDate($monday->format('Y/m/d'));
+        $mission = $this->inventoryMissionRepository->findFirstByStartDate($monday->format('Y/m/d'));
 
         if (!$mission) {
         	$mission = new InventoryMission();

@@ -81,78 +81,44 @@ class LissageComand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $frequencies = $this->inventoryFrequencyRepository->findAll();
+		// récupération ou création de la prochaine mission
+		$monday = new \DateTime('now');
+		$monday->modify('next monday');
+		$nextMission = $this->inventoryMissionRepository->findFirstByStartDate($monday->format('Y/m/d'));
 
-        $maxNbMission = 0;
-        foreach ($frequencies as $frequency) {
-            $growth = $frequency->getNbMonths();
-            if ($growth > $maxNbMission) {
-                $maxNbMission = $growth;
-            }
-        }
+		if (!$nextMission) {
+			$nextMission = new InventoryMission();
 
-        $nowForMonday = new \DateTime('now');
-        $monday = $nowForMonday->modify('next monday');
-        $nowForSunday = new \DateTime('now');
-        $sunday = $nowForSunday->modify('next monday + 6 days');
+			$sunday = new \DateTime('now');
+			$sunday->modify('next monday + 6 days');
 
-        $counter = 0;
-        while ($counter != $maxNbMission * 4) {
-            $mission = new InventoryMission();
-            $mission
-                ->setStartPrevDate($monday)
-                ->setEndPrevDate($sunday);
-            $this->entityManager->persist($mission);
-            $this->entityManager->flush();
-            $monday->add(new \DateInterval('P7D'));
-            $sunday->add(new \DateInterval('P7D'));
-            $counter++;
-        }
+			$nextMission
+				->setStartPrevDate($monday)
+				->setEndPrevDate($sunday);
+			$this->entityManager->persist($nextMission);
+			$this->entityManager->flush();
+		}
 
-        $missions = $this->inventoryMissionRepository->findAll();
+		// pour chaque fréquence, récupération des articles et réf à inventorier pour ajout dans la mission
+		$frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
 
-        foreach ($frequencies as $frequency) {
-            $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
-            $refsAndArtsToInv = [];
-            foreach ($refArticles as $refArticle) {
-                if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $refDate = $refArticle->getDateLastInventory();
-                    if (!$refDate) {
-                        $refsAndArtsToInv[] = $refArticle;
-                    }
-                } else {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-                    $articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+		foreach ($frequencies as $frequency) {
+        	$nbRefAndArtToInv = $this->referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
+        	$nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
 
-                    foreach ($articles as $article) {
-                        $artDate = $article->getDateLastInventory();
-                        if (!$artDate) {
-                            $refsAndArtsToInv[] = $article;
-                        }
-                    }
-                }
-            }
-            $nbRefToInv = count($refsAndArtsToInv);
-            $nbMission = $maxNbMission * 4;
-            if (($refPerMission = $nbRefToInv / $nbMission) <= 1) {
-                $refPerMission = $nbRefToInv;
-            }
+			$limit = (int)($nbToInv/($frequency->getNbMonths() * 4));
 
-            $offset = 0;
-            $counter = 1;
-            foreach ($missions as $mission) {
-                if ($counter == $nbMission) {
-                    $refPerMission = null;
-                }
-                $addArray = array_slice($refsAndArtsToInv, $offset, $refPerMission);
-                foreach ($addArray as $item) {
-//                    $mission->addRefArticle($item);
-                    $item->addInventoryMission($mission);
-                    $this->entityManager->flush();
-                }
-                $offset = $refPerMission * $counter;
-                $counter++;
-            }
+        	$listRefNextMission = $this->referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+        	$listArtNextMission = $this->articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+
+        	foreach ($listRefNextMission as $ref) {
+        		$ref->addInventoryMission($nextMission);
+			}
+        	foreach ($listArtNextMission as $art) {
+        		$art->addInventoryMission($nextMission);
+			}
+
+        	$this->entityManager->flush();
         }
     }
 }
