@@ -694,3 +694,15 @@ function initSearchDate(table) {
         }
     );
 }
+
+function hideSpinner(div) {
+
+    div.removeClass('d-flex');
+    div.addClass('d-none');
+}
+
+function loadSpinner(div) {
+    div.removeClass('d-none');
+    div.addClass('d-flex');
+
+}

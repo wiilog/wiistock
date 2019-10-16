@@ -236,6 +236,11 @@ a:hover {
   font-family: "Montserrat", Helvetica, Arial, sans-serif;
 }
 
+.sizeLoader {
+  width: 5rem;
+  height: 5rem;
+}
+
 /* Login    
  * *================= 
  * */
