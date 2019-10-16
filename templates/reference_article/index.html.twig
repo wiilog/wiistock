@@ -11,6 +11,13 @@
         {% endif %}
     </h1>
 
+    <div id="alerts">
+        <div class="alert alert-danger text-center d-none">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="error-msg"></span>
+        </div>
+    </div>
+
     <div class='d-flex justify-content-end'>
         <div class="dropleft">
             <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

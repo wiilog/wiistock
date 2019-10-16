@@ -223,6 +223,8 @@ function getDataAndPrintLabels() {
             });
             doc.deletePage(doc.internal.getNumberOfPages());
             doc.save('Etiquettes-articles.pdf');
+        } else {
+            alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
         }
     });
 }

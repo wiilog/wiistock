@@ -121,6 +121,8 @@ function getDataAndPrintLabels() {
             });
             doc.deletePage(doc.internal.getNumberOfPages());
             doc.save('Etiquettes-emplacements.pdf');
+        } else {
+            alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
         }
     });
 }
