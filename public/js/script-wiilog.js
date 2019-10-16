@@ -155,7 +155,6 @@ function submitAction(modal, path, table, callback, close, clear) {
         }, 'json');
 
     }
-    // else if(missingInputs.length > 0 || wrongNumberInputs.length > 0 || !passwordIsValid) {
     else {
 
         // ... sinon on construit les messages d'erreur
