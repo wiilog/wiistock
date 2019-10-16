@@ -13,9 +13,6 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 
     let { Data, missingInputs, wrongNumberInputs, doublonRef, invalidBarcode } = getDataFromModal(modal);
 
-    console.log(invalidBarcode);
-
-
     // si tout va bien on envoie la requête ajax...
     if (!invalidBarcode && missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
@@ -37,15 +34,15 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 
         modal.find('.error-msg').html('');
 
-    } else if (missingInputs.length > 0 || wrongNumberInputs.length > 0 || doublonRef) {
+    } else {
         // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
+        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarcode);
         modal.find('.error-msg').html(msg);
     }
 
 }
 
-function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
+function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarcode) {
     let msg = '';
 
     if(doublonRef ){
@@ -81,6 +78,10 @@ function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
                 msg += ' doit être supérieure à ' + min + ".<br>";
             }
         })
+    }
+    // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
+    if (invalidBarcode) {
+        msg += "Ce champ ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
     }
     return msg;
 }
@@ -130,7 +131,7 @@ function getDataFromModal(modal) {
             $input.next().find('.select2-selection').addClass('is-invalid');
         }
 
-        if ($input.hasClass('is-barcode') && !IsBarcodeValid($input)) {
+        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
             $input.addClass('is-invalid');
             invalidBarcode = true;
         }

@@ -111,13 +111,6 @@ input:-webkit-autofill {
   box-shadow: 0 0 0 30px white inset !important;
 }
 
-.input-group.is-invalid {
-  padding-right: 0;
-}
-.input-group.is-invalid ~ .invalid-feedback {
-  display: block;
-}
-
 .wrapper {
   margin-left: 130px;
   margin-bottom: 30px;
