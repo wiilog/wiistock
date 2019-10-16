@@ -61,7 +61,7 @@
                     </div>
                     <div class="form-group col-4">
                         <label for="categorie">Catégorie d'inventaire</label>
-                        <select name="categorie" class="form-control data needed">
+                        <select name="categorie" class="form-control data">
                             {% for categorie in categories %}
                                 <option value="{{ categorie.id }}">{{ categorie.label }}</option>
                             {% endfor %}
@@ -78,7 +78,7 @@
                     </div>
                 </div>
                 <div class="row mt-10 mb-4">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <div class="input-group radio-btn">
                             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
                             <div onclick="updateQuantityDisplay($(this))">
@@ -93,7 +93,7 @@
 
                         </div>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-3">
 
                         <div class="reference">
                             <label for="quantite">Quantité*</label>
@@ -106,26 +106,25 @@
 
                     </div>
 
-                    <div class="form-group col-4">
+                    <div class="form-group col-3">
                         <div class="form-group w-100">
-                            <div class="input-group reference">
-                                <label for="emplacement">Emplacement*</label>
-                                <select name="emplacement" id="emplacement"
-                                    class="form-control data needed ajax-autocompleteEmplacement">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group col-4">
-                        <div class="form-group w-100">
-                            <div class="input-group reference">
-                                <label for="prix">Prix Unitaire</label>
+                            <div class="reference">
+                                <label for="prix">Prix Unitaire (€)</label>
                                 <input class="form-control data" type="number" name="prix" min="0" step="0.01">
                             </div>
                         </div>
                     </div>
+                </div>
 
-
+                <div class="row">
+                    <div class="form-group col-6">
+                        <div class="input-group reference w-100">
+                            <label for="emplacement">Emplacement*</label>
+                            <select name="emplacement" id="emplacement"
+                                    class="form-control data needed ajax-autocompleteEmplacement">
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- CHAMPS LIBRES -->
