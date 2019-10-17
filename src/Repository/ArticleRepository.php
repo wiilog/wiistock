@@ -189,7 +189,7 @@ class ArticleRepository extends ServiceEntityRepository
           WHERE a.reference LIKE :search";
 
 		if ($activeOnly) {
-			$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+			$dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
 		}
 
 		$query = $em
@@ -602,7 +602,7 @@ class ArticleRepository extends ServiceEntityRepository
           WHERE a.reference LIKE :search";
 
         if ($activeOnly) {
-            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+            $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
         }
 
         $query = $em

@@ -39,6 +39,11 @@ services:
             - { name: doctrine.event_listener, event: prePersist }
             - { name: doctrine.event_listener, event: preUpdate }
 
+    App\EventListener\EntityEventListener:
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }
+            - { name: doctrine.event_listener, event: preUpdate }
+
 #    maintenance_listener:
 #        class: App\Security\MaintenanceListener
 #        tags:

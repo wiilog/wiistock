@@ -2,15 +2,20 @@
 
 namespace App\Entity;
 
+use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Annotation\BarcodeAnnotation as IsBarcode;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EmplacementRepository")
  */
 class Emplacement
 {
+    use BarcodeTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -20,6 +25,7 @@ class Emplacement
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
+     * @IsBarcode(getter="getLabel")
      */
     private $label;
 
@@ -83,9 +89,8 @@ class Emplacement
         return $this->label;
     }
 
-    public function setLabel(? string $label): self
-    {
-        $this->label = $label;
+    public function setLabel(? string $label): self {
+        $this->label = self::stripAccent($label);
 
         return $this;
     }
