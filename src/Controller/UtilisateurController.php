@@ -146,13 +146,11 @@ class UtilisateurController extends Controller
             $utilisateur = new Utilisateur();
 
             $role = $this->roleRepository->find($data['role']);
-            $type = $this->typeRepository->find($data['type']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
                 ->setRole($role)
                 ->setStatus(true)
-                ->setType($type)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
                 ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
                 ->setRecherche(["Libellé", "Référence"]);
@@ -161,6 +159,13 @@ class UtilisateurController extends Controller
 				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
 				$utilisateur->setPassword($password);
 			}
+
+            if (isset($data['type'])) {
+                foreach ($data['type'] as $type)
+                {
+                    $utilisateur->addType($this->typeRepository->find($type));
+                }
+            }
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
@@ -183,12 +188,20 @@ class UtilisateurController extends Controller
 
             $user = $this->utilisateurRepository->find($data['id']);
             $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+            $typeUser = [];
+            foreach ($user->getTypes() as $type)
+            {
+                $typeUser[] = $type->getId();
+            }
+
+
             $json = $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                 'user' => $user,
                 'types' => $types
             ]);
 
-            return new JsonResponse($json);
+            return new JsonResponse(['userTypes' => $typeUser, 'html' => $json]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -247,17 +260,20 @@ class UtilisateurController extends Controller
 				]);
 			}
 
-            $type = $data['type'] ? $this->typeRepository->find($data['type']) : null;
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
-                ->setType($type)
                 ->setEmail($data['email']);
             if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }
-
+            if (isset($data['type'])) {
+                foreach ($data['type'] as $type)
+                {
+                    $utilisateur->addType($this->typeRepository->find($type));
+                }
+            }
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();

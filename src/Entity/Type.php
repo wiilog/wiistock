@@ -90,7 +90,7 @@ class Type
     private $collectes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="type")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="types")
      */
     private $utilisateurs;
 
@@ -398,7 +398,7 @@ class Type
     {
         if (!$this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs[] = $utilisateur;
-            $utilisateur->setType($this);
+            $utilisateur->setTypes($this);
         }
 
         return $this;
@@ -409,8 +409,8 @@ class Type
         if ($this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs->removeElement($utilisateur);
             // set the owning side to null (unless already changed)
-            if ($utilisateur->getType() === $this) {
-                $utilisateur->setType(null);
+            if ($utilisateur->getTypes() === $this) {
+                $utilisateur->setTypes(null);
             }
         }
 
