@@ -8,6 +8,25 @@ const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 
+
+/** Constants which define a valid barcode */
+const BARCODE_LENGTH = 21;
+const BARCODE_INVALID_REGEX = /[^\x20-\x7e]/;
+
+$.fn.dataTable.ext.errMode = (resp) => {
+    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+};
+
+/**
+ * Check if value in the given jQuery input is a valid barcode
+ * @param $input
+ * @return {boolean}
+ */
+function isBarcodeValid($input) {
+    const value = $input.val();
+    return Boolean(!value || ((value.length <= BARCODE_LENGTH) && !BARCODE_INVALID_REGEX.test(value)));
+}
+
 /**
  * Initialise une fenêtre modale
  *
@@ -21,15 +40,8 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {document} table le DataTable gérant les données
- * 
+ *
  */
-
-$.fn.dataTable.ext.errMode = (resp) => {
-    console.log(resp);
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-}
-
-
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
@@ -44,44 +56,54 @@ function submitAction(modal, path, table, callback, close, clear) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
+    let barcodeIsInvalid = false;
 
     inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
+        let $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
         Data[name] = val;
+        let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
-        if ($(this).hasClass('needed')
+        if ($input.hasClass('needed')
             && (val === undefined || val === '' || val === null)
-            && $(this).is(':disabled') === false) {
-            let label = $(this).closest('.form-group').find('label').text();
+            && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
 
         } else {
-            $(this).removeClass('is-invalid');
+            $input.removeClass('is-invalid');
         }
+
+        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+            $input.addClass('is-invalid');
+            $input.parent().addClass('is-invalid');
+            barcodeIsInvalid = label;
+        }
+
+
         // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
+        if ($input.attr('type') === 'number') {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
             if (val > max || val < min) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
             } else if (!isNaN(val)) {
-                $(this).removeClass('is-invalid');
+                $input.removeClass('is-invalid');
             }
-            if ($(this).is(':disabled') === true) {
-                $(this).removeClass('is-invalid');
+            if ($input.is(':disabled') === true) {
+                $input.removeClass('is-invalid');
             }
         }
         // validation valeur des inputs de type password
-        if ($(this).attr('type') === 'password') {
-            let password = $(this).val();
-            let isNotChanged = $(this).hasClass('optional-password') && password === "";
+        if ($input.attr('type') === 'password') {
+            let password = $input.val();
+            let isNotChanged = $input.hasClass('optional-password') && password === "";
             if (!isNotChanged) {
                 if (password.length < 8) {
                     modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
@@ -107,7 +129,7 @@ function submitAction(modal, path, table, callback, close, clear) {
     modal.find(".elem").remove();
 
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
+    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
 
         $.post(path, JSON.stringify(Data), function(data) {
@@ -132,7 +154,8 @@ function submitAction(modal, path, table, callback, close, clear) {
                 if (callback !== null) callback(data);
         }, 'json');
 
-    } else {
+    }
+    else {
 
         // ... sinon on construit les messages d'erreur
         let msg = '';
@@ -178,6 +201,12 @@ function submitAction(modal, path, table, callback, close, clear) {
                 }
             });
         }
+
+        // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
+        if (barcodeIsInvalid) {
+            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+        }
+
         modal.find('.error-msg').html(msg);
     }
 }

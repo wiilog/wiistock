@@ -271,7 +271,11 @@ class InventoryMissionRepository extends ServiceEntityRepository
             'count' => $countQuery, 'total' => $countTotal];
     }
 
-    public function findByStartDate($date)
+	/**
+	 * @param string $date
+	 * @return InventoryMission|null
+	 */
+    public function findFirstByStartDate($date)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -280,6 +284,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             WHERE m.startPrevDate = :date"
         )->setParameter('date', $date);
 
-        return $query->getOneOrNullResult();
+        $result = $query->execute();
+        return $result ? $result[0] : null;
     }
 }
