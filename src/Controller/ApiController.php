@@ -824,12 +824,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
-    /**
-     * @Route("/test", name="testapi")
-     */
-    public function getDataArray()
-    {
-        $user = $this->getUser();
+    private function getDataArray($user) {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
@@ -853,7 +848,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];
 
-        return new JsonResponse($data);
+        return $data;
     }
 
     /**

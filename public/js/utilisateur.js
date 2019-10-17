@@ -59,7 +59,6 @@ function editRowUser(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        console.log(data.userTypes);
         modal.find('#inputEditType').val(data.userTypes).select2();
     }, 'json');
 

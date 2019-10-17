@@ -57,9 +57,10 @@ class LivraisonRepository extends ServiceEntityRepository
 	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
 	{
         $typeUser = [];
-        foreach ($user->getTypes() as $type)
-        {
-            $typeUser[] = $type->getId();
+        if ($user->getTypes()) {
+            foreach ($user->getTypes() as $type) {
+                $typeUser[] = $type->getId();
+            }
         }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -73,7 +74,7 @@ class LivraisonRepository extends ServiceEntityRepository
 		)->setParameters([
 			'statusLabel' => $statusLabel,
 			'user' => $user,
-            'type' => $user->getTypes() ? $typeUser : null
+            'type' => $typeUser
 		]);
 
 		return $query->execute();

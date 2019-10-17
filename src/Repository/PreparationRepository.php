@@ -35,9 +35,10 @@ class PreparationRepository extends ServiceEntityRepository
     public function getByStatusLabelAndUser($statusLabel, $statutEnCoursLabel, $user)
     {
         $typeUser = [];
-        foreach ($user->getTypes() as $type)
-        {
-            $typeUser[] = $type->getId();
+        if ($user->getTypes()) {
+            foreach ($user->getTypes() as $type) {
+                $typeUser[] = $type->getId();
+            }
         }
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -46,12 +47,12 @@ class PreparationRepository extends ServiceEntityRepository
 			JOIN p.statut s
 			JOIN p.demandes d
 			JOIN d.type t
-			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type) "
+			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
         )->setParameters([
             'statusLabel' => $statusLabel,
             'user' => $user,
             'enCours' => $statutEnCoursLabel,
-            'type' => $user->getTypes() ? $typeUser : null,
+            'type' => $typeUser,
         ]);
         return $query->execute();
     }

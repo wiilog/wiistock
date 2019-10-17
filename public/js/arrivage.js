@@ -124,7 +124,6 @@ function editRowArrivage(button) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         quillEdit = initEditor('.editor-container-edit');
-        console.log(data.acheteurs);
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         originalText = quillEdit.getText();
     }, 'json');
