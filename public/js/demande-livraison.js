@@ -61,6 +61,8 @@ $.extend($.fn.dataTableExt.oSort, {
 //DEMANDE
 let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
+    processing: true,
+    serverSide: true,
     order: [[0, 'desc']],
     "columnDefs": [
         {
@@ -74,6 +76,13 @@ let tableDemande = $('#table_demande').DataTable({
     ajax: {
         "url": pathDemande,
         "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.statut =  $('#statutFilter').val();
+            d.user = $('#userFilter').val();
+            d.type = $('#typeFilter').val();
+        }
     },
     columns: [
         {"data": 'Date', 'name': 'Date'},
@@ -83,6 +92,31 @@ let tableDemande = $('#table_demande').DataTable({
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions'},
     ],
+});
+
+let $submitSearchDemande = $('#submitSearchDemandeLivraison');
+$submitSearchDemande.on('click', function() {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let user = $('#utilisateur').val();
+    let type = $('#type').val();
+
+    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
+
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let statutFilter = $('#statutFilter');
+    let userFilter = $('#userFilter');
+    let typeFilter = $('#typeFilter');
+
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    statutFilter.val(statut);
+    userFilter.val(user);
+    typeFilter.val(type);
+
+    tableDemande.draw();
 });
 
 $.fn.dataTable.ext.search.push(
@@ -207,35 +241,6 @@ function initNewLivraisonEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
-
-$submitSearchDemandeLivraison.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val()
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let type = $('#type').val();
-
-    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
-
-    tableDemande
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableDemande
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableDemande
-        .columns('Demandeur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableDemande.draw();
-});
 
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {

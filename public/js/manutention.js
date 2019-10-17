@@ -34,6 +34,29 @@ let tableManutention = $('#tableManutention_id').DataTable({
     ],
 });
 
+$submitSearchManut.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let demandeur = $('#utilisateur').val();
+    let demandeurString = demandeur.toString();
+    demandeurPiped = demandeurString.split(',').join('|');
+
+    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
+
+    tableManutention
+        .columns('Statut:name')
+        .search(statut ? '^' + statut + '$' : '', true, false)
+        .draw();
+
+    tableManutention
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+
+    tableManutention.draw();
+});
+
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
         let dateMin = $('#dateMin').val();
@@ -111,28 +134,6 @@ $(function() {
 });
 
 // filtres de recheches
-$submitSearchManut.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|');
-
-    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
-
-    tableManutention
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableManutention
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-
-    tableManutention.draw();
-});
 
 let modalNewManutention = $("#modalNewManutention");
 let submitNewManutention = $("#submitNewManutention");

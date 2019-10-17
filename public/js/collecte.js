@@ -8,6 +8,8 @@ $('#utilisateur').select2({
 
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
+    processing: true,
+    serverSide: true,
     order: [[0, 'desc']],
     "columnDefs": [
         {
@@ -20,7 +22,14 @@ let table = $('#tableCollecte_id').DataTable({
     },
     ajax: {
         "url": pathCollecte,
-        "type": "POST"
+        "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.statut =  $('#statutFilter').val();
+            d.user = $('#userFilter').val();
+            d.type = $('#typeFilter').val();
+        }
     },
     columns: [
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
@@ -31,6 +40,31 @@ let table = $('#tableCollecte_id').DataTable({
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
     ],
+});
+
+let $submitSearchCollecte = $('#submitSearchCollecte');
+$submitSearchCollecte.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let user = $('#utilisateur').val();
+    let type = $('#type').val();
+
+    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
+
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let statutFilter = $('#statutFilter');
+    let userFilter = $('#userFilter');
+    let typeFilter = $('#typeFilter');
+
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    statutFilter.val(statut);
+    userFilter.val(user);
+    typeFilter.val(type);
+
+    table.draw();
 });
 
 // recherche par défaut demandeur = utilisateur courant
@@ -135,8 +169,6 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-let $submitSearchCollecte = $('#submitSearchCollecte');
-
 // applique les filtres si pré-remplis
 $(function() {
     let val = $('#statut').val();
@@ -212,34 +244,6 @@ function initNewCollecteEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
-
-$submitSearchCollecte.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val()
-    let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|')
-    let type = $('#type').val();
-    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
-
-    table
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-
-    table.draw();
-});
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({id: collecteId});
