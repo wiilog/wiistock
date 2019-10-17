@@ -145,4 +145,18 @@ class FournisseurRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
+    public function getNameAndRefArticleFournisseur($ref)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT DISTINCT f.nom, af.reference
+            FROM App\Entity\Fournisseur f
+            JOIN f.articlesFournisseur af
+            WHERE af.referenceArticle = :ref"
+		)->setParameter('ref', $ref);
+
+		return $query->execute();
+	}
 }
