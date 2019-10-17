@@ -81,8 +81,9 @@ function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarc
     }
     // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
     if (invalidBarcode) {
-        msg += "Ce champ ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+        msg += "Le champ " + invalidBarcode + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
     }
+
     return msg;
 }
 
@@ -121,9 +122,9 @@ function getDataFromModal(modal) {
         if (!Data[name] || parseInt(Data[name], 10) === 0) {
             Data[name] = val;
         }
+        let label = $input.closest('.form-group').find('label').first().text();
         // validation données obligatoires
         if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $input.closest('.form-group').find('label').first().text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
@@ -133,7 +134,7 @@ function getDataFromModal(modal) {
 
         if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
             $input.addClass('is-invalid');
-            invalidBarcode = true;
+            invalidBarcode = label;
         }
 
         // validation valeur des inputs de type number
