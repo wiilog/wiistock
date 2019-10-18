@@ -100,9 +100,11 @@ $submitSearchDemande.on('click', function() {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let user = $('#utilisateur').val();
+    let userString = user.toString();
+    let userPiped = userString.split(',').join('|');
     let type = $('#type').val();
 
-    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
+    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, userPiped, type);
 
     let dateMinFilter = $('#dateMinFilter');
     let dateMaxFilter = $('#dateMaxFilter');

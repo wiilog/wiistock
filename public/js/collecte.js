@@ -48,9 +48,11 @@ $submitSearchCollecte.on('click', function () {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let user = $('#utilisateur').val();
+    let userString = user.toString();
+    let userPiped = userString.split(',').join('|');
     let type = $('#type').val();
 
-    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
+    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, userPiped, type);
 
     let dateMinFilter = $('#dateMinFilter');
     let dateMaxFilter = $('#dateMaxFilter');
