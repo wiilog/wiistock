@@ -133,7 +133,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
                     $('.error-msg').html('');
                 }
             }
-        }
+        };
         path = Routing.generate('ajax_fournisseur_by_refarticle', true)
         $('#newContent').html('');
         fournisseur.addClass('d-none');

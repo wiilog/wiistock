@@ -79,6 +79,7 @@ function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
             }
         })
     }
+
     return msg;
 }
 
@@ -110,29 +111,31 @@ function getDataFromModal(modal) {
     });
     Data['frl'] = fournisseursWithRefAndLabel;
     inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
+        const $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
         if (!Data[name] || parseInt(Data[name], 10) === 0) {
             Data[name] = val;
         }
+        let label = $input.closest('.form-group').find('label').first().text();
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').first().text();
+        if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
         }
+
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
-        if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
+        if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
             if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
             }
         }
     });
@@ -644,7 +647,7 @@ function getDataAndPrintLabels() {
             $("#barcodes").empty();
             let i = 0;
             response.refs.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
+                $('#barcodes').append('<img id="barcode' + i + '">');
                 JsBarcode("#barcode" + i, code, {
                     format: "CODE128",
                 });
