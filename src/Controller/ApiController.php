@@ -435,6 +435,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$newArticle = [
 								'articleFournisseur' => $article->getArticleFournisseur()->getId(),
 								'libelle' => $article->getLabel(),
+								'prix' => $article->getPrixUnitaire(),
 								'conform' => !$article->getConform(),
 								'commentaire' => $article->getcommentaire(),
 								'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
@@ -519,7 +520,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
 					$preparation = $this->preparationRepository->find($preparationArray['id']);
-                    $preparation->setCommentaire($preparationArray['comment']);
+//                    $preparation->setCommentaire($preparationArray['comment']);
 
 					if ($preparation) {
 						$demandes = $preparation->getDemandes();

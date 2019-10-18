@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
+use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -188,7 +189,7 @@ class ArticleRepository extends ServiceEntityRepository
           WHERE a.reference LIKE :search";
 
 		if ($activeOnly) {
-			$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+			$dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
 		}
 
 		$query = $em
@@ -601,7 +602,7 @@ class ArticleRepository extends ServiceEntityRepository
           WHERE a.reference LIKE :search";
 
         if ($activeOnly) {
-            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+            $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
         }
 
         $query = $em
@@ -610,4 +611,37 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+	/**
+	 * @param InventoryFrequency $frequency
+	 * @param int $limit
+	 * @return Article[]
+	 */
+	public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a
+            FROM App\Entity\Article a
+            JOIN a.articleFournisseur af
+            JOIN af.referenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN a.statut sa
+            LEFT JOIN a.emplacement ae
+            WHERE c.frequency = :frequency
+            AND ra.typeQuantite = :typeQuantity 
+            AND a.dateLastInventory is null 
+            AND sa.nom = :status
+            ORDER BY ae.label"
+		)->setParameters([
+			'frequency' => $frequency,
+			'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+			'status' => Article::STATUT_ACTIF,
+		]);
+
+		if ($limit)	$query->setMaxResults($limit);
+
+		return $query->execute();
+	}
 }
