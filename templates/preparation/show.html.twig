@@ -9,8 +9,11 @@
         </div>
         <div class="col text-right">
             {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                <a href="{{path('demande_show', {'id': demande.id})}}"
-                   class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison</a>
+                {% if demande %}
+                    <a href="{{path('demande_show', {'id': demande.id})}}"
+                       class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison
+                    </a>
+                {% endif %}
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                 {% if livraison is not empty %}
