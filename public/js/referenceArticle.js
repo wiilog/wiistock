@@ -331,7 +331,7 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $('.justify-content-end').find('.printButton').removeClass('d-none');
+    $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
 }
@@ -350,7 +350,7 @@ function removeFilter() {
         tableRefArticle.ajax.reload();
     });
     if($('#filters').find('.filter').length <= 0){
-        $('.justify-content-end').find('.printButton').addClass('d-none');
+        $('.justify-content-end').find('.printButton').addClass('btn-disabled');
     }
 }
 

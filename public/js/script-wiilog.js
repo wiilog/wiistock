@@ -251,6 +251,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     $.post(path, JSON.stringify(json), function(resp) {
 
         modal.find('.modal-body').html(resp);
+        modal.find('.select2').select2();
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
