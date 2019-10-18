@@ -1,5 +1,3 @@
-$('.select2').select2();
-
 let urlUtilisateur = Routing.generate('user_api', true);
 let tableUser = $('#tableUser_id').DataTable({
     processing: true,
@@ -47,4 +45,22 @@ function editRole(select) {
 function displayErrorUser(data) {
     let modal = data.action === 'new' ? modalNewUser : modalEditUser;
     displayError(modal, data.msg, data.success);
+}
+
+$('.select2').select2();
+
+function editRowUser(button) {
+    let path = Routing.generate('user_api_edit', true);
+    let modal = $('#modalEditUser');
+    let submit = $('#submitEditUser');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.error-msg').html('');
+        modal.find('.modal-body').html(data.html);
+        modal.find('#inputEditType').val(data.userTypes).select2();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
 }

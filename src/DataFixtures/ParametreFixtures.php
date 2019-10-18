@@ -43,7 +43,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 					->setDefaultValue($parameter['default'])
 					->setElements($parameter['elements']);
 				$manager->persist($param);
-				dump("création du paramètre " . $parameter['label']);
 			}
 		}
 
@@ -52,6 +51,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['param', 'cea'];
+        return ['param', 'fixtures'];
     }
 }

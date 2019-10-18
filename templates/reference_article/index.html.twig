@@ -34,12 +34,10 @@
             <i class="fa fa-plus mr-2"></i>Nouvel article de référence
         </div>
         {% endif %}
-        <div class = "printButton {{ filters | length > 0 ? '' : 'd-none' }}">
-            <div data-toggle="modal" id="printTag" class="btn btn-action btn-primary"
+            <div data-toggle="modal" id="printTag" class="printButton {{ filters | length > 0 ? '' : 'btn-disabled' }} btn btn-action btn-primary"
                  onclick="getDataAndPrintLabels()">
                 <i class="fas fa-print"></i> Imprimer les étiquettes
             </div>
-        </div>
     </div>
     <div class="row">
         <div class="col-1">
