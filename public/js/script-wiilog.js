@@ -624,18 +624,6 @@ function clearCheckboxes($modal) {
     });
 }
 
-function adjustScalesForDoc(response) {
-    let format = response.width > response.height ? 'l' : 'p';
-    // console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
-    let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
-    // console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
-    let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
-    let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
-    let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
-    // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
-    return doc;
-}
-
 function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
@@ -722,4 +710,77 @@ function initSearchDate(table) {
             return false;
         }
     );
+}
+
+/**
+ * Create a jsPDF with right size
+ * @param apiResponse
+ * @returns {jsPDF}
+ */
+function createJsPDFBarcode(apiResponse) {
+    const format = apiResponse.width > apiResponse.height ? 'l' : 'p';
+    const docTemp = new jsPDF(format, 'mm', [apiResponse.height, apiResponse.width]);
+    const pageSize = docTemp.internal.pageSize;
+
+    const newWidth = apiResponse.width * (apiResponse.width / pageSize.getWidth());
+    const newHeight = apiResponse.height * (apiResponse.height / pageSize.getHeight());
+    return new jsPDF(format, 'mm', [newHeight, newWidth]);
+}
+
+/**
+ * Save a pdf with all barcodes requested in the array requested.
+ * @param {Array<string>} barcodes
+ * @param apiResponse
+ * @param {string} fileName
+ */
+function printBarcodes(barcodes, apiResponse, fileName) {
+    if (barcodes && barcodes.length) {
+        const doc = createJsPDFBarcode(apiResponse);
+        const docSize = doc.internal.pageSize;
+        const docWidth = docSize.getWidth();
+        const docHeight = docSize.getHeight();
+        const docScale = (docWidth / docHeight);
+
+        // to launch print for the document on the end of generation
+        const imageLoaded = (new Array(barcodes.length)).fill(false);
+
+        $("#barcodes").empty();
+
+        barcodes.forEach(function (code, index) {
+            const $img = $('<img/>', {id: "barcode" + index});
+            $img.on('load', function () {
+                const naturalScale = (this.naturalWidth / this.naturalHeight);
+                const upperNaturalScale = (naturalScale >= docScale);
+
+                const imageWidth = (upperNaturalScale
+                    ? docWidth
+                    : (docHeight * this.naturalWidth / this.naturalHeight));
+                const imageHeight = (upperNaturalScale
+                    ? (docWidth * this.naturalHeight / this.naturalWidth)
+                    : docHeight);
+
+                const posX = (upperNaturalScale
+                    ? 0
+                    : ((docWidth - imageWidth) / 2));
+                const posY = (upperNaturalScale
+                    ? ((docHeight - imageHeight) / 2)
+                    : 0);
+
+                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
+                doc.addPage();
+
+                imageLoaded[index] = true;
+
+                if (imageLoaded.every(loaded => loaded)) {
+                    doc.deletePage(doc.internal.getNumberOfPages());
+                    doc.save(fileName);
+                }
+            });
+            $('#barcodes').append($img);
+
+            JsBarcode("#barcode" + index, code, {
+                format: "CODE128",
+            });
+        });
+    }
 }

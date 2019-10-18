@@ -574,31 +574,14 @@ function printLabels(data) {
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     if (data.exists) {
-        let doc = adjustScalesForDoc(data);
-        $("#barcodes").empty();
-        if (printUm) {
-            for (let i = 0; i < nbUm; i++) {
-                $('#barcodes').append('<img id="barcode' + i + '">');
-                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
-                    format: "CODE128",
-                });
-            }
-
-        }
+        const barcodes = printUm
+            ? (new Array(nbUm).map((_, index) => (data.arrivage + '-' + index)))
+            : [];
         if (printArrivage) {
-            $('#barcodes').append('<img id="barcodeArrivage">');
-            JsBarcode("#barcodeArrivage", data.arrivage, {
-                format: "CODE128",
-            });
+            barcodes.push(data.arrivage);
         }
-        if (printArrivage || printUm) {
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes du ' + date + '.pdf');
-        }
+
+        printBarcodes(barcodes, data, ('Etiquettes du ' + date + '.pdf'));
     } else {
         $('#cannotGenerate').click();
     }
@@ -639,22 +622,7 @@ function getDataAndPrintLabels(codes) {
 
     $.post(path, function (response) {
         if (response.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            codesArray.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code, {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes ' + codes + '.pdf');
+            printBarcodes(codesArray, response, ('Etiquettes ' + codes + '.pdf'));
         }
     });
 }
