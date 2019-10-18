@@ -331,7 +331,7 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $('.justify-content-end').find('.printButton').removeClass('d-none');
+    $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
 }
@@ -350,7 +350,7 @@ function removeFilter() {
         tableRefArticle.ajax.reload();
     });
     if($('#filters').find('.filter').length <= 0){
-        $('.justify-content-end').find('.printButton').addClass('d-none');
+        $('.justify-content-end').find('.printButton').addClass('btn-disabled');
     }
 }
 
@@ -644,24 +644,7 @@ function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
     $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
         if (response.tags.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            response.refs.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">');
-                JsBarcode("#barcode" + i, code, {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response.tags);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages());
-            doc.save('Etiquettes-references.pdf');
-        } else {
-            alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
+            printBarcodes(response.refs, response.tags, 'Etiquettes-references.pdf');
         }
     });
 }

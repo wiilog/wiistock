@@ -104,44 +104,22 @@ function getDataAndPrintLabels() {
     });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            response.emplacements.forEach(function (code) {
-                console.log(code);
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code.replace('é', 'e').replace('è', 'e').trim(), {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response.tags);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages());
-            doc.save('Etiquettes-emplacements.pdf');
-        } else {
-            alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
+            printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf');
         }
     });
 }
 
 function printSingleArticleBarcode(button) {
-    let params = {
-        'emplacement': button.data('id')
-    };
+    const params = {'emplacement': button.data('id')};
     $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", response.emplacementLabel, {
-                format: "CODE128",
-            });
-            let doc = adjustScalesForDoc(response);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf');
-            $("#singleBarcode").remove();
-        } else {
+            printBarcodes(
+                [response.emplacementLabel],
+                response,
+                'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
+            );
+        }
+        else {
             $('#cannotGenerate').click();
         }
     });
