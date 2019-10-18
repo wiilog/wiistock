@@ -36,10 +36,12 @@ function displayErrorCategorie(data) {
     let msg = null;
     if (data === false) {
         msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+        displayError(modal, msg, data);
     } else {
+        modal.find('.close').click();
         msg = 'La catégorie a bien été créée.'
+        alertSuccessMsg(msg);
     }
-    displayError(modal, msg, data);
 }
 
 function displayErrorCategorieEdit(data) {
@@ -47,10 +49,12 @@ function displayErrorCategorieEdit(data) {
     let msg = null;
     if (data === false) {
         msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
+        displayError(modal, msg, data);
     } else {
+        modal.find('.close').click();
         msg = 'La catégorie a bien été modifiée';
+        alertSuccessMsg(msg);
     }
-    displayError(modal, msg, data);
 }
 
 function importFile() {
@@ -88,8 +92,7 @@ function importFile() {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    alertErrorMsg("Le fichier ne s'est pas importé correctement.<br>" +
-                        "<a href='" + pathWithFileName + "' target='_blank' class='underlined'>Veuillez consulter les erreurs en cliquant ici</a>");
+                    alertErrorMsg("Le fichier ne s'est pas importé correctement. Veuillez ouvrir le fichier ('log-error.txt') qui vient de se télécharger.");
                 }
             }
         });
@@ -148,10 +151,12 @@ function displayErrorFrequencyEdit(data) {
     let msg = null;
     if (data === false) {
         msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
+        displayError(modal, msg, data);
     } else {
+        modal.find('.close').click();
         msg = 'La fréquence a bien été modifiée.';
+        alertSuccessMsg(msg);
     }
-    displayError(modal, msg, data);
 }
 
 function openModalShow(data) {

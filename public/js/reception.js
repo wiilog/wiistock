@@ -169,49 +169,11 @@ let printBarcode = function (button) {
     }
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            $("#barcodes").empty();
-            for (let i = 0; i < response.refs.length; i++) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, response.refs[i], {
-                    format: "CODE128",
-                });
-            }
-            let doc = adjustScalesForDoc(response);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf');
         } else {
             $('#cannotGenerate').click();
         }
     });
-}
-
-let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
-let printerAll = function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            data.forEach(function (element) {
-                JsBarcode("#barcode", element, {
-                    format: "CODE128",
-                });
-
-                printJS({
-                    printable: 'barcode',
-                    type: 'html',
-                    maxWidth: 250
-                });
-            });
-        }
-    };
-    Data = 'hello';
-    json = JSON.stringify(Data);
-    xhttp.open("POST", pathPrinterAll, true);
-    xhttp.send(json);
 }
 
 //initialisation editeur de texte une seule fois
@@ -315,20 +277,7 @@ function createArticleAndBarcodes(button, receptionId) {
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
         if (response.exists) {
-            $("#barcodes").empty();
-            for (let i = 0; i < response.refs.length; i++) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, response.refs[i], {
-                    format: "CODE128",
-                });
-            }
-            let doc = adjustScalesForDoc(response);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf');
             tableArticle.ajax.reload(function (json) {
                 if (this.responseText !== undefined) {
                     $('#myInput').val(json.lastInput);
@@ -347,15 +296,13 @@ function printSingleBarcode(button) {
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
             if (response.exists) {
-                $('#barcodes').append('<img id="singleBarcode">')
-                JsBarcode("#singleBarcode", response.ligneRef, {
-                    format: "CODE128",
-                });
-                let doc = adjustScalesForDoc(response);
-                doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
-                $("#singleBarcode").remove();
-            } else {
+                printBarcodes(
+                    [response.ligneRef],
+                    response,
+                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf'
+                );
+            }
+            else {
                 $('#cannotGenerate').click();
             }
         } else {
@@ -376,15 +323,13 @@ function printSingleArticleBarcode(button) {
     }
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", response.articleRef, {
-                format: "CODE128",
-            });
-            let doc = adjustScalesForDoc(response);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
-            $("#singleBarcode").remove();
-        } else {
+            printBarcodes(
+                [response.articleRef],
+                response,
+                'Etiquette concernant l\'article ' + response.articleRef + '.pdf'
+            );
+        }
+        else {
             $('#cannotGenerate').click();
         }
     });
