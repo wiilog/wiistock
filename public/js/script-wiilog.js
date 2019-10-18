@@ -768,6 +768,8 @@ function printBarcodes(barcodes, apiResponse, fileName) {
                 format: "CODE128",
             });
         });
+    } else {
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
     }
 }
 
