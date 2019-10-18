@@ -1,17 +1,17 @@
 <?php
 
 namespace App\Entity;
-
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints\DateTime;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
  */
 class Arrivage
 {
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -299,10 +299,8 @@ class Arrivage
         return $this->numeroArrivage;
     }
 
-    public function setNumeroArrivage(string $numeroArrivage): self
-    {
+    public function setNumeroArrivage(string $numeroArrivage): self {
         $this->numeroArrivage = $numeroArrivage;
-
         return $this;
     }
 

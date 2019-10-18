@@ -410,7 +410,7 @@ class ReferenceArticleController extends Controller
                 if ($refFournisseurAlreadyExist) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => 'Ce nom de référence article fournnisseur existe déjà. Vous ne pouvez pas le recréer.'
+                        'msg' => 'Ce nom de référence article fournisseur existe déjà. Vous ne pouvez pas le recréer.'
                     ]);
                 }
 
@@ -645,6 +645,17 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+
+            // on vérifie que la référence n'existe pas déjà
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+
+            if ($refAlreadyExist) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+                    'codeError' => 'DOUBLON-REF'
+                ]);
+            }
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {
@@ -1013,9 +1024,9 @@ class ReferenceArticleController extends Controller
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
-            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
-            foreach ($articles as $article) {
-                $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
+            $references = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
+            foreach ($references as $reference) {
+                $data['values'][] = $this->buildInfos($reference, $listTypes, $headersCL);
             }
             return new JsonResponse($data);
         }
@@ -1038,7 +1049,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1055,6 +1066,18 @@ class ReferenceArticleController extends Controller
 	 */
     public function buildInfos(ReferenceArticle $ref, $listTypes, $headersCL)
     {
+    	$listFournisseurAndAF = $this->fournisseurRepository->getNameAndRefArticleFournisseur($ref);
+
+    	$arrayAF = $arrayF = [];
+
+    	foreach ($listFournisseurAndAF as $fournisseurAndAF) {
+    		$arrayAF[] = $fournisseurAndAF['reference'];
+    		$arrayF[] = $fournisseurAndAF['nom'];
+		}
+
+    	$stringArticlesFournisseur = implode(' / ', $arrayAF);
+    	$stringFournisseurs = implode(' / ', $arrayF);
+
         $refData[] = $ref->getReference();
         $refData[] = $ref->getLibelle();
         $refData[] = $ref->getQuantiteStock();
@@ -1063,6 +1086,8 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getStatut()->getNom();
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $refData[] = $stringFournisseurs;
+        $refData[] = $stringArticlesFournisseur;
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1136,6 +1161,8 @@ class ReferenceArticleController extends Controller
         $data = json_decode($request->getContent(), true);
         $refsString = [];
         $refs = array_slice($refs, $data['start'] ,$data['length']);
+
+        /** @var ReferenceArticle $ref */
         foreach ($refs as $ref) {
             $refsString[] = $ref->getReference();
         }
