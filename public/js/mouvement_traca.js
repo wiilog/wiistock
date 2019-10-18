@@ -37,11 +37,18 @@ let tableMvt = $('#tableMvts').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    "processing": true,
     "order": [[0, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 0
+        }
+    ],
     columns: [
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
@@ -50,6 +57,20 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
+});
+
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let date = new Date(a);
+        // Switch month and date to french typo
+        return Date.UTC(date.getFullYear(), date.getDate(), date.getMonth(), 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
 });
 
 $.fn.dataTable.ext.search.push(
