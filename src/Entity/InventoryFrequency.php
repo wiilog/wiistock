@@ -28,6 +28,16 @@ class InventoryFrequency
 	 */
     private $nbMonths;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\InventoryCategory", mappedBy="frequency")
+	 */
+	private $categories;
+
+    public function __construct()
+    {
+        $this->categories = new ArrayCollection();
+    }
+
 
     public function getId(): ?int
     {
@@ -54,6 +64,37 @@ class InventoryFrequency
     public function setNbMonths(int $nbMonths): self
     {
         $this->nbMonths = $nbMonths;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryCategory[]
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(InventoryCategory $category): self
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories[] = $category;
+            $category->setFrequency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(InventoryCategory $category): self
+    {
+        if ($this->categories->contains($category)) {
+            $this->categories->removeElement($category);
+            // set the owning side to null (unless already changed)
+            if ($category->getFrequency() === $this) {
+                $category->setFrequency(null);
+            }
+        }
 
         return $this;
     }

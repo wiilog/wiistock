@@ -10,6 +10,7 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -78,7 +79,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param $reference
 	 * @return ReferenceArticle|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByReference($reference)
     {
@@ -560,7 +561,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @param int $nbPeriod
 	 * @param string $typePeriod
 	 * @return int|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function countWithExpiryDateUpTo($nbPeriod, $typePeriod)
 	{
@@ -669,7 +670,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
      * @param InventoryMission $mission
      * @param int $refId
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function getEntryDateByMission($mission, $refId)
     {
@@ -737,36 +738,73 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             JOIN ra.category c
             LEFT JOIN ra.emplacement e
             WHERE c.frequency = :frequency ORDER BY e.label"
-        )->setParameter('frequency', $frequency);
+		)
+			->setParameter('frequency', $frequency);
 
         return $query->execute();
     }
 
-    /**
-     * @param InventoryFrequency $frequency
-     * @return ReferenceArticle[]
-     */
-    public function findByFrequencyNeverInventoriedOrderedByLocation($frequency)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT DISTINCT ra
+	/**
+	 * @param InventoryFrequency $frequency
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+    public function countActiveByFrequencyWithoutDateInventory($frequency)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(ra.id) as nbRa, COUNT(a.id) as nbA
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.category c
-            LEFT JOIN ra.emplacement e
             LEFT JOIN ra.articlesFournisseur af
             LEFT JOIN af.articles a
+            LEFT JOIN ra.statut sra
+            LEFT JOIN a.statut sa
             WHERE c.frequency = :frequency
             AND (
-            (ra.typeQuantite = 'reference' AND ra.dateLastInventory is null)
+            (ra.typeQuantite = 'reference' AND ra.dateLastInventory is null AND sra.nom = :refActive)
             OR
-            (ra.typeQuantite = 'article' AND a.dateLastInventory is null)
-            )
-             ORDER BY e.label"
-        )->setParameter('frequency', $frequency);
+            (ra.typeQuantite = 'article' AND a.dateLastInventory is null AND sa.nom = :artActive)
+            )"
+		)->setParameters([
+			'frequency' => $frequency,
+			'refActive' => ReferenceArticle::STATUT_ACTIF,
+			'artActive' => Article::STATUT_ACTIF
+		]);
 
-        return $query->execute();
-    }
+		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param InventoryFrequency $frequency
+	 * @param int $limit
+	 * @return ReferenceArticle[]|Article[]
+	 */
+	public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN ra.statut sra
+            LEFT JOIN ra.emplacement rae
+            WHERE c.frequency = :frequency
+            AND ra.typeQuantite = :typeQuantity
+            AND ra.dateLastInventory is null 
+            AND sra.nom = :refActive
+            ORDER BY rae.label"
+		)->setParameters([
+			'frequency' => $frequency,
+			'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+			'refActive' => ReferenceArticle::STATUT_ACTIF,
+		]);
+
+		if ($limit)	$query->setMaxResults($limit);
+
+		return $query->execute();
+	}
 
 }
