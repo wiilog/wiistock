@@ -88,8 +88,7 @@ function importFile() {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    alertErrorMsg("Le fichier ne s'est pas importé correctement.<br>" +
-                        "<a href='" + pathWithFileName + "' target='_blank' class='underlined'>Veuillez consulter les erreurs en cliquant ici</a>");
+                    alertErrorMsg("Le fichier ne s'est pas importé correctement. Veuillez ouvrir le fichier ('log-error.txt') qui vient de se télécharger.");
                 }
             }
         });
