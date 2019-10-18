@@ -268,6 +268,10 @@ class UtilisateurController extends Controller
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }
+            foreach ($utilisateur->getTypes() as $typeToRemove)
+            {
+                $utilisateur->removeType($typeToRemove);
+            }
             if (isset($data['type'])) {
                 foreach ($data['type'] as $type)
                 {
