@@ -191,7 +191,6 @@ class ReferenceArticle
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
-
         return $this;
     }
 
