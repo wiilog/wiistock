@@ -710,7 +710,6 @@ function initSearchDate(table) {
 }
 
 function hideSpinner(div) {
-
     div.removeClass('d-flex');
     div.addClass('d-none');
 }

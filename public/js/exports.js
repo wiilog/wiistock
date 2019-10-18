@@ -1,5 +1,4 @@
 function initExport(button, type) {
-    loadSpinner($('#spinnerExportArtAndRef'));
     if (!button.attr('data-clicked') || button.attr('data-clicked') === "false") {
         button.attr('data-clicked', true);
         button.css('pointer-events', 'none');
@@ -20,7 +19,6 @@ function initExport(button, type) {
         }
         $.post(Routing.generate(path, true), function (response) {
             exportAll(type, response.total, response.headers.join(';'), button);
-            setTimeout(hideSpinner($('#spinnerExportArtAndRef')), 5000);
         });
     }
 }
