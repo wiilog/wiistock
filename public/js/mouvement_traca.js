@@ -62,7 +62,7 @@ let tableMvt = $('#tableMvts').DataTable({
 $.extend($.fn.dataTableExt.oSort, {
     "customDate-pre": function (a) {
         let date = new Date(a);
-        // Switch month and date to french typo
+        // Switch month and date to correct french typo
         return Date.UTC(date.getFullYear(), date.getDate(), date.getMonth(), 0, 0, 0);
     },
     "customDate-asc": function (a, b) {
