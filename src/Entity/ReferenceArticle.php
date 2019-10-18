@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Annotation\BarcodeAnnotation as IsBarcode;
-use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -21,8 +19,6 @@ class ReferenceArticle
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';
 
-    use BarcodeTrait;
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -37,7 +33,6 @@ class ReferenceArticle
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @IsBarcode(getter="getReference")
      */
     private $reference;
 
@@ -195,7 +190,7 @@ class ReferenceArticle
 
     public function setReference(?string $reference): self
     {
-        $this->reference = self::stripAccent($reference);
+        $this->reference = $reference;
         return $this;
     }
 

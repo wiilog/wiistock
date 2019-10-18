@@ -8,24 +8,9 @@ const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 
-
-/** Constants which define a valid barcode */
-const BARCODE_LENGTH = 21;
-const BARCODE_INVALID_REGEX = /[^\x20-\x7e]/;
-
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
-
-/**
- * Check if value in the given jQuery input is a valid barcode
- * @param $input
- * @return {boolean}
- */
-function isBarcodeValid($input) {
-    const value = $input.val();
-    return Boolean(!value || ((value.length <= BARCODE_LENGTH) && !BARCODE_INVALID_REGEX.test(value)));
-}
 
 /**
  * Initialise une fenêtre modale
@@ -78,11 +63,11 @@ function submitAction(modal, path, table, callback, close, clear) {
             $input.removeClass('is-invalid');
         }
 
-        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-            $input.addClass('is-invalid');
-            $input.parent().addClass('is-invalid');
-            barcodeIsInvalid = label;
-        }
+        // if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+        //     $input.addClass('is-invalid');
+        //     $input.parent().addClass('is-invalid');
+        //     barcodeIsInvalid = label;
+        // }
 
 
         // validation valeur des inputs de type number
