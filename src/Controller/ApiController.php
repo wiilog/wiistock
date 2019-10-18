@@ -435,6 +435,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$newArticle = [
 								'articleFournisseur' => $article->getArticleFournisseur()->getId(),
 								'libelle' => $article->getLabel(),
+								'prix' => $article->getPrixUnitaire(),
 								'conform' => !$article->getConform(),
 								'commentaire' => $article->getcommentaire(),
 								'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),

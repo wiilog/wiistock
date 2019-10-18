@@ -645,6 +645,17 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+
+            // on vérifie que la référence n'existe pas déjà
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+
+            if ($refAlreadyExist) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+                    'codeError' => 'DOUBLON-REF'
+                ]);
+            }
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {

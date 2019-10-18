@@ -11,10 +11,10 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         tableColumnVisible.search('').draw()
     }
 
-    let { Data, missingInputs, wrongNumberInputs, doublonRef, invalidBarcode } = getDataFromModal(modal);
+    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
 
     // si tout va bien on envoie la requête ajax...
-    if (!invalidBarcode && missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
+    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
         $.post(path, JSON.stringify(Data), function(data) {
 
@@ -36,13 +36,13 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 
     } else {
         // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarcode);
+        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
 
 }
 
-function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarcode) {
+function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
     let msg = '';
 
     if(doublonRef ){
@@ -79,10 +79,6 @@ function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef, invalidBarc
             }
         })
     }
-    // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
-    if (invalidBarcode) {
-        msg += "Le champ " + invalidBarcode + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
-    }
 
     return msg;
 }
@@ -100,7 +96,6 @@ function getDataFromModal(modal) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let doublonRef = false;
-    let invalidBarcode = false;
     modal.find('select[name="fournisseur"]').each(function (index) {
         if ($(this).val()) {
             if (fournisseurReferences.eq(index).val()) {
@@ -132,11 +127,6 @@ function getDataFromModal(modal) {
             $input.next().find('.select2-selection').addClass('is-invalid');
         }
 
-        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-            $input.addClass('is-invalid');
-            invalidBarcode = label;
-        }
-
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
         if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
@@ -154,7 +144,7 @@ function getDataFromModal(modal) {
     checkboxes.each(function () {
         Data[$(this).attr("name")] = $(this).is(':checked');
     });
-    return { Data, missingInputs, wrongNumberInputs, doublonRef, invalidBarcode };
+    return { Data, missingInputs, wrongNumberInputs, doublonRef };
 }
 
 function clearModalRefArticle(modal, data) {
@@ -341,7 +331,7 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $('.justify-content-end').find('.printButton').removeClass('d-none');
+    $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
 }
@@ -360,7 +350,7 @@ function removeFilter() {
         tableRefArticle.ajax.reload();
     });
     if($('#filters').find('.filter').length <= 0){
-        $('.justify-content-end').find('.printButton').addClass('d-none');
+        $('.justify-content-end').find('.printButton').addClass('btn-disabled');
     }
 }
 

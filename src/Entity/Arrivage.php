@@ -1,8 +1,6 @@
 <?php
 
 namespace App\Entity;
-use App\Annotation\BarcodeAnnotation as IsBarcode;
-use App\Entity\Utilities\BarcodeTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,8 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage
 {
-
-    use BarcodeTrait;
 
     /**
      * @ORM\Id()
@@ -85,7 +81,6 @@ class Arrivage
 
     /**
      * @ORM\Column(type="string", length=32, nullable=true)
-     * @IsBarcode(getter="getNumeroArrivage")
      */
     private $numeroArrivage;
 
@@ -305,7 +300,7 @@ class Arrivage
     }
 
     public function setNumeroArrivage(string $numeroArrivage): self {
-        $this->numeroArrivage = self::stripAccent($numeroArrivage);
+        $this->numeroArrivage = $numeroArrivage;
         return $this;
     }
 
