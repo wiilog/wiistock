@@ -657,6 +657,40 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
+    /**
+     * @Rest\Post("/api/validateManut", name= "api-validate-manut")
+     * @Rest\View()
+     */
+    public function validateManut(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+                $em = $this->getDoctrine()->getManager();
+
+                $manut = $this->manutentionRepository->find($data['id']);
+
+                if (
+                    $manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER
+                ) {
+                    // modif de la livraison
+                    $manut->setCommentaire($data['commentaire']);
+                    $manut->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
+                    $em->flush();
+
+                    $this->successDataMsg['success'] = true;
+                } else {
+                    $this->successDataMsg['success'] = false;
+                    $this->successDataMsg['msg'] = "Cette manutention a déjà été prise en charge par un opérateur.";
+                }
+            } else {
+                $this->successDataMsg['success'] = false;
+                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+            return new JsonResponse($this->successDataMsg);
+        }
+    }
+
 	/**
 	 * @Rest\Post("/api/finishLivraison", name= "api-finish-livraison")
 	 * @Rest\View()
@@ -816,6 +850,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			return $response;
 		}
 	}
+
+
 
     private function getDataArray($user) {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
