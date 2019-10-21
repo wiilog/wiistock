@@ -659,7 +659,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     /**
      * @Rest\Post("/api/validateManut", name= "api-validate-manut")
-     * @Rest\Get("/api/validateManut", name= "api-validate-manut")
      * @Rest\View()
      */
     public function validateManut(Request $request)
