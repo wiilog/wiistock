@@ -496,14 +496,11 @@ class ArticleDataService
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($toInsert, $champ);
-                if (!$valeurChampLibre) {
                     $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->addArticle($toInsert)
                         ->setChampLibre($this->champLibreRepository->find($champ));
                     $entityManager->persist($valeurChampLibre);
-                }
                 $valeurChampLibre->setValeur($data[$champ]);
                 $entityManager->flush();
             }

@@ -24,7 +24,7 @@ class InventoryCategory
     private $label;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryFrequency")
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryFrequency", inversedBy="categories")
      */
     private $frequency;
 
