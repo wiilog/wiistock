@@ -34,6 +34,7 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -463,6 +464,24 @@ class RefArticleDataService
 
 		$this->em->flush();
 		return $resp;
+	}
+
+	/**
+	 * @return string
+	 * @throws NonUniqueResultException
+	 */
+	public function generateBarCode()
+	{
+		$now = new \DateTime('now');
+		$dateCode = $now->format('ym');
+
+		$highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
+		$highestCounter = (int)substr($highestBarCode, 7, 8);
+
+		$newCounter =  sprintf('%08u', $highestCounter+1);
+		$newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $newCounter;
+
+		return $newBarcode;
 	}
     
 }
