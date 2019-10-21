@@ -10,6 +10,8 @@ let $submitSearchManut = $('#submitSearchManutention');
 
 let pathManut = Routing.generate('manutention_api', true);
 let tableManutention = $('#tableManutention_id').DataTable({
+    serverSide: true,
+    processing: true,
     order: [[0, 'desc']],
     columnDefs: [
         {
@@ -22,7 +24,14 @@ let tableManutention = $('#tableManutention_id').DataTable({
     },
     ajax: {
         "url": pathManut,
-        "type": "POST"
+        "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.statut =  $('#statutFilter').val();
+            d.user = $('#userFilter').val();
+            d.type = $('#typeFilter').val();
+        }
     },
     columns: [
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
@@ -38,21 +47,21 @@ $submitSearchManut.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
+    let user = $('#utilisateur').val();
+    let demandeurString = user.toString();
     demandeurPiped = demandeurString.split(',').join('|');
 
     saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
 
-    tableManutention
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let statutFilter = $('#statutFilter');
+    let userFilter = $('#userFilter');
 
-    tableManutention
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    statutFilter.val(statut);
+    userFilter.val(user);
 
     tableManutention.draw();
 });

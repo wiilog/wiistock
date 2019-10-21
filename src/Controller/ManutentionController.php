@@ -12,6 +12,7 @@ use App\Repository\ManutentionRepository;
 use App\Repository\StatutRepository;
 use App\Service\MailerService;
 use App\Service\UserService;
+use App\Service\ManutentionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,8 +60,13 @@ class ManutentionController extends AbstractController
      */
     private $mailerService;
 
+    /**
+     * @var ManutentionService
+     */
+    private $manutentionService;
 
-    public function __construct(ParamClientRepository $paramClientRepository, ManutentionRepository $manutentionRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService)
+
+    public function __construct(ParamClientRepository $paramClientRepository, ManutentionRepository $manutentionRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
     {
         $this->manutentionRepository = $manutentionRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -69,6 +75,7 @@ class ManutentionController extends AbstractController
         $this->userService = $userService;
         $this->mailerService = $mailerService;
         $this->paramClientRepository = $paramClientRepository;
+        $this->manutentionService = $manutentionService;
     }
 
     /**
@@ -76,33 +83,13 @@ class ManutentionController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $manutentions = $this->manutentionRepository->findAll();
+        $data = $this->manutentionService->getDataForDatatable($request->request);
 
-            $rows = [];
-            foreach ($manutentions as $manutention) {
-
-                $rows[] = [
-                    'id' => ($manutention->getId() ? $manutention->getId() : 'Non défini'),
-                    'Date demande' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
-                    'Demandeur' => ($manutention->getDemandeur() ? $manutention->getDemandeur()->getUserName() : null),
-                    'Libellé' => ($manutention->getlibelle() ? $manutention->getLibelle() : null),
-                    'Date souhaitée' => ($manutention->getDateAttendue() ? $manutention->getDateAttendue()->format('d/m/Y H:i') : null),
-                    'Statut' => ($manutention->getStatut()->getNom() ? $manutention->getStatut()->getNom() : null),
-                    'Actions' => $this->renderView('manutention/datatableManutentionRow.html.twig', [
-                        'manut' => $manutention
-                    ]),
-                ];
-            }
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
+        return new JsonResponse($data);
     }
 
     /**
