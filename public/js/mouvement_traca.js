@@ -61,9 +61,14 @@ let tableMvt = $('#tableMvts').DataTable({
 
 $.extend($.fn.dataTableExt.oSort, {
     "customDate-pre": function (a) {
-        let date = new Date(a);
-        // Switch month and date to correct french typo
-        return Date.UTC(date.getFullYear(), date.getDate(), date.getMonth(), 0, 0, 0);
+        let dateStr = a.split(' ')[0];
+        let hourStr = a.split(' ')[1];
+        let dateSplitted = dateStr.split('/');
+        let hourSplitted = hourStr.split(':');
+
+        let date = new Date(dateSplitted[2], dateSplitted[1], dateSplitted[0], hourSplitted[0], hourSplitted[1], hourSplitted[2]);
+
+        return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     },
     "customDate-asc": function (a, b) {
         return ((a < b) ? -1 : ((a > b) ? 1 : 0));
