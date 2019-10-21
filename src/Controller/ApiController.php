@@ -831,7 +831,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
         $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-
+        dump($manutentions);
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
