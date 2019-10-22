@@ -723,8 +723,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
     if (barcodes && barcodes.length) {
         const doc = createJsPDFBarcode(apiResponse);
         const docSize = doc.internal.pageSize;
-        const docWidth = docSize.getWidth();
-        const docHeight = docSize.getHeight();
+        let docWidth = docSize.getWidth();
+        let docHeight = docSize.getHeight();
         const docScale = (docWidth / docHeight);
 
         // to launch print for the document on the end of generation
@@ -738,12 +738,17 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 const naturalScale = (this.naturalWidth / this.naturalHeight);
                 const upperNaturalScale = (naturalScale >= docScale);
 
-                const imageWidth = (upperNaturalScale
+                let imageWidth = (upperNaturalScale
                     ? docWidth
                     : (docHeight * this.naturalWidth / this.naturalHeight));
-                const imageHeight = (upperNaturalScale
+                let imageHeight = (upperNaturalScale
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
+
+                if (barcodesLabel) {
+                    imageWidth *= 0.8;
+                    imageHeight *= 0.8;
+                }
 
                 let posX = (upperNaturalScale
                     ? 0
@@ -753,10 +758,11 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 0);
 
                 if (barcodesLabel) {
+                    posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, 5));
-                    doc.text(barcodesLabel[index], imageWidth/2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(maxSize);
+                    doc.text(barcodesLabel[index], docWidth/2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
