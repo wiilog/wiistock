@@ -318,6 +318,7 @@ let ajaxEditArticle = function (select) {
 }
 
 let generateCSVDemande = function () {
+    loadSpinner($('#spinnerlivrai'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -338,11 +339,12 @@ let generateCSVDemande = function () {
                     csv += '\n';
                 });
                 dlFile(csv);
+                hideSpinner($('#spinnerlivrai'));
             }
         }, 'json');
-
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerlivrai'));
     }
 }
 

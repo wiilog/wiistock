@@ -392,7 +392,8 @@ class CollecteController extends AbstractController
                     ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
                     ->setEmplacement($collecte->getPointCollecte())
                     ->setArticleFournisseur($articleFournisseur)
-                    ->setType($refArticle->getType());
+                    ->setType($refArticle->getType())
+					->setBarCode($this->articleDataService->generateBarCode());
                 $em->persist($article);
                 $collecte->addArticle($article);
 

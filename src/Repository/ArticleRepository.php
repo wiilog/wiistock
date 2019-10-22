@@ -5,10 +5,12 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
+use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -610,4 +612,59 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+	/**
+	 * @param InventoryFrequency $frequency
+	 * @param int $limit
+	 * @return Article[]
+	 */
+	public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a
+            FROM App\Entity\Article a
+            JOIN a.articleFournisseur af
+            JOIN af.referenceArticle ra
+            JOIN ra.category c
+            LEFT JOIN a.statut sa
+            LEFT JOIN a.emplacement ae
+            WHERE c.frequency = :frequency
+            AND ra.typeQuantite = :typeQuantity 
+            AND a.dateLastInventory is null 
+            AND sa.nom = :status
+            ORDER BY ae.label"
+		)->setParameters([
+			'frequency' => $frequency,
+			'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+			'status' => Article::STATUT_ACTIF,
+		]);
+
+		if ($limit)	$query->setMaxResults($limit);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @param string $dateCode
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getHighestBarCodeByDateCode($dateCode)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a.barCode
+		FROM App\Entity\Article a
+		WHERE a.barCode LIKE :barCode
+		ORDER BY a.barCode DESC
+		")
+			->setParameter('barCode', Article::BARCODE_PREFIX . $dateCode . '%')
+			->setMaxResults(1);
+
+		return $query->getSingleScalarResult();
+	}
+
 }

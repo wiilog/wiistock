@@ -6,11 +6,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EmplacementRepository")
  */
 class Emplacement
 {
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -83,8 +85,7 @@ class Emplacement
         return $this->label;
     }
 
-    public function setLabel(? string $label): self
-    {
+    public function setLabel(? string $label): self {
         $this->label = $label;
 
         return $this;
