@@ -18,6 +18,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
+use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
@@ -27,6 +28,7 @@ use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\OrdreCollecteRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -167,7 +169,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $inventoryService;
 
 	/**
+	 * @var OrdreCollecteRepository
+	 */
+    private $ordreCollecteRepository;
+
+	/**
 	 * ApiController constructor.
+	 * @param OrdreCollecteRepository $ordreCollecteRepository
 	 * @param InventoryService $inventoryService
 	 * @param UserService $userService
 	 * @param InventoryMissionRepository $inventoryMissionRepository
@@ -190,7 +198,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param ArticleRepository $articleRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 */
-    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -214,6 +222,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService =$inventoryService;
+        $this->ordreCollecteRepository = $ordreCollecteRepository;
     }
 
     /**
@@ -827,6 +836,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
+			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];

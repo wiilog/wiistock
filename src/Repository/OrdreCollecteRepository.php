@@ -48,4 +48,34 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+
+	/**
+	 * @param string $statutLabel
+	 * @param Utilisateur $user
+	 * @return mixed
+	 */
+	public function getByStatutLabelAndUser($statutLabel, $user)
+	{
+		$userTypes = [];
+		foreach ($user->getTypes() as $type) {
+			$userTypes[] = $type->getId();
+		}
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
+            FROM App\Entity\OrdreCollecte oc
+            LEFT JOIN oc.demandeCollecte dc
+            LEFT JOIN dc.pointCollecte pc
+            LEFT JOIN oc.statut s
+            WHERE s.nom = :statutLabel AND (oc.utilisateur IS EMPTY OR oc.utilisateur = :user)"
+		)->setParameters([
+			'statut' => $statutLabel,
+			'user' => $user,
+			'type' => $userTypes
+		]);
+		return $query->execute();
+	}
 }
