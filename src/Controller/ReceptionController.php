@@ -338,7 +338,9 @@ class ReceptionController extends AbstractController
                         "Statut" => ($reception->getStatut() ?  $reception->getStatut()->getNom() : ''),
                         "Date" => ($reception->getDate() ?  $reception->getDate() : '')->format('d/m/Y'),
                         "Fournisseur" => ($reception->getFournisseur() ?  $reception->getFournisseur()->getNom() : ''),
+                        "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                         "Référence" => ($reception->getNumeroReception() ?  $reception->getNumeroReception() : ''),
+                        "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
                         'Actions' =>  $this->renderView(
                             'reception/datatableReceptionRow.html.twig',
                             ['url' =>  $url, 'reception' =>  $reception]
