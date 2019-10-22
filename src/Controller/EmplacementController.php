@@ -11,6 +11,7 @@ use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -31,6 +32,8 @@ use App\Repository\ArticleRepository;
  */
 class EmplacementController extends AbstractController
 {
+
+    const PAGE_EMPLACEMENT = 'emplacement';
 
     /**
      * @var EmplacementDataService
@@ -82,7 +85,12 @@ class EmplacementController extends AbstractController
      */
     private $referenceArticleRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -94,6 +102,7 @@ class EmplacementController extends AbstractController
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
     /**
@@ -101,6 +110,7 @@ class EmplacementController extends AbstractController
      */
     public function api(Request $request): Response
     {
+//        dump($request->request);
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
@@ -120,8 +130,13 @@ class EmplacementController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
-		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
+    // checher status et envoyer une var de type je valide l'activation du bouton
+        $statuActif = $this->filtreSupRepository->getFieldAndValueByPageAndUser(self::PAGE_EMPLACEMENT, $this->getUser());
+        $actif = false;
+        if ($statuActif !== []) {
+            $actif = $statuActif[0]['value'];
+        }
+		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll(), 'actif' => $actif]);
     }
 
     /**

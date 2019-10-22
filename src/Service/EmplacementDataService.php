@@ -14,13 +14,15 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Repository\EmplacementRepository;
 
+use Symfony\Component\Security\Core\Security;
+use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 class EmplacementDataService
 {
-    
+    const PAGE_EMPLACEMENT = 'emplacement';
     /**
      * @var \Twig_Environment
      */
@@ -41,9 +43,16 @@ class EmplacementDataService
 	 */
     private $userService;
 
+    private $security;
+
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
     private $em;
 
-    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
     {
     
         $this->templating = $templating;
@@ -52,6 +61,8 @@ class EmplacementDataService
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
         $this->userService = $userService;
+        $this->filtreSupRepository = $filtreSupRepository;
+        $this->security = $security;
     }
 
     
@@ -70,12 +81,19 @@ class EmplacementDataService
      */
     public function getEmplacementDataByParams($params = null)
     {
-    	if ($this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
-			$includingInactive = true;
-		} else {
-    		$includingInactive = false;
-		}
-        $queryResult = $this->emplacementRepository->findByParamsAndIncludingInactive($params, $includingInactive);
+//    	if ($this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+//			$includingInactive = true;
+//		} else {
+//    		$includingInactive = false;
+//		}
+        $excludeInactive = false;
+    	//récup filtres filtresup
+        $user = $this->security->getUser();
+        $statuActif = $this->filtreSupRepository->getFieldAndValueByPageAndUser(self::PAGE_EMPLACEMENT, $user);
+    	if ($statuActif !== []) {
+            $excludeInactive = $statuActif[0]['value'];
+        }
+    	$queryResult = $this->emplacementRepository->findByParamsAndExcludeInactive($params, $excludeInactive);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];
