@@ -83,13 +83,18 @@ class ManutentionController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+		if ($request->isXmlHttpRequest()) {
 
-        $data = $this->manutentionService->getDataForDatatable($request->request);
+			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-        return new JsonResponse($data);
+			$data = $this->manutentionService->getDataForDatatable($request->request);
+
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
     }
 
     /**

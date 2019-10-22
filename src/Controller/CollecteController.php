@@ -219,15 +219,19 @@ class CollecteController extends AbstractController
      * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function api(Request $request): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-        $data = $this->collecteService->getDataForDatatable($request->request);
+			$data = $this->collecteService->getDataForDatatable($request->request);
 
-        return new JsonResponse($data);
-    }
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
     /**
      * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})

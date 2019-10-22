@@ -551,13 +551,18 @@ class DemandeController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
+		if ($request->isXmlHttpRequest()) {
 
-        $data = $this->demandeLivraisonService->getDataForDatatable($request->request);
+			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-        return new JsonResponse($data);
+			$data = $this->demandeLivraisonService->getDataForDatatable($request->request);
+
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
     }
 
     /**

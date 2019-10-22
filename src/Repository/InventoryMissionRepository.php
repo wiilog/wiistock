@@ -230,6 +230,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
+        //TODO HM à optimiser
         // Filter by date
         if (!empty($params->get('dateMin')) && !empty($params->get('dateMax'))) {
             $qb

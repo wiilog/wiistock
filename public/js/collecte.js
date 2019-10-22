@@ -54,32 +54,8 @@ $submitSearchCollecte.on('click', function () {
 
     saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, userPiped, type);
 
-    let dateMinFilter = $('#dateMinFilter');
-    let dateMaxFilter = $('#dateMaxFilter');
-    let statutFilter = $('#statutFilter');
-    let userFilter = $('#userFilter');
-    let typeFilter = $('#typeFilter');
-
-    dateMinFilter.val(dateMin);
-    dateMaxFilter.val(dateMax);
-    statutFilter.val(statut);
-    userFilter.val(user);
-    typeFilter.val(type);
-
     table.draw();
 });
-
-// recherche par défaut demandeur = utilisateur courant
-// let demandeur = $('.current-username').val();
-// if (demandeur !== undefined) {
-//     let demandeurPiped = demandeur.split(',').join('|')
-//     table
-//         .columns('Demandeur:name')
-//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-//         .draw();
-//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
-//     $('#utilisateur').val(demandeur).trigger('change');
-// }
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
@@ -225,16 +201,6 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('value', id);
     modal.find(submit).attr('name', name);
 }
-
-
-// //initialisation editeur de texte une seule fois à l'édit
-// let editorEditCollecteAlreadyDone = false;
-// function initEditCollecteEditor(modal) {
-//     if (!editorEditCollecteAlreadyDone) {
-//         initEditor(modal);
-//         editorEditCollecteAlreadyDone = true;
-//     }
-// };
 
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;

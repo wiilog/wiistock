@@ -3,14 +3,20 @@
 
 namespace App\Service;
 
+use App\Entity\Collecte;
+use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
-use App\Repository\ReferenceArticleRepository;
+use App\Repository\CollecteRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\OrdreCollecteRepository;
+use App\Repository\ReferenceArticleRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Routing\RouterInterface;
 
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class CollecteService
 {
@@ -35,25 +41,44 @@ class CollecteService
     private $articleRepository;
 
     /**
-     * @var OrdreCollecteRepository
+     * @var CollecteRepository
      */
+    private $collecteRepository;
+
+	/**
+	 * @var OrdreCollecteRepository
+	 */
     private $ordreCollecteRepository;
+
+	/**
+	 * @var FiltreSupRepository
+	 */
+    private $filtreSupRepository;
 
     private $em;
 
-    public function __construct(RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, OrdreCollecteRepository $ordreCollecteRepository)
+	/**
+	 * @var Utilisateur
+	 */
+    private $user;
+
+    public function __construct(TokenStorageInterface $tokenStorage, OrdreCollecteRepository $ordreCollecteRepository, FiltreSupRepository $filtreSupRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository)
     {
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->collecteRepository = $collecteRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->ordreCollecteRepository->findByfilter($params);
+    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('dcollecte', $this->user);
+        $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
 
         $collecteArray = $queryResult['data'];
 
@@ -69,13 +94,19 @@ class CollecteService
         ];
     }
 
+	/**
+	 * @param Collecte $collecte
+	 * @return array
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function dataRowCollecte($collecte)
     {
-        if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
-            $ordreCollecteDate = null;
-        } else {
-            $ordreCollecteDate = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)->getDate()->format('d/m/Y H:i');
-        }
+    	$ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
+
+    	$ordreCollecteDate = $ordreCollecte ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '';
 
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);
         $row =

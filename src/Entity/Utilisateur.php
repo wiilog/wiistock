@@ -160,6 +160,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $inventoryCategoryHistory;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
+	 */
+    private $filtresSup;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -177,6 +182,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
+        $this->filtreSup = new ArrayCollection();
     }
 
     public function getId()
@@ -816,6 +822,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if ($this->types->contains($type)) {
             $this->types->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|FiltreSup[]
+     */
+    public function getFiltreSup(): Collection
+    {
+        return $this->filtreSup;
+    }
+
+    public function addFiltreSup(FiltreSup $filtreSup): self
+    {
+        if (!$this->filtreSup->contains($filtreSup)) {
+            $this->filtreSup[] = $filtreSup;
+            $filtreSup->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFiltreSup(FiltreSup $filtreSup): self
+    {
+        if ($this->filtreSup->contains($filtreSup)) {
+            $this->filtreSup->removeElement($filtreSup);
+            // set the owning side to null (unless already changed)
+            if ($filtreSup->getUser() === $this) {
+                $filtreSup->setUser(null);
+            }
         }
 
         return $this;
