@@ -194,7 +194,7 @@ class InventoryParamController extends AbstractController
                 $em->persist($category);
                 $em->flush();
 
-                return new JsonResponse();
+                return new JsonResponse(true);
             } else {
                 return new JsonResponse(false);
             }
@@ -271,7 +271,7 @@ class InventoryParamController extends AbstractController
 
                 $em->persist($frequency);
                 $em->flush();
-                return new JsonResponse();
+                return new JsonResponse(true);
             } else {
                 return new JsonResponse(false);
             }
@@ -358,7 +358,7 @@ class InventoryParamController extends AbstractController
                 $em->persist($frequency);
                 $em->flush();
 
-                return new JsonResponse();
+                return new JsonResponse(true);
             } else {
                 return new JsonResponse(false);
             }

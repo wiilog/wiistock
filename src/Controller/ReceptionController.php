@@ -392,26 +392,6 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/article-printer/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function printerAllApi(Request  $request, $id): Response
-    {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $references =  $this->articleRepository->getRefByRecep($id);
-            $rows = [];
-            foreach ($references as   $reference) {
-                $rows[] =  $reference['reference'];
-            }
-            return new JsonResponse($rows);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      */
     public function index(): Response
@@ -937,8 +917,10 @@ class ReceptionController extends AbstractController
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
-                            ->setType($refArticle->getType());
+                            ->setType($refArticle->getType())
+							->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
+                        $em->flush();
                         array_push($response['refs'], $toInsert->getReference());
 						$counter++;
                     }

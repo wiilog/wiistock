@@ -106,6 +106,7 @@ $submitSearchMissionRef.on('click', function() {
 });
 
 function generateCSVMission () {
+    loadSpinner($('#spinnerMission'));
     let params = {
         missionId: $('#missionId').val(),
     };
@@ -119,6 +120,7 @@ function generateCSVMission () {
                 csv += '\n';
             });
             mFile(csv);
+            hideSpinner($('#spinnerMission'));
         }
     }, 'json');
 }

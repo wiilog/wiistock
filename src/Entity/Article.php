@@ -20,6 +20,8 @@ class Article
     const STATUT_INACTIF = 'inactif';
     const STATUT_EN_TRANSIT = 'en transit';
 
+    const BARCODE_PREFIX = 'ART';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -31,6 +33,11 @@ class Article
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $reference;
+
+	/**
+	 * @ORM\Column(type="string", length=15, nullable=true)
+	 */
+	private $barCode;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -440,30 +447,30 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-             {
-                 return $this->inventoryEntries;
-             }
+                   {
+                       return $this->inventoryEntries;
+                   }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-         	{
-         		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-         			$this->inventoryEntries[] = $inventoryEntry;
-         			$inventoryEntry->setArticle($this);
-         		}
-         
-         		return $this;
-         	}
+               	{
+               		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+               			$this->inventoryEntries[] = $inventoryEntry;
+               			$inventoryEntry->setArticle($this);
+               		}
+               
+               		return $this;
+               	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-             {
-                 if ($this->inventoryEntries->contains($inventoryEntry)) {
-                     $this->inventoryEntries->removeElement($inventoryEntry);
-                     // set the owning side to null (unless already changed)
-                     if ($inventoryEntry->getArticle() === $this) {
-                         $inventoryEntry->setArticle(null);
-                     }
-                 }
-             }
+                   {
+                       if ($this->inventoryEntries->contains($inventoryEntry)) {
+                           $this->inventoryEntries->removeElement($inventoryEntry);
+                           // set the owning side to null (unless already changed)
+                           if ($inventoryEntry->getArticle() === $this) {
+                               $inventoryEntry->setArticle(null);
+                           }
+                       }
+                   }
 
     public function getHasInventoryAnomaly(): ?bool
     {
@@ -511,6 +518,18 @@ class Article
     public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
     {
         $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getBarCode(): ?string
+    {
+        return $this->barCode;
+    }
+
+    public function setBarCode(?string $barCode): self
+    {
+        $this->barCode = $barCode;
 
         return $this;
     }

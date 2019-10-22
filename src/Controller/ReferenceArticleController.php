@@ -381,15 +381,15 @@ class ReferenceArticleController extends Controller
             }
             $refArticle = new ReferenceArticle();
 
-            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
-                ->setPrixUnitaire($price)
+                ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
-                ->setEmplacement($emplacement);
+                ->setEmplacement($emplacement)
+				->setBarCode($this->refArticleDataService->generateBarCode());
 
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
@@ -645,6 +645,17 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+
+            // on vérifie que la référence n'existe pas déjà
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+
+            if ($refAlreadyExist) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+                    'codeError' => 'DOUBLON-REF'
+                ]);
+            }
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {
@@ -833,7 +844,8 @@ class ReferenceArticleController extends Controller
 							//TODO quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType());
+                        ->setType($refArticle->getType())
+						->setBarCode($this->articleDataService->generateBarCode());
                     $em->persist($newArticle);
                     $collecte->addArticle($newArticle);
                     //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)

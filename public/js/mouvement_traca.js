@@ -149,6 +149,7 @@ function checkZero(data) {
 }
 
 function generateCSVMouvement () {
+    loadSpinner($('#spinnerMouvementTraca'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -169,11 +170,13 @@ function generateCSVMouvement () {
                     csv += '\n';
                 });
                 mFile(csv);
+                hideSpinner($('#spinnerMouvementTraca'));
             }
         }, 'json');
 
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerMouvementTraca'));
     }
 }
 
