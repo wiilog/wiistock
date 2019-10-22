@@ -8,12 +8,12 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
 use App\Entity\Emplacement;
 
-use App\Entity\Menu;
+use App\Entity\FiltreSup;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
@@ -56,7 +56,6 @@ class EmplacementDataService
     {
     
         $this->templating = $templating;
-//        $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
@@ -72,28 +71,22 @@ class EmplacementDataService
         return $data;
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param null $params
+	 * @return array
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function getEmplacementDataByParams($params = null)
     {
-//    	if ($this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
-//			$includingInactive = true;
-//		} else {
-//    		$includingInactive = false;
-//		}
-        $excludeInactive = false;
-    	//récup filtres filtresup
         $user = $this->security->getUser();
-        $statuActif = $this->filtreSupRepository->getFieldAndValueByPageAndUser(self::PAGE_EMPLACEMENT, $user);
-    	if ($statuActif !== []) {
-            $excludeInactive = $statuActif[0]['value'];
-        }
-    	$queryResult = $this->emplacementRepository->findByParamsAndExcludeInactive($params, $excludeInactive);
+		$filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
+		$active = $filterStatus ? $filterStatus->getValue() : false;
+
+
+    	$queryResult = $this->emplacementRepository->findByParamsAndExcludeInactive($params, $active);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];

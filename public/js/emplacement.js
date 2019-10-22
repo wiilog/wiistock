@@ -12,7 +12,6 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     ajax: {
         "url": pathEmplacement,
         "type": "POST",
-        'data': {active: $('#actifInactif').prop('checked')},
         'dataSrc': function (json) {
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;

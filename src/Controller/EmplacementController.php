@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 
 use App\Repository\CollecteRepository;
@@ -32,9 +33,6 @@ use App\Repository\ArticleRepository;
  */
 class EmplacementController extends AbstractController
 {
-
-    const PAGE_EMPLACEMENT = 'emplacement';
-
     /**
      * @var EmplacementDataService
      */
@@ -110,7 +108,6 @@ class EmplacementController extends AbstractController
      */
     public function api(Request $request): Response
     {
-//        dump($request->request);
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
@@ -130,13 +127,12 @@ class EmplacementController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-    // checher status et envoyer une var de type je valide l'activation du bouton
-        $statuActif = $this->filtreSupRepository->getFieldAndValueByPageAndUser(self::PAGE_EMPLACEMENT, $this->getUser());
-        $actif = false;
-        if ($statuActif !== []) {
-            $actif = $statuActif[0]['value'];
-        }
-		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll(), 'actif' => $actif]);
+        $filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
+        $active = $filterStatus ? $filterStatus->getValue() : false;
+
+		return $this->render('emplacement/index.html.twig', [
+			'active' => $active
+		]);
     }
 
     /**
