@@ -807,4 +807,25 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	/**
+	 * @param string $dateCode
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getHighestBarCodeByDateCode($dateCode)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"SELECT ra.barCode
+		FROM App\Entity\ReferenceArticle ra
+		WHERE ra.barCode LIKE :barCode
+		ORDER BY ra.barCode DESC
+		")
+			->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
+			->setMaxResults(1);
+
+		return $query->getSingleScalarResult();
+	}
+
 }

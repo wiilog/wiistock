@@ -917,8 +917,10 @@ class ReceptionController extends AbstractController
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
-                            ->setType($refArticle->getType());
+                            ->setType($refArticle->getType())
+							->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
+                        $em->flush();
                         array_push($response['refs'], $toInsert->getReference());
 						$counter++;
                     }
