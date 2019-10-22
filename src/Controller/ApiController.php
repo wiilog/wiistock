@@ -674,7 +674,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER
                 ) {
                     // modif de la livraison
-                    $manut->setCommentaire($manut->getCommentaire() . "\n" . $nomadUser->getUsername() . " : " . $data['commentaire']);
+                    $manut->setCommentaire($manut->getCommentaire() . "\n" . $nomadUser->getUsername() . " : " . $data['commentaire'] . " : " . date('dd/MM/yyyy h:mm:ss'));
                     $manut->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
 
