@@ -19,7 +19,9 @@ class ReferenceArticle
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';
 
-    /**
+	const BARCODE_PREFIX = 'REF';
+
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -35,6 +37,11 @@ class ReferenceArticle
      * @ORM\Column(type="string", length=255, unique=true)
      */
     private $reference;
+
+	/**
+	 * @ORM\Column(type="string", length=15, nullable=true)
+	 */
+	private $barCode;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -720,6 +727,18 @@ class ReferenceArticle
     public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
     {
         $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getBarCode(): ?string
+    {
+        return $this->barCode;
+    }
+
+    public function setBarCode(?string $barCode): self
+    {
+        $this->barCode = $barCode;
 
         return $this;
     }
