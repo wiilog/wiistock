@@ -1160,12 +1160,16 @@ class ReferenceArticleController extends Controller
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $data = json_decode($request->getContent(), true);
-        $refsString = [];
+        $barcodes = $barcodeLabels = [];
         $refs = array_slice($refs, $data['start'] ,$data['length']);
 
         /** @var ReferenceArticle $ref */
         foreach ($refs as $ref) {
-            $refsString[] = $ref->getReference();
+            $barcodes[] = $ref->getBarCode();
+            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
+				'refRef' => $ref->getReference(),
+				'refLabel' =>$ref->getLibelle(),
+			]);
         }
 
         if ($request->isXmlHttpRequest()) {
@@ -1178,7 +1182,11 @@ class ReferenceArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
-            $data  = array('tags' => $tags, 'refs' => $refsString);
+            $data  = [
+            	'tags' => $tags,
+				'barcodes' => $barcodes,
+				'barcodeLabels' => $barcodeLabels,
+			];
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');

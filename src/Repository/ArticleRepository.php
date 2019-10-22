@@ -667,4 +667,20 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function getRefAndLabelRefAndArtAndBarcodeById($id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode
+		FROM App\Entity\Article a
+		LEFT JOIN a.articleFournisseur af
+		LEFT JOIN af.referenceArticle ra
+		WHERE a.id = :id
+		")
+			->setParameter('id', $id);
+
+		return $query->getOneOrNullResult();
+	}
+
 }

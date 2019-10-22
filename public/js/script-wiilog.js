@@ -719,7 +719,7 @@ function createJsPDFBarcode(apiResponse) {
  * @param apiResponse
  * @param {string} fileName
  */
-function printBarcodes(barcodes, apiResponse, fileName) {
+function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
     if (barcodes && barcodes.length) {
         const doc = createJsPDFBarcode(apiResponse);
         const docSize = doc.internal.pageSize;
@@ -745,13 +745,19 @@ function printBarcodes(barcodes, apiResponse, fileName) {
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
 
-                const posX = (upperNaturalScale
+                let posX = (upperNaturalScale
                     ? 0
                     : ((docWidth - imageWidth) / 2));
-                const posY = (upperNaturalScale
+                let posY = (upperNaturalScale
                     ? ((docHeight - imageHeight) / 2)
                     : 0);
 
+                if (barcodesLabel) {
+                    posY = 0;
+                    let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
+                    doc.setFontSize(Math.min(maxSize, 5));
+                    doc.text(barcodesLabel[index], imageWidth/2, imageHeight, {align: 'center', baseline: 'top'});
+                }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
 
@@ -771,6 +777,20 @@ function printBarcodes(barcodes, apiResponse, fileName) {
     } else {
         alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
     }
+}
+
+function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc)
+{
+    let texts = text.split("\n");
+
+    let maxLength = texts[0].length;
+    texts.map(v => maxLength = Math.max(maxLength, v.length));
+    let longestText = texts.filter(v => v.length == maxLength);
+
+    let textWidth = doc.getTextWidth(longestText[0]);
+    let size = (docWidth * .95 / textWidth) * doc.getFontSize();
+
+    return size;
 }
 
 function hideSpinner(div) {
