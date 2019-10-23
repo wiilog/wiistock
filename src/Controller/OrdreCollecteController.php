@@ -179,7 +179,7 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($collecte->getStatut()->getnom() ===  OrdreCollecte::STATUT_A_TRAITER) {
+        if ($collecte->getStatut()->getNom() ===  OrdreCollecte::STATUT_A_TRAITER) {
 
         	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser());
         }

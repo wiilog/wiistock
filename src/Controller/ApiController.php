@@ -40,6 +40,7 @@ use App\Repository\FournisseurRepository;
 use App\Service\ArticleDataService;
 use App\Service\InventoryService;
 use App\Service\MailerService;
+use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
@@ -174,7 +175,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $ordreCollecteRepository;
 
 	/**
+	 * @var OrdreCollecteService
+	 */
+    private $ordreCollecteService;
+
+	/**
 	 * ApiController constructor.
+	 * @param OrdreCollecteService $ordreCollecteService
 	 * @param OrdreCollecteRepository $ordreCollecteRepository
 	 * @param InventoryService $inventoryService
 	 * @param UserService $userService
@@ -198,7 +205,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param ArticleRepository $articleRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 */
-    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -223,6 +230,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->userService = $userService;
         $this->inventoryService =$inventoryService;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
+        $this->ordreCollecteService = $ordreCollecteService;
     }
 
     /**
@@ -788,20 +796,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-				$entityManager = $this->getDoctrine()->getManager();
-
 				$collectes = $data['collectes'];
 
 				// on termine les collectes
-				// même comportement que CollecteController.finish()
 				foreach ($collectes as $collecteArray) {
-//					$this->ordreCollecteRepository->find($collecteArray[''])
+					$collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
 
+					if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+						$this->ordreCollecteService->finishCollecte($collecte, $nomadUser);
+						$this->successDataMsg['success'] = true;
+					} else {
+						$user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
+						$this->successDataMsg['success'] = false;
+						$this->successDataMsg['msg'] = "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").";
+					}
 				}
-
-
-				$this->successDataMsg['success'] = true;
-
 			} else {
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
