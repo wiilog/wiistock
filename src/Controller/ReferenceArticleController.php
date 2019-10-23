@@ -644,10 +644,11 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+            $refId = intval($data['idRefArticle']);
+            $refArticle = $this->referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference'], $refId);
 
             if ($refAlreadyExist) {
                 return new JsonResponse([
