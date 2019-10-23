@@ -57,7 +57,7 @@
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
                 <div class="btn btn-primary submit" data-ref="{{ referenceId }}" data-qtt="{{ quantite }}"
-                     data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}"
+                     data-demande="{{ demande ? demande.id : '' }}" data-index="{{ index }}" data-prep="{{ preparation.id }}"
                      onclick="submitSplitting($(this))">Enregistrer
                 </div>
             </div>
