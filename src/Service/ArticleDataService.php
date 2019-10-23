@@ -34,6 +34,7 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -490,7 +491,8 @@ class ArticleDataService
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-            ->setType($type);
+            ->setType($type)
+			->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
 
         $champLibreKey = array_keys($data);
@@ -630,4 +632,22 @@ class ArticleDataService
 
         return $row;
     }
+
+	/**
+	 * @return string
+	 * @throws NonUniqueResultException
+	 */
+	public function generateBarCode()
+	{
+		$now = new \DateTime('now');
+		$dateCode = $now->format('ym');
+
+		$highestBarCode = $this->articleRepository->getHighestBarCodeByDateCode($dateCode);
+		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+
+		$newCounter =  sprintf('%08u', $highestCounter+1);
+		$newBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
+
+		return $newBarcode;
+	}
 }

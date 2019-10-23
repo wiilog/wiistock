@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -515,6 +516,27 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		//TODO patch temporaire CEA (sur quantité envoyée)
+		/** @lang DQL */
+			"SELECT a.reference, e.label as location, a.label, a.quantite as quantity, 0 as is_ref, oc.id as id_collecte
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.collectes c
+			JOIN c.ordreCollecte oc
+			LEFT JOIN oc.statut s
+			WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))"
+		)->setParameters([
+			'statutLabel' => $statutLabel,
+			'user' => $user,
+		]);
+
+		return $query->execute();
+	}
+
 	/**
 	 * @param string $reference
 	 * @return Article|null
@@ -671,4 +693,27 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	/**
+	 * @param string $dateCode
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getHighestBarCodeByDateCode($dateCode)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a.barCode
+		FROM App\Entity\Article a
+		WHERE a.barCode LIKE :barCode
+		ORDER BY a.barCode DESC
+		")
+			->setParameter('barCode', Article::BARCODE_PREFIX . $dateCode . '%')
+			->setMaxResults(1);
+
+		$result = $query->execute();
+		return $result ? $result[0]['barCode'] : null;;
+	}
+
 }

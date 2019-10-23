@@ -450,6 +450,7 @@ class PreparationController extends AbstractController
                         'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => Article::STATUT_ACTIF,
+						'prix' => $article->getPrixUnitaire(),
 						'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
                     ];
 
