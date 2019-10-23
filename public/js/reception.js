@@ -20,11 +20,11 @@ let table = $('#tableReception_id').DataTable({
     columns: [
         { "data": 'Date', 'title': 'Date de création' },
         { "data": 'DateFin', 'title': 'Date de fin de réception' },
-        { "data": 'Commentaire', 'title': 'Commentaire'},
+        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
         { "data": 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
         { "data": 'Statut', 'title': 'Statut' },
+        { "data": 'Commentaire', 'title': 'Commentaire'},
         { "data": 'Actions', 'title': 'Actions' }
     ],
 });
