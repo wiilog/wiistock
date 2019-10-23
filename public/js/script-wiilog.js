@@ -737,14 +737,12 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
             $img.on('load', function () {
                 const naturalScale = (this.naturalWidth / this.naturalHeight);
                 const upperNaturalScale = (naturalScale >= docScale);
-
                 let imageWidth = (upperNaturalScale
                     ? docWidth
                     : (docHeight * this.naturalWidth / this.naturalHeight));
                 let imageHeight = (upperNaturalScale
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
-
                 if (barcodesLabel) {
                     imageWidth *= 0.8;
                     imageHeight *= 0.8;
