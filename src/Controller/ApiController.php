@@ -657,6 +657,41 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	}
 
 	/**
+	 * @Rest\Post("/api/beginCollecte", name= "api-begin-collecte")
+	 * @Rest\View()
+	 */
+	public function beginCollecte(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+
+				$ordreCollecte = $this->ordreCollecteRepository->find($data['id']);
+
+				if (
+					$ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
+					(empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)
+				) {
+					// modif de la collecte
+					$ordreCollecte->setUtilisateur($nomadUser);
+
+					$em->flush();
+
+					$this->successDataMsg['success'] = true;
+				} else {
+					$this->successDataMsg['success'] = false;
+					$this->successDataMsg['msg'] = "Cette collecte a déjà été prise en charge par un opérateur.";
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
 	 * @Rest\Post("/api/finishLivraison", name= "api-finish-livraison")
 	 * @Rest\View()
 	 */
