@@ -817,6 +817,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	}
 
     private function getDataArray($user) {
+		$userTypes = [];
+		foreach ($user->getTypes() as $type) {
+			$userTypes[] = $type->getId();
+		}
+
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
@@ -825,6 +830,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+
+        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUS_A_TRAITER, $user, $userTypes);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user, $userTypes);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -836,7 +844,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
+			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user, $userTypes),
+			'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];

@@ -489,6 +489,29 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user, $userTypes)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, oc.id as id_collecte
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.collectes c
+			JOIN c.ordreCollecte oc
+			LEFT JOIN oc.statut s
+			LEFT JOIN c.type t
+			WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))
+			AND t.id in (:type)"
+		)->setParameters([
+			'statutLabel' => $statutLabel,
+			'user' => $user,
+			'type' => $userTypes
+		]);
+
+		return $query->execute();
+	}
+
 	/**
 	 * @param string $reference
 	 * @return Article|null

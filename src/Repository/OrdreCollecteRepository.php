@@ -53,15 +53,11 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	/**
 	 * @param string $statutLabel
 	 * @param Utilisateur $user
+	 * @param int[] $userTypes
 	 * @return mixed
 	 */
-	public function getByStatutLabelAndUser($statutLabel, $user)
+	public function getByStatutLabelAndUser($statutLabel, $user, $userTypes)
 	{
-		$userTypes = [];
-		foreach ($user->getTypes() as $type) {
-			$userTypes[] = $type->getId();
-		}
-
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 		/** @lang DQL */
@@ -70,7 +66,9 @@ class OrdreCollecteRepository extends ServiceEntityRepository
             LEFT JOIN oc.demandeCollecte dc
             LEFT JOIN dc.pointCollecte pc
             LEFT JOIN oc.statut s
-            WHERE s.nom = :statutLabel AND (oc.utilisateur IS EMPTY OR oc.utilisateur = :user)"
+            LEFT JOIN c.type t
+            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS EMPTY OR oc.utilisateur = :user))
+            AND t.id in (:type)"
 		)->setParameters([
 			'statut' => $statutLabel,
 			'user' => $user,
