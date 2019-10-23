@@ -67,7 +67,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
             LEFT JOIN dc.pointCollecte pc
             LEFT JOIN oc.statut s
             LEFT JOIN dc.type t
-            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS EMPTY OR oc.utilisateur = :user))
+            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))
             AND t.id in (:type)"
 		)->setParameters([
 			'statut' => $statutLabel,
