@@ -181,7 +181,7 @@ class OrdreCollecteController extends AbstractController
 
         if ($collecte->getStatut()->getnom() ===  OrdreCollecte::STATUT_A_TRAITER) {
 
-//        	$this->ordreCollecteService->finishCollecte($this->getUser());
+//        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser());
 
 //            // on modifie le statut de l'ordre de collecte
 //            $collecte
