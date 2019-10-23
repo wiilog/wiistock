@@ -337,6 +337,7 @@ class ReceptionController extends AbstractController
                         'id' => ($reception->getId()),
                         "Statut" => ($reception->getStatut() ?  $reception->getStatut()->getNom() : ''),
                         "Date" => ($reception->getDate() ?  $reception->getDate() : '')->format('d/m/Y'),
+                        "DateFin" => ($reception->getDateFinReception() ?  $reception->getDateFinReception()->format('d/m/Y') : ''),
                         "Fournisseur" => ($reception->getFournisseur() ?  $reception->getFournisseur()->getNom() : ''),
                         "Référence" => ($reception->getNumeroReception() ?  $reception->getNumeroReception() : ''),
                         'Actions' =>  $this->renderView(
@@ -690,6 +691,7 @@ class ReceptionController extends AbstractController
                 }
                 $reception
 					->setStatut($statut)
+                    ->setDateFinReception(new \DateTime('now'))
 					->setDateCommande(new \DateTime('now'));
                 $em->flush();
 
