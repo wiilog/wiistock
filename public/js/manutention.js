@@ -10,6 +10,8 @@ let $submitSearchManut = $('#submitSearchManutention');
 
 let pathManut = Routing.generate('manutention_api', true);
 let tableManutention = $('#tableManutention_id').DataTable({
+    serverSide: true,
+    processing: true,
     order: [[0, 'desc']],
     columnDefs: [
         {
@@ -22,7 +24,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
     },
     ajax: {
         "url": pathManut,
-        "type": "POST"
+        "type": "POST",
     },
     columns: [
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
@@ -32,6 +34,19 @@ let tableManutention = $('#tableManutention_id').DataTable({
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
+});
+
+$submitSearchManut.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let user = $('#utilisateur').val();
+    let demandeurString = user.toString();
+    demandeurPiped = demandeurString.split(',').join('|');
+
+    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
+
+    tableManutention.draw();
 });
 
 $.fn.dataTable.ext.search.push(
@@ -111,28 +126,6 @@ $(function() {
 });
 
 // filtres de recheches
-$submitSearchManut.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|');
-
-    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
-
-    tableManutention
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableManutention
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-
-    tableManutention.draw();
-});
 
 let modalNewManutention = $("#modalNewManutention");
 let submitNewManutention = $("#submitNewManutention");

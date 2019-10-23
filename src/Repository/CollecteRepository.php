@@ -20,15 +20,16 @@ class CollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, Collecte::class);
     }
 
-    public function getByStatutAndUser($statut, $user)
+    public function findByStatutLabelAndUser($statutLabel, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
             FROM App\Entity\Collecte c
-            WHERE c.statut = :statut AND c.demandeur = :user "
+            JOIN c.statut s
+            WHERE s.nom = :statutLabel AND c.demandeur = :user "
         )->setParameters([
-            'statut' => $statut,
+            'statut' => $statutLabel,
             'user' => $user,
         ]);
         return $query->execute();
@@ -74,5 +75,75 @@ class CollecteRepository extends ServiceEntityRepository
 		)->setParameter('user', $user);
 
 		return $query->getSingleScalarResult();
+	}
+
+	public function findByParamsAndFilters($params, $filters)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('c')
+			->from('App\Entity\Collecte', 'c');
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$qb
+						->join('c.statut', 's')
+						->andWhere('s.nom = :statut')
+						->setParameter('statut', $filter['value']);
+					break;
+				case 'type':
+					$qb
+						->join('c.type', 't')
+						->andWhere('t.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('c.demandeur', 'd')
+						->andWhere("d.username in (:username)")
+						->setParameter('username', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('c.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']);
+					break;
+				case 'dateMax':
+					$qb->andWhere('c.date <= :dateMax')
+						->setParameter('dateMax', $filter['value']);
+					break;
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->andWhere('c.objet LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return ['data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
 	}
 }
