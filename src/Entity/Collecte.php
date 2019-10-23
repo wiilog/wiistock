@@ -90,7 +90,6 @@ class Collecte
 	 */
 	private $valeurChampLibre;
 
-
 	/**
 	 * @ORM\OneToOne(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
 	 */
