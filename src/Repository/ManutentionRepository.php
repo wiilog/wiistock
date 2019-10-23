@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Manutention;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -35,7 +36,7 @@ class ManutentionRepository extends ServiceEntityRepository
 	/**
 	 * @param Utilisateur $user
 	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function countByUser($user)
 	{
@@ -56,27 +57,10 @@ class ManutentionRepository extends ServiceEntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('m')
+			->select('m')
             ->from('App\Entity\Manutention', 'm');
 
-        $countQuery = $countTotal = count($qb->getQuery()->getResult());
-
-        $allManutentionDataTable = null;
-        //Filter search
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-                $countQuery = count($qb->getQuery()->getResult());
-            }
-            $allManutentionDataTable = $qb->getQuery();
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        $countTotal = count($qb->getQuery()->getResult());
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -105,10 +89,28 @@ class ManutentionRepository extends ServiceEntityRepository
             }
         }
 
+        // compte éléments filtrés
+		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
         $query = $qb->getQuery();
-        return ['data' => $query ? $query->getResult() : null ,
-            'allManutentionDatatable' => $allManutentionDataTable ? $allManutentionDataTable->getResult() : null,
-            'count' => $countQuery,
+
+        return [
+        	'data' => $query ? $query->getResult() : null,
+            'count' => $countFiltered,
             'total' => $countTotal
         ];
     }

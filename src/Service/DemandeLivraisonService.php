@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
@@ -69,7 +70,7 @@ class DemandeLivraisonService
 
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('dlivraison', $this->user);
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
         $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters);
 
         $demandeArray = $queryResult['data'];

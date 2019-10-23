@@ -76,7 +76,7 @@ class CollecteRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByParamsAndFilters($params, $filters = [])
+	public function findByParamsAndFilters($params, $filters)
 	{
 		$em = $this->getEntityManager();
 		$qb = $em->createQueryBuilder();
@@ -85,24 +85,7 @@ class CollecteRepository extends ServiceEntityRepository
 			->select('c')
 			->from('App\Entity\Collecte', 'c');
 
-		$countQuery = $countTotal = count($qb->getQuery()->getResult());
-
-		$allDemandeDataTable = null;
-		//Filter search
-		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
-				if (!empty($search)) {
-					$qb
-						->andWhere('c.objet LIKE :value')
-						->setParameter('value', '%' . $search . '%');
-				}
-				$countQuery = count($qb->getQuery()->getResult());
-			}
-			$allDemandeDataTable = $qb->getQuery();
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -137,11 +120,28 @@ class CollecteRepository extends ServiceEntityRepository
 			}
 		}
 
+		// compte éléments filtrés
+		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->andWhere('c.objet LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
 		$query = $qb->getQuery();
 
 		return ['data' => $query ? $query->getResult() : null ,
-			'allDemandeDataTable' => $allDemandeDataTable ? $allDemandeDataTable->getResult() : null,
-			'count' => $countQuery,
+			'count' => $countFiltered,
 			'total' => $countTotal
 		];
 	}

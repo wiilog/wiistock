@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Collecte;
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteRepository;
@@ -77,7 +78,7 @@ class CollecteService
 
     public function getDataForDatatable($params = null)
     {
-    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('dcollecte', $this->user);
+    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
         $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
 
         $collecteArray = $queryResult['data'];

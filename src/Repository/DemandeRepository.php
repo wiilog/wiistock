@@ -176,10 +176,45 @@ class DemandeRepository extends ServiceEntityRepository
             ->select('d')
             ->from('App\Entity\Demande', 'd');
 
-        $countQuery = $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = count($qb->getQuery()->getResult());
 
-        $allDemandeDataTable = null;
-        //Filter search
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$qb
+						->join('d.statut', 's')
+						->andWhere('s.nom = :statut')
+						->setParameter('statut', $filter['value']);
+					break;
+				case 'type':
+					$qb
+						->join('d.type', 't')
+						->andWhere('t.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('d.utilisateur', 'u')
+						->andWhere("u.username in (:username)")
+						->setParameter('username', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('d.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']);
+					break;
+				case 'dateMax':
+					$qb->andWhere('d.date <= :dateMax')
+						->setParameter('dateMax', $filter['value']);
+					break;
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
+
+		//Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
@@ -188,50 +223,16 @@ class DemandeRepository extends ServiceEntityRepository
                         ->andWhere('d.numero LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
-                $countQuery = count($qb->getQuery()->getResult());
             }
-            $allDemandeDataTable = $qb->getQuery();
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch($filter['field']) {
-                case 'statut':
-                    $qb
-                        ->join('d.statut', 's')
-                        ->andWhere('s.nom = :statut')
-                        ->setParameter('statut', $filter['value']);
-                    break;
-                case 'type':
-                    $qb
-                        ->join('d.type', 't')
-                        ->andWhere('t.label = :type')
-                        ->setParameter('type', $filter['value']);
-                    break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('d.utilisateur', 'u')
-                        ->andWhere("u.username in (:username)")
-                        ->setParameter('username', $value);
-                    break;
-                case 'dateMin':
-                    $qb->andWhere('d.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value']);
-                    break;
-                case 'dateMax':
-                    $qb->andWhere('d.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value']);
-                    break;
-            }
-        }
-
         $query = $qb->getQuery();
-        return ['data' => $query ? $query->getResult() : null ,
-            'allDemandeDataTable' => $allDemandeDataTable ? $allDemandeDataTable->getResult() : null,
-            'count' => $countQuery,
+
+        return [
+        	'data' => $query ? $query->getResult() : null ,
+            'count' => $countFiltered,
             'total' => $countTotal
         ];
     }

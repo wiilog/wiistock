@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
@@ -67,7 +68,7 @@ class ManutentionService
 
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('manutention', $this->user);
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
         $queryResult = $this->manutentionRepository->findByParamAndFilters($params, $filters);
 
         $manutArray = $queryResult['data'];
