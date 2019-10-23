@@ -337,6 +337,7 @@ class ReceptionController extends AbstractController
                         'id' => ($reception->getId()),
                         "Statut" => ($reception->getStatut() ?  $reception->getStatut()->getNom() : ''),
                         "Date" => ($reception->getDate() ?  $reception->getDate() : '')->format('d/m/Y'),
+                        "DateFin" => ($reception->getDateFinReception() ?  $reception->getDateFinReception()->format('d/m/Y') : ''),
                         "Fournisseur" => ($reception->getFournisseur() ?  $reception->getFournisseur()->getNom() : ''),
                         "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                         "Référence" => ($reception->getNumeroReception() ?  $reception->getNumeroReception() : ''),
@@ -692,6 +693,7 @@ class ReceptionController extends AbstractController
                 }
                 $reception
 					->setStatut($statut)
+                    ->setDateFinReception(new \DateTime('now'))
 					->setDateCommande(new \DateTime('now'));
                 $em->flush();
 
@@ -919,8 +921,10 @@ class ReceptionController extends AbstractController
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
-                            ->setType($refArticle->getType());
+                            ->setType($refArticle->getType())
+							->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
+                        $em->flush();
                         array_push($response['refs'], $toInsert->getReference());
 						$counter++;
                     }

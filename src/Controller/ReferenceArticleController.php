@@ -381,15 +381,15 @@ class ReferenceArticleController extends Controller
             }
             $refArticle = new ReferenceArticle();
 
-            $price = max(0, $data['prix']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
                 ->setTypeQuantite($typeArticle)
-                ->setPrixUnitaire($price)
+                ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
-                ->setEmplacement($emplacement);
+                ->setEmplacement($emplacement)
+				->setBarCode($this->refArticleDataService->generateBarCode());
 
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
@@ -644,10 +644,11 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+            $refId = intval($data['idRefArticle']);
+            $refArticle = $this->referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference'], $refId);
 
             if ($refAlreadyExist) {
                 return new JsonResponse([
@@ -844,7 +845,8 @@ class ReferenceArticleController extends Controller
 							//TODO quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType());
+                        ->setType($refArticle->getType())
+						->setBarCode($this->articleDataService->generateBarCode());
                     $em->persist($newArticle);
                     $collecte->addArticle($newArticle);
                     //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)

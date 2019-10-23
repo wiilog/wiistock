@@ -36,7 +36,7 @@ class FournisseurRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT f
           FROM App\Entity\Fournisseur f
-          WHERE f.codeReference LIKE :search"
+          WHERE f.codeReference = :search"
         )->setParameter('search', $code);
 
         return $query->getOneOrNullResult();
