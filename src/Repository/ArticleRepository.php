@@ -687,7 +687,8 @@ class ArticleRepository extends ServiceEntityRepository
 			->setParameter('barCode', Article::BARCODE_PREFIX . $dateCode . '%')
 			->setMaxResults(1);
 
-		return $query->getSingleScalarResult();
+		$result = $query->execute();
+		return $result ? $result[0]['barCode'] : null;;
 	}
 
 }

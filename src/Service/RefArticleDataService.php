@@ -476,7 +476,7 @@ class RefArticleDataService
 		$dateCode = $now->format('ym');
 
 		$highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
-		$highestCounter = (int)substr($highestBarCode, 7, 8);
+		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
 
 		$newCounter =  sprintf('%08u', $highestCounter+1);
 		$newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $newCounter;
