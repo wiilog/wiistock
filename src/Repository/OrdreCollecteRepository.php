@@ -70,7 +70,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
             WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))
             AND t.id in (:type)"
 		)->setParameters([
-			'statut' => $statutLabel,
+			'statutLabel' => $statutLabel,
 			'user' => $user,
 			'type' => $userTypes
 		]);
