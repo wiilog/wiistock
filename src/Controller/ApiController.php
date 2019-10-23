@@ -908,8 +908,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
-        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user, $userTypes);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user, $userTypes);
+        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -921,7 +921,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user, $userTypes),
+			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
 			'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,

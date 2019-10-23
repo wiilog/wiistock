@@ -553,7 +553,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user, $userTypes) {
+    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -565,13 +565,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN cr.collecte dc
 			JOIN dc.ordreCollecte oc
 			JOIN oc.statut s
-			JOIN dc.type t
-			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))
-			AND t.id IN (:type)"
+			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))"
 		)->setParameters([
 		    'statutLabel' => $statutLabel,
             'user' => $user,
-			'type' => $userTypes
         ]);
 
 		return $query->execute();
