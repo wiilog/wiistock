@@ -18,13 +18,13 @@ let table = $('#tableReception_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date' },
-        { "data": 'Fournisseur' },
-        { "data": 'Commentaire'},
-        { "data": 'Référence' },
-        { "data": 'Numéro de commande' },
-        { "data": 'Statut' },
-        { "data": 'Actions' }
+        { "data": 'Date' , 'title': 'Date'},
+        { "data": 'Fournisseur', 'title': 'Fournisseur'},
+        { "data": 'Commentaire', 'title': 'Commentaire'},
+        { "data": 'Référence', 'title': 'Référence' },
+        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
+        { "data": 'Statut', 'title': 'Statut'},
+        { "data": 'Actions', 'title': 'Actions'}
     ],
 });
 
