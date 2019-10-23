@@ -39,8 +39,9 @@ class OrdreCollecteService
 	 */
 	private $collecteReferenceRepository;
 
-    public function __construct(CollecteReferenceRepository $collecteReferenceRepository, MailerService $mailerService, StatutRepository $statutRepository, EntityManagerInterface $em, \Twig_Environment $templating)
+    public function __construct(MailerServerRepository $mailerServerRepository, CollecteReferenceRepository $collecteReferenceRepository, MailerService $mailerService, StatutRepository $statutRepository, EntityManagerInterface $em, \Twig_Environment $templating)
 	{
+	    $this->mailerServerRepository = $mailerServerRepository;
 		$this->templating = $templating;
 		$this->em = $em;
 		$this->statutRepository = $statutRepository;
