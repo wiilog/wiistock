@@ -6,9 +6,9 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
+use App\Repository\CollecteReferenceRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\StatutRepository;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -30,12 +30,22 @@ class OrdreCollecteService
 	 * @var MailerServerRepository
 	 */
 	private $mailerServerRepository;
+	/**
+	 * @var MailerService
+	 */
+	private $mailerService;
+	/**
+	 * @var CollecteReferenceRepository
+	 */
+	private $collecteReferenceRepository;
 
-    public function __construct(StatutRepository $statutRepository, EntityManagerInterface $em, \Twig_Environment $templating)
+    public function __construct(CollecteReferenceRepository $collecteReferenceRepository, MailerService $mailerService, StatutRepository $statutRepository, EntityManagerInterface $em, \Twig_Environment $templating)
 	{
 		$this->templating = $templating;
 		$this->em = $em;
 		$this->statutRepository = $statutRepository;
+		$this->mailerService = $mailerService;
+		$this->collecteReferenceRepository = $collecteReferenceRepository;
 	}
 
 	/**
@@ -58,7 +68,7 @@ class OrdreCollecteService
 		if ($this->mailerServerRepository->findAll()) {
 			$this->mailerService->sendMail(
 				'FOLLOW GT // Collecte effectuée',
-				$this->renderView(
+				$this->templating->render(
 					'mails/mailCollecteDone.html.twig',
 					[
 						'title' => 'Votre demande a bien été collectée.',
@@ -71,30 +81,24 @@ class OrdreCollecteService
 		}
 
 		// on modifie la quantité des articles de référence liés à la collecte
-		$ligneArticles = $this->collecteReferenceRepository->findByCollecte($collecte->getDemandeCollecte());
+		$collecteReferences = $this->collecteReferenceRepository->findByCollecte($demandeCollecte);
 
 		$addToStock = $demandeCollecte->getStockOrDestruct();
 
 		// cas de mise en stockage
 		if ($addToStock) {
-			foreach ($ligneArticles as $ligneArticle) {
-				$refArticle = $ligneArticle->getReferenceArticle();
-				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
+			foreach ($collecteReferences as $collecteReference) {
+				$refArticle = $collecteReference->getReferenceArticle();
+				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
 			}
 
 			// on modifie le statut des articles liés à la collecte
-			$demandeCollecte = $collecte->getDemandeCollecte();
-
 			$articles = $demandeCollecte->getArticles();
 			foreach ($articles as $article) {
 				$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
 			}
 		}
-
-		$this->getDoctrine()->getManager()->flush();
+		$this->em->flush();
 	}
-
-
-
 
 }

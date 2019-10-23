@@ -181,55 +181,7 @@ class OrdreCollecteController extends AbstractController
 
         if ($collecte->getStatut()->getnom() ===  OrdreCollecte::STATUT_A_TRAITER) {
 
-//        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser());
-
-//            // on modifie le statut de l'ordre de collecte
-//            $collecte
-//                ->setUtilisateur($this->getUser())
-//                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-//                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
-//
-//            // on modifie le statut de la demande de collecte
-//            $demandeCollecte = $collecte->getDemandeCollecte();
-//            $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
-//
-//            if ($this->mailerServerRepository->findAll()) {
-//                $this->mailerService->sendMail(
-//                    'FOLLOW GT // Collecte effectuée',
-//                    $this->renderView(
-//                        'mails/mailCollecteDone.html.twig',
-//                        [
-//                        	'title' => 'Votre demande a bien été collectée.',
-//                            'collecte' => $demandeCollecte,
-//
-//                        ]
-//                    ),
-//                    $demandeCollecte->getDemandeur()->getEmail()
-//                );
-//            }
-//
-//            // on modifie la quantité des articles de référence liés à la collecte
-//            $ligneArticles = $this->collecteReferenceRepository->findByCollecte($collecte->getDemandeCollecte());
-//
-//            $addToStock = $demandeCollecte->getStockOrDestruct();
-//
-//            // cas de mise en stockage
-//            if ($addToStock) {
-//                foreach ($ligneArticles as $ligneArticle) {
-//                    $refArticle = $ligneArticle->getReferenceArticle();
-//                    $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
-//                }
-//
-//                // on modifie le statut des articles liés à la collecte
-//                $demandeCollecte = $collecte->getDemandeCollecte();
-//
-//                $articles = $demandeCollecte->getArticles();
-//                foreach ($articles as $article) {
-//                    $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
-//                }
-//            }
-//
-//            $this->getDoctrine()->getManager()->flush();
+        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser());
         }
 
         return $this->redirectToRoute('ordre_collecte_show', [

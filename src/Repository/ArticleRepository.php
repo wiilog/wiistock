@@ -493,8 +493,9 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
+		//TODO patch temporaire CEA (sur quantité envoyée)
 		/** @lang DQL */
-			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, oc.id as id_collecte
+			"SELECT a.reference, e.label as location, a.label, a.quantite as quantity, 0 as is_ref, oc.id as id_collecte
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.collectes c

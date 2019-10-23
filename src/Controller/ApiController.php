@@ -779,36 +779,37 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
-//	/**
-//	 * @Rest\Post("/api/finishCollecte", name= "api-finish-collecte")
-//	 * @Rest\View()
-//	 */
-//	public function finishCollecte(Request $request)
-//	{
-//		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-//
-//				$entityManager = $this->getDoctrine()->getManager();
-//
-//				$collectes = $data['collectes'];
-//
-//				// on termine les collectes
-//				// même comportement que CollecteController.finish()
-//				foreach ($collectes as $collecteArray) {
-//
-//				}
-//
-//
-//				$this->successDataMsg['success'] = true;
-//
-//			} else {
-//				$this->successDataMsg['success'] = false;
-//				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-//			}
-//
-//			return new JsonResponse($this->successDataMsg);
-//		}
-//	}
+	/**
+	 * @Rest\Post("/api/finishCollecte", name= "api-finish-collecte")
+	 * @Rest\View()
+	 */
+	public function finishCollecte(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$entityManager = $this->getDoctrine()->getManager();
+
+				$collectes = $data['collectes'];
+
+				// on termine les collectes
+				// même comportement que CollecteController.finish()
+				foreach ($collectes as $collecteArray) {
+//					$this->ordreCollecteRepository->find($collecteArray[''])
+
+				}
+
+
+				$this->successDataMsg['success'] = true;
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
 
 	/**
 	 * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
