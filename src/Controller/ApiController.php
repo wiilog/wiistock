@@ -803,7 +803,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
 
 					if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-						$this->ordreCollecteService->finishCollecte($collecte, $nomadUser);
+						$date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
+						$this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
 						$this->successDataMsg['success'] = true;
 					} else {
 						$user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';

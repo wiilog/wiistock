@@ -51,15 +51,16 @@ class OrdreCollecteService
 	/**
 	 * @param OrdreCollecte $collecte
 	 * @param Utilisateur $user
+	 * @param string $date
 	 * @throws \Exception
 	 */
-	public function finishCollecte($collecte, $user)
+	public function finishCollecte($collecte, $user, $date)
 	{
 		// on modifie le statut de l'ordre de collecte
 		$collecte
 			->setUtilisateur($user)
 			->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-			->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+			->setDate($date);
 
 		// on modifie le statut de la demande de collecte
 		$demandeCollecte = $collecte->getDemandeCollecte();

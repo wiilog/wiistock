@@ -180,8 +180,8 @@ class OrdreCollecteController extends AbstractController
         }
 
         if ($collecte->getStatut()->getNom() ===  OrdreCollecte::STATUT_A_TRAITER) {
-
-        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser());
+        	$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date);
         }
 
         return $this->redirectToRoute('ordre_collecte_show', [
