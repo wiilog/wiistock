@@ -478,9 +478,9 @@ class ArticleRepository extends ServiceEntityRepository
                     a.quantite as quantity, 
                     ra.reference as reference_article
 			FROM App\Entity\Article a
-			JOIN App\Entity\ArticleFournisseur af
-			JOIN App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
+			LEFT JOIN a.emplacement e
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
 			JOIN ra.ligneArticles la
 			JOIN la.demande d
 			JOIN d.preparation p

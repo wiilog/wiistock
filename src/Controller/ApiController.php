@@ -21,6 +21,7 @@ use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
@@ -46,6 +47,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
 
@@ -489,7 +491,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
      * @Rest\View()
      */
-    public function finishPrepa(Request $request)
+    public function finishPrepa(Request $request,
+                                DemandeRepository $demandeRepository)
     {
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
@@ -576,6 +579,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
 							$article->setQuantiteAPrelever($mouvement->getQuantity());
+
                             if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                                 $newArticle = [
                                     'articleFournisseur' => $article->getArticleFournisseur()->getId(),
@@ -593,7 +597,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 }
                                 $this->articleDataService->newArticle($newArticle);
 
-                                $article->setQuantite($article->getQuantiteAPrelever(), 0);
+                                $article->setQuantite($article->getQuantiteAPrelever());
+
+                                if (isset($mouvementNomade['selected_by_article']) &&
+                                    $mouvementNomade['selected_by_article']) {
+                                    if ($article->getDemande()) {
+                                        throw new BadRequestHttpException('article-already-selected');
+                                    }
+                                    else {
+                                        $demande = $demandeRepository->findOneByLivraison($livraison);
+                                        $article->setDemande($demande);
+
+                                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                                        $entityManager->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+                                    }
+                                }
                             }
 						}
 					}
