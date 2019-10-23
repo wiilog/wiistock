@@ -23,13 +23,7 @@ let table = $('#tableCollecte_id').DataTable({
     ajax: {
         "url": pathCollecte,
         "type": "POST",
-        "data" : function(d) {
-            d.dateMin = $('#dateMinFilter').val();
-            d.dateMax = $('#dateMaxFilter').val();
-            d.statut =  $('#statutFilter').val();
-            d.user = $('#userFilter').val();
-            d.type = $('#typeFilter').val();
-        }
+
     },
     columns: [
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},

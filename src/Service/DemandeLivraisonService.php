@@ -4,7 +4,9 @@
 namespace App\Service;
 
 
+use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 
@@ -12,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class DemandeLivraisonService
 {
@@ -40,9 +43,19 @@ class DemandeLivraisonService
      */
     private $demandeRepository;
 
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    /**
+     * @var Utilisateur
+     */
+    private $user;
+
     private $em;
 
-    public function __construct(RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository)
     {
         $this->templating = $templating;
         $this->em = $em;
@@ -50,11 +63,14 @@ class DemandeLivraisonService
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->demandeRepository->findByFilter($params);
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('dlivraison', $this->user);
+        $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters);
 
         $demandeArray = $queryResult['data'];
 

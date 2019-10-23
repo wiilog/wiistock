@@ -167,7 +167,7 @@ class DemandeRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByFilter($params)
+	public function findByParamsAndFilters($params, $filters)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -194,48 +194,38 @@ class DemandeRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        //Filter by date
-        if (!empty($params->get('dateMin'))) {
-            $qb
-                ->andWhere('d.date >= :dateMin')
-                ->setParameter('dateMin', $params->get('dateMin'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allDemandeDataTable = $qb->getQuery();
-        }
-        if (!empty($params->get('dateMax'))) {
-            $qb
-                ->andWhere('d.date <= :dateMax')
-                ->setParameter('dateMax', $params->get('dateMax'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allDemandeDataTable = $qb->getQuery();
-        }
-        //Filter by statut
-        if (!empty($params->get('statut'))) {
-            $qb
-                ->join('d.statut', 's')
-                ->andWhere('s.nom = :statut')
-                ->setParameter('statut', $params->get('statut'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allDemandeDataTable = $qb->getQuery();
-        }
-        //Filter by user
-        if (!empty($params->get('user'))) {
-            $arrayUser = explode(',', $params->get('user'));
-            $qb->join('d.utilisateur', 'u');
-            $qb
-                ->andWhere('u.username IN (:user)')
-                ->setParameter('user', $arrayUser);
-            $countQuery = count($qb->getQuery()->getResult());
-            $allDemandeDataTable = $qb->getQuery();
-        }
-        //Filter by type
-        if (!empty($params->get('type'))) {
-            $qb
-                ->join('d.type', 't')
-                ->andWhere('t.label = :type')
-                ->setParameter('type', $params->get('type'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allDemandeDataTable = $qb->getQuery();
+
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch($filter['field']) {
+                case 'statut':
+                    $qb
+                        ->join('d.statut', 's')
+                        ->andWhere('s.nom = :statut')
+                        ->setParameter('statut', $filter['value']);
+                    break;
+                case 'type':
+                    $qb
+                        ->join('d.type', 't')
+                        ->andWhere('t.label = :type')
+                        ->setParameter('type', $filter['value']);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('d.utilisateur', 'u')
+                        ->andWhere("u.username in (:username)")
+                        ->setParameter('username', $value);
+                    break;
+                case 'dateMin':
+                    $qb->andWhere('d.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value']);
+                    break;
+                case 'dateMax':
+                    $qb->andWhere('d.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value']);
+                    break;
+            }
         }
 
         $query = $qb->getQuery();

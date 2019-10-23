@@ -4,12 +4,15 @@
 namespace App\Service;
 
 
+use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class ManutentionService
 {
@@ -38,9 +41,19 @@ class ManutentionService
      */
     private $manutentionRepository;
 
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    /**
+     * @var Utilisateur
+     */
+    private $user;
+
     private $em;
 
-    public function __construct(RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, ManutentionRepository $manutentionRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, FiltreSupRepository $filtreSupRepository, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, ManutentionRepository $manutentionRepository)
     {
         $this->templating = $templating;
         $this->em = $em;
@@ -48,11 +61,14 @@ class ManutentionService
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->manutentionRepository = $manutentionRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->manutentionRepository->findByFilter($params);
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser('manutention', $this->user);
+        $queryResult = $this->manutentionRepository->findByParamAndFilters($params, $filters);
 
         $manutArray = $queryResult['data'];
 

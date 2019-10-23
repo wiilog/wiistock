@@ -76,13 +76,6 @@ let tableDemande = $('#table_demande').DataTable({
     ajax: {
         "url": pathDemande,
         "type": "POST",
-        "data" : function(d) {
-            d.dateMin = $('#dateMinFilter').val();
-            d.dateMax = $('#dateMaxFilter').val();
-            d.statut =  $('#statutFilter').val();
-            d.user = $('#userFilter').val();
-            d.type = $('#typeFilter').val();
-        }
     },
     columns: [
         {"data": 'Date', 'name': 'Date'},
@@ -105,18 +98,6 @@ $submitSearchDemande.on('click', function() {
     let type = $('#type').val();
 
     saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, userPiped, type);
-
-    let dateMinFilter = $('#dateMinFilter');
-    let dateMaxFilter = $('#dateMaxFilter');
-    let statutFilter = $('#statutFilter');
-    let userFilter = $('#userFilter');
-    let typeFilter = $('#typeFilter');
-
-    dateMinFilter.val(dateMin);
-    dateMaxFilter.val(dateMax);
-    statutFilter.val(statut);
-    userFilter.val(user);
-    typeFilter.val(type);
 
     tableDemande.draw();
 });

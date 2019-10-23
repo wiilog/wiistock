@@ -50,7 +50,7 @@ class ManutentionRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByFilter($params)
+	public function findByParamAndFilters($params, $filters)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -77,39 +77,32 @@ class ManutentionRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        //Filter by date
-        if (!empty($params->get('dateMin'))) {
-            $qb
-                ->andWhere('m.date >= :dateMin')
-                ->setParameter('dateMin', $params->get('dateMin'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allManutentionDataTable = $qb->getQuery();
-        }
-        if (!empty($params->get('dateMax'))) {
-            $qb
-                ->andWhere('m.date <= :dateMax')
-                ->setParameter('dateMax', $params->get('dateMax'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allManutentionDataTable = $qb->getQuery();
-        }
-        //Filter by statut
-        if (!empty($params->get('statut'))) {
-            $qb
-                ->join('m.statut', 's')
-                ->andWhere('s.nom = :statut')
-                ->setParameter('statut', $params->get('statut'));
-            $countQuery = count($qb->getQuery()->getResult());
-            $allManutentionDataTable = $qb->getQuery();
-        }
-        //Filter by user
-        if (!empty($params->get('user'))) {
-            $arrayUser = explode(',', $params->get('user'));
-            $qb->join('m.demandeur', 'u');
-            $qb
-                ->andWhere('u.username IN (:user)')
-                ->setParameter('user', $arrayUser);
-            $countQuery = count($qb->getQuery()->getResult());
-            $allManutentionDataTable = $qb->getQuery();
+
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch($filter['field']) {
+                case 'statut':
+                    $qb
+                        ->join('m.statut', 's')
+                        ->andWhere('s.nom = :statut')
+                        ->setParameter('statut', $filter['value']);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('m.demandeur', 'd')
+                        ->andWhere("d.username in (:username)")
+                        ->setParameter('username', $value);
+                    break;
+                case 'dateMin':
+                    $qb->andWhere('m.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value']);
+                    break;
+                case 'dateMax':
+                    $qb->andWhere('m.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value']);
+                    break;
+            }
         }
 
         $query = $qb->getQuery();

@@ -55,12 +55,12 @@ class CollecteService
 	 */
     private $filtreSupRepository;
 
-    private $em;
-
 	/**
 	 * @var Utilisateur
 	 */
     private $user;
+
+    private $em;
 
     public function __construct(TokenStorageInterface $tokenStorage, OrdreCollecteRepository $ordreCollecteRepository, FiltreSupRepository $filtreSupRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository)
     {
