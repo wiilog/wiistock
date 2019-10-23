@@ -565,6 +565,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
+			JOIN d.type t
 			WHERE (s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user))
 			AND t.id IN (:type)"
 		)->setParameters([
