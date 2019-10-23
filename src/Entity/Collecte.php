@@ -92,7 +92,7 @@ class Collecte
 
 
 	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\OrdreCollecte", inversedBy="demandeCollecte")
+	 * @ORM\OneToOne(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
 	 */
 	private $ordreCollecte;
 
