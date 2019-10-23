@@ -835,7 +835,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
 			->setMaxResults(1);
 
-		return $query->getSingleScalarResult();
+		$result = $query->execute();
+		return $result ? $result[0]['barCode'] : null;
 	}
 
 }
