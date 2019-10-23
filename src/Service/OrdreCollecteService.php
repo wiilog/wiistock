@@ -40,6 +40,7 @@ class OrdreCollecteService
 
 	/**
 	 * @param OrdreCollecte $collecte
+	 * @param Utilisateur $user
 	 * @throws \Exception
 	 */
 	public function finishCollecte($collecte, $user)

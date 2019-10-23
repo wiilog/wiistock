@@ -566,7 +566,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN dc.ordreCollecte oc
 			JOIN oc.statut s
 			JOIN dc.type t
-			WHERE (s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user))
+			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))
 			AND t.id IN (:type)"
 		)->setParameters([
 		    'statutLabel' => $statutLabel,
