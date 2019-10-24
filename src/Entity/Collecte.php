@@ -90,6 +90,11 @@ class Collecte
 	 */
 	private $valeurChampLibre;
 
+	/**
+	 * @ORM\OneToOne(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
+	 */
+	private $ordreCollecte;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -321,6 +326,18 @@ class Collecte
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
+
+        return $this;
+    }
+
+    public function getOrdreCollecte(): ?OrdreCollecte
+    {
+        return $this->ordreCollecte;
+    }
+
+    public function setOrdreCollecte(?OrdreCollecte $ordreCollecte): self
+    {
+        $this->ordreCollecte = $ordreCollecte;
 
         return $this;
     }
