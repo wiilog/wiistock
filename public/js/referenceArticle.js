@@ -704,3 +704,7 @@ function showRowMouvements(button) {
     }, 'json');
 }
 
+function switchStatut(button) {
+    button.parent().next('#statut').val(button.data('title'));
+}
+

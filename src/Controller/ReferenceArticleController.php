@@ -348,7 +348,6 @@ class ReferenceArticleController extends Controller
             }
             $requiredCreate = true;
             $type = $this->typeRepository->find($data['type']);
-
             if ($data['emplacement'] !== null) {
                 $emplacement = $this->emplacementRepository->find($data['emplacement']);
             } else {
@@ -369,6 +368,7 @@ class ReferenceArticleController extends Controller
             }
 
             $em = $this->getDoctrine()->getManager();
+            dump($data['statut']);
             $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $data['statut']);
 
             switch($data['type_quantite']) {
@@ -1210,7 +1210,7 @@ class ReferenceArticleController extends Controller
                 $filter
                     ->setUtilisateur($user)
                     ->setChampFixe('Statut')
-                    ->setValue('actif');
+                    ->setValue('Disponible');
                 $em->persist($filter);
             }
 

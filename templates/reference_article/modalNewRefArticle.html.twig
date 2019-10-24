@@ -27,11 +27,11 @@
                             <div>
                                 <span class="btn active" data-toggle="statut"
                                       data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                                      onclick="toggleRadioButton($(this))">
+                                      onclick="toggleRadioButton($(this)); switchStatut($(this))">
                                     {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
                                 </span><span class="btn not-active" data-toggle="statut"
                                              data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                             onclick="toggleRadioButton($(this))">
+                                             onclick="toggleRadioButton($(this)); switchStatut($(this))">
                                     {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
                                 </span>
                             </div>

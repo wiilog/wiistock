@@ -580,6 +580,8 @@ function clearModal(modal) {
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");
+        } if ($(this).attr('id') === 'statut') {
+            $(this).val($(this).parent().find('span.active').data('title'));
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
