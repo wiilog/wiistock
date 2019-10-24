@@ -34,6 +34,7 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use App\Service\DemandeLivraisonService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -137,7 +138,12 @@ class DemandeController extends AbstractController
      */
     private $prefixeNomDemandeRepository;
 
-    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    /**
+     * @var DemandeLivraisonService
+     */
+    private $demandeLivraisonService;
+
+    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -157,6 +163,7 @@ class DemandeController extends AbstractController
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->parametreRepository = $parametreRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
+        $this->demandeLivraisonService = $demandeLivraisonService;
     }
 
     /**
@@ -544,37 +551,18 @@ class DemandeController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+		if ($request->isXmlHttpRequest()) {
 
-            $demandes = $this->demandeRepository->findAll();
-            $rows = [];
-            foreach ($demandes as $demande) {
-                $idDemande = $demande->getId();
-                $url = $this->generateUrl('demande_show', ['id' => $idDemande]);
-                $rows[] =
-                    [
-                        'Date' => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
-                        'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
-                        'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
-                        'Statut' => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                        'Type' => ($demande->getType() ? $demande->getType()->getLabel() : ''),
-                        'Actions' => $this->renderView(
-                            'demande/datatableDemandeRow.html.twig',
-                            [
-                                'idDemande' => $idDemande,
-                                'url' => $url,
-                            ]
-                        ),
-                    ];
-            }
-            $data['data'] = $rows;
+			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
+			$data = $this->demandeLivraisonService->getDataForDatatable($request->request);
+
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
     }
 
     /**

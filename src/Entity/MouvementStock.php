@@ -71,6 +71,7 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="livraison_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
     private $livraisonOrder;
 

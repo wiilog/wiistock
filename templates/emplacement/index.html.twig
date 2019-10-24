@@ -16,6 +16,21 @@
              onclick="getDataAndPrintLabels()">
             <i class="fas fa-print"></i> Imprimer les étiquettes
         </button>
+    <div class="dropright">
+        <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-cog"></i>
+        </div>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <div class="statut dropdown-item" >
+                Statut article actif
+                <label class="switch">
+                    {% set checked = active ? 'checked' : '' %}
+                    <input class="checkbox" id="actifInactif" type="checkbox" onchange="reloadDatatableforActif()" {{ checked }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
 </div>
 
 <input type="hidden" id="listEmplacementIdToPrint">
@@ -29,9 +44,6 @@
 
 <table id="tableEmplacement_id" class="table table-striped table-bordered w-100">
 </table>
-
-{% set statutVisible = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-<input type="hidden" class='statutVisible' value="{{ statutVisible }}">
 
 {% include "emplacement/modalDeleteEmplacement.html.twig" %}
 {% include "emplacement/modalEditEmplacement.html.twig" %}

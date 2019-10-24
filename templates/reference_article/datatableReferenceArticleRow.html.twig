@@ -1,16 +1,16 @@
 <div class="d-flex">
 
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'>
-        <div class="btn btn-col-action" data-id='{{ idRefArticle }}'
+    <div id='edit{{idRefArticle}}'>
+        <div class="btn btn-col-action" data-id='{{ idRefArticle }}' data-target='#modalEditRefArticle' data-toggle='modal'
         onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true),
         clearDiv(), toggleRequiredChampsLibres($(this), 'edit'), initRequiredChampsFixes($(this))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
     {% else %}
-    <div  data-target='#modalShowRefArticle' data-toggle='modal'>
-        <div class="btn btn-col-action" data-id='{{ idRefArticle }}'
+    <div>
+        <div class="btn btn-col-action" data-id='{{ idRefArticle }}' data-target='#modalShowRefArticle' data-toggle='modal'
         onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
             <i class='fas fa-eye'></i>
         </div>
