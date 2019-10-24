@@ -479,7 +479,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock
+        	/** @lang DQL */
+            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
             FROM App\Entity\ReferenceArticle ra
             WHERE ra.typeQuantite = :typeQuantite"
         )->setParameter('typeQuantite', $typeQuantite);
@@ -524,6 +525,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     ra.libelle as label, 
                     la.quantite as quantity, 
                     1 as is_ref, 
+                    ra.barCode,
                     p.id as id_prepa
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
@@ -544,7 +546,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la
@@ -565,7 +568,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte
+			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.collecteReferences cr

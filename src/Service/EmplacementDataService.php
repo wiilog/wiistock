@@ -8,19 +8,21 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
 use App\Entity\Emplacement;
 
-use App\Entity\Menu;
+use App\Entity\FiltreSup;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Symfony\Component\Security\Core\Security;
+use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 class EmplacementDataService
 {
-    
+    const PAGE_EMPLACEMENT = 'emplacement';
     /**
      * @var \Twig_Environment
      */
@@ -41,17 +43,25 @@ class EmplacementDataService
 	 */
     private $userService;
 
+    private $security;
+
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
     private $em;
 
-    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
     {
     
         $this->templating = $templating;
-//        $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
         $this->userService = $userService;
+        $this->filtreSupRepository = $filtreSupRepository;
+        $this->security = $security;
     }
 
     
@@ -61,21 +71,22 @@ class EmplacementDataService
         return $data;
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param null $params
+	 * @return array
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function getEmplacementDataByParams($params = null)
     {
-    	if ($this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
-			$includingInactive = true;
-		} else {
-    		$includingInactive = false;
-		}
-        $queryResult = $this->emplacementRepository->findByParamsAndIncludingInactive($params, $includingInactive);
+        $user = $this->security->getUser();
+		$filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
+		$active = $filterStatus ? $filterStatus->getValue() : false;
+
+
+    	$queryResult = $this->emplacementRepository->findByParamsAndExcludeInactive($params, $active);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];

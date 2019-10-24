@@ -45,6 +45,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $token;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
+     */
+    private $filtresSup;
+
+    /**
      * @Assert\NotBlank()
      * @Assert\Length(min=8, max=4096)
      * @Assert\Regex(pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/", message="Doit contenir au moins une majuscule, une minuscule, un symbole, et un nombre.")
@@ -160,11 +165,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $inventoryCategoryHistory;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
-	 */
-    private $filtresSup;
-
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -182,7 +182,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
-        $this->filtreSup = new ArrayCollection();
+        $this->filtresSup = new ArrayCollection();
     }
 
     public function getId()
@@ -830,28 +830,28 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|FiltreSup[]
      */
-    public function getFiltreSup(): Collection
+    public function getFiltresSup(): Collection
     {
-        return $this->filtreSup;
+        return $this->filtresSup;
     }
 
-    public function addFiltreSup(FiltreSup $filtreSup): self
+    public function addFiltresSup(FiltreSup $filtresSup): self
     {
-        if (!$this->filtreSup->contains($filtreSup)) {
-            $this->filtreSup[] = $filtreSup;
-            $filtreSup->setUser($this);
+        if (!$this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup[] = $filtresSup;
+            $filtresSup->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeFiltreSup(FiltreSup $filtreSup): self
+    public function removeFiltresSup(FiltreSup $filtresSup): self
     {
-        if ($this->filtreSup->contains($filtreSup)) {
-            $this->filtreSup->removeElement($filtreSup);
+        if ($this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup->removeElement($filtresSup);
             // set the owning side to null (unless already changed)
-            if ($filtreSup->getUser() === $this) {
-                $filtreSup->setUser(null);
+            if ($filtresSup->getUser() === $this) {
+                $filtresSup->setUser(null);
             }
         }
 

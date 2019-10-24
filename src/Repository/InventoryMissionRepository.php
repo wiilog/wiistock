@@ -28,7 +28,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-		"SELECT im.id as id_mission, ra.reference, e.label as location, 1 as is_ref, ie.id as ieid
+		"SELECT im.id as id_mission, ra.reference, e.label as location, 1 as is_ref, ie.id as ieid, ra.barCode
 		FROM App\Entity\InventoryMission im
 		JOIN im.refArticles ra
 		LEFT JOIN ra.inventoryEntries ie
@@ -49,7 +49,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-		"SELECT im.id as id_mission, a.reference, e.label as location, 0 as is_ref, ie.id as ieid
+		"SELECT im.id as id_mission, a.reference, e.label as location, 0 as is_ref, ie.id as ieid, a.barCode
 		FROM App\Entity\InventoryMission im
 		JOIN im.articles a
 		LEFT JOIN a.inventoryEntries ie
