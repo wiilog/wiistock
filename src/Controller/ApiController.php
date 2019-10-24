@@ -625,18 +625,23 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 $this->articleDataService->newArticle($newArticle);
 
                                 $article->setQuantite($article->getQuantiteAPrelever());
+                            }
 
-                                if (isset($mouvementNomade['selected_by_article']) &&
-                                    $mouvementNomade['selected_by_article']) {
-                                    if ($article->getDemande()) {
-                                        throw new BadRequestHttpException('article-already-selected');
-                                    }
-                                    else {
-                                        $demande = $demandeRepository->findOneByLivraison($livraison);
-                                        $article->setDemande($demande);
+                            if (isset($mouvementNomade['selected_by_article']) &&
+                                $mouvementNomade['selected_by_article']) {
 
-                                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                                        $entityManager->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+                                if ($article->getDemande()) {
+                                    throw new BadRequestHttpException('article-already-selected');
+                                }
+                                else {
+                                    $demande = $demandeRepository->findOneByLivraison($livraison);
+                                    $article->setDemande($demande);
+
+                                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+
+                                    if (!empty($ligneArticle)) {
+                                        $entityManager->remove($ligneArticle);
                                     }
                                 }
                             }
