@@ -1,7 +1,7 @@
 <div class="d-flex">
     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <div data-target='#modalEditEmplacement' data-toggle='modal'>
-            <div class="btn btn-col-action" data-id='{{ emplacementId }}'
+        <div>
+            <div class="btn btn-col-action" data-id='{{ emplacementId }}' data-toggle='modal' data-target='#modalEditEmplacement'
                     onclick="editRow($(this), Routing.generate('emplacement_api_edit', true), $('#modalEditEmplacement'), $('#submitEditEmplacement'))">
                 <i class='fas fa-pencil-alt'></i>
             </div>
