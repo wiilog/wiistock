@@ -2,8 +2,8 @@
 
     <div class="d-flex">
         {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
-            <div data-target='#modalEditAlerteExpiry' data-toggle='modal'>
-                <div class="btn btn-col-action" data-id='{{ alerteId }}'
+            <div>
+                <div class="btn btn-col-action" data-id='{{ alerteId }}' data-target='#modalEditAlerteExpiry' data-toggle='modal'
                 onclick="editRow($(this), Routing.generate('alerte_expiry_api_edit', true), $('#modalEditAlerteExpiry'), $('#submitEditAlerteExpiry'))">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
