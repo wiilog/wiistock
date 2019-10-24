@@ -102,6 +102,15 @@ class ManutentionRepository extends ServiceEntityRepository
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $qb
+                        ->orderBy('m.date', $order);
+                }
+            }
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}

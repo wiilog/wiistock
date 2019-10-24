@@ -169,6 +169,7 @@ class DemandeRepository extends ServiceEntityRepository
 
 	public function findByParamsAndFilters($params, $filters)
     {
+        dump($params);
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
@@ -222,6 +223,15 @@ class DemandeRepository extends ServiceEntityRepository
                     $qb
                         ->andWhere('d.numero LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
+                }
+            }
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $qb
+                        ->orderBy('d.date', $order);
                 }
             }
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
