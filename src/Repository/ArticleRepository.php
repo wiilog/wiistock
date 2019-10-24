@@ -486,7 +486,9 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
+			WHERE 
+			    a.quantite > 0 AND 
+			    (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
         )->setParameters([
             'statutLabel' => $statutLabel,
             'enCours' => $enCours,
