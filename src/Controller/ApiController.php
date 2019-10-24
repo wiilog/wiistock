@@ -615,6 +615,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                     'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                                     'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                                     'statut' => Article::STATUT_ACTIF,
+                                    'prix' => $article->getPrixUnitaire(),
                                     'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
                                 ];
 
