@@ -389,6 +389,8 @@ class ReferenceArticleController extends Controller
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
                 ->setEmplacement($emplacement)
+                ->setLimitSecurity($data['QuantitySecu'])
+                ->setLimitWarning($data['QuantitySeuil'])
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
             if ($data['categorie']) {

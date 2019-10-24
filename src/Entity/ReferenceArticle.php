@@ -158,6 +158,16 @@ class ReferenceArticle
      */
     private $dateLastInventory;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitSecurity;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitWarning;
+
 
     public function __construct()
     {
@@ -740,6 +750,28 @@ class ReferenceArticle
     {
         $this->barCode = $barCode;
 
+        return $this;
+    }
+
+    public function getLimitSecurity()
+    {
+        return $this->limitSecurity;
+    }
+
+    public function setLimitSecurity($limitSecurity): self
+    {
+        $this->limitSecurity = $limitSecurity;
+        return $this;
+    }
+
+    public function getLimitWarning()
+    {
+        return $this->limitWarning;
+    }
+
+    public function setLimitWarning($limitWarning): self
+    {
+        $this->limitWarning = $limitWarning;
         return $this;
     }
 

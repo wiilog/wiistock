@@ -483,5 +483,63 @@ class RefArticleDataService
 
 		return $newBarcode;
 	}
-    
+
+    public function getDataForDatatableAlerte($params = null)
+    {
+        $data = $this->getAlerteDataByParams($params);
+        return $data;
+    }
+
+    public function getAlerteDataByParams($params = null)
+    {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            return new RedirectResponse($this->router->generate('access_denied'));
+        }
+
+        $query_result = $this->referenceArticleRepository->findAlerteQuantity($params);
+
+        $referenceArticles = $query_result['data'];
+        $listId = $query_result['allEmplacementDataTable'];
+//
+//        $referenceArtString = [];
+//        foreach ($listId as $id) {
+//            $referenceArtString[] = $id->getId();
+//        }
+
+        $rows = [];
+        foreach ($referenceArticles as $referenceArticle) {
+            $rows[] = $this->dataRowAlerteRef($referenceArticle);
+        }
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $query_result['count'],
+            'recordsTotal' => $query_result['total'],
+//            'listId' => $referenceArtString,
+        ];
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function dataRowAlerteRef($referenceArticle)
+    {
+        dump($referenceArticle);
+        $row = [
+            'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
+            'label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
+            'QuantiteStock' => ($referenceArticle['quantiteStock'] ? $referenceArticle['quantiteStock'] : 'Non défini'),
+            'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
+            'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),
+            'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
+                'quantite' => $referenceArticle['quantiteStock'],
+                'seuilSecu' => $referenceArticle['limitSecurity'],
+                'seuilAlerte' => $referenceArticle['limitWarning'],
+            ]),
+        ];
+        return $row;
+    }
 }

@@ -828,4 +828,36 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function findAlerteQuantity($params)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('ra.reference, ra.libelle, ra.quantiteStock, ra.limitSecurity, ra.limitWarning')
+            ->from('App\Entity\ReferenceArticle', 'ra')
+            ->where('ra.quantiteStock < ra.limitSecurity OR ra.quantiteStock < ra.limitWarning');
+
+        $countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+        $allEmplacementDataTable = null;
+        // prise en compte des paramètres issus du datatable
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('ra.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+                $countQuery = count($qb->getQuery()->getResult());
+            }
+            $allEmplacementDataTable = $qb->getQuery();
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+        $query = $qb->getQuery();
+        return ['data' => $query ? $query->getResult() : null, 'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
+            'count' => $countQuery,  'total' => $countTotal];
+    }
 }
