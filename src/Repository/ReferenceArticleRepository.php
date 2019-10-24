@@ -453,14 +453,24 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countByReference($reference)
+    public function countByReference($reference, $refId = null)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT (ra)
+        $dql = "SELECT COUNT (ra)
             FROM App\Entity\ReferenceArticle ra
-            WHERE ra.reference = :reference"
-        )->setParameter('reference', $reference);
+            WHERE ra.reference = :reference";
+
+		if ($refId) {
+			$dql .= " AND ra.id != :id";
+		}
+
+        $query = $em
+			->createQuery($dql)
+			->setParameter('reference', $reference);
+
+		if ($refId) {
+			$query->setParameter('id', $refId);
+		}
 
         return $query->getSingleScalarResult();
     }
@@ -542,6 +552,28 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
+
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte
+			FROM App\Entity\ReferenceArticle ra
+			LEFT JOIN ra.emplacement e
+			JOIN ra.collecteReferences cr
+			JOIN cr.collecte dc
+			JOIN dc.ordreCollecte oc
+			JOIN oc.statut s
+			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'user' => $user,
+        ]);
+
+		return $query->execute();
+	}
+
 
     public function countByEmplacement($emplacementId)
     {
@@ -805,6 +837,28 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		if ($limit)	$query->setMaxResults($limit);
 
 		return $query->execute();
+	}
+
+	/**
+	 * @param string $dateCode
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getHighestBarCodeByDateCode($dateCode)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"SELECT ra.barCode
+		FROM App\Entity\ReferenceArticle ra
+		WHERE ra.barCode LIKE :barCode
+		ORDER BY ra.barCode DESC
+		")
+			->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
+			->setMaxResults(1);
+
+		$result = $query->execute();
+		return $result ? $result[0]['barCode'] : null;
 	}
 
 }

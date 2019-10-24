@@ -1,10 +1,10 @@
 $('.select2').select2();
+const PAGE_EMPLACEMENT = 'emplacement';
 
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
-
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -12,9 +12,6 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         "url": pathEmplacement,
         "type": "POST",
         'dataSrc': function (json) {
-            if (!$(".statutVisible").val()) {
-                tableEmplacement.column('Actif / Inactif:name').visible(false);
-            }
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }
@@ -123,4 +120,22 @@ function printSingleArticleBarcode(button) {
             $('#cannotGenerate').click();
         }
     });
+}
+
+function reloadDatatableforActif() {
+    let input = $('#actifInactif');
+    let filterInput = input.prop('checked');
+    input.attr('value', filterInput);
+    let statut = filterInput;
+    saveFiltersEmplacement(PAGE_EMPLACEMENT, statut);
+    tableEmplacement.draw();
+}
+
+function saveFiltersEmplacement(page, statut) {
+    let path = Routing.generate('filter_sup_new');
+    let params = {};
+    if (statut) params.statut = statut;
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), 'json');
 }

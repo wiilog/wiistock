@@ -154,9 +154,10 @@ function printSingleArticleBarcode(button) {
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             printBarcodes(
-                [response.articleRef],
+                [response.articleRef.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.articleRef + '.pdf'
+                'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+                [response.articleRef.barcodeLabel],
             );
         }
         else {
@@ -205,7 +206,11 @@ function getDataAndPrintLabels() {
     });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
-            printBarcodes(response.articles, response.tags, 'Etiquettes-articles.pdf');
+            printBarcodes(
+                response.barcodes,
+                response.tags,
+                'Etiquettes-articles.pdf',
+                response.barcodesLabels);
         }
     });
 }

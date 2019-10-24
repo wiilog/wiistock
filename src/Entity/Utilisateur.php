@@ -45,6 +45,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $token;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
+     */
+    private $filtresSup;
+
+    /**
      * @Assert\NotBlank()
      * @Assert\Length(min=8, max=4096)
      * @Assert\Regex(pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/", message="Doit contenir au moins une majuscule, une minuscule, un symbole, et un nombre.")
@@ -177,6 +182,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
+        $this->filtresSup = new ArrayCollection();
     }
 
     public function getId()
@@ -816,6 +822,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if ($this->types->contains($type)) {
             $this->types->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|FiltreSup[]
+     */
+    public function getFiltresSup(): Collection
+    {
+        return $this->filtresSup;
+    }
+
+    public function addFiltresSup(FiltreSup $filtresSup): self
+    {
+        if (!$this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup[] = $filtresSup;
+            $filtresSup->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFiltresSup(FiltreSup $filtresSup): self
+    {
+        if ($this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup->removeElement($filtresSup);
+            // set the owning side to null (unless already changed)
+            if ($filtresSup->getUser() === $this) {
+                $filtresSup->setUser(null);
+            }
         }
 
         return $this;

@@ -88,7 +88,7 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndIncludingInactive($params = null, $includingInactive)
+    public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -97,7 +97,7 @@ class EmplacementRepository extends ServiceEntityRepository
             ->select('e')
             ->from('App\Entity\Emplacement', 'e');
 
-        if (!$includingInactive) {
+        if ($excludeInactive) {
         	$qb->where('e.isActive = 1');
 		}
 
