@@ -18,6 +18,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
+use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
@@ -27,6 +28,7 @@ use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\OrdreCollecteRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -38,6 +40,7 @@ use App\Repository\FournisseurRepository;
 use App\Service\ArticleDataService;
 use App\Service\InventoryService;
 use App\Service\MailerService;
+use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
@@ -167,7 +170,19 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $inventoryService;
 
 	/**
+	 * @var OrdreCollecteRepository
+	 */
+    private $ordreCollecteRepository;
+
+	/**
+	 * @var OrdreCollecteService
+	 */
+    private $ordreCollecteService;
+
+	/**
 	 * ApiController constructor.
+	 * @param OrdreCollecteService $ordreCollecteService
+	 * @param OrdreCollecteRepository $ordreCollecteRepository
 	 * @param InventoryService $inventoryService
 	 * @param UserService $userService
 	 * @param InventoryMissionRepository $inventoryMissionRepository
@@ -190,7 +205,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param ArticleRepository $articleRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 */
-    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -214,6 +229,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService =$inventoryService;
+        $this->ordreCollecteRepository = $ordreCollecteRepository;
+        $this->ordreCollecteService = $ordreCollecteService;
     }
 
     /**
@@ -648,6 +665,41 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	}
 
 	/**
+	 * @Rest\Post("/api/beginCollecte", name= "api-begin-collecte")
+	 * @Rest\View()
+	 */
+	public function beginCollecte(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+
+				$ordreCollecte = $this->ordreCollecteRepository->find($data['id']);
+
+				if (
+					$ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
+					(empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)
+				) {
+					// modif de la collecte
+					$ordreCollecte->setUtilisateur($nomadUser);
+
+					$em->flush();
+
+					$this->successDataMsg['success'] = true;
+				} else {
+					$this->successDataMsg['success'] = false;
+					$this->successDataMsg['msg'] = "Cette collecte a déjà été prise en charge par un opérateur.";
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
 	 * @Rest\Post("/api/finishLivraison", name= "api-finish-livraison")
 	 * @Rest\View()
 	 */
@@ -736,6 +788,40 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	}
 
 	/**
+	 * @Rest\Post("/api/finishCollecte", name= "api-finish-collecte")
+	 * @Rest\View()
+	 */
+	public function finishCollecte(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$collectes = $data['collectes'];
+
+				// on termine les collectes
+				foreach ($collectes as $collecteArray) {
+					$collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
+
+					if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+						$date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
+						$this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
+						$this->successDataMsg['success'] = true;
+					} else {
+						$user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
+						$this->successDataMsg['success'] = false;
+						$this->successDataMsg['msg'] = "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").";
+					}
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
 	 * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
 	 * @Rest\Get("/api/addInventoryEntries")
 	 * @Rest\View()	 */
@@ -808,6 +894,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	}
 
     private function getDataArray($user) {
+		$userTypes = [];
+		foreach ($user->getTypes() as $type) {
+			$userTypes[] = $type->getId();
+		}
+
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
@@ -817,16 +908,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
+        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
-            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user),
+            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
+			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
+			'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
         ];

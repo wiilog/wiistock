@@ -127,11 +127,11 @@ function submitAction(modal, path, table, callback, close, clear) {
                     $('.zone-entete').html(data.entete)
                 }
                 if (table) {
-                    table.ajax.reload(function (json) {
+                    table.ajax.reload(function (json){
                         if (data !== undefined) {
                             $('#myInput').val(json.lastInput);
                         }
-                    });
+                    }, false);
                 }
 
                 if (clear) clearModal(modal);
