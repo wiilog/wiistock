@@ -117,30 +117,29 @@ function submitAction(modal, path, table, callback, close, clear) {
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
 
-        $.post(path, JSON.stringify(Data), function(data) {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
-                }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(function (json){
-                        if (data !== undefined) {
-                            $('#myInput').val(json.lastInput);
-                        }
-                    }, false);
-                }
+        $.post(path, JSON.stringify(Data), function (data) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            // pour mise à jour des données d'en-tête après modification
+            if (data.entete) {
+                $('.zone-entete').html(data.entete)
+            }
+            if (table) {
+                table.ajax.reload(function (json) {
+                    if (data !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                }, false);
+            }
 
-                if (clear) clearModal(modal);
+            if (clear) clearModal(modal);
 
-                if (callback !== null) callback(data);
+            if (callback !== null) callback(data);
         }, 'json');
 
-    }
-    else {
+    } else {
 
         // ... sinon on construit les messages d'erreur
         let msg = '';
@@ -197,7 +196,6 @@ function submitAction(modal, path, table, callback, close, clear) {
 }
 
 
-
 //DELETE
 function deleteRow(button, modal, submit) {
     let id = button.data('id');
@@ -240,7 +238,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     let id = button.data('id');
     let ref = button.data('ref');
 
-    let json = { id: id, isADemand: 0};
+    let json = {id: id, isADemand: 0};
     if (ref != false) {
         json.ref = ref;
     }
@@ -248,7 +246,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
 
-    $.post(path, JSON.stringify(json), function(resp) {
+    $.post(path, JSON.stringify(json), function (resp) {
 
         modal.find('.modal-body').html(resp);
         modal.find('.select2').select2();
@@ -293,26 +291,25 @@ function toggleLivraisonCollecte($button) {
     let typeDemande = $button.data('title');
     let path = Routing.generate('demande', true);
     let demande = $('#demande');
-    let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
+    let params = JSON.stringify({demande: demande, typeDemande: typeDemande});
     let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
-        if(data === false ){
+        if (data === false) {
             $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
-            if(typeDemande === 'livraison'){
+            if (typeDemande === 'livraison') {
                 pathIndex = Routing.generate('demande_index', true);
             } else {
                 pathIndex = Routing.generate('collecte_index', true);
             }
 
             boutonNouvelleDemande.find('#creationDemande').html(
-                "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
+                "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
             $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
-        }
-        else{
+        } else {
             ajaxPlusDemandeContent($button, typeDemande);
             $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
             $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
@@ -327,13 +324,13 @@ function initEditorInModal(modal) {
 
 function initEditor(div) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length) {
+    if ($(div).length) {
         return new Quill(div, {
             modules: {
                 toolbar: [
-                    [{ header: [1, 2, 3, false] }],
+                    [{header: [1, 2, 3, false]}],
                     ['bold', 'italic', 'underline', 'image'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+                    [{'list': 'ordered'}, {'list': 'bullet'}]
                 ]
             },
             formats: [
@@ -351,7 +348,7 @@ function initEditor(div) {
 //passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div, quillArrivage = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length && quillArrivage === null) {
+    if ($(div).length && quillArrivage === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
@@ -472,7 +469,8 @@ let ajaxAutoRefArticleInit = function (select, typeQuantity = null) {
             },
             noResults: function () {
                 return 'Aucun résultat.';
-            }        },
+            }
+        },
         minimumInputLength: 1,
     });
 };
@@ -493,7 +491,8 @@ let ajaxAutoArticlesInit = function (select) {
             },
             noResults: function () {
                 return 'Aucun résultat.';
-            }        },
+            }
+        },
         minimumInputLength: 1,
     });
 }
@@ -519,6 +518,7 @@ function ajaxAutoFournisseurInit(select) {
         minimumInputLength: 1,
     });
 }
+
 function ajaxAutoUserInit(select) {
     select.select2({
         ajax: {
@@ -648,7 +648,7 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
 
-    $.post(Routing.generate(route), param, function(resp) {
+    $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
             $submit.hide();
@@ -731,7 +731,6 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
         const imageLoaded = (new Array(barcodes.length)).fill(false);
 
         $("#barcodes").empty();
-
         barcodes.forEach(function (code, index) {
             const $img = $('<img/>', {id: "barcode" + index});
             $img.on('load', function () {
@@ -759,8 +758,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(maxSize);
-                    doc.text(barcodesLabel[index], docWidth/2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
+                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
@@ -773,7 +772,6 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 }
             });
             $('#barcodes').append($img);
-
             JsBarcode("#barcode" + index, code, {
                 format: "CODE128",
             });
@@ -783,8 +781,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
     }
 }
 
-function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc)
-{
+function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
     let texts = text.split("\n");
 
     let maxLength = texts[0].length;
