@@ -646,10 +646,11 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+            $refId = intval($data['idRefArticle']);
+            $refArticle = $this->referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference'], $refId);
 
             if ($refAlreadyExist) {
                 return new JsonResponse([
@@ -881,8 +882,7 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['id']);
             if ($refArticle) {
-                $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
-                $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
+                $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUS_BROUILLON, $this->getUser());
 
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
@@ -1136,8 +1136,7 @@ class ReferenceArticleController extends Controller
             $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
-            $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
-            $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
+            $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUS_BROUILLON, $this->getUser());
 
             if ($data['typeDemande'] === 'livraison' && $demandes) {
                 $json = $demandes;
@@ -1162,12 +1161,16 @@ class ReferenceArticleController extends Controller
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $data = json_decode($request->getContent(), true);
-        $refsString = [];
+        $barcodes = $barcodeLabels = [];
         $refs = array_slice($refs, $data['start'] ,$data['length']);
 
         /** @var ReferenceArticle $ref */
         foreach ($refs as $ref) {
-            $refsString[] = $ref->getReference();
+            $barcodes[] = $ref->getBarCode();
+            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
+				'refRef' => $ref->getReference(),
+				'refLabel' =>$ref->getLibelle(),
+			]);
         }
 
         if ($request->isXmlHttpRequest()) {
@@ -1180,7 +1183,11 @@ class ReferenceArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
-            $data  = array('tags' => $tags, 'refs' => $refsString);
+            $data  = [
+            	'tags' => $tags,
+				'barcodes' => $barcodes,
+				'barcodeLabels' => $barcodeLabels,
+			];
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');

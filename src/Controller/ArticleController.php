@@ -551,7 +551,17 @@ class ArticleController extends Controller
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
-            $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
+            $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById(intval($dataContent['article']));
+
+            $data['articleRef'] = [
+            	'barcode' => $article['barcode'],
+				'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
+					'refRef' => $article['refRef'],
+					'refLabel' =>$article['refLabel'],
+					'artLabel' => $article['artLabel'],
+				]),
+				'artLabel' => $article['artLabel'],
+			];
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $data['height'] = $dimension->getHeight();
@@ -648,11 +658,18 @@ class ArticleController extends Controller
 
             $listArticles =  explode(',', $data['listArticles']);
 
-            $articlesString = [];
+            $barcodes = $barcodeLabels = [];
             for ($i = 0 ; $i < count($listArticles); $i++) {
-                $articlesString[] = $this->articleRepository->find($listArticles[$i])->getReference();
+                $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById($listArticles[$i]);
+                $barcodes[] = $article['barcode'];
+                $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
+					'refRef' => $article['refRef'],
+					'refLabel' =>$article['refLabel'],
+					'artLabel' => $article['artLabel'],
+				]);
+
             }
-            $articlesString = array_slice($articlesString, $data['start'], $data['length']);
+            $barcodes = array_slice($barcodes, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
@@ -662,7 +679,11 @@ class ArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
-            $data  = array('tags' => $tags, 'articles' => $articlesString);
+            $data  = [
+            	'tags' => $tags,
+				'barcodes' => $barcodes,
+				'barcodesLabels' => $barcodeLabels
+			];
             return new JsonResponse($data);
         }
         else {

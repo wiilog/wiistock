@@ -29,6 +29,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\TypeRepository;
 
 use App\Service\ArticleDataService;
+use App\Service\CollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
@@ -127,8 +128,13 @@ class CollecteController extends AbstractController
 	 */
     private $valeurChampLibreRepository;
 
+    /**
+     * @var CollecteService
+     */
+    private $collecteService;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
+
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
         $this->typeRepository = $typeRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -146,6 +152,7 @@ class CollecteController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->collecteService = $collecteService;
     }
 
 	/**
@@ -212,44 +219,19 @@ class CollecteController extends AbstractController
      * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function api(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            $collectes = $this->collecteRepository->findAll();
+			$data = $this->collecteService->getDataForDatatable($request->request);
 
-            $rows = [];
-            foreach ($collectes as $collecte) {
-
-                if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
-                    $ordreCollecteDate = null;
-                } else {
-                    $ordreCollecteDate = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)->getDate()->format('d/m/Y H:i');
-                }
-
-                $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-                $rows[] = [
-                    'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                    'Validation' => $ordreCollecteDate,
-                    'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
-                    'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
-                    'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                    'Type' => ($collecte->getType() ? $collecte->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                        'url' => $url,
-                    ]),
-                ];
-            }
-
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
     /**
      * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})

@@ -167,4 +167,73 @@ class DemandeRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function findByParamsAndFilters($params, $filters)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('d')
+            ->from('App\Entity\Demande', 'd');
+
+        $countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$qb
+						->join('d.statut', 's')
+						->andWhere('s.nom = :statut')
+						->setParameter('statut', $filter['value']);
+					break;
+				case 'type':
+					$qb
+						->join('d.type', 't')
+						->andWhere('t.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('d.utilisateur', 'u')
+						->andWhere("u.username in (:username)")
+						->setParameter('username', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('d.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']);
+					break;
+				case 'dateMax':
+					$qb->andWhere('d.date <= :dateMax')
+						->setParameter('dateMax', $filter['value']);
+					break;
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
+
+		//Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('d.numero LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $query = $qb->getQuery();
+
+        return [
+        	'data' => $query ? $query->getResult() : null ,
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
+    }
 }

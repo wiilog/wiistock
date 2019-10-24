@@ -453,14 +453,24 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countByReference($reference)
+    public function countByReference($reference, $refId = null)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT (ra)
+        $dql = "SELECT COUNT (ra)
             FROM App\Entity\ReferenceArticle ra
-            WHERE ra.reference = :reference"
-        )->setParameter('reference', $reference);
+            WHERE ra.reference = :reference";
+
+		if ($refId) {
+			$dql .= " AND ra.id != :id";
+		}
+
+        $query = $em
+			->createQuery($dql)
+			->setParameter('reference', $reference);
+
+		if ($refId) {
+			$query->setParameter('id', $refId);
+		}
 
         return $query->getSingleScalarResult();
     }
@@ -469,7 +479,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock
+        	/** @lang DQL */
+            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
             FROM App\Entity\ReferenceArticle ra
             WHERE ra.typeQuantite = :typeQuantite"
         )->setParameter('typeQuantite', $typeQuantite);
@@ -507,7 +518,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la
@@ -527,7 +539,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la
@@ -542,6 +555,28 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
+
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte, ra.barCode
+			FROM App\Entity\ReferenceArticle ra
+			LEFT JOIN ra.emplacement e
+			JOIN ra.collecteReferences cr
+			JOIN cr.collecte dc
+			JOIN dc.ordreCollecte oc
+			JOIN oc.statut s
+			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'user' => $user,
+        ]);
+
+		return $query->execute();
+	}
+
 
     public function countByEmplacement($emplacementId)
     {
@@ -825,7 +860,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
 			->setMaxResults(1);
 
-		return $query->getSingleScalarResult();
+		$result = $query->execute();
+		return $result ? $result[0]['barCode'] : null;
 	}
 
 	public function findAlerteQuantity($params)
