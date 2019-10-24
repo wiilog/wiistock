@@ -721,12 +721,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                 $manut = $this->manutentionRepository->find($data['id']);
 
-                if (
-                    $manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER
-                ) {
-                    // modif de la livraison
+                if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
                     if ($data['commentaire'] !== "") {
-                        $manut->setCommentaire($manut->getCommentaire() . "\n" . $nomadUser->getUsername() . " : " . $data['commentaire'] . " : " . date('d/m/y H:i:s'));
+                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " " . $nomadUser->getUsername() . " : " . $data['commentaire']);
                     }
                     $manut->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
@@ -962,7 +959,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
         $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-        dump($manutentions);
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
