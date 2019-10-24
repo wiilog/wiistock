@@ -45,6 +45,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $token;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
+     */
+    private $filtresSup;
+
+    /**
      * @Assert\NotBlank()
      * @Assert\Length(min=8, max=4096)
      * @Assert\Regex(pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/", message="Doit contenir au moins une majuscule, une minuscule, un symbole, et un nombre.")
@@ -146,9 +151,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $recherche;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
      */
-    private $type;
+    private $types;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
@@ -176,6 +181,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
+        $this->types = new ArrayCollection();
+        $this->filtresSup = new ArrayCollection();
     }
 
     public function getId()
@@ -728,16 +735,12 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getType(): ?Type
+    /**
+     * @return ArrayCollection|Type[]
+     */
+    public function getTypes()
     {
-        return $this->type;
-    }
-
-    public function setType(?Type $type): self
-    {
-        $this->type = $type;
-
-        return $this;
+        return $this->types;
     }
 
     public function addAlertesStock(AlerteStock $alertesStock): self
@@ -802,6 +805,55 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setInventoryCategoryHistory(?InventoryCategoryHistory $inventoryCategoryHistory): self
     {
         $this->inventoryCategoryHistory = $inventoryCategoryHistory;
+
+        return $this;
+    }
+
+    public function addType(Type $type): self
+    {
+        if (!$this->types->contains($type)) {
+            $this->types[] = $type;
+        }
+
+        return $this;
+    }
+
+    public function removeType(Type $type): self
+    {
+        if ($this->types->contains($type)) {
+            $this->types->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|FiltreSup[]
+     */
+    public function getFiltresSup(): Collection
+    {
+        return $this->filtresSup;
+    }
+
+    public function addFiltresSup(FiltreSup $filtresSup): self
+    {
+        if (!$this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup[] = $filtresSup;
+            $filtresSup->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFiltresSup(FiltreSup $filtresSup): self
+    {
+        if ($this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup->removeElement($filtresSup);
+            // set the owning side to null (unless already changed)
+            if ($filtresSup->getUser() === $this) {
+                $filtresSup->setUser(null);
+            }
+        }
 
         return $this;
     }

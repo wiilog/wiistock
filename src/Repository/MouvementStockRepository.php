@@ -6,8 +6,6 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -122,7 +120,7 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             $dql
         );
-        
+
         $query->setParameter('types', $types,Connection::PARAM_STR_ARRAY);
         if (!empty($dateDebut))
         {
@@ -133,8 +131,15 @@ class MouvementStockRepository extends ServiceEntityRepository
         {
             $query->setParameter('dateFin', $dateFin);
         }
-        
 
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+        "SELECT COUNT(m)
+            FROM App\Entity\MouvementStock m 
+            WHERE m.type 
+            IN (:types)"
+        )->setParameter('types', $types);
         return $query->getSingleScalarResult();
     }
 
@@ -277,4 +282,17 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $qb->getQuery();
         return $query->getSingleScalarResult();
     }
+
+	public function findByRef($id)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.refArticle = :id"
+		)->setParameter('id', $id);
+
+		return $query->execute();
+	}
 }

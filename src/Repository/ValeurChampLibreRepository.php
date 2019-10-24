@@ -3,12 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\ChampLibre;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\DBALException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -370,4 +373,33 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
         )->setParameter('champLibre', $champLibreId);
         return $query->execute();
     }
+
+	/**
+	 * @param ReferenceArticle $ref
+	 * @return array
+	 * @throws DBALException
+	 */
+    public function getLabelCLAndValueByRefArticle(ReferenceArticle $ref)
+	{
+		$em = $this->getEntityManager()->getConnection();
+		$sql =
+		/** @lang SQL */
+		"SELECT cl.label, temp.valeur
+		FROM champ_libre cl
+			LEFT JOIN (
+				SELECT vcl.champ_libre_id clid ,vcl.valeur as valeur
+				FROM valeur_champ_libre vcl
+					INNER JOIN valeur_champ_libre_reference_article vclra ON vclra.valeur_champ_libre_id = vcl.id
+					WHERE vclra.reference_article_id = :refId
+			) temp ON temp.clid = cl.id
+			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id 
+			WHERE ccl.label = :categoryCL
+		";
+		$prepare = $em->prepare($sql);
+		$prepare->bindValue('refId', $ref->getId());
+		$prepare->bindValue('categoryCL', CategorieCL::REFERENCE_ARTICLE);
+		$prepare->execute();
+
+		return $prepare->fetchAll();
+	}
 }

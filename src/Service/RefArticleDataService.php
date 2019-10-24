@@ -34,6 +34,7 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -163,13 +164,6 @@ class RefArticleDataService
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $data = $this->getRefArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
-        return $data;
-    }
-
     /**
      * @param null $params
      * @return array
@@ -189,7 +183,7 @@ class RefArticleDataService
         return [
         	'data' => $rows,
 			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total']
+			'recordsTotal' => $this->referenceArticleRepository->countAll()
 		];
     }
 
@@ -377,15 +371,12 @@ class RefArticleDataService
 
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = CategoryType::ARTICLE;
-        $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $rowCL = [];
-        foreach ($champsLibres as $champLibre) {
-            $champ = $this->champLibreRepository->find($champLibre['id']);
-            $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champ); /** @var ValeurChampLibre $valeur */
-            $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-        }
+		$rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
+		$rowCL = [];
+		foreach ($rows as $row) {
+			$rowCL[$row['label']] = $row['valeur'];
+		}
+
         $totalQuantity = 0;
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -473,6 +464,24 @@ class RefArticleDataService
 
 		$this->em->flush();
 		return $resp;
+	}
+
+	/**
+	 * @return string
+	 * @throws NonUniqueResultException
+	 */
+	public function generateBarCode()
+	{
+		$now = new \DateTime('now');
+		$dateCode = $now->format('ym');
+
+		$highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
+		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+
+		$newCounter =  sprintf('%08u', $highestCounter+1);
+		$newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $newCounter;
+
+		return $newBarcode;
 	}
     
 }

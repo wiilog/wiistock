@@ -337,8 +337,11 @@ class ReceptionController extends AbstractController
                         'id' => ($reception->getId()),
                         "Statut" => ($reception->getStatut() ?  $reception->getStatut()->getNom() : ''),
                         "Date" => ($reception->getDate() ?  $reception->getDate() : '')->format('d/m/Y'),
+                        "DateFin" => ($reception->getDateFinReception() ?  $reception->getDateFinReception()->format('d/m/Y') : ''),
                         "Fournisseur" => ($reception->getFournisseur() ?  $reception->getFournisseur()->getNom() : ''),
+                        "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                         "Référence" => ($reception->getNumeroReception() ?  $reception->getNumeroReception() : ''),
+                        "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
                         'Actions' =>  $this->renderView(
                             'reception/datatableReceptionRow.html.twig',
                             ['url' =>  $url, 'reception' =>  $reception]
@@ -387,26 +390,6 @@ class ReceptionController extends AbstractController
             }
             $data['data'] =  $rows;
             return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/article-printer/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function printerAllApi(Request  $request, $id): Response
-    {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $references =  $this->articleRepository->getRefByRecep($id);
-            $rows = [];
-            foreach ($references as   $reference) {
-                $rows[] =  $reference['reference'];
-            }
-            return new JsonResponse($rows);
         }
         throw new NotFoundHttpException("404");
     }
@@ -710,6 +693,7 @@ class ReceptionController extends AbstractController
                 }
                 $reception
 					->setStatut($statut)
+                    ->setDateFinReception(new \DateTime('now'))
 					->setDateCommande(new \DateTime('now'));
                 $em->flush();
 
@@ -937,8 +921,10 @@ class ReceptionController extends AbstractController
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
-                            ->setType($refArticle->getType());
+                            ->setType($refArticle->getType())
+							->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
+                        $em->flush();
                         array_push($response['refs'], $toInsert->getReference());
 						$counter++;
                     }

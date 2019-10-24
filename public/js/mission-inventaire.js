@@ -3,42 +3,6 @@ $(function () {
     initSearchDate(tableMissions);
 
     $('.select2').select2();
-
-    $('#articlesSelect').select2({
-        ajax: {
-            url: Routing.generate('get_articles'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        allowClear: true,
-        minimumInputLength: 1,
-    });
-
-    $('#refArticlesSelect').select2({
-        ajax: {
-            url: Routing.generate('get_refArticles'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        allowClear: true,
-        minimumInputLength: 1,
-    });
 });
 
 let pathMissions = Routing.generate('inv_missions_api', true);
@@ -65,22 +29,43 @@ let tableMissions = $('#tableMissionsInv').DataTable({
 let modalNewMission = $("#modalNewMission");
 let submitNewMission = $("#submitNewMission");
 let urlNewMission = Routing.generate('mission_new', true);
-InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, null);
+InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, displayErrorMision, false);
 
 let modalDeleteMission = $("#modalDeleteMission");
 let submitDeleteMission = $("#submitDeleteMission");
 let urlDeleteMission = Routing.generate('mission_delete', true)
 InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tableMissions);
 
+function displayErrorMision(data) {
+    let modal = $("#modalNewMission");
+    let msg = null;
+    if (data === false) {
+        msg = 'La date de début doit être antérieure à celle de fin.';
+        displayError(modal, msg, data);
+    } else {
+        modal.find('.close').click();
+        msg = 'La mission d\'inventaire a bien été créée.';
+        alertSuccessMsg(msg);
+    }
+}
+
+
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
 let tableMission = $('#tableMissionInv').DataTable({
+    processing: true,
+    serverSide: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax:{
         "url": pathMission,
-        "type": "POST"
+        "type": "POST",
+        "data" : function(d) {
+            d.dateMin = $('#dateMinFilter').val();
+            d.dateMax = $('#dateMaxFilter').val();
+            d.anomaly =  $('#anomalyFilter').val();
+        }
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence' },
@@ -106,14 +91,22 @@ $submitSearchMission.on('click', function () {
 
 let $submitSearchMissionRef = $('#submitSearchMissionRef');
 $submitSearchMissionRef.on('click', function() {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let anomaly = $('#anomalyFilter').val();
-    tableMission
-        .columns('anomaly:name')
-        .search(anomaly === 'true' ? 'oui':'non')
-        .draw();
+
+    let dateMinFilter = $('#dateMinFilter');
+    let dateMaxFilter = $('#dateMaxFilter');
+    let anomalyFilter = $('#anomalyFilter');
+    dateMinFilter.val(dateMin);
+    dateMaxFilter.val(dateMax);
+    anomalyFilter.val(anomaly);
+
+    tableMission.draw();
 });
 
 function generateCSVMission () {
+    loadSpinner($('#spinnerMission'));
     let params = {
         missionId: $('#missionId').val(),
     };
@@ -127,6 +120,7 @@ function generateCSVMission () {
                 csv += '\n';
             });
             mFile(csv);
+            hideSpinner($('#spinnerMission'));
         }
     }, 'json');
 }

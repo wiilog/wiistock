@@ -50,4 +50,17 @@ class ArrivageRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function countByChauffeur($chauffeur)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(a)
+			FROM App\Entity\Arrivage a
+			WHERE a.chauffeur = :chauffeur"
+		)->setParameter('chauffeur', $chauffeur);
+
+		return $query->getSingleScalarResult();
+	}
+
 }

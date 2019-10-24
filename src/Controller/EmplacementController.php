@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -31,7 +33,6 @@ use App\Repository\ArticleRepository;
  */
 class EmplacementController extends AbstractController
 {
-
     /**
      * @var EmplacementDataService
      */
@@ -82,7 +83,12 @@ class EmplacementController extends AbstractController
      */
     private $referenceArticleRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -94,6 +100,7 @@ class EmplacementController extends AbstractController
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
     /**
@@ -120,8 +127,12 @@ class EmplacementController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+        $filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
+        $active = $filterStatus ? $filterStatus->getValue() : false;
 
-		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
+		return $this->render('emplacement/index.html.twig', [
+			'active' => $active
+		]);
     }
 
     /**
@@ -307,9 +318,9 @@ class EmplacementController extends AbstractController
     public function getRefArticles(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-                return new JsonResponse(['results' => []]);
-            }
+//            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+//                return new JsonResponse(['results' => []]);
+//            }
 
             $search = $request->query->get('term');
 

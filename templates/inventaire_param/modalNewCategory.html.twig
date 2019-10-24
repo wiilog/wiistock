@@ -18,10 +18,8 @@
                     <div class="form-group col-12">
                         <label for="label">Fréquence*</label>
                         <select name="frequency" id="frequencies" class="data form-control needed">
-                            <option value="">Frequence</option>
-                            {% for frequency in frequencies %}
-                            <option value="{{ frequency.id }}">{{ frequency.label }}</option>
-                            {% endfor %}
+                            <option placeholder="" disabled value="" selected></option>
+                            {% include 'inventaire_param/selectFrequencies.html.twig' %}
                         </select>
                     </div>
                 </div>

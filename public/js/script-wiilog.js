@@ -8,6 +8,10 @@ const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 
+$.fn.dataTable.ext.errMode = (resp) => {
+    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+};
+
 /**
  * Initialise une fenêtre modale
  *
@@ -21,9 +25,8 @@ const PAGE_MVT_TRACA = 'mvt_traca';
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {document} table le DataTable gérant les données
- * 
+ *
  */
-
 function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
@@ -38,44 +41,54 @@ function submitAction(modal, path, table, callback, close, clear) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
+    let barcodeIsInvalid = false;
 
     inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
+        let $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
         Data[name] = val;
+        let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
-        if ($(this).hasClass('needed')
+        if ($input.hasClass('needed')
             && (val === undefined || val === '' || val === null)
-            && $(this).is(':disabled') === false) {
-            let label = $(this).closest('.form-group').find('label').text();
+            && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
 
         } else {
-            $(this).removeClass('is-invalid');
+            $input.removeClass('is-invalid');
         }
+
+        // if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+        //     $input.addClass('is-invalid');
+        //     $input.parent().addClass('is-invalid');
+        //     barcodeIsInvalid = label;
+        // }
+
+
         // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
+        if ($input.attr('type') === 'number') {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
             if (val > max || val < min) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
             } else if (!isNaN(val)) {
-                $(this).removeClass('is-invalid');
+                $input.removeClass('is-invalid');
             }
-            if ($(this).is(':disabled') === true) {
-                $(this).removeClass('is-invalid');
+            if ($input.is(':disabled') === true) {
+                $input.removeClass('is-invalid');
             }
         }
         // validation valeur des inputs de type password
-        if ($(this).attr('type') === 'password') {
-            let password = $(this).val();
-            let isNotChanged = $(this).hasClass('optional-password') && password === "";
+        if ($input.attr('type') === 'password') {
+            let password = $input.val();
+            let isNotChanged = $input.hasClass('optional-password') && password === "";
             if (!isNotChanged) {
                 if (password.length < 8) {
                     modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
@@ -101,29 +114,29 @@ function submitAction(modal, path, table, callback, close, clear) {
     modal.find(".elem").remove();
 
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
+    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
 
-        $.post(path, JSON.stringify(Data), function(data) {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
-                }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(function (json) {
-                        if (data !== undefined) {
-                            $('#myInput').val(json.lastInput);
-                        }
-                    });
-                }
+        $.post(path, JSON.stringify(Data), function (data) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            // pour mise à jour des données d'en-tête après modification
+            if (data.entete) {
+                $('.zone-entete').html(data.entete)
+            }
+            if (table) {
+                table.ajax.reload(function (json) {
+                    if (data !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                }, false);
+            }
 
-                if (clear) clearModal(modal);
+            if (clear) clearModal(modal);
 
-                if (callback !== null) callback(data);
+            if (callback !== null) callback(data);
         }, 'json');
 
     } else {
@@ -172,10 +185,15 @@ function submitAction(modal, path, table, callback, close, clear) {
                 }
             });
         }
+
+        // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
+        if (barcodeIsInvalid) {
+            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+        }
+
         modal.find('.error-msg').html(msg);
     }
 }
-
 
 
 //DELETE
@@ -220,7 +238,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     let id = button.data('id');
     let ref = button.data('ref');
 
-    let json = { id: id, isADemand: 0};
+    let json = {id: id, isADemand: 0};
     if (ref != false) {
         json.ref = ref;
     }
@@ -228,9 +246,10 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
 
-    $.post(path, JSON.stringify(json), function(resp) {
+    $.post(path, JSON.stringify(json), function (resp) {
 
         modal.find('.modal-body').html(resp);
+        modal.find('.select2').select2();
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -272,26 +291,25 @@ function toggleLivraisonCollecte($button) {
     let typeDemande = $button.data('title');
     let path = Routing.generate('demande', true);
     let demande = $('#demande');
-    let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
+    let params = JSON.stringify({demande: demande, typeDemande: typeDemande});
     let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
-        if(data === false ){
+        if (data === false) {
             $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
-            if(typeDemande === 'livraison'){
+            if (typeDemande === 'livraison') {
                 pathIndex = Routing.generate('demande_index', true);
             } else {
                 pathIndex = Routing.generate('collecte_index', true);
             }
 
             boutonNouvelleDemande.find('#creationDemande').html(
-                "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
+                "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
             $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
-        }
-        else{
+        } else {
             ajaxPlusDemandeContent($button, typeDemande);
             $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
             $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
@@ -306,13 +324,13 @@ function initEditorInModal(modal) {
 
 function initEditor(div) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length) {
+    if ($(div).length) {
         return new Quill(div, {
             modules: {
                 toolbar: [
-                    [{ header: [1, 2, 3, false] }],
+                    [{header: [1, 2, 3, false]}],
                     ['bold', 'italic', 'underline', 'image'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+                    [{'list': 'ordered'}, {'list': 'bullet'}]
                 ]
             },
             formats: [
@@ -330,7 +348,7 @@ function initEditor(div) {
 //passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div, quillArrivage = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length && quillArrivage === null) {
+    if ($(div).length && quillArrivage === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
@@ -435,10 +453,10 @@ function ajaxAutoCompleteTransporteurInit(select) {
     });
 }
 
-let ajaxAutoRefArticleInit = function (select) {
+let ajaxAutoRefArticleInit = function (select, typeQuantity = null) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1}, true),
+            url: Routing.generate('get_ref_articles', {activeOnly: 1, typeQuantity}, true),
             dataType: 'json',
             delay: 250,
         },
@@ -451,7 +469,30 @@ let ajaxAutoRefArticleInit = function (select) {
             },
             noResults: function () {
                 return 'Aucun résultat.';
-            }        },
+            }
+        },
+        minimumInputLength: 1,
+    });
+};
+
+let ajaxAutoArticlesInit = function (select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articles', {activeOnly: 1}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
         minimumInputLength: 1,
     });
 }
@@ -477,6 +518,7 @@ function ajaxAutoFournisseurInit(select) {
         minimumInputLength: 1,
     });
 }
+
 function ajaxAutoUserInit(select) {
     select.select2({
         ajax: {
@@ -545,7 +587,7 @@ function clearModal(modal) {
         //TODO CG protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
@@ -568,34 +610,20 @@ function clearCheckboxes($modal) {
     });
 }
 
-function adjustScalesForDoc(response) {
-    let format = response.width > response.height ? 'l' : 'p';
-    // console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
-    let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
-    // console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
-    let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
-    let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
-    let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
-    // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
-    return doc;
-}
-
-function alertErrorMsg(data) {
+function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
+        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
         $alertDanger.find('.error-msg').html(data);
     }
 }
 
 function alertSuccessMsg(data) {
-    if (data !== true) {
-        let $alertSuccess = $('#alerts').find('.alert-success');
-        $alertSuccess.removeClass('d-none');
-        $alertSuccess.delay(2000).fadeOut(2000);
-        $alertSuccess.find('.confirm-msg').html(data);
-    }
+    let $alertSuccess = $('#alerts').find('.alert-success');
+    $alertSuccess.removeClass('d-none');
+    $alertSuccess.delay(2000).fadeOut(2000);
+    $alertSuccess.find('.confirm-msg').html(data);
 }
 
 function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
@@ -620,7 +648,7 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
 
-    $.post(Routing.generate(route), param, function(resp) {
+    $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
             $submit.hide();
@@ -668,4 +696,111 @@ function initSearchDate(table) {
             return false;
         }
     );
+}
+
+/**
+ * Create a jsPDF with right size
+ * @param apiResponse
+ * @returns {jsPDF}
+ */
+function createJsPDFBarcode(apiResponse) {
+    const format = apiResponse.width > apiResponse.height ? 'l' : 'p';
+    const docTemp = new jsPDF(format, 'mm', [apiResponse.height, apiResponse.width]);
+    const pageSize = docTemp.internal.pageSize;
+
+    const newWidth = apiResponse.width * (apiResponse.width / pageSize.getWidth());
+    const newHeight = apiResponse.height * (apiResponse.height / pageSize.getHeight());
+    return new jsPDF(format, 'mm', [newHeight, newWidth]);
+}
+
+/**
+ * Save a pdf with all barcodes requested in the array requested.
+ * @param {Array<string>} barcodes
+ * @param apiResponse
+ * @param {string} fileName
+ */
+function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
+    if (barcodes && barcodes.length) {
+        const doc = createJsPDFBarcode(apiResponse);
+        const docSize = doc.internal.pageSize;
+        let docWidth = docSize.getWidth();
+        let docHeight = docSize.getHeight();
+        const docScale = (docWidth / docHeight);
+
+        // to launch print for the document on the end of generation
+        const imageLoaded = (new Array(barcodes.length)).fill(false);
+
+        $("#barcodes").empty();
+        barcodes.forEach(function (code, index) {
+            const $img = $('<img/>', {id: "barcode" + index});
+            $img.on('load', function () {
+                const naturalScale = (this.naturalWidth / this.naturalHeight);
+                const upperNaturalScale = (naturalScale >= docScale);
+                let imageWidth = (upperNaturalScale
+                    ? docWidth
+                    : (docHeight * this.naturalWidth / this.naturalHeight));
+                let imageHeight = (upperNaturalScale
+                    ? (docWidth * this.naturalHeight / this.naturalWidth)
+                    : docHeight);
+                if (barcodesLabel) {
+                    imageWidth *= 0.8;
+                    imageHeight *= 0.8;
+                }
+
+                let posX = (upperNaturalScale
+                    ? 0
+                    : ((docWidth - imageWidth) / 2));
+                let posY = (upperNaturalScale
+                    ? ((docHeight - imageHeight) / 2)
+                    : 0);
+
+                if (barcodesLabel) {
+                    posX = (docWidth - imageWidth) / 2;
+                    posY = 0;
+                    let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
+                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                }
+                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
+                doc.addPage();
+
+                imageLoaded[index] = true;
+
+                if (imageLoaded.every(loaded => loaded)) {
+                    doc.deletePage(doc.internal.getNumberOfPages());
+                    doc.save(fileName);
+                }
+            });
+            $('#barcodes').append($img);
+            JsBarcode("#barcode" + index, code, {
+                format: "CODE128",
+            });
+        });
+    } else {
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
+    }
+}
+
+function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
+    let texts = text.split("\n");
+
+    let maxLength = texts[0].length;
+    texts.map(v => maxLength = Math.max(maxLength, v.length));
+    let longestText = texts.filter(v => v.length == maxLength);
+
+    let textWidth = doc.getTextWidth(longestText[0]);
+    let size = (docWidth * .95 / textWidth) * doc.getFontSize();
+
+    return size;
+}
+
+function hideSpinner(div) {
+    div.removeClass('d-flex');
+    div.addClass('d-none');
+}
+
+function loadSpinner(div) {
+    div.removeClass('d-none');
+    div.addClass('d-flex');
+
 }
