@@ -644,7 +644,12 @@ function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
     $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
         if (response.tags.exists) {
-            printBarcodes(response.refs, response.tags, 'Etiquettes-references.pdf');
+            printBarcodes(
+                response.barcodes,
+                response.tags,
+                'Etiquettes-references.pdf',
+                response.barcodeLabels
+                );
         }
     });
 }

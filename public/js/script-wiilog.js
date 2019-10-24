@@ -719,12 +719,12 @@ function createJsPDFBarcode(apiResponse) {
  * @param apiResponse
  * @param {string} fileName
  */
-function printBarcodes(barcodes, apiResponse, fileName) {
+function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
     if (barcodes && barcodes.length) {
         const doc = createJsPDFBarcode(apiResponse);
         const docSize = doc.internal.pageSize;
-        const docWidth = docSize.getWidth();
-        const docHeight = docSize.getHeight();
+        let docWidth = docSize.getWidth();
+        let docHeight = docSize.getHeight();
         const docScale = (docWidth / docHeight);
 
         // to launch print for the document on the end of generation
@@ -737,21 +737,31 @@ function printBarcodes(barcodes, apiResponse, fileName) {
             $img.on('load', function () {
                 const naturalScale = (this.naturalWidth / this.naturalHeight);
                 const upperNaturalScale = (naturalScale >= docScale);
-
-                const imageWidth = (upperNaturalScale
+                let imageWidth = (upperNaturalScale
                     ? docWidth
                     : (docHeight * this.naturalWidth / this.naturalHeight));
-                const imageHeight = (upperNaturalScale
+                let imageHeight = (upperNaturalScale
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
+                if (barcodesLabel) {
+                    imageWidth *= 0.8;
+                    imageHeight *= 0.8;
+                }
 
-                const posX = (upperNaturalScale
+                let posX = (upperNaturalScale
                     ? 0
                     : ((docWidth - imageWidth) / 2));
-                const posY = (upperNaturalScale
+                let posY = (upperNaturalScale
                     ? ((docHeight - imageHeight) / 2)
                     : 0);
 
+                if (barcodesLabel) {
+                    posX = (docWidth - imageWidth) / 2;
+                    posY = 0;
+                    let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
+                    doc.setFontSize(maxSize);
+                    doc.text(barcodesLabel[index], docWidth/2, imageHeight, {align: 'center', baseline: 'top'});
+                }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
 
@@ -771,6 +781,20 @@ function printBarcodes(barcodes, apiResponse, fileName) {
     } else {
         alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
     }
+}
+
+function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc)
+{
+    let texts = text.split("\n");
+
+    let maxLength = texts[0].length;
+    texts.map(v => maxLength = Math.max(maxLength, v.length));
+    let longestText = texts.filter(v => v.length == maxLength);
+
+    let textWidth = doc.getTextWidth(longestText[0]);
+    let size = (docWidth * .95 / textWidth) * doc.getFontSize();
+
+    return size;
 }
 
 function hideSpinner(div) {
