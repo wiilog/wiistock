@@ -1,9 +1,7 @@
 <div>
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        {% if seuilSecu > quantite %}
-            <i class="fas fa-exclamation-triangle red"></i>
-        {% elseif seuilAlerte > quantite %}
-            <i class="fas fa-bell"></i>
-        {% endif %}
+    {% if seuilSecu >= quantite %}
+        <i class="fas fa-exclamation-triangle red"></i>
+    {% elseif seuilAlerte >= quantite %}
+        <i class="fas fa-bell"></i>
     {% endif %}
 </div>

@@ -4,15 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
-
-use App\Repository\ReferenceArticleRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,15 +17,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * @Route("/Alerte")
+ * @Route("/alerte")
  */
-class AlertController extends Controller
+class AlertController extends AbstractController
 {
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var RefArticleDataService
@@ -46,16 +37,15 @@ class AlertController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage,ReferenceArticleRepository $referenceArticleRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(TokenStorageInterface $tokenStorage, RefArticleDataService $refArticleDataService, UserService $userService)
     {
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
     /**
-     * @Route("/alerte", name="alerte_reference_index", methods="GET|POST", options={"expose"=true})
+     * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})
      */
     public function indexAlerte(): Response
     {
@@ -75,7 +65,7 @@ class AlertController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getDataForDatatableAlerte($request->request);
+            $data = $this->refArticleDataService->getAlerteDataByParams($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

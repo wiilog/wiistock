@@ -484,27 +484,14 @@ class RefArticleDataService
 		return $newBarcode;
 	}
 
-    public function getDataForDatatableAlerte($params = null)
-    {
-        $data = $this->getAlerteDataByParams($params);
-        return $data;
-    }
-
     public function getAlerteDataByParams($params = null)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
-        $query_result = $this->referenceArticleRepository->findAlerteQuantity($params);
-
-        $referenceArticles = $query_result['data'];
-        $listId = $query_result['allEmplacementDataTable'];
-//
-//        $referenceArtString = [];
-//        foreach ($listId as $id) {
-//            $referenceArtString[] = $id->getId();
-//        }
+        $results = $this->referenceArticleRepository->getAlertDataByParams($params);
+        $referenceArticles = $results['data'];
 
         $rows = [];
         foreach ($referenceArticles as $referenceArticle) {
@@ -512,30 +499,35 @@ class RefArticleDataService
         }
         return [
             'data' => $rows,
-            'recordsFiltered' => $query_result['count'],
-            'recordsTotal' => $query_result['total'],
-//            'listId' => $referenceArtString,
+            'recordsFiltered' => $results['count'],
+            'recordsTotal' => $results['total'],
         ];
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return array
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        dump($referenceArticle);
+    	if ($referenceArticle['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+    		$quantity = $referenceArticle['quantiteStock'];
+		} else {
+			$quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle['id']);
+		}
+
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
-            'QuantiteStock' => ($referenceArticle['quantiteStock'] ? $referenceArticle['quantiteStock'] : 'Non défini'),
+            'QuantiteStock' => $quantity,
             'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
             'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),
             'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
-                'quantite' => $referenceArticle['quantiteStock'],
+                'quantite' => $quantity,
                 'seuilSecu' => $referenceArticle['limitSecurity'],
                 'seuilAlerte' => $referenceArticle['limitWarning'],
             ]),
