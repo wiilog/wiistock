@@ -5,29 +5,31 @@
 {% block page_content %}
 <h1>Emplacements</h1>
 
-<div class='emplacement row'>
+<div class='emplacement row d-flex justify-content-between'>
     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <a href="" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary"
-        onclick="clearModal('#modalNewEmplacement')">
-        <span class="fa fa-plus mr-2"></span>Nouvel emplacement
-    </a>
+        <a href="" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary"
+            onclick="clearModal('#modalNewEmplacement')">
+            <span class="fa fa-plus mr-2"></span>Nouvel emplacement
+        </a>
     {% endif %}
+    <div class="d-flex">
         <button data-toggle="modal" id="btnPrint" class="btn btn-disabled printButton"
              onclick="getDataAndPrintLabels()">
             <i class="fas fa-print"></i> Imprimer les étiquettes
         </button>
-    <div class="dropright">
-        <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-cog"></i>
-        </div>
-        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <div class="statut dropdown-item" >
-                Statut article actif
-                <label class="switch">
-                    {% set checked = active ? 'checked' : '' %}
-                    <input class="checkbox" id="actifInactif" type="checkbox" onchange="reloadDatatableforActif()" {{ checked }}>
-                    <span class="slider round"></span>
-                </label>
+        <div class="dropright">
+            <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <div class="statut dropdown-item" >
+                    Statut article actif
+                    <label class="switch">
+                        {% set checked = active ? 'checked' : '' %}
+                        <input class="checkbox" id="actifInactif" type="checkbox" onchange="reloadDatatableforActif()" {{ checked }}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>
