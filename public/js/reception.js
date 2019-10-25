@@ -172,7 +172,7 @@ let printBarcode = function (button) {
     }
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
         } else {
             $('#cannotGenerate').click();
         }
@@ -280,7 +280,7 @@ function createArticleAndBarcodes(button, receptionId) {
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
         if (response.exists) {
-            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
             tableArticle.ajax.reload(function (json) {
                 if (this.responseText !== undefined) {
                     $('#myInput').val(json.lastInput);
