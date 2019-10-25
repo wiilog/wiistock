@@ -211,6 +211,7 @@ class ManutentionController extends AbstractController
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, $statutLabel);
             $manutention->setStatut($statut);
+            dump($data);
             $manutention
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])

@@ -33,6 +33,19 @@ class ManutentionRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult(); 
     }
 
+    public function findByStatut($statut) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @Lang DQL */
+        "SELECT m.id, m.dateAttendue as date_attendue, d.username as demandeur, m.commentaire, m.source, m.destination
+        FROM App\Entity\Manutention m
+        JOIN m.demandeur d
+        WHERE m.statut = :statut
+        "
+        )->setParameter('statut', $statut);
+        return $query->execute();
+    }
+
 	/**
 	 * @param Utilisateur $user
 	 * @return int

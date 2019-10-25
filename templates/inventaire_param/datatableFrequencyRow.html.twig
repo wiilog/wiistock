@@ -1,6 +1,6 @@
 <div class="d-flex">
-    <div data-toggle='modal' data-target='#modalEditFrequency'>
-        <div class="btn btn-col-action" data-id='{{ frequencyId }}' data-dismiss="modal"
+    <div>
+        <div class="btn btn-col-action" data-id='{{ frequencyId }}' data-dismiss="modal" data-toggle='modal' data-target='#modalEditFrequency'
              onclick="editRow($(this), Routing.generate('frequency_api_edit', true), $('#modalEditFrequency'), $('#submitEditFrequency'))">
             <i class='fas fa-pencil-alt'></i>
         </div>

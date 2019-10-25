@@ -150,6 +150,11 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->getOneOrNullResult();
 	}
 
+    /**
+     * @param $key
+     * @return Utilisateur | null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
 	public function findOneByApiKey($key)
 	{
 		$entityManager = $this->getEntityManager();
