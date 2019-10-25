@@ -2,22 +2,18 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategorieCL;
-
-use App\Entity\CategoryType;
 use App\Entity\ReferenceArticle;
-use App\Repository\CategorieCLRepository;
 
 use App\Repository\CategorieStatutRepository;
-use App\Repository\CategoryTypeRepository;
 use App\Repository\StatutRepository;
+
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 use Doctrine\Common\Persistence\ObjectManager;
 
 
-class RenameStatutArtEtRef extends Fixture implements FixtureGroupInterface
+class PatchRenameStatutArtAndRef extends Fixture implements FixtureGroupInterface
 {
 	/**
 	 * @var StatutRepository
@@ -38,30 +34,29 @@ class RenameStatutArtEtRef extends Fixture implements FixtureGroupInterface
 
 	public function load(ObjectManager $manager)
 	{
-
-	    $categorieStatutRef = $this->categorieStatutRepository->findOneBy([
-	        'nom' => 'referenceArticle'
-        ]);
-        $categorieStatutArt = $this->categorieStatutRepository->findOneBy([
-            'nom' => 'article'
-        ]);
-        $statutActifRefs = $this->statutRepository->findOneByCategorieAndStatut($categorieStatutRef, 'actif');
-        $statutInactifRefs = $this->statutRepository->findOneByCategorieAndStatut($categorieStatutRef, 'inactif');
-        $statutActifArts = $this->statutRepository->findOneByCategorieAndStatut($categorieStatutArt, 'actif');
-        $statutInactifArts = $this->statutRepository->findOneByCategorieAndStatut($categorieStatutArt, 'inactif');
+        $statutActifRefs = $this->statutRepository->findOneByCategorieNameAndStatutName('referenceArticle', 'actif');
+        $statutInactifRefs = $this->statutRepository->findOneByCategorieNameAndStatutName('referenceArticle', 'inactif');
+        $statutActifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'actif');
+        $statutInactifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'inactif');
 
         if (!empty($statutActifRefs)) {
             $statutActifRefs->setNom(ReferenceArticle::STATUT_ACTIF);
+            dump('"renommage du statut ref / actif -> ' . ReferenceArticle::STATUT_ACTIF);
         }
         if (!empty($statutInactifRefs)) {
             $statutInactifRefs->setNom(ReferenceArticle::STATUT_INACTIF);
-        }
+			dump('"renommage du statut ref / inactif -> ' . ReferenceArticle::STATUT_ACTIF);
+		}
         if (!empty($statutActifArts)) {
             $statutActifArts->setNom(ReferenceArticle::STATUT_ACTIF);
-        }
+			dump('"renommage du statut article / actif -> ' . ReferenceArticle::STATUT_ACTIF);
+		}
         if (!empty($statutInactifArts)) {
             $statutInactifArts->setNom(ReferenceArticle::STATUT_INACTIF);
-        }
+			dump('"renommage du statut article / inactif -> ' . ReferenceArticle::STATUT_ACTIF);
+		}
+
+        $manager->flush();
 	}
 
 	public static function getGroups():array {

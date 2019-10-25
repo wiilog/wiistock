@@ -703,8 +703,3 @@ function showRowMouvements(button) {
         initDatatableMovements(id);
     }, 'json');
 }
-
-function switchStatut(button) {
-    button.parent().next('#statut').val(button.data('title'));
-}
-

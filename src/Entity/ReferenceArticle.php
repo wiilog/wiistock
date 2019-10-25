@@ -13,8 +13,8 @@ class ReferenceArticle
 {
 
     const CATEGORIE = 'referenceArticle';
-    const STATUT_ACTIF = 'Disponible';
-    const STATUT_INACTIF = 'Consommé';
+    const STATUT_ACTIF = 'disponible';
+    const STATUT_INACTIF = 'consommé';
 
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';

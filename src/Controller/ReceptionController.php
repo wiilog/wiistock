@@ -154,7 +154,7 @@ class ReceptionController extends AbstractController
             $reception = new Reception();
 
             $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -466,7 +466,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
+            $statut =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE,  $statutLabel);
             $reception->setStatut($statut);
             $type = $reception->getType();
 
@@ -498,7 +498,7 @@ class ReceptionController extends AbstractController
 //            $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
             $anomalie =  $contentData['anomalie'];
             if ($anomalie) {
-                $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                $statutRecep =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
                 $reception->setStatut($statutRecep);
             }
 
@@ -602,7 +602,7 @@ class ReceptionController extends AbstractController
 
             $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
+            $statut =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
             $reception->setStatut($statut);
             $em->flush();
             $type = $reception->getType();
@@ -683,7 +683,7 @@ class ReceptionController extends AbstractController
             if (empty($listReceptionReferenceArticle)) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 
                 foreach ($listReceptionReferenceArticle as $receptionRA) {
                     $referenceArticle = $receptionRA->getReferenceArticle();
@@ -899,7 +899,7 @@ class ReceptionController extends AbstractController
                     for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
 
 						$toInsert = new Article();
-						$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+						$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
 						$ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
 						$reception = $this->receptionRepository->find($dataContent['receptionId']);
 

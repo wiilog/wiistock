@@ -151,7 +151,7 @@ class ManutentionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $status = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+            $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
             $manutention = new Manutention();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -209,7 +209,7 @@ class ManutentionController extends AbstractController
             }
             $manutention = $this->manutentionRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, $statutLabel);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, $statutLabel);
             $manutention->setStatut($statut);
             dump($data);
             $manutention
