@@ -728,16 +728,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     }
                     $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
-                    if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
-                        $this->mailerService->sendMail(
-                            'FOLLOW GT // Manutention effectuée',
-                            $this->renderView('mails/mailManutentionDone.html.twig', [
-                                'manut' => $manut,
-                                'title' => 'Votre demande de manutention a bien été effectuée.',
-                            ]),
-                            $manut->getDemandeur()->getEmail()
-                        );
-                    }
+
                     $this->successDataMsg['success'] = true;
                 } else {
                     $this->successDataMsg['success'] = false;
