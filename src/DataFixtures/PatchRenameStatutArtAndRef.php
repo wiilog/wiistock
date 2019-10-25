@@ -2,9 +2,11 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 
 use App\Repository\CategorieStatutRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\StatutRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -25,11 +27,17 @@ class PatchRenameStatutArtAndRef extends Fixture implements FixtureGroupInterfac
 	 */
 	private $categorieStatutRepository;
 
+	/**
+	 * @var FiltreRefRepository
+	 */
+	private $filtreRefRepository;
 
-	public function __construct(CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository)
+
+	public function __construct(FiltreRefRepository $filtreRefRepository, CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository)
 	{
 		$this->statutRepository = $statutRepository;
 		$this->categorieStatutRepository = $categorieStatutRepository;
+		$this->filtreRefRepository = $filtreRefRepository;
 	}
 
 	public function load(ObjectManager $manager)
@@ -49,12 +57,25 @@ class PatchRenameStatutArtAndRef extends Fixture implements FixtureGroupInterfac
 		}
         if (!empty($statutActifArts)) {
             $statutActifArts->setNom(ReferenceArticle::STATUT_ACTIF);
-			dump('"renommage du statut article / actif -> ' . ReferenceArticle::STATUT_ACTIF);
+			dump('"renommage du statut article / actif -> ' . Article::STATUT_ACTIF);
 		}
         if (!empty($statutInactifArts)) {
             $statutInactifArts->setNom(ReferenceArticle::STATUT_INACTIF);
-			dump('"renommage du statut article / inactif -> ' . ReferenceArticle::STATUT_ACTIF);
+			dump('"renommage du statut article / inactif -> ' . Article::STATUT_ACTIF);
 		}
+
+        $filtresRef = $this->filtreRefRepository->findBy(['champFixe' => 'Statut']);
+        $i = 0;
+        foreach ($filtresRef as $filtreRef) {
+        	if ($filtreRef->getValue() == 'actif') {
+        		$filtreRef->setValue(ReferenceArticle::STATUT_ACTIF);
+        		$i++;
+			} else if ($filtreRef->getValue() == 'inactif') {
+        		$filtreRef->setValue(ReferenceArticle::STATUT_INACTIF);
+        		$i++;
+			}
+		}
+        dump("renommage de " . $i ." filtres statuts sur les réf");
 
         $manager->flush();
 	}
