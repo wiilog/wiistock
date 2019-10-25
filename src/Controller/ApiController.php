@@ -15,17 +15,20 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
+use App\Entity\Manutention;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Repository\ColisRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
+use App\Repository\ManutentionRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteRepository;
@@ -169,6 +172,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 */
     private $inventoryService;
 
+    /**
+     * @var ManutentionRepository
+     */
+    private $manutentionRepository;
+
 	/**
 	 * @var OrdreCollecteRepository
 	 */
@@ -205,8 +213,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param ArticleRepository $articleRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 */
-    public function __construct(OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ManutentionRepository $manutentionRepository, OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
+        $this->manutentionRepository = $manutentionRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
@@ -602,6 +611,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                     'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                                     'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                                     'statut' => Article::STATUT_ACTIF,
+                                    'prix' => $article->getPrixUnitaire(),
                                     'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
                                 ];
 
@@ -698,6 +708,39 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			return new JsonResponse($this->successDataMsg);
 		}
 	}
+
+    /**
+     * @Rest\Post("/api/validateManut", name= "api-validate-manut")
+     * @Rest\View()
+     */
+    public function validateManut(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+                $em = $this->getDoctrine()->getManager();
+
+                $manut = $this->manutentionRepository->find($data['id']);
+
+                if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
+                    if ($data['commentaire'] !== "") {
+                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $data['commentaire']);
+                    }
+                    $manut->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
+                    $em->flush();
+
+                    $this->successDataMsg['success'] = true;
+                } else {
+                    $this->successDataMsg['success'] = false;
+                    $this->successDataMsg['msg'] = "Cette manutention a déjà été prise en charge par un opérateur.";
+                }
+            } else {
+                $this->successDataMsg['success'] = false;
+                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+            return new JsonResponse($this->successDataMsg);
+        }
+    }
 
 	/**
 	 * @Rest\Post("/api/finishLivraison", name= "api-finish-livraison")
@@ -893,6 +936,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
 	}
 
+
+
     private function getDataArray($user) {
 		$userTypes = [];
 		foreach ($user->getTypes() as $type) {
@@ -914,6 +959,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
+        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
@@ -925,6 +972,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
 			'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
 			'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
+            'manutentions' => $manutentions,
         ];
 
         return $data;

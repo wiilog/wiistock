@@ -6,6 +6,7 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -96,12 +97,43 @@ class MouvementStockRepository extends ServiceEntityRepository
 	}
 
     /**
-     * @param string $types
-     * @return mixed
+     * @param string[] $types
+     * @return int
      */
-	public function countByTypes($types)
+	public function countByTypes($types, $dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
+
+        $dql = "SELECT COUNT(m)
+            FROM App\Entity\MouvementStock m
+            WHERE m.type IN (:types)";
+
+
+        if(!empty($dateDebut))
+        {
+            $dql .= " AND m.date > :dateDebut";
+        }
+
+        if(!empty($dateFin))
+        {
+            $dql .= " AND m.date < :dateFin";
+        }
+        $query = $em->createQuery(
+            $dql
+        );
+
+        $query->setParameter('types', $types,Connection::PARAM_STR_ARRAY);
+        if (!empty($dateDebut))
+        {
+            $query->setParameter('dateDebut', $dateDebut);
+        }
+
+        if (!empty($dateFin))
+        {
+            $query->setParameter('dateFin', $dateFin);
+        }
+
+
         $query = $em->createQuery(
         /** @lang DQL */
         "SELECT COUNT(m)
@@ -112,55 +144,143 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalEntryPriceRefArticle()
+    public function countTotalEntryPriceRefArticle($dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-			"SELECT SUM(m.quantity * ra.prixUnitaire)
-			FROM App\Entity\MouvementStock m 
-			JOIN m.refArticle ra
-			WHERE m.type = :entreeInv"
-            )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('SUM(m.quantity * ra.prixUnitaire)')
+            ->from('App\Entity\MouvementStock', 'm')
+            ->join('m.refArticle', 'ra');
+
+        if($dateDebut == '' && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :entreeInv')
+                ->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        }
+        else if(!empty($dateDebut) && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :entreeInv AND m.date > :dateDebut')
+                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                    'dateDebut' => $dateDebut]);
+        }
+        else if (!empty($dateDebut) && !empty($dateFin))
+        {
+            $qb
+                ->where('m.type = :entreeInv AND m.date BETWEEN :dateDebut AND :dateFin')
+                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                    'dateDebut' => $dateDebut,
+                    'dateFin' => $dateFin]);
+        }
+        $query = $qb->getQuery();
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalExitPriceRefArticle()
+    public function countTotalExitPriceRefArticle($dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT SUM(m.quantity * ra.prixUnitaire)
-			FROM App\Entity\MouvementStock m
-			JOIN m.refArticle ra
-			WHERE m.type = :sortieInv"
-        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('SUM(m.quantity * ra.prixUnitaire)')
+            ->from('App\Entity\MouvementStock', 'm')
+            ->join('m.refArticle', 'ra');
+
+        if($dateDebut == '' && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :sortieInv')
+                ->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        }
+        else if(!empty($dateDebut) && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :sortieInv AND m.date > :dateDebut')
+                ->setParameters(['sortieInv'=> MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                    'dateDebut' => $dateDebut]);
+        }
+        else if (!empty($dateDebut) && !empty($dateFin))
+        {
+            $qb
+                ->where('m.type = :sortieInv AND m.date BETWEEN :dateDebut AND :dateFin')
+                ->setParameters(['sortieInv'=> MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                    'dateDebut' => $dateDebut,
+                    'dateFin' => $dateFin]);
+        }
+        $query = $qb->getQuery();
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalEntryPriceArticle()
+    public function countTotalEntryPriceArticle($dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT SUM(m.quantity * a.prixUnitaire) 
-			FROM App\Entity\MouvementStock m 
-			JOIN m.article a 
-			WHERE m.type = :entreeInv"
-        )->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('SUM(m.quantity * a.prixUnitaire)')
+            ->from('App\Entity\MouvementStock', 'm')
+            ->join('m.article', 'a');
+
+        if($dateDebut == '' && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :entreeInv')
+                ->setParameter('entreeInv', MouvementStock::TYPE_INVENTAIRE_ENTREE);
+        }
+        else if(!empty($dateDebut) && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :entreeInv AND m.date > :dateDebut')
+                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                    'dateDebut' => $dateDebut]);
+        }
+        else if (!empty($dateDebut) && !empty($dateFin))
+        {
+            $qb
+                ->where('m.type = :entreeInv AND m.date BETWEEN :dateDebut AND :dateFin')
+                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                    'dateDebut' => $dateDebut,
+                    'dateFin' => $dateFin]);
+        }
+        $query = $qb->getQuery();
         return $query->getSingleScalarResult();
     }
 
-    public function countTotalExitPriceArticle()
+    public function countTotalExitPriceArticle($dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT SUM(m.quantity * a.prixUnitaire)
-			FROM App\Entity\MouvementStock m
-			JOIN m.article a
-			WHERE m.type = :sortieInv"
-        )->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('SUM(m.quantity * a.prixUnitaire)')
+            ->from('App\Entity\MouvementStock', 'm')
+            ->join('m.article', 'a');
+
+        if($dateDebut == '' && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :sortieInv')
+                ->setParameter('sortieInv', MouvementStock::TYPE_INVENTAIRE_SORTIE);
+        }
+        else if(!empty($dateDebut) && $dateFin == '')
+        {
+            $qb
+                ->where('m.type = :sortieInv AND m.date > :dateDebut')
+                ->setParameters(['sortieInv'=> MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                    'dateDebut' => $dateDebut]);
+        }
+        else if (!empty($dateDebut) && !empty($dateFin))
+        {
+            $qb
+                ->where('m.type = :sortieInv AND m.date BETWEEN :dateDebut AND :dateFin')
+                ->setParameters(['sortieInv'=> MouvementStock::TYPE_INVENTAIRE_SORTIE,
+                    'dateDebut' => $dateDebut,
+                    'dateFin' => $dateFin]);
+        }
+        $query = $qb->getQuery();
         return $query->getSingleScalarResult();
     }
 
