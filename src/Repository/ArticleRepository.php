@@ -478,7 +478,8 @@ class ArticleRepository extends ServiceEntityRepository
                     a.label, 
                     e.label as location, 
                     a.quantite as quantity, 
-                    ra.reference as reference_article
+                    ra.reference as reference_article,
+                    a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.articleFournisseur af
