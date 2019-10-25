@@ -300,11 +300,12 @@ function toggleLivraisonCollecte($button) {
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
             if (typeDemande === 'livraison') {
-                pathIndex = Routing.generate('demande_index', true);
+                pathIndex = Routing.generate('demande_index', false);
             } else {
-                pathIndex = Routing.generate('collecte_index', true);
+                pathIndex = Routing.generate('collecte_index', false);
             }
 
+            console.log(pathIndex);
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
