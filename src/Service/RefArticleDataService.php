@@ -403,6 +403,7 @@ class RefArticleDataService
                 "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
                 "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
+					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
                 ]),
             ];
 
@@ -414,6 +415,7 @@ class RefArticleDataService
 	 * @param array $data
 	 * @param ReferenceArticle $referenceArticle
 	 * @return bool
+	 * @throws NonUniqueResultException
 	 */
     public function addRefToDemand($data, $referenceArticle)
 	{
