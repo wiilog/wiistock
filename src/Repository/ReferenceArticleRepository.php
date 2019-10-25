@@ -866,35 +866,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 	public function getAlertDataByParams($params)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('ra.reference, ra.libelle, ra.typeQuantite, ra.id, ra.quantiteStock, ra.limitSecurity, ra.limitWarning')
-            ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND (ra.quantiteStock <= ra.limitSecurity OR ra.quantiteStock <= ra.limitWarning)')
-			->orWhere('ra.typeQuantite = :qte_article AND (
-				(SELECT SUM(art1.quantite)
-							FROM App\Entity\Article art1
-							JOIN art1.articleFournisseur af1
-							JOIN af1.referenceArticle refart1
-							JOIN art1.statut s1
-							WHERE s1.nom =:active AND refart1 = ra)
-							<= ra.limitWarning
-				OR
-				(SELECT SUM(art2.quantite)
-							FROM App\Entity\Article art2
-							JOIN art2.articleFournisseur af2
-							JOIN af2.referenceArticle refart2
-							JOIN art2.statut s2
-							WHERE s2.nom =:active AND refart2 = ra)
-							<= ra.limitSecurity
-				)')
-			->setParameters([
-				'qte_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-				'qte_article' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-				'active' => Article::STATUT_ACTIF
-			]);
+        $qb = $this->getDataAlert();
 
         $countTotal = count($qb->getQuery()->getResult());
 
@@ -949,4 +921,46 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+	public function countAlert()
+    {
+        $qb = $this->getDataAlert();
+
+        $countTotal = count($qb->getQuery()->getResult());
+        return $countTotal;
+    }
+
+	public function getDataAlert()
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('ra.reference, ra.libelle, ra.typeQuantite, ra.id, ra.quantiteStock, ra.limitSecurity, ra.limitWarning')
+            ->from('App\Entity\ReferenceArticle', 'ra')
+            ->where('ra.typeQuantite = :qte_reference AND (ra.quantiteStock <= ra.limitSecurity OR ra.quantiteStock <= ra.limitWarning)')
+            ->orWhere('ra.typeQuantite = :qte_article AND (
+				(SELECT SUM(art1.quantite)
+							FROM App\Entity\Article art1
+							JOIN art1.articleFournisseur af1
+							JOIN af1.referenceArticle refart1
+							JOIN art1.statut s1
+							WHERE s1.nom =:active AND refart1 = ra)
+							<= ra.limitWarning
+				OR
+				(SELECT SUM(art2.quantite)
+							FROM App\Entity\Article art2
+							JOIN art2.articleFournisseur af2
+							JOIN af2.referenceArticle refart2
+							JOIN art2.statut s2
+							WHERE s2.nom =:active AND refart2 = ra)
+							<= ra.limitSecurity
+				)')
+            ->setParameters([
+                'qte_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                'qte_article' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                'active' => Article::STATUT_ACTIF
+            ]);
+        return $qb;
+    }
 }

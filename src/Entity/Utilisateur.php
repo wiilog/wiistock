@@ -82,10 +82,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $demandes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="user")
-     */
-    private $alertesStock;
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="demandeur")
      */
     private $collectes;
@@ -169,7 +165,6 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->alertesStock = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
@@ -328,32 +323,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    /**
-     * @return Collection|AlerteStock[]
-     */
-    public function getAlertesStock(): Collection
-    {
-        return $this->alertesStock;
-    }
-    public function addUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
-    {
-        if (!$this->alertesStock->contains($utilisateurAlerte)) {
-            $this->alertesStock[] = $utilisateurAlerte;
-            $utilisateurAlerte->setUser($this);
-        }
-        return $this;
-    }
-    public function removeUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
-    {
-        if ($this->alertesStock->contains($utilisateurAlerte)) {
-            $this->alertesStock->removeElement($utilisateurAlerte);
-            // set the owning side to null (unless already changed)
-            if ($utilisateurAlerte->getUser() === $this) {
-                $utilisateurAlerte->setUser(null);
-            }
-        }
-        return $this;
-    }
+
     /**
      * @return Collection|Collecte[]
      */
@@ -743,28 +713,6 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->types;
     }
 
-    public function addAlertesStock(AlerteStock $alertesStock): self
-    {
-        if (!$this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock[] = $alertesStock;
-            $alertesStock->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlertesStock(AlerteStock $alertesStock): self
-    {
-        if ($this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock->removeElement($alertesStock);
-            // set the owning side to null (unless already changed)
-            if ($alertesStock->getUser() === $this) {
-                $alertesStock->setUser(null);
-            }
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection|InventoryEntry[]
