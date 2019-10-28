@@ -29,7 +29,7 @@ class CollecteRepository extends ServiceEntityRepository
             JOIN c.statut s
             WHERE s.nom = :statutLabel AND c.demandeur = :user "
         )->setParameters([
-            'statut' => $statutLabel,
+            'statutLabel' => $statutLabel,
             'user' => $user,
         ]);
         return $query->execute();
