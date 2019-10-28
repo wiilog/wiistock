@@ -84,9 +84,8 @@ class AccueilController extends AbstractController
      */
     private $fiabilityByReferenceRepository;
 
-    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
+    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
-        $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
@@ -104,10 +103,9 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-    	$nbAlertsSecurity = $this->alerteStockRepository->countAlertsSecurityActive();
-    	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
-    	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
-			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
+    	$nbAlerts = $this->refArticleRepository->countAlert();
+//    	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
+//			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
     	$types = [
     	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
@@ -115,15 +113,14 @@ class AccueilController extends AbstractController
 
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
     	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+        $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
         $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
 
         $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
         $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReferenceOfThisMonth = (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
-
-
+        $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
+			(1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
 
         $totalEntryRefArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
         $totalExitRefArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
@@ -157,8 +154,7 @@ class AccueilController extends AbstractController
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
-            'nbAlertsSecurity' => $nbAlertsSecurity,
-            'nbAlertsExpiry' => $nbAlertsExpiry,
+//            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

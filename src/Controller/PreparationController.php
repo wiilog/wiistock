@@ -357,6 +357,7 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
+     * Get list of article
      */
     public function startSplitting(Request $request): Response
     {

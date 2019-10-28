@@ -470,6 +470,36 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT 
+                    DISTINCT a.reference,
+                    a.label, 
+                    e.label as location, 
+                    a.quantite as quantity, 
+                    ra.reference as reference_article,
+                    a.barCode
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			JOIN ra.ligneArticles la
+			JOIN la.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE a.quantite > 0
+			  AND a.demande IS NULL
+			  AND (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
+        )->setParameters([
+            'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
+
+        return $query->execute();
+    }
+
 	public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
 	{
 		$em = $this->getEntityManager();
