@@ -162,7 +162,6 @@ let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
 //GENERATOR BARCODE
-
 let printBarcode = function (button) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
@@ -172,7 +171,8 @@ let printBarcode = function (button) {
     }
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
+            console.log(response.barcodeLabel);
+            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
         } else {
             $('#cannotGenerate').click();
         }
@@ -302,7 +302,8 @@ function printSingleBarcode(button) {
                 printBarcodes(
                     [response.ligneRef],
                     response,
-                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf'
+                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                    [response.barcodeLabel]
                 );
             }
             else {
@@ -327,9 +328,10 @@ function printSingleArticleBarcode(button) {
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             printBarcodes(
-                [response.articleRef],
+                [response.articleRef.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.articleRef + '.pdf'
+                'Etiquette concernant l\'article ' + response.articleRef + '.pdf',
+                [response.articleRef.barcodeLabel]
             );
         }
         else {

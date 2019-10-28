@@ -781,7 +781,7 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
             $data['refs'] = [];
-            $data['barcodesLabel'] = [];
+            $data['barcodeLabel'] = [];
             $reception = $this->receptionRepository->find($dataContent['reception']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             /**  @var $dimension DimensionsEtiquettes */
@@ -797,6 +797,10 @@ class ReceptionController extends AbstractController
             foreach ($listReceptionReferenceArticle as $recepRef) {
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
+                    array_push($data['barcodeLabel'], $this->renderView('reference_article/barcodeLabel.html.twig', [
+                        'refRef' => $recepRef->getReferenceArticle()->getReference(),
+                        'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
+                    ]));
                 } else {
                     $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
                     //                    foreach ($listArticleFournisseur as $af) {
@@ -805,7 +809,7 @@ class ReceptionController extends AbstractController
                     foreach ($listArticle as $article) {
                         if ($article->getReception() && $article->getReception() === $reception) {
                             array_push($data['refs'], $article->getBarCode());
-                            array_push($data['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                            array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
                                 'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                                 'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                                 'artLabel' => $article->getLabel(),
@@ -830,7 +834,12 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $data = [];
-                $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+                $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
+                $data['ligneRef'] = $articleRef->getReference();
+                $data['barcodeLabel'] = $this->renderView('reference_article/barcodeLabel.html.twig', [
+                    'refRef' => $articleRef->getReference(),
+                    'refLabel' => $articleRef->getLibelle(),
+                ]);
                 $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
                 if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                     $data['height'] = $dimension->getHeight();
@@ -935,7 +944,7 @@ class ReceptionController extends AbstractController
                         $em->persist($toInsert);
                         $em->flush();
                         array_push($response['refs'], $toInsert->getReference());
-                        array_push($data['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                        array_push($response['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
                             'refRef' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                             'artLabel' => $toInsert->getLabel(),
