@@ -21,16 +21,6 @@ class AlerteExpiry
      */
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="alertesStock")
-     */
-    private $user;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="alertesStock")
-     */
-    private $refArticle;
-
 	/**
 	 * @ORM\Column(type="integer")
 	 */
@@ -55,30 +45,6 @@ class AlerteExpiry
     public function setNbPeriod(?int $nbPeriod): self
     {
         $this->nbPeriod = $nbPeriod;
-
-        return $this;
-    }
-
-    public function getUser(): ?Utilisateur
-    {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): self
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getRefArticle(): ?ReferenceArticle
-    {
-        return $this->refArticle;
-    }
-
-    public function setRefArticle(?ReferenceArticle $refArticle): self
-    {
-        $this->refArticle = $refArticle;
 
         return $this;
     }
