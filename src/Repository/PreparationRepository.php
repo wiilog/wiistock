@@ -36,10 +36,13 @@ class PreparationRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT p.id, p.numero as number
+            "SELECT p.id, 
+                         p.numero as number,
+                         dest.label as destination
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
 			JOIN p.demandes d
+			JOIN d.destination dest
 			JOIN d.type t
 			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
         )->setParameters([
