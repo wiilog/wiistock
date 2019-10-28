@@ -796,7 +796,7 @@ class ReceptionController extends AbstractController
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
             foreach ($listReceptionReferenceArticle as $recepRef) {
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
+                    array_push($data['refs'], $recepRef->getReferenceArticle()->getBarCode());
                     array_push($data['barcodeLabel'], $this->renderView('reference_article/barcodeLabel.html.twig', [
                         'refRef' => $recepRef->getReferenceArticle()->getReference(),
                         'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
@@ -835,7 +835,7 @@ class ReceptionController extends AbstractController
             if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $data = [];
                 $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
-                $data['ligneRef'] = $articleRef->getReference();
+                $data['ligneRef'] = $articleRef->getBarCode();
                 $data['barcodeLabel'] = $this->renderView('reference_article/barcodeLabel.html.twig', [
                     'refRef' => $articleRef->getReference(),
                     'refLabel' => $articleRef->getLibelle(),
