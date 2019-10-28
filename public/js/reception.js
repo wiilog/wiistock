@@ -168,10 +168,9 @@ let printBarcode = function (button) {
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     let params = {
         'reception': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            console.log(response.barcodeLabel);
             printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
         } else {
             $('#cannotGenerate').click();
@@ -324,13 +323,13 @@ function printSingleBarcode(button) {
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
-    };
+    };ref
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             printBarcodes(
                 [response.articleRef.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.articleRef + '.pdf',
+                'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
                 [response.articleRef.barcodeLabel]
             );
         }
