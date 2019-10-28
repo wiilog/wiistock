@@ -324,7 +324,7 @@ function printSingleBarcode(button) {
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             printBarcodes(

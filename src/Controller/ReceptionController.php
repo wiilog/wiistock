@@ -920,7 +920,6 @@ class ReceptionController extends AbstractController
                         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                         $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
                         $reception = $this->receptionRepository->find($dataContent['receptionId']);
-
                         $articleFournisseur = new ArticleFournisseur();
                         $articleFournisseur
                             ->setReferenceArticle($refArticle)
@@ -930,7 +929,6 @@ class ReceptionController extends AbstractController
                         $em->persist($articleFournisseur);
 
                         $formattedCounter = sprintf('%05u', $counter);
-
                         $toInsert
                             ->setLabel($ligne->getLabel())
                             ->setConform(true)
@@ -943,7 +941,7 @@ class ReceptionController extends AbstractController
                             ->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
                         $em->flush();
-                        array_push($response['refs'], $toInsert->getReference());
+                        array_push($response['refs'], $toInsert->getBarCode());
                         array_push($response['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
                             'refRef' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
