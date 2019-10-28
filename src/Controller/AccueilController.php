@@ -5,13 +5,16 @@ namespace App\Controller;
 use App\Entity\MouvementStock;
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
+use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
@@ -26,6 +29,10 @@ use App\Entity\Manutention;
  */
 class AccueilController extends AbstractController
 {
+    /**
+     * @var AlerteStockRepository
+     */
+    private $alerteStockRepository;
 
     /**
      * @var CollecteRepository
@@ -67,22 +74,29 @@ class AccueilController extends AbstractController
 	 */
     private $articleRepository;
 
-//	/**
-//	 * @var AlerteExpiryRepository
-//	 */
-//    private $alerteExpiryRepository;
+	/**
+	 * @var AlerteExpiryRepository
+	 */
+    private $alerteExpiryRepository;
 
-    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository,/* AlerteExpiryRepository $alerteExpiryRepository, */ ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository)
+    /**
+     * @var fiabilityByReferenceRepository
+     */
+    private $fiabilityByReferenceRepository;
+
+    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
+        $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
-//        $this->alerteExpiryRepository = $alerteExpiryRepository;
+        $this->alerteExpiryRepository = $alerteExpiryRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->refArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
+        $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
 
     /**
@@ -97,18 +111,35 @@ class AccueilController extends AbstractController
     	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
+
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
     	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReference = (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+        $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
-        $totalEntryRefArticle = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
-        $totalExitRefArticle = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
-        $totalRefArticle = $totalEntryRefArticle - $totalExitRefArticle;
-        $totalEntryArticle = $this->mouvementStockRepository->countTotalEntryPriceArticle();
-        $totalExitArticle = $this->mouvementStockRepository->countTotalExitPriceArticle();
-        $totalArticle = $totalEntryArticle - $totalExitArticle;
+        $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
 
-        $nbrFiabiliteMonetaire = $totalRefArticle + $totalArticle;
+        $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
+        $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
+			(1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
+
+        $totalEntryRefArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
+        $totalExitRefArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
+        $totalRefArticleCurrent = $totalEntryRefArticleCurrent - $totalExitRefArticleCurrent;
+        $totalEntryArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceArticle();
+        $totalExitArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceArticle();
+        $totalArticleCurrent = $totalEntryArticleCurrent - $totalExitArticleCurrent;
+        $nbrFiabiliteMonetaire = $totalRefArticleCurrent + $totalArticleCurrent;
+
+        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+        $totalEntryRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($firstDayOfCurrentMonth);
+        $totalExitRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceRefArticle($firstDayOfCurrentMonth);
+        $totalRefArticleOfThisMonth = $totalEntryRefArticleOfThisMonth - $totalExitRefArticleOfThisMonth;
+        $totalEntryArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceArticle($firstDayOfCurrentMonth);
+        $totalExitArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceArticle($firstDayOfCurrentMonth);
+        $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
+        $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
+
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -132,6 +163,67 @@ class AccueilController extends AbstractController
             'emplacements' => $this->emplacementRepository->findAll(),
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
+            'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
+            'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
         ]);
+    }
+
+    /**
+     * @Route("/graphique-monetaire", name="graph_monetaire", options={"expose"=true}, methods="GET|POST")
+     */
+    public function graphiqueMonetaire(): Response
+    {
+        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+        $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
+        $precedentMonthFirst = $firstDayOfCurrentMonth;
+        $precedentMonthLast = $lastDayOfCurrentMonth;
+        $idx = 0;
+        $value = [];
+        while ($idx !== 6 ) {
+            $month = date("m", strtotime($precedentMonthFirst));
+            $month = date("F", mktime(0,0,0, $month, 10));
+            $totalEntryRefArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalExitRefArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
+            $totalEntryArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalEntryPriceArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalExitArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalExitPriceArticle($precedentMonthFirst, $precedentMonthLast);
+            $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
+
+            $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
+
+            $value[] = [
+                'mois' => $month,
+                'nbr' => $nbrFiabiliteMonetaireOfPrecedentMonth];
+            $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
+            $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
+            $idx += 1;
+        }
+
+        $data = $value;
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET|POST")
+     */
+    public function graphiqueReference(): Response
+    {
+
+        $fiabiliteRef = $this->fiabilityByReferenceRepository->findAll();
+        $value[] = [];
+        foreach ($fiabiliteRef as $reference)
+        {
+            $date = $reference->getDate();
+            $indicateur = $reference->getIndicateur();
+            $dateTimeTostr = $date->format('Y-m-d');
+            $month = date("m", strtotime($dateTimeTostr));
+            $month = date("F", mktime(0,0,0, $month, 10));
+            $value[] = [
+                'mois' => $month,
+                'nbr' => $indicateur
+            ];
+        }
+        $data = $value;
+        return new JsonResponse($data);
     }
 }

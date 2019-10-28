@@ -518,8 +518,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa, ra.barCode
+			"SELECT 
+                    ra.reference,
+                    ra.typeQuantite as type_quantite, 
+                    e.label as location, 
+                    ra.libelle as label, 
+                    la.quantite as quantity, 
+                    1 as is_ref, 
+                    ra.barCode,
+                    p.id as id_prepa
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la

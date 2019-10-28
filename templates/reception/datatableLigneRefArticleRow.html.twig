@@ -1,8 +1,8 @@
 <div class="d-flex">
     {% if modifiable %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-            <div data-toggle='modal' data-target='#modalEditLigneArticle'>
-                <div class="btn btn-col-action" data-id='{{ligneId}}'
+            <div>
+                <div class="btn btn-col-action" data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle'
                      onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
