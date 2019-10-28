@@ -3,8 +3,8 @@
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <div id='edit{{idRefArticle}}'>
         <div class="btn btn-col-action" data-id='{{ idRefArticle }}' data-target='#modalEditRefArticle' data-toggle='modal'
-        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true),
-        clearDiv(), toggleRequiredChampsLibres($(this), 'edit'), initRequiredChampsFixes($(this))">
+        onclick="clearDiv(),
+                 editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true, '.editor-container-edit', false, () => afterLoadingEditModal($(this)))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
