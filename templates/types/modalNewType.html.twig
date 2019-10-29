@@ -1,0 +1,40 @@
+<form method="" class="modal fade" id="modalNewType" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Créer un type</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+
+                    <label for="category">Catégorie*</label>
+                    <select name="category" id="frequencies" class="data form-control needed">
+                        <option placeholder="" disabled value="" selected></option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.label }}</option>
+                        {% endfor %}
+                    </select>
+
+                <div class="row">
+                    <div class="mb-3 form-group col-12">
+                        <label for="label">Label*</label>
+                        <input type="text" class="data form-control needed" name="label">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12">
+                        <label for="label">Description</label>
+                        <input type="text" class="data form-control" name="description">
+                    </div>
+                </div>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewType" type="button" class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

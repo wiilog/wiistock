@@ -74,7 +74,63 @@ class TypeRepository extends ServiceEntityRepository
             FROM App\Entity\Type t
             WHERE LOWER(t.label) = :label
            "
-        )->setParameter('label', strtolower($label));
+        )->setParameter('label', $label);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByLabelAndCategory($label, $category)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(t)
+            FROM App\Entity\Type t
+            WHERE LOWER(t.label) = :label AND t.category = :category
+           "
+        )->setParameters([
+            'label' => $label,
+            'category' => $category
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByIdAll($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(t)
+            FROM App\Entity\Type t
+            LEFT JOIN t.articles a
+            LEFT JOIN t.champsLibres cl
+            LEFT JOIN t.collectes c
+            LEFT JOIN t.demandesLivraison dl
+            LEFT JOIN t.litiges l
+            LEFT JOIN t.receptions r
+            LEFT JOIN t.referenceArticles ra
+            LEFT JOIN t.utilisateurs u
+            WHERE a.type = :id OR cl.type = :id OR c.type = :id OR dl.type = :id OR l.type = :id OR r.type = :id OR ra.type = :id
+           "
+        )->setParameter('id', $id);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByLabelDiff($label, $typeLabel, $category)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT count(t)
+            FROM App\Entity\Type t
+            WHERE t.label = :label AND t.label != :typeLabel AND t.category = :category"
+        )->setParameters([
+            'label' => $label,
+            'typeLabel' => $typeLabel,
+            'category' => $category
+        ]);
 
         return $query->getSingleScalarResult();
     }
