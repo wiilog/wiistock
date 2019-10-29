@@ -161,6 +161,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $inventoryCategoryHistory;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistory", mappedBy="user")
+     */
+    private $litigeHistories;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -178,6 +183,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
+        $this->litigeHistories = new ArrayCollection();
     }
 
     public function getId()
@@ -800,6 +806,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($filtresSup->getUser() === $this) {
                 $filtresSup->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LitigeHistory[]
+     */
+    public function getLitigeHistories(): Collection
+    {
+        return $this->litigeHistories;
+    }
+
+    public function addLitigeHistory(LitigeHistory $litigeHistory): self
+    {
+        if (!$this->litigeHistories->contains($litigeHistory)) {
+            $this->litigeHistories[] = $litigeHistory;
+            $litigeHistory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistory(LitigeHistory $litigeHistory): self
+    {
+        if ($this->litigeHistories->contains($litigeHistory)) {
+            $this->litigeHistories->removeElement($litigeHistory);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistory->getUser() === $this) {
+                $litigeHistory->setUser(null);
             }
         }
 

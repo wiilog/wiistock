@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -27,6 +29,16 @@ class Colis
      */
     private $arrivage;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="colis")
+     */
+    private $litige;
+
+    public function __construct()
+    {
+        $this->litige = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -49,6 +61,34 @@ class Colis
     public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitige(): Collection
+    {
+        return $this->litige;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litige->contains($litige)) {
+            $this->litige[] = $litige;
+            $litige->addColi($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litige->contains($litige)) {
+            $this->litige->removeElement($litige);
+            $litige->removeColi($this);
+        }
 
         return $this;
     }

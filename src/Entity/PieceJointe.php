@@ -34,6 +34,12 @@ class PieceJointe
      */
     private $arrivage;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="piecesJointes")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $litige;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -71,6 +77,18 @@ class PieceJointe
     public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
+    public function getLitige(): ?Litige
+    {
+        return $this->litige;
+    }
+
+    public function setLitige(?Litige $litige): self
+    {
+        $this->litige = $litige;
 
         return $this;
     }

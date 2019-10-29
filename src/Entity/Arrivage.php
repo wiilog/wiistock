@@ -25,11 +25,6 @@ class Arrivage
     private $fournisseur;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Litige", mappedBy="arrivage")
-     */
-    private $litige;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Chauffeur", inversedBy="arrivages")
      */
     private $chauffeur;
@@ -239,37 +234,6 @@ class Arrivage
         return $this;
     }
 
-    /**
-     * @return Collection|Litige[]
-     */
-    public function getLitiges(): Collection
-    {
-        return $this->litiges;
-    }
-
-    public function addLitige(Litige $litige): self
-    {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitige(Litige $litige): self
-    {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            // set the owning side to null (unless already changed)
-            if ($litige->getArrivage() === $this) {
-                $litige->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getTransporteur(): ?Transporteur
     {
         return $this->transporteur;
@@ -315,25 +279,6 @@ class Arrivage
 
         return $this;
     }
-
-    public function getLitige(): ?Litige
-    {
-        return $this->litige;
-    }
-
-    public function setLitige(?Litige $litige): self
-    {
-        $this->litige = $litige;
-
-        // set (or unset) the owning side of the relation if necessary
-        $newArrivage = $litige === null ? null : $this;
-        if ($newArrivage !== $litige->getArrivage()) {
-            $litige->setArrivage($newArrivage);
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection|Colis[]
      */

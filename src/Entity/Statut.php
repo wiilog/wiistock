@@ -79,6 +79,10 @@ class Statut
      */
     private $arrivages;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="statut")
+     */
+    private $litige;
 
     public function __construct()
     {
@@ -92,6 +96,7 @@ class Statut
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+        $this->litige = new ArrayCollection();
 //        $this->user = new ArrayCollection();
     }
 
@@ -402,6 +407,37 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($arrivage->getStatut() === $this) {
                 $arrivage->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitige(): Collection
+    {
+        return $this->litige;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litige->contains($litige)) {
+            $this->litige[] = $litige;
+            $litige->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litige->contains($litige)) {
+            $this->litige->removeElement($litige);
+            // set the owning side to null (unless already changed)
+            if ($litige->getStatut() === $this) {
+                $litige->setStatut(null);
             }
         }
 
