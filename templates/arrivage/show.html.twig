@@ -1,0 +1,15 @@
+{% extends "layout.html.twig" %}
+{% block title %}Ajout d'article{% endblock %}
+{% block page_content %}
+
+
+<div class="row">
+    <div class="col">
+        <h1>Réception</h1>
+    </div>
+</div>
+
+{% endblock %}
+{% block javascript %}
+<script src="{{asset('js/reception.js')}}?{{ date().timestamp }}"></script>
+{% endblock javascript %}

@@ -173,6 +173,9 @@ class ArrivageController extends AbstractController
             $rows = [];
             foreach ($arrivages as $arrivage) {
                 $acheteursUsernames = [];
+                $url = $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ]);
                 foreach ($arrivage->getAcheteurs() as $acheteur) {
                     $acheteursUsernames[] = $acheteur->getUsername();
                 }
@@ -191,9 +194,10 @@ class ArrivageController extends AbstractController
                     'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-                    'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
-                        'arrivage' => $arrivage,
-                    ])
+                    'Actions' => $this->renderView(
+                        'arrivage/datatableArrivageRow.html.twig',
+                        ['url' => $url, 'arrivage' => $arrivage]
+                    ),
                 ];
             }
 
@@ -290,21 +294,26 @@ class ArrivageController extends AbstractController
             }
 
             $em->flush();
-            $response = [];
-            $response['refs'] = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['arrivage'] = $numeroArrivage;
-                $response['exists'] = true;
-                $response['nbUm'] = $data['nbUM'];
-                $response['printUm'] = $data['printUM'];
-                $response['printArrivage'] = $data['printArrivage'];
-            } else {
-                $response['exists'] = false;
-            }
-            return new JsonResponse($response);
+//            $response = [];
+//            $response['refs'] = [];
+//            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+//            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+//                $response['height'] = $dimension->getHeight();
+//                $response['width'] = $dimension->getWidth();
+//                $response['arrivage'] = $numeroArrivage;
+//                $response['exists'] = true;
+//                $response['nbUm'] = $data['nbUM'];
+//                $response['printUm'] = $data['printUM'];
+//                $response['printArrivage'] = $data['printArrivage'];
+//            } else {
+//                $response['exists'] = false;
+//            }
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ])
+            ];
+            return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
     }
@@ -746,5 +755,21 @@ class ArrivageController extends AbstractController
             rmdir($target);
         }
     }
+
+    /**
+     * @Route("/voir/{id}", name="arrivage_show", methods={"GET", "POST"})
+     */
+    public function show(Arrivage $arrivage): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        dump($arrivage->get);
+
+
+        return $this->render("arrivage/show.html.twig", [
+        ]);
+    }
+
 
 }
