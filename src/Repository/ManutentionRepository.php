@@ -16,6 +16,15 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ManutentionRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Date demande' => 'date',
+        'Demandeur' => 'demandeur',
+        'Libellé' => 'libelle',
+        'Date souhaitée' => 'dateAttendue',
+        'Statut' => 'statut',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Manutention::class);
@@ -120,8 +129,19 @@ class ManutentionRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $qb
-                        ->orderBy('m.date', $order);
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'statut') {
+                        $qb
+                            ->join('m.statut', 'st')
+                            ->orderBy('st.nom', $order);
+                    } else if ($column === 'demandeur') {
+                        $qb
+                            ->join('m.demandeur', 'u')
+                            ->orderBy('u.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('m.' . $column, $order);
+                    }
                 }
             }
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

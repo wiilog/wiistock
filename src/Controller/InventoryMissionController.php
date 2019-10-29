@@ -226,7 +226,6 @@ class InventoryMissionController extends AbstractController
         }
 
         $data = $this->invMissionService->getDataForDatatable($mission, $request->request);
-
         return new JsonResponse($data);
     }
 

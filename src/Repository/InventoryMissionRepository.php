@@ -158,15 +158,6 @@ class InventoryMissionRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
-            if (!empty($params->get('order')))
-            {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
-                    $qb
-                        ->orderBy('ra.reference', $order);
-                }
-            }
             $allArticleDataTable = $qb->getQuery();
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));

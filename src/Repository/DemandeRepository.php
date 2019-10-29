@@ -16,6 +16,15 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class DemandeRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Date' => 'date',
+        'Demandeur' => 'demandeur',
+        'Statut' => 'statut',
+        'Numéro' => 'numero',
+        'Type' => 'type',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Demande::class);
@@ -169,7 +178,6 @@ class DemandeRepository extends ServiceEntityRepository
 
 	public function findByParamsAndFilters($params, $filters)
     {
-        dump($params);
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
@@ -230,8 +238,23 @@ class DemandeRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $qb
-                        ->orderBy('d.date', $order);
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'type') {
+                        $qb
+                            ->join('d.type', 't')
+                            ->orderBy('t.label', $order);
+                    } else if ($column === 'statut') {
+                        $qb
+                            ->join('d.statut', 's')
+                            ->orderBy('s.nom', $order);
+                    } else if ($column === 'demandeur') {
+                        $qb
+                            ->join('d.utilisateur', 'u')
+                            ->orderBy('u.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('d.' . $column, $order);
+                    }
                 }
             }
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -14,6 +14,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArticleFournisseurRepository extends ServiceEntityRepository
 {
+    private const DtToDbLabels = [
+        'Fournisseur' => 'fournisseur',
+        'Référence' => 'reference',
+        'Article de référence' => 'art_ref',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, ArticleFournisseur::class);
@@ -116,8 +122,19 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $qb
-                        ->orderBy('af.fournisseur', $order);
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'fournisseur') {
+                        $qb
+                            ->join('af.fournisseur', 'f')
+                            ->orderBy('f.nom', $order);
+                    } else if ($column === 'art_ref') {
+                        $qb
+                            ->join('af.referenceArticle', 'ra')
+                            ->orderBy('ra.libelle', $order);
+                    } else {
+                        $qb
+                            ->orderBy('af.' . $column, $order);
+                    }
                 }
             }
             if (!empty($params->get('search'))) {

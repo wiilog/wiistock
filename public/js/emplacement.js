@@ -28,6 +28,9 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     ],
     buttons: [
         'copy', 'excel', 'pdf'
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 4 }
     ]
 });
 

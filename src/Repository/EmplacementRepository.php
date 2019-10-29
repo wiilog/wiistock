@@ -14,6 +14,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class EmplacementRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Nom' => 'label',
+        'Description' => 'description',
+        'Point de livraison' => 'isDeliveryPoint',
+        'Actif / Inactif' => 'isActive',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Emplacement::class);
@@ -121,7 +129,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 if (!empty($order))
                 {
                     $qb
-                        ->orderBy('e.label', $order);
+                        ->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
                 }
             }
             $allEmplacementDataTable = $qb->getQuery();

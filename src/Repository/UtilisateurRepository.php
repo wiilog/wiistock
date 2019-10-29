@@ -15,6 +15,15 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  */
 class UtilisateurRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
+
+
+    private const DtToDbLabels = [
+        'Nom d\'utilisateur' => 'username',
+        'Email' => 'email',
+        'Dernière connexion' => 'lastLogin',
+        'Rôle' => 'role',
+    ];
+
 	public function __construct(RegistryInterface $registry)
 	{
 		parent::__construct($registry, Utilisateur::class);
@@ -196,7 +205,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
                 if (!empty($order))
                 {
                     $qb
-                        ->orderBy('a.username', $order);
+                        ->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
                 }
             }
 			if (!empty($params->get('search'))) {

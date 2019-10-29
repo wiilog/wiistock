@@ -22,7 +22,8 @@ let tableMissions = $('#tableMissionsInv').DataTable({
         { "data": 'Actions', 'title' : 'Actions' }
     ],
     "columnDefs": [
-        {"visible" : false, "targets" : 3}
+        {"visible" : false, "targets" : 3},
+        {'orderable' : false, 'targets': 4}
     ],
 });
 
@@ -72,7 +73,7 @@ let tableMission = $('#tableMissionInv').DataTable({
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
         { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
-    ],
+    ]
 });
 
 let modalAddToMission = $("#modalAddToMission");
