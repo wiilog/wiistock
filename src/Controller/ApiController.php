@@ -24,6 +24,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Repository\ColisRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
@@ -52,6 +53,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
 
@@ -515,7 +517,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
      * @Rest\View()
      */
-    public function finishPrepa(Request $request)
+    public function finishPrepa(Request $request,
+                                DemandeRepository $demandeRepository)
     {
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
@@ -602,6 +605,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
 							$article->setQuantiteAPrelever($mouvement->getQuantity());
+
                             if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                                 $newArticle = [
                                     'articleFournisseur' => $article->getArticleFournisseur()->getId(),
@@ -620,7 +624,26 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 }
                                 $this->articleDataService->newArticle($newArticle);
 
-                                $article->setQuantite($article->getQuantiteAPrelever(), 0);
+                                $article->setQuantite($article->getQuantiteAPrelever());
+                            }
+
+                            if (isset($mouvementNomade['selected_by_article']) &&
+                                $mouvementNomade['selected_by_article']) {
+
+                                if ($article->getDemande()) {
+                                    throw new BadRequestHttpException('article-already-selected');
+                                }
+                                else {
+                                    $demande = $demandeRepository->findOneByLivraison($livraison);
+                                    $article->setDemande($demande);
+
+                                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+
+                                    if (!empty($ligneArticle)) {
+                                        $entityManager->remove($ligneArticle);
+                                    }
+                                }
                             }
 						}
 					}
@@ -728,7 +751,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     }
                     $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
-
+                    if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
+                        $this->mailerService->sendMail(
+                            'FOLLOW GT // Manutention effectuée',
+                            $this->renderView('mails/mailManutentionDone.html.twig', [
+                                'manut' => $manut,
+                                'title' => 'Votre demande de manutention a bien été effectuée.',
+                            ]),
+                            $manut->getDemandeur()->getEmail()
+                        );
+                    }
                     $this->successDataMsg['success'] = true;
                 } else {
                     $this->successDataMsg['success'] = false;
@@ -950,6 +982,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesPrepa = $this->articleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
         $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
 
+        // get article linked to a ReferenceArticle where type_quantite === 'article'
+        $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
+
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
@@ -966,6 +1001,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'articles' => array_merge($articles, $articlesRef),
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
+            'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
 			'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
 			'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
 			'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),

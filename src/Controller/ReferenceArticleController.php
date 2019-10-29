@@ -348,6 +348,7 @@ class ReferenceArticleController extends Controller
             }
             $requiredCreate = true;
             $type = $this->typeRepository->find($data['type']);
+
             if ($data['emplacement'] !== null) {
                 $emplacement = $this->emplacementRepository->find($data['emplacement']);
             } else {
@@ -390,6 +391,12 @@ class ReferenceArticleController extends Controller
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
+            if ($data['limitSecurity']) {
+            	$refArticle->setLimitSecurity($data['limitSecurity']);
+			}
+            if ($data['alertWarning']) {
+            	$refArticle->setLimitWarning($data['alertWarning']);
+			}
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
             	if ($category) $refArticle->setCategory($category);
@@ -459,6 +466,7 @@ class ReferenceArticleController extends Controller
                 "Commentaire" => $refArticle->getCommentaire(),
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
+					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
                 ]),
             ];
             $rows = array_merge($rowCL, $rowDD);
@@ -804,69 +812,76 @@ class ReferenceArticleController extends Controller
 
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
 
-            if (array_key_exists('livraison', $data) && $data['livraison']) {
-				$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
-				if ($json === 'article') {
-					$this->articleDataService->editArticle($data);
-					$json = true;
-				}
+            $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
+            if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 
-            } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
-                $collecte = $this->collecteRepository->find($data['collecte']);
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    //TODO patch temporaire CEA
-                    $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
-                    if (!$fournisseurTemp) {
-                        $fournisseurTemp = new Fournisseur();
-                        $fournisseurTemp
-                            ->setCodeReference('A_DETERMINER')
-                            ->setNom('A DETERMINER');
-                        $em->persist($fournisseurTemp);
-                    }
-                    $newArticle = new Article();
-                    $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-                    $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF);
-                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $ref = $date->format('YmdHis');
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseurTemp)
-                        ->setReference($refArticle->getReference())
-                        ->setLabel('A déterminer -' . $index);
-                    $em->persist($articleFournisseur);
-                    $newArticle
-                        ->setLabel($refArticle->getLibelle() . '-' . $index)
-                        ->setConform(true)
-                        ->setStatut($statut)
-                        ->setReference($ref . '-' . $index)
-                        ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+				if (array_key_exists('livraison', $data) && $data['livraison']) {
+					$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
+					if ($json === 'article') {
+						$this->articleDataService->editArticle($data);
+						$json = true;
+					}
+
+				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
+					$collecte = $this->collecteRepository->find($data['collecte']);
+					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+						//TODO patch temporaire CEA
+						$fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+						if (!$fournisseurTemp) {
+							$fournisseurTemp = new Fournisseur();
+							$fournisseurTemp
+								->setCodeReference('A_DETERMINER')
+								->setNom('A DETERMINER');
+							$em->persist($fournisseurTemp);
+						}
+						$newArticle = new Article();
+						$index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+						$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+						$ref = $date->format('YmdHis');
+						$articleFournisseur = new ArticleFournisseur();
+						$articleFournisseur
+							->setReferenceArticle($refArticle)
+							->setFournisseur($fournisseurTemp)
+							->setReference($refArticle->getReference())
+							->setLabel('A déterminer -' . $index);
+						$em->persist($articleFournisseur);
+						$newArticle
+							->setLabel($refArticle->getLibelle() . '-' . $index)
+							->setConform(true)
+							->setStatut($statut)
+							->setReference($ref . '-' . $index)
+							->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
 							//TODO quantite, quantitie ?
-                        ->setEmplacement($collecte->getPointCollecte())
-                        ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType())
-						->setBarCode($this->articleDataService->generateBarCode());
-                    $em->persist($newArticle);
-                    $collecte->addArticle($newArticle);
-                    //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
-//                    $article = $this->articleRepository->find($data['article']);
-//                    $collecte->addArticle($article);
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $collecteReference = new CollecteReference;
-                    $collecteReference
-                        ->setCollecte($collecte)
-                        ->setReferenceArticle($refArticle)
-                        ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
-                    $em->persist($collecteReference);
-                } else {
-                    $json = false; //TOOD gérer message erreur
-                }
-            } else {
-                $json = false; //TOOD gérer message erreur
-            }
-            $em->flush();
+							->setEmplacement($collecte->getPointCollecte())
+							->setArticleFournisseur($articleFournisseur)
+							->setType($refArticle->getType())
+							->setBarCode($this->articleDataService->generateBarCode());
+						$em->persist($newArticle);
+						$collecte->addArticle($newArticle);
+						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
+						//                    $article = $this->articleRepository->find($data['article']);
+						//                    $collecte->addArticle($article);
+					} elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+						$collecteReference = new CollecteReference;
+						$collecteReference
+							->setCollecte($collecte)
+							->setReferenceArticle($refArticle)
+							->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
+						$em->persist($collecteReference);
+					} else {
+						$json = false; //TOOD gérer message erreur
+					}
+				} else {
+					$json = false; //TOOD gérer message erreur
+				}
+				$em->flush();
+			} else {
+            	$json = false;
+			}
 
             return new JsonResponse($json);
+
         }
         throw new NotFoundHttpException("404");
     }

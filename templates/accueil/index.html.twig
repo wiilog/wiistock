@@ -30,11 +30,11 @@ class='accueil-back'
                         <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>
-                {% set s = nbAlertsSecurity > 1 ? 's' : '' %}
+                {% set s = nbAlerts > 1 ? 's' : '' %}
                 <div class="col-12 mb-1 mt-1 alerte">
-                    <a href={{path('alerte_stock_index', {'filter': 'active'})}}>
+                    <a href={{path('alerte_index', {'filter': 'active'})}}>
                         <p><strong> Alertes de seuil : </strong>{{ nbAlerts }}<br>
-                            {% if nbAlerts > 0 %}dont {{ nbAlertsSecurity }} seuil{{ s }} de sécurité{% endif %}
+                            {% if nbAlerts > 0 %}dont {{ nbAlerts }} seuil{{ s }} de sécurité{% endif %}
                         </p>
                     </a>
                 </div>

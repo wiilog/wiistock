@@ -148,7 +148,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
@@ -158,11 +158,11 @@ class ReceptionController extends AbstractController
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-			// génère le numéro
-			$lastNumero = $this->receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
-			$lastCpt = (int)substr($lastNumero, -4, 4);
-			$i = $lastCpt + 1;
-			$cpt = sprintf('%04u', $i);
+            // génère le numéro
+            $lastNumero = $this->receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
+            $lastCpt = (int)substr($lastNumero, -4, 4);
+            $i = $lastCpt + 1;
+            $cpt = sprintf('%04u', $i);
             $numero = 'R' . $date->format('ymd') . $cpt;
 
             $reception
@@ -199,7 +199,7 @@ class ReceptionController extends AbstractController
 
             $data = [
                 "redirect" => $this->generateUrl('reception_show', [
-                    'id' =>  $reception->getId(),
+                    'id' => $reception->getId(),
                 ])
             ];
             return new JsonResponse($data);
@@ -211,17 +211,17 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      */
-    public function edit(Request  $request): Response
+    public function edit(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseur =  $this->fournisseurRepository->find(intval($data['fournisseur']));
-            $utilisateur =  $this->utilisateurRepository->find(intval($data['utilisateur']));
-            $statut =  $this->statutRepository->find(intval($data['statut']));
-            $reception =  $this->receptionRepository->find($data['receptionId']);
+            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+            $statut = $this->statutRepository->find(intval($data['statut']));
+            $reception = $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
                 ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
@@ -231,7 +231,7 @@ class ReceptionController extends AbstractController
                 ->setUtilisateur($utilisateur)
                 ->setCommentaire($data['commentaire']);
 
-            $em =  $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
             $em->flush();
 
             $champLibreKey = array_keys($data);
@@ -256,8 +256,8 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' =>  $reception,
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                 ])
             ];
@@ -270,17 +270,17 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function apiEdit(Request  $request): Response
+    public function apiEdit(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $reception =  $this->receptionRepository->find($data['id']);
+            $reception = $this->receptionRepository->find($data['id']);
 
             $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
 
-            $typeChampLibre =  [];
+            $typeChampLibre = [];
             foreach ($listType as $type) {
                 $champsLibresComplet = $this->champLibreRepository->findByTypeId($type['id']);
                 $champsLibres = [];
@@ -298,16 +298,16 @@ class ReceptionController extends AbstractController
                 }
 
                 $typeChampLibre[] = [
-                    'typeLabel' =>  $type['label'],
+                    'typeLabel' => $type['label'],
                     'typeId' => $type['id'],
                     'champsLibres' => $champsLibres,
                 ];
             }
-            $json =  $this->renderView('reception/modalEditReceptionContent.html.twig', [
-                'reception' =>  $reception,
-                'fournisseurs' =>  $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
-                'utilisateurs' =>  $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
-                'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
+            $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
+                'reception' => $reception,
+                'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
+                'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
+                'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre
             ]);
@@ -330,25 +330,25 @@ class ReceptionController extends AbstractController
             $rows = [];
             foreach ($receptions as $reception) {
                 $url = $this->generateUrl('reception_show', [
-                    'id' =>  $reception->getId(),
+                    'id' => $reception->getId(),
                 ]);
                 $rows[] =
                     [
                         'id' => ($reception->getId()),
-                        "Statut" => ($reception->getStatut() ?  $reception->getStatut()->getNom() : ''),
-                        "Date" => ($reception->getDate() ?  $reception->getDate() : '')->format('d/m/Y'),
-                        "DateFin" => ($reception->getDateFinReception() ?  $reception->getDateFinReception()->format('d/m/Y') : ''),
-                        "Fournisseur" => ($reception->getFournisseur() ?  $reception->getFournisseur()->getNom() : ''),
+                        "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+                        "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                        "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y') : ''),
+                        "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                         "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                        "Référence" => ($reception->getNumeroReception() ?  $reception->getNumeroReception() : ''),
+                        "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                         "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
-                        'Actions' =>  $this->renderView(
+                        'Actions' => $this->renderView(
                             'reception/datatableReceptionRow.html.twig',
-                            ['url' =>  $url, 'reception' =>  $reception]
+                            ['url' => $url, 'reception' => $reception]
                         ),
                     ];
             }
-            $data['data'] =  $rows;
+            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -368,15 +368,15 @@ class ReceptionController extends AbstractController
             $ligneArticles = $this->receptionReferenceArticleRepository->findByReception($reception);
 
             $rows = [];
-            foreach ($ligneArticles as  $ligneArticle) {
+            foreach ($ligneArticles as $ligneArticle) {
                 $rows[] =
                     [
-                        "Référence" => ($ligneArticle->getReferenceArticle() ?  $ligneArticle->getReferenceArticle()->getReference() : ''),
-                        "Fournisseur" => ($ligneArticle->getFournisseur() ?  $ligneArticle->getFournisseur()->getNom() : ''),
-                        "Libellé" => ($ligneArticle->getLabel() ?  $ligneArticle->getLabel() : ''),
-                        "A recevoir" => ($ligneArticle->getQuantiteAR() ?  $ligneArticle->getQuantiteAR() : ''),
-                        "Reçu" => ($ligneArticle->getQuantite() ?  $ligneArticle->getQuantite() : ''),
-                        'Actions' =>  $this->renderView(
+                        "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
+                        "Fournisseur" => ($ligneArticle->getFournisseur() ? $ligneArticle->getFournisseur()->getNom() : ''),
+                        "Libellé" => ($ligneArticle->getLabel() ? $ligneArticle->getLabel() : ''),
+                        "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
+                        "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                        'Actions' => $this->renderView(
                             'reception/datatableLigneRefArticleRow.html.twig',
                             [
                                 'ligneId' => $ligneArticle->getId(),
@@ -388,7 +388,7 @@ class ReceptionController extends AbstractController
                         ),
                     ];
             }
-            $data['data'] =  $rows;
+            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -405,12 +405,12 @@ class ReceptionController extends AbstractController
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
-        $typeChampLibre =  [];
+        $typeChampLibre = [];
         foreach ($types as $type) {
             $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
 
             $typeChampLibre[] = [
-                'typeLabel' =>  $type['label'],
+                'typeLabel' => $type['label'],
                 'typeId' => $type['id'],
                 'champsLibres' => $champsLibres,
             ];
@@ -425,16 +425,16 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function delete(Request  $request): Response
+    public function delete(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $reception =  $this->receptionRepository->find($data['receptionId']);
+            $reception = $this->receptionRepository->find($data['receptionId']);
 
-            $entityManager =  $this->getDoctrine()->getManager();
+            $entityManager = $this->getDoctrine()->getManager();
             foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
                 $entityManager->remove($receptionArticle);
             }
@@ -442,7 +442,7 @@ class ReceptionController extends AbstractController
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
-                "redirect" =>  $this->generateUrl('reception_index')
+                "redirect" => $this->generateUrl('reception_index')
             ];
             return new JsonResponse($data);
         }
@@ -452,29 +452,29 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function removeArticle(Request  $request): Response
+    public function removeArticle(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle =  $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
+            $ligneArticle = $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
             $reception = $ligneArticle->getReception();
-            $entityManager =  $this->getDoctrine()->getManager();
+            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
-            $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE,  $statutLabel);
+            $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
+            $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
             $reception->setStatut($statut);
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' =>  $reception,
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                 ])
             ];
@@ -493,12 +493,12 @@ class ReceptionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle =  $this->referenceArticleRepository->find($contentData['referenceArticle']);
-            $reception =  $this->receptionRepository->find($contentData['reception']);
+            $refArticle = $this->referenceArticleRepository->find($contentData['referenceArticle']);
+            $reception = $this->receptionRepository->find($contentData['reception']);
 //            $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
-            $anomalie =  $contentData['anomalie'];
+            $anomalie = $contentData['anomalie'];
             if ($anomalie) {
-                $statutRecep =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
                 $reception->setStatut($statutRecep);
             }
 
@@ -508,19 +508,19 @@ class ReceptionController extends AbstractController
                 ->setAnomalie($anomalie)
 //                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
-                ->setQuantiteAR(max($contentData['quantiteAR'], 0)) // protection contre quantités négatives
+                ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
                 ->setCommentaire($contentData['commentaire'])
                 ->setReception($reception);
 
             if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
-            	$receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
-			}
+                $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
+            }
 
 //            if (array_key_exists('articleFournisseur', $contentData) && $contentData['articleFournisseur']) {
 //                $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
 //                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
 //            }
-            $em =  $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($receptionReferenceArticle);
             $em->flush();
 
@@ -528,8 +528,8 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' =>  $reception,
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab
                 ])
             ];
@@ -541,9 +541,9 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
      */
-    public function apiEditArticle(Request  $request): Response
+    public function apiEditArticle(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -551,7 +551,7 @@ class ReceptionController extends AbstractController
             $ligneArticle = $this->receptionReferenceArticleRepository->find($data['id']);
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
 
-            $json =  $this->renderView(
+            $json = $this->renderView(
                 'reception/modalModifyLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
@@ -572,10 +572,10 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-            $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
+            $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
 //            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
-            $refArticle =  $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
 
             $receptionReferenceArticle
@@ -583,8 +583,8 @@ class ReceptionController extends AbstractController
                 ->setAnomalie($data['anomalie'])
 //                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
-				->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-				->setCommentaire($data['commentaire']);
+                ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
+                ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             if ($typeQuantite == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -596,13 +596,13 @@ class ReceptionController extends AbstractController
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
 
-            $em =  $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
             $em->flush();
 
 
-            $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut =  $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
+            $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
+            $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
             $reception->setStatut($statut);
             $em->flush();
             $type = $reception->getType();
@@ -610,8 +610,8 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' =>  $reception,
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab
                 ])
             ];
@@ -655,11 +655,11 @@ class ReceptionController extends AbstractController
             }
         }
 
-        return  $this->render("reception/show.html.twig", [
+        return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'type' =>  $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
+            'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
-            'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
+            'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
             //            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
@@ -675,7 +675,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($request->isXmlHttpRequest() &&  $receptionId = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $reception = $this->receptionRepository->find($receptionId);
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
@@ -692,9 +692,9 @@ class ReceptionController extends AbstractController
                     }
                 }
                 $reception
-					->setStatut($statut)
+                    ->setStatut($statut)
                     ->setDateFinReception(new \DateTime('now'))
-					->setDateCommande(new \DateTime('now'));
+                    ->setDateCommande(new \DateTime('now'));
                 $em->flush();
 
                 return new JsonResponse(true);
@@ -706,14 +706,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function getArticleStock(Request  $request)
+    public function getArticleStock(Request $request)
     {
         if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $id =  $request->request->get('id');
-        $quantiteStock =  $this->referenceArticleRepository->getQuantiteStockById($id);
+        $id = $request->request->get('id');
+        $quantiteStock = $this->referenceArticleRepository->getQuantiteStockById($id);
 
         return new JsonResponse($quantiteStock);
     }
@@ -723,7 +723,7 @@ class ReceptionController extends AbstractController
      */
     public function getArticleFournisseur(Request $request)
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -738,7 +738,7 @@ class ReceptionController extends AbstractController
                         "option" => $this->renderView(
                             'reception/optionArticleFournisseur.html.twig',
                             [
-                                'articlesFournisseurs' =>  $articlesFournisseurs,
+                                'articlesFournisseurs' => $articlesFournisseurs,
                             ]
                         )
                     ];
@@ -752,7 +752,7 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/check-if-quantity-article", name="check_if_quantity_article", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function checkIfQuantityArticle(Request $request) : Response
+    public function checkIfQuantityArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $referenceId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
@@ -760,12 +760,12 @@ class ReceptionController extends AbstractController
             }
 
             if ($referenceId) {
-				$refArticle = $this->referenceArticleRepository->find($referenceId);
-				$typeQuantite = $refArticle ? $refArticle->getTypeQuantite() : '';
+                $refArticle = $this->referenceArticleRepository->find($referenceId);
+                $typeQuantite = $refArticle ? $refArticle->getTypeQuantite() : '';
 
-				$quantityByArticle = $typeQuantite == ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-            	return new JsonResponse($quantityByArticle);
-			}
+                $quantityByArticle = $typeQuantite == ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                return new JsonResponse($quantityByArticle);
+            }
             return new JsonResponse();
 
         }
@@ -774,15 +774,17 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})     
+     * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getAllReferences(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
             $data['refs'] = [];
+            $data['barcodeLabel'] = [];
             $reception = $this->receptionRepository->find($dataContent['reception']);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /**  @var $dimension DimensionsEtiquettes */
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /**  @var $dimension DimensionsEtiquettes */
             if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $data['height'] = $dimension->getHeight();
                 $data['width'] = $dimension->getWidth();
@@ -794,7 +796,11 @@ class ReceptionController extends AbstractController
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
             foreach ($listReceptionReferenceArticle as $recepRef) {
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
+                    array_push($data['refs'], $recepRef->getReferenceArticle()->getBarCode());
+                    array_push($data['barcodeLabel'], $this->renderView('reference_article/barcodeLabel.html.twig', [
+                        'refRef' => $recepRef->getReferenceArticle()->getReference(),
+                        'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
+                    ]));
                 } else {
                     $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
                     //                    foreach ($listArticleFournisseur as $af) {
@@ -802,7 +808,13 @@ class ReceptionController extends AbstractController
 
                     foreach ($listArticle as $article) {
                         if ($article->getReception() && $article->getReception() === $reception) {
-                            array_push($data['refs'], $article->getReference());
+                            array_push($data['refs'], $article->getBarCode());
+                            array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                                'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                                'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
+                                'artLabel' => $article->getLabel(),
+                            ])
+                            );
                         }
                     }
                     //                    }
@@ -822,7 +834,12 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $data = [];
-                $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+                $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
+                $data['ligneRef'] = $articleRef->getBarCode();
+                $data['barcodeLabel'] = $this->renderView('reference_article/barcodeLabel.html.twig', [
+                    'refRef' => $articleRef->getReference(),
+                    'refLabel' => $articleRef->getLibelle(),
+                ]);
                 $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
                 if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                     $data['height'] = $dimension->getHeight();
@@ -860,6 +877,7 @@ class ReceptionController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $response = [];
             $response['refs'] = [];
+            $response['barcodesLabel'] = [];
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $response['height'] = $dimension->getHeight();
@@ -882,27 +900,26 @@ class ReceptionController extends AbstractController
             }
 
             if ($response['exists'] === true) {
-            	$refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
+                $refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
 
-				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-				$formattedDate = $date->format('ym');
-				$references = $this->articleRepository->getReferencesByRefAndDate($refArticle, $formattedDate);
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $formattedDate = $date->format('ym');
+                $references = $this->articleRepository->getReferencesByRefAndDate($refArticle, $formattedDate);
 
-				$highestCpt = 0;
-				foreach ($references as $reference) {
-					$cpt = (int)substr($reference, -5, 5);
-					if ($cpt > $highestCpt) $highestCpt = $cpt;
-				}
-				$counter = $highestCpt + 1;
+                $highestCpt = 0;
+                foreach ($references as $reference) {
+                    $cpt = (int)substr($reference, -5, 5);
+                    if ($cpt > $highestCpt) $highestCpt = $cpt;
+                }
+                $counter = $highestCpt + 1;
 
-            	for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
+                for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
                     for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
 
-						$toInsert = new Article();
-						$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-						$ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
-						$reception = $this->receptionRepository->find($dataContent['receptionId']);
-
+                        $toInsert = new Article();
+                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                        $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+                        $reception = $this->receptionRepository->find($dataContent['receptionId']);
                         $articleFournisseur = new ArticleFournisseur();
                         $articleFournisseur
                             ->setReferenceArticle($refArticle)
@@ -911,22 +928,27 @@ class ReceptionController extends AbstractController
                             ->setLabel($ligne->getLabel());
                         $em->persist($articleFournisseur);
 
-						$formattedCounter = sprintf('%05u', $counter);
-
-						$toInsert
+                        $formattedCounter = sprintf('%05u', $counter);
+                        $toInsert
                             ->setLabel($ligne->getLabel())
                             ->setConform(true)
                             ->setStatut($statut)
-							->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
-                            ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
+                            ->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
+                            ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0))// protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
                             ->setType($refArticle->getType())
-							->setBarCode($this->articleDataService->generateBarCode());
+                            ->setBarCode($this->articleDataService->generateBarCode());
                         $em->persist($toInsert);
                         $em->flush();
-                        array_push($response['refs'], $toInsert->getReference());
-						$counter++;
+                        array_push($response['refs'], $toInsert->getBarCode());
+                        array_push($response['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                            'refRef' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            'refLabel' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
+                            'artLabel' => $toInsert->getLabel(),
+                        ])
+                        );
+                        $counter++;
                     }
                 }
             }
@@ -954,27 +976,27 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/verification", name="reception_check_delete", options={"expose"=true})
-	 */
-	public function checkReceptionCanBeDeleted(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
-				return $this->redirectToRoute('access_denied');
-			}
+    /**
+     * @Route("/verification", name="reception_check_delete", options={"expose"=true})
+     */
+    public function checkReceptionCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-			if ($this->receptionReferenceArticleRepository->countByReceptionId($receptionId) == 0) {
-				$delete = true;
-				$html = $this->renderView('reception/modalDeleteReceptionRight.html.twig');
-			} else {
-				$delete = false;
-				$html = $this->renderView('reception/modalDeleteReceptionWrong.html.twig');
-			}
+            if ($this->receptionReferenceArticleRepository->countByReceptionId($receptionId) == 0) {
+                $delete = true;
+                $html = $this->renderView('reception/modalDeleteReceptionRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('reception/modalDeleteReceptionWrong.html.twig');
+            }
 
-			return new JsonResponse(['delete' => $delete, 'html' => $html]);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
 }

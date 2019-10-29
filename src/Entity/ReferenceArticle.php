@@ -49,11 +49,6 @@ class ReferenceArticle
     private $quantiteDisponible;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="refArticle")
-     */
-    private $alertesStock;
-
-    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $quantiteReservee;
@@ -158,10 +153,19 @@ class ReferenceArticle
      */
     private $dateLastInventory;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitSecurity;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitWarning;
+
 
     public function __construct()
     {
-        $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -214,37 +218,6 @@ class ReferenceArticle
     public function setQuantiteDisponible(?int $quantiteDisponible): self
     {
         $this->quantiteDisponible = $quantiteDisponible;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|AlerteStock[]
-     */
-    public function getAlertesStock(): Collection
-    {
-        return $this->alertesStock;
-    }
-
-    public function addRefArticleAlerte(AlerteStock $refArticleAlerte): self
-    {
-        if (!$this->alertesStock->contains($refArticleAlerte)) {
-            $this->alertesStock[] = $refArticleAlerte;
-            $refArticleAlerte->setRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRefArticleAlerte(AlerteStock $refArticleAlerte): self
-    {
-        if ($this->alertesStock->contains($refArticleAlerte)) {
-            $this->alertesStock->removeElement($refArticleAlerte);
-            // set the owning side to null (unless already changed)
-            if ($refArticleAlerte->getRefArticle() === $this) {
-                $refArticleAlerte->setRefArticle(null);
-            }
-        }
 
         return $this;
     }
@@ -537,29 +510,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function addAlertesStock(AlerteStock $alertesStock): self
-    {
-        if (!$this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock[] = $alertesStock;
-            $alertesStock->setRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlertesStock(AlerteStock $alertesStock): self
-    {
-        if ($this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock->removeElement($alertesStock);
-            // set the owning side to null (unless already changed)
-            if ($alertesStock->getRefArticle() === $this) {
-                $alertesStock->setRefArticle(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
     {
         if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
@@ -740,6 +690,28 @@ class ReferenceArticle
     {
         $this->barCode = $barCode;
 
+        return $this;
+    }
+
+    public function getLimitSecurity()
+    {
+        return $this->limitSecurity;
+    }
+
+    public function setLimitSecurity($limitSecurity): self
+    {
+        $this->limitSecurity = $limitSecurity;
+        return $this;
+    }
+
+    public function getLimitWarning()
+    {
+        return $this->limitWarning;
+    }
+
+    public function setLimitWarning($limitWarning): self
+    {
+        $this->limitWarning = $limitWarning;
         return $this;
     }
 

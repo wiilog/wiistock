@@ -403,6 +403,7 @@ class RefArticleDataService
                 "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
                 "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
+					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
                 ]),
             ];
 
@@ -414,6 +415,7 @@ class RefArticleDataService
 	 * @param array $data
 	 * @param ReferenceArticle $referenceArticle
 	 * @return bool
+	 * @throws NonUniqueResultException
 	 */
     public function addRefToDemand($data, $referenceArticle)
 	{
@@ -483,5 +485,55 @@ class RefArticleDataService
 
 		return $newBarcode;
 	}
-    
+
+    public function getAlerteDataByParams($params = null)
+    {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return new RedirectResponse($this->router->generate('access_denied'));
+        }
+
+        $results = $this->referenceArticleRepository->getAlertDataByParams($params);
+        $referenceArticles = $results['data'];
+
+        $rows = [];
+        foreach ($referenceArticles as $referenceArticle) {
+            $rows[] = $this->dataRowAlerteRef($referenceArticle);
+        }
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $results['count'],
+            'recordsTotal' => $results['total'],
+        ];
+    }
+
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return array
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
+    public function dataRowAlerteRef($referenceArticle)
+    {
+    	if ($referenceArticle['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+    		$quantity = $referenceArticle['quantiteStock'];
+		} else {
+			$quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle['id']);
+		}
+
+        $row = [
+            'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
+            'label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
+            'QuantiteStock' => $quantity,
+            'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
+            'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),
+            'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
+                'quantite' => $quantity,
+                'seuilSecu' => $referenceArticle['limitSecurity'],
+                'seuilAlerte' => $referenceArticle['limitWarning'],
+            ]),
+        ];
+        return $row;
+    }
 }

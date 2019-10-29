@@ -162,17 +162,16 @@ let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
 //GENERATOR BARCODE
-
 let printBarcode = function (button) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     let params = {
         'reception': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
         } else {
             $('#cannotGenerate').click();
         }
@@ -280,7 +279,7 @@ function createArticleAndBarcodes(button, receptionId) {
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
         if (response.exists) {
-            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf');
+            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
             tableArticle.ajax.reload(function (json) {
                 if (this.responseText !== undefined) {
                     $('#myInput').val(json.lastInput);
@@ -302,7 +301,8 @@ function printSingleBarcode(button) {
                 printBarcodes(
                     [response.ligneRef],
                     response,
-                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf'
+                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                    [response.barcodeLabel]
                 );
             }
             else {
@@ -323,13 +323,14 @@ function printSingleBarcode(button) {
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             printBarcodes(
-                [response.articleRef],
+                [response.articleRef.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.articleRef + '.pdf'
+                'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
+                [response.articleRef.barcodeLabel]
             );
         }
         else {

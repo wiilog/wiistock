@@ -233,7 +233,7 @@ function showRow(button, path, modal) {
  *
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}) {
 
     let id = button.data('id');
     let ref = button.data('ref');
@@ -247,7 +247,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find('#inputId').attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
-
         modal.find('.modal-body').html(resp);
         modal.find('.select2').select2();
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
@@ -263,6 +262,8 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
         if (editorToInit) initEditor(editor);
+
+        afterLoadingEditModal()
     }, 'json');
 
 }
@@ -300,11 +301,12 @@ function toggleLivraisonCollecte($button) {
             boutonNouvelleDemande.removeClass('d-none');
             let pathIndex;
             if (typeDemande === 'livraison') {
-                pathIndex = Routing.generate('demande_index', true);
+                pathIndex = Routing.generate('demande_index', false);
             } else {
-                pathIndex = Routing.generate('collecte_index', true);
+                pathIndex = Routing.generate('collecte_index', false);
             }
 
+            console.log(pathIndex);
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );

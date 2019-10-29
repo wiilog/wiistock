@@ -102,22 +102,25 @@ class ManutentionRepository extends ServiceEntityRepository
             }
         }
 
-        // compte éléments filtrés
-		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
-
 		//Filter search
 		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
-				if (!empty($search)) {
-					$qb
-						->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
-						->setParameter('value', '%' . $search . '%');
-				}
-			}
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+        }
+
+        // compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
 
         $query = $qb->getQuery();
 
