@@ -162,9 +162,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $inventoryCategoryHistory;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistory", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="user")
      */
-    private $litigeHistories;
+    private $litigeHistorics;
 
     public function __construct()
     {
@@ -183,7 +183,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
-        $this->litigeHistories = new ArrayCollection();
+        $this->litigeHistorics = new ArrayCollection();
     }
 
     public function getId()
@@ -813,27 +813,27 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|LitigeHistory[]
+     * @return Collection|LitigeHistoric[]
      */
-    public function getLitigeHistories(): Collection
+    public function getLitigeHistorics(): Collection
     {
-        return $this->litigeHistories;
+        return $this->litigeHistorics;
     }
 
-    public function addLitigeHistory(LitigeHistory $litigeHistory): self
+    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
     {
-        if (!$this->litigeHistories->contains($litigeHistory)) {
-            $this->litigeHistories[] = $litigeHistory;
+        if (!$this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics[] = $litigeHistory;
             $litigeHistory->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeLitigeHistory(LitigeHistory $litigeHistory): self
+    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
     {
-        if ($this->litigeHistories->contains($litigeHistory)) {
-            $this->litigeHistories->removeElement($litigeHistory);
+        if ($this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics->removeElement($litigeHistory);
             // set the owning side to null (unless already changed)
             if ($litigeHistory->getUser() === $this) {
                 $litigeHistory->setUser(null);

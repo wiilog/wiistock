@@ -97,14 +97,14 @@ class Arrivage
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
      */
-    private $piecesJointes;
+    private $attachements;
 
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
-        $this->piecesJointes = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -325,15 +325,15 @@ class Arrivage
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getPiecesJointes(): Collection
+    public function getAttachements(): Collection
     {
-        return $this->piecesJointes;
+        return $this->attachements;
     }
 
     public function addPieceJointe(PieceJointe $pieceJointe): self
     {
-        if (!$this->piecesJointes->contains($pieceJointe)) {
-            $this->piecesJointes[] = $pieceJointe;
+        if (!$this->attachements->contains($pieceJointe)) {
+            $this->attachements[] = $pieceJointe;
             $pieceJointe->setArrivage($this);
         }
 
@@ -342,8 +342,8 @@ class Arrivage
 
     public function removePieceJointe(PieceJointe $pieceJointe): self
     {
-        if ($this->piecesJointes->contains($pieceJointe)) {
-            $this->piecesJointes->removeElement($pieceJointe);
+        if ($this->attachements->contains($pieceJointe)) {
+            $this->attachements->removeElement($pieceJointe);
             // set the owning side to null (unless already changed)
             if ($pieceJointe->getArrivage() === $this) {
                 $pieceJointe->setArrivage(null);
@@ -378,8 +378,8 @@ class Arrivage
 
     public function addPiecesJointe(PieceJointe $piecesJointe): self
     {
-        if (!$this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes[] = $piecesJointe;
+        if (!$this->attachements->contains($piecesJointe)) {
+            $this->attachements[] = $piecesJointe;
             $piecesJointe->setArrivage($this);
         }
 
@@ -388,8 +388,8 @@ class Arrivage
 
     public function removePiecesJointe(PieceJointe $piecesJointe): self
     {
-        if ($this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes->removeElement($piecesJointe);
+        if ($this->attachements->contains($piecesJointe)) {
+            $this->attachements->removeElement($piecesJointe);
             // set the owning side to null (unless already changed)
             if ($piecesJointe->getArrivage() === $this) {
                 $piecesJointe->setArrivage(null);

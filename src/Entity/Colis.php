@@ -32,11 +32,11 @@ class Colis
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="colis")
      */
-    private $litige;
+    private $litiges;
 
     public function __construct()
     {
-        $this->litige = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -68,15 +68,15 @@ class Colis
     /**
      * @return Collection|Litige[]
      */
-    public function getLitige(): Collection
+    public function getLitiges(): Collection
     {
-        return $this->litige;
+        return $this->litiges;
     }
 
     public function addLitige(Litige $litige): self
     {
-        if (!$this->litige->contains($litige)) {
-            $this->litige[] = $litige;
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
             $litige->addColi($this);
         }
 
@@ -85,8 +85,8 @@ class Colis
 
     public function removeLitige(Litige $litige): self
     {
-        if ($this->litige->contains($litige)) {
-            $this->litige->removeElement($litige);
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
             $litige->removeColi($this);
         }
 

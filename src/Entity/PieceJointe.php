@@ -29,13 +29,13 @@ class PieceJointe
     private $fileName;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="piecesJointes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
     private $arrivage;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="piecesJointes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
     private $litige;

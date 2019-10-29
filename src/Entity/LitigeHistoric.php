@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\LitigeHistoryRepository")
+ * @ORM\Entity(repositoryClass="LitigeHistoricRepository")
  */
-class LitigeHistory
+class LitigeHistoric
 {
     /**
      * @ORM\Id()
@@ -27,13 +27,13 @@ class LitigeHistory
     private $comment;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="litigeHistories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="litigeHistorics")
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="litigeHistories")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="litigeHistorics")
      * @ORM\JoinColumn(nullable=false)
      */
     private $litige;

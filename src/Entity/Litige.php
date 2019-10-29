@@ -19,8 +19,7 @@ class Litige
     private $id;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Colis", inversedBy="litige")
-     * @ORM\JoinColumn(name="colis_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Colis", inversedBy="litiges")
      */
     private $colis;
 
@@ -32,23 +31,23 @@ class Litige
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="litige")
      */
-    private $piecesJointes;
+    private $attachements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="litige")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="litiges")
      */
-    private $statut;
+    private $status;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistory", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="litige")
      */
-    private $litigeHistories;
+    private $litigeHistorics;
 
     public function __construct()
     {
         $this->colis = new ArrayCollection();
-        $this->piecesJointes = new ArrayCollection();
-        $this->litigeHistories = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
+        $this->litigeHistorics = new ArrayCollection();
     }
 
 
@@ -102,15 +101,15 @@ class Litige
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getPiecesJointes(): Collection
+    public function getAttachements(): Collection
     {
-        return $this->piecesJointes;
+        return $this->attachements;
     }
 
     public function addPiecesJointe(PieceJointe $piecesJointe): self
     {
-        if (!$this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes[] = $piecesJointe;
+        if (!$this->attachements->contains($piecesJointe)) {
+            $this->attachements[] = $piecesJointe;
             $piecesJointe->setLitige($this);
         }
 
@@ -119,8 +118,8 @@ class Litige
 
     public function removePiecesJointe(PieceJointe $piecesJointe): self
     {
-        if ($this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes->removeElement($piecesJointe);
+        if ($this->attachements->contains($piecesJointe)) {
+            $this->attachements->removeElement($piecesJointe);
             // set the owning side to null (unless already changed)
             if ($piecesJointe->getLitige() === $this) {
                 $piecesJointe->setLitige(null);
@@ -130,40 +129,40 @@ class Litige
         return $this;
     }
 
-    public function getStatut(): ?Statut
+    public function getStatus(): ?Statut
     {
-        return $this->statut;
+        return $this->status;
     }
 
-    public function setStatut(?Statut $statut): self
+    public function setStatus(?Statut $status): self
     {
-        $this->statut = $statut;
+        $this->status = $status;
 
         return $this;
     }
 
     /**
-     * @return Collection|LitigeHistory[]
+     * @return Collection|LitigeHistoric[]
      */
-    public function getLitigeHistories(): Collection
+    public function getLitigeHistorics(): Collection
     {
-        return $this->litigeHistories;
+        return $this->litigeHistorics;
     }
 
-    public function addLitigeHistory(LitigeHistory $litigeHistory): self
+    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
     {
-        if (!$this->litigeHistories->contains($litigeHistory)) {
-            $this->litigeHistories[] = $litigeHistory;
+        if (!$this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics[] = $litigeHistory;
             $litigeHistory->setLitige($this);
         }
 
         return $this;
     }
 
-    public function removeLitigeHistory(LitigeHistory $litigeHistory): self
+    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
     {
-        if ($this->litigeHistories->contains($litigeHistory)) {
-            $this->litigeHistories->removeElement($litigeHistory);
+        if ($this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics->removeElement($litigeHistory);
             // set the owning side to null (unless already changed)
             if ($litigeHistory->getLitige() === $this) {
                 $litigeHistory->setLitige(null);
