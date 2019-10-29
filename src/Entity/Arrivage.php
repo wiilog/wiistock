@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage
 {
+	const CONFORME = 'conforme';
+	const LITIGE = 'litige';
 
     /**
      * @ORM\Id()

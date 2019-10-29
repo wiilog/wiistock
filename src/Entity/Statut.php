@@ -11,12 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Statut
 {
-    // statuts de la catégorie arrivage
-    const CONFORME = 'conforme';
-    const ATTENTE_ACHETEUR = 'attente retour acheteur';
-    const TRAITE_ACHETEUR = 'traité par acheteur';
-    const SOLDE = 'soldé';
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
