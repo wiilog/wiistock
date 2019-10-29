@@ -265,17 +265,17 @@ class ArrivageController extends AbstractController
                     unlink($path . '/' . $file);
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-
-                for ($i = 0; $i < $data['nbUM']; $i++) {
-                    $colis = new Colis();
-                    $colis
-                        ->setCode($numeroArrivage . '-' . $i)
-                        ->setArrivage($arrivage);
-                    $em->persist($colis);
-                }
-            }
+//            if (isset($data['nbUM'])) {
+//                $arrivage->setNbUM((int)$data['nbUM']);
+//
+//                for ($i = 0; $i < $data['nbUM']; $i++) {
+//                    $colis = new Colis();
+//                    $colis
+//                        ->setCode($numeroArrivage . '-' . $i)
+//                        ->setArrivage($arrivage);
+//                    $em->persist($colis);
+//                }
+//            }
 
             $em->persist($arrivage);
 
@@ -298,7 +298,7 @@ class ArrivageController extends AbstractController
                 $response['width'] = $dimension->getWidth();
                 $response['arrivage'] = $numeroArrivage;
                 $response['exists'] = true;
-                $response['nbUm'] = $data['nbUM'];
+//                $response['nbUm'] = $data['nbUM'];
                 $response['printUm'] = $data['printUM'];
                 $response['printArrivage'] = $data['printArrivage'];
             } else {
@@ -407,9 +407,9 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-            }
+//            if (isset($data['nbUM'])) {
+//                $arrivage->setNbUM((int)$data['nbUM']);
+//            }
             if (isset($data['statutAcheteur'])) {
                 $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
                 $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
