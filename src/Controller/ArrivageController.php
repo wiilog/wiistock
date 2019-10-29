@@ -186,7 +186,7 @@ class ArrivageController extends AbstractController
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-                    'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
+//                    'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
                     'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
@@ -299,8 +299,8 @@ class ArrivageController extends AbstractController
                 $response['arrivage'] = $numeroArrivage;
                 $response['exists'] = true;
 //                $response['nbUm'] = $data['nbUM'];
-                $response['printUm'] = $data['printUM'];
-                $response['printArrivage'] = $data['printArrivage'];
+//                $response['printUm'] = $data['printUM'];
+//                $response['printArrivage'] = $data['printArrivage'];
             } else {
                 $response['exists'] = false;
             }
@@ -711,7 +711,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
+//                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
                 $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());

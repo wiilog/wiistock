@@ -60,11 +60,6 @@ class Arrivage
     private $numeroReception;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $nbUM;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="arrivages")
      */
     private $transporteur;
@@ -222,17 +217,6 @@ class Arrivage
         return $this;
     }
 
-    public function getNbUM(): ?int
-    {
-        return $this->nbUM;
-    }
-
-    public function setNbUM(int $nbUM): self
-    {
-        $this->nbUM = $nbUM;
-
-        return $this;
-    }
 
     public function getTransporteur(): ?Transporteur
     {
@@ -393,6 +377,29 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($piecesJointe->getArrivage() === $this) {
                 $piecesJointe->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getArrivage() === $this) {
+                $attachement->setArrivage(null);
             }
         }
 
