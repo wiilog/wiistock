@@ -215,7 +215,7 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
+            $statutLabel = $data['statut'] === '1' ? Arrivage::STATUS_CONFORME : Arrivage::STATUS_LITIGE;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutLabel);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
@@ -331,7 +331,7 @@ class ArrivageController extends AbstractController
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
@@ -343,7 +343,7 @@ class ArrivageController extends AbstractController
                 $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
                     'arrivage' => $arrivage,
 					'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-					'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME
+					'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME
 				]);
             } else {
                 $html = '';
@@ -420,7 +420,7 @@ class ArrivageController extends AbstractController
 
             // non conforme : on enregistre le litige et/ou on le modifie
             $statutLabel = $arrivage->getStatut()->getNom();
-            if ($statutLabel != Statut::CONFORME) {
+            if ($statutLabel != Arrivage::STATUS_CONFORME) {
                 if (empty($litige)) {
                     $litige = new Litige();
                     $litige->setArrivage($arrivage);

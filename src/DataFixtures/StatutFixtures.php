@@ -104,8 +104,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				MouvementStock::TYPE_INVENTAIRE_SORTIE,
 			],
 			CategorieStatut::ARRIVAGE => [
-				Arrivage::LITIGE,
-				Arrivage::CONFORME,
+				Arrivage::STATUS_CONFORME,
+				Arrivage::STATUS_LITIGE,
 			],
 			CategorieStatut::LITIGE_ARR => [
 				Litige::CONFORME,

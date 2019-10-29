@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -96,7 +97,7 @@ class TypeRepository extends ServiceEntityRepository
 	 * @param string $categoryLabel
 	 * @param string $typeLabel
 	 * @return Type|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByCategoryLabelAndLabel($categoryLabel, $typeLabel)
 	{

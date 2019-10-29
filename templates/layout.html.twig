@@ -46,6 +46,19 @@
                     </li>
                 {% endif %}
 
+                <!-- QUALITÉ   -->
+                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-check-square"></i>
+                            <h4>Qualité</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("litige_arrivage_index") }}" class="sub-item">• Litiges arrivage</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
                 <!-- DEMANDE   -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or

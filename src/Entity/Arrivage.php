@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage
 {
-	const CONFORME = 'conforme';
-	const LITIGE = 'litige';
+	const STATUS_CONFORME = 'conforme';
+	const STATUS_LITIGE = 'litige';
 
     /**
      * @ORM\Id()
@@ -395,6 +395,29 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($piecesJointe->getArrivage() === $this) {
                 $piecesJointe->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getArrivage() === $this) {
+                $attachement->setArrivage(null);
             }
         }
 

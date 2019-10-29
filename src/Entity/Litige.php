@@ -24,6 +24,17 @@ class Litige
      */
     private $id;
 
+
+	/**
+	 * @ORM\Column(type="date", nullable=true)
+	 */
+	private $creationDate;
+
+	/**
+	 * @ORM\Column(type="date", nullable=true)
+	 */
+	private $updateDate;
+
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Colis", inversedBy="litiges")
      */
@@ -45,7 +56,7 @@ class Litige
     private $status;
 
     /**
-     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistoric", mappedBy="litige")
      */
     private $litigeHistorics;
 
@@ -172,6 +183,76 @@ class Litige
             // set the owning side to null (unless already changed)
             if ($litigeHistory->getLitige() === $this) {
                 $litigeHistory->setLitige(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCreationDate(): ?\DateTimeInterface
+    {
+        return $this->creationDate;
+    }
+
+    public function setCreationDate(\DateTimeInterface $creationDate): self
+    {
+        $this->creationDate = $creationDate;
+
+        return $this;
+    }
+
+    public function getUpdateDate(): ?\DateTimeInterface
+    {
+        return $this->updateDate;
+    }
+
+    public function setUpdateDate(\DateTimeInterface $updateDate): self
+    {
+        $this->updateDate = $updateDate;
+
+        return $this;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setLitige($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getLitige() === $this) {
+                $attachement->setLitige(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics[] = $litigeHistoric;
+            $litigeHistoric->setLitige($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics->removeElement($litigeHistoric);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistoric->getLitige() === $this) {
+                $litigeHistoric->setLitige(null);
             }
         }
 
