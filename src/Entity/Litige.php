@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -17,15 +19,36 @@ class Litige
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Arrivage", inversedBy="litige")
-     * @ORM\JoinColumn(name="arrivage_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Colis", inversedBy="litiges")
      */
-    private $arrivage;
+    private $colis;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="litiges")
      */
     private $type;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="litige")
+     */
+    private $attachements;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="litiges")
+     */
+    private $status;
+
+    /**
+     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="litige")
+     */
+    private $litigeHistorics;
+
+    public function __construct()
+    {
+        $this->colis = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
+        $this->litigeHistorics = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -33,14 +56,14 @@ class Litige
         return $this->id;
     }
 
-    public function getArrivage(): ?Arrivage
+    public function getColis(): ?Colis
     {
-        return $this->arrivage;
+        return $this->colis;
     }
 
-    public function setArrivage(?Arrivage $arrivage): self
+    public function setColis(?Colis $colis): self
     {
-        $this->arrivage = $arrivage;
+        $this->colis = $colis;
 
         return $this;
     }
@@ -53,6 +76,98 @@ class Litige
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PieceJointe[]
+     */
+    public function getAttachements(): Collection
+    {
+        return $this->attachements;
+    }
+
+    public function addPiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if (!$this->attachements->contains($piecesJointe)) {
+            $this->attachements[] = $piecesJointe;
+            $piecesJointe->setLitige($this);
+        }
+
+        return $this;
+    }
+
+    public function removePiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if ($this->attachements->contains($piecesJointe)) {
+            $this->attachements->removeElement($piecesJointe);
+            // set the owning side to null (unless already changed)
+            if ($piecesJointe->getLitige() === $this) {
+                $piecesJointe->setLitige(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getStatus(): ?Statut
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?Statut $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LitigeHistoric[]
+     */
+    public function getLitigeHistorics(): Collection
+    {
+        return $this->litigeHistorics;
+    }
+
+    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics[] = $litigeHistory;
+            $litigeHistory->setLitige($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics->removeElement($litigeHistory);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistory->getLitige() === $this) {
+                $litigeHistory->setLitige(null);
+            }
+        }
 
         return $this;
     }
