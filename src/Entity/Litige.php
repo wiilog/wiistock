@@ -62,7 +62,6 @@ class Litige
 
     public function __construct()
     {
-        $this->colis = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
     }
@@ -73,18 +72,6 @@ class Litige
         return $this->id;
     }
 
-    public function getColis(): ?Colis
-    {
-        return $this->colis;
-    }
-
-    public function setColis(?Colis $colis): self
-    {
-        $this->colis = $colis;
-
-        return $this;
-    }
-
     public function getType(): ?Type
     {
         return $this->type;
@@ -93,24 +80,6 @@ class Litige
     public function setType(?Type $type): self
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    public function addColi(Colis $coli): self
-    {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-        }
-
-        return $this;
-    }
-
-    public function removeColi(Colis $coli): self
-    {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
-        }
 
         return $this;
     }
@@ -254,6 +223,29 @@ class Litige
             if ($litigeHistoric->getLitige() === $this) {
                 $litigeHistoric->setLitige(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getColis()
+    {
+        return $this->colis;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
         }
 
         return $this;
