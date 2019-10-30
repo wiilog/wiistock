@@ -53,19 +53,19 @@
                 {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
                 {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
                 {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
-                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
                       {% if editable %}onclick="changeStatus(this)">{% endif %}
                     {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
-                </span><span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                </span><span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
                       {% if editable %}onclick="changeStatus(this)">{% endif %}
                     {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
-                </span><span class="btn {{ transit }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
+                </span><span class="btn {{ transit }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
                       {% if editable %}onclick="changeStatus(this)">{% endif %}
                     {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
                 </span>
             </div>
 
-            <input id="statut" type="hidden" value="{{ statut }}" name="statut" class="data">
+            <input id="statut-edit" type="hidden" value="{{ statut }}" name="statut" class="data">
 
         </div>
         {% endif %}

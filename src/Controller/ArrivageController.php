@@ -216,7 +216,7 @@ class ArrivageController extends AbstractController
             $em = $this->getDoctrine()->getEntityManager();
 
             $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutLabel);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutLabel);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -412,7 +412,7 @@ class ArrivageController extends AbstractController
 //            }
             if (isset($data['statutAcheteur'])) {
                 $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
             // traitement de l'éventuel litige

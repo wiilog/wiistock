@@ -166,7 +166,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();

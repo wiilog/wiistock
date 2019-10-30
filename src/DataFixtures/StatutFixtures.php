@@ -48,7 +48,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -68,7 +68,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -89,7 +89,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -109,7 +109,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -131,7 +131,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -151,7 +151,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -172,7 +172,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -196,7 +196,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -218,7 +218,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -240,7 +240,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_TRACA, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
@@ -262,7 +262,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		];
 
 		foreach ($statutsNames as $statutName) {
-			$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_STOCK, $statutName);
+			$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_STOCK, $statutName);
 
 			if (empty($statut)) {
 				$statut = new Statut();
