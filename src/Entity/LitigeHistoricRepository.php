@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -19,32 +18,4 @@ class LitigeHistoricRepository extends ServiceEntityRepository
         parent::__construct($registry, LitigeHistoric::class);
     }
 
-    // /**
-    //  * @return LitigeHistoric[] Returns an array of LitigeHistoric objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?LitigeHistoric
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

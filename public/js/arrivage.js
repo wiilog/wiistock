@@ -86,7 +86,7 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, printLabels);
+InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
 
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
@@ -130,22 +130,22 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function toggleLitige(select) {
-    let bloc = select.closest('.modal').find('#litigeBloc');
-    let status = select.find('option:selected').text();
-
-    let litigeType = bloc.find('#litigeType');
-    let constantConform = $('#constantConforme').val();
-
-    if (status === constantConform) {
-        litigeType.removeClass('needed');
-        bloc.addClass('d-none');
-
-    } else {
-        bloc.removeClass('d-none');
-        litigeType.addClass('needed');
-    }
-}
+// function toggleLitige(select) {
+//     let bloc = select.closest('.modal').find('#litigeBloc');
+//     let status = select.find('option:selected').text();
+//
+//     let litigeType = bloc.find('#litigeType');
+//     let constantConform = $('#constantConforme').val();
+//
+//     if (status === constantConform) {
+//         litigeType.removeClass('needed');
+//         bloc.addClass('d-none');
+//
+//     } else {
+//         bloc.removeClass('d-none');
+//         litigeType.addClass('needed');
+//     }
+// }
 
 function addCommentaire(select, bool) {
     let params = {
@@ -565,26 +565,26 @@ $submitSearchArrivage.on('click', function () {
         .draw();
 });
 
-function printLabels(data) {
-    let nbUm = data.nbUm;
-    let printUm = data.printUm;
-    let printArrivage = data.printArrivage;
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    if (data.exists) {
-        const barcodes = printUm
-            ? (new Array(nbUm).map((_, index) => (data.arrivage + '-' + index)))
-            : [];
-        if (printArrivage) {
-            barcodes.push(data.arrivage);
-        }
-
-        printBarcodes(barcodes, data, ('Etiquettes du ' + date + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
+// function printLabels(data) {
+//     let nbUm = data.nbUm;
+//     let printUm = data.printUm;
+//     let printArrivage = data.printArrivage;
+//     let d = new Date();
+//     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+//     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+//     if (data.exists) {
+//         const barcodes = printUm
+//             ? (new Array(nbUm).map((_, index) => (data.arrivage + '-' + index)))
+//             : [];
+//         if (printArrivage) {
+//             barcodes.push(data.arrivage);
+//         }
+//
+//         printBarcodes(barcodes, data, ('Etiquettes du ' + date + '.pdf'));
+//     } else {
+//         $('#cannotGenerate').click();
+//     }
+// }
 
 function deleteAttachement(arrivageId, originalName, pjName) {
 
