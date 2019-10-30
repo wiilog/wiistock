@@ -7,6 +7,7 @@ const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
+const PAGE_LITIGE_ARR = 'litige_arrivage';
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -631,7 +632,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
@@ -641,6 +642,8 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     if (type) params.type = type;
     if (location) params.location = location;
     if (colis) params.colis = colis;
+    if (carriers) params.carriers = carriers;
+    if (providers) params.providers = providers;
     params.page = page;
 
     $.post(path, JSON.stringify(params), 'json');

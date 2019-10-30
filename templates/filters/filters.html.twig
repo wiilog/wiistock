@@ -52,7 +52,7 @@
     {% block userFilter %}
     <div>
         <div class="input-group">
-            <select class="form-control data" name="utilisateur" id="utilisateur" multiple="multiple" >
+            <select class="form-control data minw-150px" name="utilisateur" id="utilisateur" multiple="multiple" >
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
                 {% endfor %}
