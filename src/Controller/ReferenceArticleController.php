@@ -1224,7 +1224,7 @@ class ReferenceArticleController extends Controller
                 $filter
                     ->setUtilisateur($user)
                     ->setChampFixe('Statut')
-                    ->setValue('disponible');
+                    ->setValue(ReferenceArticle::STATUT_ACTIF);
                 $em->persist($filter);
             }
 
