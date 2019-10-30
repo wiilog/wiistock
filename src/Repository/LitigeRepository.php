@@ -73,4 +73,5 @@ class LitigeRepository extends ServiceEntityRepository
 
 		return $result ? $result[0] : null;
 	}
+
 }
