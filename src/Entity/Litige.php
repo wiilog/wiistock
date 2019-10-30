@@ -258,51 +258,5 @@ class Litige
 
         return $this;
     }
-//TODO CG DOUBLONS
-    public function addAttachement(PieceJointe $attachement): self
-    {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setLitige($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAttachement(PieceJointe $attachement): self
-    {
-        if ($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
-            // set the owning side to null (unless already changed)
-            if ($attachement->getLitige() === $this) {
-                $attachement->setLitige(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if (!$this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics[] = $litigeHistoric;
-            $litigeHistoric->setLitige($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if ($this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics->removeElement($litigeHistoric);
-            // set the owning side to null (unless already changed)
-            if ($litigeHistoric->getLitige() === $this) {
-                $litigeHistoric->setLitige(null);
-            }
-        }
-
-        return $this;
-    }
 
 }
