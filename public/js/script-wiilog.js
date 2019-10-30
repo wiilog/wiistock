@@ -584,10 +584,13 @@ function clearModal(modal) {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");
         }
+        if ($(this).attr('id') === 'statut') {
+            $(this).val($(this).parent().find('span.active').data('title'));
+        }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
         $(this).next().find('.select2-selection').removeClass('is-invalid');
-        //TODO CG protection ?
+        //TODO protection ?
     });
     // on vide tous les select2
     let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');

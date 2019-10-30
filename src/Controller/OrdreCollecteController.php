@@ -255,7 +255,7 @@ class OrdreCollecteController extends AbstractController
         }
 
         // on crée l'ordre de collecte
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ordreCollecte
@@ -267,7 +267,7 @@ class OrdreCollecteController extends AbstractController
         $entityManager->persist($ordreCollecte);
 
         // on modifie le statut de la demande de collecte liée
-        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
+        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
 
         $entityManager->flush();
 
@@ -336,7 +336,7 @@ class OrdreCollecteController extends AbstractController
             $collecte = $ordreCollecte->getDemandeCollecte();
 
             $collecte
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ordreCollecte);

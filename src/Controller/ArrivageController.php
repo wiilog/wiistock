@@ -173,6 +173,9 @@ class ArrivageController extends AbstractController
             $rows = [];
             foreach ($arrivages as $arrivage) {
                 $acheteursUsernames = [];
+                $url = $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ]);
                 foreach ($arrivage->getAcheteurs() as $acheteur) {
                     $acheteursUsernames[] = $acheteur->getUsername();
                 }
@@ -186,14 +189,14 @@ class ArrivageController extends AbstractController
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-                    'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
                     'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-                    'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
-                        'arrivage' => $arrivage,
-                    ])
+                    'Actions' => $this->renderView(
+                        'arrivage/datatableArrivageRow.html.twig',
+                        ['url' => $url, 'arrivage' => $arrivage]
+                    ),
                 ];
             }
 
@@ -215,8 +218,7 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statutLabel = $data['statut'] === '1' ? Arrivage::STATUS_CONFORME : Arrivage::STATUS_LITIGE;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutLabel);
+			$statut = $this->statutRepository->find($data['statut']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -265,46 +267,16 @@ class ArrivageController extends AbstractController
                     unlink($path . '/' . $file);
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-
-                for ($i = 0; $i < $data['nbUM']; $i++) {
-                    $colis = new Colis();
-                    $colis
-                        ->setCode($numeroArrivage . '-' . $i)
-                        ->setArrivage($arrivage);
-                    $em->persist($colis);
-                }
-            }
 
             $em->persist($arrivage);
-
-            if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
-                $litige = new Litige();
-                $litige
-                    ->setType($this->typeRepository->find($data['litigeType']))
-                    ->setArrivage($arrivage);
-                $em->persist($litige);
-
-                $this->sendMailToAcheteurs($arrivage, $litige, true);
-            }
-
             $em->flush();
-            $response = [];
-            $response['refs'] = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['arrivage'] = $numeroArrivage;
-                $response['exists'] = true;
-                $response['nbUm'] = $data['nbUM'];
-                $response['printUm'] = $data['printUM'];
-                $response['printArrivage'] = $data['printArrivage'];
-            } else {
-                $response['exists'] = false;
-            }
-            return new JsonResponse($response);
+
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ])
+            ];
+            return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
     }
@@ -330,6 +302,7 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
@@ -407,12 +380,10 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-            }
+
             if (isset($data['statutAcheteur'])) {
                 $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
             // traitement de l'éventuel litige
@@ -711,7 +682,6 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
                 $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
@@ -746,5 +716,17 @@ class ArrivageController extends AbstractController
             rmdir($target);
         }
     }
+
+    /**
+     * @Route("/voir/{id}", name="arrivage_show", methods={"GET", "POST"})
+     */
+    public function show(Arrivage $arrivage): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        return $this->render("arrivage/show.html.twig", ['arrivage' => $arrivage]);
+    }
+
 
 }

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -47,7 +48,14 @@ class StatutRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneByCategorieAndStatut($categorieName, $statutName)
+
+    /**
+     * @param string $categorieName
+     * @param string $statutName
+     * @return Statut | null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByCategorieNameAndStatutName($categorieName, $statutName)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

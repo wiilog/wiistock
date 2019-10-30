@@ -38,16 +38,16 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Statut</label>
             <div>
-                <span class="btn active" data-toggle="statut"
+                <span class="btn active" data-toggle="statut-new"
                       data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
                       onclick="toggleRadioButton($(this))">
                     {{ constant('App\\Entity\\Article::STATUT_ACTIF') }}
-                </span><span class="btn not-active" data-toggle="statut"
+                </span><span class="btn not-active" data-toggle="statut-new"
                              data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
                              onclick="toggleRadioButton($(this))">{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}
                 </span>
             </div>
-            <input type="hidden" name="statut" id="statut" class="data"
+            <input type="hidden" name="statut" id="statut-new" class="data"
                    value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}">
         </div>
     </div>
