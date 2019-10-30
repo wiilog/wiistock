@@ -1,0 +1,22 @@
+<div class="row">
+    <div class="col-4">
+        <p><strong>Destinataire :</strong> <span>{{ arrivage.destinataire ? arrivage.destinataire.username : '' }}</span></p>
+    </div>
+    <div class="col-4">
+        <p><strong>Date Création :</strong> {{arrivage.date|date('d/m/Y')}}</p>
+    </div>
+    <div class="col-4">
+        <p><strong>Statut :</strong> <span>{{ arrivage.statut ? arrivage.statut.nom : "" }}</span></p>
+    </div>
+    <div class="col-4">
+        <p><strong>Transporteur :</strong> {{ arrivage.transporteur ? arrivage.transporteur.label : "" }}</p>
+    </div>
+    <div class="col-4">
+        <p><strong>N°commande :</strong> <span>{{ arrivage.numerobl ? arrivage.numerobl : "" }}</span></p>
+    </div>
+    {% for attachement in arrivage.attachements %}
+        <div class="col-6">
+            <a href="{{ attachement.filename }}" class="ml-3">{{ attachement.originalname }}</a>
+        </div>
+    {% endfor %}
+</div>
