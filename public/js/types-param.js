@@ -1,4 +1,4 @@
-let pathTypes = Routing.generate('typesParam_api', true);
+let pathTypes = Routing.generate('types_param_api', true);
 let tableTypes = $('#tableTypes').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -8,8 +8,8 @@ let tableTypes = $('#tableTypes').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'Label', 'title' : 'Label' },
         { "data": 'Categorie', 'title' : 'Catégorie' },
+        { "data": 'Label', 'title' : 'Label' },
         { "data": 'Description', 'title' : 'Description' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
@@ -32,26 +32,20 @@ InitialiserModal(ModalDeleteType, SubmitDeleteType, urlDeleteType, tableTypes);
 
 function displayErrorType(data) {
     let modal = $("#modalNewType");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de type pour cette catégorie existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
+    if (data.success === false) {
+        displayError(modal, data.msg, data.success);
     } else {
         modal.find('.close').click();
-        msg = 'Le type a bien été créé.';
-        alertSuccessMsg(msg);
+        alertSuccessMsg(data.msg);
     }
 }
 
 function displayErrorTypeEdit(data) {
     let modal = $("#modalEditType");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de type pour cette catégorie existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
+    if (data.success === false) {
+        displayError(modal, data.msg, data.success);
     } else {
         modal.find('.close').click();
-        msg = 'Le type a bien été modifié';
-        alertSuccessMsg(msg);
+        alertSuccessMsg(data.msg);
     }
 }

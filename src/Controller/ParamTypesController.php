@@ -69,7 +69,7 @@ class ParamTypesController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="typesParam_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
     {
@@ -127,9 +127,15 @@ class ParamTypesController extends AbstractController
                 $em->persist($type);
                 $em->flush();
 
-                return new JsonResponse();
+				return new JsonResponse([
+					'success' => true,
+					'msg' => 'Le type ' . $data['label'] . ' a bien été créé.'
+				]);
             } else {
-                return new JsonResponse(false);
+				return new JsonResponse([
+					'success' => false,
+					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+				]);
             }
         }
         throw new NotFoundHttpException("404");
@@ -185,9 +191,15 @@ class ParamTypesController extends AbstractController
                 $em->persist($type);
                 $em->flush();
 
-                return new JsonResponse(true);
+                return new JsonResponse([
+                	'success' => true,
+					'msg' => 'Le type ' . $typeLabel . ' a bien été modifié.'
+				]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+				]);
             }
         }
         throw new NotFoundHttpException('404');
@@ -203,7 +215,7 @@ class ParamTypesController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeIsUsed = $this->typeRepository->countByIdAll($typeId);
+            $typeIsUsed = $this->typeRepository->countUsedById($typeId);
 
             if (!$typeIsUsed) {
                 $delete = true;

@@ -8,14 +8,17 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-
-                    <label for="category">Catégorie*</label>
-                    <select name="category" id="frequencies" class="data form-control needed">
-                        <option placeholder="" disabled value="" selected></option>
-                        {% for category in categories %}
-                            <option value="{{ category.id }}">{{ category.label }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="row">
+                    <div class="mb-3 form-group col-12">
+                        <label for="category">Catégorie*</label>
+                        <select name="category" id="frequencies" class="data form-control needed">
+                            <option placeholder="" disabled value="" selected></option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
                 <div class="row">
                     <div class="mb-3 form-group col-12">

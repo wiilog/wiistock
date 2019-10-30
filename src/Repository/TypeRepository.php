@@ -95,7 +95,7 @@ class TypeRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countByIdAll($id)
+    public function countUsedById($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
