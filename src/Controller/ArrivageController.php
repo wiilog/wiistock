@@ -267,11 +267,24 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-            return new JsonResponse();
+			$data = [
+				'redirect' => $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()]),
+			];
+
+            return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
     }
 
+	/**
+	 * @param Arrivage $arrivage
+	 * @route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods="GET|POST")
+	 * @return JsonResponse
+	 */
+    public function show(Arrivage $arrivage)
+	{
+		return new JsonResponse();
+	}
 
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
