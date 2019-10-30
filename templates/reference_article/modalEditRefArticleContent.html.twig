@@ -21,15 +21,15 @@
             <div>
                 {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
                 {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
-                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
                       {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
                     {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
-                </span><span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                </span><span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
                       {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
                     {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
                 </span>
             </div>
-            <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
+            <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
         </div>
         {% endif %}
     </div>

@@ -62,11 +62,6 @@ class Arrivage
     private $numeroReception;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $nbUM;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="arrivages")
      */
     private $transporteur;
@@ -224,17 +219,6 @@ class Arrivage
         return $this;
     }
 
-    public function getNbUM(): ?int
-    {
-        return $this->nbUM;
-    }
-
-    public function setNbUM(int $nbUM): self
-    {
-        $this->nbUM = $nbUM;
-
-        return $this;
-    }
 
     public function getTransporteur(): ?Transporteur
     {

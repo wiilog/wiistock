@@ -708,4 +708,3 @@ function showRowMouvements(button) {
         initDatatableMovements(id);
     }, 'json');
 }
-
