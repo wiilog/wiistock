@@ -156,7 +156,7 @@ class LivraisonController extends AbstractController
 
         $demande1 = $preparation->getDemandes();
         $demande = $demande1[0];
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison
@@ -168,10 +168,10 @@ class LivraisonController extends AbstractController
         $preparation
             ->addLivraison($livraison)
             ->setUtilisateur($this->getUser())
-            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
 
         $demande
-            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
+            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_PREPARE))
             ->setLivraison($livraison);
         $entityManager->flush();
         $livraison = $preparation->getLivraisons()->toArray();
@@ -208,13 +208,13 @@ class LivraisonController extends AbstractController
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             $livraison
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setUtilisateur($this->getUser())
                 ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             $demande = $this->demandeRepository->findOneByLivraison($livraison);
 
-            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
+            $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             $this->mailerService->sendMail(
@@ -239,7 +239,7 @@ class LivraisonController extends AbstractController
 
             foreach ($articles as $article) {
                 $article
-					->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF))
+					->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF))
 					->setEmplacement($demande->getDestination());
             }
         }
@@ -361,7 +361,7 @@ class LivraisonController extends AbstractController
 
             $livraison = $this->livraisonRepository->find($data['livraison']);
 
-            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
 
             $preparation = $livraison->getpreparation();
             $preparation->setStatut($statutP);

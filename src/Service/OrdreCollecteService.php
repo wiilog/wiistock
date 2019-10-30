@@ -60,12 +60,12 @@ class OrdreCollecteService
 		// on modifie le statut de l'ordre de collecte
 		$collecte
 			->setUtilisateur($user)
-			->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
+			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
 		// on modifie le statut de la demande de collecte
 		$demandeCollecte = $collecte->getDemandeCollecte();
-		$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
+		$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
 		if ($this->mailerServerRepository->findAll()) {
 			$this->mailerService->sendMail(
@@ -97,7 +97,7 @@ class OrdreCollecteService
 			// on modifie le statut des articles liés à la collecte
 			$articles = $demandeCollecte->getArticles();
 			foreach ($articles as $article) {
-				$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+				$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
 			}
 		}
 		$this->em->flush();

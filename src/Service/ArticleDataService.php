@@ -201,7 +201,7 @@ class ArticleDataService
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : ''),
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $articleStatut);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $articleStatut);
             if ($demande === 'collecte') {
                 $articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
             } else if ($demande === 'demande') {
@@ -285,7 +285,7 @@ class ArticleDataService
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
 			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
@@ -422,7 +422,7 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
+                    $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut']);
                     if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
@@ -462,7 +462,7 @@ class ArticleDataService
     public function newArticle($data)
     {
         $entityManager = $this->em;
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
