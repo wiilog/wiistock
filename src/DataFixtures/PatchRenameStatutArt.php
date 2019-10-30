@@ -15,7 +15,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
 
-class PatchRenameStatutArtAndRef extends Fixture implements FixtureGroupInterface
+class PatchRenameStatutArt extends Fixture implements FixtureGroupInterface
 {
 	/**
 	 * @var StatutRepository
@@ -42,40 +42,30 @@ class PatchRenameStatutArtAndRef extends Fixture implements FixtureGroupInterfac
 
 	public function load(ObjectManager $manager)
 	{
-        $statutActifRefs = $this->statutRepository->findOneByCategorieNameAndStatutName('referenceArticle', 'actif');
-        $statutInactifRefs = $this->statutRepository->findOneByCategorieNameAndStatutName('referenceArticle', 'inactif');
         $statutActifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'actif');
         $statutInactifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'inactif');
 
-        if (!empty($statutActifRefs)) {
-            $statutActifRefs->setNom(ReferenceArticle::STATUT_ACTIF);
-            dump('"renommage du statut ref / actif -> ' . ReferenceArticle::STATUT_ACTIF);
-        }
-        if (!empty($statutInactifRefs)) {
-            $statutInactifRefs->setNom(ReferenceArticle::STATUT_INACTIF);
-			dump('"renommage du statut ref / inactif -> ' . ReferenceArticle::STATUT_ACTIF);
-		}
         if (!empty($statutActifArts)) {
-            $statutActifArts->setNom(ReferenceArticle::STATUT_ACTIF);
+            $statutActifArts->setNom(Article::STATUT_ACTIF);
 			dump('"renommage du statut article / actif -> ' . Article::STATUT_ACTIF);
 		}
         if (!empty($statutInactifArts)) {
-            $statutInactifArts->setNom(ReferenceArticle::STATUT_INACTIF);
+            $statutInactifArts->setNom(Article::STATUT_INACTIF);
 			dump('"renommage du statut article / inactif -> ' . Article::STATUT_ACTIF);
 		}
 
-        $filtresRef = $this->filtreRefRepository->findBy(['champFixe' => 'Statut']);
-        $i = 0;
-        foreach ($filtresRef as $filtreRef) {
-        	if ($filtreRef->getValue() == 'actif') {
-        		$filtreRef->setValue(ReferenceArticle::STATUT_ACTIF);
-        		$i++;
-			} else if ($filtreRef->getValue() == 'inactif') {
-        		$filtreRef->setValue(ReferenceArticle::STATUT_INACTIF);
-        		$i++;
-			}
-		}
-        dump("renommage de " . $i ." filtres statuts sur les réf");
+//        $filtresRef = $this->filtreRefRepository->findBy(['champFixe' => 'Statut']);
+//        $i = 0;
+//        foreach ($filtresRef as $filtreRef) {
+//        	if ($filtreRef->getValue() == 'actif') {
+//        		$filtreRef->setValue(ReferenceArticle::STATUT_ACTIF);
+//        		$i++;
+//			} else if ($filtreRef->getValue() == 'inactif') {
+//        		$filtreRef->setValue(ReferenceArticle::STATUT_INACTIF);
+//        		$i++;
+//			}
+//		}
+//        dump("renommage de " . $i ." filtres statuts sur les réf");
 
         $manager->flush();
 	}
