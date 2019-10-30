@@ -129,7 +129,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    //TODO CG remplacer par $ref->getQuantiteStock()
+    //TODO remplacer par $ref->getQuantiteStock()
     public function getQuantiteStockById($id)
     {
         $entityManager = $this->getEntityManager();

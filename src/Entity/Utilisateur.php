@@ -843,4 +843,27 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
+    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics[] = $litigeHistoric;
+            $litigeHistoric->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics->removeElement($litigeHistoric);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistoric->getUser() === $this) {
+                $litigeHistoric->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
