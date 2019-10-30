@@ -4,7 +4,7 @@
 
     <div>
         <div class="input-group">
-            <select class="form-control data" name="providers" id="providers" multiple="multiple" >
+            <select class="form-control data minw-150px" name="providers" id="providers" multiple="multiple" >
                 {% for provider in providers %}
                     <option value="{{ provider.nom }}">{{ provider.nom }}</option>
                 {% endfor %}
@@ -13,7 +13,7 @@
     </div>
     <div>
         <div class="input-group">
-            <select class="form-control data" name="carriers" id="carriers" multiple="multiple" >
+            <select class="form-control data minw-150px" name="carriers" id="carriers" multiple="multiple" >
                 {% for carrier in carriers %}
                     <option value="{{ carrier.label }}">{{ carrier.label }}</option>
                 {% endfor %}
@@ -21,12 +21,7 @@
         </div>
     </div>
 
-
 {% endblock %}
 
 {% block emplacementFilter %}
-{% endblock %}
-
-{% block dateFilter %}
-{#    {{ parent() }}#}
 {% endblock %}
