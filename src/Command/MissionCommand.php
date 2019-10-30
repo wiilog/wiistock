@@ -117,7 +117,7 @@ class MissionCommand extends Command
 						}
 					}
 				} else {
-            		$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            		$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             		$articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
 
             		foreach ($articles as $article) {

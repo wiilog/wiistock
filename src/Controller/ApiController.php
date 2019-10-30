@@ -436,23 +436,23 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $demandes = $preparation->getDemandes();
                     $demande = $demandes[0];
 
-                    // modification des articles de la demande
-                    $articles = $demande->getArticles();
-                    foreach ($articles as $article) {
-                        $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                        // scission des articles dont la quantité prélevée n'est pas totale
-                        if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                            $newArticle = [
-                                'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                                'libelle' => $article->getLabel(),
-                                'prix' => $article->getPrixUnitaire(),
-                                'conform' => !$article->getConform(),
-                                'commentaire' => $article->getcommentaire(),
-                                'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                                'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                                'statut' => Article::STATUT_ACTIF,
-                                'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
-                            ];
+					// modification des articles de la demande
+					$articles = $demande->getArticles();
+					foreach ($articles as $article) {
+						$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+						// scission des articles dont la quantité prélevée n'est pas totale
+						if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+							$newArticle = [
+								'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+								'libelle' => $article->getLabel(),
+								'prix' => $article->getPrixUnitaire(),
+								'conform' => !$article->getConform(),
+								'commentaire' => $article->getcommentaire(),
+								'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+								'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+								'statut' => Article::STATUT_ACTIF,
+								'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+							];
 
                             foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
                                 $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
@@ -493,12 +493,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $em->flush();
                     }
 
-                    // modif du statut de la préparation
-                    $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-                    $preparation
-                        ->setStatut($statutEDP)
-                        ->setUtilisateur($nomadUser);
-                    $em->flush();
+					// modif du statut de la préparation
+					$statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+					$preparation
+						->setStatut($statutEDP)
+						->setUtilisateur($nomadUser);
+					$em->flush();
 
                     $this->successDataMsg['success'] = true;
                 } else {
@@ -538,8 +538,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $demandes = $preparation->getDemandes();
                         $demande = $demandes[0];
 
-                        $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
-                        $livraison = new Livraison();
+						$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+						$livraison = new Livraison();
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
                         $livraison
@@ -548,14 +548,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setStatut($statut);
                         $entityManager->persist($livraison);
 
-                        $preparation
-                            ->addLivraison($livraison)
-                            ->setUtilisateur($nomadUser)
-                            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+						$preparation
+							->addLivraison($livraison)
+							->setUtilisateur($nomadUser)
+							->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
 
-                        $demande
-                            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
-                            ->setLivraison($livraison);
+						$demande
+							->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+							->setLivraison($livraison);
 
                         // on termine les mouvements de préparation
                         $mouvements = $this->mouvementRepository->findByPreparation($preparation);
@@ -593,19 +593,19 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         ->setExpectedDate($livraison->getDate());
                     $entityManager->persist($mouvement);
 
-                    if ($mouvementNomade['is_ref']) {
-                        $refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
-                        if ($refArticle) {
-                            $mouvement->setRefArticle($refArticle);
-                            $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
-                            $ligneArticle->setQuantite($mouvement->getQuantity());
-                        }
-                    } else {
-                        $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
-                        if ($article) {
-                            $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-                            $mouvement->setArticle($article);
-                            $article->setQuantiteAPrelever($mouvement->getQuantity());
+					if ($mouvementNomade['is_ref']) {
+						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
+						if ($refArticle) {
+							$mouvement->setRefArticle($refArticle);
+							$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
+							$ligneArticle->setQuantite($mouvement->getQuantity());
+						}
+					} else {
+						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
+						if ($article) {
+							$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+							$mouvement->setArticle($article);
+							$article->setQuantiteAPrelever($mouvement->getQuantity());
 
                             if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                                 $newArticle = [
@@ -633,7 +633,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                                 if ($article->getDemande()) {
                                     throw new BadRequestHttpException('article-already-selected');
-                                } else {
+                                }
+                                else {
                                     $demande = $demandeRepository->findOneByLivraison($livraison);
                                     $article->setDemande($demande);
 
@@ -653,7 +654,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                 $this->successDataMsg['success'] = true;
 
-            } else {
+            }
+            else {
                 $this->successDataMsg['success'] = false;
                 $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
@@ -749,7 +751,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     if ($data['commentaire'] !== "") {
                         $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $data['commentaire']);
                     }
-                    $manut->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
+                    $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
                     if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
                         $this->mailerService->sendMail(
@@ -795,16 +797,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     if ($livraison) {
                         $date = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
 
-                        $livraison
-                            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
-                            ->setUtilisateur($nomadUser)
-                            ->setDateFin($date);
+						$livraison
+							->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
+							->setUtilisateur($nomadUser)
+							->setDateFin($date);
 
                         $demandes = $livraison->getDemande();
                         $demande = $demandes[0];
 
-                        $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
-                        $demande->setStatut($statutLivre);
+						$statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
+						$demande->setStatut($statutLivre);
 
                         $this->mailerService->sendMail(
                             'FOLLOW GT // Livraison effectuée',
@@ -826,11 +828,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         // quantités gérées à l'article
                         $articles = $demande->getArticles();
 
-                        foreach ($articles as $article) {
-                            $article
-                                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
-                                ->setEmplacement($demande->getDestination());
-                        }
+						foreach ($articles as $article) {
+							$article
+								->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+								->setEmplacement($demande->getDestination());
+						}
 
                         // on termine les mouvements de livraison
                         $mouvements = $this->mouvementRepository->findByLivraison($livraison);
@@ -998,7 +1000,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
-        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),

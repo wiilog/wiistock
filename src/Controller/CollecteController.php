@@ -297,7 +297,7 @@ class CollecteController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $status = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
+            $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $destination = ($data['destination'] == 0) ? false : true;
@@ -378,7 +378,7 @@ class CollecteController extends AbstractController
                 }
                 $article = new Article();
                 $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF);
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $ref = $date->format('YmdHis');
                 $articleFournisseur = new ArticleFournisseur();
