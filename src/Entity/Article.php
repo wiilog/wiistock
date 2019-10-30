@@ -16,8 +16,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Article
 {
     const CATEGORIE = 'article';
-    const STATUT_ACTIF = 'actif';
-    const STATUT_INACTIF = 'inactif';
+    const STATUT_ACTIF = 'disponible';
+    const STATUT_INACTIF = 'consommé';
     const STATUT_EN_TRANSIT = 'en transit';
 
     const BARCODE_PREFIX = 'ART';

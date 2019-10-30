@@ -154,7 +154,7 @@ class ReceptionController extends AbstractController
             $reception = new Reception();
 
             $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -683,7 +683,7 @@ class ReceptionController extends AbstractController
             if (empty($listReceptionReferenceArticle)) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 
                 foreach ($listReceptionReferenceArticle as $receptionRA) {
                     $referenceArticle = $receptionRA->getReferenceArticle();

@@ -80,7 +80,7 @@
 
 <div class="form-group">
     <label for="statut">Statut*</label>
-    <select class="form-control data needed" id="statut" name="statut" onchange="toggleLitige($(this))">
+    <select class="form-control data needed" id="statut" name="statut">
         {% for statut in statuts %}
             {% set selected = (statut.id == arrivage.statut.id ? 'selected' : '') %}
             <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
