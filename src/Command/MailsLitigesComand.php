@@ -9,14 +9,13 @@
 namespace App\Command;
 
 
-use App\Entity\ParamClient;
-use App\Entity\Statut;
+use App\Entity\Litige;
+
 use App\Repository\LitigeRepository;
 use App\Repository\ParamClientRepository;
 use App\Service\MailerService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
-//use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -69,7 +68,7 @@ class MailsLitigesComand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $litiges = $this->litigeRepository->findByArrivageStatutLabel(Statut::ATTENTE_ACHETEUR);
+        $litiges = $this->litigeRepository->findByStatutLabel(Litige::ATTENTE_ACHETEUR);
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {

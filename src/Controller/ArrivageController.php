@@ -302,8 +302,9 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
@@ -315,7 +316,7 @@ class ArrivageController extends AbstractController
                 $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
                     'arrivage' => $arrivage,
 					'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-					'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME
+					'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME
 				]);
             } else {
                 $html = '';
@@ -379,9 +380,7 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-//            if (isset($data['nbUM'])) {
-//                $arrivage->setNbUM((int)$data['nbUM']);
-//            }
+
             if (isset($data['statutAcheteur'])) {
                 $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
                 $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
@@ -392,7 +391,7 @@ class ArrivageController extends AbstractController
 
             // non conforme : on enregistre le litige et/ou on le modifie
             $statutLabel = $arrivage->getStatut()->getNom();
-            if ($statutLabel != Statut::CONFORME) {
+            if ($statutLabel != Arrivage::STATUS_CONFORME) {
                 if (empty($litige)) {
                     $litige = new Litige();
                     $litige->setArrivage($arrivage);
