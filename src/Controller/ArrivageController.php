@@ -726,11 +726,7 @@ class ArrivageController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
             return $this->redirectToRoute('access_denied');
         }
-        dump($arrivage->get);
-
-
-        return $this->render("arrivage/show.html.twig", [
-        ]);
+        return $this->render("arrivage/show.html.twig", ['arrivage' => $arrivage]);
     }
 
 
