@@ -22,9 +22,10 @@ use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
+
 use App\Repository\ColisRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
@@ -189,33 +190,40 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $ordreCollecteService;
 
-    /**
-     * ApiController constructor.
-     * @param OrdreCollecteService $ordreCollecteService
-     * @param OrdreCollecteRepository $ordreCollecteRepository
-     * @param InventoryService $inventoryService
-     * @param UserService $userService
-     * @param InventoryMissionRepository $inventoryMissionRepository
-     * @param FournisseurRepository $fournisseurRepository
-     * @param LigneArticleRepository $ligneArticleRepository
-     * @param MouvementStockRepository $mouvementRepository
-     * @param LivraisonRepository $livraisonRepository
-     * @param ArticleDataService $articleDataService
-     * @param StatutRepository $statutRepository
-     * @param PreparationRepository $preparationRepository
-     * @param PieceJointeRepository $pieceJointeRepository
-     * @param LoggerInterface $logger
-     * @param MailerServerRepository $mailerServerRepository
-     * @param MailerService $mailerService
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param ReferenceArticleRepository $referenceArticleRepository
-     * @param UtilisateurRepository $utilisateurRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ArticleRepository $articleRepository
-     * @param EmplacementRepository $emplacementRepository
-     */
-    public function __construct(ManutentionRepository $manutentionRepository, OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+	/**
+	 * @var InventoryEntryRepository
+	 */
+    private $inventoryEntryRepository;
+
+	/**
+	 * ApiController constructor.
+	 * @param InventoryEntryRepository $inventoryEntryRepository
+	 * @param ManutentionRepository $manutentionRepository
+	 * @param OrdreCollecteService $ordreCollecteService
+	 * @param OrdreCollecteRepository $ordreCollecteRepository
+	 * @param InventoryService $inventoryService
+	 * @param UserService $userService
+	 * @param InventoryMissionRepository $inventoryMissionRepository
+	 * @param FournisseurRepository $fournisseurRepository
+	 * @param LigneArticleRepository $ligneArticleRepository
+	 * @param MouvementStockRepository $mouvementRepository
+	 * @param LivraisonRepository $livraisonRepository
+	 * @param ArticleDataService $articleDataService
+	 * @param StatutRepository $statutRepository
+	 * @param PreparationRepository $preparationRepository
+	 * @param PieceJointeRepository $pieceJointeRepository
+	 * @param LoggerInterface $logger
+	 * @param MailerServerRepository $mailerServerRepository
+	 * @param MailerService $mailerService
+	 * @param ColisRepository $colisRepository
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 * @param ReferenceArticleRepository $referenceArticleRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param UserPasswordEncoderInterface $passwordEncoder
+	 * @param ArticleRepository $articleRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 */
+    public function __construct(InventoryEntryRepository $inventoryEntryRepository, ManutentionRepository $manutentionRepository, OrdreCollecteService $ordreCollecteService, OrdreCollecteRepository $ordreCollecteRepository, InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->manutentionRepository = $manutentionRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
@@ -242,6 +250,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->inventoryService = $inventoryService;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->ordreCollecteService = $ordreCollecteService;
+        $this->inventoryEntryRepository = $inventoryEntryRepository;
     }
 
     /**
@@ -580,9 +589,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                 // on crée les mouvements de livraison
                 foreach ($mouvementsNomade as $mouvementNomade) {
-                    $livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
+                    $preparation = $this->preparationRepository->find($mouvementNomade['id_prepa']);
+                    $livraison = $this->livraisonRepository->findOneByPreparationId($preparation->getId());
                     $emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
-
                     $mouvement = new MouvementStock();
                     $mouvement
                         ->setUser($nomadUser)
@@ -597,13 +606,15 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($refArticle) {
 							$mouvement->setRefArticle($refArticle);
+							$mouvement->setQuantity($this->mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
 							$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
 							$ligneArticle->setQuantite($mouvement->getQuantity());
 						}
 					} else {
 						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($article) {
-							$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+                            $mouvement->setQuantity($this->mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
 							$article->setQuantiteAPrelever($mouvement->getQuantity());
 
@@ -935,10 +946,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
                             $newEntry->setRefArticle($refArticle);
                             if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-                                $refArticle->setHasInventoryAnomaly(true);
+                            	$newEntry->setAnomaly(true);
                             } else {
                                 $refArticle->setDateLastInventory($newDate);
-                                $refArticle->setHasInventoryAnomaly(false);
+								$newEntry->setAnomaly(false);
                             }
                             $em->flush();
                         } else {
@@ -946,9 +957,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $newEntry->setArticle($article);
 
                             if ($newEntry->getQuantity() !== $article->getQuantite()) {
-                                $article->setHasInventoryAnomaly(true);
+								$newEntry->setAnomaly(true);
                             } else {
-                                $article->setHasInventoryAnomaly(false);
+								$newEntry->setAnomaly(false);
                             }
                             $em->flush();
                         }
@@ -979,8 +990,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $userTypes[] = $type->getId();
         }
 
-        $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
-        $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+        $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
+        $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt();
 
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
@@ -1192,11 +1203,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-                $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
-                $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+            	$anomaliesOnRef = $this->inventoryEntryRepository->getAnomaliesOnRef();
+            	$anomaliesOnArt = $this->inventoryEntryRepository->getAnomaliesOnArt();
 
                 $this->successDataMsg['success'] = true;
-                $this->successDataMsg['data'] = array_merge($refAnomalies, $artAnomalies);
+                $this->successDataMsg['data'] =  array_merge($anomaliesOnRef, $anomaliesOnArt);
 
             } else {
                 $this->successDataMsg['success'] = false;
@@ -1230,7 +1241,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $numberOfRowsInserted = 0;
 
                 foreach ($data['anomalies'] as $anomaly) {
-                    $this->inventoryService->doTreatAnomaly($anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
+                    $this->inventoryService->doTreatAnomaly($anomaly['id'], $anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
                     $numberOfRowsInserted++;
                 }
 
