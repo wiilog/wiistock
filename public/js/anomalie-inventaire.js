@@ -20,6 +20,7 @@ function showModalAnomaly($button) {
     let isRef = $button.data('is-ref');
     let quantity = $button.data('quantity');
     let location = $button.data('location');
+    let idEntry = $button.data('id-entry');
 
     let $modal = $('#modalTreatAnomaly');
     $modal.find('.ref-title').text(isRef ? 'Référence' : 'Article');
@@ -27,6 +28,7 @@ function showModalAnomaly($button) {
     $modal.find('.isRef').val(isRef);
     $modal.find('.quantity').text(quantity);
     $modal.find('.location').text(location);
+    $modal.find('.idEntry').val(idEntry);
 }
 
 let modalTreatAnomaly = $('#modalTreatAnomaly');

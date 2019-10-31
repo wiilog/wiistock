@@ -128,11 +128,6 @@ class Article
      */
     private $prixUnitaire;
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
-	private $hasInventoryAnomaly = false;
-
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
@@ -462,27 +457,15 @@ class Article
                	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-                   {
-                       if ($this->inventoryEntries->contains($inventoryEntry)) {
-                           $this->inventoryEntries->removeElement($inventoryEntry);
-                           // set the owning side to null (unless already changed)
-                           if ($inventoryEntry->getArticle() === $this) {
-                               $inventoryEntry->setArticle(null);
-                           }
-                       }
-                   }
-
-    public function getHasInventoryAnomaly(): ?bool
-    {
-        return $this->hasInventoryAnomaly;
-    }
-
-    public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
-    {
-        $this->hasInventoryAnomaly = $hasInventoryAnomaly;
-
-        return $this;
-    }
+	{
+		if ($this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries->removeElement($inventoryEntry);
+			// set the owning side to null (unless already changed)
+			if ($inventoryEntry->getArticle() === $this) {
+				$inventoryEntry->setArticle(null);
+			}
+		}
+	}
 
     /**
      * @return Collection|InventoryMission[]
