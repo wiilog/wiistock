@@ -321,7 +321,6 @@ class ArrivageController extends AbstractController
             } else {
                 $html = '';
             }
-
             return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
@@ -387,7 +386,7 @@ class ArrivageController extends AbstractController
             }
 
             // traitement de l'éventuel litige
-            $litige = $arrivage->getLitige();
+//            $litige = $arrivage->getLitige();
 
             // non conforme : on enregistre le litige et/ou on le modifie
             $statutLabel = $arrivage->getStatut()->getNom();
@@ -436,9 +435,15 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getColis() as $colis) {
                 $entityManager->remove($colis);
             }
+            foreach ($arrivage->getAttachements() as $attachement) {
+                $entityManager->remove($attachement);
+            }
             $entityManager->remove($arrivage);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_index')
+            ];
+            return new JsonResponse($data);
         }
 
         throw new NotFoundHttpException("404");
