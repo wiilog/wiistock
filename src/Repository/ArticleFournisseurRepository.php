@@ -125,11 +125,11 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'fournisseur') {
                         $qb
-                            ->join('af.fournisseur', 'f')
+                            ->leftJoin('af.fournisseur', 'f')
                             ->orderBy('f.nom', $order);
                     } else if ($column === 'art_ref') {
                         $qb
-                            ->join('af.referenceArticle', 'ra')
+                            ->leftJoin('af.referenceArticle', 'ra')
                             ->orderBy('ra.libelle', $order);
                     } else {
                         $qb

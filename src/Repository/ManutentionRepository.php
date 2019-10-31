@@ -142,12 +142,12 @@ class ManutentionRepository extends ServiceEntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'statut') {
                         $qb
-                            ->join('m.statut', 'st')
-                            ->orderBy('st.nom', $order);
+                            ->leftJoin('m.statut', 's2')
+                            ->orderBy('s2.nom', $order);
                     } else if ($column === 'demandeur') {
                         $qb
-                            ->join('m.demandeur', 'u')
-                            ->orderBy('u.username', $order);
+                            ->leftJoin('m.demandeur', 'u2')
+                            ->orderBy('u2.username', $order);
                     } else {
                         $qb
                             ->orderBy('m.' . $column, $order);

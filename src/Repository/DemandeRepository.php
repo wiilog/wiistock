@@ -238,16 +238,16 @@ class DemandeRepository extends ServiceEntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'type') {
                         $qb
-                            ->join('d.type', 't')
-                            ->orderBy('t.label', $order);
+                            ->leftJoin('d.type', 't2')
+                            ->orderBy('t2.label', $order);
                     } else if ($column === 'statut') {
                         $qb
-                            ->join('d.statut', 's')
-                            ->orderBy('s.nom', $order);
+                            ->leftJoin('d.statut', 's2')
+                            ->orderBy('s2.nom', $order);
                     } else if ($column === 'demandeur') {
                         $qb
-                            ->join('d.utilisateur', 'u')
-                            ->orderBy('u.username', $order);
+                            ->leftJoin('d.utilisateur', 'u2')
+                            ->orderBy('u2.username', $order);
                     } else {
                         $qb
                             ->orderBy('d.' . $column, $order);

@@ -204,8 +204,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $qb
-                        ->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                    $qb->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
                 }
             }
 			if (!empty($params->get('search'))) {
