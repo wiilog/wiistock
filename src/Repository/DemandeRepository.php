@@ -16,7 +16,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class DemandeRepository extends ServiceEntityRepository
 {
-
     private const DtToDbLabels = [
         'Date' => 'date',
         'Demandeur' => 'demandeur',

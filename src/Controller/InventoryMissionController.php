@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
-use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;

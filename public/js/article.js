@@ -2,7 +2,6 @@ let pathArticle = Routing.generate('article_api', true);
 
 let tableArticle = $('#tableArticle_id').DataTable({
     serverSide: true,
-    ordering: false,
     processing: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -28,6 +27,9 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
         { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 5 }
     ],
 });
 
