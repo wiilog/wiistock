@@ -64,6 +64,7 @@ class Litige
     {
         $this->attachements = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
+        $this->colis = new ArrayCollection();
     }
 
 
