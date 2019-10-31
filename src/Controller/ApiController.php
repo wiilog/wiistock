@@ -589,9 +589,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                 // on crée les mouvements de livraison
                 foreach ($mouvementsNomade as $mouvementNomade) {
-                    $livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
+                    $preparation = $this->preparationRepository->find($mouvementNomade['id_prepa']);
+                    $livraison = $this->livraisonRepository->findOneByPreparationId($preparation->getId());
                     $emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
-
                     $mouvement = new MouvementStock();
                     $mouvement
                         ->setUser($nomadUser)
@@ -606,13 +606,15 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($refArticle) {
 							$mouvement->setRefArticle($refArticle);
+							$mouvement->setQuantity($this->mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
 							$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
 							$ligneArticle->setQuantite($mouvement->getQuantity());
 						}
 					} else {
 						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($article) {
-							$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+                            $mouvement->setQuantity($this->mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
 							$article->setQuantiteAPrelever($mouvement->getQuantity());
 
