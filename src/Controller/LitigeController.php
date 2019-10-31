@@ -151,4 +151,45 @@ class LitigeController extends AbstractController
 		}
 		throw new NotFoundHttpException('404');
 	}
+
+	/**
+	 * @Route("/arrivage-infos", name="get_litiges_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 */
+	public function getLitigesArrivageIntels(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+			$litiges = $this->litigeRepository->findByDates($dateMin, $dateMax);
+
+			$headers = [];
+			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage']);
+			$data = [];
+			$data[] = $headers;
+
+			foreach ($litiges as $litige) {
+				$litigesData = [];
+
+				$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
+				$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
+				$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
+				$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+
+				$colis = $litige->getColis()->toArray();
+				$arrColis = [];
+				foreach ($colis as $coli) {
+					$arrColis[] = $coli->getCode();
+				}
+				$strColis = implode(', ', $arrColis);
+				$litigesData[] = $strColis;
+
+				$litigesData[] = $colis[0]->getArrivage()->getNumeroArrivage();
+
+				$data[] = $litigesData;
+			}
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 }

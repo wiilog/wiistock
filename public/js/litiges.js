@@ -120,7 +120,6 @@ $('#submitSearchLitigesArrivages').on('click', function () {
 });
 
 function generateCSVLitigeArrivage() {
-    loadSpinner($('#spinnerLitigesArrivages'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -128,25 +127,48 @@ function generateCSVLitigeArrivage() {
         }
     });
 
-    // if (data['dateMin'] && data['dateMax']) {
-    //     let params = JSON.stringify(data);
-    //     let path = Routing.generate('get_litiges_arrivages_for_csv', true);
-    //
-    //     $.post(path, params, function(response) {
-    //         if (response) {
-    //             $('.error-msg').empty();
-    //             let csv = "";
-    //             $.each(response, function (index, value) {
-    //                 csv += value.join(';');
-    //                 csv += '\n';
-    //             });
-    //             aFile(csv);
-    //             hideSpinner($('#spinnerArrivage'));
-    //         }
-    //     }, 'json');
-    //
-    // } else {
-    //     $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
-    //     hideSpinner($('#spinnerArrivage'))
-    // }
+    if (data['dateMin'] && data['dateMax']) {
+        let $spinner = $('#spinnerLitigesArrivages');
+        loadSpinner($spinner);
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_litiges_arrivages_for_csv', true);
+
+        $.post(path, params, function(response) {
+            if (response) {
+                $('.error-msg').empty();
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                aFile(csv);
+                hideSpinner($spinner);
+            }
+        }, 'json');
+
+    } else {
+        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+    }
+}
+
+let aFile = function (csv) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = 'export-litiges-' + date + '.csv';
+    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        let link = document.createElement("a");
+        if (link.download !== undefined) {
+            let url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
 }

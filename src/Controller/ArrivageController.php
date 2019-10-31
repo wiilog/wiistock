@@ -665,7 +665,7 @@ class ArrivageController extends AbstractController
             $headers = [];
             // en-têtes champs fixes
             $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'type de litige', 'commentaire', 'date', 'utilisateur']);
+                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
@@ -688,7 +688,6 @@ class ArrivageController extends AbstractController
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
                 $arrivageData[] = $arrivage->getStatut()->getNom();
-                $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
