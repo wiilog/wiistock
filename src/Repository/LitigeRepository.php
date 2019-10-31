@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -74,4 +75,23 @@ class LitigeRepository extends ServiceEntityRepository
 		return $result ? $result[0] : null;
 	}
 
+	/**
+	 * @param string $dateMin
+	 * @param string $dateMax
+	 * @return Litige[]|null
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT l
+            FROM App\Entity\Litige l
+            WHERE l.creationDate BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
+	}
 }

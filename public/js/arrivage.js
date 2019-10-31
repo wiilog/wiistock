@@ -565,13 +565,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
     }
 }
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 $submitSearchArrivage.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
