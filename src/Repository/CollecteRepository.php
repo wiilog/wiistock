@@ -130,9 +130,6 @@ class CollecteRepository extends ServiceEntityRepository
             }
         }
 
-        // compte éléments filtrés
-        $countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
-
         //Filter search
         if (!empty($params)) {
 			if (!empty($params->get('search'))) {
@@ -148,25 +145,31 @@ class CollecteRepository extends ServiceEntityRepository
 				$order = $params->get('order')[0]['dir'];
 				if (!empty($order)) {
 					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-					if ($column === 'type') {
-						$qb
-							->join('c.type', 't')
-							->orderBy('t.label', $order);
-					} else if ($column === 'statut') {
-						$qb
-							->join('c.statut', 's')
-							->orderBy('s.nom', $order);
-					} else if ($column === 'demandeur') {
-						$qb
-							->join('c.utilisateur', 'u')
-							->orderBy('u.username', $order);
-					} else if ($column === 'demandeur') {
-						$qb
-							->join('c.ordreCollecte', 'o')
-							->orderBy('o.date', $order);
-					} else {
-						$qb
-							->orderBy('c.' . $column, $order);
+
+					switch ($column) {
+						case 'type':
+							$qb
+								->leftJoin('c.type', 't2')
+								->orderBy('t2.label', $order);
+							break;
+						case 'statut':
+							$qb
+								->leftJoin('c.statut', 's2')
+								->orderBy('s2.nom', $order);
+							break;
+						case 'demandeur':
+							$qb
+								->leftJoin('c.demandeur', 'd2')
+								->orderBy('d2.username', $order);
+							break;
+						case 'date':
+							$qb
+								->leftJoin('c.ordreCollecte', 'oc2')
+								->orderBy('oc2.date', $order);
+							break;
+						default:
+							$qb->orderBy('c.' . $column, $order);
+							break;
 					}
 				}
 			}

@@ -21,6 +21,13 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
+	private const DtToDbLabels = [
+		'Label' => 'libelle',
+		'Référence' => 'reference',
+		'QuantiteStock' => 'quantiteStock',
+		'SeuilAlerte' => 'limitWarning',
+		'SeuilSecurite' => 'limitSecurity',
+	];
 
     public function __construct(RegistryInterface $registry)
     {
@@ -869,6 +876,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 					$qb
 						->andWhere('ra.reference LIKE :value')
 						->setParameter('value', '%' . $search . '%');
+				}
+			}
+			if (!empty($params->get('order'))) {
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order)) {
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					switch ($column) {
+						default:
+							$qb->orderBy('ra.' . $column, $order);
+							break;
+					}
 				}
 			}
 		}
