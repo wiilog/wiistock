@@ -61,7 +61,7 @@ class Emplacement
     private $isDeliveryPoint;
 
 	/**
-	 * @ORM\Column(type="boolean", nullable=false, options={"default":1})
+	 * @ORM\Column(type="boolean", nullable=false, options={"default": true})
 	 */
     private $isActive;
 
@@ -73,6 +73,7 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->isActive = true;
     }
 
     public function getId(): ? int

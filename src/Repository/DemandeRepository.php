@@ -220,19 +220,17 @@ class DemandeRepository extends ServiceEntityRepository
 			}
 		}
 
-		// compte éléments filtrés
-		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
-
 		//Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('d.numero LIKE :value')
+                        ->andWhere('d.numero LIKE :value OR d.date LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+
             if (!empty($params->get('order')))
             {
                 $order = $params->get('order')[0]['dir'];
@@ -257,11 +255,17 @@ class DemandeRepository extends ServiceEntityRepository
                     }
                 }
             }
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
 
-        $query = $qb->getQuery();
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
 
         return [
         	'data' => $query ? $query->getResult() : null ,

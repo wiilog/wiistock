@@ -38,7 +38,7 @@ class CollecteRepository extends ServiceEntityRepository
             JOIN c.statut s
             WHERE s.nom = :statutLabel AND c.demandeur = :user "
         )->setParameters([
-            'statut' => $statutLabel,
+            'statutLabel' => $statutLabel,
             'user' => $user,
         ]);
         return $query->execute();
@@ -135,49 +135,56 @@ class CollecteRepository extends ServiceEntityRepository
 
         //Filter search
         if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('c.objet LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-            }
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'type') {
-                        $qb
-                            ->join('c.type', 't')
-                            ->orderBy('t.label', $order);
-                    } else if ($column === 'statut') {
-                        $qb
-                            ->join('c.statut', 's')
-                            ->orderBy('s.nom', $order);
-                    } else if ($column === 'demandeur') {
-                        $qb
-                            ->join('c.utilisateur', 'u')
-                            ->orderBy('u.username', $order);
-                    } else if ($column === 'demandeur') {
-                        $qb
-                            ->join('c.ordreCollecte', 'o')
-                            ->orderBy('o.date', $order);
-                    } else {
-                        $qb
-                            ->orderBy('c.' . $column, $order);
-                    }
-                }
-            }
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->andWhere('c.objet LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
 
-        $query = $qb->getQuery();
+			if (!empty($params->get('order'))) {
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order)) {
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+					if ($column === 'type') {
+						$qb
+							->join('c.type', 't')
+							->orderBy('t.label', $order);
+					} else if ($column === 'statut') {
+						$qb
+							->join('c.statut', 's')
+							->orderBy('s.nom', $order);
+					} else if ($column === 'demandeur') {
+						$qb
+							->join('c.utilisateur', 'u')
+							->orderBy('u.username', $order);
+					} else if ($column === 'demandeur') {
+						$qb
+							->join('c.ordreCollecte', 'o')
+							->orderBy('o.date', $order);
+					} else {
+						$qb
+							->orderBy('c.' . $column, $order);
+					}
+				}
+			}
+		}
 
-        return ['data' => $query ? $query->getResult() : null,
-            'count' => $countFiltered,
-            'total' => $countTotal
-        ];
-    }
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return ['data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
 }

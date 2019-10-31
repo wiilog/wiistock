@@ -135,12 +135,12 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statut);
 
             foreach ($data as $key) {
                 $demande = $this->demandeRepository->find($key);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->setPreparation($preparation)
                     ->setStatut($statut);
@@ -267,7 +267,7 @@ class PreparationController extends AbstractController
                 $lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
                 foreach ($lignesArticles as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
-                    $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
                         $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
@@ -320,7 +320,7 @@ class PreparationController extends AbstractController
             'demande' => $this->demandeRepository->findOneByPreparation($preparation),
             'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
-            'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
+            'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
             'finished' => $preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE,
             'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
         ]);
@@ -339,10 +339,10 @@ class PreparationController extends AbstractController
         foreach ($preparation->getDemandes() as $demande) {
             $demande
                 ->setPreparation(null)
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getQuantiteAPrelever()) {
                     $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
@@ -357,6 +357,7 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
+     * Get list of article
      */
     public function startSplitting(Request $request): Response
     {
@@ -366,7 +367,7 @@ class PreparationController extends AbstractController
             $key = 0;
             foreach ($demande->getLigneArticle() as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();
-                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
                 $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
                 if ($ligneArticle->getToSplit()) {
                     $response['prepas'][] = $this->renderView('preparation/modalSplitting.html.twig', [
@@ -438,7 +439,7 @@ class PreparationController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 // scission des articles dont la quantité prélevée n'est pas totale
                 if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $newArticle = [
@@ -470,7 +471,7 @@ class PreparationController extends AbstractController
 
             // modif du statut de la préparation
             $preparation = $demande->getPreparation();
-            $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+            $statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
             $preparation->setStatut($statutEDP);
             $em->flush();
 

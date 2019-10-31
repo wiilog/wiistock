@@ -479,6 +479,36 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT 
+                    DISTINCT a.reference,
+                    a.label, 
+                    e.label as location, 
+                    a.quantite as quantity, 
+                    ra.reference as reference_article,
+                    a.barCode
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			JOIN ra.ligneArticles la
+			JOIN la.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE a.quantite > 0
+			  AND a.demande IS NULL
+			  AND (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
+        )->setParameters([
+            'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
+
+        return $query->execute();
+    }
+
 	public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
 	{
 		$em = $this->getEntityManager();
@@ -523,7 +553,7 @@ class ArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param string $reference
 	 * @return Article|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function findOneByReference($reference)
 	{
@@ -568,31 +598,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @return mixed
-	 */
-    public function getByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        	/** @lang DQL */
-            "SELECT a.label, a.reference, a.hasInventoryAnomaly, a.id
-            FROM App\Entity\Article a
-            JOIN a.inventoryMissions m
-            LEFT JOIN a.inventoryEntries e
-            WHERE m = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->execute();
-    }
-
-
     /**
      * @param InventoryMission $mission
      * @param int $artId
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function getEntryDateByMission($mission, $artId)
     {
@@ -713,6 +723,26 @@ class ArticleRepository extends ServiceEntityRepository
 			->setParameter('id', $id);
 
 		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param Article $article
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countInventoryAnomaliesByArt($article)
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(ie)
+			FROM App\Entity\InventoryEntry ie
+			JOIN ie.article a
+			WHERE ie.anomaly = 1 AND a.id = :artId
+			")->setParameter('artId', $article->getId());
+
+		return $query->getSingleScalarResult();
 	}
 
 }

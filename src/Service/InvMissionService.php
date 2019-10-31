@@ -81,12 +81,13 @@ class InvMissionService
         $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref);
         if ($refDate != null)
             $refDate = $refDate['date']->format('d/m/Y');
+
         $row =
             [
                 'Ref' => $ref->getReference(),
                 'Label' => $ref->getLibelle(),
                 'Date' => $refDate,
-                'Anomaly' => $ref->getHasInventoryAnomaly() ? 'oui' : 'non'
+                'Anomaly' => $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : 'non'
             ];
         return $row;
     }
@@ -101,7 +102,7 @@ class InvMissionService
                 'Ref' => $art->getReference(),
                 'Label' => $art->getlabel(),
                 'Date' => $artDate,
-                'Anomaly' => $art->getHasInventoryAnomaly() ? 'oui' : 'non'
+                'Anomaly' => $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : 'non'
             ];
         return $row;
     }

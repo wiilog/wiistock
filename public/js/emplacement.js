@@ -131,14 +131,17 @@ function reloadDatatableforActif() {
     input.attr('value', filterInput);
     let statut = filterInput;
     saveFiltersEmplacement(PAGE_EMPLACEMENT, statut);
-    tableEmplacement.draw();
 }
 
 function saveFiltersEmplacement(page, statut) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
-    if (statut) params.statut = statut;
+    if (statut !== null && statut !== undefined) {
+        params.statut = statut;
+    }
     params.page = page;
 
-    $.post(path, JSON.stringify(params), 'json');
+    $.post(path, JSON.stringify(params), function() {
+        tableEmplacement.draw();
+    }, 'json');
 }

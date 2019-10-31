@@ -6,6 +6,11 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
     });
 }
 
+function afterLoadingEditModal($button) {
+    toggleRequiredChampsLibres($button, 'edit');
+    initRequiredChampsFixes($button);
+}
+
 function submitActionRefArticle(modal, path, callback = null, close = true) {
     if (path === Routing.generate('save_column_visible', true)) {
         tableColumnVisible.search('').draw()
@@ -703,4 +708,3 @@ function showRowMouvements(button) {
         initDatatableMovements(id);
     }, 'json');
 }
-

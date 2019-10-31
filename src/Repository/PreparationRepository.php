@@ -36,10 +36,14 @@ class PreparationRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT p.id, p.numero as number
+            "SELECT p.id, 
+                         p.numero as number,
+                         dest.label as destination,
+                         t.label as type
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
 			JOIN p.demandes d
+			JOIN d.destination dest
 			JOIN d.type t
 			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
         )->setParameters([
@@ -51,22 +55,39 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-	/**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
-	 */
-	public function countByUser($user)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(p)
+    public function findOneForAPI($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT p.id, 
+                         p.numero as number,
+                         dest.label as destination
+			FROM App\Entity\Preparation p
+			JOIN p.statut s
+			JOIN p.demandes d
+			JOIN d.destination dest
+			JOIN d.type t
+			WHERE p.id = :id"
+        )->setParameter('id', $id);
+        return $query->execute();
+    }
+
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countByUser($user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(p)
             FROM App\Entity\Preparation p
             WHERE p.utilisateur = :user"
-		)->setParameter('user', $user);
+        )->setParameter('user', $user);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
 }

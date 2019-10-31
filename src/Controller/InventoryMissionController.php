@@ -97,7 +97,7 @@ class InventoryMissionController extends AbstractController
 
             $rows = [];
             foreach ($missions as $mission) {
-                $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
+                $anomaly = $this->inventoryMissionRepository->countAnomaliesByMission($mission);
 
                 $nbArtInMission = $this->articleRepository->countByMission($mission);
                 $nbRefInMission = $this->referenceArticleRepository->countByMission($mission);

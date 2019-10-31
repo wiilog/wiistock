@@ -55,6 +55,19 @@ class ManutentionRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function findOneForAPI($id) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @Lang DQL */
+            "SELECT m.id, m.dateAttendue as date_attendue, d.username as demandeur, m.commentaire, m.source, m.destination
+        FROM App\Entity\Manutention m
+        JOIN m.demandeur d
+        WHERE m.id = :id
+        "
+        )->setParameter('id', $id);
+        return $query->getOneOrNullResult();
+    }
+
 	/**
 	 * @param Utilisateur $user
 	 * @return int
@@ -111,9 +124,6 @@ class ManutentionRepository extends ServiceEntityRepository
             }
         }
 
-        // compte éléments filtrés
-		$countFiltered = empty($filters) ? $countTotal : count($qb->getQuery()->getResult());
-
 		//Filter search
 		if (!empty($params)) {
 			if (!empty($params->get('search'))) {
@@ -144,11 +154,17 @@ class ManutentionRepository extends ServiceEntityRepository
                     }
                 }
             }
+		}
+
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
 
-        $query = $qb->getQuery();
+		$query = $qb->getQuery();
 
         return [
         	'data' => $query ? $query->getResult() : null,
