@@ -24,7 +24,7 @@ let tableArticle = $('#table-lignes').DataTable({
         {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Actions', 'title': 'Actions'}
-    ],
+    ]
 });
 
 let modalNewArticle = $("#modalNewArticle");
@@ -64,11 +64,13 @@ let tableDemande = $('#table_demande').DataTable({
     processing: true,
     serverSide: true,
     order: [[0, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 0
-        }
+        },
+        {"orderable": false, "targets": 5}
+
     ],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
@@ -84,11 +86,11 @@ let tableDemande = $('#table_demande').DataTable({
         {"data": 'Statut', 'name': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions'},
-    ],
+    ]
 });
 
 let $submitSearchDemande = $('#submitSearchDemandeLivraison');
-$submitSearchDemande.on('click', function() {
+$submitSearchDemande.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
@@ -192,7 +194,7 @@ function setMaxQuantity(select) {
 }
 
 // applique les filtres si pré-remplis
-$(function() {
+$(function () {
     let val = $('#statut').val();
     if (val != null && val != '') {
         $submitSearchDemandeLivraison.click();
@@ -200,16 +202,17 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_DEM_LIVRAISON);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    let params = JSON.stringify(PAGE_DEM_LIVRAISON);
+    ;
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 $('#utilisateur').val(element.value.split(',')).select2();
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchDemandeLivraison.click();
+        if (data.length > 0) $submitSearchDemandeLivraison.click();
     }, 'json');
 
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
@@ -284,7 +287,7 @@ let ajaxEditArticle = function (select) {
     let path = Routing.generate('article_api_edit', true);
     let params = {id: select.val(), isADemand: 1};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         if (data) {
             $('#editNewArticle').html(data);
             let quantityToTake = $('#quantityToTake');
@@ -311,7 +314,7 @@ let generateCSVDemande = function () {
         let params = JSON.stringify(data);
         let path = Routing.generate('get_livraisons_for_csv', true);
 
-        $.post(path, params, function(response) {
+        $.post(path, params, function (response) {
             if (response) {
                 $('.error-msg').empty();
                 let csv = "";

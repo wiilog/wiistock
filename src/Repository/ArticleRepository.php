@@ -21,7 +21,15 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArticleRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+	private const DtToDbLabels = [
+		'Référence' => 'reference',
+		'Statut' => 'status',
+		'Libellé' => 'label',
+		'Référence article' => 'refArt',
+		'Quantité' => 'quantite',
+	];
+
+	public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Article::class);
     }
@@ -359,6 +367,31 @@ class ArticleRepository extends ServiceEntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = count($qb->getQuery()->getResult());
+            }
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					switch ($column) {
+						case 'refArt':
+							$qb
+								->leftJoin('a.articleFournisseur', 'af')
+								->leftJoin('af.referenceArticle', 'ra')
+								->orderBy('ra.reference', $order);
+							break;
+						case 'status':
+							$qb
+								->leftJoin('a.statut', 's')
+								->orderBy('s.nom', $order);
+							break;
+						default:
+							$qb->orderBy('a.' . $column, $order);
+							break;
+					}
+                }
             }
             $allArticleDataTable = $qb->getQuery();
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

@@ -11,11 +11,12 @@ let table = $('#tableCollecte_id').DataTable({
     processing: true,
     serverSide: true,
     order: [[0, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 0
-        }
+        },
+        { "orderable": false, "targets": 6 }
     ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -33,7 +34,7 @@ let table = $('#tableCollecte_id').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
-    ],
+    ]
 });
 
 let $submitSearchCollecte = $('#submitSearchCollecte');
