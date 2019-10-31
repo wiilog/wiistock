@@ -141,13 +141,6 @@ $submitSearchMvt.on('click', function () {
     tableMvt.draw();
 });
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 function generateCSVMouvement () {
     loadSpinner($('#spinnerMouvementTraca'));
     let data = {};
