@@ -91,10 +91,10 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-            $refAnomalies = $this->inventoryMissionRepository->getInventoryRefAnomalies();
-            $artAnomalies = $this->inventoryMissionRepository->getInventoryArtAnomalies();
+            $anomaliesOnArt = $this->inventoryEntryRepository->getAnomaliesOnArt();
+            $anomaliesOnRef = $this->inventoryEntryRepository->getAnomaliesOnRef();
 
-            $anomalies = array_merge($refAnomalies, $artAnomalies);
+            $anomalies = array_merge($anomaliesOnArt, $anomaliesOnRef);
 
 			$rows = [];
 			foreach ($anomalies as $anomaly) {
@@ -105,6 +105,7 @@ class InventoryAnomalyController extends AbstractController
 						'quantite' => $anomaly['quantity'],
 						'Actions' => $this->renderView('inventaire/datatableAnomaliesRow.html.twig',
 							[
+								'idEntry' => $anomaly['id'],
 								'reference' => $anomaly['reference'],
 								'isRef' => $anomaly['is_ref'],
 								'quantity' => $anomaly['quantity'],
@@ -128,7 +129,7 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$quantitiesAreEqual = $this->inventoryService->doTreatAnomaly($data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['comment'], $this->getUser());
+			$quantitiesAreEqual = $this->inventoryService->doTreatAnomaly($data['id'], $data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['comment'], $this->getUser());
 
 			return new JsonResponse($quantitiesAreEqual);
 		}

@@ -143,11 +143,6 @@ class ReferenceArticle
      */
     private $prixUnitaire;
 
-	/**
-	 * @ORM\Column(type="boolean")
-	 */
-    private $hasInventoryAnomaly = false;
-
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
@@ -613,18 +608,6 @@ class ReferenceArticle
     public function setCategory(?InventoryCategory $category): self
     {
         $this->category = $category;
-
-        return $this;
-    }
-
-    public function getHasInventoryAnomaly(): ?bool
-    {
-        return $this->hasInventoryAnomaly;
-    }
-
-    public function setHasInventoryAnomaly(bool $hasInventoryAnomaly): self
-    {
-        $this->hasInventoryAnomaly = $hasInventoryAnomaly;
 
         return $this;
     }

@@ -693,21 +693,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra.libelle, ra.reference, ra.hasInventoryAnomaly, ra.id
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.inventoryMissions m
-            LEFT JOIN ra.inventoryEntries e
-            WHERE m = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->execute();
-    }
-
-
     /**
      * @param InventoryMission $mission
      * @param int $refId
@@ -852,7 +837,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param string $dateCode
 	 * @return mixed
-	 * @throws NonUniqueResultException
 	 */
 	public function getHighestBarCodeByDateCode($dateCode)
 	{
@@ -970,4 +954,24 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             ]);
         return $qb;
     }
+
+	/**
+	 * @param ReferenceArticle $ref
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+    public function countInventoryAnomaliesByRef($ref)
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(ie)
+			FROM App\Entity\InventoryEntry ie
+			JOIN ie.refArticle ra
+			WHERE ie.anomaly = 1 AND ra.id = :refId
+			")->setParameter('refId', $ref->getId());
+
+		return $query->getSingleScalarResult();
+	}
 }
