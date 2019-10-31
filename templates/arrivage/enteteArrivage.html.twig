@@ -1,42 +1,42 @@
 <div class="row">
     <div class="col-4">
-        <p><strong>Destinataire :</strong> <span>{{ arrivage.destinataire ? arrivage.destinataire.username : '' }}</span></p>
-    </div>
-    <div class="col-4">
-        <p><strong>Date Création :</strong> {{arrivage.date|date('d/m/Y')}}</p>
-    </div>
-    <div class="col-4">
-        <p><strong>Statut :</strong> <span>{{ arrivage.statut ? arrivage.statut.nom : "" }}</span></p>
+        <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
     </div>
     <div class="col-4">
         <p><strong>Transporteur :</strong> {{ arrivage.transporteur ? arrivage.transporteur.label : "" }}</p>
     </div>
     <div class="col-4">
-        <p><strong>N°commande :</strong> <span>{{ arrivage.numerobl ? arrivage.numerobl : "" }}</span></p>
-    </div>
-    <div class="col-4">
-        <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
-    </div>
-    <div class="col-5">
-        <p><strong>N°tracking transporteur :</strong> <span>{{ arrivage.notracking }}</span></p>
-    </div>
-    <div class="col-5">
         <p><strong>Chauffeur :</strong> <span>{{ arrivage.chauffeur ? arrivage.chauffeur.nom : "" }}</span></p>
     </div>
     <div class="col-4">
-        <p><strong>Commentaire :</strong> <span>{{ arrivage.commentaire }} </span></p>
+        <p><strong>N°tracking transporteur :</strong> <span>{{ arrivage.notracking }}</span></p>
     </div>
     <div class="col-4">
-        <p><strong>Chauffeur :</strong> <span>{{ arrivage.chauffeur ? arrivage.chauffeur.nom : "" }} </span></p>
+        <p><strong>N°commande / BL :</strong> <span>{{ arrivage.numerobl ? arrivage.numerobl : "" }}</span></p>
     </div>
     <div class="col-4">
-        {% for acheteur in arrivage.acheteurs %}
-        <p><strong>Acheteur :</strong> <span>{{ acheteur.username }}</span></p>
+        <p><strong>Statut :</strong> <span>{{ arrivage.statut ? arrivage.statut.nom : "" }}</span></p>
+    </div>
+    <div class="col-4">
+        <p><strong>Destinataire :</strong> <span>{{ arrivage.destinataire ? arrivage.destinataire.username : '' }}</span></p>
+    </div>
+    <div class="col-4">
+        <p><strong>Acheteurs :</strong>
+            {{ arrivage.acheteurs|join(', ') }}
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-8">
+        <p><strong>Commentaire :</strong> <span>{{ arrivage.commentaire | raw}} </span></p>
+    </div>
+    <div class="col-4">
+        <p><strong>Pièces jointes :</strong><br>
+        {% for attachement in arrivage.attachements %}
+            <a href="/uploads/attachements/{{ attachement.filename }}">
+                <i class="fas fa-file"></i> {{ attachement.originalname }}<br>
+            </a>
         {% endfor %}
+        </p>
     </div>
-        <div class="col-6">
-    {% for attachement in arrivage.attachements %}
-        <a href="/uploads/attachements/{{ attachement.filename }}" class="ml-3">{{ attachement.originalname }}</a>
-    {% endfor %}
-        </div>
 </div>

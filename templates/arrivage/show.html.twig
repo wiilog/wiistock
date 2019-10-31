@@ -27,10 +27,8 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="zone-entete col-6 row">
-        {% include "arrivage/enteteArrivage.html.twig" %}
-    </div>
+<div class="zone-entete">
+    {% include "arrivage/enteteArrivage.html.twig" %}
 </div>
 <div class="row mt-5">
     <div class="col-6">
@@ -50,9 +48,13 @@
     </div>
 </div>
 
+<a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
+
+
 {% include 'arrivage/modalAddColis.html.twig' %}
 {% include "arrivage/modalEditArrivage.html.twig" %}
 {% include "arrivage/modalDeleteArrivage.html.twig" %}
+
 {% endblock %}
 
 {% block javascript %}

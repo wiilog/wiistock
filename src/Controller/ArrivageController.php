@@ -195,6 +195,7 @@ class ArrivageController extends AbstractController
                     'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
                     'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
+                    'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
@@ -392,37 +393,15 @@ class ArrivageController extends AbstractController
                 $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
-            // traitement de l'éventuel litige
-//            $litige = $arrivage->getLitige();
-
-            // non conforme : on enregistre le litige et/ou on le modifie
-            $statutLabel = $arrivage->getStatut()->getNom();
-            if ($statutLabel != Arrivage::STATUS_CONFORME) {
-                if (empty($litige)) {
-                    $litige = new Litige();
-                    $litige->setArrivage($arrivage);
-                    $em->persist($litige);
-                }
-
-                if (isset($data['litigeType'])) {
-                    $litige->setType($this->typeRepository->find($data['litigeType']));
-                }
-
-                // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
-                if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
-                    $this->sendMailToAcheteurs($arrivage, $litige, false);
-                }
-
-			// conforme : on supprime l'éventuel litige
-            } else {
-                if (!empty($litige)) {
-                    $em->remove($litige);
-                }
-            }
-
             $em->flush();
 
-            return new JsonResponse();
+			$response = [
+				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+					'arrivage' => $arrivage
+				]),
+			];
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }

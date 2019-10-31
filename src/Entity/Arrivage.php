@@ -83,7 +83,6 @@ class Arrivage
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="arrivage")
-     * @ORM\JoinColumn(name="Colis_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $colis;
 
@@ -94,7 +93,6 @@ class Arrivage
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
-     * @ORM\JoinColumn(name="PieceJointe_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $attachements;
 
