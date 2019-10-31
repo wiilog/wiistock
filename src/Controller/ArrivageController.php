@@ -7,7 +7,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
@@ -17,6 +16,7 @@ use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
+use App\Repository\ColisRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -31,6 +31,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,6 +39,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\Date;
 
 /**
  * @Route("/arrivage")
@@ -114,8 +116,13 @@ class ArrivageController extends AbstractController
      */
     private $litigeRepository;
 
+	/**
+	 * @var ColisRepository
+	 */
+    private $colisRepository;
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+
+    public function __construct(ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -131,6 +138,7 @@ class ArrivageController extends AbstractController
         $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
+        $this->colisRepository = $colisRepository;
     }
 
     /**
@@ -280,7 +288,6 @@ class ArrivageController extends AbstractController
         }
         throw new XmlHttpException('404 not found');
     }
-
 
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
@@ -722,15 +729,101 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="arrivage_show", methods={"GET", "POST"})
+	 * @param Arrivage $arrivage
+	 * @param bool $addColis
+     * @Route("/voir/{id}/{addColis}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @return JsonResponse
      */
-    public function show(Arrivage $arrivage): Response
+    public function show(Arrivage $arrivage, bool $addColis = false): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
             return $this->redirectToRoute('access_denied');
         }
-        return $this->render("arrivage/show.html.twig", ['arrivage' => $arrivage]);
+        return $this->render("arrivage/show.html.twig", ['arrivage' => $arrivage, 'addColis' => $addColis]);
     }
 
+	/**
+	 * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 */
+    public function addColis(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
 
+			$arrivage = $this->arrivageRepository->find($data['arrivageId']);
+
+			$codes = [];
+
+			for ($i = 0; $i < $data['nbColis']; $i++) {
+				$arrivageNum = $arrivage->getNumeroArrivage();
+				$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+				if ($highestCode) {
+					$highestCodeArray = explode('-', $highestCode);
+					$highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
+				} else {
+					$highestCounter = 0;
+				}
+
+				$newCounter = sprintf('%05u', $highestCounter + 1);
+
+				$colis = new Colis();
+				$code = $arrivageNum . '-' . $newCounter;
+				$colis
+					->setCode($code)
+					->setArrivage($arrivage);
+				$em->persist($colis);
+				$em->flush();
+
+				$codes[] = $code;
+			}
+
+			$response = [];
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['exists'] = false;
+            }
+
+            $response['codes'] = $codes;
+            $response['arrivage'] = $arrivage->getNumeroArrivage();
+
+			return new JsonResponse($response);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param Arrivage $arrivage
+	 * @return Response
+	 */
+	public function apiColis(Request $request, Arrivage $arrivage): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$listColis = $arrivage->getColis()->toArray();
+
+			$rows = [];
+			foreach ($listColis as $colis) { /** @var $colis Colis */
+				$rows[] = [
+					'code' => $colis->getCode(),
+					'deliveryDate' => '',
+					'lastLocation' => '',
+					'operator' => '',
+					'actions' => '',
+					'Actions' => 'dd',
+				];
+			}
+
+			$data['data'] = $rows;
+
+			return new JsonResponse($data);
+		}
+		throw new NotFoundHttpException('404');
+	}
 }

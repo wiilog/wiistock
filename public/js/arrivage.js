@@ -24,6 +24,12 @@ $(function() {
         });
         if (data.length > 0)$submitSearchArrivage.click();
     }, 'json');
+
+    // ouvre la modale d'ajout de colis
+    let addColis = $('#addColis').val();
+    if (addColis) {
+        $('#btnModalAddColis').click();
+    }
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
@@ -83,6 +89,26 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 })
 
+let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+let tableColis = $('#tableColis').DataTable({
+    responsive: true,
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    scrollX: true,
+    ajax: {
+        "url": pathColis,
+        "type": "POST"
+    },
+    columns: [
+        {"data": 'code', 'name': 'code', 'title': 'Code'},
+        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
+        {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
+        {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+    ],
+});
+
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
@@ -97,6 +123,11 @@ let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
+
+let modalAddColis = $('#modalAddColis');
+let submitAddColis = $('#submitAddColis');
+let urlAddColis = Routing.generate('arrivage_add_colis', true);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
 
 
 let editorNewArrivageAlreadyDone = false;
@@ -407,7 +438,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
                 $(this).remove();
             });
             if (data.redirect) {
-                window.location.href = data.redirect;
+                window.location.href = data.redirect + '/1';
                 return;
             }
             // pour mise à jour des données d'en-tête après modification
@@ -558,26 +589,13 @@ $submitSearchArrivage.on('click', function () {
         .draw();
 });
 
-// function printLabels(data) {
-//     let nbUm = data.nbUm;
-//     let printUm = data.printUm;
-//     let printArrivage = data.printArrivage;
-//     let d = new Date();
-//     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-//     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-//     if (data.exists) {
-//         const barcodes = printUm
-//             ? (new Array(nbUm).map((_, index) => (data.arrivage + '-' + index)))
-//             : [];
-//         if (printArrivage) {
-//             barcodes.push(data.arrivage);
-//         }
-//
-//         printBarcodes(barcodes, data, ('Etiquettes du ' + date + '.pdf'));
-//     } else {
-//         $('#cannotGenerate').click();
-//     }
-// }
+function printLabels(data) {
+    if (data.exists) {
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
 
 function deleteAttachement(arrivageId, originalName, pjName) {
 
@@ -595,18 +613,6 @@ function deleteAttachement(arrivageId, originalName, pjName) {
         }
     });
 }
-
-function listColis(elem) {
-    let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_colis_api', true);
-    let modal = $('#modalListColis');
-    let params = { id: arrivageId };
-
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data);
-    }, 'json');
-}
-
 
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
