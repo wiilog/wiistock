@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
-use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -97,7 +96,7 @@ class InventoryMissionController extends AbstractController
 
             $rows = [];
             foreach ($missions as $mission) {
-                $anomaly = $this->inventoryMissionRepository->countByMissionAnomaly($mission);
+                $anomaly = $this->inventoryMissionRepository->countAnomaliesByMission($mission);
 
                 $nbArtInMission = $this->articleRepository->countByMission($mission);
                 $nbRefInMission = $this->referenceArticleRepository->countByMission($mission);
@@ -226,7 +225,6 @@ class InventoryMissionController extends AbstractController
         }
 
         $data = $this->invMissionService->getDataForDatatable($mission, $request->request);
-
         return new JsonResponse($data);
     }
 

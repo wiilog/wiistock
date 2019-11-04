@@ -7,7 +7,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -21,6 +20,7 @@ use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -39,7 +39,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Date;
+
+use DateTime;
 
 /**
  * @Route("/arrivage")
@@ -121,8 +122,13 @@ class ArrivageController extends AbstractController
      */
     private $colisRepository;
 
+	/**
+	 * @var MouvementTracaRepository
+	 */
+    private $mouvementTracaRepository;
 
-    public function __construct(ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -139,6 +145,7 @@ class ArrivageController extends AbstractController
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -196,6 +203,7 @@ class ArrivageController extends AbstractController
                     'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
                     'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
+                    'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
@@ -329,7 +337,6 @@ class ArrivageController extends AbstractController
             } else {
                 $html = '';
             }
-
             return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
@@ -394,37 +401,15 @@ class ArrivageController extends AbstractController
                 $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
-            // traitement de l'éventuel litige
-            $litige = $arrivage->getLitige();
-
-            // non conforme : on enregistre le litige et/ou on le modifie
-            $statutLabel = $arrivage->getStatut()->getNom();
-            if ($statutLabel != Arrivage::STATUS_CONFORME) {
-                if (empty($litige)) {
-                    $litige = new Litige();
-                    $litige->setArrivage($arrivage);
-                    $em->persist($litige);
-                }
-
-                if (isset($data['litigeType'])) {
-                    $litige->setType($this->typeRepository->find($data['litigeType']));
-                }
-
-                // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
-                if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
-                    $this->sendMailToAcheteurs($arrivage, $litige, false);
-                }
-
-                // conforme : on supprime l'éventuel litige
-            } else {
-                if (!empty($litige)) {
-                    $em->remove($litige);
-                }
-            }
-
             $em->flush();
 
-            return new JsonResponse();
+			$response = [
+				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+					'arrivage' => $arrivage
+				]),
+			];
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -444,9 +429,15 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getColis() as $colis) {
                 $entityManager->remove($colis);
             }
+            foreach ($arrivage->getAttachements() as $attachement) {
+                $entityManager->remove($attachement);
+            }
             $entityManager->remove($arrivage);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_index')
+            ];
+            return new JsonResponse($data);
         }
 
         throw new NotFoundHttpException("404");
@@ -1002,30 +993,37 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param Arrivage $arrivage
-     * @return Response
-     */
-    public function apiColis(Request $request, Arrivage $arrivage): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $listColis = $arrivage->getColis()->toArray();
+	/**
+	 * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param Arrivage $arrivage
+	 * @return Response
+	 * @throws \Exception
+	 */
+	public function apiColis(Request $request, Arrivage $arrivage): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$listColis = $arrivage->getColis()->toArray();
 
-            $rows = [];
-            foreach ($listColis as $colis) { /** @var $colis Colis */
-                $rows[] = [
-                    'code' => $colis->getCode(),
-                    'deliveryDate' => '',
-                    'lastLocation' => '',
-                    'operator' => '',
-                    'actions' => '',
-                    'Actions' => 'dd',
-                ];
-            }
-
-            $data['data'] = $rows;
+			$rows = [];
+			foreach ($listColis as $colis) { /** @var $colis Colis */
+				$mouvement = $this->mouvementTracaRepository->getLastDeposeByColis($colis->getCode());
+				if ($mouvement) {
+					$dateArray = explode('_', $mouvement->getDate());
+					$date = new DateTime($dateArray[0]);
+					$formattedDate = $date->format('d/m/Y');
+				} else {
+					$formattedDate = '';
+				}
+				$rows[] = [
+					'code' => $colis->getCode(),
+					'deliveryDate' => $formattedDate,
+					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
+					'operator' => $mouvement ? $mouvement->getOperateur() : '',
+					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig'),
+				];
+			}
+			$data['data'] = $rows;
 
             return new JsonResponse($data);
         }

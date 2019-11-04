@@ -14,6 +14,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArticleFournisseurRepository extends ServiceEntityRepository
 {
+    private const DtToDbLabels = [
+        'Fournisseur' => 'fournisseur',
+        'Référence' => 'reference',
+        'Article de référence' => 'art_ref',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, ArticleFournisseur::class);
@@ -111,6 +117,26 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'fournisseur') {
+                        $qb
+                            ->leftJoin('af.fournisseur', 'f')
+                            ->orderBy('f.nom', $order);
+                    } else if ($column === 'art_ref') {
+                        $qb
+                            ->leftJoin('af.referenceArticle', 'ra')
+                            ->orderBy('ra.libelle', $order);
+                    } else {
+                        $qb
+                            ->orderBy('af.' . $column, $order);
+                    }
+                }
+            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {

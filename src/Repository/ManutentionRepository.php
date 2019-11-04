@@ -16,6 +16,15 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ManutentionRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Date demande' => 'date',
+        'Demandeur' => 'demandeur',
+        'Libellé' => 'libelle',
+        'Date souhaitée' => 'dateAttendue',
+        'Statut' => 'statut',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Manutention::class);
@@ -117,25 +126,45 @@ class ManutentionRepository extends ServiceEntityRepository
 
 		//Filter search
 		if (!empty($params)) {
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'statut') {
+                        $qb
+                            ->leftJoin('m.statut', 's2')
+                            ->orderBy('s2.nom', $order);
+                    } else if ($column === 'demandeur') {
+                        $qb
+                            ->leftJoin('m.demandeur', 'u2')
+                            ->orderBy('u2.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('m.' . $column, $order);
+                    }
                 }
             }
-        }
+		}
 
-        // compte éléments filtrés
+		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
 
 		if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
 
-        $query = $qb->getQuery();
+		$query = $qb->getQuery();
 
         return [
         	'data' => $query ? $query->getResult() : null,

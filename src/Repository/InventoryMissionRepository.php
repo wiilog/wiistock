@@ -62,49 +62,19 @@ class InventoryMissionRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function countByMissionAnomaly($mission)
+	public function countAnomaliesByMission($mission)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(a)
+            "SELECT COUNT(e)
             FROM App\Entity\InventoryMission m
-            JOIN m.articles a
-            JOIN m.refArticles ra
-            WHERE m = :mission AND (a.hasInventoryAnomaly = true OR ra.hasInventoryAnomaly = true)"
+            JOIN m.entries e
+            WHERE m = :mission AND e.anomaly = 1"
         )->setParameter('mission', $mission);
 
         return $query->getSingleScalarResult();
     }
-
-	public function getInventoryRefAnomalies()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref, 0 as treated
-			FROM App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
-			WHERE ra.hasInventoryAnomaly = 1
-			AND ra.typeQuantite = :typeQteRef"
-		)->setParameter('typeQteRef', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
-		return $query->execute();
-	}
-
-	public function getInventoryArtAnomalies()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref, 0 as treated
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			WHERE a.hasInventoryAnomaly = 1"
-		);
-
-		return $query->execute();
-	}
 
 	public function countArtByMission($mission)
     {
@@ -181,12 +151,13 @@ class InventoryMissionRepository extends ServiceEntityRepository
         }
         //Filter by anomaly
         if (!empty($params->get('anomaly'))) {
-            if ($params->get('anomaly') == "false")
-                $anomaly = false;
-            else
-                $anomaly = true;
+            if ($params->get('anomaly') == "false") {
+				$anomaly = false;
+			} else {
+				$anomaly = true;
+			}
             $qb
-                ->andWhere('ra.hasInventoryAnomaly = :anomaly')
+                ->andWhere('ie.anomaly = :anomaly')
                 ->setParameter('anomaly', $anomaly);
             $countQuery = count($qb->getQuery()->getResult());
             $allArticleDataTable = $qb->getQuery();
@@ -257,12 +228,13 @@ class InventoryMissionRepository extends ServiceEntityRepository
         }
         // Filter by anomaly
         if (!empty($params->get('anomaly'))) {
-            if ($params->get('anomaly') == "false")
-                $anomaly = false;
-            else
-                $anomaly = true;
+            if ($params->get('anomaly') == "false") {
+				$anomaly = false;
+			} else {
+				$anomaly = true;
+			}
             $qb
-                ->andWhere('a.hasInventoryAnomaly = :anomaly')
+                ->andWhere('ie.anomaly = :anomaly')
                 ->setParameter('anomaly', $anomaly);
             $countQuery = count($qb->getQuery()->getResult());
             $allArticleDataTable = $qb->getQuery();

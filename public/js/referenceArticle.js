@@ -229,7 +229,6 @@ function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         tableRefArticle = $('#tableRefArticle_id')
             .on('error.dt', function(e, settings, technote, message) {
-            console.log(message);
         })
             .DataTable({
                 processing: true,

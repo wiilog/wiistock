@@ -16,6 +16,9 @@ let tableUser = $('#tableUser_id').DataTable({
         { "data": "Rôle", 'title': 'Rôle' },
         { "data": 'Actions', 'title': 'Actions' },
     ],
+    columnDefs: [
+    { "orderable": false, "targets": 4 }
+]
 });
 
 let modalNewUser = $("#modalNewUser");

@@ -14,6 +14,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class FournisseurRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Nom' => 'nom',
+        'Code de référence' => 'codeReference',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Fournisseur::class);
@@ -42,18 +48,18 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-	public function countByCode($code)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(f)
+    public function countByCode($code)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(f)
           FROM App\Entity\Fournisseur f
           WHERE f.codeReference = :code"
-		)->setParameter('code', $code);
+        )->setParameter('code', $code);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
     public function getIdAndLibelleBySearch($search)
     {
@@ -93,6 +99,13 @@ class FournisseurRepository extends ServiceEntityRepository
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $qb
+                        ->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                }
+            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -147,16 +160,16 @@ class FournisseurRepository extends ServiceEntityRepository
     }
 
     public function getNameAndRefArticleFournisseur($ref)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT DISTINCT f.nom, af.reference
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT DISTINCT f.nom, af.reference
             FROM App\Entity\Fournisseur f
             JOIN f.articlesFournisseur af
             WHERE af.referenceArticle = :ref"
-		)->setParameter('ref', $ref);
+        )->setParameter('ref', $ref);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 }

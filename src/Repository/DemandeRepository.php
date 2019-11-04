@@ -16,6 +16,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class DemandeRepository extends ServiceEntityRepository
 {
+    private const DtToDbLabels = [
+        'Date' => 'date',
+        'Demandeur' => 'demandeur',
+        'Statut' => 'statut',
+        'Numéro' => 'numero',
+        'Type' => 'type',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Demande::class);
@@ -221,17 +229,42 @@ class DemandeRepository extends ServiceEntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'type') {
+                        $qb
+                            ->leftJoin('d.type', 't2')
+                            ->orderBy('t2.label', $order);
+                    } else if ($column === 'statut') {
+                        $qb
+                            ->leftJoin('d.statut', 's2')
+                            ->orderBy('s2.nom', $order);
+                    } else if ($column === 'demandeur') {
+                        $qb
+                            ->leftJoin('d.utilisateur', 'u2')
+                            ->orderBy('u2.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('d.' . $column, $order);
+                    }
+                }
+            }
         }
 
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
 
-        $query = $qb->getQuery();
+		$query = $qb->getQuery();
 
         return [
         	'data' => $query ? $query->getResult() : null ,

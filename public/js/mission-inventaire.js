@@ -22,8 +22,9 @@ let tableMissions = $('#tableMissionsInv').DataTable({
         { "data": 'Actions', 'title' : 'Actions' }
     ],
     "columnDefs": [
-        {"visible" : false, "targets" : 3}
+        {"visible" : false, "targets" : 3},
     ],
+    ordering: false,
 });
 
 let modalNewMission = $("#modalNewMission");
@@ -49,7 +50,6 @@ function displayErrorMision(data) {
     }
 }
 
-
 let mission = $('#missionId').val();
 let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
 let tableMission = $('#tableMissionInv').DataTable({
@@ -72,7 +72,7 @@ let tableMission = $('#tableMissionInv').DataTable({
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
         { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
-    ],
+    ]
 });
 
 let modalAddToMission = $("#modalAddToMission");

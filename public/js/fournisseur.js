@@ -16,6 +16,9 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
         { "data": 'Code de référence' },
         { "data": 'Actions' },
     ],
+    columnDefs: [
+    { "orderable": false, "targets": 2 }
+]
 });
 
 let modalNewFournisseur = $("#modalNewFournisseur"); 
