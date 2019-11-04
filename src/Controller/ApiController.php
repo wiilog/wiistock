@@ -699,6 +699,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// (elles ont été remplacées plus haut par les mouvements de transfert des articles)
 				foreach ($listMvtToRemove as $mvtToRemove){
 					$entityManager->remove($mvtToRemove);
+					$entityManager->flush();
 				}
 
                 $this->successDataMsg['success'] = true;
