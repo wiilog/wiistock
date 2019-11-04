@@ -864,7 +864,7 @@ class ArrivageController extends AbstractController
                         'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
                         'status' => $litige->getStatus()->getNom() ? $litige->getStatus()->getNom() : '',
                         'type' => $litige->getType()->getLabel() ? $litige->getType()->getLabel() : '',
-                        'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate() : '',
+                        'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
                         'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                             'url' => $url,
                             'litigeId' => $litige->getId(),
@@ -893,6 +893,7 @@ class ArrivageController extends AbstractController
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
             ]);
 
             return new JsonResponse($json);
@@ -901,17 +902,21 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response
     {
+        dump('test');
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $em = $this->getDoctrine()->getEntityManager();
-            $litige = $this->litigeRepository->find($data['litige']);
+            $litige = $this->litigeRepository->find($data['id']);
 
                 $litige
-                    ->
+                    ->setUpdateDate(new \DateTime('now'))
+                    ->setType($this->typeRepository->find($data['typeLitige']))
+                    ->setStatus($this->statutRepository->find($data['statutLitige']))
+                    ->setCommentaire($data['commentaire']);
 
                 $em->persist($litige);
                 $em->flush();
@@ -919,6 +924,82 @@ class ArrivageController extends AbstractController
                 return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/depose-pj-litige", name="litige_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deposeLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+
+            $fileNames = [];
+            $path = "../public/uploads/attachements";
+
+            $id = (int)$request->request->get('id');
+            $litige = $this->litigeRepository->find($id);
+
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    if ($file->getClientOriginalExtension()) {
+                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    } else {
+                        $filename = uniqid();
+                    }
+                    $file->move($path, $filename);
+
+                    $pj = new PieceJointe();
+                    $pj
+                        ->setFileName($filename)
+                        ->setOriginalName($file->getClientOriginalName())
+                        ->setLitige($litige);
+                    $em->persist($pj);
+
+                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
+                }
+            }
+            $em->flush();
+
+            $html = '';
+            foreach ($fileNames as $fileName) {
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                    'litige' => $litige,
+                    'pjName' => $fileName['name'],
+                    'originalName' => $fileName['originalName']
+                ]);
+            }
+
+            return new JsonResponse($html);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    /**
+     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteAttachementLitige(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+
+            $litigeId = (int)$data['litigeId'];
+
+            $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $litigeId);
+            if ($attachement) {
+                $em->remove($attachement);
+                $em->flush();
+                $response = true;
+            } else {
+                $response = false;
+            }
+
+            return new JsonResponse($response);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**

@@ -84,16 +84,6 @@ function initNewLitigeEditor(modal) {
     }
 }
 
-let editorEditLitigeAlreadyDone = false;
-let quillEditLitige;
-
-function initEditLitigeEditor(modal) {
-    if (!editorEditLitigeAlreadyDone) {
-        quillEditLitige = initEditor(modal + ' .editor-container-new');
-        editorEditLitigeAlreadyDone = true;
-    }
-}
-
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', true);
@@ -198,10 +188,10 @@ function uploadFE(span) {
         $.each(files, function (index, file) {
             formData.append('file' + index, file);
         });
-        let path = Routing.generate('arrivage_depose', true);
+        let path = Routing.generate('litige_depose', true);
 
-        let arrivageId = $('#dropfile').data('arrivage-id');
-        formData.append('id', arrivageId);
+        let litigeId = $('#dropfile').data('litige-id');
+        formData.append('id', litigeId);
 
         $.ajax({
             url: path,
@@ -290,10 +280,10 @@ function upload(files) {
     $.each(files, function (index, file) {
         formData.append('file' + index, file);
     });
-    let path = Routing.generate('arrivage_depose', true);
+    let path = Routing.generate('litige_depose', true);
 
-    let arrivageId = $('#dropfile').data('arrivage-id');
-    formData.append('id', arrivageId);
+    let arrivageId = $('#dropfile').data('litige-id');
+    formData.append('id', litigeId);
 
     $.ajax({
         url: path,
