@@ -583,8 +583,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                         $entityManager->flush();
                     }
-
-
                 }
 
                 $mouvementsNomade = $data['mouvements'];
@@ -686,7 +684,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 										->setExpectedDate($preparation->getDate());
 									$entityManager->persist($newMouvement);
 									$entityManager->flush();
-									if ($mouvementRef) $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
+									if ($mouvementRef) {
+									    $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
+                                    }
 								}
                             }
                         }
@@ -699,9 +699,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// (elles ont été remplacées plus haut par les mouvements de transfert des articles)
 				foreach ($listMvtToRemove as $mvtToRemove){
 					$entityManager->remove($mvtToRemove);
-					$entityManager->flush();
 				}
 
+                $entityManager->flush();
                 $this->successDataMsg['success'] = true;
 
             } else {
