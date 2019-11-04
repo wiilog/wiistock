@@ -1025,8 +1025,8 @@ class ArrivageController extends AbstractController
 			}
 			$data['data'] = $rows;
 
-			return new JsonResponse($data);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }
