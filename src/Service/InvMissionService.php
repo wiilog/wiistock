@@ -65,6 +65,10 @@ class InvMissionService
         foreach ($artArray as $art) {
             $rows[] = $this->dataRowArtMission($art, $mission);
         }
+        $index = intval($params->get('order')[0]['column']);
+        $columnName = array_keys($rows[0])[$index];
+        $column = array_column($rows, $columnName);
+        array_multisort($column, $params->get('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
         return [
             'data' => $rows,
             'recordsTotal' => $queryResultRef['total'] + $queryResultArt['total'],
