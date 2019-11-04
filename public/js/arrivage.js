@@ -89,16 +89,6 @@ let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
 
-let modalModifyArrivage = $('#modalEditArrivage');
-let submitModifyArrivage = $('#submitEditArrivage');
-let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
-
-let modalDeleteArrivage = $('#modalDeleteArrivage');
-let submitDeleteArrivage = $('#submitDeleteArrivage');
-let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
-
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
@@ -111,24 +101,6 @@ function initNewArrivageEditor(modal) {
 
 let quillEdit;
 let originalText = '';
-
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = {id: id};
-
-    $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        originalText = quillEdit.getText();
-    }, 'json');
-
-    modal.find(submit).attr('value', id);
-}
 
 // function toggleLitige(select) {
 //     let bloc = select.closest('.modal').find('#litigeBloc');
@@ -171,16 +143,6 @@ function addCommentaire(select, bool) {
             ]);
         }
     });
-}
-
-function deleteRowArrivage(button, modal, submit, hasLitige) {
-    deleteRow(button, modal, submit);
-    let hasLitigeText = modal.find('.hasLitige');
-    if (hasLitige) {
-        hasLitigeText.removeClass('d-none');
-    } else {
-        hasLitigeText.addClass('d-none');
-    }
 }
 
 function dragEnterDiv(event, div) {
