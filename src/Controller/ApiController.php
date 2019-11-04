@@ -657,16 +657,37 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 if ($article->getDemande()) {
                                     throw new BadRequestHttpException('article-already-selected');
                                 } else {
+									// on crée le lien entre l'article et la demande
                                     $demande = $demandeRepository->findOneByLivraison($livraison);
                                     $article->setDemande($demande);
 
+									// et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-
-                                    if (!empty($ligneArticle)) {
+									if (!empty($ligneArticle)) {
                                         $entityManager->remove($ligneArticle);
                                     }
-                                }
+
+									// on crée le mouvement de transfert de l'article
+									$newMouvement = new MouvementStock();
+									$newMouvement
+										->setUser($nomadUser)
+										->setArticle($article)
+										->setQuantity($article->getQuantiteAPrelever())
+										->setEmplacementFrom($article->getEmplacement())
+										->setType(MouvementStock::TYPE_TRANSFERT)
+										->setPreparationOrder($preparation)
+										->setExpectedDate($preparation->getDate());
+									$entityManager->persist($newMouvement);
+									$entityManager->flush();
+
+									// et si ça n'a pas déjà été fait, on supprime le mouvement de transfert de la réf article
+									$mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
+									if (!empty($mouvementRef)) {
+										$entityManager->remove($mouvementRef);
+									}
+
+								}
                             }
                         }
                     }
