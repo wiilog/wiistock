@@ -801,12 +801,13 @@ class ArrivageController extends AbstractController
 				if ($mouvement) {
 					$dateArray = explode('_', $mouvement->getDate());
 					$date = new DateTime($dateArray[0]);
+					$formattedDate = $date->format('d/m/Y');
 				} else {
-					$date = '';
+					$formattedDate = '';
 				}
 				$rows[] = [
 					'code' => $colis->getCode(),
-					'deliveryDate' => $date ? $date->format('d/m/Y') : '',
+					'deliveryDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
 					'operator' => $mouvement ? $mouvement->getOperateur() : '',
 					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig'),
