@@ -13,7 +13,7 @@
     <div class="col text-right">
     {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
         <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
-           onclick="editRowArrivage($(this))"
+           onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
            data-toggle='modal' class="btn btn-primary btn-action ml-auto">
             Modifier
         </a>
@@ -27,10 +27,8 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="zone-entete col-6 row">
-        {% include "arrivage/enteteArrivage.html.twig" %}
-    </div>
+<div class="zone-entete">
+    {% include "arrivage/enteteArrivage.html.twig" %}
 </div>
 <div class="row mt-5">
     <div class="col-6">
@@ -55,12 +53,16 @@
             <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
         </div>
     </div>
-    <div class="col-6">
-    </div>
+</div>
 
-    {% include 'arrivage/modalAddColis.html.twig' %}
-    {% include 'arrivage/modalNewLitige.html.twig' %}
-    {% include 'arrivage/modalEditLitige.html.twig' %}
+<a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
+
+
+{% include 'arrivage/modalAddColis.html.twig' %}
+{% include "arrivage/modalEditArrivage.html.twig" %}
+{% include "arrivage/modalDeleteArrivage.html.twig" %}
+{% include 'arrivage/modalNewLitige.html.twig' %}
+{% include 'arrivage/modalEditLitige.html.twig' %}
 
 {% endblock %}
 

@@ -48,6 +48,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
         {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
         {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},

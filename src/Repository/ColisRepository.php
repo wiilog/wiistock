@@ -2,11 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Colis;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 

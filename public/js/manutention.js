@@ -17,6 +17,10 @@ let tableManutention = $('#tableManutention_id').DataTable({
         {
             "type": "customDate",
             "targets": 0
+        },
+        {
+            "orderable" : false,
+            "targets" : 5
         }
     ],
     language: {

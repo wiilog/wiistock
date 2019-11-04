@@ -53,6 +53,11 @@ class InventoryEntry
 	 */
     private $mission;
 
+	/**
+	 * @ORM\Column(type="boolean")
+	 */
+    private $anomaly = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -138,6 +143,18 @@ class InventoryEntry
     public function setMission(?InventoryMission $mission): self
     {
         $this->mission = $mission;
+
+        return $this;
+    }
+
+    public function getAnomaly(): ?bool
+    {
+        return $this->anomaly;
+    }
+
+    public function setAnomaly(bool $anomaly): self
+    {
+        $this->anomaly = $anomaly;
 
         return $this;
     }
