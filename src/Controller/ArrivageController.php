@@ -7,7 +7,6 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -21,6 +20,7 @@ use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -39,7 +39,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Date;
+
+use DateTime;
 
 /**
  * @Route("/arrivage")
@@ -121,8 +122,13 @@ class ArrivageController extends AbstractController
 	 */
     private $colisRepository;
 
+	/**
+	 * @var MouvementTracaRepository
+	 */
+    private $mouvementTracaRepository;
 
-    public function __construct(ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -139,6 +145,7 @@ class ArrivageController extends AbstractController
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -781,6 +788,7 @@ class ArrivageController extends AbstractController
 	 * @param Request $request
 	 * @param Arrivage $arrivage
 	 * @return Response
+	 * @throws \Exception
 	 */
 	public function apiColis(Request $request, Arrivage $arrivage): Response
 	{
@@ -789,16 +797,21 @@ class ArrivageController extends AbstractController
 
 			$rows = [];
 			foreach ($listColis as $colis) { /** @var $colis Colis */
+				$mouvement = $this->mouvementTracaRepository->getLastDeposeByColis($colis->getCode());
+				if ($mouvement) {
+					$dateArray = explode('_', $mouvement->getDate());
+					$date = new DateTime($dateArray[0]);
+				} else {
+					$date = '';
+				}
 				$rows[] = [
 					'code' => $colis->getCode(),
-					'deliveryDate' => '',
-					'lastLocation' => '',
-					'operator' => '',
-					'actions' => '',
-					'Actions' => 'dd',
+					'deliveryDate' => $date->format('d/m/Y'),
+					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
+					'operator' => $mouvement ? $mouvement->getOperateur() : '',
+					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig'),
 				];
 			}
-
 			$data['data'] = $rows;
 
 			return new JsonResponse($data);
