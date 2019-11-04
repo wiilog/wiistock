@@ -583,9 +583,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                         $entityManager->flush();
                     }
+
+
                 }
 
                 $mouvementsNomade = $data['mouvements'];
+				$listMvtToRemove = [];
 
                 // on crée les mouvements de livraison
                 foreach ($mouvementsNomade as $mouvementNomade) {
@@ -669,24 +672,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                     }
 
 									// on crée le mouvement de transfert de l'article
+									$mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
 									$newMouvement = new MouvementStock();
 									$newMouvement
 										->setUser($nomadUser)
 										->setArticle($article)
 										->setQuantity($article->getQuantiteAPrelever())
 										->setEmplacementFrom($article->getEmplacement())
+										->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
 										->setType(MouvementStock::TYPE_TRANSFERT)
 										->setPreparationOrder($preparation)
+										->setDate($mouvementRef ? $mouvementRef->getDate() : '')
 										->setExpectedDate($preparation->getDate());
 									$entityManager->persist($newMouvement);
 									$entityManager->flush();
-
-									// et si ça n'a pas déjà été fait, on supprime le mouvement de transfert de la réf article
-									$mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
-									if (!empty($mouvementRef)) {
-										$entityManager->remove($mouvementRef);
-									}
-
+									if ($mouvementRef) $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
 								}
                             }
                         }
@@ -694,6 +694,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                     $entityManager->flush();
                 }
+
+				// on supprime les mouvements de transfert créés pour les réf gérées à l'articles
+				// (elles ont été remplacées plus haut par les mouvements de transfert des articles)
+				foreach ($listMvtToRemove as $mvtToRemove){
+					$entityManager->remove($mvtToRemove);
+				}
 
                 $this->successDataMsg['success'] = true;
 
