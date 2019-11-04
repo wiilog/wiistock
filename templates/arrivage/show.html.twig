@@ -47,13 +47,23 @@
         </div>
     </div>
     <div class="col-6">
+        <a href="" data-id='{{ arrivage.id }}' data-target='#modalNewLitige' data-toggle='modal'
+           class="btn btn-primary btn-action ml-auto" onclick="initNewLitigeEditor('#modalNewLitige'), clearModal('#modalNewLitige')">
+            <i class="fa fa-plus"></i>
+            Nouveau litige</a>
+        <div>
+            <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
+        </div>
     </div>
-</div>
+    <div class="col-6">
+    </div>
 
-{% include 'arrivage/modalAddColis.html.twig' %}
+    {% include 'arrivage/modalAddColis.html.twig' %}
+    {% include 'arrivage/modalNewLitige.html.twig' %}
+    {% include 'arrivage/modalEditLitige.html.twig' %}
 
 {% endblock %}
 
 {% block javascript %}
-<script src="{{asset('js/arrivage.js')}}?{{ date().timestamp }}"></script>
+<script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
 {% endblock javascript %}

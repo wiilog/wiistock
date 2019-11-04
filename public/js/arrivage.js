@@ -24,12 +24,6 @@ $(function() {
         });
         if (data.length > 0)$submitSearchArrivage.click();
     }, 'json');
-
-    // ouvre la modale d'ajout de colis
-    let addColis = $('#addColis').val();
-    if (addColis) {
-        $('#btnModalAddColis').click();
-    }
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
@@ -87,26 +81,6 @@ $.fn.dataTable.ext.search.push(
 
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
-})
-
-let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-let tableColis = $('#tableColis').DataTable({
-    responsive: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    scrollX: true,
-    ajax: {
-        "url": pathColis,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'code', 'name': 'code', 'title': 'Code'},
-        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
-        {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
-        {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
-        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
-    ],
 });
 
 let modalNewArrivage = $("#modalNewArrivage");
@@ -123,12 +97,6 @@ let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
-
-let modalAddColis = $('#modalAddColis');
-let submitAddColis = $('#submitAddColis');
-let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
-
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;

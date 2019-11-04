@@ -9,6 +9,7 @@ use App\Entity\Menu;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
+use App\Repository\ColisRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\StatutRepository;
@@ -62,6 +63,10 @@ class LitigeController extends AbstractController
 	 * @var ArrivageRepository
 	 */
 	private $arrivageRepository;
+    /**
+     * @var ColisRepository
+     */
+    private $colisRepository;
 	/**
 	 * @var UserService
 	 */
@@ -76,9 +81,10 @@ class LitigeController extends AbstractController
 	 * @param TransporteurRepository $transporteurRepository
 	 * @param ChauffeurRepository $chauffeurRepository
 	 * @param TypeRepository $typeRepository
+     * @param ColisRepository $colisRepository
 	 * @param UserService $userService;
 	 */
-	public function __construct(UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository)
+	public function __construct(ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -89,6 +95,7 @@ class LitigeController extends AbstractController
 		$this->litigeRepository = $litigeRepository;
 		$this->arrivageRepository = $arrivageRepository;
 		$this->userService = $userService;
+		$this->colisRepository = $colisRepository;
 	}
 
 	/**
@@ -103,7 +110,8 @@ class LitigeController extends AbstractController
             'providers' => $this->fournisseurRepository->findAllSorted(),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'drivers' => $this->chauffeurRepository->findAllSorted(),
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'allColis' => $this->colisRepository->findAll()
 		]);
     }
 

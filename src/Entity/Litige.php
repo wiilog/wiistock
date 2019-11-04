@@ -60,6 +60,11 @@ class Litige
      */
     private $litigeHistorics;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -248,6 +253,18 @@ class Litige
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }

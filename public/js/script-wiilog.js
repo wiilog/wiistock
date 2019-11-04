@@ -28,7 +28,7 @@ $.fn.dataTable.ext.errMode = (resp) => {
  * @param {document} table le DataTable gérant les données
  *
  */
-function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
+function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
     });

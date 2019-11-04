@@ -1,0 +1,312 @@
+const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
+
+$('.select2').select2();
+
+$(function () {
+
+    //fill l'input acheteurs (modalNewLititge)
+    let modal = $('#modalNewLitige');
+    let inputAcheteurs = $('#acheteursLitigeHidden').val();
+    let acheteurs = inputAcheteurs.split(',');
+    acheteurs.forEach(value => {
+        let option = new Option(value, value, false, false);
+        modal.find('#acheteursLitige').append(option);
+    });
+    $('#acheteursLitige').val(acheteurs).select2();
+
+    // ouvre la modale d'ajout de colis
+    let addColis = $('#addColis').val();
+    if (addColis) {
+        $('#btnModalAddColis').click();
+    }
+});
+
+function printLabels(data) {
+    if (data.exists) {
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
+let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+let tableColis = $('#tableColis').DataTable({
+    responsive: true,
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    scrollX: true,
+    ajax: {
+        "url": pathColis,
+        "type": "POST"
+    },
+    columns: [
+        {"data": 'code', 'name': 'code', 'title': 'Code'},
+        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
+        {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
+        {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+    ],
+});
+
+let modalAddColis = $('#modalAddColis');
+let submitAddColis = $('#submitAddColis');
+let urlAddColis = Routing.generate('arrivage_add_colis', true);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
+
+let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
+let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
+    responsive: true,
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    scrollX: true,
+    ajax: {
+        "url": pathArrivageLitiges,
+        "type": "POST"
+    },
+    columns: [
+        {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
+        {"data": 'status', 'name': 'status', 'title': 'Statut'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
+        {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
+    ],
+});
+
+let editorNewLitigeAlreadyDone = false;
+let quillNewLitige;
+
+function initNewLitigeEditor(modal) {
+    if (!editorNewLitigeAlreadyDone) {
+        quillNewLitige = initEditor(modal + ' .editor-container-new');
+        editorNewLitigeAlreadyDone = true;
+    }
+}
+
+let editorEditLitigeAlreadyDone = false;
+let quillEditLitige;
+
+function initEditLitigeEditor(modal) {
+    if (!editorEditLitigeAlreadyDone) {
+        quillEditLitige = initEditor(modal + ' .editor-container-new');
+        editorEditLitigeAlreadyDone = true;
+    }
+}
+
+let modalNewLitige = $('#modalNewLitige');
+let submitNewLitige = $('#submitNewLitige');
+let urlNewLitige = Routing.generate('litige_new', true);
+InitialiserModal(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
+
+let modalEditLitige = $('#modalEditLitige');
+let submitEditLitige = $('#submitEditLitige');
+let urlEditLitige = Routing.generate('litige_edit', true);
+InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+
+function dragEnterDiv(event, div) {
+    div.css('border', '3px dashed red');
+}
+
+function dragOverDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    div.css('border', '3px dashed red');
+    return false;
+};
+
+function dragLeaveDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    div.css('border', '3px dashed #BBBBBB');
+    return false;
+}
+
+function dropOnDiv(event, div) {
+    if (event.dataTransfer) {
+        if (event.dataTransfer.files.length) {
+            // Stop the propagation of the event
+            event.preventDefault();
+            event.stopPropagation();
+            div.css('border', '3px dashed green');
+
+            let valid = checkFilesFormat(event.dataTransfer.files, div);
+
+            if (valid) {
+                upload(event.dataTransfer.files);
+                clearErrorMsg(div);
+            } else {
+                div.css('border', '3px dashed #BBBBBB');
+            }
+        }
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+    return false;
+}
+
+function dropNewOnDiv(event, div) {
+    if (event.dataTransfer) {
+        if (event.dataTransfer.files.length) {
+            event.preventDefault();
+            event.stopPropagation();
+            div.css('border', '3px dashed green');
+
+            let valid = checkFilesFormat(event.dataTransfer.files, div);
+
+            if (valid) {
+                keepForSave(event.dataTransfer.files);
+                clearErrorMsg(div);
+            }
+            else div.css('border', '3px dashed #BBBBBB');
+        }
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+    return false;
+}
+
+
+function checkFilesFormat(files, div) {
+    let valid = true;
+    $.each(files, function (index, file) {
+        if (file.name.includes('.') === false) {
+            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
+            valid = false;
+        }
+        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+            valid = false;
+        }
+    });
+    return valid;
+}
+
+function openFE() {
+    $('#fileInput').click();
+}
+
+function uploadFE(span) {
+    let files = $('#fileInput')[0].files;
+    let formData = new FormData();
+    let div = span.closest('.dropFrame');
+    clearErrorMsg(div);
+
+    let valid = checkFilesFormat(files, div);
+
+    if (valid) {
+        $.each(files, function (index, file) {
+            formData.append('file' + index, file);
+        });
+        let path = Routing.generate('arrivage_depose', true);
+
+        let arrivageId = $('#dropfile').data('arrivage-id');
+        formData.append('id', arrivageId);
+
+        $.ajax({
+            url: path,
+            data: formData,
+            type:"post",
+            contentType:false,
+            processData:false,
+            cache:false,
+            dataType:"json",
+            success:function(html){
+                let dropfile = $('#dropfile');
+                dropfile.css('border', '3px dashed #BBBBBB');
+                dropfile.after(html);
+            }
+        });
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+}
+
+function openFENew() {
+    $('#fileInputNew').click();
+}
+
+function uploadFENew(span) {
+    let files = $('#fileInputNew')[0].files;
+    let formData = new FormData();
+    let div = span.closest('.dropFrame');
+    clearErrorMsg(div);
+
+    let valid = checkFilesFormat(files, div);
+
+    if (valid) {
+        $.each(files, function (index, file) {
+            formData.append('file' + index, file);
+        });
+        let path = Routing.generate('garder_pj', true);
+        $.ajax({
+            url: path,
+            data: formData,
+            type: "post",
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: "json",
+            success: function (html) {
+                let dropfile = $('#dropfileNew');
+                dropfile.css('border', '3px dashed #BBBBBB');
+                dropfile.after(html);
+            }
+        });
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+}
+
+function keepForSave(files) {
+
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+
+    let path = Routing.generate('garder_pj', true);
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfileNew');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+
+}
+
+function upload(files) {
+
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('arrivage_depose', true);
+
+    let arrivageId = $('#dropfile').data('arrivage-id');
+    formData.append('id', arrivageId);
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type: "post",
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: "json",
+        success: function (html) {
+            let dropfile = $('#dropfile');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+}
