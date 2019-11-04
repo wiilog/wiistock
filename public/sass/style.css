@@ -784,6 +784,10 @@ em {
   height: 80%;
 }
 
+.fit-content {
+  height: fit-content;
+}
+
 .dropFrame {
   border: 3px dashed #b2b2b2;
   line-height: 50px;

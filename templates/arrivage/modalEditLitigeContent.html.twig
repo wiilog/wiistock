@@ -1,6 +1,6 @@
 <div class="modal-body modal-input container-fluid">
     <div class="row">
-        <div class="form-group col-4">
+        <div class="form-group col-12">
             <label for="typeLitige">Type*</label>
             <select class="form-control data needed" id="typeLitige" name="typeLitige">
                 <option placeholder="" value="{{ litige.type.id }}" selected>{{ litige.type.label }}</option>
@@ -11,7 +11,8 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group col-4">
+
+        <div class="form-group col-12">
             <label for="statutLitige">Statut*</label>
             <select class="form-control data needed" id="statutLitige" name="statutLitige">
                 <option placeholder="" value="{{ litige.status.id }}" selected>{{ litige.status.nom }}</option>
@@ -22,27 +23,15 @@
                 {% endfor %}
             </select>
         </div>
-    </div>
-    <div class="row">
-{#        <div class="form-group col-4">#}
-{#            <label for="colisLitige">Colis*</label>#}
-{#            <select class="form-control data needed select2 w-100" id="colisLitige" name="colisLitige" multiple="multiple">#}
-{#                {% for colis in allColis %}#}
-{#                    <option value="{{ colis.id }}">{{ colis.code }}</option>#}
-{#                {% endfor %}#}
-{#            </select>#}
-{#        </div>#}
-    </div>
 
-    <div class="row">
-        <div class="form-group col-6">
+        <div class="form-group col-12 fit-content">
             <label for="commentaire">Commentaire</label>
             <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"
                    value="{{ litige.commentaire }}">
             <div class="editor-container-edit" value="{{ litige.commentaire }}">{{ litige.commentaire|raw }}</div>
         </div>
 
-        <div class="form-group col-6">
+        <div class="form-group col-12">
             <div>
                 {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
             </div>
