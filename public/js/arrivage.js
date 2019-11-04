@@ -589,7 +589,6 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .draw();
 });
-
 function printLabels(data) {
     if (data.exists) {
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
@@ -617,11 +616,15 @@ function deleteAttachement(arrivageId, originalName, pjName) {
 
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
-    let codesArray = codes.split(',');
+    let param = codes;
 
-    $.post(path, function (response) {
-        if (response.exists) {
-            printBarcodes(codesArray, response, ('Etiquettes ' + codes + '.pdf'));
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+            if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes ' + codes + '.pdf'));
         }
     });
 }
