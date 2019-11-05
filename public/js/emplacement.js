@@ -99,7 +99,6 @@ function getDataAndPrintLabels() {
         length: tableEmplacement.page.info().length,
         start: tableEmplacement.page.info().start
     });
-    console.log(params);
     $.post(path, params, function (response) {
         if (response.tags.exists) {
             printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf');
