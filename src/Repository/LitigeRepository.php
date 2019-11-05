@@ -94,4 +94,19 @@ class LitigeRepository extends ServiceEntityRepository
 		]);
 		return $query->execute();
 	}
+
+    public function getByArrivage($arrivage)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT DISTINCT l
+            FROM App\Entity\Litige l
+            INNER JOIN l.colis c
+            INNER JOIN c.arrivage a
+            WHERE a.id = :arrivage'
+        )->setParameter('arrivage', $arrivage);
+
+        return $query->execute();
+    }
 }

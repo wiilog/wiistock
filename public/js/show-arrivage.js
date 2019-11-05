@@ -94,6 +94,7 @@ let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
 InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
+
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');
 }
@@ -304,12 +305,17 @@ function upload(files) {
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
+InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, callbackEdit);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
+
+function callbackEdit() {
+    console.log('trop marrant');
+    window.location.reload();
+}
 
 let quillEdit;
 let originalText = '';

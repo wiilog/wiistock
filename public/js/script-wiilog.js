@@ -52,7 +52,7 @@ function submitAction(modal, path, table, callback, close, clear) {
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
         if ($input.hasClass('needed')
-            && (val === undefined || val === '' || val === null)
+            && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
             && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
@@ -136,7 +136,7 @@ function submitAction(modal, path, table, callback, close, clear) {
             }
 
             if (clear) clearModal(modal);
-
+            console.log(callback);
             if (callback !== null) callback(data);
         }, 'json');
 

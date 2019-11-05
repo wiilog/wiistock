@@ -752,6 +752,7 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $litige = new Litige();
+            dump($data['colisLitige']);
             $litige
                 ->setStatus($this->statutRepository->find($data['statutLitige']))
                 ->setType($this->typeRepository->find($data['typeLitige']))
@@ -845,24 +846,22 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
-            $listColis = $arrivage->getColis();
+            $litiges = $this->litigeRepository->getByArrivage($arrivage);
 
             $rows = [];
-            foreach ($listColis as $colis) {
-                $listLitiges = $colis->getLitiges();
-                foreach ($listLitiges as $litige) {
-                    $url['edit'] = $this->generateUrl('litige_api_edit', ['id' => $litige->getId()]);
-                    $rows[] = [
-                        'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
-                        'status' => $litige->getStatus()->getNom() ? $litige->getStatus()->getNom() : '',
-                        'type' => $litige->getType()->getLabel() ? $litige->getType()->getLabel() : '',
-                        'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
-                        'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
-                            'url' => $url,
-                            'litigeId' => $litige->getId(),
-                        ]),
-                    ];
-                }
+            foreach ($litiges as $litige) {
+                $rows[] = [
+                    'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
+                    'status' => $litige->getStatus()->getNom() ? $litige->getStatus()->getNom() : '',
+                    'type' => $litige->getType()->getLabel() ? $litige->getType()->getLabel() : '',
+                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
+                    'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
+                        'url' => [
+                            'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
+                        ],
+                        'litigeId' => $litige->getId(),
+                    ]),
+                ];
             }
 
             $data['data'] = $rows;
@@ -898,7 +897,6 @@ class ArrivageController extends AbstractController
      */
     public function editLitige(Request $request): Response
     {
-        dump('test');
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $em = $this->getDoctrine()->getEntityManager();

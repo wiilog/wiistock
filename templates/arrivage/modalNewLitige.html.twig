@@ -71,7 +71,7 @@
                 <div class="row">
                     <div class="form-group col-4">
                         <label for="colisLitige">Colis*</label>
-                        <select class="form-control data needed select2 w-100" id="colisLitige" name="colisLitige" multiple="multiple">
+                        <select class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige" multiple="multiple">
                             {% for colis in allColis %}
                                 <option value="{{ colis.id }}">{{ colis.code }}</option>
                             {% endfor %}
