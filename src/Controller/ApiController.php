@@ -1263,6 +1263,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
+     * @Rest\Get("/api/nomade-versions")
+     */
+    public function getAvailableVersionsAction() {
+        return new JsonResponse($this->getParameter('nomade_versions') ?? '*');
+    }
+
+    /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
      * @Rest\Get("/api/treatAnomalies")
      */
