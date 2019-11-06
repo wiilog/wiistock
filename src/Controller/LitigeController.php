@@ -139,7 +139,7 @@ class LitigeController extends AbstractController
 
 				$rows[] = [
 					'type' => $litige['type'] ?? '',
-					'arrivalNumber' => $litige['numeroReception'] ?? '',
+					'arrivalNumber' => $litige['numeroArrivage'] ?? '',
 					'buyers' => implode(', ', $acheteursUsernames),
 					'provider' => $litige['provider'] ?? '',
 					'carrier' => $litige['carrier'] ?? '',
