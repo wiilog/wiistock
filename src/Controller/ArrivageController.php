@@ -766,11 +766,17 @@ class ArrivageController extends AbstractController
             $litige
                 ->setStatus($this->statutRepository->find($data['statutLitige']))
                 ->setType($this->typeRepository->find($data['typeLitige']))
-                ->setCommentaire($data['commentaire'])
                 ->setCreationDate(new \DateTime('now'));
             foreach ($data['colisLitige'] as $colisId) {
                 $litige->addColi($this->colisRepository->find($colisId));
             }
+
+            $histo = new LitigeHistoric();
+            $histo
+                ->setDate(new \DateTime('now'))
+                ->setComment($data['commentaire'])
+                ->setLitige($litige)
+                ->setUser($this->getUser());
 
             $path = '../public/uploads/attachements/temp';
 
@@ -788,6 +794,7 @@ class ArrivageController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($litige);
+            $em->persist($histo);
             $em->flush();
             return new JsonResponse($data);
         }
