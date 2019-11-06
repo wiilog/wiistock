@@ -1082,7 +1082,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
                 return new JsonResponse([
                     'success' => true,
-                    'manutentions' => $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER))
+                    'manutentions' => $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER))
                 ]);
             } else {
                 return new JsonResponse([
