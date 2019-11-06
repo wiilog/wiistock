@@ -364,3 +364,21 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
         hasLitigeText.addClass('d-none');
     }
 }
+
+function deleteAttachementLitige(litigeId, originalName, pjName) {
+
+    let path = Routing.generate('litige_delete_attachement');
+    let params = {
+        litigeId: litigeId,
+        originalName: originalName,
+        pjName: pjName
+    };
+
+    $.post(path, JSON.stringify(params), function (data) {
+        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
+            console.log(originalName);
+        if (data === true) {
+            $('#' + pjWithoutExtension).remove();
+        }
+    });
+}
