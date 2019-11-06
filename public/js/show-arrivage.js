@@ -376,7 +376,6 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
 
     $.post(path, JSON.stringify(params), function (data) {
         let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-            console.log(originalName);
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
