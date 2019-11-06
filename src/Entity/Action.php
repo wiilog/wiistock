@@ -15,6 +15,7 @@ class Action
     const LIST_ALL = 'lister tout';
     const CREATE_EDIT = 'créer+modifier';
     const CREATE = 'créer';
+    const EDIT = 'modifer';
     const DELETE = 'supprimer';
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';

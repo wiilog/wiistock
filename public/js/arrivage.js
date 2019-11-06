@@ -82,23 +82,12 @@ $.fn.dataTable.ext.search.push(
 
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
-})
+});
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, printLabels);
-
-let modalModifyArrivage = $('#modalEditArrivage');
-let submitModifyArrivage = $('#submitEditArrivage');
-let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
-
-let modalDeleteArrivage = $('#modalDeleteArrivage');
-let submitDeleteArrivage = $('#submitDeleteArrivage');
-let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
-
+InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -113,40 +102,22 @@ function initNewArrivageEditor(modal) {
 let quillEdit;
 let originalText = '';
 
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = {id: id};
-
-    $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        originalText = quillEdit.getText();
-    }, 'json');
-
-    modal.find(submit).attr('value', id);
-}
-
-function toggleLitige(select) {
-    let bloc = select.closest('.modal').find('#litigeBloc');
-    let status = select.find('option:selected').text();
-
-    let litigeType = bloc.find('#litigeType');
-    let constantConform = $('#constantConforme').val();
-
-    if (status === constantConform) {
-        litigeType.removeClass('needed');
-        bloc.addClass('d-none');
-
-    } else {
-        bloc.removeClass('d-none');
-        litigeType.addClass('needed');
-    }
-}
+// function toggleLitige(select) {
+//     let bloc = select.closest('.modal').find('#litigeBloc');
+//     let status = select.find('option:selected').text();
+//
+//     let litigeType = bloc.find('#litigeType');
+//     let constantConform = $('#constantConforme').val();
+//
+//     if (status === constantConform) {
+//         litigeType.removeClass('needed');
+//         bloc.addClass('d-none');
+//
+//     } else {
+//         bloc.removeClass('d-none');
+//         litigeType.addClass('needed');
+//     }
+// }
 
 function addCommentaire(select, bool) {
     let params = {
@@ -172,16 +143,6 @@ function addCommentaire(select, bool) {
             ]);
         }
     });
-}
-
-function deleteRowArrivage(button, modal, submit, hasLitige) {
-    deleteRow(button, modal, submit);
-    let hasLitigeText = modal.find('.hasLitige');
-    if (hasLitige) {
-        hasLitigeText.removeClass('d-none');
-    } else {
-        hasLitigeText.addClass('d-none');
-    }
 }
 
 function dragEnterDiv(event, div) {
@@ -408,7 +369,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
                 $(this).remove();
             });
             if (data.redirect) {
-                window.location.href = data.redirect;
+                window.location.href = data.redirect + '/1';
                 return;
             }
             // pour mise à jour des données d'en-tête après modification
@@ -535,13 +496,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
     }
 }
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 $submitSearchArrivage.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
@@ -565,23 +519,9 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .draw();
 });
-
 function printLabels(data) {
-    let nbUm = data.nbUm;
-    let printUm = data.printUm;
-    let printArrivage = data.printArrivage;
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     if (data.exists) {
-        const barcodes = printUm
-            ? (new Array(nbUm).map((_, index) => (data.arrivage + '-' + index)))
-            : [];
-        if (printArrivage) {
-            barcodes.push(data.arrivage);
-        }
-
-        printBarcodes(barcodes, data, ('Etiquettes du ' + date + '.pdf'));
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
     } else {
         $('#cannotGenerate').click();
     }
@@ -604,25 +544,17 @@ function deleteAttachement(arrivageId, originalName, pjName) {
     });
 }
 
-function listColis(elem) {
-    let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_colis_api', true);
-    let modal = $('#modalListColis');
-    let params = { id: arrivageId };
-
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data);
-    }, 'json');
-}
-
-
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
-    let codesArray = codes.split(',');
+    let param = codes;
 
-    $.post(path, function (response) {
-        if (response.exists) {
-            printBarcodes(codesArray, response, ('Etiquettes ' + codes + '.pdf'));
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }

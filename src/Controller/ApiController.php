@@ -23,7 +23,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
-use App\Repository\DemandeRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticleRepository;
@@ -54,7 +53,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
 
@@ -371,7 +369,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
                                                 'operateur' => $toInsert->getOperateur(),
-                                                'pjs' => $arrivage->getPiecesJointes()
+                                                'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
                                         $destinataire->getEmail()
@@ -729,14 +727,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $date = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
 
                         $livraison
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
+                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_LIVRE))
                             ->setUtilisateur($nomadUser)
                             ->setDateFin($date);
 
                         $demandes = $livraison->getDemande();
                         $demande = $demandes[0];
 
-                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
+                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
                         $demande->setStatut($statutLivre);
 
                         $this->mailerService->sendMail(

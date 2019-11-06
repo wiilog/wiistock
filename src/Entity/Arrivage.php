@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage
 {
+	const STATUS_CONFORME = 'conforme';
+	const STATUS_LITIGE = 'litige';
 
     /**
      * @ORM\Id()
@@ -23,11 +25,6 @@ class Arrivage
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="arrivages")
      */
     private $fournisseur;
-
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Litige", mappedBy="arrivage")
-     */
-    private $litige;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Chauffeur", inversedBy="arrivages")
@@ -65,11 +62,6 @@ class Arrivage
     private $numeroReception;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $nbUM;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="arrivages")
      */
     private $transporteur;
@@ -102,14 +94,14 @@ class Arrivage
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
      */
-    private $piecesJointes;
+    private $attachements;
 
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
-        $this->piecesJointes = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -227,48 +219,6 @@ class Arrivage
         return $this;
     }
 
-    public function getNbUM(): ?int
-    {
-        return $this->nbUM;
-    }
-
-    public function setNbUM(int $nbUM): self
-    {
-        $this->nbUM = $nbUM;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Litige[]
-     */
-    public function getLitiges(): Collection
-    {
-        return $this->litiges;
-    }
-
-    public function addLitige(Litige $litige): self
-    {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitige(Litige $litige): self
-    {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            // set the owning side to null (unless already changed)
-            if ($litige->getArrivage() === $this) {
-                $litige->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
 
     public function getTransporteur(): ?Transporteur
     {
@@ -315,25 +265,6 @@ class Arrivage
 
         return $this;
     }
-
-    public function getLitige(): ?Litige
-    {
-        return $this->litige;
-    }
-
-    public function setLitige(?Litige $litige): self
-    {
-        $this->litige = $litige;
-
-        // set (or unset) the owning side of the relation if necessary
-        $newArrivage = $litige === null ? null : $this;
-        if ($newArrivage !== $litige->getArrivage()) {
-            $litige->setArrivage($newArrivage);
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection|Colis[]
      */
@@ -380,15 +311,15 @@ class Arrivage
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getPiecesJointes(): Collection
+    public function getAttachements(): Collection
     {
-        return $this->piecesJointes;
+        return $this->attachements;
     }
 
     public function addPieceJointe(PieceJointe $pieceJointe): self
     {
-        if (!$this->piecesJointes->contains($pieceJointe)) {
-            $this->piecesJointes[] = $pieceJointe;
+        if (!$this->attachements->contains($pieceJointe)) {
+            $this->attachements[] = $pieceJointe;
             $pieceJointe->setArrivage($this);
         }
 
@@ -397,8 +328,8 @@ class Arrivage
 
     public function removePieceJointe(PieceJointe $pieceJointe): self
     {
-        if ($this->piecesJointes->contains($pieceJointe)) {
-            $this->piecesJointes->removeElement($pieceJointe);
+        if ($this->attachements->contains($pieceJointe)) {
+            $this->attachements->removeElement($pieceJointe);
             // set the owning side to null (unless already changed)
             if ($pieceJointe->getArrivage() === $this) {
                 $pieceJointe->setArrivage(null);
@@ -433,8 +364,8 @@ class Arrivage
 
     public function addPiecesJointe(PieceJointe $piecesJointe): self
     {
-        if (!$this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes[] = $piecesJointe;
+        if (!$this->attachements->contains($piecesJointe)) {
+            $this->attachements[] = $piecesJointe;
             $piecesJointe->setArrivage($this);
         }
 
@@ -443,11 +374,34 @@ class Arrivage
 
     public function removePiecesJointe(PieceJointe $piecesJointe): self
     {
-        if ($this->piecesJointes->contains($piecesJointe)) {
-            $this->piecesJointes->removeElement($piecesJointe);
+        if ($this->attachements->contains($piecesJointe)) {
+            $this->attachements->removeElement($piecesJointe);
             // set the owning side to null (unless already changed)
             if ($piecesJointe->getArrivage() === $this) {
                 $piecesJointe->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getArrivage() === $this) {
+                $attachement->setArrivage(null);
             }
         }
 
