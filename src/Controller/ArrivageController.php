@@ -774,7 +774,7 @@ class ArrivageController extends AbstractController
             $histo = new LitigeHistoric();
             $histo
                 ->setDate(new \DateTime('now'))
-                ->setComment($data['commentaire'])
+                ->setComment(trim($data['commentaire']))
                 ->setLitige($litige)
                 ->setUser($this->getUser());
 
@@ -951,20 +951,21 @@ class ArrivageController extends AbstractController
                     ->setLitige($litige)
                     ->setDate(new \DateTime('now'))
                     ->setUser($this->getUser());
-                $comment = "";
+                $comment = "<p>";
 
                 if ($typeBefore !== $typeAfter)
                 {
-                    $comment .= "Changement du type: " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+                    $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
                 }
                 if ($statutBefore !== $statutAfter)
                 {
-                    $comment .= "Changement du status: " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+                    $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
                 }
                 if ($data['commentaire'])
                 {
-                    $comment .= $data['commentaire'];
+                    $comment .= trim($data['commentaire']);
                 }
+                $comment .= '</p>';
 
                 $histoLitige
                     ->setComment($comment);
