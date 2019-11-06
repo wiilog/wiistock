@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
 use App\Entity\Litige;
+use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -759,11 +760,17 @@ class ArrivageController extends AbstractController
             $litige
                 ->setStatus($this->statutRepository->find($data['statutLitige']))
                 ->setType($this->typeRepository->find($data['typeLitige']))
-                ->setCommentaire($data['commentaire'])
                 ->setCreationDate(new \DateTime('now'));
             foreach ($data['colisLitige'] as $colisId) {
                 $litige->addColi($this->colisRepository->find($colisId));
             }
+
+            $histo = new LitigeHistoric();
+            $histo
+                ->setDate(new \DateTime('now'))
+                ->setComment($data['commentaire'])
+                ->setLitige($litige)
+                ->setUser($this->getUser());
 
             $path = '../public/uploads/attachements/temp';
 
@@ -781,6 +788,7 @@ class ArrivageController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($litige);
+            $em->persist($histo);
             $em->flush();
             return new JsonResponse($data);
         }
@@ -914,8 +922,8 @@ class ArrivageController extends AbstractController
                 $litige
                     ->setUpdateDate(new \DateTime('now'))
                     ->setType($this->typeRepository->find($data['typeLitige']))
-                    ->setStatus($this->statutRepository->find($data['statutLitige']))
-                    ->setCommentaire($data['commentaire']);
+                    ->setStatus($this->statutRepository->find($data['statutLitige']));
+//                    ->setCommentaire($data['commentaire']);
 
                 foreach ($litige->getColis() as $litigeColis) {
                     $litige->removeColi($litigeColis);
