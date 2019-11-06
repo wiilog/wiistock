@@ -1020,31 +1020,6 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
-     */
-    public function deleteAttachementLitige(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-
-            $litigeId = (int)$data['litigeId'];
-
-            $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $litigeId);
-            if ($attachement) {
-                $em->remove($attachement);
-                $em->flush();
-                $response = true;
-            } else {
-                $response = false;
-            }
-
-            return new JsonResponse($response);
-        } else {
-            throw new NotFoundHttpException('404');
-        }
-    }
-
 	/**
 	 * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
 	 * @param Request $request

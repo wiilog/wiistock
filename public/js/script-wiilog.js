@@ -136,6 +136,7 @@ function submitAction(modal, path, table, callback, close, clear) {
             }
 
             if (clear) clearModal(modal);
+
             if (callback !== null) callback(data);
         }, 'json');
 
@@ -354,7 +355,6 @@ function setCommentaire(div, quill = null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
-        console.log(com);
         $(div).closest('.modal').find('#commentaire').val(com);
     } else if (quill) {
         $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);

@@ -13,10 +13,11 @@
             <i class="fa fa-file mr-2"></i>
             {{ originalName }}
         </a>
-        {% if litige is defined %}
+        {% if litige is defined and litige is not null %}
             <i class="fa fa-times red pointer"
-               onclick="deleteAttachement('{{ litige.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
-        {% else %}
+               onclick="deleteAttachementLitige('{{ litige.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
+        {% endif %}
+        {% if arrivage is defined and arrivage is not null %}
             <i class="fa fa-times red pointer"
                onclick="deleteAttachement('{{ arrivage.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
         {% endif %}

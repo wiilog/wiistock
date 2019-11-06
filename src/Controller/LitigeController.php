@@ -15,6 +15,7 @@ use App\Repository\ColisRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
+use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
@@ -81,6 +82,14 @@ class LitigeController extends AbstractController
     private $litigeHistoricRepository;
 
 	/**
+	 * @var PieceJointeRepository
+	 */
+	private $pieceJointeRepository;
+
+	/**
+	 * @param PieceJointeRepository $pieceJointeRepository
+	 * @param ColisRepository $colisRepository
+	 * @param UserService $userService ;
 	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
@@ -93,7 +102,7 @@ class LitigeController extends AbstractController
      * @param LitigeHistoricRepository $litigeHistoricRepository
 	 * @param UserService $userService;
 	 */
-	public function __construct(ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
+	public function __construct(PieceJointeRepository $pieceJointeRepository, ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -106,6 +115,7 @@ class LitigeController extends AbstractController
 		$this->userService = $userService;
 		$this->colisRepository = $colisRepository;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
+		$this->pieceJointeRepository = $pieceJointeRepository;
 	}
 
 	/**
@@ -210,10 +220,36 @@ class LitigeController extends AbstractController
 		}
 	}
 
-    /**
-     * @Route("/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
-     * @param Litige $litige
-     */
+	/**
+	 * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function deleteAttachementLitige(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
+
+			$litigeId = (int)$data['litigeId'];
+
+			$attachement = $this->pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			if ($attachement) {
+				$em->remove($attachement);
+				$em->flush();
+				$response = true;
+			} else {
+				$response = false;
+			}
+
+			return new JsonResponse($response);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+	/**
+	 * @Route("/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Litige $litige
+	 * @return Response
+	 */
 	public function apiHistoricLitige(Request $request, Litige $litige): Response
     {
         if ($request->isXmlHttpRequest()) {
