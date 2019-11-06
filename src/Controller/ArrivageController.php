@@ -586,7 +586,7 @@ class ArrivageController extends AbstractController
 
             $arrivage = $data;
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
-            dump($codeColis);
+
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension) {
                 $response['height'] = $dimension->getHeight();
