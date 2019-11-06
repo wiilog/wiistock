@@ -82,4 +82,17 @@ class ArrivageRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+    public function getColisByArrivage($arrivage)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT c.code
+			FROM App\Entity\Colis c
+			WHERE c.arrivage = :arrivage"
+        )->setParameter('arrivage', $arrivage);
+
+        return $query->getScalarResult();
+    }
+
 }

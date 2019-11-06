@@ -94,6 +94,7 @@ let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
 InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
+
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');
 }
@@ -304,12 +305,16 @@ function upload(files) {
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
+InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, callbackEdit);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
+
+function callbackEdit() {
+    window.location.reload();
+}
 
 let quillEdit;
 let originalText = '';
@@ -326,6 +331,24 @@ function editRowArrivage(button) {
         modal.find('.modal-body').html(data.html);
         quillEdit = initEditor('.editor-container-edit');
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        originalText = quillEdit.getText();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
+
+function editRowLitige(button) {
+    let path = Routing.generate('litige_api_edit', true);
+    let modal = $('#modalEditLitige');
+    let submit = $('#submitEditLitige');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.error-msg').html('');
+        modal.find('.modal-body').html(data.html);
+        quillEdit = initEditor('.editor-container-edit');
+        modal.find('#colisEditLitige').val(data.colis).select2();
         originalText = quillEdit.getText();
     }, 'json');
 
