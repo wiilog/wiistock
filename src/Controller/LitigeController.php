@@ -5,12 +5,15 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Litige;
 use App\Entity\Menu;
+use App\Entity\LitigeHistoric;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\ColisRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -72,6 +75,11 @@ class LitigeController extends AbstractController
 	 */
 	private $userService;
 
+    /**
+     * @var LitigeHistoricRepository
+     */
+    private $litigeHistoricRepository;
+
 	/**
 	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
@@ -82,9 +90,10 @@ class LitigeController extends AbstractController
 	 * @param ChauffeurRepository $chauffeurRepository
 	 * @param TypeRepository $typeRepository
      * @param ColisRepository $colisRepository
+     * @param LitigeHistoricRepository $litigeHistoricRepository
 	 * @param UserService $userService;
 	 */
-	public function __construct(ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository)
+	public function __construct(ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -96,6 +105,7 @@ class LitigeController extends AbstractController
 		$this->arrivageRepository = $arrivageRepository;
 		$this->userService = $userService;
 		$this->colisRepository = $colisRepository;
+		$this->litigeHistoricRepository = $litigeHistoricRepository;
 	}
 
 	/**
@@ -125,7 +135,6 @@ class LitigeController extends AbstractController
 			}
 
 			$litiges = $this->litigeRepository->getAllWithArrivageData();
-
 			$rows = [];
 			foreach ($litiges as $litige) {
 				$arrivage = $this->arrivageRepository->find($litige['arrivageId']);
@@ -200,4 +209,30 @@ class LitigeController extends AbstractController
 			throw new NotFoundHttpException('404');
 		}
 	}
+
+    /**
+     * @Route("/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
+     * @param Litige $litige
+     */
+	public function apiHistoricLitige(Request $request, Litige $litige): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $rows = [];
+                $idLitige = $litige->getId();
+                $litigeHisto = $this->litigeHistoricRepository->findByLitigeId($idLitige);
+                foreach ($litigeHisto as $histo)
+                {
+                    $rows[] = [
+                        'user' => $histo->getUser()->getUsername(),
+                        'date' => $histo->getDate()->format('d/m/Y'),
+                        'commentaire' => $histo->getComment(),
+                    ];
+                }
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+
+        }
+        throw new NotFoundHttpException('404');
+    }
 }

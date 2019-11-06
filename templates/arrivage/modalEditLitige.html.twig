@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalEditLitige" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
 
             <div class="modal-header">
@@ -10,12 +10,11 @@
             </div>
 
             <div class="modal-body modal-input container-fluid"></div>
-
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitEditLitige" class="btn btn-primary btn-success data "
-                        name='id' type="button" value =''>Enregistrer</button>
+                        name='id' type="button" onclick="setCommentaire('.editor-container-edit', quillEditLitige)" value =''>Enregistrer</button>
             </div>
         </div>
     </div>

@@ -136,7 +136,6 @@ function submitAction(modal, path, table, callback, close, clear) {
             }
 
             if (clear) clearModal(modal);
-            console.log(callback);
             if (callback !== null) callback(data);
         }, 'json');
 
@@ -349,15 +348,16 @@ function initEditor(div) {
 };
 
 //passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quillArrivage = null) {
+function setCommentaire(div, quill = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quillArrivage === null) {
+    if ($(div).length && quill === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
+        console.log(com);
         $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quillArrivage) {
-        $(div).closest('.modal').find('#commentaire').val(quillArrivage.container.firstChild.innerHTML);
+    } else if (quill) {
+        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
     }
 };
 

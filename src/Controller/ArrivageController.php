@@ -8,6 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
 use App\Entity\Litige;
+use App\Entity\LitigeHistoric;
+use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -127,6 +129,11 @@ class ArrivageController extends AbstractController
 	 * @var MouvementTracaRepository
 	 */
     private $mouvementTracaRepository;
+
+    /**
+     * @var LitigeHistoricRepository
+     */
+    private $litigeHistoricRepository;
 
 
     public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
@@ -910,12 +917,17 @@ class ArrivageController extends AbstractController
 
             $em = $this->getDoctrine()->getEntityManager();
             $litige = $this->litigeRepository->find($data['id']);
-
+            $typeBefore = $litige->getType()->getId();
+            $typeBeforeName = $litige->getType()->getLabel();
+            $typeAfter = (int)$data['typeLitige'];
+            $statutBefore = $litige->getStatus()->getId();
+            $statutBeforeName = $litige->getStatus()->getNom();
+            $statutAfter = (int)$data['statutLitige'];
                 $litige
                     ->setUpdateDate(new \DateTime('now'))
                     ->setType($this->typeRepository->find($data['typeLitige']))
-                    ->setStatus($this->statutRepository->find($data['statutLitige']))
-                    ->setCommentaire($data['commentaire']);
+                    ->setStatus($this->statutRepository->find($data['statutLitige']));
+//                    ->setCommentaire($data['commentaire']);
 
                 foreach ($litige->getColis() as $litigeColis) {
                     $litige->removeColi($litigeColis);
@@ -926,6 +938,30 @@ class ArrivageController extends AbstractController
                 }
 
                 $em->persist($litige);
+                $em->flush();
+                $histoLitige = new LitigeHistoric();
+                $histoLitige
+                    ->setLitige($litige)
+                    ->setDate(new \DateTime('now'))
+                    ->setUser($this->getUser());
+                $comment = "";
+
+                if ($typeBefore !== $typeAfter)
+                {
+                    $comment .= "Changement du type: " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+                }
+                if ($statutBefore !== $statutAfter)
+                {
+                    $comment .= "Changement du status: " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+                }
+                if ($data['commentaire'])
+                {
+                    $comment .= $data['commentaire'];
+                }
+
+                $histoLitige
+                    ->setComment($comment);
+                $em->persist($histoLitige);
                 $em->flush();
 
                 return new JsonResponse();
