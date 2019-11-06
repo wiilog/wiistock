@@ -21,7 +21,15 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArticleRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+	private const DtToDbLabels = [
+		'Référence' => 'reference',
+		'Statut' => 'status',
+		'Libellé' => 'label',
+		'Référence article' => 'refArt',
+		'Quantité' => 'quantite',
+	];
+
+	public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Article::class);
     }
@@ -360,6 +368,31 @@ class ArticleRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					switch ($column) {
+						case 'refArt':
+							$qb
+								->leftJoin('a.articleFournisseur', 'af')
+								->leftJoin('af.referenceArticle', 'ra')
+								->orderBy('ra.reference', $order);
+							break;
+						case 'status':
+							$qb
+								->leftJoin('a.statut', 's')
+								->orderBy('s.nom', $order);
+							break;
+						default:
+							$qb->orderBy('a.' . $column, $order);
+							break;
+					}
+                }
+            }
             $allArticleDataTable = $qb->getQuery();
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
@@ -544,7 +577,7 @@ class ArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param string $reference
 	 * @return Article|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function findOneByReference($reference)
 	{
@@ -589,31 +622,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param InventoryMission $mission
-	 * @return mixed
-	 */
-    public function getByMission($mission)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        	/** @lang DQL */
-            "SELECT a.label, a.reference, a.hasInventoryAnomaly, a.id
-            FROM App\Entity\Article a
-            JOIN a.inventoryMissions m
-            LEFT JOIN a.inventoryEntries e
-            WHERE m = :mission"
-        )->setParameter('mission', $mission);
-
-        return $query->execute();
-    }
-
-
     /**
      * @param InventoryMission $mission
      * @param int $artId
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function getEntryDateByMission($mission, $artId)
     {
@@ -734,6 +747,26 @@ class ArticleRepository extends ServiceEntityRepository
 			->setParameter('id', $id);
 
 		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param Article $article
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countInventoryAnomaliesByArt($article)
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(ie)
+			FROM App\Entity\InventoryEntry ie
+			JOIN ie.article a
+			WHERE ie.anomaly = 1 AND a.id = :artId
+			")->setParameter('artId', $article->getId());
+
+		return $query->getSingleScalarResult();
 	}
 
 }

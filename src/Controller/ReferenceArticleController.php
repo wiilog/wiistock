@@ -836,7 +836,7 @@ class ReferenceArticleController extends Controller
 						}
 						$newArticle = new Article();
 						$index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-						$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+						$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF);
 						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 						$ref = $date->format('YmdHis');
 						$articleFournisseur = new ArticleFournisseur();

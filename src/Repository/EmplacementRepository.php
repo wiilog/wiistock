@@ -14,6 +14,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class EmplacementRepository extends ServiceEntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Nom' => 'label',
+        'Description' => 'description',
+        'Point de livraison' => 'isDeliveryPoint',
+        'Actif / Inactif' => 'isActive',
+    ];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Emplacement::class);
@@ -115,13 +123,25 @@ class EmplacementRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $qb->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
+                }
+            }
             $allEmplacementDataTable = $qb->getQuery();
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-        return ['data' => $query ? $query->getResult() : null, 'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
-            'count' => $countQuery,  'total' => $countTotal];
+        return [
+        	'data' => $query ? $query->getResult() : null,
+			'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
+            'count' => $countQuery,
+			'total' => $countTotal
+		];
     }
 
     public function countAll()

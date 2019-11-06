@@ -524,7 +524,7 @@ class RefArticleDataService
 
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
-            'label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
+            'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
             'QuantiteStock' => $quantity,
             'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
             'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),

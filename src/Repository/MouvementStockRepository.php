@@ -5,8 +5,10 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -296,4 +298,48 @@ class MouvementStockRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+    /**
+     * @param $idRef
+     * @param $idPrep
+     * @return MouvementStock | null
+     * @throws NonUniqueResultException
+     */
+    public function findByRefAndPrepa($idRef, $idPrep)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.refArticle = :id AND m.preparationOrder = :idP"
+        )->setParameters([
+            'id' => $idRef,
+            'idP' => $idPrep
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @param $idArt
+     * @param $idPrep
+     * @return MouvementStock | null
+     * @throws NonUniqueResultException
+     */
+    public function findByArtAndPrepa($idArt, $idPrep)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.article = :id AND m.preparationOrder = :idP"
+        )->setParameters([
+            'id' => $idArt,
+            'idP' => $idPrep
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
 }

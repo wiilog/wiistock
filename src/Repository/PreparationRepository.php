@@ -38,7 +38,8 @@ class PreparationRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT p.id, 
                          p.numero as number,
-                         dest.label as destination
+                         dest.label as destination,
+                         t.label as type
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
 			JOIN p.demandes d
