@@ -22,7 +22,6 @@ use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-
 use App\Repository\ColisRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\InventoryEntryRepository;
@@ -45,6 +44,7 @@ use App\Repository\FournisseurRepository;
 use App\Service\ArticleDataService;
 use App\Service\InventoryService;
 use App\Service\MailerService;
+use App\Service\Nomade\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use FOS\RestBundle\Controller\FOSRestController;
@@ -57,6 +57,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
+
 
 /**
  * Class ApiController
@@ -528,10 +529,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\View()
      */
     public function finishPrepa(Request $request,
-                                DemandeRepository $demandeRepository)
+                                PreparationsManagerService $preparationsManager)
     {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+                $resData = ['success' => [], 'errors' => []];
 
                 $entityManager = $this->getDoctrine()->getManager();
 
@@ -541,175 +546,48 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 // même comportement que LivraisonController.new()
                 foreach ($preparations as $preparationArray) {
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
-//                    $preparation->setCommentaire($preparationArray['comment']);
 
                     if ($preparation) {
-                        $demandes = $preparation->getDemandes();
-                        $demande = $demandes[0];
+                        try {
+                            $preparationsManager->treatPreparation($preparation, $preparationArray, $nomadUser);
 
-                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
-                        $livraison = new Livraison();
-
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
-                        $livraison
-                            ->setDate($date)
-                            ->setNumero('L-' . $date->format('YmdHis'))
-                            ->setStatut($statut);
-                        $entityManager->persist($livraison);
-
-                        $preparation
-                            ->addLivraison($livraison)
-                            ->setUtilisateur($nomadUser)
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
-
-                        $demande
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
-                            ->setLivraison($livraison);
-
-                        // on termine les mouvements de préparation
-                        $mouvements = $this->mouvementRepository->findByPreparation($preparation);
-                        $emplacementPrepa = $this->emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                        foreach ($mouvements as $mouvement) {
-                            if ($emplacementPrepa) {
-                                $mouvement
-                                    ->setDate($date)
-                                    ->setEmplacementTo($emplacementPrepa);
-                            } else {
-                                $this->successDataMsg['success'] = false;
-                                $this->successDataMsg['msg'] = "L'emplacement que vous avez sélectionné n'existe plus.";
-                                return new JsonResponse($this->successDataMsg);
+                            $mouvementsNomade = $preparationArray['mouvements'];
+                            // on crée les mouvements de livraison
+                            foreach ($mouvementsNomade as $mouvementNomade) {
+                                $preparationsManager->treatMouvement($mouvementNomade, $nomadUser);
                             }
-                        }
 
-                        $entityManager->flush();
+                            $entityManager->flush();
+                            $resData['success'][] = [
+                                'numero_prepa' => $preparation->getNumero(),
+                                'id_prepa' => $preparation->getId()
+                            ];
+                        }
+                        catch (\Exception $exception) {
+                            $resData['errors'][] = [
+                                'numero_prepa' => $preparation->getNumero(),
+                                'id_prepa' => $preparation->getId(),
+
+                                'message' => (
+                                    ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                    (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
+                                        'Une erreur est survenue')
+                                )
+                            ];
+                        }
                     }
                 }
 
-                $mouvementsNomade = $data['mouvements'];
-				$listMvtToRemove = [];
-
-                // on crée les mouvements de livraison
-                foreach ($mouvementsNomade as $mouvementNomade) {
-                    $preparation = $this->preparationRepository->find($mouvementNomade['id_prepa']);
-                    $livraison = $this->livraisonRepository->findOneByPreparationId($preparation->getId());
-                    $emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
-                    $mouvement = new MouvementStock();
-                    $mouvement
-                        ->setUser($nomadUser)
-                        ->setQuantity($mouvementNomade['quantity'])
-                        ->setEmplacementFrom($emplacement)
-                        ->setType(MouvementStock::TYPE_SORTIE)
-                        ->setLivraisonOrder($livraison)
-                        ->setExpectedDate($livraison->getDate());
-                    $entityManager->persist($mouvement);
-
-                    if ($mouvementNomade['is_ref']) {
-                        $refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
-                        if ($refArticle) {
-                            $mouvement->setRefArticle($refArticle);
-                            $mouvement->setQuantity($this->mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
-                            $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
-                            $ligneArticle->setQuantite($mouvement->getQuantity());
-                        }
-                    } else {
-                        $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
-                        if ($article) {
-                            $isSelectedByArticle = (
-                                isset($mouvementNomade['selected_by_article']) &&
-                                $mouvementNomade['selected_by_article']
-                            );
-
-                            // si c'est un article sélectionné par l'utilisateur :
-                            // on prend la quantité donnée dans le mouvement
-                            // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                            $mouvementQuantity = (
-                                $isSelectedByArticle
-                                    ? $mouvementNomade['quantity']
-                                    : $this->mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity()
-                            );
-
-                            $mouvement->setQuantity($mouvementQuantity);
-                            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-                            $mouvement->setArticle($article);
-                            $article->setQuantiteAPrelever($mouvement->getQuantity());
-
-                            if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                                $newArticle = [
-                                    'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                                    'libelle' => $article->getLabel(),
-                                    'conform' => !$article->getConform(),
-                                    'commentaire' => $article->getcommentaire(),
-                                    'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                                    'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                                    'statut' => Article::STATUT_ACTIF,
-                                    'prix' => $article->getPrixUnitaire(),
-                                    'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
-                                ];
-
-                                foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                                    $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                                }
-                                $this->articleDataService->newArticle($newArticle);
-
-                                $article->setQuantite($article->getQuantiteAPrelever());
-                            }
-
-                            if ($isSelectedByArticle) {
-                                if ($article->getDemande()) {
-                                    throw new BadRequestHttpException('article-already-selected');
-                                } else {
-									// on crée le lien entre l'article et la demande
-                                    $demande = $demandeRepository->findOneByLivraison($livraison);
-                                    $article->setDemande($demande);
-
-									// et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
-                                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-									if (!empty($ligneArticle)) {
-                                        $entityManager->remove($ligneArticle);
-                                    }
-
-									// on crée le mouvement de transfert de l'article
-									$mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
-									$newMouvement = new MouvementStock();
-									$newMouvement
-										->setUser($nomadUser)
-										->setArticle($article)
-										->setQuantity($article->getQuantiteAPrelever())
-										->setEmplacementFrom($article->getEmplacement())
-										->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
-										->setType(MouvementStock::TYPE_TRANSFERT)
-										->setPreparationOrder($preparation)
-										->setDate($mouvementRef ? $mouvementRef->getDate() : '')
-										->setExpectedDate($preparation->getDate());
-									$entityManager->persist($newMouvement);
-									$entityManager->flush();
-									if ($mouvementRef) {
-									    $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
-                                    }
-								}
-                            }
-                        }
-                    }
-
-                    $entityManager->flush();
-                }
-
-				// on supprime les mouvements de transfert créés pour les réf gérées à l'articles
-				// (elles ont été remplacées plus haut par les mouvements de transfert des articles)
-				foreach ($listMvtToRemove as $mvtToRemove){
-					$entityManager->remove($mvtToRemove);
-				}
-
+                $preparationsManager->removeRefMouvements();
                 $entityManager->flush();
-                $this->successDataMsg['success'] = true;
 
             } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
 
-            return new JsonResponse($this->successDataMsg);
+            return new JsonResponse($this->successDataMsg, $statusCode);
         }
     }
 
@@ -1071,150 +949,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/getManutentions", name= "api-get-manuts")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getManutentions(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                return new JsonResponse([
-                    'success' => true,
-                    'manutentions' => $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER))
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                ]);
-            }
-        } else {
-            return new JsonResponse([
-                'success' => false,
-            ]);
-        }
-    }
-
-    /**
-     * @Rest\Post("/api/getManut", name= "api-get-manut")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getOneManutention(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                return new JsonResponse([
-                    'success' => true,
-                    'manutention' => $this->manutentionRepository->findOneForAPI($data['id'])
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                ]);
-            }
-        }
-    }
-
-    /**
-     * @Rest\Post("/api/getPreparations", name= "api-get-preps")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getPreparations(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $userTypes = [];
-                foreach ($nomadUser->getTypes() as $type) {
-                    $userTypes[] = $type->getId();
-                }
-                $articlesPrepa = $this->articleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $nomadUser);
-                $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $nomadUser);
-
-                // get article linked to a ReferenceArticle where type_quantite === 'article'
-                $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $nomadUser);
-                return new JsonResponse([
-                    'success' => true,
-                    'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $nomadUser, $userTypes),
-                    'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
-                    'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                ]);
-            }
-        } else {
-            return new JsonResponse([
-                'success' => false,
-            ]);
-        }
-    }
-
-    /**
-     * @Rest\Post("/api/getLivraisons", name= "api-get-livrs")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getLivraisons(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $nomadUser);
-                $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $nomadUser);
-                return new JsonResponse([
-                    'success' => true,
-                    'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $nomadUser),
-                    'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                ]);
-            }
-        } else {
-            return new JsonResponse([
-                'success' => false,
-            ]);
-        }
-    }
-
-    /**
-     * @Rest\Post("/api/getCollectes", name= "api-get-cols")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getCollectes(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-
-                $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $nomadUser);
-                $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $nomadUser);
-                return new JsonResponse([
-                    'success' => true,
-                    'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $nomadUser),
-                    'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                ]);
-            }
-        } else {
-            return new JsonResponse([
-                'success' => false,
-            ]);
-        }
-    }
-
-    /**
      * @Rest\Post("/api/getData", name= "api-get-data")
      */
     public function getData(Request $request)
@@ -1223,29 +957,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = $this->getDataArray($nomadUser);
-
-            } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-            }
-
-            return new JsonResponse($this->successDataMsg);
-        }
-    }
-
-    /**
-     * @Rest\Post("/api/getAnomalies", name="api-get-anomalies")
-     */
-    public function getAnomalies(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-
-                $anomaliesOnRef = $this->inventoryEntryRepository->getAnomaliesOnRef();
-                $anomaliesOnArt = $this->inventoryEntryRepository->getAnomaliesOnArt();
-
-                $this->successDataMsg['success'] = true;
-                $this->successDataMsg['data'] = array_merge($anomaliesOnRef, $anomaliesOnArt);
 
             } else {
                 $this->successDataMsg['success'] = false;
