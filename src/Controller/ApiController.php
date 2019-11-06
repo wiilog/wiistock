@@ -278,9 +278,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
 
+                    $isInventoryManager = $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user);
+
                     $this->successDataMsg['success'] = true;
-                    $this->successDataMsg['data'] = $this->getDataArray($user);
-                    $this->successDataMsg['data']['apiKey'] = $apiKey;
+                    $this->successDataMsg['data'] = [
+                        'isInventoryManager' => $isInventoryManager,
+                        'apiKey' => $apiKey
+                    ];
                 }
             }
 
@@ -940,7 +944,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
-            'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
             'manutentions' => $manutentions,
             'anomalies' => array_merge($refAnomalies, $artAnomalies)
         ];
@@ -971,6 +974,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         $key = md5(microtime() . rand());
         return $key;
+    }
+
+    /**
+     * @Rest\Get("/api/nomade-versions")
+     */
+    public function getAvailableVersionsAction() {
+        return new JsonResponse($this->getParameter('nomade_versions') ?? '*');
     }
 
     /**
