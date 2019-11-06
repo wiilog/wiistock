@@ -36,7 +36,7 @@
             <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
                 <span class="fa fa-plus mr-2"></span>Ajouter colis
             </div>
-            <div class="btn btn-primary">
+            <div class="btn btn-primary" onclick="getDataAndPrintLabels({{ arrivage.id }})">
                 <span class="fa fa-print mr-2"></span>Imprimer colis
             </div>
         </div>
@@ -54,7 +54,6 @@
         </div>
     </div>
 </div>
-
 <a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
 
 

@@ -584,7 +584,10 @@ class ArrivageController extends AbstractController
      */
     public function getDataToPrintLabels(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $arrivage = $data;
+            $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension) {
@@ -595,7 +598,8 @@ class ArrivageController extends AbstractController
                 $response['height'] = $response['width'] = 0;
                 $response['exists'] = false;
             }
-            return new JsonResponse($response);
+            $responseData = array('response' => $response, 'codeColis' => $codeColis);
+            return new JsonResponse($responseData);
 
         } else {
             throw new NotFoundHttpException('404');
