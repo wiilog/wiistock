@@ -136,7 +136,7 @@ function submitAction(modal, path, table, callback, close, clear) {
             }
 
             if (clear) clearModal(modal);
-            console.log(callback);
+
             if (callback !== null) callback(data);
         }, 'json');
 

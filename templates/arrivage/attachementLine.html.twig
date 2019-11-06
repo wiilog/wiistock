@@ -16,7 +16,8 @@
         {% if litige is defined %}
             <i class="fa fa-times red pointer"
                onclick="deleteAttachement('{{ litige.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
-        {% else %}
+        {% endif %}
+        {% if arrivage is defined %}
             <i class="fa fa-times red pointer"
                onclick="deleteAttachement('{{ arrivage.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
         {% endif %}
