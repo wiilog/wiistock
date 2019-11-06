@@ -752,7 +752,6 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $litige = new Litige();
-            dump($data['colisLitige']);
             $litige
                 ->setStatus($this->statutRepository->find($data['statutLitige']))
                 ->setType($this->typeRepository->find($data['typeLitige']))
@@ -880,14 +879,20 @@ class ArrivageController extends AbstractController
 
             $litige = $this->litigeRepository->find($data['id']);
 
-            $json = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
+            $colisCode = [];
+            foreach ($litige->getColis() as $colis) {
+                $colisCode[] = $colis->getId();
+            }
+
+            $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
+                'colis' => $this->colisRepository->findAll(),
             ]);
 
-            return new JsonResponse($json);
+            return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -907,6 +912,14 @@ class ArrivageController extends AbstractController
                     ->setType($this->typeRepository->find($data['typeLitige']))
                     ->setStatus($this->statutRepository->find($data['statutLitige']))
                     ->setCommentaire($data['commentaire']);
+
+                foreach ($litige->getColis() as $litigeColis) {
+                    $litige->removeColi($litigeColis);
+                }
+
+                foreach ($data['colis'] as $colis) {
+                    $litige->addColi($this->colisRepository->find($colis));
+                }
 
                 $em->persist($litige);
                 $em->flush();

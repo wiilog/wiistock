@@ -313,7 +313,6 @@ let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 
 function callbackEdit() {
-    console.log('trop marrant');
     window.location.reload();
 }
 
@@ -332,6 +331,24 @@ function editRowArrivage(button) {
         modal.find('.modal-body').html(data.html);
         quillEdit = initEditor('.editor-container-edit');
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        originalText = quillEdit.getText();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
+
+function editRowLitige(button) {
+    let path = Routing.generate('litige_api_edit', true);
+    let modal = $('#modalEditLitige');
+    let submit = $('#submitEditLitige');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.error-msg').html('');
+        modal.find('.modal-body').html(data.html);
+        quillEdit = initEditor('.editor-container-edit');
+        modal.find('#colisEditLitige').val(data.colis).select2();
         originalText = quillEdit.getText();
     }, 'json');
 
