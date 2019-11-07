@@ -242,7 +242,6 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statut = $this->statutRepository->find($data['statut']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -250,7 +249,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
@@ -388,11 +386,6 @@ class ArrivageController extends AbstractController
                 foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
-            }
-
-            if (isset($data['statutAcheteur'])) {
-                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
             $em->flush();
