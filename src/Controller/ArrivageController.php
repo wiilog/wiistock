@@ -520,14 +520,10 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
+    private function sendMailToAcheteurs($arrivage, $litige)
     {
         foreach ($arrivage->getAcheteurs() as $acheteur) {
-            if ($newLitige) {
-                $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-            } else {
-                $title = 'Un litige sur arrivage nécessite un retour de votre part :';
-            }
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
@@ -749,9 +745,9 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
+     * @Route("/creer-litige/{id}", name="litige_new", options={"expose"=true}, methods={"POST"})
      */
-    public function newLitige(Request $request): Response
+    public function newLitige(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -782,6 +778,8 @@ class ArrivageController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($litige);
             $em->flush();
+
+            $this->sendMailToAcheteurs($this->arrivageRepository->find($id), $litige);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

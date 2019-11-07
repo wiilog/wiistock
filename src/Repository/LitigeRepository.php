@@ -27,7 +27,7 @@ class LitigeRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			"SELECT l
 			FROM App\Entity\Litige l
-			JOIN l.statut s
+			JOIN l.status s
 			WHERE s.nom = :statutLabel"
 		)->setParameter('statutLabel', $statutLabel);
 

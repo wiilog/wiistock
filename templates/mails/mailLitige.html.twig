@@ -2,44 +2,48 @@
 
 {% block content %}
 
-{% set arrivage = litige.arrivage %}
-<table class="table">
-    <thead>
-    <tr>
-        <th class="th">N° d'arrivage</th>
-        <th class="th">Transporteur</th>
-        <th class="th">Chauffeur</th>
-        <th class="th">N° tracking transporteur</th>
-        <th class="th">N° commande / BL</th>
-        <th class="th">Fournisseur</th>
-        <th class="th">Acheteur(s)</th>
-        <th class="th">Destinataire</th>
-        <th class="th">Nb UM</th>
-        <th class="th">Date</th>
-        <th class="th">Utilisateur</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class="td">{{ arrivage.numeroArrivage }}</td>
-        <td class="td">{{ arrivage.transporteur.label|capitalize }}</td>
-        <td class="td">{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper : '' }} </td>
-        <td class="td">{{ arrivage.noTracking }}</td>
-        <td class="td">{{ arrivage.numeroBL }}</td>
-        <td class="td">{{ arrivage.fournisseur.nom }}</td>
-        <td class="td">
-            {% for acheteur in arrivage.acheteurs %}
-                {{ acheteur }} <br>
-            {% endfor %}
-        </td>
-        <td class="td">{{ arrivage.destinataire.username }}</td>
-        <td class="td">{{ arrivage.nbUM }}</td>
-        <td class="td">{{ arrivage.date|date('d/m/Y H:i') }}</td>
-        <td class="td">{{ arrivage.utilisateur.username}}</td>
-    </tr>
-    </tbody>
-</table>
+{% set arrayColis = litige.colis %}
 
-<p style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</p>
+{% for colis in arrayColis %}
+    {% set arrivage = colis.arrivage %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th class="th">Colis</th>
+            <th class="th">N° d'arrivage</th>
+            <th class="th">Transporteur</th>
+            <th class="th">Chauffeur</th>
+            <th class="th">N° tracking transporteur</th>
+            <th class="th">N° commande / BL</th>
+            <th class="th">Fournisseur</th>
+            <th class="th">Acheteur(s)</th>
+            <th class="th">Destinataire</th>
+            <th class="th">Date</th>
+            <th class="th">Utilisateur</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="td">{{ colis.code }}</td>
+            <td class="td">{{ arrivage.numeroArrivage }}</td>
+            <td class="td">{{ arrivage.transporteur.label|capitalize }}</td>
+            <td class="td">{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper : '' }} </td>
+            <td class="td">{{ arrivage.noTracking }}</td>
+            <td class="td">{{ arrivage.numeroBL }}</td>
+            <td class="td">{{ arrivage.fournisseur.nom }}</td>
+            <td class="td">
+                {% for acheteur in arrivage.acheteurs %}
+                    {{ acheteur }} <br>
+                {% endfor %}
+            </td>
+            <td class="td">{{ arrivage.destinataire.username }}</td>
+            <td class="td">{{ arrivage.date|date('d/m/Y H:i') }}</td>
+            <td class="td">{{ arrivage.utilisateur.username}}</td>
+        </tr>
+        </tbody>
+    </table>
+    <p style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</p>
+{% endfor %}
+
 
 {% endblock %}
