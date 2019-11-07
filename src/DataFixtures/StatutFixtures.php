@@ -107,12 +107,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Arrivage::STATUS_CONFORME,
 				Arrivage::STATUS_LITIGE,
 			],
-			CategorieStatut::LITIGE_ARR => [
-				[Litige::CONFORME, 1],
-				[Litige::ATTENTE_ACHETEUR, 0],
-				[Litige::TRAITE_ACHETEUR, 0],
-				[Litige::SOLDE, 1],
-			]
+			CategorieStatut::LITIGE_ARR => []
 		];
 
     	foreach ($categoriesStatus as $categoryName => $statuses) {
@@ -131,34 +126,19 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
 			// création des statuts
 			foreach ($statuses as $statusLabel) {
-			    if (is_array($statusLabel)) {
-                    $this->persistStatus($categoryName, $statusLabel[0], $manager, $statusLabel[1]);
-                }
-			    else {
-                    $this->persistStatus($categoryName, $statusLabel, $manager);
-                }
+				$statut = $this->statutRepository->findOneByCategorieNameAndStatutName($categoryName, $statusLabel);
 
+				if (empty($statut)) {
+					$statut = new Statut();
+					$statut
+						->setNom($statusLabel)
+						->setCategorie($this->getReference('statut-' . $categoryName));
+					$manager->persist($statut);
+					dump("création du statut " . $statusLabel);
+				}
 			}
 		}
         $manager->flush();
-    }
-
-    private function persistStatus($categoryName, $statusLabel, $manager, $treated = null): void {
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName($categoryName, $statusLabel);
-
-        if (empty($statut)) {
-            $statut = new Statut();
-            $statut
-                ->setNom($statusLabel)
-                ->setCategorie($this->getReference('statut-' . $categoryName));
-
-            $manager->persist($statut);
-            dump("création du statut " . $statusLabel);
-        }
-
-        if (isset($treated)) {
-            $statut->setTreated($treated);
-        }
     }
 
     public static function getGroups(): array

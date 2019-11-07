@@ -16,11 +16,9 @@
         <div class="form-group col-12">
             <label for="statutLitige">Statut*</label>
             <select class="form-control data needed" id="statutLitige" name="statutLitige">
-                <option placeholder="" value="{{ litige.status.id }}" selected>{{ litige.status.nom }}</option>
                 {% for statut in statusLitige %}
-                    {% if statut.id != litige.status.id %}
-                        <option value="{{ statut.id }}">{{ statut.nom }}</option>
-                    {% endif %}
+                    {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>

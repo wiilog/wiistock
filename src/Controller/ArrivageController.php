@@ -759,7 +759,7 @@ class ArrivageController extends AbstractController
                 'arrivage' => $arrivage,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
                 'addColis' => $addColis
             ]);
@@ -916,7 +916,7 @@ class ArrivageController extends AbstractController
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $this->colisRepository->findAll(),
             ]);

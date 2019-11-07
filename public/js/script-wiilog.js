@@ -628,6 +628,7 @@ function alertErrorMsg(data, remove = false) {
 function alertSuccessMsg(data) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
+    $alertSuccess.css('display', 'block');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
