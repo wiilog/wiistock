@@ -13,9 +13,7 @@ use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -29,14 +27,11 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -763,6 +758,9 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $litige = new Litige();
             $litige
@@ -813,6 +811,10 @@ class ArrivageController extends AbstractController
     public function addColis(Request $request)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
 			$em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
