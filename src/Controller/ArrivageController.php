@@ -738,30 +738,10 @@ class ArrivageController extends AbstractController
         }
 
 
-
-        /** @var Colis[] $colisCollection */
-        $colisCollection = $arrivage->getColis()->toArray();
-        $isLitige = false;
-        foreach($colisCollection as $colis) {
-            /** @var Litige[] $litiges */
-            $litiges = $colis->getLitiges()->toArray();
-            foreach ($litiges as $litige) {
-                $status = $litige->getStatus();
-                $isLitige = !isset($status) || !$status->isTreated();
-                if ($isLitige) {
-                    break;
-                }
-            }
-
-            if ($isLitige) {
-                break;
-            }
-        }
-
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
-                'statutArrivage' => $isLitige ? Arrivage::STATUS_LITIGE : Arrivage::STATUS_CONFORME,
+                'statutArrivage' => $arrivage->getStatus(),
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
@@ -884,8 +864,8 @@ class ArrivageController extends AbstractController
             foreach ($litiges as $litige) {
                 $rows[] = [
                     'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
-                    'status' => $litige->getStatus()->getNom() ? $litige->getStatus()->getNom() : '',
-                    'type' => $litige->getType()->getLabel() ? $litige->getType()->getLabel() : '',
+                    'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
+                    'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
                     'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                         'url' => [
