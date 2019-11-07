@@ -65,6 +65,7 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
