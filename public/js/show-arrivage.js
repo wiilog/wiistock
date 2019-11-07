@@ -95,6 +95,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
     ],
+    order: [[0, 'desc']],
 });
 
 let editorNewLitigeAlreadyDone = false;
