@@ -412,3 +412,26 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
         }
     });
 }
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printColisBarcode(codeColis) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
+    });
+}
