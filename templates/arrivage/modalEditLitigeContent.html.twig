@@ -39,9 +39,8 @@
 
         <div class="form-group col-12 fit-content">
             <label for="commentaire">Commentaire</label>
-{#            <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"#}
-{#                   value="{{ litige.commentaire }}">#}
-{#            <div class="editor-container-edit" value="{{ litige.commentaire }}">{{ litige.commentaire|raw }}</div>#}
+            <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
+            <div class="editor-container-edit"></div>
         </div>
 
         <div class="form-group col-12">
@@ -50,4 +49,8 @@
             </div>
         </div>
     </div>
+    <div class="tableHistoric">
+        <table id="tableHistoLitige" class="table table-striped table-bordered w-100 no-padding-on-p"></table>
+    </div>
+    <input hidden value="{{ litige.id }}" id="litigeId" class="data">
 </div>

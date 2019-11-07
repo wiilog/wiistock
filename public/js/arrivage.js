@@ -519,13 +519,6 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .draw();
 });
-function printLabels(data) {
-    if (data.exists) {
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
 
 function deleteAttachement(arrivageId, originalName, pjName) {
 
@@ -540,21 +533,6 @@ function deleteAttachement(arrivageId, originalName, pjName) {
         let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
-        }
-    });
-}
-
-function getDataAndPrintLabels(codes) {
-    let path = Routing.generate('arrivage_get_data_to_print', true);
-    let param = codes;
-
-    $.post(path, JSON.stringify(param), function (response) {
-        let codeColis = [];
-        if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
-            }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }

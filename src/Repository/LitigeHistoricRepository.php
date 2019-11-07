@@ -19,4 +19,15 @@ class LitigeHistoricRepository extends ServiceEntityRepository
         parent::__construct($registry, LitigeHistoric::class);
     }
 
+    public function findByLitigeId($litige)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT h
+			FROM App\Entity\litigeHistoric h
+			WHERE h.litige = :litigeId"
+        )->setParameter('litigeId', $litige);
+
+        return $query->execute();
+    }
 }

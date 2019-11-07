@@ -47,11 +47,6 @@ class Arrivage
     private $destinataire;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="arrivages")
-     */
-    private $statut;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesAcheteur")
      */
     private $acheteurs;
@@ -107,6 +102,28 @@ class Arrivage
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getStatus(): string {
+        /** @var Colis[] $colisCollection */
+        $colisCollection = $this->colis->toArray();
+        $isLitige = false;
+        foreach($colisCollection as $colis) {
+            /** @var Litige[] $litiges */
+            $litiges = $colis->getLitiges()->toArray();
+            foreach ($litiges as $litige) {
+                $status = $litige->getStatus();
+                $isLitige = !isset($status) || !$status->isTreated();
+                if ($isLitige) {
+                    break;
+                }
+            }
+
+            if ($isLitige) {
+                break;
+            }
+        }
+        return $isLitige ? self::STATUS_LITIGE : self::STATUS_CONFORME;
     }
 
     public function getFournisseur(): ?Fournisseur
@@ -165,18 +182,6 @@ class Arrivage
     public function setDestinataire(?Utilisateur $destinataire): self
     {
         $this->destinataire = $destinataire;
-
-        return $this;
-    }
-
-    public function getStatut(): ?Statut
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?Statut $statut): self
-    {
-        $this->statut = $statut;
 
         return $this;
     }

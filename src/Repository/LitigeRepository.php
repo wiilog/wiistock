@@ -27,12 +27,28 @@ class LitigeRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			"SELECT l
 			FROM App\Entity\Litige l
-			JOIN l.statut s
+			JOIN l.status s
 			WHERE s.nom = :statutLabel"
 		)->setParameter('statutLabel', $statutLabel);
 
 		return $query->execute();
 	}
+
+	public function getEmailsAcheteurByLitige(Litige $litige) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT acheteur.email
+			FROM App\Entity\Litige litige
+			JOIN litige.colis colis
+			JOIN colis.arrivage arrivage
+            JOIN arrivage.acheteurs acheteur
+            WHERE litige = :litige"
+        )->setParameter('litige', $litige);
+
+        return array_map(function($utilisateur) {
+            return $utilisateur['email'];
+        }, $query->execute());
+    }
 
 	public function getAllWithArrivageData()
 	{

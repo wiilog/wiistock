@@ -49,6 +49,26 @@ let tableColis = $('#tableColis').DataTable({
     ],
 });
 
+function openTableHisto() {
+
+    let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableHistoLitige = $('#tableHistoLitige').DataTable({
+        language: {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathHistoLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+        ],
+    });
+}
+
+
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
@@ -84,6 +104,16 @@ function initNewLitigeEditor(modal) {
     if (!editorNewLitigeAlreadyDone) {
         quillNewLitige = initEditor(modal + ' .editor-container-new');
         editorNewLitigeAlreadyDone = true;
+    }
+}
+
+let editorEditLitigeAlreadyDone = false;
+let quillEditLitige;
+
+function initEditLitigeEditor(modal) {
+    if (!editorEditLitigeAlreadyDone) {
+        quillEditLitige = initEditor(modal + ' .editor-container-edit');
+        editorEditLitigeAlreadyDone = true;
     }
 }
 
@@ -340,7 +370,7 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitige(button) {
+function editRowLitige(button, afterLoadingEditModal = () => {}) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -353,6 +383,7 @@ function editRowLitige(button) {
         quillEdit = initEditor('.editor-container-edit');
         modal.find('#colisEditLitige').val(data.colis).select2();
         originalText = quillEdit.getText();
+        afterLoadingEditModal()
     }, 'json');
 
     modal.find(submit).attr('value', id);
@@ -382,5 +413,28 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
+    });
+}
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printColisBarcode(codeColis) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
     });
 }
