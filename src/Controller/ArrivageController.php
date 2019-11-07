@@ -13,9 +13,7 @@ use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -29,14 +27,11 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -167,11 +162,14 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'statuts' => [
+                ['nom' => Arrivage::STATUS_CONFORME],
+                ['nom' => Arrivage::STATUS_LITIGE]
+            ]
         ]);
     }
 
@@ -214,7 +212,7 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
-                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+                    'Statut' => $arrivage->getStatus(),
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView(
@@ -242,7 +240,6 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statut = $this->statutRepository->find($data['statut']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -250,7 +247,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
@@ -327,19 +323,11 @@ class ArrivageController extends AbstractController
                     'arrivage' => $arrivage,
                     //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
-                ]);
-            } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
-                $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
-                    'arrivage' => $arrivage,
-                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME
                 ]);
             } else {
                 $html = '';
@@ -367,12 +355,6 @@ class ArrivageController extends AbstractController
 
             if (isset($data['commentaire'])) {
                 $arrivage->setCommentaire($data['commentaire']);
-            }
-            $hasChanged = false;
-            if (isset($data['statut'])) {
-                $statut = $this->statutRepository->find($data['statut']);
-                if ($arrivage->getStatut() !== $statut) $hasChanged = true;
-                $arrivage->setStatut($statut);
             }
             if (isset($data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
@@ -402,11 +384,6 @@ class ArrivageController extends AbstractController
                 foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
-            }
-
-            if (isset($data['statutAcheteur'])) {
-                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
             }
 
             $em->flush();
@@ -527,23 +504,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
-    {
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
-            if ($newLitige) {
-                $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-            } else {
-                $title = 'Un litige sur arrivage nécessite un retour de votre part :';
-            }
+    private function sendMailToAcheteurs($litige) {
+        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
-                $this->renderView('mails/mailLitige.html.twig', [
-                    'litige' => $litige,
+                $this->renderView('mails/mailLitiges.html.twig', [
+                    'litiges' => [$litige],
                     'title' => $title,
                     'urlSuffix' => 'arrivage'
                 ]),
-                $acheteur->getEmail()
+                $email
             );
         }
     }
@@ -587,7 +560,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+     * @Route("/api-etiquettes-arrivage", name="arrivage_get_data_to_print", options={"expose"=true})
      */
     public function getDataToPrintLabels(Request $request)
     {
@@ -612,6 +585,29 @@ class ArrivageController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 */
+    public function getPrintData(Request $request)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['exists'] = true;
+			} else {
+				$response['height'] = $response['width'] = 0;
+				$response['exists'] = false;
+			}
+
+			return new JsonResponse($response);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
     /**
      * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
@@ -693,7 +689,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getStatut()->getNom();
+                $arrivageData[] = $arrivage->getStatus();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -743,6 +739,7 @@ class ArrivageController extends AbstractController
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
+
 
         return $this->render("arrivage/show.html.twig",
             [
@@ -799,6 +796,8 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->persist($histo);
             $em->flush();
+
+            $this->sendMailToAcheteurs($litige);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -870,14 +869,15 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
+            /** @var Litige[] $litiges */
             $litiges = $this->litigeRepository->getByArrivage($arrivage);
 
             $rows = [];
             foreach ($litiges as $litige) {
                 $rows[] = [
                     'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
-                    'status' => $litige->getStatus()->getNom() ? $litige->getStatus()->getNom() : '',
-                    'type' => $litige->getType()->getLabel() ? $litige->getType()->getLabel() : '',
+                    'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
+                    'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
                     'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                         'url' => [
@@ -1062,7 +1062,7 @@ class ArrivageController extends AbstractController
 					'deliveryDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
 					'operator' => $mouvement ? $mouvement->getOperateur() : '',
-					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig'),
+					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
 				];
 			}
 			$data['data'] = $rows;

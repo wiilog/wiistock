@@ -24,6 +24,11 @@ class Statut
     private $nom;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $treated;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
      */
     private $categorie;
@@ -69,11 +74,6 @@ class Statut
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
-     */
-    private $arrivages;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
      */
     private $litiges;
@@ -88,7 +88,6 @@ class Statut
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
-        $this->arrivages = new ArrayCollection();
         $this->litiges = new ArrayCollection();
     }
 
@@ -106,6 +105,15 @@ class Statut
     {
         $this->nom = $nom;
 
+        return $this;
+    }
+
+    public function isTreated(): ?bool {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self {
+        $this->treated = $treated;
         return $this;
     }
 
@@ -368,37 +376,6 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($manutention->getStatut() === $this) {
                 $manutention->setStatut(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Arrivage[]
-     */
-    public function getArrivages(): Collection
-    {
-        return $this->arrivages;
-    }
-
-    public function addArrivage(Arrivage $arrivage): self
-    {
-        if (!$this->arrivages->contains($arrivage)) {
-            $this->arrivages[] = $arrivage;
-            $arrivage->setStatut($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrivage(Arrivage $arrivage): self
-    {
-        if ($this->arrivages->contains($arrivage)) {
-            $this->arrivages->removeElement($arrivage);
-            // set the owning side to null (unless already changed)
-            if ($arrivage->getStatut() === $this) {
-                $arrivage->setStatut(null);
             }
         }
 

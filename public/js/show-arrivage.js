@@ -72,7 +72,10 @@ function openTableHisto() {
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
+    printLabels(data);
+    window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
+});
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
@@ -410,5 +413,28 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
+    });
+}
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printColisBarcode(codeColis) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
     });
 }

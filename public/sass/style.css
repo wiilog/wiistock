@@ -621,6 +621,10 @@ button:focus {
   margin-right: 15px;
 }
 
+.no-padding-on-p p {
+  padding: 0 !important;
+}
+
 .table .fas {
   font-size: 0.8rem;
   cursor: pointer;

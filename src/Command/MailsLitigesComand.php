@@ -9,8 +9,11 @@
 namespace App\Command;
 
 
+use App\Entity\Arrivage;
+use App\Entity\Colis;
 use App\Entity\Litige;
 
+use App\Repository\ArrivageRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ParamClientRepository;
 use App\Service\MailerService;
@@ -46,8 +49,18 @@ class MailsLitigesComand extends Command
      */
     private $paramClientRepository;
 
+    /**
+     * @var ArrivageRepository
+     */
+    private $arrivageRepository;
 
-    public function __construct(ParamClientRepository $paramClientRepository, LoggerInterface $logger, LitigeRepository $litigeRepository, MailerService $mailerService, \Twig_Environment $templating)
+
+    public function __construct(ArrivageRepository $arrivageRepository,
+                                ParamClientRepository $paramClientRepository,
+                                LoggerInterface $logger,
+                                LitigeRepository $litigeRepository,
+                                MailerService $mailerService,
+                                \Twig_Environment $templating)
     {
         parent::__construct();
         $this->paramClientRepository = $paramClientRepository;
@@ -55,6 +68,7 @@ class MailsLitigesComand extends Command
         $this->mailerService = $mailerService;
         $this->templating = $templating;
         $this->logger = $logger;
+        $this->arrivageRepository = $arrivageRepository;
     }
 
     protected function configure()
@@ -62,21 +76,19 @@ class MailsLitigesComand extends Command
         $this->setName('app:mails-litiges');
 
         $this->setDescription('envoi de mails aux acheteurs pour les litiges non soldés');
-
-//    $this->addArgument('arg', InputArgument::OPTIONAL, 'question');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var Litige[] $litiges */
         $litiges = $this->litigeRepository->findByStatutLabel(Litige::ATTENTE_ACHETEUR);
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
-            $arrivage = $litige->getArrivage();
-            $acheteurs = $arrivage->getAcheteurs();
-
-            foreach ($acheteurs as $acheteur) {
-                $litigesByAcheteur[$acheteur->getEmail()][] = $litige;
+            /** @var  $acheteursEmail */
+            $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+            foreach ($acheteursEmail as $email) {
+                $litigesByAcheteur[$email][] = $litige;
             }
         }
 
@@ -100,5 +112,4 @@ class MailsLitigesComand extends Command
         $output->writeln($nbMails . ' mails ont été envoyés');
         $this->logger->info('ENVOI DE ' . $nbMails . ' MAILS RECAP LITIGES : ' . $listEmails);
     }
-
 }
