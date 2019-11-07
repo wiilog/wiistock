@@ -20,7 +20,7 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <div class="menu-header">
-                        <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
+                        {% include 'logo_svg.html.twig' %}
                         <div class="version"> V1.8.5</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>

@@ -186,6 +186,10 @@ a:hover {
   padding: 0 !important;
 }
 
+.h-54px {
+  height: 54px;
+}
+
 .minw-105px {
   min-width: 105px;
 }
@@ -342,13 +346,6 @@ a:hover {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-}
-
-.logoGt {
-  width: 50%;
-  height: 40%;
-  padding: 0;
-  margin: 0;
 }
 
 .alerte {

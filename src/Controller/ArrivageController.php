@@ -1049,7 +1049,7 @@ class ArrivageController extends AbstractController
 
 			$rows = [];
 			foreach ($listColis as $colis) { /** @var $colis Colis */
-				$mouvement = $this->mouvementTracaRepository->getLastDeposeByColis($colis->getCode());
+				$mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
 				if ($mouvement) {
 					$dateArray = explode('_', $mouvement->getDate());
 					$date = new DateTime($dateArray[0]);
@@ -1059,7 +1059,7 @@ class ArrivageController extends AbstractController
 				}
 				$rows[] = [
 					'code' => $colis->getCode(),
-					'deliveryDate' => $formattedDate,
+					'lastMvtDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
 					'operator' => $mouvement ? $mouvement->getOperateur() : '',
 					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
