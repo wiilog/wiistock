@@ -24,7 +24,6 @@ $(function () {
 function printLabels(data) {
     if (data.exists) {
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-        window.location.reload();
     } else {
         $('#cannotGenerate').click();
     }
@@ -53,7 +52,10 @@ let tableColis = $('#tableColis').DataTable({
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
+    printLabels(data);
+    window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
+});
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
