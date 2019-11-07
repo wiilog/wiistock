@@ -250,7 +250,7 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setStatut($statut)
+//                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
