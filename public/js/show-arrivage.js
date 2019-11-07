@@ -65,6 +65,7 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
@@ -95,6 +96,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
     ],
+    order: [[0, 'desc']],
 });
 
 let editorNewLitigeAlreadyDone = false;
@@ -198,10 +200,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }

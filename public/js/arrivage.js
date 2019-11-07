@@ -215,10 +215,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }
