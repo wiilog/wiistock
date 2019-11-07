@@ -438,3 +438,14 @@ function printColisBarcode(codeColis) {
         printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
     });
 }
+
+function deleteAttachementNew(pj) {
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    })
+}
