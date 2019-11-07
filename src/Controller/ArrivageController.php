@@ -214,7 +214,7 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
-                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+                    'Statut' => $arrivage->getStatus(),
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView(
@@ -327,18 +327,11 @@ class ArrivageController extends AbstractController
                     'arrivage' => $arrivage,
                     //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
-                ]);
-            } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
-                $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
-                    'arrivage' => $arrivage,
-                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME
                 ]);
             } else {
                 $html = '';
@@ -686,7 +679,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getStatut()->getNom();
+                $arrivageData[] = $arrivage->getStatus();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -741,7 +734,6 @@ class ArrivageController extends AbstractController
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
-                'statutArrivage' => $arrivage->getStatus(),
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
@@ -858,6 +850,7 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
+            /** @var Litige[] $litiges */
             $litiges = $this->litigeRepository->getByArrivage($arrivage);
 
             $rows = [];
