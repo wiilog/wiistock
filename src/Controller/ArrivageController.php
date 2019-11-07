@@ -527,23 +527,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
-    {
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
-            if ($newLitige) {
-                $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-            } else {
-                $title = 'Un litige sur arrivage nécessite un retour de votre part :';
-            }
+    private function sendMailToAcheteurs($litige) {
+        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
-                $this->renderView('mails/mailLitige.html.twig', [
-                    'litige' => $litige,
+                $this->renderView('mails/mailLitiges.html.twig', [
+                    'litiges' => [$litige],
                     'title' => $title,
                     'urlSuffix' => 'arrivage'
                 ]),
-                $acheteur->getEmail()
+                $email
             );
         }
     }
@@ -796,6 +792,8 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->persist($histo);
             $em->flush();
+
+            $this->sendMailToAcheteurs($litige);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

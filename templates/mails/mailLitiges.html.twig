@@ -6,47 +6,34 @@
 {% set nt = litiges|length > 1 ? 'nt' : '' %}
 <h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
 
-{% for litige in litiges %}
-    {% set arrivage = litige.arrivage %}
-    <table class="table">
-        <thead>
-            <tr>
-                <th class="th">N° d'arrivage</th>
-                <th class="th">Transporteur</th>
-                <th class="th">Chauffeur</th>
-                <th class="th">N° tracking transporteur</th>
-                <th class="th">N° commande / BL</th>
-                <th class="th">Fournisseur</th>
-                <th class="th">Acheteur(s)</th>
-                <th class="th">Destinataire</th>
-                <th class="th">Nb UM</th>
-                <th class="th">Date</th>
-                <th class="th">Utilisateur</th>
-            </tr>
-        </thead>
-        <tbody>
+<table class="table" style="border: 1px solid black;border-collapse: collapse;">
+    <thead>
         <tr>
-            <td class="td">{{ arrivage.numeroArrivage }}</td>
-            <td class="td">{{ arrivage.transporteur.label|capitalize }}</td>
-            <td class="td">{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper : '' }} </td>
-            <td class="td">{{ arrivage.noTracking }}</td>
-            <td class="td">{{ arrivage.numeroBL }}</td>
-            <td class="td">{{ arrivage.fournisseur.nom }}</td>
-            <td class="td">
-                {% for acheteur in arrivage.acheteurs %}
-                    {{ acheteur }} <br>
-                {% endfor %}
-            </td>
-            <td class="td">{{ arrivage.destinataire.username }}</td>
-            <td class="td">{{ arrivage.nbUM }}</td>
-            <td class="td">{{ arrivage.date|date('d/m/Y H:i') }}</td>
-            <td class="td">{{ arrivage.utilisateur.username}}</td>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Colis</th>
         </tr>
-        </tbody>
-    </table>
+    </thead>
+    <tbody>
+        {% for litige in litiges %}
+            <tr>
+                <td class="td" rowspan="{{ litige.colis|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
 
-    <p><span style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</span></p>
-{% endfor %}
+                {% set firstColis = litige.colis|first %}
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.arrivage.numeroBL }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.code }}</td>
+            </tr>
+            {% for colis in litige.colis %}
+                {% if not loop.first %}
+                    <tr>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.arrivage.numeroBL }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.code }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
 
 <br>
 <br>
