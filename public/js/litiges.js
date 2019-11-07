@@ -247,7 +247,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         "type": "POST",
     },
     columns: [
-        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
+        // {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° d'arrivage"},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
@@ -260,7 +260,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     ],
     columnDefs: [
         {
-            'targets': [7,8,9],
+            'targets': [6,7,8],
             'visible': false
         }
     ]

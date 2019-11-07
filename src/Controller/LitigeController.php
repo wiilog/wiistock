@@ -166,9 +166,9 @@ class LitigeController extends AbstractController
 					'status' => $litige['status'] ?? '',
 					'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y') : '',
 					'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y') : '',
-					'actions' => $this->renderView('litige/datatableLitigesArrivageRow.html.twig', [
-						'litigeId' => $litige['id']
-					])
+//					'actions' => $this->renderView('litige/datatableLitigesArrivageRow.html.twig', [
+//						'litigeId' => $litige['id']
+//					])
 				];
 			}
 
