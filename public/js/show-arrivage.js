@@ -94,25 +94,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
     ],
 });
 
-let editorNewLitigeAlreadyDone = false;
-let quillNewLitige;
 
-function initNewLitigeEditor(modal) {
-    if (!editorNewLitigeAlreadyDone) {
-        quillNewLitige = initEditor(modal + ' .editor-container-new');
-        editorNewLitigeAlreadyDone = true;
-    }
-}
-
-let editorEditLitigeAlreadyDone = false;
-let quillEditLitige;
-
-function initEditLitigeEditor(modal) {
-    if (!editorEditLitigeAlreadyDone) {
-        quillEditLitige = initEditor(modal + ' .editor-container-edit');
-        editorEditLitigeAlreadyDone = true;
-    }
-}
 
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
@@ -377,9 +359,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
         modal.find('#colisEditLitige').val(data.colis).select2();
-        originalText = quillEdit.getText();
         afterLoadingEditModal()
     }, 'json');
 
@@ -433,5 +413,16 @@ function printColisBarcode(codeColis) {
 
     $.post(path, function (response) {
         printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
+    });
+}
+
+
+function getCommentAndAddHisto()
+{
+    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let commentLitige = $('#modalEditLitige').find('#commentaire');
+    let dataComment = commentLitige.val();
+
+    $.post(path, JSON.stringify(dataComment), function (response) {
     });
 }

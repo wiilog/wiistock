@@ -37,10 +37,13 @@
             </select>
         </div>
 
-        <div class="form-group col-12 fit-content">
+        <div class="form-group col-10 fit-content">
             <label for="commentaire">Commentaire</label>
-            <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-            <div class="editor-container-edit"></div>
+            <input type="text" id="commentaire" class="commentaire form-control data" name="commentaire">
+            {#            <div class="editor-container-edit"></div>#}
+        </div>
+        <div class="col-2">
+            <button type="button" class="btn form-group" onclick="getCommentAndAddHisto()">Ajouter</button>
         </div>
 
         <div class="form-group col-12">

@@ -18,16 +18,6 @@ $('#providers').select2({
     }
 });
 
-let editorNewLitigeAlreadyDone = false;
-let quillNewLitiges;
-
-function initNewLitigeEditor(modal) {
-    if (!editorNewLitigeAlreadyDone) {
-        quillNewLitiges = initEditor(modal + ' .editor-container-new');
-        editorNewLitigeAlreadyDone = true;
-    }
-}
-
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');
 }

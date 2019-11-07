@@ -271,4 +271,28 @@ class LitigeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/add_Comment/{litige}", name="add_comment", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param Litige $litige
+     * @return Response
+     * @throws \Exception
+     */
+    public function addComment(Request $request, Litige $litige): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $litigeHisto = new LitigeHistoric();
+            $litigeHisto
+                ->setLitige($litige)
+                ->setUser($this->getUser())
+                ->setDate(new \DateTime('now'))
+                ->setComment($data);
+            $em->persist($litigeHisto);
+            $em->flush();
+
+            return new JsonResponse(true);
+        }
+    }
 }
