@@ -24,6 +24,7 @@ $(function () {
 function printLabels(data) {
     if (data.exists) {
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+        window.location.reload();
     } else {
         $('#cannotGenerate').click();
     }
