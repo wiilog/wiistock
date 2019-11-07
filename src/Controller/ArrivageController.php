@@ -165,7 +165,11 @@ class ArrivageController extends AbstractController
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'statuts' => [
+                ['nom' => Arrivage::STATUS_CONFORME],
+                ['nom' => Arrivage::STATUS_LITIGE]
+            ]
         ]);
     }
 
