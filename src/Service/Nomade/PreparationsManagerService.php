@@ -66,13 +66,27 @@ class PreparationsManagerService {
         }
     }
 
-    public function treatPreparation(Preparation $preparation, array $preparationArray, $userNomade): void {
+    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $demandes = $preparation->getDemandes();
         $demande = $demandes[0];
 
-        $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+        $livraison->addDemande($demande);
+
+        $preparation
+            ->addLivraison($livraison)
+            ->setUtilisateur($userNomade)
+            ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+
+        $demande
+            ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE))
+            ->setLivraison($livraison);
+    }
+
+    public function persistLivraison(array $preparationArray) {
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
 
         $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
@@ -81,37 +95,26 @@ class PreparationsManagerService {
             ->setNumero('L-' . $date->format('YmdHis'))
             ->setStatut($statut);
         $this->entityManager->persist($livraison);
-
-        $preparation
-            ->addLivraison($livraison)
-            ->setUtilisateur($userNomade)
-            ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
-
-        $demande
-            ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
-            ->setLivraison($livraison);
+        return $livraison;
     }
 
     /**
      * @param $mouvementNomade
      * @param $userNomade
+     * @param Livraison $livraison
      * @throws NonUniqueResultException
-     * @throws \Exception
      */
-    public function treatMouvement($mouvementNomade, $userNomade) {
+    public function treatMouvement($mouvementNomade, $userNomade, Livraison $livraison) {
         //repositories
         $preparationRepository = $this->entityManager->getRepository(Preparation::class);
-        $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
-        $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $preparation = $preparationRepository->find($mouvementNomade['id_prepa']);
-        $livraison = $livraisonRepository->findOneByPreparationId($preparation->getId());
         $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
         $mouvement = new MouvementStock();
         $mouvement
@@ -176,8 +179,9 @@ class PreparationsManagerService {
                     if ($article->getDemande()) {
                         throw new \Exception(self::ARTICLE_ALREADY_SELECTED);
                     } else {
+                        // TODO AB gérer le fait qu'une livraison soit liée à plusieurs demande
                         // on crée le lien entre l'article et la demande
-                        $demande = $demandeRepository->findOneByLivraison($livraison);
+                        $demande = $livraison->getDemande()->getValues()[0];
                         $article->setDemande($demande);
 
                         // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande

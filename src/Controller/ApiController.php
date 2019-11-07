@@ -551,12 +551,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                     if ($preparation) {
                         try {
-                            $preparationsManager->treatPreparation($preparation, $preparationArray, $nomadUser);
+                            $livraison = $preparationsManager->persistLivraison($preparationArray);
+                            $preparationsManager->treatPreparation($preparation, $preparationArray, $livraison, $nomadUser);
 
                             $mouvementsNomade = $preparationArray['mouvements'];
                             // on crée les mouvements de livraison
                             foreach ($mouvementsNomade as $mouvementNomade) {
-                                $preparationsManager->treatMouvement($mouvementNomade, $nomadUser);
+                                $preparationsManager->treatMouvement($mouvementNomade, $nomadUser, $livraison);
                             }
 
                             $entityManager->flush();
@@ -566,6 +567,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ];
                         }
                         catch (\Exception $exception) {
+                            dump($exception);
                             $resData['errors'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId(),
@@ -589,7 +591,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
 
-            return new JsonResponse($this->successDataMsg, $statusCode);
+            return new JsonResponse($resData, $statusCode);
         }
     }
 
