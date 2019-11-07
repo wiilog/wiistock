@@ -13,9 +13,7 @@ use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -29,14 +27,11 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -167,7 +162,6 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
@@ -242,7 +236,6 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statut = $this->statutRepository->find($data['statut']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -250,7 +243,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-//                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
@@ -390,11 +382,6 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            if (isset($data['statutAcheteur'])) {
-                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
-            }
-
             $em->flush();
 
 			$response = [
@@ -513,23 +500,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
-    {
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
-            if ($newLitige) {
-                $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-            } else {
-                $title = 'Un litige sur arrivage nécessite un retour de votre part :';
-            }
+    private function sendMailToAcheteurs($litige) {
+        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
-                $this->renderView('mails/mailLitige.html.twig', [
-                    'litige' => $litige,
+                $this->renderView('mails/mailLitiges.html.twig', [
+                    'litiges' => [$litige],
                     'title' => $title,
                     'urlSuffix' => 'arrivage'
                 ]),
-                $acheteur->getEmail()
+                $email
             );
         }
     }
@@ -806,6 +789,8 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->persist($histo);
             $em->flush();
+
+            $this->sendMailToAcheteurs($litige);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
