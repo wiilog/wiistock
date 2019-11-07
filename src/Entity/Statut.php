@@ -24,6 +24,11 @@ class Statut
     private $nom;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $treated;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
      */
     private $categorie;
@@ -106,6 +111,15 @@ class Statut
     {
         $this->nom = $nom;
 
+        return $this;
+    }
+
+    public function isTreated(): ?bool {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self {
+        $this->treated = $treated;
         return $this;
     }
 

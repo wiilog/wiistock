@@ -47,11 +47,6 @@ class Arrivage
     private $destinataire;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="arrivages")
-     */
-    private $statut;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesAcheteur")
      */
     private $acheteurs;
@@ -165,18 +160,6 @@ class Arrivage
     public function setDestinataire(?Utilisateur $destinataire): self
     {
         $this->destinataire = $destinataire;
-
-        return $this;
-    }
-
-    public function getStatut(): ?Statut
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?Statut $statut): self
-    {
-        $this->statut = $statut;
 
         return $this;
     }

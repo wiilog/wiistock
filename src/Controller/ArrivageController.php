@@ -329,7 +329,6 @@ class ArrivageController extends AbstractController
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'conforme' => $arrivage->getStatut()->getNom() === Arrivage::STATUS_CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
@@ -367,12 +366,6 @@ class ArrivageController extends AbstractController
 
             if (isset($data['commentaire'])) {
                 $arrivage->setCommentaire($data['commentaire']);
-            }
-            $hasChanged = false;
-            if (isset($data['statut'])) {
-                $statut = $this->statutRepository->find($data['statut']);
-                if ($arrivage->getStatut() !== $statut) $hasChanged = true;
-                $arrivage->setStatut($statut);
             }
             if (isset($data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
@@ -744,9 +737,31 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
 
+
+
+        /** @var Colis[] $colisCollection */
+        $colisCollection = $arrivage->getColis()->toArray();
+        $isLitige = false;
+        foreach($colisCollection as $colis) {
+            /** @var Litige[] $litiges */
+            $litiges = $colis->getLitiges()->toArray();
+            foreach ($litiges as $litige) {
+                $status = $litige->getStatus();
+                $isLitige = !isset($status) || !$status->isTreated();
+                if ($isLitige) {
+                    break;
+                }
+            }
+
+            if ($isLitige) {
+                break;
+            }
+        }
+
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
+                'statutArrivage' => $isLitige ? Arrivage::STATUS_LITIGE : Arrivage::STATUS_CONFORME,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
