@@ -520,23 +520,6 @@ $submitSearchArrivage.on('click', function () {
         .draw();
 });
 
-function deleteAttachement(arrivageId, originalName, pjName) {
-
-    let path = Routing.generate('arrivage_delete_attachement');
-    let params = {
-        arrivageId: arrivageId,
-        originalName: originalName,
-        pjName: pjName
-    };
-
-    $.post(path, JSON.stringify(params), function (data) {
-        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-        if (data === true) {
-            $('#' + pjWithoutExtension).remove();
-        }
-    });
-}
-
 function deleteAttachementNew(pj) {
     let params = {
         pj: pj

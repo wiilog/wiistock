@@ -210,7 +210,15 @@ function openFE() {
     $('#fileInput').click();
 }
 
-function uploadFE(span) {
+function uploadFELitige(span) {
+    uploadFE(span, 'litige_depose', 'litige-id');
+}
+
+function uploadFEArrivage(span) {
+    uploadFE(span, 'arrivage_depose', 'arrivage-id');
+}
+
+function uploadFE(span, nameRouteArrivage, dataName) {
     let files = $('#fileInput')[0].files;
     let formData = new FormData();
     let div = span.closest('.dropFrame');
@@ -222,10 +230,10 @@ function uploadFE(span) {
         $.each(files, function (index, file) {
             formData.append('file' + index, file);
         });
-        let path = Routing.generate('litige_depose', true);
+        let path = Routing.generate(nameRouteArrivage, true);
 
-        let litigeId = $('#dropfile').data('litige-id');
-        formData.append('id', litigeId);
+        let id = $('#dropfile').data(dataName);
+        formData.append('id', id);
 
         $.ajax({
             url: path,
@@ -316,7 +324,7 @@ function upload(files) {
     });
     let path = Routing.generate('litige_depose', true);
 
-    let arrivageId = $('#dropfile').data('litige-id');
+    let litigeId = $('#dropfile').data('litige-id');
     formData.append('id', litigeId);
 
     $.ajax({
@@ -436,5 +444,22 @@ function printColisBarcode(codeColis) {
 
     $.post(path, function (response) {
         printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
+    });
+}
+
+function deleteAttachementArrivage(arrivageId, originalName, pjName) {
+
+    let path = Routing.generate('arrivage_delete_attachement');
+    let params = {
+        arrivageId: arrivageId,
+        originalName: originalName,
+        pjName: pjName
+    };
+
+    $.post(path, JSON.stringify(params), function (data) {
+        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
+        if (data === true) {
+            $('#' + pjWithoutExtension).remove();
+        }
     });
 }

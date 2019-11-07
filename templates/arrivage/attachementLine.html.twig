@@ -15,11 +15,11 @@
         </a>
         {% if litige is defined and litige is not null %}
             <i class="fa fa-times red pointer"
-               onclick="deleteAttachementLitige('{{ litige.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
+               onclick="deleteAttachementLitige('{{ litige.id }}', '{{ originalName|escape('js') }}', '{{ pjName|escape('js') }}')"></i>
         {% endif %}
         {% if arrivage is defined and arrivage is not null %}
             <i class="fa fa-times red pointer"
-               onclick="deleteAttachement('{{ arrivage.id }}', '{{ originalName }}', '{{ pjName }}')"></i>
+               onclick="deleteAttachementArrivage('{{ arrivage.id }}', '{{ originalName|escape('js') }}', '{{ pjName|escape('js') }}')"></i>
         {% endif %}
     </p>
 {% endif %}

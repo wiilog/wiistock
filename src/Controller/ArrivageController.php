@@ -274,6 +274,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
+            // TODO PJ supprimer cette copie
             $path = '../public/uploads/attachements/temp';
 
             if (is_dir($path)) {
@@ -321,6 +322,7 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    'nameUploadFE' => 'uploadFEArrivage',
                     //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
@@ -383,6 +385,21 @@ class ArrivageController extends AbstractController
                 // ... et on ajoute ceux sélectionnés
                 foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
+            }
+
+            // TODO PJ supprimer cette copie
+            $path = '../public/uploads/attachements/temp';
+
+            if (is_dir($path)) {
+                foreach (scandir($path) as $file) {
+                    if ('.' === $file) continue;
+                    if ('..' === $file) continue;
+
+                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
+                    if ($pj) $pj->setArrivage($arrivage);
+                    copy($path . '/' . $file, $path . '/../' . $file);
+                    unlink($path . '/' . $file);
                 }
             }
 
@@ -903,6 +920,7 @@ class ArrivageController extends AbstractController
             }
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
+                'nameUploadFE' => 'uploadFELitige',
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
