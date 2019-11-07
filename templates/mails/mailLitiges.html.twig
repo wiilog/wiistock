@@ -6,28 +6,28 @@
 {% set nt = litiges|length > 1 ? 'nt' : '' %}
 <h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
 
-<table class="table">
+<table class="table" style="border: 1px solid black;border-collapse: collapse;">
     <thead>
         <tr>
-            <th class="th">Type de litige</th>
-            <th class="th">N° commande / BL</th>
-            <th class="th">Colis</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Colis</th>
         </tr>
     </thead>
     <tbody>
         {% for litige in litiges %}
             <tr>
-                <td class="td" rowspan="{{ litige.colis|length }}">{{ litige.type.label }}</td>
+                <td class="td" rowspan="{{ litige.colis|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
 
                 {% set firstColis = litige.colis|first %}
-                <td class="td">{{ firstColis.arrivage.numeroBL }}</td>
-                <td class="td">{{ firstColis.code }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.arrivage.numeroBL }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.code }}</td>
             </tr>
             {% for colis in litige.colis %}
                 {% if not loop.first %}
                     <tr>
-                        <td class="td">{{ colis.arrivage.numeroBL }}</td>
-                        <td class="td">{{ colis.code }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.arrivage.numeroBL }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.code }}</td>
                     </tr>
                 {% endif %}
             {% endfor %}
