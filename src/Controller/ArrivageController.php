@@ -761,6 +761,9 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $litige = new Litige();
             $litige
@@ -809,6 +812,10 @@ class ArrivageController extends AbstractController
     public function addColis(Request $request)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
 			$em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
