@@ -587,7 +587,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+     * @Route("/api-etiquettes-arrivage", name="arrivage_get_data_to_print", options={"expose"=true})
      */
     public function getDataToPrintLabels(Request $request)
     {
@@ -612,6 +612,29 @@ class ArrivageController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 */
+    public function getPrintData(Request $request)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['exists'] = true;
+			} else {
+				$response['height'] = $response['width'] = 0;
+				$response['exists'] = false;
+			}
+
+			return new JsonResponse($response);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
     /**
      * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
@@ -1055,7 +1078,7 @@ class ArrivageController extends AbstractController
 					'deliveryDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
 					'operator' => $mouvement ? $mouvement->getOperateur() : '',
-					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig'),
+					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
 				];
 			}
 			$data['data'] = $rows;
