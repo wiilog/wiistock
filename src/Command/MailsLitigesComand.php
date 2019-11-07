@@ -9,6 +9,8 @@
 namespace App\Command;
 
 
+use App\Entity\Arrivage;
+use App\Entity\Colis;
 use App\Entity\Litige;
 
 use App\Repository\ArrivageRepository;
@@ -53,7 +55,12 @@ class MailsLitigesComand extends Command
     private $arrivageRepository;
 
 
-    public function __construct(ArrivageRepository $arrivageRepository, ParamClientRepository $paramClientRepository, LoggerInterface $logger, LitigeRepository $litigeRepository, MailerService $mailerService, \Twig_Environment $templating)
+    public function __construct(ArrivageRepository $arrivageRepository,
+                                ParamClientRepository $paramClientRepository,
+                                LoggerInterface $logger,
+                                LitigeRepository $litigeRepository,
+                                MailerService $mailerService,
+                                \Twig_Environment $templating)
     {
         parent::__construct();
         $this->paramClientRepository = $paramClientRepository;
@@ -69,37 +76,40 @@ class MailsLitigesComand extends Command
         $this->setName('app:mails-litiges');
 
         $this->setDescription('envoi de mails aux acheteurs pour les litiges non soldés');
-
-//    $this->addArgument('arg', InputArgument::OPTIONAL, 'question');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var Litige[] $litiges */
         $litiges = $this->litigeRepository->findByStatutLabel(Litige::ATTENTE_ACHETEUR);
-        $count = 0;
 
+        $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
-
-            $arrivage = $this->arrivageRepository->findOneByLitige($litige);
-
-
-            foreach ($arrivage->getAcheteurs() as $acheteur) {
-                $title = 'Récapitulatif de vos litiges';
-
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Litige sur arrivage',
-                    $this->templating->render('mails/mailLitige.html.twig', [
-                        'litige' => $litige,
-                        'title' => $title,
-                        'urlSuffix' => 'arrivage'
-                    ]),
-                    $acheteur->getEmail()
-                );
-                $count++;
+            /** @var  $acheteursEmail */
+            $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+            foreach ($acheteursEmail as $email) {
+                $litigesByAcheteur[$email][] = $litige;
             }
         }
 
-        $output->writeln($count . ' mails ont été envoyés.');
-    }
+        $listEmails = '';
 
+        foreach ($litigesByAcheteur as $email => $litiges) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Récapitulatif de vos litiges',
+                $this->templating->render('mails/mailLitiges.html.twig', [
+                    'litiges' => $litiges,
+                    'title' => 'Récapitulatif de vos litiges',
+                    'urlSuffix' => 'arrivage'
+                ]),
+                $email
+            );
+            $listEmails .= $email . ', ';
+        }
+
+        $nbMails = count($litigesByAcheteur);
+
+        $output->writeln($nbMails . ' mails ont été envoyés');
+        $this->logger->info('ENVOI DE ' . $nbMails . ' MAILS RECAP LITIGES : ' . $listEmails);
+    }
 }

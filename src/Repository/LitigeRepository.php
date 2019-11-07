@@ -34,6 +34,22 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getEmailsAcheteurByLitige(Litige $litige) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT acheteur.email
+			FROM App\Entity\Litige litige
+			JOIN litige.colis colis
+			JOIN colis.arrivage arrivage
+            JOIN arrivage.acheteurs acheteur
+            WHERE litige = :litige"
+        )->setParameter('litige', $litige);
+
+        return array_map(function($utilisateur) {
+            return $utilisateur['email'];
+        }, $query->execute());
+    }
+
 	public function getAllWithArrivageData()
 	{
 		$em = $this->getEntityManager();

@@ -84,11 +84,9 @@ function initNewLitigeEditor(modal) {
     }
 }
 
-let arrivageId = $('#arrivageId').val();
-
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
-let urlNewLitige = Routing.generate('litige_new', { 'id': arrivageId }, true);
+let urlNewLitige = Routing.generate('litige_new', true);
 InitialiserModal(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
