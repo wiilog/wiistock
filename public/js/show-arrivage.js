@@ -42,7 +42,7 @@ let tableColis = $('#tableColis').DataTable({
     },
     columns: [
         {"data": 'code', 'name': 'code', 'title': 'Code'},
-        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
+        {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
@@ -65,6 +65,7 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
