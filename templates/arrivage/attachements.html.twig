@@ -17,7 +17,7 @@
          ondragleave="dragLeaveDiv(event, $(this))"
          ondrop="dropOnDiv(event, $(this))">
         <p>Faites glisser vos pièces jointes ou <span onclick="openFE()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
-        <input id="fileInput" type="file" name="files[]" multiple class="d-none" onchange="uploadFE($(this))">
+        <input id="fileInput" type="file" name="files[]" multiple class="d-none" onchange="{{nameUploadFE}}($(this))">
     </div>
 
     {% for pj in attachements %}
