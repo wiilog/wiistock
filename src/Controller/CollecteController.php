@@ -29,6 +29,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\TypeRepository;
 
 use App\Service\ArticleDataService;
+use App\Service\CollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
@@ -127,8 +128,13 @@ class CollecteController extends AbstractController
 	 */
     private $valeurChampLibreRepository;
 
+    /**
+     * @var CollecteService
+     */
+    private $collecteService;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
+
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
         $this->typeRepository = $typeRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -146,6 +152,7 @@ class CollecteController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->collecteService = $collecteService;
     }
 
 	/**
@@ -212,44 +219,19 @@ class CollecteController extends AbstractController
      * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function api(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            $collectes = $this->collecteRepository->findAll();
+			$data = $this->collecteService->getDataForDatatable($request->request);
 
-            $rows = [];
-            foreach ($collectes as $collecte) {
-
-                if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
-                    $ordreCollecteDate = null;
-                } else {
-                    $ordreCollecteDate = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)->getDate()->format('d/m/Y H:i');
-                }
-
-                $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-                $rows[] = [
-                    'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                    'Validation' => $ordreCollecteDate,
-                    'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
-                    'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
-                    'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                    'Type' => ($collecte->getType() ? $collecte->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                        'url' => $url,
-                    ]),
-                ];
-            }
-
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
     /**
      * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
@@ -315,7 +297,7 @@ class CollecteController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $status = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
+            $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $destination = ($data['destination'] == 0) ? false : true;
@@ -396,7 +378,7 @@ class CollecteController extends AbstractController
                 }
                 $article = new Article();
                 $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF);
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $ref = $date->format('YmdHis');
                 $articleFournisseur = new ArticleFournisseur();
@@ -414,7 +396,8 @@ class CollecteController extends AbstractController
                     ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
                     ->setEmplacement($collecte->getPointCollecte())
                     ->setArticleFournisseur($articleFournisseur)
-                    ->setType($refArticle->getType());
+                    ->setType($refArticle->getType())
+					->setBarCode($this->articleDataService->generateBarCode());
                 $em->persist($article);
                 $collecte->addArticle($article);
 
@@ -449,7 +432,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
-//TODO CG dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
+//TODO dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
             $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
             $collecteReference->setQuantite(intval($data['quantite']));
             $em->flush();

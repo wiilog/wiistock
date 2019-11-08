@@ -21,6 +21,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\MailerService;
+use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -85,8 +86,13 @@ class OrdreCollecteController extends AbstractController
      */
     private $typeRepository;
 
+	/**
+	 * @var OrdreCollecteService
+	 */
+    private $ordreCollecteService;
 
-    public function __construct(TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+
+    public function __construct(OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->typeRepository = $typeRepository;
@@ -98,6 +104,7 @@ class OrdreCollecteController extends AbstractController
         $this->userService = $userService;
         $this->mailerService = $mailerService;
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->ordreCollecteService = $ordreCollecteService;
     }
 
     /**
@@ -172,55 +179,9 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($collecte->getStatut()->getnom() ===  OrdreCollecte::STATUT_A_TRAITER) {
-
-            // on modifie le statut de l'ordre de collecte
-            $collecte
-                ->setUtilisateur($this->getUser())
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
-
-            // on modifie le statut de la demande de collecte
-            $demandeCollecte = $collecte->getDemandeCollecte();
-            $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
-
-            if ($this->mailerServerRepository->findAll()) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Collecte effectuée',
-                    $this->renderView(
-                        'mails/mailCollecteDone.html.twig',
-                        [
-                        	'title' => 'Votre demande a bien été collectée.',
-                            'collecte' => $demandeCollecte,
-
-                        ]
-                    ),
-                    $demandeCollecte->getDemandeur()->getEmail()
-                );
-            }
-
-            // on modifie la quantité des articles de référence liés à la collecte
-            $ligneArticles = $this->collecteReferenceRepository->findByCollecte($collecte->getDemandeCollecte());
-
-            $addToStock = $demandeCollecte->getStockOrDestruct();
-
-            // cas de mise en stockage
-            if ($addToStock) {
-                foreach ($ligneArticles as $ligneArticle) {
-                    $refArticle = $ligneArticle->getReferenceArticle();
-                    $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
-                }
-
-                // on modifie le statut des articles liés à la collecte
-                $demandeCollecte = $collecte->getDemandeCollecte();
-
-                $articles = $demandeCollecte->getArticles();
-                foreach ($articles as $article) {
-                    $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
-                }
-            }
-
-            $this->getDoctrine()->getManager()->flush();
+        if ($collecte->getStatut()->getNom() ===  OrdreCollecte::STATUT_A_TRAITER) {
+        	$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date);
         }
 
         return $this->redirectToRoute('ordre_collecte_show', [
@@ -294,7 +255,7 @@ class OrdreCollecteController extends AbstractController
         }
 
         // on crée l'ordre de collecte
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ordreCollecte
@@ -306,7 +267,7 @@ class OrdreCollecteController extends AbstractController
         $entityManager->persist($ordreCollecte);
 
         // on modifie le statut de la demande de collecte liée
-        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
+        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
 
         $entityManager->flush();
 
@@ -375,7 +336,7 @@ class OrdreCollecteController extends AbstractController
             $collecte = $ordreCollecte->getDemandeCollecte();
 
             $collecte
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ordreCollecte);

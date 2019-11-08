@@ -90,6 +90,10 @@ class Reception
      */
     private $valeurChampLibre;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateFinReception;
 
     public function __construct()
     {
@@ -309,6 +313,18 @@ class Reception
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
+
+        return $this;
+    }
+
+    public function getDateFinReception(): ?\DateTimeInterface
+    {
+        return $this->dateFinReception;
+    }
+
+    public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
+    {
+        $this->dateFinReception = $dateFinReception;
 
         return $this;
     }

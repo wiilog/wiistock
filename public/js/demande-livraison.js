@@ -24,7 +24,7 @@ let tableArticle = $('#table-lignes').DataTable({
         {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Actions', 'title': 'Actions'}
-    ],
+    ]
 });
 
 let modalNewArticle = $("#modalNewArticle");
@@ -61,12 +61,16 @@ $.extend($.fn.dataTableExt.oSort, {
 //DEMANDE
 let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
+    processing: true,
+    serverSide: true,
     order: [[0, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 0
-        }
+        },
+        {"orderable": false, "targets": 5}
+
     ],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
@@ -82,7 +86,22 @@ let tableDemande = $('#table_demande').DataTable({
         {"data": 'Statut', 'name': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions'},
-    ],
+    ]
+});
+
+let $submitSearchDemande = $('#submitSearchDemandeLivraison');
+$submitSearchDemande.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let user = $('#utilisateur').val();
+    let userString = user.toString();
+    let userPiped = userString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, userPiped, type);
+
+    tableDemande.draw();
 });
 
 $.fn.dataTable.ext.search.push(
@@ -175,7 +194,7 @@ function setMaxQuantity(select) {
 }
 
 // applique les filtres si pré-remplis
-$(function() {
+$(function () {
     let val = $('#statut').val();
     if (val != null && val != '') {
         $submitSearchDemandeLivraison.click();
@@ -183,16 +202,17 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_DEM_LIVRAISON);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    let params = JSON.stringify(PAGE_DEM_LIVRAISON);
+    ;
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 $('#utilisateur').val(element.value.split(',')).select2();
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchDemandeLivraison.click();
+        if (data.length > 0) $submitSearchDemandeLivraison.click();
     }, 'json');
 
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
@@ -207,35 +227,6 @@ function initNewLivraisonEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
-
-$submitSearchDemandeLivraison.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val()
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let type = $('#type').val();
-
-    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
-
-    tableDemande
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableDemande
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableDemande
-        .columns('Demandeur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableDemande.draw();
-});
 
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {
@@ -296,7 +287,7 @@ let ajaxEditArticle = function (select) {
     let path = Routing.generate('article_api_edit', true);
     let params = {id: select.val(), isADemand: 1};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         if (data) {
             $('#editNewArticle').html(data);
             let quantityToTake = $('#quantityToTake');
@@ -311,6 +302,7 @@ let ajaxEditArticle = function (select) {
 }
 
 let generateCSVDemande = function () {
+    loadSpinner($('#spinnerlivrai'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -322,7 +314,7 @@ let generateCSVDemande = function () {
         let params = JSON.stringify(data);
         let path = Routing.generate('get_livraisons_for_csv', true);
 
-        $.post(path, params, function(response) {
+        $.post(path, params, function (response) {
             if (response) {
                 $('.error-msg').empty();
                 let csv = "";
@@ -331,11 +323,12 @@ let generateCSVDemande = function () {
                     csv += '\n';
                 });
                 dlFile(csv);
+                hideSpinner($('#spinnerlivrai'));
             }
         }, 'json');
-
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerlivrai'));
     }
 }
 
@@ -359,13 +352,6 @@ let dlFile = function (csv) {
             document.body.removeChild(link);
         }
     }
-}
-
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
 }
 
 $submitSearchDemandeLivraison.on('keypress', function (e) {

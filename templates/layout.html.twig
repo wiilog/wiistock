@@ -20,8 +20,8 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <div class="menu-header">
-                        <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.5.0</div>
+                        {% include 'logo_svg.html.twig' %}
+                        <div class="version"> V1.8.5</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -45,6 +45,20 @@
                         </ul>
                     </li>
                 {% endif %}
+
+                <!-- QUALITÉ   -->
+                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-check-square"></i>
+                            <h4>Qualité</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("litige_arrivage_index") }}" class="sub-item">• Litiges arrivage</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
                 <!-- DEMANDE   -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
@@ -128,10 +142,18 @@
                             <li>
                                 <a href="{{ path('mouvement_stock_index') }}" class="sub-item">• Mouvement de stock</a>
                             </li>
+                            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
+                            <li>
+                                <a href="{{ path('inventory_mission_index') }}" class="sub-item">• Inventaire</a>
+                            </li>
+                            {% endif %}
+                            <li>
+                                <a href="{{ path('alerte_index') }}" class="sub-item">• Alerte</a>
+                            </li>
                         </ul>
                     </li>
                 {% endif %}
-
+                
                 <!-- REFERENTIEL -->
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
@@ -174,21 +196,7 @@
                             <li>
                                 <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
                             </li>
-                            <li class="sub-item has-subitems">
-                                <a href="#" class="sub-item-title">• Alertes</a>
-                                <ul>
-                                    <li class="sub-sub-item">
-                                        <a href="{{ path('alerte_stock_index') }}">
-                                            Alertes de stock
-                                        </a>
-                                    </li>
-{#                                    <li class="sub-sub-item">#}
-{#                                        <a href="{{ path('alerte_expiry_index') }}">#}
-{#                                            Alertes de péremption#}
-{#                                        </a>#}
-{#                                    </li>#}
-                                </ul>
-                            </li>
+
                             <li>
                                 <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
                             </li>
@@ -200,6 +208,15 @@
                             </li>
                             <li>
                                 <a href="{{ path('prefixe_demande') }}" class="sub-item">• Préfixage noms demandes</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('inventaire_param') }}" class="sub-item">• Inventaire</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('types_param') }}" class="sub-item">• Types</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('status_param') }}" class="sub-item">• Statuts litiges</a>
                             </li>
                         </ul>
                     </li>

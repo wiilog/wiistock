@@ -45,6 +45,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $token;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
+     */
+    private $filtresSup;
+
+    /**
      * @Assert\NotBlank()
      * @Assert\Length(min=8, max=4096)
      * @Assert\Regex(pattern="/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/", message="Doit contenir au moins une majuscule, une minuscule, un symbole, et un nombre.")
@@ -76,10 +81,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="utilisateur")
      */
     private $demandes;
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="user")
-     */
-    private $alertesStock;
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="demandeur")
      */
@@ -146,17 +147,29 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $recherche;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
      */
-    private $type;
+    private $types;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
+     */
+    private $inventoryEntries;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategoryHistory", inversedBy="operator")
+     */
+    private $inventoryCategoryHistory;
+
+    /**
+     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="user")
+     */
+    private $litigeHistorics;
 
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->alertesStock = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
@@ -167,6 +180,10 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->types = new ArrayCollection();
+        $this->filtresSup = new ArrayCollection();
+        $this->litigeHistorics = new ArrayCollection();
     }
 
     public function getId()
@@ -312,32 +329,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    /**
-     * @return Collection|AlerteStock[]
-     */
-    public function getAlertesStock(): Collection
-    {
-        return $this->alertesStock;
-    }
-    public function addUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
-    {
-        if (!$this->alertesStock->contains($utilisateurAlerte)) {
-            $this->alertesStock[] = $utilisateurAlerte;
-            $utilisateurAlerte->setUser($this);
-        }
-        return $this;
-    }
-    public function removeUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
-    {
-        if ($this->alertesStock->contains($utilisateurAlerte)) {
-            $this->alertesStock->removeElement($utilisateurAlerte);
-            // set the owning side to null (unless already changed)
-            if ($utilisateurAlerte->getUser() === $this) {
-                $utilisateurAlerte->setUser(null);
-            }
-        }
-        return $this;
-    }
+
     /**
      * @return Collection|Collecte[]
      */
@@ -719,38 +711,159 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getType(): ?Type
+    /**
+     * @return ArrayCollection|Type[]
+     */
+    public function getTypes()
     {
-        return $this->type;
+        return $this->types;
     }
 
-    public function setType(?Type $type): self
-    {
-        $this->type = $type;
 
-        return $this;
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getInventoryEntries(): Collection
+    {
+        return $this->inventoryEntries;
     }
 
-    public function addAlertesStock(AlerteStock $alertesStock): self
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if (!$this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock[] = $alertesStock;
-            $alertesStock->setUser($this);
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setOperator($this);
         }
 
         return $this;
     }
 
-    public function removeAlertesStock(AlerteStock $alertesStock): self
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
     {
-        if ($this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock->removeElement($alertesStock);
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
             // set the owning side to null (unless already changed)
-            if ($alertesStock->getUser() === $this) {
-                $alertesStock->setUser(null);
+            if ($inventoryEntry->getOperator() === $this) {
+                $inventoryEntry->setOperator(null);
             }
         }
 
         return $this;
     }
+
+    public function getInventoryCategoryHistory(): ?InventoryCategoryHistory
+    {
+        return $this->inventoryCategoryHistory;
+    }
+
+    public function setInventoryCategoryHistory(?InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        $this->inventoryCategoryHistory = $inventoryCategoryHistory;
+
+        return $this;
+    }
+
+    public function addType(Type $type): self
+    {
+        if (!$this->types->contains($type)) {
+            $this->types[] = $type;
+        }
+
+        return $this;
+    }
+
+    public function removeType(Type $type): self
+    {
+        if ($this->types->contains($type)) {
+            $this->types->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|FiltreSup[]
+     */
+    public function getFiltresSup(): Collection
+    {
+        return $this->filtresSup;
+    }
+
+    public function addFiltresSup(FiltreSup $filtresSup): self
+    {
+        if (!$this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup[] = $filtresSup;
+            $filtresSup->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFiltresSup(FiltreSup $filtresSup): self
+    {
+        if ($this->filtresSup->contains($filtresSup)) {
+            $this->filtresSup->removeElement($filtresSup);
+            // set the owning side to null (unless already changed)
+            if ($filtresSup->getUser() === $this) {
+                $filtresSup->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LitigeHistoric[]
+     */
+    public function getLitigeHistorics(): Collection
+    {
+        return $this->litigeHistorics;
+    }
+
+    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics[] = $litigeHistory;
+            $litigeHistory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics->removeElement($litigeHistory);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistory->getUser() === $this) {
+                $litigeHistory->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics[] = $litigeHistoric;
+            $litigeHistoric->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics->removeElement($litigeHistoric);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistoric->getUser() === $this) {
+                $litigeHistoric->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

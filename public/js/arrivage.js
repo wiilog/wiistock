@@ -82,23 +82,12 @@ $.fn.dataTable.ext.search.push(
 
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
-})
+});
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, printLabels);
-
-let modalModifyArrivage = $('#modalEditArrivage');
-let submitModifyArrivage = $('#submitEditArrivage');
-let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
-
-let modalDeleteArrivage = $('#modalDeleteArrivage');
-let submitDeleteArrivage = $('#submitDeleteArrivage');
-let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
-
+InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -113,40 +102,22 @@ function initNewArrivageEditor(modal) {
 let quillEdit;
 let originalText = '';
 
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = {id: id};
-
-    $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        originalText = quillEdit.getText();
-    }, 'json');
-
-    modal.find(submit).attr('value', id);
-}
-
-function toggleLitige(select) {
-    let bloc = select.closest('.modal').find('#litigeBloc');
-    let status = select.find('option:selected').text();
-
-    let litigeType = bloc.find('#litigeType');
-    let constantConform = $('#constantConforme').val();
-
-    if (status === constantConform) {
-        litigeType.removeClass('needed');
-        bloc.addClass('d-none');
-
-    } else {
-        bloc.removeClass('d-none');
-        litigeType.addClass('needed');
-    }
-}
+// function toggleLitige(select) {
+//     let bloc = select.closest('.modal').find('#litigeBloc');
+//     let status = select.find('option:selected').text();
+//
+//     let litigeType = bloc.find('#litigeType');
+//     let constantConform = $('#constantConforme').val();
+//
+//     if (status === constantConform) {
+//         litigeType.removeClass('needed');
+//         bloc.addClass('d-none');
+//
+//     } else {
+//         bloc.removeClass('d-none');
+//         litigeType.addClass('needed');
+//     }
+// }
 
 function addCommentaire(select, bool) {
     let params = {
@@ -172,16 +143,6 @@ function addCommentaire(select, bool) {
             ]);
         }
     });
-}
-
-function deleteRowArrivage(button, modal, submit, hasLitige) {
-    deleteRow(button, modal, submit);
-    let hasLitigeText = modal.find('.hasLitige');
-    if (hasLitige) {
-        hasLitigeText.removeClass('d-none');
-    } else {
-        hasLitigeText.addClass('d-none');
-    }
 }
 
 function dragEnterDiv(event, div) {
@@ -254,10 +215,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }
@@ -408,7 +369,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
                 $(this).remove();
             });
             if (data.redirect) {
-                window.location.href = data.redirect;
+                window.location.href = data.redirect + '/1';
                 return;
             }
             // pour mise à jour des données d'en-tête après modification
@@ -535,13 +496,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
     }
 }
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 $submitSearchArrivage.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
@@ -566,44 +520,6 @@ $submitSearchArrivage.on('click', function () {
         .draw();
 });
 
-function printLabels(data) {
-    let nbUm = data.nbUm;
-    let printUm = data.printUm;
-    let printArrivage = data.printArrivage;
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    if (data.exists) {
-        let doc = adjustScalesForDoc(data);
-        $("#barcodes").empty();
-        if (printUm) {
-            for (let i = 0; i < nbUm; i++) {
-                $('#barcodes').append('<img id="barcode' + i + '">');
-                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
-                    format: "CODE128",
-                });
-            }
-
-        }
-        if (printArrivage) {
-            $('#barcodes').append('<img id="barcodeArrivage">');
-            JsBarcode("#barcodeArrivage", data.arrivage, {
-                format: "CODE128",
-            });
-        }
-        if (printArrivage || printUm) {
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes du ' + date + '.pdf');
-        }
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
-
 function deleteAttachement(arrivageId, originalName, pjName) {
 
     let path = Routing.generate('arrivage_delete_attachement');
@@ -621,56 +537,8 @@ function deleteAttachement(arrivageId, originalName, pjName) {
     });
 }
 
-function listColis(elem) {
-    let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_colis_api', true);
-    let modal = $('#modalListColis');
-    let params = { id: arrivageId };
-
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data);
-    }, 'json');
-}
-
-
-function getDataAndPrintLabels(codes) {
-    let path = Routing.generate('arrivage_get_data_to_print', true);
-    let codesArray = codes.split(',');
-
-    $.post(path, function (response) {
-        if (response.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            codesArray.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code, {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes ' + codes + '.pdf');
-        }
-    });
-}
-
-function deleteAttachementNew(pj) {
-    let params = {
-        pj: pj
-    };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
-        $('p.attachement').each(function() {
-            if ($(this).attr('id') === pj) $(this).remove();
-        });
-    })
-}
-
 function generateCSVArrivage () {
+    loadSpinner($('#spinnerArrivage'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -691,11 +559,13 @@ function generateCSVArrivage () {
                     csv += '\n';
                 });
                 aFile(csv);
+                hideSpinner($('#spinnerArrivage'));
             }
         }, 'json');
 
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerArrivage'))
     }
 }
 

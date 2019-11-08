@@ -38,6 +38,9 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
             ['Stock', Menu::STOCK],
             ['Indicateurs accueil', Menu::INDICS_ACCUEIL],
 			['Référentiel', Menu::REFERENTIEL],
+            ['Inventaire', Menu::INVENTAIRE],
+            ['Litige', Menu::LITIGE],
+            ['Arrivage', Menu::ARRIVAGE],
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);

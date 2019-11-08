@@ -19,7 +19,9 @@ class ReferenceArticle
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';
 
-    /**
+	const BARCODE_PREFIX = 'REF';
+
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -36,15 +38,15 @@ class ReferenceArticle
      */
     private $reference;
 
+	/**
+	 * @ORM\Column(type="string", length=15, nullable=true)
+	 */
+	private $barCode;
+
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $quantiteDisponible;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="refArticle")
-     */
-    private $alertesStock;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -116,18 +118,58 @@ class ReferenceArticle
 	 */
 	private $expiryDate;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
+     */
+    private $category;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="refArticle")
+     */
+    private $inventoryEntries;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryCategoryHistory", mappedBy="refArticle")
+     */
+    private $inventoryCategoryHistory;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", mappedBy="refArticles")
+     */
+    private $inventoryMissions;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateLastInventory;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitSecurity;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $limitWarning;
+
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
-        $this->demandes = new ArrayCollection();
-        $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->inventoryCategoryHistory = new ArrayCollection();
+        $this->inventoryMissions = new ArrayCollection();
     }
 
     public function getId()
@@ -155,7 +197,6 @@ class ReferenceArticle
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
-
         return $this;
     }
 
@@ -172,37 +213,6 @@ class ReferenceArticle
     public function setQuantiteDisponible(?int $quantiteDisponible): self
     {
         $this->quantiteDisponible = $quantiteDisponible;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|AlerteStock[]
-     */
-    public function getAlertesStock(): Collection
-    {
-        return $this->alertesStock;
-    }
-
-    public function addRefArticleAlerte(AlerteStock $refArticleAlerte): self
-    {
-        if (!$this->alertesStock->contains($refArticleAlerte)) {
-            $this->alertesStock[] = $refArticleAlerte;
-            $refArticleAlerte->setRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRefArticleAlerte(AlerteStock $refArticleAlerte): self
-    {
-        if ($this->alertesStock->contains($refArticleAlerte)) {
-            $this->alertesStock->removeElement($refArticleAlerte);
-            // set the owning side to null (unless already changed)
-            if ($refArticleAlerte->getRefArticle() === $this) {
-                $refArticleAlerte->setRefArticle(null);
-            }
-        }
 
         return $this;
     }
@@ -495,29 +505,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function addAlertesStock(AlerteStock $alertesStock): self
-    {
-        if (!$this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock[] = $alertesStock;
-            $alertesStock->setRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlertesStock(AlerteStock $alertesStock): self
-    {
-        if ($this->alertesStock->contains($alertesStock)) {
-            $this->alertesStock->removeElement($alertesStock);
-            // set the owning side to null (unless already changed)
-            if ($alertesStock->getRefArticle() === $this) {
-                $alertesStock->setRefArticle(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
     {
         if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
@@ -547,6 +534,167 @@ class ReferenceArticle
     {
         $this->expiryDate = $expiryDate;
 
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getInventoryEntries(): Collection
+    {
+        return $this->inventoryEntries;
+    }
+
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getRefArticle() === $this) {
+                $inventoryEntry->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryCategoryHistory[]
+     */
+    public function getInventoryCategoryHistory(): Collection
+    {
+        return $this->inventoryCategoryHistory;
+    }
+
+    public function addInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        if (!$this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory[] = $inventoryCategoryHistory;
+            $inventoryCategoryHistory->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryCategoryHistory(InventoryCategoryHistory $inventoryCategoryHistory): self
+    {
+        if ($this->inventoryCategoryHistory->contains($inventoryCategoryHistory)) {
+            $this->inventoryCategoryHistory->removeElement($inventoryCategoryHistory);
+            // set the owning side to null (unless already changed)
+            if ($inventoryCategoryHistory->getRefArticle() === $this) {
+                $inventoryCategoryHistory->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+    public function getCategory(): ?InventoryCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?InventoryCategory $category): self
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
+    }
+
+    public function addInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if (!$this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions[] = $inventoryMission;
+            $inventoryMission->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if ($this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions->removeElement($inventoryMission);
+            $inventoryMission->removeRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getDateLastInventory(): ?\DateTimeInterface
+    {
+        return $this->dateLastInventory;
+    }
+
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    {
+        $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getBarCode(): ?string
+    {
+        return $this->barCode;
+    }
+
+    public function setBarCode(?string $barCode): self
+    {
+        $this->barCode = $barCode;
+
+        return $this;
+    }
+
+    public function getLimitSecurity()
+    {
+        return $this->limitSecurity;
+    }
+
+    public function setLimitSecurity($limitSecurity): self
+    {
+        $this->limitSecurity = $limitSecurity;
+        return $this;
+    }
+
+    public function getLimitWarning()
+    {
+        return $this->limitWarning;
+    }
+
+    public function setLimitWarning($limitWarning): self
+    {
+        $this->limitWarning = $limitWarning;
         return $this;
     }
 

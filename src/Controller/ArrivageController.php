@@ -7,20 +7,22 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
+use App\Entity\LitigeHistoric;
+use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
+use App\Repository\ColisRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -31,6 +33,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,6 +41,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+
+use DateTime;
 
 /**
  * @Route("/arrivage")
@@ -94,9 +99,9 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
-	/**
-	 * @var PieceJointeRepository
-	 */
+    /**
+     * @var PieceJointeRepository
+     */
     private $pieceJointeRepository;
 
     /**
@@ -114,8 +119,23 @@ class ArrivageController extends AbstractController
      */
     private $litigeRepository;
 
+    /**
+     * @var ColisRepository
+     */
+    private $colisRepository;
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+	/**
+	 * @var MouvementTracaRepository
+	 */
+    private $mouvementTracaRepository;
+
+    /**
+     * @var LitigeHistoricRepository
+     */
+    private $litigeHistoricRepository;
+
+
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -131,6 +151,8 @@ class ArrivageController extends AbstractController
         $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
+        $this->colisRepository = $colisRepository;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -144,11 +166,14 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'statuts' => [
+                ['nom' => Arrivage::STATUS_CONFORME],
+                ['nom' => Arrivage::STATUS_LITIGE]
+            ]
         ]);
     }
 
@@ -173,6 +198,9 @@ class ArrivageController extends AbstractController
             $rows = [];
             foreach ($arrivages as $arrivage) {
                 $acheteursUsernames = [];
+                $url = $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ]);
                 foreach ($arrivage->getAcheteurs() as $acheteur) {
                     $acheteursUsernames[] = $acheteur->getUsername();
                 }
@@ -184,16 +212,17 @@ class ArrivageController extends AbstractController
                     'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
                     'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
+                    'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-                    'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
-                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+                    'Statut' => $arrivage->getStatus(),
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-                    'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
-                        'arrivage' => $arrivage,
-                    ])
+                    'Actions' => $this->renderView(
+                        'arrivage/datatableArrivageRow.html.twig',
+                        ['url' => $url, 'arrivage' => $arrivage]
+                    ),
                 ];
             }
 
@@ -215,8 +244,6 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutLabel);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -224,7 +251,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
@@ -255,7 +281,7 @@ class ArrivageController extends AbstractController
             $path = '../public/uploads/attachements/temp';
 
             if (is_dir($path)) {
-                foreach(scandir($path) as $file) {
+                foreach (scandir($path) as $file) {
                     if ('.' === $file) continue;
                     if ('..' === $file) continue;
 
@@ -265,50 +291,19 @@ class ArrivageController extends AbstractController
                     unlink($path . '/' . $file);
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-
-                for ($i = 0; $i < $data['nbUM']; $i++) {
-                    $colis = new Colis();
-                    $colis
-                        ->setCode($numeroArrivage . '-' . $i)
-                        ->setArrivage($arrivage);
-                    $em->persist($colis);
-                }
-            }
 
             $em->persist($arrivage);
-
-            if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
-                $litige = new Litige();
-                $litige
-                    ->setType($this->typeRepository->find($data['litigeType']))
-                    ->setArrivage($arrivage);
-                $em->persist($litige);
-
-                $this->sendMailToAcheteurs($arrivage, $litige, true);
-            }
-
             $em->flush();
-            $response = [];
-            $response['refs'] = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['arrivage'] = $numeroArrivage;
-                $response['exists'] = true;
-                $response['nbUm'] = $data['nbUM'];
-                $response['printUm'] = $data['printUM'];
-                $response['printArrivage'] = $data['printArrivage'];
-            } else {
-                $response['exists'] = false;
-            }
-            return new JsonResponse($response);
+
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_show', [
+                    'id' => $arrivage->getId(),
+                ])
+            ];
+            return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
     }
-
 
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
@@ -330,21 +325,14 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
                 ]);
-            } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
-                $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
-                    'arrivage' => $arrivage,
-					'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-					'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME
-				]);
             } else {
                 $html = '';
             }
@@ -371,12 +359,6 @@ class ArrivageController extends AbstractController
 
             if (isset($data['commentaire'])) {
                 $arrivage->setCommentaire($data['commentaire']);
-            }
-            $hasChanged = false;
-            if (isset($data['statut'])) {
-                $statut = $this->statutRepository->find($data['statut']);
-                if ($arrivage->getStatut() !== $statut) $hasChanged = true;
-                $arrivage->setStatut($statut);
             }
             if (isset($data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
@@ -407,45 +389,16 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-            }
-            if (isset($data['statutAcheteur'])) {
-                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
-            }
-
-            // traitement de l'éventuel litige
-            $litige = $arrivage->getLitige();
-
-            // non conforme : on enregistre le litige et/ou on le modifie
-            $statutLabel = $arrivage->getStatut()->getNom();
-            if ($statutLabel != Statut::CONFORME) {
-                if (empty($litige)) {
-                    $litige = new Litige();
-                    $litige->setArrivage($arrivage);
-                    $em->persist($litige);
-                }
-
-                if (isset($data['litigeType'])) {
-                    $litige->setType($this->typeRepository->find($data['litigeType']));
-                }
-
-                // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
-                if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
-                    $this->sendMailToAcheteurs($arrivage, $litige, false);
-                }
-
-			// conforme : on supprime l'éventuel litige
-            } else {
-                if (!empty($litige)) {
-                    $em->remove($litige);
-                }
-            }
 
             $em->flush();
 
-            return new JsonResponse();
+			$response = [
+				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+					'arrivage' => $arrivage
+				]),
+			];
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -465,9 +418,15 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getColis() as $colis) {
                 $entityManager->remove($colis);
             }
+            foreach ($arrivage->getAttachements() as $attachement) {
+                $entityManager->remove($attachement);
+            }
             $entityManager->remove($arrivage);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('arrivage_index')
+            ];
+            return new JsonResponse($data);
         }
 
         throw new NotFoundHttpException("404");
@@ -490,18 +449,18 @@ class ArrivageController extends AbstractController
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
-					if ($file->getClientOriginalExtension()) {
-						$filename = uniqid() . "." . $file->getClientOriginalExtension();
-					} else {
-						$filename = uniqid();
-					}
+                    if ($file->getClientOriginalExtension()) {
+                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    } else {
+                        $filename = uniqid();
+                    }
                     $file->move($path, $filename);
 
                     $pj = new PieceJointe();
                     $pj
-						->setFileName($filename)
-						->setOriginalName($file->getClientOriginalName())
-						->setArrivage($arrivage);
+                        ->setFileName($filename)
+                        ->setOriginalName($file->getClientOriginalName())
+                        ->setArrivage($arrivage);
                     $em->persist($pj);
 
                     $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
@@ -512,10 +471,10 @@ class ArrivageController extends AbstractController
             $html = '';
             foreach ($fileNames as $fileName) {
                 $html .= $this->renderView('arrivage/attachementLine.html.twig', [
-                	'arrivage' => $arrivage,
-					'pjName' => $fileName['name'],
-					'originalName' => $fileName['originalName']
-				]);
+                    'arrivage' => $arrivage,
+                    'pjName' => $fileName['name'],
+                    'originalName' => $fileName['originalName']
+                ]);
             }
 
             return new JsonResponse($html);
@@ -530,13 +489,13 @@ class ArrivageController extends AbstractController
     public function deleteAttachement(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$em = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
 
             $arrivageId = (int)$data['arrivageId'];
 
             $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $arrivageId);
             if ($attachement) {
-            	$em->remove($attachement);
+                $em->remove($attachement);
                 $em->flush();
                 $response = true;
             } else {
@@ -549,23 +508,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
-    {
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
-        	if ($newLitige) {
-				$title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-			} else {
-        		$title = 'Un litige sur arrivage nécessite un retour de votre part :';
-			}
+    private function sendMailToAcheteurs($litige) {
+        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
-                $this->renderView('mails/mailLitige.html.twig', [
-                    'litige' => $litige,
-					'title' => $title,
-					'urlSuffix' => 'arrivage'
+                $this->renderView('mails/mailLitiges.html.twig', [
+                    'litiges' => [$litige],
+                    'title' => $title,
+                    'urlSuffix' => 'arrivage'
                 ]),
-                $acheteur->getEmail()
+                $email
             );
         }
     }
@@ -609,11 +564,14 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+     * @Route("/api-etiquettes-arrivage", name="arrivage_get_data_to_print", options={"expose"=true})
      */
     public function getDataToPrintLabels(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $arrivage = $data;
+            $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension) {
@@ -624,7 +582,31 @@ class ArrivageController extends AbstractController
                 $response['height'] = $response['width'] = 0;
                 $response['exists'] = false;
             }
-            return new JsonResponse($response);
+            $responseData = array('response' => $response, 'codeColis' => $codeColis);
+            return new JsonResponse($responseData);
+
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 */
+    public function getPrintData(Request $request)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['exists'] = true;
+			} else {
+				$response['height'] = $response['width'] = 0;
+				$response['exists'] = false;
+			}
+
+			return new JsonResponse($response);
 
 		} else {
 			throw new NotFoundHttpException('404');
@@ -636,41 +618,44 @@ class ArrivageController extends AbstractController
      */
     public function keepAttachmentForNew(Request $request)
     {
-		if ($request->isXmlHttpRequest()) {
-			$em = $this->getDoctrine()->getManager();
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
 
-			$fileNames = [];
-			$html = '';
-			$path = "../public/uploads/attachements/temp/";
-			for ($i = 0; $i < count($request->files); $i++) {
-				$file = $request->files->get('file' . $i);
-				if ($file) {
-					if ($file->getClientOriginalExtension()) {
-						$filename = uniqid() . "." . $file->getClientOriginalExtension();
-					} else {
-						$filename = uniqid();
-					}
-					$fileNames[] = $filename;
-					$file->move($path, $filename);
-					$html .= $this->renderView('arrivage/attachementLine.html.twig', [
-						'arrivage' => null,
-						'pjName' => $filename,
-						'isNew' => true,
-						'originalName' => $file->getClientOriginalName()
-					]);
-					$pj = new PieceJointe();
-					$pj
-						->setOriginalName($file->getClientOriginalName())
-						->setFileName($filename);
-					$em->persist($pj);
-				}
-				$em->flush();
-			}
+            $fileNames = [];
+            $html = '';
+            $path = "../public/uploads/attachements/temp/";
+            if (!file_exists($path)) {
+                mkdir($path, 0777);
+            }
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    if ($file->getClientOriginalExtension()) {
+                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    } else {
+                        $filename = uniqid();
+                    }
+                    $fileNames[] = $filename;
+                    $file->move($path, $filename);
+                    $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                        'arrivage' => null,
+                        'pjName' => $filename,
+                        'isNew' => true,
+                        'originalName' => $file->getClientOriginalName()
+                    ]);
+                    $pj = new PieceJointe();
+                    $pj
+                        ->setOriginalName($file->getClientOriginalName())
+                        ->setFileName($filename);
+                    $em->persist($pj);
+                }
+                $em->flush();
+            }
 
-			return new JsonResponse($html);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
+            return new JsonResponse($html);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**
@@ -686,7 +671,7 @@ class ArrivageController extends AbstractController
             $headers = [];
             // en-têtes champs fixes
             $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'type de litige', 'commentaire', 'date', 'utilisateur']);
+                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
@@ -708,9 +693,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
-                $arrivageData[] = $arrivage->getStatut()->getNom();
-                $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
+                $arrivageData[] = $arrivage->getStatus();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -744,4 +727,376 @@ class ArrivageController extends AbstractController
         }
     }
 
+    /**
+	 * @param Arrivage $arrivage
+	 * @param bool $addColis
+     * @Route("/voir/{id}/{addColis}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @return JsonResponse
+     */
+    public function show(Arrivage $arrivage, bool $addColis = false): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $acheteursNames = [];
+        foreach ($arrivage->getAcheteurs() as $user) {
+            $acheteursNames[] = $user->getUsername();
+        }
+
+
+        return $this->render("arrivage/show.html.twig",
+            [
+                'arrivage' => $arrivage,
+                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'acheteurs' => $acheteursNames,
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+                'allColis' => $arrivage->getColis(),
+                'addColis' => $addColis
+            ]);
+    }
+
+    /**
+     * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
+     */
+    public function newLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
+
+			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litige = new Litige();
+            $litige
+                ->setStatus($this->statutRepository->find($data['statutLitige']))
+                ->setType($this->typeRepository->find($data['typeLitige']))
+                ->setCreationDate(new \DateTime('now'));
+            foreach ($data['colisLitige'] as $colisId) {
+                $litige->addColi($this->colisRepository->find($colisId));
+            }
+
+            $commentaire = trim($data['commentaire']);
+            if (!empty($commentaire)) {
+                $histo = new LitigeHistoric();
+                $histo
+                    ->setDate(new \DateTime('now'))
+                    ->setComment(trim($data['commentaire']))
+                    ->setLitige($litige)
+                    ->setUser($this->getUser());
+                $em->persist($histo);
+            }
+            $path = '../public/uploads/attachements/temp';
+
+            if (is_dir($path)) {
+                foreach (scandir($path) as $file) {
+                    if ('.' === $file) continue;
+                    if ('..' === $file) continue;
+
+                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
+                    if ($pj) $pj->setLitige($litige);
+                    copy($path . '/' . $file, $path . '/../' . $file);
+                    unlink($path . '/' . $file);
+                }
+            }
+
+            $em->persist($litige);
+            $em->flush();
+
+			$this->sendMailToAcheteurs($litige);
+
+			$arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
+            $response = array_merge(
+                $data,
+                $arrivageResponse ? $arrivageResponse : []
+            );
+
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+	/**
+	 * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 */
+    public function addColis(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+			$em = $this->getDoctrine()->getManager();
+
+            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
+
+            $codes = [];
+
+            for ($i = 0; $i < $data['nbColis']; $i++) {
+                $arrivageNum = $arrivage->getNumeroArrivage();
+                $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+                if ($highestCode) {
+                    $highestCodeArray = explode('-', $highestCode);
+                    $highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
+                } else {
+                    $highestCounter = 0;
+                }
+
+                $newCounter = sprintf('%05u', $highestCounter + 1);
+
+                $colis = new Colis();
+                $code = $arrivageNum . '-' . $newCounter;
+                $colis
+                    ->setCode($code)
+                    ->setArrivage($arrivage);
+                $em->persist($colis);
+                $em->flush();
+
+                $codes[] = $code;
+            }
+
+            $response = [];
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['exists'] = false;
+            }
+
+            $response['codes'] = $codes;
+            $response['arrivage'] = $arrivage->getNumeroArrivage();
+
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiArrivageLitiges(Request $request, Arrivage $arrivage): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+
+            /** @var Litige[] $litiges */
+            $litiges = $this->litigeRepository->getByArrivage($arrivage);
+
+            $rows = [];
+            foreach ($litiges as $litige) {
+                $rows[] = [
+                    'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
+                    'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
+                    'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
+                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
+                    'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
+                        'url' => [
+                            'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
+                        ],
+                        'litigeId' => $litige->getId(),
+                    ]),
+                ];
+            }
+
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiEditLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $litige = $this->litigeRepository->find($data['id']);
+
+            $colisCode = [];
+            foreach ($litige->getColis() as $colis) {
+                $colisCode[] = $colis->getId();
+            }
+
+            $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
+                'litige' => $litige,
+                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
+                'colis' => $this->colisRepository->findAll(),
+            ]);
+
+            return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function editLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $em = $this->getDoctrine()->getEntityManager();
+            $litige = $this->litigeRepository->find($data['id']);
+            $typeBefore = $litige->getType()->getId();
+            $typeBeforeName = $litige->getType()->getLabel();
+            $typeAfter = (int)$data['typeLitige'];
+            $statutBefore = $litige->getStatus()->getId();
+            $statutBeforeName = $litige->getStatus()->getNom();
+            $statutAfter = (int)$data['statutLitige'];
+            $litige
+                ->setUpdateDate(new \DateTime('now'))
+                ->setType($this->typeRepository->find($data['typeLitige']))
+                ->setStatus($this->statutRepository->find($data['statutLitige']));
+
+            foreach ($litige->getColis() as $litigeColis) {
+                $litige->removeColi($litigeColis);
+            }
+
+            foreach ($data['colis'] as $colis) {
+                $litige->addColi($this->colisRepository->find($colis));
+            }
+
+            $em->persist($litige);
+            $em->flush();
+            $histoLitige = new LitigeHistoric();
+            $histoLitige
+                ->setLitige($litige)
+                ->setDate(new \DateTime('now'))
+                ->setUser($this->getUser());
+            $comment = '';
+
+            if ($typeBefore !== $typeAfter) {
+                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+            }
+            if ($statutBefore !== $statutAfter) {
+                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+            }
+            if ($data['commentaire']) {
+                $comment .= trim($data['commentaire']);
+            }
+
+            if (!empty($comment)) {
+                $histoLitige->setComment($comment);
+                $em->persist($histoLitige);
+                $em->flush();
+            }
+
+            $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
+
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/depose-pj-litige", name="litige_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deposeLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+
+            $fileNames = [];
+            $path = "../public/uploads/attachements";
+
+            $id = (int)$request->request->get('id');
+            $litige = $this->litigeRepository->find($id);
+
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    if ($file->getClientOriginalExtension()) {
+                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    } else {
+                        $filename = uniqid();
+                    }
+                    $file->move($path, $filename);
+
+                    $pj = new PieceJointe();
+                    $pj
+                        ->setFileName($filename)
+                        ->setOriginalName($file->getClientOriginalName())
+                        ->setLitige($litige);
+                    $em->persist($pj);
+
+                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
+                }
+            }
+            $em->flush();
+
+            $html = '';
+            foreach ($fileNames as $fileName) {
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                    'litige' => $litige,
+                    'pjName' => $fileName['name'],
+                    'originalName' => $fileName['originalName']
+                ]);
+            }
+
+            return new JsonResponse($html);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+	/**
+	 * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param Arrivage $arrivage
+	 * @return Response
+	 * @throws \Exception
+	 */
+	public function apiColis(Request $request, Arrivage $arrivage): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$listColis = $arrivage->getColis()->toArray();
+
+			$rows = [];
+			foreach ($listColis as $colis) { /** @var $colis Colis */
+				$mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
+				if ($mouvement) {
+					$dateArray = explode('_', $mouvement->getDate());
+					$date = new DateTime($dateArray[0]);
+					$formattedDate = $date->format('d/m/Y H:i');
+				} else {
+					$formattedDate = '';
+				}
+				$rows[] = [
+					'code' => $colis->getCode(),
+					'lastMvtDate' => $formattedDate,
+					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
+					'operator' => $mouvement ? $mouvement->getOperateur() : '',
+					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+				];
+			}
+			$data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    private function getResponseReloadArrivage($reloadArrivageId): ?array {
+        $response = null;
+        if (isset($reloadArrivageId)) {
+            $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
+            if ($arrivageToReload) {
+                $response = [
+                    'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+                        'arrivage' => $arrivageToReload
+                    ]),
+                ];
+            }
+        }
+
+        return $response;
+    }
 }

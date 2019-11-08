@@ -2,7 +2,6 @@ let pathArticle = Routing.generate('article_api', true);
 
 let tableArticle = $('#tableArticle_id').DataTable({
     serverSide: true,
-    ordering: false,
     processing: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -28,6 +27,9 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
         { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 5 }
     ],
 });
 
@@ -133,7 +135,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
                     $('.error-msg').html('');
                 }
             }
-        }
+        };
         path = Routing.generate('ajax_fournisseur_by_refarticle', true)
         $('#newContent').html('');
         fournisseur.addClass('d-none');
@@ -153,15 +155,14 @@ function printSingleArticleBarcode(button) {
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", response.articleRef, {
-                format: "CODE128",
-            });
-            let doc = adjustScalesForDoc(response);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
-            $("#singleBarcode").remove();
-        } else {
+            printBarcodes(
+                [response.articleRef.barcode],
+                response,
+                'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+                [response.articleRef.barcodeLabel],
+            );
+        }
+        else {
             $('#cannotGenerate').click();
         }
     });
@@ -207,22 +208,11 @@ function getDataAndPrintLabels() {
     });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            response.articles.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code, {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response.tags);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages());
-            doc.save('Etiquettes-articles.pdf');
+            printBarcodes(
+                response.barcodes,
+                response.tags,
+                'Etiquettes-articles.pdf',
+                response.barcodesLabels);
         }
     });
 }

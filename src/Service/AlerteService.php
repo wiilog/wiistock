@@ -12,6 +12,7 @@ use App\Repository\AlerteExpiryRepository;
 
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Routing\RouterInterface;
 
 class AlerteService
@@ -83,11 +84,12 @@ class AlerteService
 	 * @param AlerteStock $alerte
 	 * @param bool $onlySecurityAlert
 	 * @return bool
+	 * @throws NonUniqueResultException
 	 */
 	public function isAlerteStockActive($alerte, $onlySecurityAlert)
 	{
 		$refArticle = $alerte->getRefArticle();
-		$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+		$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
 		if ($refArticle) {
 			// gestion par article

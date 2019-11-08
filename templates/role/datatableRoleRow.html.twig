@@ -1,12 +1,12 @@
 <div class="d-flex">
-    <div data-toggle='modal' data-target='#modalEditRole'>
-        <div class="btn btn-col-action" data-id='{{ roleId }}'
+    <div>
+        <div class="btn btn-col-action" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalEditRole'
          onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
-    <div data-toggle='modal' data-target='#modalDeleteRole'>
-        <div class="btn btn-col-action" data-id='{{ roleId }}'
+    <div>
+        <div class="btn btn-col-action" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
          onclick="deleteRow($(this), $('#modalDeleteRole'), $('#submitDeleteRole'))">
             <i class='fas fa-trash'></i>
         </div>

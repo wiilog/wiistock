@@ -16,11 +16,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Article
 {
     const CATEGORIE = 'article';
-    const STATUT_ACTIF = 'actif';
-    const STATUT_INACTIF = 'inactif';
+    const STATUT_ACTIF = 'disponible';
+    const STATUT_INACTIF = 'consommé';
     const STATUT_EN_TRANSIT = 'en transit';
-    const CONFORM = 1;
-    const NOT_CONFORM = 0;
+
+    const BARCODE_PREFIX = 'ART';
 
     /**
      * @ORM\Id()
@@ -33,6 +33,11 @@ class Article
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $reference;
+
+	/**
+	 * @ORM\Column(type="string", length=15, nullable=true)
+	 */
+	private $barCode;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -108,6 +113,26 @@ class Article
      */
     private $reception;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
+     */
+    private $inventoryEntries;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
+     */
+    private $inventoryMissions;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $prixUnitaire;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateLastInventory;
+
 
     public function __construct()
     {
@@ -115,6 +140,8 @@ class Article
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
+        $this->inventoryEntries = new ArrayCollection();
+        $this->inventoryMissions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -127,8 +154,7 @@ class Article
         return $this->reference;
     }
 
-    public function setReference(?string $reference): self
-    {
+    public function setReference(?string $reference): self {
         $this->reference = $reference;
 
         return $this;
@@ -337,6 +363,18 @@ class Article
         return $this;
     }
 
+    public function getPrixUnitaire()
+    {
+        return $this->prixUnitaire;
+    }
+
+    public function setPrixUnitaire($prixUnitaire): self
+    {
+        $this->prixUnitaire = $prixUnitaire;
+
+        return $this;
+    }
+
     public function getReception(): ?Reception
     {
         return $this->reception;
@@ -399,4 +437,84 @@ class Article
 
         return $this;
     }
+
+	/**
+	 * @return Collection|InventoryEntry[]
+	 */
+	public function getInventoryEntries(): Collection
+                   {
+                       return $this->inventoryEntries;
+                   }
+
+	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
+               	{
+               		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+               			$this->inventoryEntries[] = $inventoryEntry;
+               			$inventoryEntry->setArticle($this);
+               		}
+               
+               		return $this;
+               	}
+
+	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
+	{
+		if ($this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries->removeElement($inventoryEntry);
+			// set the owning side to null (unless already changed)
+			if ($inventoryEntry->getArticle() === $this) {
+				$inventoryEntry->setArticle(null);
+			}
+		}
+	}
+
+    /**
+     * @return Collection|InventoryMission[]
+     */
+    public function getInventoryMissions(): Collection
+    {
+        return $this->inventoryMissions;
+    }
+
+    public function addInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if (!$this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions[] = $inventoryMission;
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMission(InventoryMission $inventoryMission): self
+    {
+        if ($this->inventoryMissions->contains($inventoryMission)) {
+            $this->inventoryMissions->removeElement($inventoryMission);
+        }
+
+        return $this;
+    }
+
+    public function getDateLastInventory(): ?\DateTimeInterface
+    {
+        return $this->dateLastInventory;
+    }
+
+    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    {
+        $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getBarCode(): ?string
+    {
+        return $this->barCode;
+    }
+
+    public function setBarCode(?string $barCode): self
+    {
+        $this->barCode = $barCode;
+
+        return $this;
+    }
+
 }

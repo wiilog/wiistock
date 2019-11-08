@@ -29,10 +29,16 @@ class PieceJointe
     private $fileName;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="piecesJointes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
     private $arrivage;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="attachements")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $litige;
 
     public function getId(): ?int
     {
@@ -71,6 +77,18 @@ class PieceJointe
     public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
+    public function getLitige(): ?Litige
+    {
+        return $this->litige;
+    }
+
+    public function setLitige(?Litige $litige): self
+    {
+        $this->litige = $litige;
 
         return $this;
     }

@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Type
 {
     // types de la catégorie article
+	// CEA
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
@@ -22,6 +23,7 @@ class Type
     // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
     // types de la catégorie litige
+	// Safran Ceramics
     const LABEL_MANQUE_BL = 'manque BL';
     const LABEL_MANQUE_INFO_BL = 'manque info BL';
     const LABEL_ECART_QTE = 'écart quantité + ou -';
@@ -90,7 +92,7 @@ class Type
     private $collectes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="type")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="types")
      */
     private $utilisateurs;
 
@@ -386,37 +388,6 @@ class Type
         return $this;
     }
 
-    /**
-     * @return Collection|Utilisateur[]
-     */
-    public function getUtilisateurs(): Collection
-    {
-        return $this->utilisateurs;
-    }
-
-    public function addUtilisateur(Utilisateur $utilisateur): self
-    {
-        if (!$this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs[] = $utilisateur;
-            $utilisateur->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUtilisateur(Utilisateur $utilisateur): self
-    {
-        if ($this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs->removeElement($utilisateur);
-            // set the owning side to null (unless already changed)
-            if ($utilisateur->getType() === $this) {
-                $utilisateur->setType(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function addChampsLibre(ChampLibre $champsLibre): self
     {
         if (!$this->champsLibres->contains($champsLibre)) {
@@ -435,6 +406,34 @@ class Type
             if ($champsLibre->getType() === $this) {
                 $champsLibre->setType(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUtilisateurs(): Collection
+    {
+        return $this->utilisateurs;
+    }
+
+    public function addUtilisateur(Utilisateur $utilisateur): self
+    {
+        if (!$this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs[] = $utilisateur;
+            $utilisateur->addType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUtilisateur(Utilisateur $utilisateur): self
+    {
+        if ($this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs->removeElement($utilisateur);
+            $utilisateur->removeType($this);
         }
 
         return $this;
