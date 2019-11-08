@@ -52,7 +52,8 @@ let tableHistoLitige;
 function openTableHisto() {
 
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLitige').DataTable({
+    tableHistoLitige = $('#tableHistoLiti' +
+        'ge').DataTable({
         language: {
             url: "/js/i18n/dataTableLanguage.json",
         },

@@ -483,6 +483,7 @@ button:focus {
 }
 .sidemenu .menu-header .version {
   font-size: 0.8rem;
+  color: #130078;
 }
 .sidemenu .menu-item {
   display: table-row;
@@ -610,12 +611,6 @@ button:focus {
 
 .table-auto td {
   white-space: unset !important;
-}
-
-.tableHistoric {
-  margin-top: 30px;
-  margin-left: 15px;
-  margin-right: 15px;
 }
 
 .no-padding-on-p p {
