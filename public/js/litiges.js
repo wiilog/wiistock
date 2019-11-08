@@ -446,7 +446,7 @@ function getCommentAndAddHisto()
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
-    $.post(path, JSON.stringify(dataComment), function (response) {
+    $.post(path, JSON.stringify(dataComment), function () {
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
     });

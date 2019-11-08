@@ -985,6 +985,9 @@ class ArrivageController extends AbstractController
     public function editLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
             $em = $this->getDoctrine()->getEntityManager();
             $litige = $this->litigeRepository->find($data['id']);
