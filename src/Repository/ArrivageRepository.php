@@ -94,22 +94,4 @@ class ArrivageRepository extends ServiceEntityRepository
 
         return $query->getScalarResult();
     }
-
-    public function findOneByLitige($litige)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT a
-                FROM App\Entity\Arrivage a
-                JOIN a.colis c
-                JOIN c.litiges l
-                WHERE l.id = :litige
-                '
-        )->setParameter('litige', $litige);
-
-        $result = $query->execute();
-
-        return $result ? $result[0] : null;
-    }
 }

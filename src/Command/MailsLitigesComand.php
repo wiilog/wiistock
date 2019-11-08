@@ -86,7 +86,7 @@ class MailsLitigesComand extends Command
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
             /** @var  $acheteursEmail */
-            $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+            $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
             foreach ($acheteursEmail as $email) {
                 $litigesByAcheteur[$email][] = $litige;
             }
