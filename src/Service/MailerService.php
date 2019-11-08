@@ -76,8 +76,6 @@ class MailerService
 
         $message = (new \Swift_Message());
 
-//		$message->attach(\Swift_Attachment::fromPath('/img/Logo-FollowGTpetit.png', 'image/jpeg'));
-
 		$message
             ->setFrom($from)
             ->setTo($to)

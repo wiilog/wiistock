@@ -264,7 +264,7 @@ class LitigeController extends AbstractController
                 {
                     $rows[] = [
                         'user' => $histo->getUser()->getUsername(),
-                        'date' => $histo->getDate()->format('d/m/Y'),
+                        'date' => $histo->getDate()->format('d/m/Y H:i'),
                         'commentaire' => $histo->getComment(),
                     ];
                 }
