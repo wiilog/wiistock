@@ -23,6 +23,16 @@ class Statut
      */
     private $nom;
 
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $comment;
+
+	/**
+	 * @ORM\Column(type="integer", nullable=true)
+	 */
+    private $displayOrder;
+
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
@@ -409,6 +419,30 @@ class Statut
                 $litige->setStatus(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getDisplayOrder(): ?int
+    {
+        return $this->displayOrder;
+    }
+
+    public function setDisplayOrder(int $displayOrder): self
+    {
+        $this->displayOrder = $displayOrder;
 
         return $this;
     }

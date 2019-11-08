@@ -172,4 +172,5 @@ class TypeRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
 }

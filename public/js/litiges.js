@@ -253,7 +253,8 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
             'targets': [6,7,8],
             'visible': false
         }
-    ]
+    ],
+    order: [[4, 'desc']]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');

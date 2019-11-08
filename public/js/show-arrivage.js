@@ -52,8 +52,7 @@ let tableHistoLitige;
 function openTableHisto() {
 
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLiti' +
-        'ge').DataTable({
+    tableHistoLitige = $('#tableHistoLitige').DataTable({
         language: {
             url: "/js/i18n/dataTableLanguage.json",
         },
@@ -104,12 +103,12 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
 
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
-let urlNewLitige = Routing.generate('litige_new', true);
+let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
 InitialiserModal(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
-let urlEditLitige = Routing.generate('litige_edit', true);
+let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
 InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 

@@ -1,0 +1,24 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage des statuts litiges{% endblock %}
+
+{% block page_content %}
+
+    <h1>Paramétrage des statuts litiges</h1>
+
+    <a href="" data-toggle="modal" data-target="#modalNewStatus" class="btn btn-primary">
+        <span class="fa fa-plus mr-2"></span>Nouveau statut
+    </a>
+
+    <table id="tableStatus" class="table table-striped table-bordered w-100">
+    </table>
+
+    {% include 'status/modalNewStatus.html.twig' %}
+    {% include 'status/modalEditStatus.html.twig' %}
+    {% include 'status/modalDeleteStatus.html.twig' %}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/status.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
