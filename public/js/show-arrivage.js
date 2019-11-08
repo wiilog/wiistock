@@ -48,11 +48,11 @@ let tableColis = $('#tableColis').DataTable({
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
     ],
 });
-
+let tableHistoLitige;
 function openTableHisto() {
 
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    let tableHistoLitige = $('#tableHistoLitige').DataTable({
+    tableHistoLitige = $('#tableHistoLitige').DataTable({
         language: {
             url: "/js/i18n/dataTableLanguage.json",
         },
@@ -424,5 +424,6 @@ function getCommentAndAddHisto()
     let dataComment = commentLitige.val();
 
     $.post(path, JSON.stringify(dataComment), function (response) {
+        tableHistoLitige.ajax.reload();
     });
 }

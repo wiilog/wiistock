@@ -259,8 +259,8 @@ class LitigeController extends AbstractController
                 foreach ($litigeHisto as $histo)
                 {
                     $rows[] = [
-                        'user' => $histo->getUser()->getUsername(),
-                        'date' => $histo->getDate()->format('d/m/Y'),
+                        'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
+                        'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y') : '',
                         'commentaire' => $histo->getComment(),
                     ];
                 }
