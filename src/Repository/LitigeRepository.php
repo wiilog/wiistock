@@ -55,7 +55,7 @@ class LitigeRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT l.id, l.creationDate, l.updateDate,
+			"SELECT DISTINCT (l.id) as id, l.creationDate, l.updateDate,
 			tr.label as carrier, f.nom as provider, a.numeroArrivage, t.label as type, a.id as arrivageId, s.nom status
 			FROM App\Entity\Litige l
 			LEFT JOIN l.colis c

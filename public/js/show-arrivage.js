@@ -111,6 +111,11 @@ let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
 InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
+let ModalDeleteLitige = $("#modalDeleteLitige");
+let SubmitDeleteLitige = $("#submitDeleteLitige");
+let urlDeleteLitige = Routing.generate('litige_delete', true);
+InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableArrivageLitiges);
+
 
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');

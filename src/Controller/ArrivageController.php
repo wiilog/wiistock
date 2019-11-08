@@ -839,6 +839,26 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+    /**
+     * @Route("/supprimer-litige", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litige = $this->litigeRepository->find($data['litige']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($litige);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
 	/**
 	 * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
 	 * @return JsonResponse
