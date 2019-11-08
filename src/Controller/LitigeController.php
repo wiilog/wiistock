@@ -285,7 +285,7 @@ class LitigeController extends AbstractController
      */
     public function addComment(Request $request, Litige $litige): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = (json_decode($request->getContent(), true) ?? [])) {
             $em = $this->getDoctrine()->getManager();
             $litigeHisto = new LitigeHistoric();
             $litigeHisto
@@ -298,5 +298,6 @@ class LitigeController extends AbstractController
 
             return new JsonResponse(true);
         }
+        return new JsonResponse(false);
     }
 }
