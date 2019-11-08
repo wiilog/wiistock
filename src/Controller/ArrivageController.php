@@ -781,13 +781,15 @@ class ArrivageController extends AbstractController
                 $litige->addColi($this->colisRepository->find($colisId));
             }
 
-            $histo = new LitigeHistoric();
-            $histo
-                ->setDate(new \DateTime('now'))
-                ->setComment(trim($data['commentaire']))
-                ->setLitige($litige)
-                ->setUser($this->getUser());
-
+            $commentaire = trim($data['commentaire']);
+            if (!empty($commentaire)) {
+                $histo = new LitigeHistoric();
+                $histo
+                    ->setDate(new \DateTime('now'))
+                    ->setComment(trim($data['commentaire']))
+                    ->setLitige($litige)
+                    ->setUser($this->getUser());
+            }
             $path = '../public/uploads/attachements/temp';
 
             if (is_dir($path)) {
@@ -804,7 +806,11 @@ class ArrivageController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($litige);
-            $em->persist($histo);
+
+            if (!empty($commentaire)) {
+                $em->persist($histo);
+            }
+
             $em->flush();
 
             $arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
@@ -948,47 +954,45 @@ class ArrivageController extends AbstractController
             $statutBefore = $litige->getStatus()->getId();
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$data['statutLitige'];
-                $litige
-                    ->setUpdateDate(new \DateTime('now'))
-                    ->setType($this->typeRepository->find($data['typeLitige']))
-                    ->setStatus($this->statutRepository->find($data['statutLitige']));
-//                    ->setCommentaire($data['commentaire']);
+            $litige
+                ->setUpdateDate(new \DateTime('now'))
+                ->setType($this->typeRepository->find($data['typeLitige']))
+                ->setStatus($this->statutRepository->find($data['statutLitige']));
 
-                foreach ($litige->getColis() as $litigeColis) {
-                    $litige->removeColi($litigeColis);
-                }
+            foreach ($litige->getColis() as $litigeColis) {
+                $litige->removeColi($litigeColis);
+            }
 
-                foreach ($data['colis'] as $colis) {
-                    $litige->addColi($this->colisRepository->find($colis));
-                }
+            foreach ($data['colis'] as $colis) {
+                $litige->addColi($this->colisRepository->find($colis));
+            }
 
-                $em->persist($litige);
-                $em->flush();
-                $histoLitige = new LitigeHistoric();
-                $histoLitige
-                    ->setLitige($litige)
-                    ->setDate(new \DateTime('now'))
-                    ->setUser($this->getUser());
-                $comment = "<p>";
+            $em->persist($litige);
+            $em->flush();
+            $histoLitige = new LitigeHistoric();
+            $histoLitige
+                ->setLitige($litige)
+                ->setDate(new \DateTime('now'))
+                ->setUser($this->getUser());
+            $comment = "<p>";
 
-                if ($typeBefore !== $typeAfter)
-                {
-                    $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
-                }
-                if ($statutBefore !== $statutAfter)
-                {
-                    $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
-                }
-                if ($data['commentaire'])
-                {
-                    $comment .= trim($data['commentaire']);
-                }
-                $comment .= '</p>';
+            if ($typeBefore !== $typeAfter) {
+                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+            }
+            if ($statutBefore !== $statutAfter) {
+                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+            }
+            if ($data['commentaire']) {
+                $comment .= trim($data['commentaire']);
+            }
+            $comment .= '</p>';
 
+            if (!empty($comment)) {
                 $histoLitige
                     ->setComment($comment);
                 $em->persist($histoLitige);
                 $em->flush();
+            }
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 
