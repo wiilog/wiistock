@@ -727,6 +727,11 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $path = "../public/uploads/attachements/temp/" . $data['pj'];
             unlink($path);
+            $pj = $this->pieceJointeRepository->findOneByFileName($data['pj']);
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($pj);
+            $em->flush();
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');

@@ -426,6 +426,17 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
     });
 }
 
+function deleteAttachementNew(pj) {
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    });
+}
+
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
     let param = codes;

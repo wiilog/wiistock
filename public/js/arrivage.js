@@ -524,11 +524,11 @@ function deleteAttachementNew(pj) {
     let params = {
         pj: pj
     };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
-        $('p.attachement').each(function() {
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
+        $('#modalNewArrivage').find('p.attachement').each(function() {
             if ($(this).attr('id') === pj) $(this).remove();
         });
-    })
+    });
 }
 
 function generateCSVArrivage () {
