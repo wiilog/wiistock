@@ -23,9 +23,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/parametres-status")
+ * @Route("/statut")
  */
-class ParamStatusController extends AbstractController
+class StatusController extends AbstractController
 {
     /**
      * @var UserService
