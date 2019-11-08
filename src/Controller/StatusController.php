@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/statut")
+ * @Route("/statuts")
  */
 class StatusController extends AbstractController
 {

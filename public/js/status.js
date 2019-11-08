@@ -15,6 +15,10 @@ let tableStatus = $('#tableStatus').DataTable({
         { "data": 'Order', 'title' : 'Ordre' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
+    order: [
+        [0, 'asc'],
+        [4, 'asc']
+    ],
 });
 
 let modalNewStatus = $("#modalNewStatus");
