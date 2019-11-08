@@ -771,6 +771,7 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
 
             $litige = new Litige();
             $litige
@@ -789,6 +790,7 @@ class ArrivageController extends AbstractController
                     ->setComment(trim($data['commentaire']))
                     ->setLitige($litige)
                     ->setUser($this->getUser());
+                $em->persist($histo);
             }
             $path = '../public/uploads/attachements/temp';
 
@@ -804,13 +806,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $em = $this->getDoctrine()->getManager();
             $em->persist($litige);
-
-            if (!empty($commentaire)) {
-                $em->persist($histo);
-            }
-
             $em->flush();
 
             $arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
@@ -974,7 +970,7 @@ class ArrivageController extends AbstractController
                 ->setLitige($litige)
                 ->setDate(new \DateTime('now'))
                 ->setUser($this->getUser());
-            $comment = "<p>";
+            $comment = '';
 
             if ($typeBefore !== $typeAfter) {
                 $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
@@ -985,11 +981,9 @@ class ArrivageController extends AbstractController
             if ($data['commentaire']) {
                 $comment .= trim($data['commentaire']);
             }
-            $comment .= '</p>';
 
             if (!empty($comment)) {
-                $histoLitige
-                    ->setComment($comment);
+                $histoLitige->setComment($comment);
                 $em->persist($histoLitige);
                 $em->flush();
             }
