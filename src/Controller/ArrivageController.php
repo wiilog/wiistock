@@ -525,8 +525,8 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($litige) {
-        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+    private function sendMailToAcheteurs(Litige $litige) {
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -798,13 +798,18 @@ class ArrivageController extends AbstractController
             foreach ($data['colisLitige'] as $colisId) {
                 $litige->addColi($this->colisRepository->find($colisId));
             }
+            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+            $commentStatut = $statutinstance->getComment();
 
-            $commentaire = trim($data['commentaire']);
+            $trimCommentStatut = trim($commentStatut);
+            $userComment = trim($data['commentaire']);
+            $br = !empty($userComment) ? '<br/>' : '';
+            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($br . $commentStatut) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
                     ->setDate(new \DateTime('now'))
-                    ->setComment(trim($data['commentaire']))
+                    ->setComment($commentaire)
                     ->setLitige($litige)
                     ->setUser($this->getUser());
                 $em->persist($histo);
@@ -837,6 +842,26 @@ class ArrivageController extends AbstractController
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/supprimer-litige", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litige = $this->litigeRepository->find($data['litige']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($litige);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 
 	/**
@@ -906,7 +931,7 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             /** @var Litige[] $litiges */
-            $litiges = $this->litigeRepository->getByArrivage($arrivage);
+            $litiges = $this->litigeRepository->findByArrivage($arrivage);
 
             $rows = [];
             foreach ($litiges as $litige) {
@@ -965,6 +990,9 @@ class ArrivageController extends AbstractController
     public function editLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
             $em = $this->getDoctrine()->getEntityManager();
             $litige = $this->litigeRepository->find($data['id']);
@@ -989,25 +1017,35 @@ class ArrivageController extends AbstractController
 
             $em->persist($litige);
             $em->flush();
-            $histoLitige = new LitigeHistoric();
-            $histoLitige
-                ->setLitige($litige)
-                ->setDate(new \DateTime('now'))
-                ->setUser($this->getUser());
-            $comment = '';
 
+            $comment = '';
+            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+            $commentStatut = $statutinstance->getComment();
             if ($typeBefore !== $typeAfter) {
-                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
             }
             if ($statutBefore !== $statutAfter) {
-                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+                if (!empty($comment)) {
+                    $comment .= '<br/>';
+                }
+                $comment .= "Changement du statut : " .
+                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
+                    (!empty($commentStatut) ? ("<br>" . $commentStatut . ".") : '');
             }
             if ($data['commentaire']) {
+                if (!empty($comment)) {
+                    $comment .= '<br/>';
+                }
                 $comment .= trim($data['commentaire']);
             }
 
             if (!empty($comment)) {
-                $histoLitige->setComment($comment);
+                $histoLitige = new LitigeHistoric();
+                $histoLitige
+                    ->setLitige($litige)
+                    ->setDate(new \DateTime('now'))
+                    ->setUser($this->getUser())
+                    ->setComment($comment);
                 $em->persist($histoLitige);
                 $em->flush();
             }

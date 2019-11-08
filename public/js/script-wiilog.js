@@ -307,7 +307,6 @@ function toggleLivraisonCollecte($button) {
                 pathIndex = Routing.generate('collecte_index', false);
             }
 
-            console.log(pathIndex);
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
