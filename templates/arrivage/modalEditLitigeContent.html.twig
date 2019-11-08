@@ -36,11 +36,13 @@
         </div>
 
         <div class="form-group col-12 fit-content">
-            <label for="commentaire">Commentaire</label>
-            <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-            <div class="editor-container-edit"></div>
-        </div>
+            <label for="litige-edit-commentaire">Commentaire</label>
 
+            <div class="d-flex">
+                <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
+                <button type="button" class="btn form-group m-0 ml-2" onclick="getCommentAndAddHisto()">Ajouter</button>
+            </div>
+        </div>
         <div class="form-group col-12">
             <div>
                 {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
