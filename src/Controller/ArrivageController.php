@@ -798,13 +798,14 @@ class ArrivageController extends AbstractController
             foreach ($data['colisLitige'] as $colisId) {
                 $litige->addColi($this->colisRepository->find($colisId));
             }
-
-            $commentaire = trim($data['commentaire']);
+            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+            $commentStatut = $statutinstance->getComment();
+            $commentaire = trim($data['commentaire'] ? $data['commentaire'] . "<br>" : '') . $commentStatut;
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
                     ->setDate(new \DateTime('now'))
-                    ->setComment(trim($data['commentaire']))
+                    ->setComment($commentaire)
                     ->setLitige($litige)
                     ->setUser($this->getUser());
                 $em->persist($histo);
@@ -995,12 +996,13 @@ class ArrivageController extends AbstractController
                 ->setDate(new \DateTime('now'))
                 ->setUser($this->getUser());
             $comment = '';
-
+            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+            $commentStatut = $statutinstance->getComment();
             if ($typeBefore !== $typeAfter) {
                 $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
             }
             if ($statutBefore !== $statutAfter) {
-                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>";
+                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>" . $commentStatut . ".<br>";
             }
             if ($data['commentaire']) {
                 $comment .= trim($data['commentaire']);
