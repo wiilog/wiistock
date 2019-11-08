@@ -133,7 +133,7 @@ class ParamStatusController extends AbstractController
                     ->setNom($data['label'])
                     ->setComment($data['description'])
 					->setTreated($data['treated'])
-					->setDisplayOrder($data['displayOrder'])
+					->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category);
 
                 $em->persist($status);
@@ -199,7 +199,7 @@ class ParamStatusController extends AbstractController
                     ->setNom($data['label'])
                     ->setCategorie($category)
 					->setTreated($data['treated'])
-					->setDisplayOrder($data['order'])
+					->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment']);
 
                 $em->persist($status);
