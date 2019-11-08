@@ -800,7 +800,9 @@ class ArrivageController extends AbstractController
             }
             $statutinstance = $this->statutRepository->find($data['statutLitige']);
             $commentStatut = $statutinstance->getComment();
-            $commentaire = trim($data['commentaire'] ? $data['commentaire'] . "<br>" : '') . $commentStatut;
+
+            $trimCommentStatut = trim($commentStatut);
+            $commentaire = trim($data['commentaire']) . (!empty($trimCommentStatut) ? ('<br/>' . $commentStatut) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -990,26 +992,33 @@ class ArrivageController extends AbstractController
 
             $em->persist($litige);
             $em->flush();
-            $histoLitige = new LitigeHistoric();
-            $histoLitige
-                ->setLitige($litige)
-                ->setDate(new \DateTime('now'))
-                ->setUser($this->getUser());
+
             $comment = '';
             $statutinstance = $this->statutRepository->find($data['statutLitige']);
             $commentStatut = $statutinstance->getComment();
             if ($typeBefore !== $typeAfter) {
-                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".<br>";
+                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
             }
             if ($statutBefore !== $statutAfter) {
-                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>" . $commentStatut . ".<br>";
+                if (!empty($comment)) {
+                    $comment .= '<br/>';
+                }
+                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>" . $commentStatut . ".";
             }
             if ($data['commentaire']) {
+                if (!empty($comment)) {
+                    $comment .= '<br/>';
+                }
                 $comment .= trim($data['commentaire']);
             }
 
             if (!empty($comment)) {
-                $histoLitige->setComment($comment);
+                $histoLitige = new LitigeHistoric();
+                $histoLitige
+                    ->setLitige($litige)
+                    ->setDate(new \DateTime('now'))
+                    ->setUser($this->getUser())
+                    ->setComment($comment);
                 $em->persist($histoLitige);
                 $em->flush();
             }
