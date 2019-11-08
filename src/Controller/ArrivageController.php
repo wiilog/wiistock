@@ -1053,7 +1053,7 @@ class ArrivageController extends AbstractController
 				if ($mouvement) {
 					$dateArray = explode('_', $mouvement->getDate());
 					$date = new DateTime($dateArray[0]);
-					$formattedDate = $date->format('d/m/Y');
+					$formattedDate = $date->format('d/m/Y H:i');
 				} else {
 					$formattedDate = '';
 				}
