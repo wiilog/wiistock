@@ -806,7 +806,14 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->persist($histo);
             $em->flush();
-            return new JsonResponse($data);
+
+            $arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
+            $response = array_merge(
+                $data,
+                $arrivageResponse ? $arrivageResponse : []
+            );
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }
@@ -983,7 +990,9 @@ class ArrivageController extends AbstractController
                 $em->persist($histoLitige);
                 $em->flush();
 
-                return new JsonResponse();
+            $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -1074,5 +1083,21 @@ class ArrivageController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    private function getResponseReloadArrivage($reloadArrivageId): ?array {
+        $response = null;
+        if (isset($reloadArrivageId)) {
+            $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
+            if ($arrivageToReload) {
+                $response = [
+                    'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+                        'arrivage' => $arrivageToReload
+                    ]),
+                ];
+            }
+        }
+
+        return $response;
     }
 }
