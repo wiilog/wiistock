@@ -436,10 +436,11 @@ function deleteAttachementNew(pj) {
 function getCommentAndAddHisto()
 {
     let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
-    let commentLitige = $('#modalEditLitige').find('#commentaire');
+    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
     $.post(path, JSON.stringify(dataComment), function (response) {
         tableHistoLitige.ajax.reload();
+        commentLitige.val('');
     });
 }
