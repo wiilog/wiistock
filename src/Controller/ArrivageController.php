@@ -13,7 +13,6 @@ use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
@@ -167,11 +166,14 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'statuts' => [
+                ['nom' => Arrivage::STATUS_CONFORME],
+                ['nom' => Arrivage::STATUS_LITIGE]
+            ]
         ]);
     }
 
@@ -242,7 +244,6 @@ class ArrivageController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statut = $this->statutRepository->find($data['statut']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
@@ -250,7 +251,6 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire']);
 
@@ -390,11 +390,6 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            if (isset($data['statutAcheteur'])) {
-                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, $statutName));
-            }
-
             $em->flush();
 
 			$response = [
@@ -513,23 +508,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
-    {
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
-            if ($newLitige) {
-                $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
-            } else {
-                $title = 'Un litige sur arrivage nécessite un retour de votre part :';
-            }
+    private function sendMailToAcheteurs($litige) {
+        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
-                $this->renderView('mails/mailLitige.html.twig', [
-                    'litige' => $litige,
+                $this->renderView('mails/mailLitiges.html.twig', [
+                    'litiges' => [$litige],
                     'title' => $title,
                     'urlSuffix' => 'arrivage'
                 ]),
-                $acheteur->getEmail()
+                $email
             );
         }
     }
@@ -773,6 +764,10 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$em = $this->getDoctrine()->getManager();
 
+			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $litige = new Litige();
             $litige
                 ->setStatus($this->statutRepository->find($data['statutLitige']))
@@ -809,7 +804,9 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
+			$this->sendMailToAcheteurs($litige);
+
+			$arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
             $response = array_merge(
                 $data,
                 $arrivageResponse ? $arrivageResponse : []
@@ -828,6 +825,10 @@ class ArrivageController extends AbstractController
     public function addColis(Request $request)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
 			$em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
@@ -1060,17 +1061,17 @@ class ArrivageController extends AbstractController
 
 			$rows = [];
 			foreach ($listColis as $colis) { /** @var $colis Colis */
-				$mouvement = $this->mouvementTracaRepository->getLastDeposeByColis($colis->getCode());
+				$mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
 				if ($mouvement) {
 					$dateArray = explode('_', $mouvement->getDate());
 					$date = new DateTime($dateArray[0]);
-					$formattedDate = $date->format('d/m/Y');
+					$formattedDate = $date->format('d/m/Y H:i');
 				} else {
 					$formattedDate = '';
 				}
 				$rows[] = [
 					'code' => $colis->getCode(),
-					'deliveryDate' => $formattedDate,
+					'lastMvtDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
 					'operator' => $mouvement ? $mouvement->getOperateur() : '',
 					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),

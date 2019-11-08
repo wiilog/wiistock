@@ -124,6 +124,10 @@ class LitigeController extends AbstractController
 	 */
     public function index()
     {
+        if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('litige/index_arrivages.html.twig',[
 			'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
@@ -260,7 +264,7 @@ class LitigeController extends AbstractController
                 {
                     $rows[] = [
                         'user' => $histo->getUser()->getUsername(),
-                        'date' => $histo->getDate()->format('d/m/Y'),
+                        'date' => $histo->getDate()->format('d/m/Y H:i'),
                         'commentaire' => $histo->getComment(),
                     ];
                 }

@@ -42,7 +42,7 @@ let tableColis = $('#tableColis').DataTable({
     },
     columns: [
         {"data": 'code', 'name': 'code', 'title': 'Code'},
-        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
+        {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
@@ -65,6 +65,7 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
@@ -72,7 +73,10 @@ function openTableHisto() {
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
+    printLabels(data);
+    window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
+});
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
@@ -92,6 +96,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
     ],
+    order: [[0, 'desc']],
 });
 
 let editorNewLitigeAlreadyDone = false;
@@ -195,10 +200,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }
@@ -434,4 +439,15 @@ function printColisBarcode(codeColis) {
     $.post(path, function (response) {
         printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
     });
+}
+
+function deleteAttachementNew(pj) {
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    })
 }
