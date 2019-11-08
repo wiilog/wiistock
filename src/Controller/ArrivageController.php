@@ -802,7 +802,9 @@ class ArrivageController extends AbstractController
             $commentStatut = $statutinstance->getComment();
 
             $trimCommentStatut = trim($commentStatut);
-            $commentaire = trim($data['commentaire']) . (!empty($trimCommentStatut) ? ('<br/>' . $commentStatut) : '');
+            $userComment = trim($data['commentaire']);
+            $br = !empty($userComment) ? '<br/>' : '';
+            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($br . $commentStatut) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -1003,7 +1005,9 @@ class ArrivageController extends AbstractController
                 if (!empty($comment)) {
                     $comment .= '<br/>';
                 }
-                $comment .= "Changement du statut : " . $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".<br>" . $commentStatut . ".";
+                $comment .= "Changement du statut : " .
+                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
+                    (!empty($commentStatut) ? ("<br>" . $commentStatut . ".") : '');
             }
             if ($data['commentaire']) {
                 if (!empty($comment)) {
