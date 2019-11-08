@@ -525,8 +525,8 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs($litige) {
-        $acheteursEmail = $this->litigeRepository->getEmailsAcheteurByLitige($litige);
+    private function sendMailToAcheteurs(Litige $litige) {
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -926,7 +926,7 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             /** @var Litige[] $litiges */
-            $litiges = $this->litigeRepository->getByArrivage($arrivage);
+            $litiges = $this->litigeRepository->findByArrivage($arrivage);
 
             $rows = [];
             foreach ($litiges as $litige) {

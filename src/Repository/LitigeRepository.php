@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -34,19 +33,22 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getEmailsAcheteurByLitige(Litige $litige) {
+	public function getAcheteursByLitige(int $litigeId, string $field = 'email') {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT DISTINCT acheteur.email
+
+        $sql = "SELECT DISTINCT acheteur.$field
 			FROM App\Entity\Litige litige
 			JOIN litige.colis colis
 			JOIN colis.arrivage arrivage
             JOIN arrivage.acheteurs acheteur
-            WHERE litige = :litige"
-        )->setParameter('litige', $litige);
+            WHERE litige.id = :litigeId";
 
-        return array_map(function($utilisateur) {
-            return $utilisateur['email'];
+        $query = $em
+            ->createQuery($sql)
+            ->setParameter('litigeId', $litigeId);
+
+        return array_map(function($utilisateur) use ($field) {
+            return $utilisateur[$field];
         }, $query->execute());
     }
 
@@ -55,8 +57,15 @@ class LitigeRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT DISTINCT (l.id) as id, l.creationDate, l.updateDate,
-			tr.label as carrier, f.nom as provider, a.numeroArrivage, t.label as type, a.id as arrivageId, s.nom status
+			"SELECT DISTINCT(l.id) as id,
+                         l.creationDate, 
+                         l.updateDate,
+                         tr.label as carrier, 
+                         f.nom as provider,
+                         a.numeroArrivage,
+                         t.label as type,
+                         a.id as arrivageId,
+                         s.nom status
 			FROM App\Entity\Litige l
 			LEFT JOIN l.colis c
 			JOIN l.type t
@@ -111,7 +120,7 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByArrivage($arrivage)
+    public function findByArrivage($arrivage)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

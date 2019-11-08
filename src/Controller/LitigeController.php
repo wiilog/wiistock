@@ -151,11 +151,7 @@ class LitigeController extends AbstractController
 			$litiges = $this->litigeRepository->getAllWithArrivageData();
 			$rows = [];
 			foreach ($litiges as $litige) {
-				$arrivage = $this->arrivageRepository->find($litige['arrivageId']);
-				$acheteursUsernames = [];
-				foreach ($arrivage->getAcheteurs() as $acheteur) {
-					$acheteursUsernames[] = $acheteur->getUsername();
-				}
+				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litige['id'], 'username');
 
 				$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litige['id']);
 				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . strip_tags($lastHistoric['comment']) : '';
