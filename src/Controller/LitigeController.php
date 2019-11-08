@@ -154,7 +154,7 @@ class LitigeController extends AbstractController
 				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litige['id'], 'username');
 
 				$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litige['id']);
-				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . strip_tags($lastHistoric['comment']) : '';
+				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 
 				$rows[] = [
 					'type' => $litige['type'] ?? '',
@@ -261,7 +261,7 @@ class LitigeController extends AbstractController
                     $rows[] = [
                         'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
                         'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                        'commentaire' => $histo->getComment(),
+                        'commentaire' => nl2br($histo->getComment()),
                     ];
                 }
             $data['data'] = $rows;
