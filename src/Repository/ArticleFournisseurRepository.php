@@ -141,9 +141,9 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->leftJoin('af.fournisseur', 'f')
-                        ->leftJoin('af.referenceArticle', 'ra')
-                        ->andWhere('f.nom LIKE :value OR af.reference LIKE :value OR ra.libelle LIKE :value')
+                        ->leftJoin('af.fournisseur', 'f2')
+                        ->leftJoin('af.referenceArticle', 'ra2')
+                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
