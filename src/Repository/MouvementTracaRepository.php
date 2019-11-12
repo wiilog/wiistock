@@ -59,19 +59,16 @@ class MouvementTracaRepository extends ServiceEntityRepository
 	 * @param string $colis
 	 * @return  MouvementTraca
 	 */
-    public function getLastDeposeByColis($colis)
+    public function getLastByColis($colis)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
 			"SELECT mt
 			FROM App\Entity\MouvementTraca mt
-			WHERE mt.refArticle = :colis AND mt.type = :depose
+			WHERE mt.refArticle = :colis
 			ORDER BY mt.date DESC"
-		)->setParameters([
-			'colis' => $colis,
-			'depose' => MouvementTraca::TYPE_DEPOSE
-		]);
+		)->setParameter('colis', $colis);
 
 		$result = $query->execute();
 		return $result ? $result[0] : null;

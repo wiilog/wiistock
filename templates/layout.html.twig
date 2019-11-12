@@ -20,8 +20,8 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <div class="menu-header">
-                        <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.8.4</div>
+                        {% include 'logo_svg.html.twig' %}
+                        <div class="version"> V1.8.5</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -214,6 +214,9 @@
                             </li>
                             <li>
                                 <a href="{{ path('types_param') }}" class="sub-item">• Types</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('status_param') }}" class="sub-item">• Statuts litiges</a>
                             </li>
                         </ul>
                     </li>

@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -27,20 +26,46 @@ class LitigeRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			"SELECT l
 			FROM App\Entity\Litige l
-			JOIN l.statut s
+			JOIN l.status s
 			WHERE s.nom = :statutLabel"
 		)->setParameter('statutLabel', $statutLabel);
 
 		return $query->execute();
 	}
 
+	public function getAcheteursByLitige(int $litigeId, string $field = 'email') {
+        $em = $this->getEntityManager();
+
+        $sql = "SELECT DISTINCT acheteur.$field
+			FROM App\Entity\Litige litige
+			JOIN litige.colis colis
+			JOIN colis.arrivage arrivage
+            JOIN arrivage.acheteurs acheteur
+            WHERE litige.id = :litigeId";
+
+        $query = $em
+            ->createQuery($sql)
+            ->setParameter('litigeId', $litigeId);
+
+        return array_map(function($utilisateur) use ($field) {
+            return $utilisateur[$field];
+        }, $query->execute());
+    }
+
 	public function getAllWithArrivageData()
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT l.id, l.creationDate, l.updateDate,
-			tr.label as carrier, f.nom as provider, a.numeroArrivage, t.label as type, a.id as arrivageId, s.nom status
+			"SELECT DISTINCT(l.id) as id,
+                         l.creationDate, 
+                         l.updateDate,
+                         tr.label as carrier, 
+                         f.nom as provider,
+                         a.numeroArrivage,
+                         t.label as type,
+                         a.id as arrivageId,
+                         s.nom status
 			FROM App\Entity\Litige l
 			LEFT JOIN l.colis c
 			JOIN l.type t
@@ -95,7 +120,7 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByArrivage($arrivage)
+    public function findByArrivage($arrivage)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

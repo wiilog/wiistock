@@ -34,6 +34,7 @@ class LitigeHistoric
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="litigeHistorics")
+     * @ORM\JoinColumn(name="litige_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=false)
      */
     private $litige;

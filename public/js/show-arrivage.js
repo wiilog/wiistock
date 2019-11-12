@@ -42,17 +42,41 @@ let tableColis = $('#tableColis').DataTable({
     },
     columns: [
         {"data": 'code', 'name': 'code', 'title': 'Code'},
-        {"data": 'deliveryDate', 'name': 'deliveryDate', 'title': 'Date dépose'},
+        {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
     ],
 });
+let tableHistoLitige;
+function openTableHisto() {
+
+    let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
+    tableHistoLitige = $('#tableHistoLitige').DataTable({
+        language: {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathHistoLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+        ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
+    });
+}
+
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, printLabels);
+InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
+    printLabels(data);
+    window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
+});
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
@@ -72,27 +96,25 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
     ],
+    order: [[0, 'desc']],
 });
 
-let editorNewLitigeAlreadyDone = false;
-let quillNewLitige;
 
-function initNewLitigeEditor(modal) {
-    if (!editorNewLitigeAlreadyDone) {
-        quillNewLitige = initEditor(modal + ' .editor-container-new');
-        editorNewLitigeAlreadyDone = true;
-    }
-}
 
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
-let urlNewLitige = Routing.generate('litige_new', true);
+let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
 InitialiserModal(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
-let urlEditLitige = Routing.generate('litige_edit', true);
+let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
 InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+
+let ModalDeleteLitige = $("#modalDeleteLitige");
+let SubmitDeleteLitige = $("#submitDeleteLitige");
+let urlDeleteLitige = Routing.generate('litige_delete', true);
+InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableArrivageLitiges);
 
 
 function dragEnterDiv(event, div) {
@@ -165,10 +187,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }
@@ -177,7 +199,15 @@ function openFE() {
     $('#fileInput').click();
 }
 
-function uploadFE(span) {
+function uploadFELitige(span) {
+    uploadFE(span, 'litige_depose', 'litige-id');
+}
+
+function uploadFEArrivage(span) {
+    uploadFE(span, 'arrivage_depose', 'arrivage-id');
+}
+
+function uploadFE(span, nameRouteArrivage, dataName) {
     let files = $('#fileInput')[0].files;
     let formData = new FormData();
     let div = span.closest('.dropFrame');
@@ -189,10 +219,10 @@ function uploadFE(span) {
         $.each(files, function (index, file) {
             formData.append('file' + index, file);
         });
-        let path = Routing.generate('litige_depose', true);
+        let path = Routing.generate(nameRouteArrivage, true);
 
-        let litigeId = $('#dropfile').data('litige-id');
-        formData.append('id', litigeId);
+        let id = $('#dropfile').data(dataName);
+        formData.append('id', id);
 
         $.ajax({
             url: path,
@@ -283,7 +313,7 @@ function upload(files) {
     });
     let path = Routing.generate('litige_depose', true);
 
-    let arrivageId = $('#dropfile').data('litige-id');
+    let litigeId = $('#dropfile').data('litige-id');
     formData.append('id', litigeId);
 
     $.ajax({
@@ -337,7 +367,7 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitige(button) {
+function editRowLitige(button, afterLoadingEditModal = () => {}) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -347,9 +377,8 @@ function editRowLitige(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
         modal.find('#colisEditLitige').val(data.colis).select2();
-        originalText = quillEdit.getText();
+        afterLoadingEditModal()
     }, 'json');
 
     modal.find(submit).attr('value', id);
@@ -376,9 +405,72 @@ function deleteAttachementLitige(litigeId, originalName, pjName) {
 
     $.post(path, JSON.stringify(params), function (data) {
         let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-            console.log(originalName);
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
+    });
+}
+
+function deleteAttachementNew(pj) {
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    });
+}
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printColisBarcode(codeColis) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
+    });
+}
+
+function deleteAttachementArrivage(arrivageId, originalName, pjName) {
+
+    let path = Routing.generate('arrivage_delete_attachement');
+    let params = {
+        arrivageId: arrivageId,
+        originalName: originalName,
+        pjName: pjName
+    };
+
+    $.post(path, JSON.stringify(params), function (data) {
+        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
+        if (data === true) {
+            $('#' + pjWithoutExtension).remove();
+        }
+    });
+}
+
+
+function getCommentAndAddHisto()
+{
+    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
+    let dataComment = commentLitige.val();
+
+    $.post(path, JSON.stringify(dataComment), function (response) {
+        tableHistoLitige.ajax.reload();
+        commentLitige.val('');
     });
 }
