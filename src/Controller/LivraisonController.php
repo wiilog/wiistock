@@ -192,7 +192,7 @@ class LivraisonController extends AbstractController
 
         return $this->render('livraison/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LIVRAISON),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
     }

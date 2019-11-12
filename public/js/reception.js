@@ -246,14 +246,6 @@ let resetNewArticle = function (element) {
     element.addClass('d-none');
 }
 
-
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 function addLot(button) {
     $.post(Routing.generate('add_lot'), function (response) {
         button.parent().append(response);

@@ -366,7 +366,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
                                                 'operateur' => $toInsert->getOperateur(),
-                                                'pjs' => $arrivage->getPiecesJointes()
+                                                'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
                                         $destinataire->getEmail()
@@ -547,7 +547,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $demandes = $preparation->getDemandes();
                         $demande = $demandes[0];
 
-                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
                         $livraison = new Livraison();
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
@@ -563,7 +563,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
 
                         $demande
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE))
                             ->setLivraison($livraison);
 
                         // on termine les mouvements de préparation
@@ -847,14 +847,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $date = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
 
                         $livraison
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
+                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_LIVRE))
                             ->setUtilisateur($nomadUser)
                             ->setDateFin($date);
 
                         $demandes = $livraison->getDemande();
                         $demande = $demandes[0];
 
-                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
+                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
                         $demande->setStatut($statutLivre);
 
                         $this->mailerService->sendMail(
@@ -1082,7 +1082,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
                 return new JsonResponse([
                     'success' => true,
-                    'manutentions' => $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER))
+                    'manutentions' => $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER))
                 ]);
             } else {
                 return new JsonResponse([

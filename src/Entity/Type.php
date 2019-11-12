@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Type
 {
     // types de la catégorie article
+	// CEA
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
@@ -22,6 +23,7 @@ class Type
     // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
     // types de la catégorie litige
+	// Safran Ceramics
     const LABEL_MANQUE_BL = 'manque BL';
     const LABEL_MANQUE_INFO_BL = 'manque info BL';
     const LABEL_ECART_QTE = 'écart quantité + ou -';

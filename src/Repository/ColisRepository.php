@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Colis;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -22,7 +24,7 @@ class ColisRepository extends ServiceEntityRepository
 	/**
 	 * @param string $code
 	 * @return Colis|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByCode($code)
     {
@@ -34,5 +36,27 @@ class ColisRepository extends ServiceEntityRepository
         )->setParameter('code', $code);
         return $query->getOneOrNullResult();
     }
+
+	/**
+	 * @param string $prefix
+	 * @return mixed
+	 */
+	public function getHighestCodeByPrefix($prefix)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT c.code
+			FROM App\Entity\Colis c
+			WHERE c.code LIKE :prefix
+			ORDER BY c.code DESC
+			")
+			->setParameter('prefix', $prefix . '%')
+			->setMaxResults(1);
+
+		$result = $query->execute();
+
+		return $result ? $result[0]['code'] : null;;
+	}
 
 }

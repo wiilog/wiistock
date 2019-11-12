@@ -2,11 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Controller\MouvementTracaController;
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Litige;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -16,14 +17,14 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Manutention;
 use App\Entity\Statut;
+use App\Repository\CategorieStatutRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class StatutFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
+class StatutFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -32,254 +33,117 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
      */
     private $statutRepository;
 
+	/**
+	 * @var CategorieStatutRepository
+	 */
+    private $categorieStatutRepository;
 
-    public function __construct(StatutRepository $statutRepository, UserPasswordEncoderInterface $encoder)
+
+    public function __construct(CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
+        $this->categorieStatutRepository = $categorieStatutRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        // categorie referenceArticle
-        $statutsNames = [
-            ReferenceArticle::STATUT_ACTIF,
-            ReferenceArticle::STATUT_INACTIF
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-referenceArticle'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-        // catégorie article
-        $statutsNames = [
-            Article::STATUT_ACTIF,
-            Article::STATUT_INACTIF,
-            Article::STATUT_EN_TRANSIT
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-article'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-
-        // catégorie demande de collecte
-        $statutsNames = [
-            Collecte::STATUS_BROUILLON,
-            Collecte::STATUS_A_TRAITER,
-            Collecte::STATUS_COLLECTE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-collecte'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-
-        // catégorie ordre de collecte
-        $statutsNames = [
-            OrdreCollecte::STATUT_A_TRAITER,
-            OrdreCollecte::STATUT_TRAITE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-ordreCollecte'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-
-        // catégorie demande de livraison
-        $statutsNames = [
-            Demande::STATUT_BROUILLON,
-            Demande::STATUT_A_TRAITER,
-            Demande::STATUT_PREPARE,
-            Demande::STATUT_LIVRE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-demande'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-
-        // catégorie livraison
-        $statutsNames = [
-            Livraison::STATUT_A_TRAITER,
-            Livraison::STATUT_LIVRE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-livraison'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-
-        // catégorie préparation
-        $statutsNames = [
-            Preparation::STATUT_A_TRAITER,
-            Preparation::STATUT_EN_COURS_DE_PREPARATION,
-            Preparation::STATUT_PREPARE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-preparation'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-        $manager->flush();
-
-
-        // catégorie réception
-        $statutsNames = [
-            Reception::STATUT_EN_ATTENTE,
-            Reception::STATUT_RECEPTION_PARTIELLE,
-            Reception::STATUT_RECEPTION_TOTALE,
-            Reception::STATUT_ANOMALIE
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-reception'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-        $manager->flush();
-
-
-        // catégorie manutention
-        $statutsNames = [
-            Manutention::STATUT_A_TRAITER,
-            Manutention::STATUT_TRAITE,
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-manutention'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-        $manager->flush();
-
-
-        // catégorie mouvement traça
-        $statutsNames = [
-            MouvementTraca::TYPE_PRISE,
-            MouvementTraca::TYPE_DEPOSE,
-        ];
-
-        foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $statutName);
-
-            if (empty($statut)) {
-                $statut = new Statut();
-                $statut
-                    ->setNom($statutName)
-                    ->setCategorie($this->getReference('statut-mouvement_traca'));
-                $manager->persist($statut);
-                dump("création du statut " . $statutName);
-            }
-        }
-
-		// catégorie mouvement sock
-		$statutsNames = [
-			MouvementStock::TYPE_ENTREE,
-			MouvementStock::TYPE_SORTIE,
-			MouvementStock::TYPE_TRANSFERT,
-            MouvementStock::TYPE_INVENTAIRE_ENTREE,
-            MouvementStock::TYPE_INVENTAIRE_SORTIE,
+    	$categoriesStatus = [
+    		CategorieStatut::REFERENCE_ARTICLE => [
+    			ReferenceArticle::STATUT_ACTIF,
+				ReferenceArticle::STATUT_INACTIF
+			],
+			CategorieStatut::ARTICLE => [
+				Article::STATUT_ACTIF,
+				Article::STATUT_INACTIF,
+				Article::STATUT_EN_TRANSIT
+			],
+			CategorieStatut::DEM_COLLECTE => [
+				Collecte::STATUS_BROUILLON,
+				Collecte::STATUS_A_TRAITER,
+				Collecte::STATUS_COLLECTE
+			],
+			CategorieStatut::ORDRE_COLLECTE => [
+				OrdreCollecte::STATUT_A_TRAITER,
+				OrdreCollecte::STATUT_TRAITE
+			],
+			CategorieStatut::DEM_LIVRAISON => [
+				Demande::STATUT_BROUILLON,
+				Demande::STATUT_A_TRAITER,
+				Demande::STATUT_PREPARE,
+				Demande::STATUT_LIVRE
+			],
+			CategorieStatut::ORDRE_LIVRAISON => [
+				Livraison::STATUT_A_TRAITER,
+				Livraison::STATUT_LIVRE
+			],
+			CategorieStatut::PREPARATION => [
+				Preparation::STATUT_A_TRAITER,
+				Preparation::STATUT_EN_COURS_DE_PREPARATION,
+				Preparation::STATUT_PREPARE
+			],
+			CategorieStatut::RECEPTION => [
+				Reception::STATUT_EN_ATTENTE,
+				Reception::STATUT_RECEPTION_PARTIELLE,
+				Reception::STATUT_RECEPTION_TOTALE,
+				Reception::STATUT_ANOMALIE
+			],
+			CategorieStatut::MANUTENTION => [
+				Manutention::STATUT_A_TRAITER,
+				Manutention::STATUT_TRAITE,
+			],
+			CategorieStatut::MVT_TRACA => [
+				MouvementTraca::TYPE_PRISE,
+				MouvementTraca::TYPE_DEPOSE,
+			],
+			CategorieStatut::MVT_STOCK => [
+				MouvementStock::TYPE_ENTREE,
+				MouvementStock::TYPE_SORTIE,
+				MouvementStock::TYPE_TRANSFERT,
+				MouvementStock::TYPE_INVENTAIRE_ENTREE,
+				MouvementStock::TYPE_INVENTAIRE_SORTIE,
+			],
+			CategorieStatut::ARRIVAGE => [
+				Arrivage::STATUS_CONFORME,
+				Arrivage::STATUS_LITIGE,
+			],
+			CategorieStatut::LITIGE_ARR => [
+				Litige::CONFORME,
+				Litige::ATTENTE_ACHETEUR,
+				Litige::TRAITE_ACHETEUR,
+				Litige::SOLDE,
+			]
 		];
 
-		foreach ($statutsNames as $statutName) {
-			$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_STOCK, $statutName);
+    	foreach ($categoriesStatus as $categoryName => $statuses) {
 
-			if (empty($statut)) {
-				$statut = new Statut();
-				$statut
-					->setNom($statutName)
-					->setCategorie($this->getReference('statut-mouvement_stock'));
-				$manager->persist($statut);
-				dump("création du statut " . $statutName);
+    		// création des catégories de statuts
+			$categorie = $this->categorieStatutRepository->findOneBy(['nom' => $categoryName]);
+
+			if (empty($categorie)) {
+				$categorie = new CategorieStatut();
+				$categorie->setNom($categoryName);
+				$manager->persist($categorie);
+				dump("création de la catégorie " . $categoryName);
+			}
+			$this->addReference('statut-' . $categoryName, $categorie);
+
+
+			// création des statuts
+			foreach ($statuses as $statusLabel) {
+				$statut = $this->statutRepository->findOneByCategorieNameAndStatutName($categoryName, $statusLabel);
+
+				if (empty($statut)) {
+					$statut = new Statut();
+					$statut
+						->setNom($statusLabel)
+						->setCategorie($this->getReference('statut-' . $categoryName));
+					$manager->persist($statut);
+					dump("création du statut " . $statusLabel);
+				}
 			}
 		}
-
         $manager->flush();
-    }
-
-    public function getDependencies()
-    {
-        return [CategorieStatutFixtures::class];
     }
 
     public static function getGroups(): array
