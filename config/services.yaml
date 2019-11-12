@@ -6,7 +6,7 @@
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: 'fr'
-    nomade_versions: '%env(NOMADE_VERSIONS)%'
+    nomade_versions: '>1.8.4'
 
 services:
     # default configuration for services in *this* file
