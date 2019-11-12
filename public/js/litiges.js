@@ -18,16 +18,6 @@ $('#providers').select2({
     }
 });
 
-let editorNewLitigeAlreadyDone = false;
-let quillNewLitiges;
-
-function initNewLitigeEditor(modal) {
-    if (!editorNewLitigeAlreadyDone) {
-        quillNewLitiges = initEditor(modal + ' .editor-container-new');
-        editorNewLitigeAlreadyDone = true;
-    }
-}
-
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');
 }
@@ -260,16 +250,68 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     ],
     columnDefs: [
         {
-            'targets': [7,8,9],
+            'targets': [6,7,8],
             'visible': false
         }
-    ]
+    ],
+    order: [[4, 'desc']]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
 let submitNewLitiges = $('#submitNewLitiges');
 let urlNewLitiges = Routing.generate('litige_new', true);
 InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitigesArrivage);
+
+let modalEditLitige = $('#modalEditLitige');
+let submitEditLitige = $('#submitEditLitige');
+let urlEditLitige = Routing.generate('litige_edit', true);
+InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
+
+let ModalDeleteLitige = $("#modalDeleteLitige");
+let SubmitDeleteLitige = $("#submitDeleteLitige");
+let urlDeleteLitige = Routing.generate('litige_delete', true);
+InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesArrivage);
+
+function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
+    let path = Routing.generate('litige_api_edit', true);
+    let modal = $('#modalEditLitige');
+    let submit = $('#submitEditLitige');
+
+    let params = {
+        litigeId: litigeId,
+        arrivageId: arrivageId
+    };
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.error-msg').html('');
+        modal.find('.modal-body').html(data.html);
+        modal.find('#colisEditLitige').val(data.colis).select2();
+        afterLoadingEditModal()
+    }, 'json');
+
+    modal.find(submit).attr('value', litigeId);
+}
+
+let tableHistoLitige;
+function openTableHisto() {
+
+    let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
+    tableHistoLitige = $('#tableHistoLitige').DataTable({
+        language: {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathHistoLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+        ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
+    });
+}
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
@@ -278,21 +320,23 @@ $.fn.dataTable.ext.search.push(
         let indexDate = tableLitigesArrivage.column('creationDate:name').index();
 
         if (typeof indexDate === "undefined") return true;
+        if (typeof data[indexDate] !== "undefined") {
+            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+            ) {
+                return true;
+            }
+            return false;
         }
-        return false;
+        return true;
     }
 );
 
@@ -397,4 +441,16 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+};
+
+function getCommentAndAddHisto()
+{
+    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
+    let dataComment = commentLitige.val();
+
+    $.post(path, JSON.stringify(dataComment), function () {
+        tableHistoLitige.ajax.reload();
+        commentLitige.val('');
+    });
 }

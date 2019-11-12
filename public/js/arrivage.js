@@ -55,6 +55,40 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
 });
 
+function listColis(elem) {
+    let arrivageId = elem.data('id');
+    let path = Routing.generate('arrivage_list_colis_api', true);
+    let modal = $('#modalListColis');
+    let params = { id: arrivageId };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
+}
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
+}
+
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         let dateMin = $('#dateMin').val();
@@ -215,10 +249,10 @@ function checkFilesFormat(files, div) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
             valid = false;
         }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
+        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
+        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+        //     valid = false;
+        // }
     });
     return valid;
 }
@@ -519,55 +553,16 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .draw();
 });
-function printLabels(data) {
-    if (data.exists) {
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
-
-function deleteAttachement(arrivageId, originalName, pjName) {
-
-    let path = Routing.generate('arrivage_delete_attachement');
-    let params = {
-        arrivageId: arrivageId,
-        originalName: originalName,
-        pjName: pjName
-    };
-
-    $.post(path, JSON.stringify(params), function (data) {
-        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-        if (data === true) {
-            $('#' + pjWithoutExtension).remove();
-        }
-    });
-}
-
-function getDataAndPrintLabels(codes) {
-    let path = Routing.generate('arrivage_get_data_to_print', true);
-    let param = codes;
-
-    $.post(path, JSON.stringify(param), function (response) {
-        let codeColis = [];
-        if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
-            }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
-        }
-    });
-}
 
 function deleteAttachementNew(pj) {
     let params = {
         pj: pj
     };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
-        $('p.attachement').each(function() {
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
+        $('#modalNewArrivage').find('p.attachement').each(function() {
             if ($(this).attr('id') === pj) $(this).remove();
         });
-    })
+    });
 }
 
 function generateCSVArrivage () {

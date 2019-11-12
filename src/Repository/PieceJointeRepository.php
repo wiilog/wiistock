@@ -44,4 +44,17 @@ class PieceJointeRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+	public function findOneByFileNameAndLitigeId($filename, $litigeId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang  DQL */
+			"SELECT pj
+           FROM App\Entity\PieceJointe pj
+           WHERE pj.fileName = :filename AND pj.litige = :litigeId"
+		)->setParameters(['filename' => $filename, 'litigeId' => $litigeId]);
+
+		return $query->getOneOrNullResult();
+	}
+
 }

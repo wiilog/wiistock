@@ -23,7 +23,7 @@ class CategorieStatut
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
     const MVT_STOCK = 'mouvement_stock';
-    const LITIGE_ARR = 'litigeArrivage';
+    const LITIGE_ARR = 'litige arrivage';
 
     /**
      * @ORM\Id()
