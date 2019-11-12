@@ -87,6 +87,11 @@ class ChampLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+	/**
+	 * @param string $label
+	 * @return ChampLibre|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -150,9 +155,9 @@ class ChampLibreRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
             FROM App\Entity\ChampLibre cl
-            WHERE LOWER(cl.label) = :label
+            WHERE cl.label LIKE :label
            "
-        )->setParameter('label', strtolower($label));
+        )->setParameter('label', $label);
 
         return $query->getSingleScalarResult();
     }
@@ -229,4 +234,5 @@ class ChampLibreRepository extends ServiceEntityRepository
         );
         return $query->execute();
     }
+
 }

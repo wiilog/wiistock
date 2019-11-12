@@ -6,6 +6,11 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
     });
 }
 
+function afterLoadingEditModal($button) {
+    toggleRequiredChampsLibres($button, 'edit');
+    initRequiredChampsFixes($button);
+}
+
 function submitActionRefArticle(modal, path, callback = null, close = true) {
     if (path === Routing.generate('save_column_visible', true)) {
         tableColumnVisible.search('').draw()
@@ -16,7 +21,6 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
-
         $.post(path, JSON.stringify(Data), function(data) {
 
             if (data.new) {
@@ -80,6 +84,7 @@ function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
             }
         })
     }
+
     return msg;
 }
 
@@ -111,29 +116,31 @@ function getDataFromModal(modal) {
     });
     Data['frl'] = fournisseursWithRefAndLabel;
     inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
+        const $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
         if (!Data[name] || parseInt(Data[name], 10) === 0) {
             Data[name] = val;
         }
+        let label = $input.closest('.form-group').find('label').first().text();
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').first().text();
+        if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
         }
+
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
-        if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
+        if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
             if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
             }
         }
     });
@@ -220,33 +227,36 @@ $(function () {
 
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        tableRefArticle = $('#tableRefArticle_id').DataTable({
-            processing: true,
-            serverSide: true,
-            sortable: false,
-            ordering: false,
-            paging: true,
-            scrollX: true,
-            order: [[1, 'asc']],
-            ajax: {
-                'url': url,
-                'type': 'POST',
-                'dataSrc': function (json) {
-                    return json.data;
-                }
-            },
-            initComplete: function() {
-                loadSpinnerAR($('#spinner'));
-                initRemove();
-                hideAndShowColumns();
-                overrideSearch();
-            },
-            length: 10,
-            columns: columns,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-        });
+        tableRefArticle = $('#tableRefArticle_id')
+            .on('error.dt', function(e, settings, technote, message) {
+        })
+            .DataTable({
+                processing: true,
+                serverSide: true,
+                sortable: false,
+                ordering: false,
+                paging: true,
+                scrollX: true,
+                order: [[1, 'asc']],
+                ajax: {
+                    'url': url,
+                    'type': 'POST',
+                    'dataSrc': function (json) {
+                        return json.data;
+                    }
+                },
+                initComplete: function() {
+                    loadSpinnerAR($('#spinner'));
+                    initRemove();
+                    hideAndShowColumns();
+                    overrideSearch();
+                },
+                length: 10,
+                columns: columns,
+                language: {
+                    url: "/js/i18n/dataTableLanguage.json",
+                },
+            });
     });
 }
 
@@ -325,7 +335,7 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $('.justify-content-end').find('.printButton').removeClass('d-none');
+    $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
 }
@@ -344,7 +354,7 @@ function removeFilter() {
         tableRefArticle.ajax.reload();
     });
     if($('#filters').find('.filter').length <= 0){
-        $('.justify-content-end').find('.printButton').addClass('d-none');
+        $('.justify-content-end').find('.printButton').addClass('btn-disabled');
     }
 }
 
@@ -638,22 +648,12 @@ function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
     $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
         if (response.tags.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            response.refs.forEach(function(code) {
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code, {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response.tags);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages());
-            doc.save('Etiquettes-references.pdf');
+            printBarcodes(
+                response.barcodes,
+                response.tags,
+                'Etiquettes-references.pdf',
+                response.barcodeLabels
+                );
         }
     });
 }
@@ -674,3 +674,36 @@ function displayActifOrInactif(select){
     });
 }
 
+function initDatatableMovements(id) {
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
+    let tableRefMouvements = $('#tableMouvements').DataTable({
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathRefMouvements,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Quantity', 'title': 'Quantité'},
+            {"data": 'Origin', 'title': 'Origine'},
+            {"data": 'Destination', 'title': 'Destination'},
+            {"data": 'Type', 'title': 'Type'},
+            {"data": 'Operator', 'title': 'Opérateur'}
+        ],
+    });
+}
+
+function showRowMouvements(button) {
+
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+    let path = Routing.generate('ref_mouvements_list', true);
+    let modal = $('#modalShowMouvements');
+
+    $.post(path, params, function (data) {
+        modal.find('.modal-body').html(data);
+        initDatatableMovements(id);
+    }, 'json');
+}

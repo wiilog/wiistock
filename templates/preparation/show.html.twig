@@ -9,8 +9,11 @@
         </div>
         <div class="col text-right">
             {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                <a href="{{path('demande_show', {'id': demande.id})}}"
-                   class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison</a>
+                {% if demande %}
+                    <a href="{{path('demande_show', {'id': demande.id})}}"
+                       class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison
+                    </a>
+                {% endif %}
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                 {% if livraison is not empty %}
@@ -24,11 +27,11 @@
         <div class="col-4">
             <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
             <p id="statutPreparation"><strong> Statut :</strong> {{ preparation.statut.nom }}</p>
-            <p><strong> Point de livraison :</strong> {{ demande.destination.label }}</p>
+            <p><strong> Point de livraison :</strong> {{ demande ? demande.destination.label : '' }}</p>
         </div>
         <div class="col-4">
             <p><strong> Opérateur : </strong> {{preparation.utilisateur ? preparation.utilisateur.username : ''}}</p>
-            <p><strong> Demandeur : </strong> {{demande.utilisateur ? demande.utilisateur.username : ''}}</p>
+            <p><strong> Demandeur : </strong> {{demande ? (demande.utilisateur ? demande.utilisateur.username : '') : ''}}</p>
         </div>
         <div class="col-12">
             <p><strong> Commentaire : </strong><p>
@@ -48,9 +51,11 @@
                        data-toggle='modal'>Supprimer</a>
 
                     {% if statut %}
-                        <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
-                                class="btn btn-primary btn-action ml-auto">Commencer la préparation</button>
-
+                        {% if demande %}
+                            <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
+                                    class="btn btn-primary btn-action ml-auto">Commencer la préparation
+                            </button>
+                        {% endif %}
                         <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
                            class="btn btn-primary btn-action ml-auto d-none">Valider</a>
                     {% else %}

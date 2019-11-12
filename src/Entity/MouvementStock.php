@@ -14,7 +14,9 @@ class MouvementStock
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
 	const TYPE_TRANSFERT = 'transfert';
-    /**
+	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
+	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -69,6 +71,7 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="livraison_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
     private $livraisonOrder;
 
@@ -82,9 +85,10 @@ class MouvementStock
 	 */
 	private $preparationOrder;
 
-
-    public function __construct()
-    {}
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+	private $comment;
 
     public function getId(): ?int
     {
@@ -231,6 +235,18 @@ class MouvementStock
     public function setEmplacementTo(?Emplacement $emplacementTo): self
     {
         $this->emplacementTo = $emplacementTo;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
 
         return $this;
     }

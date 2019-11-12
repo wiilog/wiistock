@@ -34,6 +34,7 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -200,7 +201,7 @@ class ArticleDataService
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : ''),
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $articleStatut);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $articleStatut);
             if ($demande === 'collecte') {
                 $articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
             } else if ($demande === 'demande') {
@@ -284,7 +285,7 @@ class ArticleDataService
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
 			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
@@ -409,17 +410,19 @@ class ArticleDataService
 //		}
 
         $entityManager = $this->em;
+        $price = max(0, $data['prix']);
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 $article
+                    ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
                     ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0)// protection contre quantités négatives
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
+                    $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut']);
                     if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
@@ -459,7 +462,7 @@ class ArticleDataService
     public function newArticle($data)
     {
         $entityManager = $this->em;
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
@@ -476,30 +479,30 @@ class ArticleDataService
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
+        $price = max(0, $data['prix']);
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
         $toInsert
             ->setLabel($data['libelle'])
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
+            ->setPrixUnitaire($price)
             ->setReference($referenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-            ->setType($type);
+            ->setType($type)
+			->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
 
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($toInsert, $champ);
-                if (!$valeurChampLibre) {
                     $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->addArticle($toInsert)
                         ->setChampLibre($this->champLibreRepository->find($champ));
                     $entityManager->persist($valeurChampLibre);
-                }
                 $valeurChampLibre->setValeur($data[$champ]);
                 $entityManager->flush();
             }
@@ -629,4 +632,22 @@ class ArticleDataService
 
         return $row;
     }
+
+	/**
+	 * @return string
+	 * @throws NonUniqueResultException
+	 */
+	public function generateBarCode()
+	{
+		$now = new \DateTime('now');
+		$dateCode = $now->format('ym');
+
+		$highestBarCode = $this->articleRepository->getHighestBarCodeByDateCode($dateCode);
+		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+
+		$newCounter =  sprintf('%08u', $highestCounter+1);
+		$newBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
+
+		return $newBarcode;
+	}
 }

@@ -88,7 +88,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
             $i++;
 
             $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
-            $statutActif = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+            $statutActif = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
             // champs fixes
             $referenceArticle = new ReferenceArticle();

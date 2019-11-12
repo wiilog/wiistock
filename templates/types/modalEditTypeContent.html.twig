@@ -1,0 +1,29 @@
+<form method="">
+    <div class="modal-body modal-input container-fluid row">
+        <div class="col-12 form-group required d-none">
+            <input type="text" class="form-control data needed" name="type" required="" value="{{ type.id }}">
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="label">Catégorie*</label>
+            <select name="category" id="categories" class="data form-control needed">
+                <option value="{{ type.category.id }}">{{ type.category.label }}</option>
+                {% for category in categories %}
+                    {% if category.label != type.category.label %}
+                        <option value="{{ category.id }}">{{ category.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="username">Label*</label>
+            <input type="text" class="form-control data needed" name="label" required="" value="{{ type.label }}">
+        </div>
+
+        <div class="col-12 form-group">
+            <label for="username">Description</label>
+            <input type="text" class="form-control data" name="description" value="{{ type.description }}">
+        </div>
+    </div>
+</form>

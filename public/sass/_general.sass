@@ -52,9 +52,6 @@ a, a:link, a:visited
   &:hover
     color : inherit
 
-button:focus
-  outline: 0 !important
-
 .container-fluid
   padding-left: 20px
   padding-right: 20px
@@ -69,7 +66,6 @@ button:focus
 
 input:-webkit-autofill
   box-shadow: 0 0 0 30px white inset !important
-
 
 .wrapper
   margin-left: 130px
@@ -86,6 +82,9 @@ input:-webkit-autofill
 
 .italic
   font-style: italic
+
+.underlined
+  text-decoration: underline !important
 
 a
   color: unset
@@ -130,17 +129,31 @@ a
   p
     padding: 0 !important
 
+
+//// HEIGHT ////
+.h-54px
+  height: 54px
+
+//// WIDTH ////
+
 .minw-105px
   min-width: 105px
 
 .maxw-250px
   max-width: 250px
 
+.w-120px
+  width: 120px
+
 .w-49
   width: 49%
 
 .w-22
   width: 22% !important
+
+.w-100
+  +.select2-container
+    width: 100% !important
 
 .border-radius-light
   border-radius: 10px !important
@@ -154,9 +167,17 @@ a
   background-size: calc(2.25rem / 2) calc(2.25rem / 2)
   //background-image: url(data:image/svg+xml,%3csvg' xmlns='http://www.w3.org/2000/svg' fill='%23dc354…%3e%3ccircle cy='3' r='.5'/%3e%3ccircle cx='3' cy='3' r='.5'/%3e%3c/svg%3E)
 
-.commentArrivageAcheteur
-  min-height: 100px
-  overflow: auto
-
 .label
   color: $greyForm
+
+.no-disabled
+  background-color: white
+  border: none
+
+.progress-bar
+  background-color: $blueGT
+  font-family: "Montserrat", Helvetica, Arial, sans-serif
+
+.sizeLoader
+  width: 5rem
+  height: 5rem

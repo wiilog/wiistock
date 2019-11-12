@@ -18,13 +18,21 @@
             <option value="{{ typeArticleId }}">{{ typeArticle }}</option>
         </select>
     </div>
-    <div class="form-group col-6">
+</div>
+<div class="row">
+    <div class="form-group col-3">
         <label for="quantité">Quantité*</label>
             {# si on est sur une demande, la quantité ne doit pas être modifiée #}
             {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
             {% set neededOnDemand = isADemand ? '' : needed %}
         <input {{ disabledOnDemand }} class="form-control data {{ neededOnDemand }}" type="number" min="0" name="quantite" id="quantite"
             value="{{article.quantite}}">
+    </div>
+    <div class="form-group col-3">
+        <div class="reference">
+            <label for="prix">Prix Unitaire (€)</label>
+            <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ article.prixUnitaire }}">
+        </div>
     </div>
     <div class="form-group col-6 w-100">
         <label for="emplacement">Emplacement</label>
@@ -34,6 +42,34 @@
             {% endif %}
         </select>
     </div>
+</div>
+<div class="row">
+    <div class="form-group col-4">
+        {% if editable and not isADemand %}
+        <div class="input-group radio-btn">
+            <label for="statut" class="mtb-auto mr-2">Statut</label>
+
+            <div>
+                {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+                {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
+                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                      {% if editable %}onclick="changeStatus(this)">{% endif %}
+                    {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
+                </span><span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                      {% if editable %}onclick="changeStatus(this)">{% endif %}
+                    {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
+                </span><span class="btn {{ transit }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
+                      {% if editable %}onclick="changeStatus(this)">{% endif %}
+                    {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
+                </span>
+            </div>
+
+            <input id="statut-edit" type="hidden" value="{{ statut }}" name="statut" class="data">
+
+        </div>
+        {% endif %}
+    </div>
     <div class="form-group col-2">
         <label>Anomalie</label>
         <label class="switch">
@@ -41,33 +77,8 @@
             <span class="slider round"></span>
         </label>
     </div>
-    <div class="form-group col-4">
-        {% if editable and not isADemand %}
-        <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Statut</label>
-
-            {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
-            <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
-                  {% if editable %}onclick="changeStatus(this)">{% endif %}
-                {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
-            </span>
-            {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
-            <span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
-                  {% if editable %}onclick="changeStatus(this)">{% endif %}
-                {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
-            </span>
-            {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
-            <span class="btn {{ transit }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
-                  {% if editable %}onclick="changeStatus(this)">{% endif %}
-                {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
-            </span>
-
-            <input id="statut" type="hidden" value="{{ statut }}" name="statut" class="data">
-
-        </div>
-        {% endif %}
-    </div>
-
+</div>
+<div class="row">
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>

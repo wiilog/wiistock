@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -19,15 +20,25 @@ class StatutRepository extends ServiceEntityRepository
         parent::__construct($registry, Statut::class);
     }
 
-    public function findByCategorieName($categorieName)
+	/**
+	 * @param string $categorieName
+	 * @param bool $ordered
+	 * @return Statut[]
+	 */
+    public function findByCategorieName($categorieName, $ordered = false)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT s
+
+        $dql = "SELECT s
             FROM App\Entity\Statut s
             JOIN s.categorie c
-            WHERE c.nom = :categorieName"
-        );
+            WHERE c.nom = :categorieName";
+
+        if ($ordered) {
+        	$dql .= " ORDER BY s.displayOrder ASC";
+		}
+
+		$query = $em->createQuery($dql);
 
         $query->setParameter("categorieName", $categorieName);
 
@@ -47,7 +58,14 @@ class StatutRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneByCategorieAndStatut($categorieName, $statutName)
+
+    /**
+     * @param string $categorieName
+     * @param string $statutName
+     * @return Statut | null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByCategorieNameAndStatutName($categorieName, $statutName)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -65,4 +83,74 @@ class StatutRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
+	/**
+	 * @param string $label
+	 * @param string $category
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countByLabelAndCategory($label, $category)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(s)
+            FROM App\Entity\Statut s
+            WHERE LOWER(s.nom) = :label AND s.categorie = :category
+           "
+		)->setParameters([
+			'label' => $label,
+			'category' => $category
+		]);
+
+		return $query->getSingleScalarResult();
+	}
+
+	public function countByLabelDiff($label, $statusLabel, $category)
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT count(s)
+            FROM App\Entity\Statut s
+            WHERE s.nom = :label AND s.nom != :statusLabel AND s.categorie = :category"
+		)->setParameters([
+			'label' => $label,
+			'statusLabel' => $statusLabel,
+			'category' => $category
+		]);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param int $id
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countUsedById($id)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(s)
+            FROM App\Entity\Statut s
+            LEFT JOIN s.articles a
+            LEFT JOIN s.collectes c
+            LEFT JOIN s.demandes dl
+            LEFT JOIN s.livraisons ol
+            LEFT JOIN s.preparations p
+            LEFT JOIN s.litiges l
+            LEFT JOIN s.receptions r
+            LEFT JOIN s.referenceArticles ra
+            LEFT JOIN s.manutentions m
+            WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id 
+            OR l.status = :id OR r.statut = :id OR ra.statut = :id OR m.statut = :id
+           "
+		)->setParameter('id', $id);
+
+		return $query->getSingleScalarResult();
+	}
 }

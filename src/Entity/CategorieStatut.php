@@ -13,16 +13,17 @@ class CategorieStatut
 {
     const REFERENCE_ARTICLE = 'referenceArticle';
     const ARTICLE = 'article';
-    const COLLECTE = 'collecte';
+    const DEM_COLLECTE = 'collecte';
     const ORDRE_COLLECTE = 'ordreCollecte';
-    const DEMANDE = 'demande';
-    const LIVRAISON = 'livraison';
+    const DEM_LIVRAISON = 'demande';
+    const ORDRE_LIVRAISON = 'livraison';
     const PREPARATION = 'preparation';
     const RECEPTION = 'reception';
     const MANUTENTION = 'manutention';
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
     const MVT_STOCK = 'mouvement_stock';
+    const LITIGE_ARR = 'litige arrivage';
 
     /**
      * @ORM\Id()

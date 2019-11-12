@@ -15,6 +15,15 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  */
 class UtilisateurRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
+
+
+    private const DtToDbLabels = [
+        'Nom d\'utilisateur' => 'username',
+        'Email' => 'email',
+        'Dernière connexion' => 'lastLogin',
+        'Rôle' => 'role',
+    ];
+
 	public function __construct(RegistryInterface $registry)
 	{
 		parent::__construct($registry, Utilisateur::class);
@@ -150,6 +159,11 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->getOneOrNullResult();
 	}
 
+    /**
+     * @param $key
+     * @return Utilisateur | null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
 	public function findOneByApiKey($key)
 	{
 		$entityManager = $this->getEntityManager();
@@ -185,6 +199,14 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		if (!empty($params)) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $qb->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                }
+            }
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {

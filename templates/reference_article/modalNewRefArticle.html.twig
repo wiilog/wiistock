@@ -12,36 +12,42 @@
                 <div class="row">
                     <div class="form-group col-6">
                         <label for="reference">Référence*</label>
-                        <input class="form-control data needed" type="text" name="reference" id="reference">
-                    </div>
-                    <div class="form-group col-6">
-                        <div class="input-group radio-btn">
-                            <label for="statut" class="mtb-auto mr-2">Statut</label>
-                            <div>
-                                <span class="btn active" data-toggle="statut"
-                                      data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                                      onclick="toggleRadioButton($(this))">
-                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')|capitalize }}
-                                </span><span class="btn not-active" data-toggle="statut"
-                                             data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                             onclick="toggleRadioButton($(this))">
-                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')|capitalize }}
-                                </span>
-                            </div>
-                            <input type="hidden" name="statut" id="statut" class="data" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}">
-                        </div>
+                        <input class="form-control data needed" type="text" name="reference" id="reference" maxlength="21">
                     </div>
                     <div class="form-group col-6">
                         <label for="libelle">Nom*</label>
                         <input class="form-control data needed" type="text" name="libelle" id="libelle">
                     </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-6">
+                        <div class="input-group radio-btn">
+                            <label for="statut" class="mtb-auto mr-2">Statut</label>
+                            <div>
+                                 <span class="btn active" data-toggle="statut-new"
+                                      data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                                      onclick="toggleRadioButton($(this))">
+                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                                </span><span class="btn not-active" data-toggle="statut-new"
+                                             data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                             onclick="toggleRadioButton($(this))">
+                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
+                                </span>
+                            </div>
+                            <input type="hidden" name="statut" id="statut-new" class="data" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
                     {% include 'reference_article/fournisseurArticle.html.twig' %}
                     <div class="form-group col-1">
                         <span class="btn btn-primary" id="addFournisseur"><i class="fa fa-plus"></i></span>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="type">Type*</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
                             onchange="toggleRequiredChampsLibres($(this),'create')"
@@ -49,6 +55,14 @@
                             <option value="">Type à choisir...</option>
                             {% for type in types %}
                             <option value="{{type.id}}">{{type.label}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="categorie">Catégorie d'inventaire</label>
+                        <select name="categorie" class="form-control data">
+                            {% for categorie in categories %}
+                                <option value="{{ categorie.id }}">{{ categorie.label }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -63,7 +77,7 @@
                     </div>
                 </div>
                 <div class="row mt-10 mb-4">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <div class="input-group radio-btn">
                             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
                             <div onclick="updateQuantityDisplay($(this))">
@@ -78,7 +92,7 @@
 
                         </div>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-3">
 
                         <div class="reference">
                             <label for="quantite">Quantité*</label>
@@ -91,19 +105,41 @@
 
                     </div>
 
-                    <div class="form-group col-4">
+                    <div class="form-group col-3">
                         <div class="form-group w-100">
-                            <div class="input-group reference">
-                                <label for="emplacement">Emplacement*</label>
-                                <select name="emplacement" id="emplacement"
-                                    class="form-control data needed ajax-autocompleteEmplacement">
-                                </select>
+                            <div class="reference">
+                                <label for="prix">Prix Unitaire (€)</label>
+                                <input class="form-control data" type="number" name="prix" min="0" step="0.01">
                             </div>
                         </div>
-
                     </div>
+                </div>
 
-
+                <div class="row">
+                    <div class="form-group col-5">
+                        <div class="input-group reference w-100">
+                            <label for="emplacement">Emplacement*</label>
+                            <select name="emplacement" id="emplacement"
+                                    class="form-control data needed ajax-autocompleteEmplacement">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group col-3">
+                        <div class="form-group w-100">
+                            <div class="reference">
+                                <label for="alertWarning">Seuil d'alerte</label>
+                                <input class="form-control data" type="number" name="alertWarning" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-3">
+                        <div class="form-group w-100">
+                            <div class="reference">
+                                <label for="limitSecurity">Seuil de sécurité</label>
+                                <input class="form-control data" type="number" name="limitSecurity" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- CHAMPS LIBRES -->

@@ -8,37 +8,52 @@ class='accueil-back'
 {% block page_content %}
 {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL')) %}
     <div class="row justify-content-end">
-        <div class="col-6 ">
+        <div class="col-4 ">
             <div class="row justify-content-end">
-                <div class="col-7 mb-1 mt-1 alerte">
+                <div class="col-12 mb-1 mt-1 alerte">
                     <a href="#" onclick="goToFilteredDemande('collecte', 'a-traiter')">
                         <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
                     </a>
                 </div>
-                <div class="col-7 mb-1 mt-1 alerte">
+                <div class="col-12 mb-1 mt-1 alerte">
                     <a href="#" onclick="goToFilteredDemande('livraison', 'a-traiter')">
                         <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
                     </a>
                 </div>
-                <div class="col-7 mb-1 mt-1 alerte">
+                <div class="col-12 mb-1 mt-1 alerte">
                     <a href="#" onclick="goToFilteredDemande('livraison', 'prepare')">
                         <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
                     </a>
                 </div>
-                <div class="col-7 mb-1 mt-1 alerte">
+                <div class="col-12 mb-1 mt-1 alerte">
                     <a href="#" onclick="goToFilteredDemande('manutention', 'a-traiter')">
                         <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>
-                {% set s = nbAlertsSecurity > 1 ? 's' : '' %}
-                <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('alerte_stock_index', {'filter': 'active'})}}>
+                {% set s = nbAlerts > 1 ? 's' : '' %}
+                <div class="col-12 mb-1 mt-1 alerte">
+                    <a href={{path('alerte_index', {'filter': 'active'})}}>
                         <p><strong> Alertes de seuil : </strong>{{ nbAlerts }}<br>
-                            {% if nbAlerts > 0 %}dont {{ nbAlertsSecurity }} seuil{{ s }} de sécurité{% endif %}
+                            {% if nbAlerts > 0 %}dont {{ nbAlerts }} seuil{{ s }} de sécurité{% endif %}
                         </p>
                     </a>
                 </div>
-{#                <div class="col-7 mb-1 mt-1 alerte">#}
+                <div class="col-12 mb-1 mt-1 carreNbrIndicateur">
+                    <p><span class="bold">Fiabilité par référence</span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span></p>
+                    <p><span class="bold">Fiabilité par référence du mois courant</span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span></p>
+                    <div class="curve_chart_line" id="curve_chart_reference"></div>
+                </div>
+                <div class="col-12 mb-1 mt-1 carreNbrIndicateur">
+                    <p><span class="bold">Fiabilité monétaire</span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteMonetaire|round }}€</span></p>
+                    <p><span class="bold">Fiabilité monétaire du mois courant</span><br><br>
+                        <span class="big-font">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span></p>
+                    <div class="curve_chart_line " id="curve_chart"></div>
+                </div>
+
+                {#                <div class="col-7 mb-1 mt-1 alerte">#}
 {#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
 {#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}
 {#                    </a>#}

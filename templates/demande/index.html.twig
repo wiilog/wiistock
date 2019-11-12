@@ -4,9 +4,15 @@
 
 {% block page_content %}
 </div>
-{% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchDemandeLivraison'} %}
+{% include 'filters/filtersWithoutLocation.html.twig' with {'btnName' : 'submitSearchDemandeLivraison'} %}
 {#fermeture des filtres#}
 {#ouverture d'un nouveau container pour aligner sur tableau#}
+
+    <input type="text" value="" id="dateMinFilter" hidden>
+    <input type="text" value="" id="dateMaxFilter" hidden>
+    <input type="text" value="" id="statutFilter" hidden>
+    <input type="text" value="" id="userFilter" hidden>
+    <input type="text" value="" id="typeFilter" hidden>
 
 <div class="container-fluid">
 
@@ -23,6 +29,11 @@
             <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
         </div>
         {% endif %}
+    </div>
+    <div class="d-none justify-content-center" id="spinnerlivrai">
+        <div class="spinner-border sizeLoader" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
     </div>
     <div class="row">
         <div class="error-msg p-4"></div>
