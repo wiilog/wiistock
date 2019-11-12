@@ -134,7 +134,8 @@ class PreparationsManagerService {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
                 $ligneArticle->setQuantite($mouvement->getQuantity());
             }
-        } else {
+        }
+        else {
             $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
             if ($article) {
                 $isSelectedByArticle = (
@@ -147,7 +148,7 @@ class PreparationsManagerService {
                 // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
                 $mouvementQuantity = ($isSelectedByArticle
                     ? $mouvementNomade['quantity']
-                    : $mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+                    : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
 
                 $mouvement->setQuantity($mouvementQuantity);
                 $article->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));

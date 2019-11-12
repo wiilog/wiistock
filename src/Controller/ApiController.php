@@ -46,6 +46,7 @@ use App\Service\MailerService;
 use App\Service\Nomade\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
+use Doctrine\ORM\NonUniqueResultException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -529,6 +530,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     /**
      * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
      * @Rest\View()
+     * @param Request $request
+     * @param PreparationsManagerService $preparationsManager
+     * @return JsonResponse
+     * @throws NonUniqueResultException
      */
     public function finishPrepa(Request $request,
                                 PreparationsManagerService $preparationsManager)
@@ -543,6 +548,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $entityManager = $this->getDoctrine()->getManager();
 
                 $preparations = $data['preparations'];
+                $date = new DateTime();
 
                 // on termine les préparations
                 // même comportement que LivraisonController.new()
@@ -552,7 +558,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     if ($preparation) {
                         try {
                             $livraison = $preparationsManager->persistLivraison($preparationArray);
-                            $preparationsManager->treatPreparation($preparation, $preparationArray, $livraison, $nomadUser);
+                            $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
+                            $preparationsManager->closePreparationMouvement($preparation, $preparationArray['emplacement'], $date);
 
                             $mouvementsNomade = $preparationArray['mouvements'];
                             // on crée les mouvements de livraison
