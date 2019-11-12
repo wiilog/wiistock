@@ -153,9 +153,15 @@ class LitigeController extends AbstractController
 			foreach ($litiges as $litige) {
 				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litige['id'], 'username');
 
+				$litigeId = $litige['id'];
+				$litigeInstance = $this->litigeRepository->find($litigeId);
+				$colis = $litigeInstance->getColis()->getValues();
+				foreach ($colis as $coli)
+                {
+				$arrivageId = $coli->getArrivage()->getId();
+                }
 				$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litige['id']);
 				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
-
 				$rows[] = [
 					'type' => $litige['type'] ?? '',
 					'arrivalNumber' => $litige['numeroArrivage'] ?? '',
@@ -167,7 +173,8 @@ class LitigeController extends AbstractController
 					'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y') : '',
 					'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y') : '',
 					'actions' => $this->renderView('litige/datatableLitigesArrivageRow.html.twig', [
-						'litigeId' => $litige['id']
+						'litigeId' => $litige['id'],
+                        'arrivageId' => $arrivageId
 					])
 				];
 			}

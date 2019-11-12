@@ -766,7 +766,6 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
 
-
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -941,6 +940,7 @@ class ArrivageController extends AbstractController
                     'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
                     'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
+                        'arrivageId' => $arrivage->getId(),
                         'url' => [
                             'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
                         ],
@@ -970,13 +970,15 @@ class ArrivageController extends AbstractController
                 $colisCode[] = $colis->getId();
             }
 
+            $arrivage = $this->arrivageRepository->find($data['arrivage']);
+
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'nameUploadFE' => 'uploadFELitige',
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
-                'colis' => $this->colisRepository->findAll(),
+                'colis' => $arrivage->getColis(),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode]);

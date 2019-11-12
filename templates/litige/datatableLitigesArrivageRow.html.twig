@@ -3,7 +3,7 @@
     {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::EDIT'))%}
     <div>
         <div class="btn btn-col-action" data-id='{{ litigeId }}' data-toggle='modal' data-target='#modalEditLitige'
-             onclick="editRowLitige($(this), openTableHisto)">
+             onclick="editRowLitige($(this), openTableHisto, {{ arrivageId }})">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>

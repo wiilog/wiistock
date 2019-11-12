@@ -372,7 +372,10 @@ function editRowLitige(button, afterLoadingEditModal = () => {}) {
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
     let id = button.data('id');
-    let params = {id: id};
+    console.log(arrivageId);
+    let params = {id: id,
+        arrivage: arrivageId
+    };
 
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
