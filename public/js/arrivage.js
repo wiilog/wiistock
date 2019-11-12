@@ -81,7 +81,7 @@ function getDataAndPrintLabels(codes) {
     });
 }
 
-function printArrivageBarcode(code) {
+function printBarcode(code) {
     let path = Routing.generate('get_print_data', true);
 
     $.post(path, function (response) {

@@ -1,6 +1,6 @@
 <h1 class="text-center">Arrivage n° {{ arrivage.numeroArrivage }}
     <div class = "btn btn-success">
-        <i class='fas fa-print pointer' onclick="printArrivageBarcode('{{ arrivage.numeroArrivage }}')"></i>
+        <i class='fas fa-print pointer' onclick="printBarcode('{{ arrivage.numeroArrivage }}')"></i>
     </div>
 </h1>
 
@@ -18,7 +18,7 @@
         <tr>
             <td>{{ colis.code }}</td>
             <td class="text-center">
-                <i class='fas fa-print' onclick="printArrivageBarcode('{{ colis.code }}')"></i>
+                <i class='fas fa-print' onclick="printBarcode('{{ colis.code }}')"></i>
             </td>
         </tr>
     {% endfor %}
