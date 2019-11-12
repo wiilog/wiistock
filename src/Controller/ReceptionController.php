@@ -218,6 +218,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            dump($data);
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
             $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut = $this->statutRepository->find(intval($data['statut']));
@@ -229,6 +230,7 @@ class ReceptionController extends AbstractController
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
                 ->setUtilisateur($utilisateur)
+                ->setReference($data['NumeroCommande'])
                 ->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getManager();
