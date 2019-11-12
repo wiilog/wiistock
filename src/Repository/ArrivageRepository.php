@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -62,5 +63,36 @@ class ArrivageRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countColisByArrivage($arrivage)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(c)
+			FROM App\Entity\Colis c
+			WHERE c.arrivage = :arrivage"
+		)->setParameter('arrivage', $arrivage->getId());
+
+		return $query->getSingleScalarResult();
+	}
+
+    public function getColisByArrivage($arrivage)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT c.code
+			FROM App\Entity\Colis c
+			WHERE c.arrivage = :arrivage"
+        )->setParameter('arrivage', $arrivage);
+
+        return $query->getScalarResult();
+    }
 
 }

@@ -1,0 +1,47 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Litiges arrivage{% endblock %}
+
+{% block page_content %}
+    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
+    </div>
+
+    {% include 'filters/filtersLitiges.html.twig' with {'btnName' : 'submitSearchLitigesArrivages'} %}
+
+    <div class="container-fluid">
+
+        <h1>Litiges sur arrivages</h1>
+
+        <div class="row">
+            <a href="" data-target='#modalNewLitiges' data-toggle='modal'
+               class="btn btn-primary btn-action" onclick="initNewLitigeEditor('#modalNewLitiges'), clearModal('#modalNewLitiges')">
+                <i class="fa fa-plus"></i>
+                Nouveau litige</a>
+
+            <div class="btn btn-primary" onclick='generateCSVLitigeArrivage()'>
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
+        <div class="d-none justify-content-center" id="spinnerLitigesArrivages">
+            <div class="spinner-border sizeLoader" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="error-msg p-4"></div>
+        </div>
+
+        <div>
+            <table id="tableLitigesArrivages" class="table table-striped table-bordered w-100">
+            </table>
+        </div>
+
+        {% include 'litige/modalNewLitige.html.twig' %}
+
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src = "{{ asset('js/litiges.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

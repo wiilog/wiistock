@@ -161,6 +161,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $inventoryCategoryHistory;
 
+    /**
+     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="user")
+     */
+    private $litigeHistorics;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -178,6 +183,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
+        $this->litigeHistorics = new ArrayCollection();
     }
 
     public function getId()
@@ -800,6 +806,60 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($filtresSup->getUser() === $this) {
                 $filtresSup->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LitigeHistoric[]
+     */
+    public function getLitigeHistorics(): Collection
+    {
+        return $this->litigeHistorics;
+    }
+
+    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics[] = $litigeHistory;
+            $litigeHistory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistory)) {
+            $this->litigeHistorics->removeElement($litigeHistory);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistory->getUser() === $this) {
+                $litigeHistory->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if (!$this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics[] = $litigeHistoric;
+            $litigeHistoric->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
+    {
+        if ($this->litigeHistorics->contains($litigeHistoric)) {
+            $this->litigeHistorics->removeElement($litigeHistoric);
+            // set the owning side to null (unless already changed)
+            if ($litigeHistoric->getUser() === $this) {
+                $litigeHistoric->setUser(null);
             }
         }
 

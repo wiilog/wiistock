@@ -11,12 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Statut
 {
-    // statuts de la catégorie arrivage
-    const CONFORME = 'conforme';
-    const ATTENTE_ACHETEUR = 'attente retour acheteur';
-    const TRAITE_ACHETEUR = 'traité par acheteur';
-    const SOLDE = 'soldé';
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -79,6 +73,10 @@ class Statut
      */
     private $arrivages;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
+     */
+    private $litiges;
 
     public function __construct()
     {
@@ -88,11 +86,10 @@ class Statut
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-//        $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
-//        $this->user = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -408,34 +405,35 @@ class Statut
         return $this;
     }
 
-//    /**
-//     * @return Collection|OrdreCollecte[]
-//     */
-//    public function getUser(): Collection
-//    {
-//        return $this->user;
-//    }
-//
-//    public function addUser(OrdreCollecte $user): self
-//    {
-//        if (!$this->user->contains($user)) {
-//            $this->user[] = $user;
-//            $user->setStatut($this);
-//        }
-//
-//        return $this;
-//    }
-//
-//    public function removeUser(OrdreCollecte $user): self
-//    {
-//        if ($this->user->contains($user)) {
-//            $this->user->removeElement($user);
-//            // set the owning side to null (unless already changed)
-//            if ($user->getStatut() === $this) {
-//                $user->setStatut(null);
-//            }
-//        }
-//
-//        return $this;
-//    }
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->setStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            // set the owning side to null (unless already changed)
+            if ($litige->getStatus() === $this) {
+                $litige->setStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
