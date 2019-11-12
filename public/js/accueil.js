@@ -27,26 +27,27 @@ function drawChart() {
         type: "GET",
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            var arrSales = [['Month', 'Fiabilité monétaire']];
+            let tdata = new google.visualization.DataTable();
+
+            tdata.addColumn('string', 'Month');
+            tdata.addColumn('number', 'Fiabilité monétaire');
 
             $.each(data, function (index, value) {
-                arrSales.push([value.mois, value.nbr]);
+                tdata.addRow([value.mois, value.nbr]);
             });
 
-            var options = {
+            let options = {
                 curveType: 'function',
                 backdropColor: 'transparent',
                 legend: 'none',
                 backgroundColor: 'transparent',
             };
 
-            var figures = google.visualization.arrayToDataTable(arrSales)
-
-            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-            chart.draw(figures, options);
+            let chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart.draw(tdata, options);
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert('Got an Error');
+            // alert('Got an Error');
         }
     });
 }
@@ -62,13 +63,16 @@ function drawChart_reference() {
         type: "GET",
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            var arrSales = [['Month', 'Fiabilité réference en %']];
+            let tdata = new google.visualization.DataTable();
+
+            tdata.addColumn('string', 'Month');
+            tdata.addColumn('number', 'Fiabilité réference en %');
 
             $.each(data, function (index, value) {
-                arrSales.push([value.mois, value.nbr]);
+                tdata.addRow([value.mois, value.nbr]);
             });
 
-            var options = {
+            let options = {
                 curveType: 'function',
                 backdropColor: 'transparent',
                 legend: 'none',
@@ -93,13 +97,11 @@ function drawChart_reference() {
                 }
             };
 
-            var figures = google.visualization.arrayToDataTable(arrSales)
-
-            var chart = new google.visualization.LineChart(document.getElementById('curve_chart_reference'));
-            chart.draw(figures, options);      // Draw the chart with Options.
+            let chart = new google.visualization.LineChart(document.getElementById('curve_chart_reference'));
+            chart.draw(tdata, options);
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert('Got an Error');
+            // alert('Got an Error');
         }
     });
 }
