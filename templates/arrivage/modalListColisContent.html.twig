@@ -1,6 +1,6 @@
 <h1 class="text-center">Arrivage n° {{ arrivage.numeroArrivage }}
     <div class = "btn btn-success">
-        <i class='fas fa-print pointer' onclick="getDataAndPrintLabels('{{ arrivage.numeroArrivage }}')"></i>
+        <i class='fas fa-print pointer' onclick="printArrivageBarcode('{{ arrivage.numeroArrivage }}')"></i>
     </div>
 </h1>
 
@@ -12,13 +12,13 @@
             {% set comma = loop.first ? '' : ',' %}
             {% set listCodeColis = listCodeColis~comma~colis.code %}
         {% endfor %}
-        <th class="text-center">Impression <i class='fas fa-print' onclick="getDataAndPrintLabels('{{ listCodeColis }}')"></i></th>
+        <th class="text-center">Impression <i class='fas fa-print' onclick="getDataAndPrintLabels('{{ arrivage.id }}')"></i></th>
     </tr>
     {% for colis in arrivage.colis %}
         <tr>
             <td>{{ colis.code }}</td>
             <td class="text-center">
-                <i class='fas fa-print' onclick="getDataAndPrintLabels('{{ colis.code }}')"></i>
+                <i class='fas fa-print' onclick="printArrivageBarcode('{{ colis.code }}')"></i>
             </td>
         </tr>
     {% endfor %}

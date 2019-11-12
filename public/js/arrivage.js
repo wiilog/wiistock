@@ -55,6 +55,40 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
 });
 
+function listColis(elem) {
+    let arrivageId = elem.data('id');
+    let path = Routing.generate('arrivage_list_colis_api', true);
+    let modal = $('#modalListColis');
+    let params = { id: arrivageId };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
+}
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let param = codes;
+
+    $.post(path, JSON.stringify(param), function (response) {
+        let codeColis = [];
+        if (response.response.exists) {
+            for(const code of response.codeColis) {
+                codeColis.push(code.code)
+            }
+            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+        }
+    });
+}
+
+function printArrivageBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
+}
+
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         let dateMin = $('#dateMin').val();
