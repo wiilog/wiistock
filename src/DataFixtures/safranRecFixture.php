@@ -31,8 +31,10 @@ class safranRecFixture extends Fixture implements FixtureGroupInterface
 			$manager->persist($paramClient);
 		}
 
-        $paramClient->setClient(ParamClient::SAFRAN_CERAMICS);
-        $paramClient->setDomainName(ParamClient::DOMAIN_NAME_SAFRAN_REC);
+        $paramClient
+			->setClient(ParamClient::SAFRAN_CERAMICS)
+			->setDomainName(ParamClient::DOMAIN_NAME_SAFRAN_REC)
+			->setNbWeeksInventory(1);
         $manager->flush();
     }
 
