@@ -7,6 +7,7 @@ parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: 'fr'
     nomade_versions: '>=1.8.4'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/app-1-8-4.apk'
 
 services:
     # default configuration for services in *this* file
