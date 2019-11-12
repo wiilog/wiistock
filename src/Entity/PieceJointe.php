@@ -36,6 +36,7 @@ class PieceJointe
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="attachements")
+     * @ORM\JoinColumn(name="litige_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=true)
      */
     private $litige;

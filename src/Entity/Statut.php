@@ -23,6 +23,21 @@ class Statut
      */
     private $nom;
 
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $comment;
+
+	/**
+	 * @ORM\Column(type="integer", nullable=true)
+	 */
+    private $displayOrder;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $treated;
+
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
      */
@@ -69,11 +84,6 @@ class Statut
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
-     */
-    private $arrivages;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
      */
     private $litiges;
@@ -88,7 +98,6 @@ class Statut
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
-        $this->arrivages = new ArrayCollection();
         $this->litiges = new ArrayCollection();
     }
 
@@ -106,6 +115,15 @@ class Statut
     {
         $this->nom = $nom;
 
+        return $this;
+    }
+
+    public function isTreated(): ?bool {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self {
+        $this->treated = $treated;
         return $this;
     }
 
@@ -375,37 +393,6 @@ class Statut
     }
 
     /**
-     * @return Collection|Arrivage[]
-     */
-    public function getArrivages(): Collection
-    {
-        return $this->arrivages;
-    }
-
-    public function addArrivage(Arrivage $arrivage): self
-    {
-        if (!$this->arrivages->contains($arrivage)) {
-            $this->arrivages[] = $arrivage;
-            $arrivage->setStatut($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrivage(Arrivage $arrivage): self
-    {
-        if ($this->arrivages->contains($arrivage)) {
-            $this->arrivages->removeElement($arrivage);
-            // set the owning side to null (unless already changed)
-            if ($arrivage->getStatut() === $this) {
-                $arrivage->setStatut(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Litige[]
      */
     public function getLitiges(): Collection
@@ -432,6 +419,30 @@ class Statut
                 $litige->setStatus(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getDisplayOrder(): ?int
+    {
+        return $this->displayOrder;
+    }
+
+    public function setDisplayOrder(int $displayOrder): self
+    {
+        $this->displayOrder = $displayOrder;
 
         return $this;
     }

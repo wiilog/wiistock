@@ -94,5 +94,4 @@ class ArrivageRepository extends ServiceEntityRepository
 
         return $query->getScalarResult();
     }
-
 }

@@ -307,7 +307,6 @@ function toggleLivraisonCollecte($button) {
                 pathIndex = Routing.generate('collecte_index', false);
             }
 
-            console.log(pathIndex);
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
@@ -349,15 +348,15 @@ function initEditor(div) {
 };
 
 //passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quillArrivage = null) {
+function setCommentaire(div, quill = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quillArrivage === null) {
+    if ($(div).length && quill === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
         $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quillArrivage) {
-        $(div).closest('.modal').find('#commentaire').val(quillArrivage.container.firstChild.innerHTML);
+    } else if (quill) {
+        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
     }
 };
 
@@ -628,6 +627,7 @@ function alertErrorMsg(data, remove = false) {
 function alertSuccessMsg(data) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
+    $alertSuccess.css('display', 'block');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
