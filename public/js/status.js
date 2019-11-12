@@ -9,7 +9,7 @@ let tableStatus = $('#tableStatus').DataTable({
     },
     columns:[
         { "data": 'Categorie', 'title' : 'Catégorie' },
-        { "data": 'Label', 'title' : 'Label' },
+        { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Comment', 'title' : 'Commentaire' },
         { "data": 'Treated', 'title' : 'Statut litige traité' },
         { "data": 'Order', 'title' : 'Ordre' },

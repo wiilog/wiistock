@@ -378,9 +378,9 @@ class ArticleRepository extends ServiceEntityRepository
 					switch ($column) {
 						case 'refArt':
 							$qb
-								->leftJoin('a.articleFournisseur', 'af')
-								->leftJoin('af.referenceArticle', 'ra')
-								->orderBy('ra.reference', $order);
+								->leftJoin('a.articleFournisseur', 'af2')
+								->leftJoin('af2.referenceArticle', 'ra2')
+								->orderBy('ra2.reference', $order);
 							break;
 						case 'status':
 							$qb

@@ -766,7 +766,6 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
 
-
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -803,8 +802,8 @@ class ArrivageController extends AbstractController
 
             $trimCommentStatut = trim($commentStatut);
             $userComment = trim($data['commentaire']);
-            $br = !empty($userComment) ? '<br/>' : '';
-            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($br . $commentStatut) : '');
+            $nl = !empty($userComment) ? "\n" : '';
+            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -941,6 +940,7 @@ class ArrivageController extends AbstractController
                     'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
                     'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
+                        'arrivageId' => $arrivage->getId(),
                         'url' => [
                             'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
                         ],
@@ -963,12 +963,14 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $litige = $this->litigeRepository->find($data['id']);
+            $litige = $this->litigeRepository->find($data['litigeId']);
 
             $colisCode = [];
             foreach ($litige->getColis() as $colis) {
                 $colisCode[] = $colis->getId();
             }
+
+            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'nameUploadFE' => 'uploadFELitige',
@@ -976,7 +978,7 @@ class ArrivageController extends AbstractController
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
-                'colis' => $this->colisRepository->findAll(),
+                'colis' => $arrivage->getColis(),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
@@ -1026,15 +1028,15 @@ class ArrivageController extends AbstractController
             }
             if ($statutBefore !== $statutAfter) {
                 if (!empty($comment)) {
-                    $comment .= '<br/>';
+                    $comment .= "\n";
                 }
                 $comment .= "Changement du statut : " .
                     $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
-                    (!empty($commentStatut) ? ("<br>" . $commentStatut . ".") : '');
+                    (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
             }
             if ($data['commentaire']) {
                 if (!empty($comment)) {
-                    $comment .= '<br/>';
+                    $comment .= "\n";
                 }
                 $comment .= trim($data['commentaire']);
             }

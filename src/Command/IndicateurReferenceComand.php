@@ -75,14 +75,16 @@ class IndicateurReferenceComand extends Command
 
         $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfLastMonth, $lastDayOfThisMonth);
         $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReferenceOfLastMonth = (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
-        round($nbrFiabiliteReferenceOfLastMonth);
+        if ($nbActiveRefAndArtOfThisMonth > 0) {
+        	$nbrFiabiliteReferenceOfLastMonth = (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
+        	round($nbrFiabiliteReferenceOfLastMonth);
+		}
 
         $dateDebut = new \DateTime($firstDayOfLastMonth);
         $fiabilityReference = new FiabilityByReference();
         $fiabilityReference
             ->setDate($dateDebut)
-            ->setIndicateur($nbrFiabiliteReferenceOfLastMonth);
+            ->setIndicateur($nbrFiabiliteReferenceOfLastMonth ?? null);
 
         $em->persist($fiabilityReference);
         $em->flush();

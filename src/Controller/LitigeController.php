@@ -151,11 +151,11 @@ class LitigeController extends AbstractController
 			$litiges = $this->litigeRepository->getAllWithArrivageData();
 			$rows = [];
 			foreach ($litiges as $litige) {
-				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litige['id'], 'username');
+				$litigeId = $litige['id'];
+				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litigeId, 'username');
 
 				$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litige['id']);
-				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . strip_tags($lastHistoric['comment']) : '';
-
+				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 				$rows[] = [
 					'type' => $litige['type'] ?? '',
 					'arrivalNumber' => $litige['numeroArrivage'] ?? '',
@@ -167,7 +167,8 @@ class LitigeController extends AbstractController
 					'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y') : '',
 					'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y') : '',
 					'actions' => $this->renderView('litige/datatableLitigesArrivageRow.html.twig', [
-						'litigeId' => $litige['id']
+						'litigeId' => $litige['id'],
+                        'arrivageId' => $litige['arrivageId']
 					])
 				];
 			}
@@ -190,29 +191,63 @@ class LitigeController extends AbstractController
 			$litiges = $this->litigeRepository->findByDates($dateMin, $dateMax);
 
 			$headers = [];
-			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage']);
+			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage', 'date commentaire', 'utilisateur', 'commentaire']);
 			$data = [];
 			$data[] = $headers;
 
 			foreach ($litiges as $litige) {
-				$litigesData = [];
+				$historics = $this->litigeHistoricRepository->findByLitige($litige);
 
-				$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
-				$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
-				$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
-				$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+				if (empty($historics)) {
+					$litigesData = [];
 
-				$colis = $litige->getColis()->toArray();
-				$arrColis = [];
-				foreach ($colis as $coli) {
-					$arrColis[] = $coli->getCode();
+					$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
+					$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
+					$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
+					$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+
+					$colis = $litige->getColis()->toArray();
+					$arrColis = [];
+					foreach ($colis as $coli) {
+						$arrColis[] = $coli->getCode();
+					}
+					$strColis = implode(', ', $arrColis);
+					$litigesData[] = $strColis;
+
+					$litigesData[] = $colis[0]->getArrivage() ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+
+					$litigesData[] = '';
+					$litigesData[] = '';
+					$litigesData[] = '';
+
+					$data[] = $litigesData;
+				} else {
+					foreach ($historics as $historic) {
+						$litigesData = [];
+
+						$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
+						$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
+						$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
+						$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+
+						$colis = $litige->getColis()->toArray();
+						$arrColis = [];
+						foreach ($colis as $coli) {
+							$arrColis[] = $coli->getCode();
+						}
+						$strColis = implode(', ', $arrColis);
+						$litigesData[] = $strColis;
+
+						$litigesData[] = $colis[0]->getArrivage() ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+
+						$litigesData[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
+						$litigesData[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
+						$litigesData[] = '"' . $historic->getComment() . '"';
+
+						$data[] = $litigesData;
+					}
 				}
-				$strColis = implode(', ', $arrColis);
-				$litigesData[] = $strColis;
 
-				$litigesData[] = $colis[0]->getArrivage()->getNumeroArrivage();
-
-				$data[] = $litigesData;
 			}
 			return new JsonResponse($data);
 		} else {
@@ -255,13 +290,13 @@ class LitigeController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $rows = [];
                 $idLitige = $litige->getId();
-                $litigeHisto = $this->litigeHistoricRepository->findByLitigeId($idLitige);
+                $litigeHisto = $this->litigeHistoricRepository->findByLitige($idLitige);
                 foreach ($litigeHisto as $histo)
                 {
                     $rows[] = [
                         'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
                         'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                        'commentaire' => $histo->getComment(),
+                        'commentaire' => nl2br($histo->getComment()),
                     ];
                 }
             $data['data'] = $rows;

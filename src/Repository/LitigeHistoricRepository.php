@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -19,14 +20,18 @@ class LitigeHistoricRepository extends ServiceEntityRepository
         parent::__construct($registry, LitigeHistoric::class);
     }
 
-    public function findByLitigeId($litige)
+	/**
+	 * @param Litige|int $litige
+	 * @return LitigeHistoric[]
+	 */
+    public function findByLitige($litige)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT h
 			FROM App\Entity\litigeHistoric h
-			WHERE h.litige = :litigeId"
-        )->setParameter('litigeId', $litige);
+			WHERE h.litige = :litige"
+        )->setParameter('litige', $litige);
 
         return $query->execute();
     }
