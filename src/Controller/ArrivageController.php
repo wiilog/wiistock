@@ -963,14 +963,14 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $litige = $this->litigeRepository->find($data['id']);
+            $litige = $this->litigeRepository->find($data['litigeId']);
 
             $colisCode = [];
             foreach ($litige->getColis() as $colis) {
                 $colisCode[] = $colis->getId();
             }
 
-            $arrivage = $this->arrivageRepository->find($data['arrivage']);
+            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'nameUploadFE' => 'uploadFELitige',
