@@ -16,11 +16,9 @@
         <div class="form-group col-12">
             <label for="statutLitige">Statut*</label>
             <select class="form-control data needed" id="statutLitige" name="statutLitige">
-                <option placeholder="" value="{{ litige.status.id }}" selected>{{ litige.status.nom }}</option>
                 {% for statut in statusLitige %}
-                    {% if statut.id != litige.status.id %}
-                        <option value="{{ statut.id }}">{{ statut.nom }}</option>
-                    {% endif %}
+                    {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -38,16 +36,22 @@
         </div>
 
         <div class="form-group col-12 fit-content">
-            <label for="commentaire">Commentaire</label>
-            <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"
-                   value="{{ litige.commentaire }}">
-            <div class="editor-container-edit" value="{{ litige.commentaire }}">{{ litige.commentaire|raw }}</div>
-        </div>
+            <label for="litige-edit-commentaire">Commentaire</label>
 
+            <div class="d-flex">
+                <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
+                <button type="button" class="btn form-group m-0 ml-2" onclick="getCommentAndAddHisto()">Ajouter</button>
+            </div>
+        </div>
         <div class="form-group col-12">
             <div>
                 {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
             </div>
         </div>
     </div>
+    <div class="label">Historique</div>
+    <div class="tableHistoric">
+        <table id="tableHistoLitige" class="table table-striped table-bordered w-100 no-padding-on-p"></table>
+    </div>
+    <input hidden value="{{ litige.id }}" id="litigeId" class="data">
 </div>

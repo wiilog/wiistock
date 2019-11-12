@@ -107,12 +107,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Arrivage::STATUS_CONFORME,
 				Arrivage::STATUS_LITIGE,
 			],
-			CategorieStatut::LITIGE_ARR => [
-				Litige::CONFORME,
-				Litige::ATTENTE_ACHETEUR,
-				Litige::TRAITE_ACHETEUR,
-				Litige::SOLDE,
-			]
+			CategorieStatut::LITIGE_ARR => []
 		];
 
     	foreach ($categoriesStatus as $categoryName => $statuses) {

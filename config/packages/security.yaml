@@ -26,6 +26,9 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        nomade_apk:
+            pattern: ^/telecharger/nomade.apk$
+            security: false
         api:
             pattern: ^/tests
             stateless: true
