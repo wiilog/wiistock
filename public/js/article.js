@@ -24,6 +24,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
         { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Date et heure', 'name': 'Date et heure', 'title': 'Date et heure' },
         { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
         { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }

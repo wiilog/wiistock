@@ -46,6 +46,10 @@ class ArticleRepository extends ServiceEntityRepository
 		return array_column($query->execute(), 'reference');
 	}
 
+    /**
+     * @param $id
+     * @return Article[]|null
+     */
     public function findByReception($id)
     {
         $entityManager = $this->getEntityManager();

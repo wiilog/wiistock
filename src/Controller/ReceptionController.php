@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\MouvementStock;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -679,7 +680,19 @@ class ReceptionController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $reception = $this->receptionRepository->find($receptionId);
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
-
+            $listeArticle = $this->articleRepository->findByReception($reception->getId());
+            foreach ($listeArticle as $article)
+            {
+                $newMouvement = new MouvementStock();
+                $newMouvement
+                    ->setUser($this->getUser())
+                    ->setArticle($article)
+                    ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                    ->setType(MouvementStock::TYPE_ENTREE)
+                    ->setQuantity($article->getQuantite());
+                $em->persist($newMouvement);
+                $em->flush();
+            }
             if (empty($listReceptionReferenceArticle)) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {

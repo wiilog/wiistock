@@ -607,6 +607,7 @@ class ArticleDataService
                     'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
                     'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
                     'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                    'Date et heure' => ($article->getReception() ? ($article->getReception()->getDateFinReception() ?? '')->format('Y:m:d H:i:s') : '' ),
                     'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
                     'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
