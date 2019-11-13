@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 30/04/2019
- * Time: 14:24
- */
 
 namespace App\Security;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
+use Twig_Environment;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 /**
  * Class MaintenanceListener
@@ -25,34 +23,27 @@ class MaintenanceListener
 
 	/**
 	 * MaintenanceListener constructor.
-	 * @param \Twig_Environment $templating
+	 * @param Twig_Environment $templating
 	 */
-    public function __construct(\Twig_Environment $templating)
+    public function __construct(Twig_Environment $templating)
     {
         $this->templating = $templating;
     }
 
 	/**
 	 * @param GetResponseEvent $event
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
 	 */
-    public function onKernelRequest(GetResponseEvent $event)
-    {
-//    	if (isset($_SERVER['APP_MAINTENANCE']) && $_SERVER['APP_MAINTENANCE'] == 'on') {
-			$maintenanceView = $this->templating->render(
-				'securite/maintenance.html.twig'
-			);
-			$response = new Response(
-				$maintenanceView,
-				Response::HTTP_OK,
-				array('content-type' => 'text/html')
-			);
-			$event->setResponse(new Response($response->getContent()));
-			$event->stopPropagation();
-//		} else {
-//    		return;
-//		}
+    public function onKernelRequest(GetResponseEvent $event) {
+        $maintenanceView = $this->templating->render('securite/maintenance.html.twig');
+        $response = new Response(
+            $maintenanceView,
+            Response::HTTP_OK,
+            array('content-type' => 'text/html')
+        );
+        $event->setResponse($response);
+        $event->stopPropagation();
     }
 }
