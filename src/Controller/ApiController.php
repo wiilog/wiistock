@@ -46,7 +46,9 @@ use App\Service\MailerService;
 use App\Service\Nomade\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -434,87 +436,22 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     /**
      * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
      * @Rest\View()
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
      */
-    public function beginPrepa(Request $request)
+    public function beginPrepa(Request $request,
+                               PreparationsManagerService $preparationsManager)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-
-                $em = $this->getDoctrine()->getManager();
-
                 $preparation = $this->preparationRepository->find($data['id']);
+                $preparationDone = $preparationsManager->beginPrepa($preparation, $nomadUser);
 
-                if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $nomadUser) {
-
-                    $demandes = $preparation->getDemandes();
-                    $demande = $demandes[0];
-
-                    // modification des articles de la demande
-                    $articles = $demande->getArticles();
-                    foreach ($articles as $article) {
-                        $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                        // scission des articles dont la quantité prélevée n'est pas totale
-                        if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                            $newArticle = [
-                                'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                                'libelle' => $article->getLabel(),
-                                'prix' => $article->getPrixUnitaire(),
-                                'conform' => !$article->getConform(),
-                                'commentaire' => $article->getcommentaire(),
-                                'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                                'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                                'statut' => Article::STATUT_ACTIF,
-                                'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
-                            ];
-
-                            foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                                $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                            }
-                            $this->articleDataService->newArticle($newArticle);
-
-                            $article->setQuantite($article->getQuantiteAPrelever(), 0);
-                        }
-
-                        // création des mouvements de préparation pour les articles
-                        $mouvement = new MouvementStock();
-                        $mouvement
-                            ->setUser($nomadUser)
-                            ->setArticle($article)
-                            ->setQuantity($article->getQuantiteAPrelever())
-                            ->setEmplacementFrom($article->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
-                            ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
-                        $em->persist($mouvement);
-                        $em->flush();
-                    }
-
-                    // création des mouvements de préparation pour les articles de référence
-                    foreach ($demande->getLigneArticle() as $ligneArticle) {
-                        $articleRef = $ligneArticle->getReference();
-
-                        $mouvement = new MouvementStock();
-                        $mouvement
-                            ->setUser($nomadUser)
-                            ->setRefArticle($articleRef)
-                            ->setQuantity($ligneArticle->getQuantite())
-                            ->setEmplacementFrom($articleRef->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
-                            ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
-                        $em->persist($mouvement);
-                        $em->flush();
-                    }
-
-                    // modif du statut de la préparation
-                    $statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-                    $preparation
-                        ->setStatut($statutEDP)
-                        ->setUtilisateur($nomadUser);
-                    $em->flush();
-
+                if ($preparationDone) {
                     $this->successDataMsg['success'] = true;
-                } else {
+                }
+                else {
                     $this->successDataMsg['success'] = false;
                     $this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
                     $this->successDataMsg['data'] = [];
@@ -533,11 +470,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param Request $request
      * @param PreparationsManagerService $preparationsManager
      * @return JsonResponse
-     * @throws NonUniqueResultException
+     * @throws ORMException
      */
     public function finishPrepa(Request $request,
-                                PreparationsManagerService $preparationsManager)
-    {
+                                PreparationsManagerService $preparationsManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -556,18 +492,23 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
 
                     if ($preparation) {
+                        // if it has not been begin
+                        $preparationsManager->beginPrepa($preparation, $nomadUser);
                         try {
-                            $livraison = $preparationsManager->persistLivraison($preparationArray);
-                            $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
-                            $preparationsManager->closePreparationMouvement($preparation, $preparationArray['emplacement'], $date);
+                            // flush auto at the end
+                            $entityManager->transactional(function()
+                                                          use ($preparationsManager, $preparationArray, $preparation, $nomadUser, $date) {
+                                $livraison = $preparationsManager->persistLivraison($preparationArray);
+                                $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
+                                $preparationsManager->closePreparationMouvement($preparation, $preparationArray['emplacement'], $date);
 
-                            $mouvementsNomade = $preparationArray['mouvements'];
-                            // on crée les mouvements de livraison
-                            foreach ($mouvementsNomade as $mouvementNomade) {
-                                $preparationsManager->treatMouvement($mouvementNomade, $nomadUser, $livraison);
-                            }
+                                $mouvementsNomade = $preparationArray['mouvements'];
+                                // on crée les mouvements de livraison
+                                foreach ($mouvementsNomade as $mouvementNomade) {
+                                    $preparationsManager->treatMouvement($mouvementNomade, $nomadUser, $livraison);
+                                }
+                            });
 
-                            $entityManager->flush();
                             $resData['success'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId()
@@ -575,6 +516,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         }
                         catch (\Exception $exception) {
                             dump($exception);
+                            if (!$entityManager->isOpen()) {
+                                $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                            }
                             $resData['errors'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId(),

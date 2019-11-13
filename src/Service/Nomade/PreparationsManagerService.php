@@ -12,6 +12,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -56,7 +57,7 @@ class PreparationsManagerService {
         $mouvements = $mouvementRepository->findByPreparation($preparation);
         $emplacementPrepa = $emplacementRepository->findOneByLabel($emplacement);
         foreach ($mouvements as $mouvement) {
-            if ($emplacementPrepa) {
+            if ($emplacementPrepa && $emplacementPrepa->getLabel() !== 'tutute') {
                 $mouvement
                     ->setDate($date)
                     ->setEmplacementTo($emplacementPrepa);
@@ -224,6 +225,93 @@ class PreparationsManagerService {
             $this->entityManager->remove($mvtToRemove);
         }
         $this->refMouvementsToRemove = [];
+    }
+
+    public function beginPrepa(Preparation $preparation, Utilisateur $nomadUser): bool {
+        if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $nomadUser) {
+            $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
+            $statutRepository = $this->entityManager->getRepository(Statut::class);
+
+            $demandes = $preparation->getDemandes();
+            $demande = $demandes[0];
+
+            // modification des articles de la demande
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
+                $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
+                if (!$mouvementAlreadySaved) {
+                    $article->setStatut($statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                    // scission des articles dont la quantité prélevée n'est pas totale
+                    if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                        $newArticle = [
+                            'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                            'libelle' => $article->getLabel(),
+                            'prix' => $article->getPrixUnitaire(),
+                            'conform' => !$article->getConform(),
+                            'commentaire' => $article->getcommentaire(),
+                            'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+                            'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                            'statut' => Article::STATUT_ACTIF,
+                            'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+                        ];
+
+                        foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        }
+                        $this->articleDataService->newArticle($newArticle);
+
+                        $article->setQuantite($article->getQuantiteAPrelever());
+                    }
+
+                    // création des mouvements de préparation pour les articles
+                    $mouvement = new MouvementStock();
+                    $mouvement
+                        ->setUser($nomadUser)
+                        ->setArticle($article)
+                        ->setQuantity($article->getQuantiteAPrelever())
+                        ->setEmplacementFrom($article->getEmplacement())
+                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setPreparationOrder($preparation)
+                        ->setExpectedDate($preparation->getDate());
+                    $this->entityManager->persist($mouvement);
+                    $this->entityManager->flush();
+                }
+            }
+
+            // création des mouvements de préparation pour les articles de référence
+            foreach ($demande->getLigneArticle() as $ligneArticle) {
+                $articleRef = $ligneArticle->getReference();
+
+                $mouvementAlreadySaved = $mouvementRepository->findByRefAndPrepa($articleRef->getId(), $preparation->getId());
+                if (!$mouvementAlreadySaved) {
+                    $mouvement = new MouvementStock();
+                    $mouvement
+                        ->setUser($nomadUser)
+                        ->setRefArticle($articleRef)
+                        ->setQuantity($ligneArticle->getQuantite())
+                        ->setEmplacementFrom($articleRef->getEmplacement())
+                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setPreparationOrder($preparation)
+                        ->setExpectedDate($preparation->getDate());
+                    $this->entityManager->persist($mouvement);
+                    $this->entityManager->flush();
+                }
+            }
+
+            if (!$preparation->getStatut() || !$preparation->getUtilisateur()) {
+                // modif du statut de la préparation
+                $statutEDP = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                $preparation
+                    ->setStatut($statutEDP)
+                    ->setUtilisateur($nomadUser);
+                $this->entityManager->flush();
+            }
+            $done = true;
+        }
+        else {
+            $done = false;
+        }
+        return $done;
     }
 
 }
