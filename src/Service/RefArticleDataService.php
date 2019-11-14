@@ -327,6 +327,8 @@ class RefArticleDataService
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
+                if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+                if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
                 if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
                 if (isset($data['statut'])) {
                     $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $data['statut']);

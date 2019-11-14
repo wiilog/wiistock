@@ -394,8 +394,8 @@ class ReferenceArticleController extends Controller
             if ($data['limitSecurity']) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
-            if ($data['alertWarning']) {
-            	$refArticle->setLimitWarning($data['alertWarning']);
+            if ($data['limitWarning']) {
+            	$refArticle->setLimitWarning($data['limitWarning']);
 			}
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
