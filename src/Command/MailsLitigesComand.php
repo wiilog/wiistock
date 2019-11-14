@@ -81,7 +81,9 @@ class MailsLitigesComand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var Litige[] $litiges */
-        $litiges = $this->litigeRepository->findByStatutLabel(Litige::ATTENTE_ACHETEUR);
+        $litiges = $this->litigeRepository->findByStatutSendNotifToBuyer();
+
+        dump($litiges);
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
