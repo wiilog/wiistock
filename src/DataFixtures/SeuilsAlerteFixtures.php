@@ -4,6 +4,7 @@
 namespace App\DataFixtures;
 
 
+use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
@@ -48,6 +49,11 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
     private $refArticleRepository;
 
     /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
@@ -57,7 +63,7 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
      */
     private $emplacementRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
@@ -67,23 +73,45 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     public function load(ObjectManager $manager)
     {
         $allRefArticles = $this->refArticleRepository->findAll();
+        $allArticles = $this->articleRepository->findAll();
 
         $cpt = 0;
 
         foreach($allRefArticles as $refArticle){
             $valueAlerteSeuil = $this->refArticleRepository->getStockMiniClByRef($refArticle);
             $valueAlerteSecurity = $this->refArticleRepository->getStockAlerteClByRef($refArticle);
+            $valuePrice = $this->refArticleRepository->getStockPriceClByRef($refArticle);
 
             if ($valueAlerteSecurity != null) {
                 $refArticle->setLimitSecurity($valueAlerteSecurity[0]['valeur']);
             }
             if ($valueAlerteSeuil != null) {
                 $refArticle->setLimitWarning($valueAlerteSeuil[0]['valeur']);
+            }
+            if ($valuePrice != null) {
+                $refArticle->setPrixUnitaire($valuePrice[0]['valeur']);
+            }
+            $cpt++;
+
+            if ($cpt % 1000 === 0) {
+                dump('Flush 1000 ...');
+                $manager->flush();
+            }
+        }
+
+        $cpt = 0;
+
+        foreach ($allArticles as $article) {
+            $valuePriceArt = $this->articleRepository->getStockPriceClByArt($article);
+
+            if ($valuePriceArt != null) {
+                $article->setPrixUnitaire($valuePriceArt[0]['valeur']);
             }
             $cpt++;
 
