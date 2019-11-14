@@ -403,7 +403,23 @@ class LivraisonController extends AbstractController
 			}
 
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'code prépa', 'code livraison', 'referenceArticle', 'libelleArticle', 'quantite']);
+            $headers = array_merge(
+                $headers,
+                [
+                    'demandeur',
+                    'statut',
+                    'destination',
+                    'commentaire',
+                    'dateDemande',
+                    'dateValidation',
+                    'reference',
+                    'type demande',
+                    'code prépa',
+                    'code livraison',
+                    'referenceArticle',
+                    'libelleArticle',
+                    'quantite'
+                ]);
 
 			// en-têtes champs libres articles
             $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
