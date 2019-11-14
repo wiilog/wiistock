@@ -1,0 +1,6 @@
+<div>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{ rateBar }}%"
+             aria-valuenow="{{ rateBar }}" aria-valuemin="0" aria-valuemax="100">{% if rateBar != 0 %}{{ rateBar|round }}%{% endif %}</div>
+    </div>
+</div>

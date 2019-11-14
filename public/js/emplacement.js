@@ -1,10 +1,10 @@
 $('.select2').select2();
+const PAGE_EMPLACEMENT = 'emplacement';
 
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
-
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -12,9 +12,6 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         "url": pathEmplacement,
         "type": "POST",
         'dataSrc': function (json) {
-            if (!$(".statutVisible").val()) {
-                tableEmplacement.column('Actif / Inactif:name').visible(false);
-            }
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }
@@ -31,6 +28,9 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     ],
     buttons: [
         'copy', 'excel', 'pdf'
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 4 }
     ]
 });
 
@@ -104,43 +104,44 @@ function getDataAndPrintLabels() {
     });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
-            $("#barcodes").empty();
-            let i = 0;
-            response.emplacements.forEach(function (code) {
-                console.log(code);
-                $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code.replace('é', 'e').replace('è', 'e').trim(), {
-                    format: "CODE128",
-                });
-                i++;
-            });
-            let doc = adjustScalesForDoc(response.tags);
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages());
-            doc.save('Etiquettes-emplacements.pdf');
+            printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf');
         }
     });
 }
 
 function printSingleArticleBarcode(button) {
-    let params = {
-        'emplacement': button.data('id')
-    };
+    const params = {'emplacement': button.data('id')};
     $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", response.emplacementLabel, {
-                format: "CODE128",
-            });
-            let doc = adjustScalesForDoc(response);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf');
-            $("#singleBarcode").remove();
-        } else {
+            printBarcodes(
+                [response.emplacementLabel],
+                response,
+                'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
+            );
+        }
+        else {
             $('#cannotGenerate').click();
         }
     });
+}
+
+function reloadDatatableforActif() {
+    let input = $('#actifInactif');
+    let filterInput = input.prop('checked');
+    input.attr('value', filterInput);
+    let statut = filterInput;
+    saveFiltersEmplacement(PAGE_EMPLACEMENT, statut);
+}
+
+function saveFiltersEmplacement(page, statut) {
+    let path = Routing.generate('filter_sup_new');
+    let params = {};
+    if (statut !== null && statut !== undefined) {
+        params.statut = statut;
+    }
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), function() {
+        tableEmplacement.draw();
+    }, 'json');
 }

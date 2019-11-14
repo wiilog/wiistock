@@ -92,10 +92,3 @@ let dlFile = function (csv, type) {
         }
     }
 }
-
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}

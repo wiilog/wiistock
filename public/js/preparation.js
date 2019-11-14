@@ -156,6 +156,7 @@ let startPreparation = function (value) {
                 prepasToSplit = data.prepas;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
                 $('#tableSplittingArticles').DataTable({
+                    "paging": false,
                     "language": {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
@@ -193,6 +194,7 @@ function submitSplitting(submit) {
                     actualIndex++;
                     $('#splittingContent').html(prepasToSplit[actualIndex]);
                     $('#tableSplittingArticles').DataTable({
+                        "paging": false,
                         "language": {
                             url: "/js/i18n/dataTableLanguage.json",
                         },

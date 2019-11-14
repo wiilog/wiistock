@@ -15,11 +15,14 @@ class Action
     const LIST_ALL = 'lister tout';
     const CREATE_EDIT = 'créer+modifier';
     const CREATE = 'créer';
+    const EDIT = 'modifer';
     const DELETE = 'supprimer';
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';
     const YES = 'oui';
-    const CHOIX = 'choix';
+    const INVENTORY_MANAGER = "gestionnaire d'inventaire";
+    const REFERENCE = 'fiabilité par réference';
+    const MONETAIRE = 'fiabilité par monétaire';
 
     /**
      * @ORM\Id()

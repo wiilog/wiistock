@@ -32,7 +32,7 @@
         crossorigin="anonymous"></script>
 
 <!--Barecode.js  -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jsbarcode/3.6.0/JsBarcode.all.min.js"></script>  
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
 
    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
   <link rel="stylesheet" href="https://printjs-4de6.kxcdn.com/print.min.css">
@@ -54,14 +54,15 @@
 <!-- Javascript routing Exemple : var url = Routing.generate('modifyLigneArticle', id , true) -->
     <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
     <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
-    <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
-<script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
 
 <!-- Javascript 'moment.js' -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+{# line chart google #}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 
 <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>

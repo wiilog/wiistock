@@ -2,8 +2,7 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -14,7 +13,9 @@ class MouvementStock
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';
 	const TYPE_TRANSFERT = 'transfert';
-    /**
+	const TYPE_INVENTAIRE_ENTREE = 'entrée inventaire';
+	const TYPE_INVENTAIRE_SORTIE = 'sortie inventaire';
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -69,6 +70,7 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="livraison_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
     private $livraisonOrder;
 
@@ -82,21 +84,22 @@ class MouvementStock
 	 */
 	private $preparationOrder;
 
-
-    public function __construct()
-    {}
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+	private $comment;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -175,12 +178,12 @@ class MouvementStock
         return $this;
     }
 
-    public function getExpectedDate(): ?\DateTimeInterface
+    public function getExpectedDate(): ?DateTimeInterface
     {
         return $this->expectedDate;
     }
 
-    public function setExpectedDate(?\DateTimeInterface $expectedDate): self
+    public function setExpectedDate(?DateTimeInterface $expectedDate): self
     {
         $this->expectedDate = $expectedDate;
 
@@ -231,6 +234,18 @@ class MouvementStock
     public function setEmplacementTo(?Emplacement $emplacementTo): self
     {
         $this->emplacementTo = $emplacementTo;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
 
         return $this;
     }

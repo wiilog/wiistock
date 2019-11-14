@@ -8,19 +8,23 @@ $('#utilisateur').select2({
 
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
+    processing: true,
+    serverSide: true,
     order: [[0, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 0
-        }
+        },
+        { "orderable": false, "targets": 6 }
     ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathCollecte,
-        "type": "POST"
+        "type": "POST",
+
     },
     columns: [
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
@@ -30,20 +34,23 @@ let table = $('#tableCollecte_id').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
-    ],
+    ]
 });
 
-// recherche par défaut demandeur = utilisateur courant
-// let demandeur = $('.current-username').val();
-// if (demandeur !== undefined) {
-//     let demandeurPiped = demandeur.split(',').join('|')
-//     table
-//         .columns('Demandeur:name')
-//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-//         .draw();
-//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
-//     $('#utilisateur').val(demandeur).trigger('change');
-// }
+let $submitSearchCollecte = $('#submitSearchCollecte');
+$submitSearchCollecte.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let user = $('#utilisateur').val();
+    let userString = user.toString();
+    let userPiped = userString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, userPiped, type);
+
+    table.draw();
+});
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
@@ -135,8 +142,6 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-let $submitSearchCollecte = $('#submitSearchCollecte');
-
 // applique les filtres si pré-remplis
 $(function() {
     let val = $('#statut').val();
@@ -192,16 +197,6 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-
-// //initialisation editeur de texte une seule fois à l'édit
-// let editorEditCollecteAlreadyDone = false;
-// function initEditCollecteEditor(modal) {
-//     if (!editorEditCollecteAlreadyDone) {
-//         initEditor(modal);
-//         editorEditCollecteAlreadyDone = true;
-//     }
-// };
-
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
 
@@ -212,34 +207,6 @@ function initNewCollecteEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
-
-$submitSearchCollecte.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val()
-    let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|')
-    let type = $('#type').val();
-    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
-
-    table
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-
-    table.draw();
-});
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({id: collecteId});

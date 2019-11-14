@@ -56,19 +56,28 @@ class LivraisonRepository extends ServiceEntityRepository
 
 	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
 	{
+        $typeUser = [];
+        if ($user->getTypes()) {
+            foreach ($user->getTypes() as $type) {
+                $typeUser[] = $type->getId();
+            }
+        }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT l.id, l.numero as number
+			"SELECT l.id, 
+                         l.numero as number,
+                         dest.label as location
 			FROM App\Entity\Livraison l
 			JOIN l.statut s
 			JOIN l.demande d
+			JOIN d.destination dest
 			JOIN d.type t
-			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.label = :type"
+			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:type)"
 		)->setParameters([
 			'statusLabel' => $statusLabel,
 			'user' => $user,
-            'type' => $user->getType() ? $user->getType()->getLabel() : null
+            'type' => $typeUser
 		]);
 
 		return $query->execute();

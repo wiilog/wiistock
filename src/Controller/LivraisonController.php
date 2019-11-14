@@ -156,7 +156,7 @@ class LivraisonController extends AbstractController
 
         $demande1 = $preparation->getDemandes();
         $demande = $demande1[0];
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison
@@ -168,10 +168,10 @@ class LivraisonController extends AbstractController
         $preparation
             ->addLivraison($livraison)
             ->setUtilisateur($this->getUser())
-            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
 
         $demande
-            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
+            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_PREPARE))
             ->setLivraison($livraison);
         $entityManager->flush();
         $livraison = $preparation->getLivraisons()->toArray();
@@ -192,7 +192,7 @@ class LivraisonController extends AbstractController
 
         return $this->render('livraison/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LIVRAISON),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
     }
@@ -208,13 +208,13 @@ class LivraisonController extends AbstractController
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             $livraison
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setUtilisateur($this->getUser())
                 ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             $demande = $this->demandeRepository->findOneByLivraison($livraison);
 
-            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
+            $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             $this->mailerService->sendMail(
@@ -239,7 +239,7 @@ class LivraisonController extends AbstractController
 
             foreach ($articles as $article) {
                 $article
-					->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF))
+					->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF))
 					->setEmplacement($demande->getDestination());
             }
         }
@@ -361,7 +361,7 @@ class LivraisonController extends AbstractController
 
             $livraison = $this->livraisonRepository->find($data['livraison']);
 
-            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
 
             $preparation = $livraison->getpreparation();
             $preparation->setStatut($statutP);
@@ -425,9 +425,6 @@ class LivraisonController extends AbstractController
             foreach ($livraisons as $livraison) {
 
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
-					$articleRef = $ligneArticle->getReference();
-					$availableQuantity = $articleRef->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
-
                     $livraisonData = [];
 
 					// champs libres de la demande
@@ -441,9 +438,10 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
-                    $livraisonData[] = $articleRef ? $articleRef->getReference() : '';
-                    $livraisonData[] = $articleRef ? $articleRef->getLibelle() : '';
-                    $livraisonData[] = $availableQuantity;
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : '';
+                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : '';
+                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $ligneArticle->getQuantite();
 
                     // champs libres de l'article de référence
@@ -486,7 +484,6 @@ class LivraisonController extends AbstractController
 					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
                     $livraisonData[] = $article->getLabel();
                     $livraisonData[] = $article->getQuantite();
-                    //TODO CG
 
                     // champs libres de l'article
                     $champsLibresArt = [];

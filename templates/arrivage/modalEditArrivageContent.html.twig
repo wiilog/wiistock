@@ -32,20 +32,21 @@
         </select>
     </div>
 </div>
-<hr>
+
 <div class="row">
-    <div class="form-group col">
+    <div class="form-group col-4">
         <label for="noTracking">N° tracking transporteur</label>
         <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64" value="{{ arrivage.noTracking }}">
     </div>
 
-    <div class="form-group col">
+    <div class="form-group col-4">
         <label for="noBL">N° commande / BL</label>
         <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64" value="{{ arrivage.numeroBL }}">
     </div>
 </div>
+
 <div class="row">
-    <div class="form-group col">
+    <div class="form-group col-4">
         <label for="destinataire">Destinataire</label>
         <select class="form-control data" id="destinataire" name="destinataire">
             <option disabled selected> </option>
@@ -55,61 +56,28 @@
             {% endfor %}
         </select>
     </div>
-    <div class="col">
-        <div class="form-group w-100">
-            <label for="acheteursEdit">Acheteur(s)</label>
-            <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
-                    id="acheteursEdit">
-                {% for utilisateur in utilisateurs %}
-                    <option value="{{ utilisateur.username }}">
-                        {{ utilisateur.username }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-</div>
-<hr>
-
-<div class="form-group">
-    <label for="nbUM">Nombre d'UM</label>
-    <input disabled type="number" id="nbUM" class="form-control" value="{{ arrivage.nbUM }}">
-</div>
-
-<hr>
-
-<div class="form-group">
-    <label for="statut">Statut*</label>
-    <select class="form-control data needed" id="statut" name="statut" onchange="toggleLitige($(this))">
-        {% for statut in statuts %}
-            {% set selected = (statut.id == arrivage.statut.id ? 'selected' : '') %}
-            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-        {% endfor %}
-    </select>
-</div>
-
-{# bloc litige à afficher si statut litige sélectionné #}
-<div id="litigeBloc" class="{{ conforme ? 'd-none' : ''}}">
-    <div class="form-group">
-        <label for="litigeType">Type de litige*</label>
-        <select class="form-control data" id="litigeType" name="litigeType" onchange="addCommentaire($(this), false)">
-            <option disabled selected> </option>
-            {% for type in typesLitige %}
-                {% set selected = (arrivage.litige is not empty and type.id == arrivage.litige.type.id ? 'selected' : '') %}
-                <option value="{{ type.id }}" {{ selected }}>{{ type.label }}</option>
+    <div class="form-group w-100 col-4">
+        <label for="acheteursEdit">Acheteur(s)</label>
+        <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
+                id="acheteursEdit">
+            {% for utilisateur in utilisateurs %}
+                <option value="{{ utilisateur.username }}">
+                    {{ utilisateur.username }}
+                </option>
             {% endfor %}
         </select>
     </div>
-
 </div>
 
-<div class="form-group">
-
-    <label for="commentaire">Commentaire</label>
-    <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"
-           value="{{ arrivage.commentaire }}">
-    <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
-</div>
-<div class="form-group">
-    {% include 'arrivage/attachements.html.twig' with {'isNew' : false } %}
+<div class="row">
+    <div class="form-group col-8">
+        <label for="commentaire">Commentaire</label>
+        <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden" value="{{ arrivage.commentaire }}">
+        <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
+    </div>
+    <div class="form-group col-4">
+        <div>
+        {% include 'arrivage/attachements.html.twig' with {'isNew': false, 'nameUploadFE': nameUploadFE } %}
+        </div>
+    </div>
 </div>

@@ -6,11 +6,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EmplacementRepository")
  */
 class Emplacement
 {
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -59,7 +61,7 @@ class Emplacement
     private $isDeliveryPoint;
 
 	/**
-	 * @ORM\Column(type="boolean", nullable=false, options={"default":1})
+	 * @ORM\Column(type="boolean", nullable=false, options={"default": true})
 	 */
     private $isActive;
 
@@ -71,6 +73,7 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->isActive = true;
     }
 
     public function getId(): ? int
@@ -83,8 +86,7 @@ class Emplacement
         return $this->label;
     }
 
-    public function setLabel(? string $label): self
-    {
+    public function setLabel(? string $label): self {
         $this->label = $label;
 
         return $this;
@@ -285,4 +287,5 @@ class Emplacement
 
         return $this;
     }
+
 }

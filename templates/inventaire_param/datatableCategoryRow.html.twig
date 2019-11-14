@@ -1,0 +1,15 @@
+<div class="d-flex">
+    <div>
+        <div class="btn btn-col-action" data-id='{{ categoryId }}' data-toggle='modal' data-target='#modalEditCategory'
+             onclick="editRow($(this), Routing.generate('category_api_edit', true), $('#modalEditCategory'), $('#submitEditCategory'))">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
+    </div>
+
+    <div onclick="checkAndDeleteRow($(this), '#modalDeleteCategory', 'category_check_delete', '#submitDeleteCategory')"
+         data-id='{{ categoryId }}' data-target='#modalDeleteCategory' data-toggle='modal'>
+        <div class="btn btn-col-action">
+            <i class='fas fa-trash'></i>
+        </div>
+    </div>
+</div>

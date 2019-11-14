@@ -3,38 +3,43 @@
 
 <div class="row">
     <div class="form-group col-6">
-        <label for="reference">Référence</label>
-        <input {{ disabled }} class="form-control data" type="text" value="{{articleRef.reference}}" name="reference"
+        <label for="reference">
+            Référence
+        </label>
+        <input {{ disabled }} class="form-control data" type="text" value="{{articleRef.reference}}" name="reference" maxlength="21"
             id="reference">
-    </div>
-    <div class="form-group col-6 m-auto">
-        {% if editable and not isADemand %}
-        <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2 ">Statut</label>
-            <div>
-                {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
-                {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
-                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
-                </span><span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
-                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
-                </span>
-            </div>
-            <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
-        </div>
-        {% endif %}
     </div>
     <div class="form-group col-6">
         <label for="libelle">Nom*</label>
         <input {{ disabled }} class="form-control data needed" type="text" name="libelle" value="{{articleRef.libelle}}"
-            id="libelle">
+                              id="libelle">
     </div>
     <div class="form-group col-6">
-        <label for="type">Type</label>
+        {% if editable and not isADemand %}
+        <div class="input-group radio-btn">
+            <label for="statut" class="mtb-auto mr-2">Statut</label>
+            <div>
+                {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                </span><span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
+                </span>
+            </div>
+            <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-4">
+        <label for="type">Type*</label>
         <select {{ disabled }} name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-                               onchange="toggleRequiredChampsLibres($(this), 'edit')" class="form-control data d-block" id="typeEdit">
+                               onchange="toggleRequiredChampsLibres($(this), 'edit')" class="form-control data needed d-block" id="typeEdit">
 
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''> </option>
@@ -46,6 +51,20 @@
             {% endfor %}
         </select>
     </div>
+    <div class="form-group col-4">
+        <label for="categorie">Catégorie d'inventaire</label>
+        <select name="categorie" class="form-control data">
+            {% set selectedCat = articleRef.category is null ? 'selected' : '' %}
+            <option {{ selectedCat }} value=''> </option>
+            {% for category in categories %}
+                {% set selectedCat = '' %}
+                {% if articleRef.category is not null %}{% set selectedCat = articleRef.category.id == category.id ? 'selected' : '' %}{% endif %}
+                <option {{ selectedCat }} value="{{ category.id }}">{{ category.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<div class="row">
     <div class="form-group col-12">
         <div class="">
             <label>Nomenclature</label>
@@ -61,10 +80,10 @@
         </div>
     </div>
 </div>
-<div class="row mt-4 mb-4">
+<div class="row mt-4 mb-3">
     {% if editable and not isADemand %}
-    <div class="form-group col-6">
-        <div class="input-group radio-btn">
+    <div class="form-group col-4">
+        <div class="radio-btn">
             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
             <div onclick="updateQuantityDisplay($(this))">
                 <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}"
@@ -83,40 +102,71 @@
     </div>
     {% endif %}
 
-    <div class="form-group col-6">
+    <div class="form-group col-3">
         {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
 
-        <div class="input-group reference {{ dnone }}">
+        <div class="reference {{ dnone }}">
 
             <label class="mtb-auto mr-2" for="quantite">Quantité</label>
             {# si on est sur une demande, la quantité ne doit pas être modifiée #}
             {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
-            <input {{ disabledOnDemand }} class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
+            <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
                 name="quantite" id="quantite">
 
         </div>
 
         {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
 
-        <div class="input-group article {{ dnone }}">
+        <div class="article {{ dnone }}">
             <label class="mtb-auto mr-2">Quantité</label>
             <input class="form-control rounded" disabled value="{{ totalQuantity }}">
         </div>
 
     </div>
+
+    <div class="form-group col-3">
+        <div class="form-group w-100">
+            <div class="reference">
+                <label for="prix">Prix Unitaire (€)</label>
+                <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="form-group col-6">
         {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
         {% set emplacementId = (articleRef.emplacement is null) ? '' : articleRef.emplacement.id %}
         {% set emplacementLabel = (articleRef.emplacement is null) ? '': articleRef.emplacement.label %}
 
         <div class="input-group reference {{ dnone }} w-100">
-            <label class="mtb-auto mr-2">Emplacement</label>
-            <select {{ disabled }} name="emplacement" id="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
+            <label class="mtb-auto mr-2">Emplacement*</label>
+            <select {{ disabled }} name="emplacement" id="emplacement" class="form-control ajax-autocompleteEmplacement-edit data needed">
                 <option value="{{ emplacementId}}">{{ emplacementLabel }}</option>
             </select>
         </div>
     </div>
 
+</div>
+
+<div class="row">
+    <div class="form-group col-3">
+        <div class="form-group w-100">
+            <div class="reference">
+                <label for="limitWarning">Seuil d'alerte</label>
+                <input class="form-control data" type="number" name="limitWarning" min="0" value="{{ articleRef.limitWarning }}">
+            </div>
+        </div>
+    </div>
+    <div class="form-group col-3">
+        <div class="form-group w-100">
+            <div class="reference">
+                <label for="limitSecurity">Seuil de sécurité</label>
+                <input class="form-control data" type="number" name="limitSecurity" min="0" value="{{ articleRef.limitSecurity }}">
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ARTICLES FOURNISSEURS -->

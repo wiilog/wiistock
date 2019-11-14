@@ -13,9 +13,21 @@ class FiltreSup
 	const FIELD_DATE_MAX = 'dateMax';
 	const FIELD_STATUT = 'statut';
 	const FIELD_USERS = 'utilisateurs';
+	const FIELD_CARRIERS = 'transporteurs';
+	const FIELD_PROVIDERS = 'fournisseurs';
 	const FIELD_TYPE = 'type';
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
+
+	const PAGE_DEM_COLLECTE = 'dcollecte';
+	const PAGE_DEM_LIVRAISON = 'dlivraison';
+	const PAGE_MANUT = 'manutention';
+	const PAGE_ORDRE_COLLECTE = 'ocollecte';
+	const PAGE_ORDRE_LIVRAISON = 'olivraison';
+	const PAGE_PREPA = 'prépa';
+	const PAGE_ARRIVAGE = 'arrivage';
+	const PAGE_MVT_STOCK = 'mvt_stock';
+	const PAGE_MVT_TRACA = 'mvt_traca';
 
     /**
      * @ORM\Id()

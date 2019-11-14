@@ -1,0 +1,76 @@
+{% extends "layout.html.twig" %}
+{% block title %}Ajout d'article{% endblock %}
+{% block page_content %}
+
+<div class="row">
+    <div class="col">
+        <h1>Arrivage {{ arrivage.numeroarrivage }}</h1>
+        <input hidden value="{{ arrivage.id }}" id="arrivageId">
+        <input hidden value="{{ addColis }}" id="addColis">
+        <div class="d-none" id="barcodes"></div>
+    </div>
+
+    <div class="col text-right">
+    {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
+        <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
+           onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
+           data-toggle='modal' class="btn btn-primary btn-action ml-auto">
+            Modifier
+        </a>
+    {% endif %}
+
+    {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE'))%}
+        <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
+           class="btn btn-danger btn-action ml-auto" onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
+            Supprimer</a>
+    {% endif %}
+    </div>
+</div>
+
+<div class="zone-entete">
+    {% include "arrivage/enteteArrivage.html.twig" %}
+</div>
+<div class="row mt-5">
+    <div class="col-6">
+        <div class="d-flex justify-content-between h-54px">
+            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
+                <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
+                    <span class="fa fa-plus mr-2"></span>Ajouter colis
+                </div>
+            {% endif %}
+            <div class="btn btn-primary" onclick="getDataAndPrintLabels({{ arrivage.id }})">
+                <span class="fa fa-print mr-2"></span>Imprimer colis
+            </div>
+        </div>
+        <div>
+            <table id="tableColis" class="table table-striped table-bordered w-100"></table>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="d-flex h-54px">
+            {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::CREATE'))%}
+                <a href="" data-id='{{ arrivage.id }}' data-target='#modalNewLitige' data-toggle='modal'
+                   class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">
+                    <i class="fa fa-plus mr-2"></i>
+                    Nouveau litige</a>
+            {% endif %}
+        </div>
+        <div>
+            <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
+        </div>
+    </div>
+</div>
+<a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
+
+
+{% include 'arrivage/modalAddColis.html.twig' %}
+{% include "arrivage/modalEditArrivage.html.twig" %}
+{% include "arrivage/modalDeleteArrivage.html.twig" %}
+{% include 'arrivage/modalNewLitige.html.twig' %}
+{% include 'arrivage/modalEditLitige.html.twig' %}
+{% include 'arrivage/modalDeleteLitige.html.twig' %}
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
+{% endblock javascript %}

@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Collecte;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -20,13 +22,18 @@ class OrdreCollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, OrdreCollecte::class);
     }
 
+	/**
+	 * @param Collecte $collecte
+	 * @return OrdreCollecte
+	 * @throws NonUniqueResultException
+	 */
     public function findOneByDemandeCollecte($collecte)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\OrdreCollecte a
-            WHERE a.demandeCollecte = :collecte'
+            'SELECT oc
+            FROM App\Entity\OrdreCollecte oc
+            WHERE oc.demandeCollecte = :collecte'
         )->setParameter('collecte', $collecte);
         return $query->getOneOrNullResult();
     }
@@ -34,7 +41,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	/**
 	 * @param Utilisateur $user
 	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function countByUser($user)
 	{
@@ -47,5 +54,28 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		)->setParameter('user', $user);
 
 		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param string $statutLabel
+	 * @param Utilisateur $user
+	 * @return mixed
+	 */
+	public function getByStatutLabelAndUser($statutLabel, $user)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
+            FROM App\Entity\OrdreCollecte oc
+            LEFT JOIN oc.demandeCollecte dc
+            LEFT JOIN dc.pointCollecte pc
+            LEFT JOIN oc.statut s
+            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))"
+		)->setParameters([
+			'statutLabel' => $statutLabel,
+			'user' => $user,
+		]);
+		return $query->execute();
 	}
 }

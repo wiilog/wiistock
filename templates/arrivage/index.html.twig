@@ -6,7 +6,7 @@
     {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
     </div>
 
-    {% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchArrivage'} %}
+    {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName' : 'submitSearchArrivage'} %}
 
     <div class="container-fluid">
 
@@ -26,6 +26,11 @@
                 </div>
             {% endif %}
         </div>
+            <div class="d-none justify-content-center" id="spinnerArrivage">
+                <div class="spinner-border sizeLoader" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
         <div class="row">
             <div class="error-msg p-4"></div>
         </div>

@@ -17,6 +17,19 @@
     {% block moreFilters %}
     {% endblock %}
 
+    {% block emplacementFilter %}
+        <div>
+            <div class="input-group maxw-250px">
+                <select class="form-control data select2" name="emplacement" id="emplacement">
+                    <option></option>
+                    {% for emplacement in emplacements %}
+                        <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endblock %}
+
     {% block statusFilter %}
     <div>
         <div class="input-group">
@@ -35,15 +48,20 @@
         </div>
     </div>
     {% endblock %}
+
+    {% block userFilter %}
     <div>
         <div class="input-group">
-            <select class="form-control data" name="utilisateur" id="utilisateur" multiple="multiple" >
+            <select class="form-control data minw-150px" name="utilisateur" id="utilisateur" multiple="multiple" >
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
+    {% endblock %}
+
+    {% block typeFilter %}
     {% if types is defined %}
     <div>
         <div class="input-group">
@@ -60,6 +78,7 @@
         <input class="current-username" hidden value="{{ app.user.username }}">
     </div>
     {% endif %}
+    {% endblock %}
 
     <div>
         <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">

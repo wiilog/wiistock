@@ -54,4 +54,23 @@ class MouvementTracaRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+	/**
+	 * @param string $colis
+	 * @return  MouvementTraca
+	 */
+    public function getLastByColis($colis)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT mt
+			FROM App\Entity\MouvementTraca mt
+			WHERE mt.refArticle = :colis
+			ORDER BY mt.date DESC"
+		)->setParameter('colis', $colis);
+
+		$result = $query->execute();
+		return $result ? $result[0] : null;
+	}
 }
