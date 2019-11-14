@@ -354,13 +354,6 @@ let dlFile = function (csv) {
     }
 }
 
-function checkZero(data) {
-    if (data.length == 1) {
-        data = "0" + data;
-    }
-    return data;
-}
-
 $submitSearchDemandeLivraison.on('keypress', function (e) {
     if (e.which === 13) {
         $submitSearchDemandeLivraison.click();

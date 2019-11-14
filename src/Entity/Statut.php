@@ -11,12 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Statut
 {
-    // statuts de la catégorie arrivage
-    const CONFORME = 'conforme';
-    const ATTENTE_ACHETEUR = 'attente retour acheteur';
-    const TRAITE_ACHETEUR = 'traité par acheteur';
-    const SOLDE = 'soldé';
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -28,6 +22,21 @@ class Statut
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nom;
+
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $comment;
+
+	/**
+	 * @ORM\Column(type="integer", nullable=true)
+	 */
+    private $displayOrder;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $treated;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
@@ -75,10 +84,9 @@ class Statut
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
      */
-    private $arrivages;
-
+    private $litiges;
 
     public function __construct()
     {
@@ -88,11 +96,9 @@ class Statut
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-//        $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
-        $this->arrivages = new ArrayCollection();
-//        $this->user = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -109,6 +115,15 @@ class Statut
     {
         $this->nom = $nom;
 
+        return $this;
+    }
+
+    public function isTreated(): ?bool {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self {
+        $this->treated = $treated;
         return $this;
     }
 
@@ -378,64 +393,58 @@ class Statut
     }
 
     /**
-     * @return Collection|Arrivage[]
+     * @return Collection|Litige[]
      */
-    public function getArrivages(): Collection
+    public function getLitiges(): Collection
     {
-        return $this->arrivages;
+        return $this->litiges;
     }
 
-    public function addArrivage(Arrivage $arrivage): self
+    public function addLitige(Litige $litige): self
     {
-        if (!$this->arrivages->contains($arrivage)) {
-            $this->arrivages[] = $arrivage;
-            $arrivage->setStatut($this);
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->setStatus($this);
         }
 
         return $this;
     }
 
-    public function removeArrivage(Arrivage $arrivage): self
+    public function removeLitige(Litige $litige): self
     {
-        if ($this->arrivages->contains($arrivage)) {
-            $this->arrivages->removeElement($arrivage);
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
             // set the owning side to null (unless already changed)
-            if ($arrivage->getStatut() === $this) {
-                $arrivage->setStatut(null);
+            if ($litige->getStatus() === $this) {
+                $litige->setStatus(null);
             }
         }
 
         return $this;
     }
 
-//    /**
-//     * @return Collection|OrdreCollecte[]
-//     */
-//    public function getUser(): Collection
-//    {
-//        return $this->user;
-//    }
-//
-//    public function addUser(OrdreCollecte $user): self
-//    {
-//        if (!$this->user->contains($user)) {
-//            $this->user[] = $user;
-//            $user->setStatut($this);
-//        }
-//
-//        return $this;
-//    }
-//
-//    public function removeUser(OrdreCollecte $user): self
-//    {
-//        if ($this->user->contains($user)) {
-//            $this->user->removeElement($user);
-//            // set the owning side to null (unless already changed)
-//            if ($user->getStatut() === $this) {
-//                $user->setStatut(null);
-//            }
-//        }
-//
-//        return $this;
-//    }
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getDisplayOrder(): ?int
+    {
+        return $this->displayOrder;
+    }
+
+    public function setDisplayOrder(int $displayOrder): self
+    {
+        $this->displayOrder = $displayOrder;
+
+        return $this;
+    }
+
 }

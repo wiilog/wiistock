@@ -25,6 +25,7 @@ class Menu
     const ARRIVAGE = 'ARRIVAGE';
     const REFERENTIEL = 'REFERENTIEL';
     const INVENTAIRE = 'INVENTAIRE';
+    const LITIGE = 'LITIGE';
 
     /**
      * @ORM\Id()

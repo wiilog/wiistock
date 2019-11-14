@@ -4,14 +4,14 @@ namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
 use App\Entity\Type;
+use App\Repository\CategoryTypeRepository;
 use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class TypeFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
+class TypeFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -20,81 +20,64 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
      */
     private $typeRepository;
 
+	/**
+	 * @var CategoryTypeRepository
+	 */
+    private $categoryTypeRepository;
 
-    public function __construct(TypeRepository $typeRepository, UserPasswordEncoderInterface $encoder)
+
+    public function __construct(CategoryTypeRepository $categoryTypeRepository, TypeRepository $typeRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
         $this->typeRepository = $typeRepository;
+        $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        // categorie article
-        $typesNames = [
-            Type::LABEL_PDT,
-            Type::LABEL_CSP,
-            Type::LABEL_SILI,
-            Type::LABEL_SILI_INT,
-            Type::LABEL_SILI_EXT,
-            Type::LABEL_MOB,
-            Type::LABEL_SLUGCIBLE
-        ];
+    	$categoriesTypes = [
+    		CategoryType::ARTICLE => [Type::LABEL_STANDARD],
+			CategoryType::RECEPTION => [Type::LABEL_RECEPTION],
+			CategoryType::DEMANDE_LIVRAISON => [Type::LABEL_STANDARD],
+			CategoryType::DEMANDE_COLLECTE => [Type::LABEL_STANDARD],
+			CategoryType::LITIGE => [
+				Type::LABEL_MANQUE_BL,
+				Type::LABEL_MANQUE_INFO_BL,
+				Type::LABEL_ECART_QTE,
+				Type::LABEL_ECART_QUALITE,
+				Type::LABEL_PB_COMMANDE,
+				Type::LABEL_DEST_NON_IDENT
+			],
+		];
 
-        foreach ($typesNames as $typeName) {
-            $type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $typeName);
+    	foreach ($categoriesTypes as $categoryName => $typesNames) {
+    		// création des catégories de types
+			$categorie = $this->categoryTypeRepository->findOneBy(['label' => $categoryName]);
 
-            if (empty($type)) {
-                $type = new Type();
-                $type
-                    ->setCategory($this->getReference('type-' . CategoryType::ARTICLE))
-                    ->setLabel($typeName);
-                $manager->persist($type);
-                dump("création du type " . $typeName);
-            }
-        }
+			if (empty($categorie)) {
+				$categorie = new CategoryType();
+				$categorie->setLabel($categoryName);
+				$manager->persist($categorie);
+				dump("création de la catégorie " . $categoryName);
+			}
+			$this->addReference('type-' . $categoryName, $categorie);
 
-        // catégorie réception
-        $type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION);
 
-        if (empty($type)) {
-            $type = new Type();
-            $type
-                ->setCategory($this->getReference('type-' . CategoryType::RECEPTION))
-                ->setLabel(Type::LABEL_RECEPTION);
-            $manager->persist($type);
-            dump("création du type " . CategoryType::RECEPTION);
-        }
+			// création des types
+    		foreach ($typesNames as $typeName) {
+				$type = $this->typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
 
-        // categorie demandes de livraison et de collecte
-        $typesNames = [
-            Type::LABEL_STANDARD,
-        ];
-
-        $categories = [
-            CategoryType::DEMANDE_LIVRAISON,
-            CategoryType::DEMANDE_COLLECTE
-        ];
-
-        foreach ($categories as $category) {
-            foreach ($typesNames as $typeName) {
-                $type = $this->typeRepository->findOneByCategoryLabelAndLabel($category, $typeName);
-
-                if (empty($type)) {
-                    $type = new Type();
-                    $type
-                        ->setCategory($this->getReference('type-' . $category))
-                        ->setLabel($typeName);
-                    $manager->persist($type);
-                    dump("création du type " . $typeName);
-                }
-            }
-            $manager->flush();
-        }
-    }
-
-    public function getDependencies()
-    {
-        return [CategoryTypeFixtures::class];
+				if (empty($type)) {
+					$type = new Type();
+					$type
+						->setCategory($this->getReference('type-' . $categoryName))
+						->setLabel($typeName);
+					$manager->persist($type);
+					dump("création du type " . $typeName);
+				}
+			}
+		}
+    	$manager->flush();
     }
 
     public static function getGroups(): array
