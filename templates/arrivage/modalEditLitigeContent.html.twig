@@ -1,0 +1,57 @@
+<div class="modal-body modal-input container-fluid">
+
+    <div class="row">
+        <div class="form-group col-12">
+            <label for="typeLitige">Type*</label>
+            <select class="form-control data needed" id="typeLitige" name="typeLitige">
+                <option placeholder="" value="{{ litige.type.id }}" selected>{{ litige.type.label }}</option>
+                {% for type in typesLitige %}
+                    {% if type.id != litige.type.id %}
+                        <option value="{{ type.id }}">{{ type.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group col-12">
+            <label for="statutLitige">Statut*</label>
+            <select class="form-control data needed" id="statutLitige" name="statutLitige">
+                {% for statut in statusLitige %}
+                    {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group w-100 col-12">
+            <label for="colisEditLitige">Colis*</label>
+            <select type="text" class="form-control data select2 needed" name="colis" multiple="multiple"
+                    id="colisEditLitige">
+                {% for coli in colis %}
+                    <option value="{{ coli.id }}">
+                        {{ coli.code }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group col-12 fit-content">
+            <label for="litige-edit-commentaire">Commentaire</label>
+
+            <div class="d-flex">
+                <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
+                <button type="button" class="btn form-group m-0 ml-2" onclick="getCommentAndAddHisto()">Ajouter</button>
+            </div>
+        </div>
+        <div class="form-group col-12">
+            <div>
+                {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
+            </div>
+        </div>
+    </div>
+    <div class="label">Historique</div>
+    <div class="tableHistoric">
+        <table id="tableHistoLitige" class="table table-striped table-bordered w-100 no-padding-on-p"></table>
+    </div>
+    <input hidden value="{{ litige.id }}" id="litigeId" class="data">
+</div>

@@ -20,8 +20,8 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <div class="menu-header">
-                        <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.8.4</div>
+                        {% include 'logo_svg.html.twig' %}
+                        <div class="version"> V1.9.0</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -42,6 +42,19 @@
                         <ul class="sidemenu-sub">
                             <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Arrivage</a></li>
                             <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvement</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                <!-- QUALITÉ   -->
+                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-check-square"></i>
+                            <h4>Qualité</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("litige_arrivage_index") }}" class="sub-item">• Litiges arrivage</a></li>
                         </ul>
                     </li>
                 {% endif %}
@@ -198,6 +211,12 @@
                             </li>
                             <li>
                                 <a href="{{ path('inventaire_param') }}" class="sub-item">• Inventaire</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('types_param') }}" class="sub-item">• Types</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('status_param') }}" class="sub-item">• Statuts litiges</a>
                             </li>
                         </ul>
                     </li>

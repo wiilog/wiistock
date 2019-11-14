@@ -18,4 +18,23 @@ class CategorieStatutRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CategorieStatut::class);
     }
+
+	/**
+	 * @param string $label
+	 * @return CategorieStatut[]
+	 */
+    public function findByLabelLike($label)
+	{
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT cs
+			FROM App\Entity\CategorieStatut cs
+			WHERE cs.nom LIKE :label
+			")
+		->setParameter('label', '%' . $label . '%');
+
+		return $query->execute();
+	}
 }

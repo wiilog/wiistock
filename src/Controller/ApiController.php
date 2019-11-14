@@ -277,9 +277,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
 
+                    $isInventoryManager = $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user);
+
                     $this->successDataMsg['success'] = true;
-                    $this->successDataMsg['data'] = $this->getDataArray($user);
-                    $this->successDataMsg['data']['apiKey'] = $apiKey;
+                    $this->successDataMsg['data'] = [
+                        'isInventoryManager' => $isInventoryManager,
+                        'apiKey' => $apiKey
+                    ];
                 }
             }
 
@@ -366,7 +370,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
                                                 'operateur' => $toInsert->getOperateur(),
-                                                'pjs' => $arrivage->getPiecesJointes()
+                                                'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
                                         $destinataire->getEmail()
@@ -547,7 +551,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $demandes = $preparation->getDemandes();
                         $demande = $demandes[0];
 
-                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
                         $livraison = new Livraison();
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
@@ -563,7 +567,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
 
                         $demande
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE))
                             ->setLivraison($livraison);
 
                         // on termine les mouvements de préparation
@@ -847,14 +851,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $date = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
 
                         $livraison
-                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
+                            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_LIVRE))
                             ->setUtilisateur($nomadUser)
                             ->setDateFin($date);
 
                         $demandes = $livraison->getDemande();
                         $demande = $demandes[0];
 
-                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
+                        $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
                         $demande->setStatut($statutLivre);
 
                         $this->mailerService->sendMail(
@@ -1062,7 +1066,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
-            'isInventoryManager' => $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user) ? 1 : 0,
             'manutentions' => $manutentions,
             'anomalies' => array_merge($refAnomalies, $artAnomalies)
         ];
@@ -1260,6 +1263,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         $key = md5(microtime() . rand());
         return $key;
+    }
+
+    /**
+     * @Rest\Get("/api/nomade-versions")
+     */
+    public function getAvailableVersionsAction() {
+        return new JsonResponse($this->getParameter('nomade_versions') ?? '*');
     }
 
     /**

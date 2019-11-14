@@ -106,8 +106,8 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$users = str_replace('|', ',', $data['user']);
-				$filter->setValue($users);
+				$carriers = str_replace('|', ',', $data['user']);
+				$filter->setValue($carriers);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
@@ -168,6 +168,46 @@ class FiltreSupController extends AbstractController
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (isset($data['carriers'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_CARRIERS, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_CARRIERS)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+				$carriers = str_replace('|', ',', $data['carriers']);
+				$filter->setValue($carriers);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_CARRIERS, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (isset($data['providers'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_PROVIDERS)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+				$carriers = str_replace('|', ',', $data['providers']);
+				$filter->setValue($carriers);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);
 				if ($filter) {
 					$em->remove($filter);
 					$em->flush();

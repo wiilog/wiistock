@@ -186,6 +186,10 @@ a:hover {
   padding: 0 !important;
 }
 
+.h-54px {
+  height: 54px;
+}
+
 .minw-105px {
   min-width: 105px;
 }
@@ -242,7 +246,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -342,13 +348,6 @@ a:hover {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-}
-
-.logoGt {
-  width: 50%;
-  height: 40%;
-  padding: 0;
-  margin: 0;
 }
 
 .alerte {
@@ -486,6 +485,7 @@ button:focus {
 }
 .sidemenu .menu-header .version {
   font-size: 0.8rem;
+  color: #130078;
 }
 .sidemenu .menu-item {
   display: table-row;
@@ -613,6 +613,10 @@ button:focus {
 
 .table-auto td {
   white-space: unset !important;
+}
+
+.no-padding-on-p p {
+  padding: 0 !important;
 }
 
 .table .fas {
@@ -753,6 +757,9 @@ button:focus {
 .filters > div .select2-selection__placeholder {
   vertical-align: middle;
 }
+.filters .minw-150px + .select2-container {
+  min-width: 150px;
+}
 
 .filterService {
   background-color: #8e8e8e;
@@ -779,6 +786,10 @@ em {
 
 .editor-container-article.ql-container.ql-snow {
   height: 80%;
+}
+
+.fit-content {
+  height: fit-content;
 }
 
 .dropFrame {

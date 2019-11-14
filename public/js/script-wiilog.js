@@ -7,6 +7,7 @@ const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
+const PAGE_LITIGE_ARR = 'litige_arrivage';
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -27,7 +28,7 @@ $.fn.dataTable.ext.errMode = (resp) => {
  * @param {document} table le DataTable gérant les données
  *
  */
-function InitialiserModal(modal, submit, path, table, callback = null, close = true, clear = true) {
+function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
         submitAction(modal, path, table, callback, close, clear);
     });
@@ -51,7 +52,7 @@ function submitAction(modal, path, table, callback, close, clear) {
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
         if ($input.hasClass('needed')
-            && (val === undefined || val === '' || val === null)
+            && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
             && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
@@ -306,7 +307,6 @@ function toggleLivraisonCollecte($button) {
                 pathIndex = Routing.generate('collecte_index', false);
             }
 
-            console.log(pathIndex);
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + typeDemande + "</a>"
             );
@@ -348,15 +348,15 @@ function initEditor(div) {
 };
 
 //passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quillArrivage = null) {
+function setCommentaire(div, quill = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quillArrivage === null) {
+    if ($(div).length && quill === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
         $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quillArrivage) {
-        $(div).closest('.modal').find('#commentaire').val(quillArrivage.container.firstChild.innerHTML);
+    } else if (quill) {
+        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
     }
 };
 
@@ -627,11 +627,12 @@ function alertErrorMsg(data, remove = false) {
 function alertSuccessMsg(data) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
+    $alertSuccess.css('display', 'block');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null) {
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
@@ -641,6 +642,8 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     if (type) params.type = type;
     if (location) params.location = location;
     if (colis) params.colis = colis;
+    if (carriers) params.carriers = carriers;
+    if (providers) params.providers = providers;
     params.page = page;
 
     $.post(path, JSON.stringify(params), 'json');
@@ -808,4 +811,11 @@ function loadSpinner(div) {
     div.removeClass('d-none');
     div.addClass('d-flex');
 
+}
+
+function checkZero(data) {
+    if (data.length == 1) {
+        data = "0" + data;
+    }
+    return data;
 }
