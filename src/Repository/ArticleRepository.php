@@ -25,6 +25,7 @@ class ArticleRepository extends ServiceEntityRepository
 		'Référence' => 'reference',
 		'Statut' => 'status',
 		'Libellé' => 'label',
+		'Date et heure' => 'dateFinReception',
 		'Référence article' => 'refArt',
 		'Quantité' => 'quantite',
 	];
@@ -390,6 +391,11 @@ class ArticleRepository extends ServiceEntityRepository
 							$qb
 								->leftJoin('a.statut', 's')
 								->orderBy('s.nom', $order);
+							break;
+						case 'dateFinReception':
+							$qb
+								->leftJoin('a.reception', 'reception')
+								->orderBy('reception.dateFinReception', $order);
 							break;
 						default:
 							$qb->orderBy('a.' . $column, $order);
