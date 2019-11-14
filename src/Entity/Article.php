@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -388,10 +389,9 @@ class Article
     }
 
     /**
-     * @return Collection|MouvementStock[]
+     * @return Selectable|Collection|MouvementStock[]
      */
-    public function getMouvements(): Collection
-    {
+    public function getMouvements() {
         return $this->mouvements;
     }
 

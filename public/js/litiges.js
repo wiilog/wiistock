@@ -272,12 +272,15 @@ let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
 InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesArrivage);
 
-function editRowLitige(button, afterLoadingEditModal = () => {}) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
-    let id = button.data('id');
-    let params = {id: id};
+
+    let params = {
+        litigeId: litigeId,
+        arrivageId: arrivageId
+    };
 
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
@@ -286,7 +289,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}) {
         afterLoadingEditModal()
     }, 'json');
 
-    modal.find(submit).attr('value', id);
+    modal.find(submit).attr('value', litigeId);
 }
 
 let tableHistoLitige;
