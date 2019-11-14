@@ -9,8 +9,6 @@
 namespace App\Command;
 
 
-use App\Entity\Arrivage;
-use App\Entity\Colis;
 use App\Entity\Litige;
 
 use App\Repository\ArrivageRepository;
@@ -82,8 +80,6 @@ class MailsLitigesComand extends Command
     {
         /** @var Litige[] $litiges */
         $litiges = $this->litigeRepository->findByStatutSendNotifToBuyer();
-
-        dump($litiges);
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
