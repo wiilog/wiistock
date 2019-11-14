@@ -73,16 +73,23 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
     {
         $allRefArticles = $this->refArticleRepository->findAll();
 
+        $cpt = 0;
+
         foreach($allRefArticles as $refArticle){
             $valueAlerteSeuil = $this->refArticleRepository->getStockMiniClByRef($refArticle);
             $valueAlerteSecurity = $this->refArticleRepository->getStockAlerteClByRef($refArticle);
 
-            if ($valueAlerteSecurity != null)
+            if ($valueAlerteSecurity != null) {
                 $refArticle->setLimitSecurity($valueAlerteSecurity[0]['valeur']);
-            if ($valueAlerteSeuil != null)
+            }
+            if ($valueAlerteSeuil != null) {
                 $refArticle->setLimitWarning($valueAlerteSeuil[0]['valeur']);
+            }
+            $cpt++;
 
-            $manager->flush();
+            if ($cpt % 1000 === 0) {
+                $manager->flush();
+            }
         }
     }
 
