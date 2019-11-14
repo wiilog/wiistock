@@ -798,4 +798,12 @@ em {
   text-align: center;
 }
 
+.isWrong {
+  border: 3px dashed #cc0000;
+}
+
+.isRight {
+  border: 3px dashed #00b31e;
+}
+
 /*# sourceMappingURL=style.css.map */

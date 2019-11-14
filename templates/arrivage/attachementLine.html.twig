@@ -5,7 +5,7 @@
             {{ originalName }}
         </a>
         <i class="fa fa-times red pointer"
-           onclick="deleteAttachementNew('{{ pjName }}')"></i>
+           onclick="removeAttachementNew($(this))"></i>
     </p>
 {% else %}
     <p class="attachement" id="{{ pjName|withoutExtension }}">

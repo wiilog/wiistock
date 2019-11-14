@@ -238,11 +238,13 @@ class ArrivageController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getEntityManager();
+
+            $post = $request->request;
+			$em = $this->getDoctrine()->getManager();
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
@@ -252,49 +254,36 @@ class ArrivageController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire($post->get('commentaire') ?? null);
 
-            if (isset($data['fournisseur'])) {
-                $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
+            if (!empty($fournisseur = $post->get('fournisseur'))) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (isset($data['transporteur'])) {
-                $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
+			if (!empty($transporteur = $post->get('transporteur'))) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (isset($data['chauffeur'])) {
-                $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
+			if (!empty($chauffeur = $post->get('chauffeur'))) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (isset($data['noTracking'])) {
-                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+			if (!empty($noTracking = $post->get('noTracking'))) {
+                $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (isset($data['noBL'])) {
-                $arrivage->setNumeroBL(substr($data['noBL'], 0, 64));
+			if (!empty($noBL = $post->get('noBL'))) {
+                $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (isset($data['destinataire'])) {
-                $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
+			if (!empty($destinataire = $post->get('destinataire'))) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (isset($data['acheteurs'])) {
-                foreach ($data['acheteurs'] as $acheteur) {
+			if (!empty($acheteurs = $post->get('acheteurs'))) {
+                foreach ($acheteurs as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-                }
-            }
-
-            // TODO PJ supprimer cette copie
-            $path = '../public/uploads/attachements/temp';
-
-            if (is_dir($path)) {
-                foreach (scandir($path) as $file) {
-                    if ('.' === $file) continue;
-                    if ('..' === $file) continue;
-
-                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
-                    if ($pj) $pj->setArrivage($arrivage);
-                    copy($path . '/' . $file, $path . '/../' . $file);
-                    unlink($path . '/' . $file);
                 }
             }
 
             $em->persist($arrivage);
             $em->flush();
+
+            $this->addAttachements($request, $arrivage);
 
             $data = [
                 "redirect" => $this->generateUrl('arrivage_show', [
@@ -303,7 +292,7 @@ class ArrivageController extends AbstractController
             ];
             return new JsonResponse($data);
         }
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**
@@ -327,7 +316,6 @@ class ArrivageController extends AbstractController
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'nameUploadFE' => 'uploadFEArrivage',
-                    //TODO CG
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
@@ -633,7 +621,7 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
      */
-    public function keepAttachmentForNew(Request $request)
+    public function displayAttachmentForNew(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
@@ -674,6 +662,36 @@ class ArrivageController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/ajouter-pj", name="add_attachement", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param Arrivage $arrivage
+	 */
+	public function addAttachements(Request $request, $arrivage)
+	{
+		$em = $this->getDoctrine()->getManager();
+		$path = "../public/uploads/attachements/";
+		if (!file_exists($path)) {
+			mkdir($path, 0777);
+		}
+
+		for ($i = 0; $i < count($request->files); $i++) {
+			$file = $request->files->get('file' . $i);
+			if ($file) {
+				$filename = uniqid() . '.' . $file->getClientOriginalExtension() ?? '';
+				$file->move($path, $filename);
+
+				$pj = new PieceJointe();
+				$pj
+					->setOriginalName($file->getClientOriginalName())
+					->setFileName($filename)
+					->setArrivage($arrivage);
+				$em->persist($pj);
+			}
+		}
+		$em->flush();
+	}
 
     /**
      * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})

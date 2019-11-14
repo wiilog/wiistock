@@ -1,4 +1,4 @@
-const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
+// const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
 
 $('.select2').select2();
 
@@ -121,7 +121,7 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+initModalNewArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -133,90 +133,21 @@ function initNewArrivageEditor(modal) {
     }
 }
 
-let quillEdit;
-let originalText = '';
-
-// function toggleLitige(select) {
-//     let bloc = select.closest('.modal').find('#litigeBloc');
-//     let status = select.find('option:selected').text();
-//
-//     let litigeType = bloc.find('#litigeType');
-//     let constantConform = $('#constantConforme').val();
-//
-//     if (status === constantConform) {
-//         litigeType.removeClass('needed');
-//         bloc.addClass('d-none');
-//
-//     } else {
-//         bloc.removeClass('d-none');
-//         litigeType.addClass('needed');
-//     }
-// }
-
-function addCommentaire(select, bool) {
-    let params = {
-        typeLitigeId: select.val()
-    };
-
-    let quillType = bool ? quillNew : quillEdit;
-    originalText = quillType.getText().trim();
-
-    $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
-        if (comment) {
-            let d = new Date();
-            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
-            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
-
-            let textToInsert = originalText.length > 0 && !bool ? originalText + "\n\n" : '';
-
-            quillType.setContents([
-                {insert: textToInsert},
-                {insert: date + ' : '},
-                {insert: comment},
-                {insert: '\n'},
-            ]);
-        }
-    });
-}
-
 function dragEnterDiv(event, div) {
-    div.css('border', '3px dashed red');
+    displayWrong(div);
 }
 
 function dragOverDiv(event, div) {
     event.preventDefault();
     event.stopPropagation();
-    div.css('border', '3px dashed red');
+    displayWrong(div);
     return false;
-};
+}
 
 function dragLeaveDiv(event, div) {
     event.preventDefault();
     event.stopPropagation();
-    div.css('border', '3px dashed #BBBBBB');
-    return false;
-}
-
-function dropOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            // Stop the propagation of the event
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                upload(event.dataTransfer.files);
-                clearErrorMsg(div);
-            } else {
-                div.css('border', '3px dashed #BBBBBB');
-            }
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
+    displayNeutral(div);
     return false;
 }
 
@@ -225,217 +156,95 @@ function dropNewOnDiv(event, div) {
         if (event.dataTransfer.files.length) {
             event.preventDefault();
             event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                keepForSave(event.dataTransfer.files);
-                clearErrorMsg(div);
-            }
-            else div.css('border', '3px dashed #BBBBBB');
+            displayRight(div);
+            displayAttachements(event.dataTransfer.files, div);
         }
     } else {
-        div.css('border', '3px dashed #BBBBBB');
+        displayWrong(div);
     }
     return false;
 }
 
+function uploadFENew(span) {
+    let files = $('#fileInputNew')[0].files;
+    let div = span.closest('.dropFrame');
+
+    displayAttachements(files, div);
+}
+
+function displayAttachements(files, div) {
+
+    let valid = checkFilesFormat(files, div);
+
+    if (valid) {
+        let dropfile = $('#dropfileNew');
+
+        $.each(files, function(index, file) {
+            let fileName = file.name;
+
+            let reader = new FileReader();
+            reader.addEventListener('load', function() {
+                dropfile.after(`
+                    <p class="attachement" id="` + withoutExtension(fileName) + `">
+                        <a target="_blank" href="`+ reader.result + `">
+                            <i class="fa fa-file mr-2"></i>` + fileName + `
+                        </a>
+                        <i class="fa fa-times red pointer" onclick="removeAttachementNew($(this))"></i>
+                    </p>`);
+            });
+
+            reader.readAsDataURL(file);
+        });
+        clearErrorMsg(div);
+    }
+}
+
+function withoutExtension(fileName) {
+    let array = fileName.split('.');
+    return array[0];
+}
 
 function checkFilesFormat(files, div) {
     let valid = true;
     $.each(files, function (index, file) {
         if (file.name.includes('.') === false) {
             div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
+            displayWrong(div);
             valid = false;
+        } else {
+            displayRight(div);
         }
-        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-        //     valid = false;
-        // }
     });
     return valid;
-}
-
-function openFE() {
-    $('#fileInput').click();
-}
-
-function uploadFE(span) {
-    let files = $('#fileInput')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('arrivage_depose', true);
-
-        let arrivageId = $('#dropfile').data('arrivage-id');
-        formData.append('id', arrivageId);
-
-        $.ajax({
-            url: path,
-            data: formData,
-            type:"post",
-            contentType:false,
-            processData:false,
-            cache:false,
-            dataType:"json",
-            success:function(html){
-                let dropfile = $('#dropfile');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
 }
 
 function openFENew() {
     $('#fileInputNew').click();
 }
 
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
 
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('garder_pj', true);
-        $.ajax({
-            url: path,
-            data: formData,
-            type: "post",
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: "json",
-            success: function (html) {
-                let dropfile = $('#dropfileNew');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
+function removeAttachementNew($elem) {
+    $elem.closest('.attachement').remove();
 }
 
-function keepForSave(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-
-    let path = Routing.generate('garder_pj', true);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
-            let dropfile = $('#dropfileNew');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-
-}
-
-function upload(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-    let path = Routing.generate('arrivage_depose', true);
-
-    let arrivageId = $('#dropfile').data('arrivage-id');
-    formData.append('id', arrivageId);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type: "post",
-        contentType: false,
-        processData: false,
-        cache: false,
-        dataType: "json",
-        success: function (html) {
-            let dropfile = $('#dropfile');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-}
-
-function InitModalArrivage(modal, submit, path, table, callback = null, close = true) {
+function initModalNewArrivage(modal, submit, path) {
     submit.click(function () {
-        submitActionArrivage(modal, path, table, callback, close);
+        submitActionArrivage(modal, path);
     });
 }
 
-function submitActionArrivage(modal, path, table, callback, close) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-
-        if (this.readyState == 4 && this.status == 200) {
-            $('.errorMessage').html(JSON.parse(this.responseText));
-            data = JSON.parse(this.responseText);
-            $('p.attachement').each(function() {
-                $(this).remove();
-            });
-            if (data.redirect) {
-                window.location.href = data.redirect + '/1';
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            table.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-
-            clearModal(modal);
-
-            if (callback !== null) callback(data);
-            if (close == true) {
-                modal.find('.close').click();
-            }
-        }
-    };
-
+function submitActionArrivage(modal, path) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
-    let Data = {};
+    let Data = new FormData();
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     inputs.each(function () {
         let val = $(this).val();
         let name = $(this).attr("name");
-        Data[name] = val;
+        Data.append(name, val);
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
@@ -475,20 +284,38 @@ function submitActionArrivage(modal, path, table, callback, close) {
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
+        Data.append([$(this).attr("name")], $(this).is(':checked'));
     });
     $("div[name='id']").each(function () {
-        Data[$(this).attr("name")] = $(this).attr('value');
+        Data.append([$(this).attr("name")], $(this).attr('value'));
     });
     modal.find(".elem").remove();
+
+    // ... puis on récupère les fichiers ...
+    let files = $('#fileInputNew')[0].files;
+
+    $.each(files, function(index, file) {
+        Data.append('file' + index, file);
+    });
+
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        Json = {};
-        Json = JSON.stringify(Data);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
+        $.ajax({
+            url: path,
+            data: Data,
+            type: 'post',
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: 'json',
+            success: (data) => {
+                if (data.redirect) {
+                    window.location.href = data.redirect + '/1';
+                    return;
+                }
+            }
+        });
     } else {
-
         // ... sinon on construit les messages d'erreur
         let msg = '';
 
@@ -553,17 +380,6 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .draw();
 });
-
-function deleteAttachementNew(pj) {
-    let params = {
-        pj: pj
-    };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
-        $('#modalNewArrivage').find('p.attachement').each(function() {
-            if ($(this).attr('id') === pj) $(this).remove();
-        });
-    });
-}
 
 function generateCSVArrivage () {
     loadSpinner($('#spinnerArrivage'));
