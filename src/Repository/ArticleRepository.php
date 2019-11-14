@@ -416,7 +416,7 @@ class ArticleRepository extends ServiceEntityRepository
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-        dump($query->getSQL());
+
         return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
             'count' => $countQuery, 'total' => $countTotal];
     }
