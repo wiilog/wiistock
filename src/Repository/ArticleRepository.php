@@ -7,6 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -393,9 +394,16 @@ class ArticleRepository extends ServiceEntityRepository
 								->orderBy('s.nom', $order);
 							break;
 						case 'dateFinReception':
+                            $expr = $qb->expr();
 							$qb
-								->leftJoin('a.reception', 'reception')
-								->orderBy('reception.dateFinReception', $order);
+								->leftJoin('a.mouvements', 'mouvement')
+								->andWhere($expr->orX(
+								    $expr->isNull('mouvement.type'),
+                                    $expr->eq('mouvement.type', ':mouvementTypeOrder')
+                                ))
+                                ->distinct()
+								->orderBy('mouvement.date', $order)
+                                ->setParameter('mouvementTypeOrder', MouvementStock::TYPE_ENTREE);
 							break;
 						default:
 							$qb->orderBy('a.' . $column, $order);
@@ -408,6 +416,7 @@ class ArticleRepository extends ServiceEntityRepository
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
+        dump($query->getSQL());
         return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
             'count' => $countQuery, 'total' => $countTotal];
     }
