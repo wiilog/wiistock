@@ -88,6 +88,7 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
             $cpt++;
 
             if ($cpt % 1000 === 0) {
+                dump('Flush 1000 ...');
                 $manager->flush();
             }
         }
