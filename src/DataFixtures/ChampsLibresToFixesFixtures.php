@@ -15,6 +15,7 @@ use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
@@ -87,12 +88,10 @@ class ChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterfa
     public function load(ObjectManager $manager)
     {
         $allRefArticles = $this->refArticleRepository->findAll();
-        $allArticles = $this->articleRepository->findAll();
 
         $counter = 0;
 
         $refArticleCount = count($allRefArticles);
-        $articleCount = count($allArticles);
 
         foreach($allRefArticles as $refArticle){
             $valueAlerteSeuil = $this->refArticleRepository->getStockMiniClByRef($refArticle);
@@ -106,7 +105,7 @@ class ChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterfa
                 $refArticle->setLimitWarning($valueAlerteSeuil[0]['valeur']);
             }
             if ($valuePrice != null) {
-                $refArticle->setPrixUnitaire($valuePrice[0]['valeur']);
+                $refArticle->setPrixUnitaire(intval($valuePrice[0]['valeur']));
             }
             $counter++;
 
@@ -121,26 +120,9 @@ class ChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterfa
             $manager->flush();
         }
 
-        $counter = 0;
-
-        foreach ($allArticles as $article) {
-            $valuePriceArt = $this->articleRepository->getStockPriceClByArt($article);
-
-            if ($valuePriceArt != null) {
-                $article->setPrixUnitaire($valuePriceArt[0]['valeur']);
-            }
-            $counter++;
-
-            if ($counter % 1000 === 0) {
-                dump("Flush articles : $counter / $articleCount");
-                $manager->flush();
-            }
-        }
-
-        if ($counter % 1000 !== 0) {
-            dump("Flush article : $counter / $articleCount");
-            $manager->flush();
-        }
+        $this->champLibreRepository->deleteByLabel('stock mini%');
+        $this->champLibreRepository->deleteByLabel('stock alerte%');
+        $this->champLibreRepository->deleteByLabel('prix unitaire%');
     }
 
     public static function getGroups():array {
