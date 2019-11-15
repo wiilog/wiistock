@@ -2,8 +2,7 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -95,12 +94,12 @@ class MouvementStock
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -179,12 +178,12 @@ class MouvementStock
         return $this;
     }
 
-    public function getExpectedDate(): ?\DateTimeInterface
+    public function getExpectedDate(): ?DateTimeInterface
     {
         return $this->expectedDate;
     }
 
-    public function setExpectedDate(?\DateTimeInterface $expectedDate): self
+    public function setExpectedDate(?DateTimeInterface $expectedDate): self
     {
         $this->expectedDate = $expectedDate;
 
