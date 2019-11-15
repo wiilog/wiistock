@@ -162,6 +162,7 @@ function uploadFENew(span) {
             cache: false,
             dataType: "json",
             success: function (html) {
+                //TODO CG remplacer dropfileNew
                 let dropfile = $('#dropfileNew');
                 dropfile.css('border', '3px dashed #BBBBBB');
                 dropfile.after(html);
@@ -190,6 +191,7 @@ function keepForSave(files) {
         cache:false,
         dataType:"json",
         success:function(html){
+            //TODO CG remplacer dropfileNew
             let dropfile = $('#dropfileNew');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);

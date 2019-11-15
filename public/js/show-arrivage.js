@@ -1,9 +1,6 @@
-const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
 $('.select2').select2();
 
 $(function () {
-
     //fill l'input acheteurs (modalNewLititge)
     let modal = $('#modalNewLitige');
     let inputAcheteurs = $('#acheteursLitigeHidden').val();
@@ -99,8 +96,6 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
     order: [[0, 'desc']],
 });
 
-
-
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
@@ -116,226 +111,10 @@ let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
 InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableArrivageLitiges);
 
-
-function dragEnterDiv(event, div) {
-    div.css('border', '3px dashed red');
-}
-
-function dragOverDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed red');
-    return false;
-};
-
-function dragLeaveDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed #BBBBBB');
-    return false;
-}
-
-function dropOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            // Stop the propagation of the event
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                upload(event.dataTransfer.files);
-                clearErrorMsg(div);
-            } else {
-                div.css('border', '3px dashed #BBBBBB');
-            }
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-function dropNewOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                keepForSave(event.dataTransfer.files);
-                clearErrorMsg(div);
-            }
-            else div.css('border', '3px dashed #BBBBBB');
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            valid = false;
-        }
-        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-        //     valid = false;
-        // }
-    });
-    return valid;
-}
-
-function openFE() {
-    $('#fileInput').click();
-}
-
-function uploadFELitige(span) {
-    uploadFE(span, 'litige_depose', 'litige-id');
-}
-
-function uploadFEArrivage(span) {
-    uploadFE(span, 'arrivage_depose', 'arrivage-id');
-}
-
-function uploadFE(span, nameRouteArrivage, dataName) {
-    let files = $('#fileInput')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate(nameRouteArrivage, true);
-
-        let id = $('#dropfile').data(dataName);
-        formData.append('id', id);
-
-        $.ajax({
-            url: path,
-            data: formData,
-            type:"post",
-            contentType:false,
-            processData:false,
-            cache:false,
-            dataType:"json",
-            success:function(html){
-                let dropfile = $('#dropfile');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('garder_pj', true);
-        $.ajax({
-            url: path,
-            data: formData,
-            type: "post",
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: "json",
-            success: function (html) {
-                let dropfile = $('#dropfileNew');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function keepForSave(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-
-    let path = Routing.generate('garder_pj', true);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
-            let dropfile = $('#dropfileNew');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-
-}
-
-function upload(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-    let path = Routing.generate('litige_depose', true);
-
-    let litigeId = $('#dropfile').data('litige-id');
-    formData.append('id', litigeId);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type: "post",
-        contentType: false,
-        processData: false,
-        cache: false,
-        dataType: "json",
-        success: function (html) {
-            let dropfile = $('#dropfile');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-}
-
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, callbackEdit);
+initModalEditArrivage(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, true, true);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
@@ -397,34 +176,6 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
     }
 }
 
-function deleteAttachementLitige(litigeId, originalName, pjName) {
-
-    let path = Routing.generate('litige_delete_attachement');
-    let params = {
-        litigeId: litigeId,
-        originalName: originalName,
-        pjName: pjName
-    };
-
-    $.post(path, JSON.stringify(params), function (data) {
-        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-        if (data === true) {
-            $('#' + pjWithoutExtension).remove();
-        }
-    });
-}
-
-function deleteAttachementNew(pj) {
-    let params = {
-        pj: pj
-    };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
-        $('p.attachement').each(function() {
-            if ($(this).attr('id') === pj) $(this).remove();
-        });
-    });
-}
-
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
     let param = codes;
@@ -448,24 +199,6 @@ function printColisBarcode(codeColis) {
     });
 }
 
-function deleteAttachementArrivage(arrivageId, originalName, pjName) {
-
-    let path = Routing.generate('arrivage_delete_attachement');
-    let params = {
-        arrivageId: arrivageId,
-        originalName: originalName,
-        pjName: pjName
-    };
-
-    $.post(path, JSON.stringify(params), function (data) {
-        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
-        if (data === true) {
-            $('#' + pjWithoutExtension).remove();
-        }
-    });
-}
-
-
 function getCommentAndAddHisto()
 {
     let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
@@ -476,4 +209,129 @@ function getCommentAndAddHisto()
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
     });
+}
+
+function initModalEditArrivage(modal, submit, path, callback, close, clear) {
+    submit.click(function () {
+        submitActionArrivage(modal, path, callback, close, clear);
+    });
+}
+
+function submitActionArrivage(modal, path, callback, close, clear) {
+    // On récupère toutes les données qui nous intéressent
+    // dans les inputs...
+    let inputs = modal.find(".data");
+    let Data = new FormData();
+    let missingInputs = [];
+    let wrongNumberInputs = [];
+    let passwordIsValid = true;
+    inputs.each(function () {
+        let val = $(this).val();
+        let name = $(this).attr("name");
+        Data.append(name, val);
+        // validation données obligatoires
+        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+            let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
+            missingInputs.push(label);
+            $(this).addClass('is-invalid');
+        }
+        // validation valeur des inputs de type number
+        if ($(this).attr('type') === 'number') {
+            let val = parseInt($(this).val());
+            let min = parseInt($(this).attr('min'));
+            let max = parseInt($(this).attr('max'));
+            if (val > max || val < min || isNaN(val)) {
+                wrongNumberInputs.push($(this));
+                $(this).addClass('is-invalid');
+            }
+        }
+    });
+
+    // ... et dans les checkboxes
+    let checkboxes = modal.find('.checkbox');
+    checkboxes.each(function () {
+        Data.append([$(this).attr("name")], $(this).is(':checked'));
+    });
+    $("div[name='id']").each(function () {
+        Data.append([$(this).attr("name")], $(this).attr('value'));
+    });
+    modal.find(".elem").remove();
+
+    // ... puis on récupère les fichiers ...
+    let files = $('#fileInput')[0].files;
+
+    $.each(files, function(index, file) {
+        Data.append('file' + index, file);
+    });
+
+    // si tout va bien on envoie la requête ajax...
+    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
+        if (close == true) modal.find('.close').click();
+
+        $.ajax({
+            url: path,
+            data: Data,
+            type: 'post',
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: 'json',
+            success: (data) => {
+                if (data.redirect) {
+                    window.location.href = data.redirect + '/1';
+                    return;
+                }
+                // mise à jour des données d'en-tête après modification
+                console.log(data.entete);
+                if (data.entete) {
+                    $('.zone-entete').html(data.entete)
+                }
+
+                if (clear) clearModal(modal);
+
+                if (callback !== null) callback(data);
+            }
+        });
+    } else {
+        // ... sinon on construit les messages d'erreur
+        let msg = '';
+
+        // cas où il manque des champs obligatoires
+        if (missingInputs.length > 0) {
+            if (missingInputs.length == 1) {
+                msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
+            } else {
+                msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
+            }
+        }
+        // cas où les champs number ne respectent pas les valeurs imposées (min et max)
+        if (wrongNumberInputs.length > 0) {
+            wrongNumberInputs.forEach(function (elem) {
+                let label = elem.closest('.form-group').find('label').text();
+
+                msg += 'La valeur du champ ' + label;
+
+                let min = elem.attr('min');
+                let max = elem.attr('max');
+
+                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                    if (min > max) {
+                        msg += " doit être inférieure à " + max + ".<br>";
+                    } else {
+                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                    }
+                } else if (typeof (min) == 'undefined') {
+                    msg += ' doit être inférieure à ' + max + ".<br>";
+                } else if (typeof (max) == 'undefined') {
+                    msg += ' doit être supérieure à ' + min + ".<br>";
+                } else if (min < 1) {
+                    msg += ' ne peut pas être rempli'
+                }
+
+            })
+        }
+        modal.find('.error-msg').html(msg);
+    }
 }

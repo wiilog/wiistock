@@ -133,100 +133,6 @@ function initNewArrivageEditor(modal) {
     }
 }
 
-function dragEnterDiv(event, div) {
-    displayWrong(div);
-}
-
-function dragOverDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    displayWrong(div);
-    return false;
-}
-
-function dragLeaveDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    displayNeutral(div);
-    return false;
-}
-
-function dropNewOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            displayRight(div);
-            displayAttachements(event.dataTransfer.files, div);
-        }
-    } else {
-        displayWrong(div);
-    }
-    return false;
-}
-
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let div = span.closest('.dropFrame');
-
-    displayAttachements(files, div);
-}
-
-function displayAttachements(files, div) {
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        let dropfile = $('#dropfileNew');
-
-        $.each(files, function(index, file) {
-            let fileName = file.name;
-
-            let reader = new FileReader();
-            reader.addEventListener('load', function() {
-                dropfile.after(`
-                    <p class="attachement" id="` + withoutExtension(fileName) + `">
-                        <a target="_blank" href="`+ reader.result + `">
-                            <i class="fa fa-file mr-2"></i>` + fileName + `
-                        </a>
-                        <i class="fa fa-times red pointer" onclick="removeAttachementNew($(this))"></i>
-                    </p>`);
-            });
-
-            reader.readAsDataURL(file);
-        });
-        clearErrorMsg(div);
-    }
-}
-
-function withoutExtension(fileName) {
-    let array = fileName.split('.');
-    return array[0];
-}
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            displayWrong(div);
-            valid = false;
-        } else {
-            displayRight(div);
-        }
-    });
-    return valid;
-}
-
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-
-function removeAttachementNew($elem) {
-    $elem.closest('.attachement').remove();
-}
-
 function initModalNewArrivage(modal, submit, path) {
     submit.click(function () {
         submitActionArrivage(modal, path);
@@ -261,22 +167,6 @@ function submitActionArrivage(modal, path) {
             if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
-            }
-        }
-        // validation valeur des inputs de type password
-        if ($(this).attr('type') === 'password') {
-            let password = $(this).val();
-            let isNotChanged = $(this).hasClass('optional-password') && password === "";
-            if (!isNotChanged) {
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
-                }
             }
         }
     });

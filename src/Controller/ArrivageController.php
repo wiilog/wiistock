@@ -315,7 +315,6 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
-                    'nameUploadFE' => 'uploadFEArrivage',
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
@@ -338,71 +337,72 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
+			$post = $request->request;
 
-            $em = $this->getDoctrine()->getManager();
+			$em = $this->getDoctrine()->getManager();
 
-            $arrivage = $this->arrivageRepository->find($data['id']);
+            $arrivage = $this->arrivageRepository->find($post->get('id'));
 
-            if (isset($data['commentaire'])) {
-                $arrivage->setCommentaire($data['commentaire']);
+            if (!empty($commentaire = $post->get('commentaire'))) {
+                $arrivage->setCommentaire($commentaire);
             }
-            if (isset($data['fournisseur'])) {
-                $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
+			if (!empty($fournisseur = $post->get('fournisseur'))) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (isset($data['transporteur'])) {
-                $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
+			if (!empty($transporteur = $post->get('transporteur'))) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (isset($data['chauffeur'])) {
-                $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
+			if (!empty($chauffeur = $post->get('chauffeur'))) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (isset($data['noTracking'])) {
-                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+			if (!empty($noTracking = $post->get('noTracking'))) {
+                $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (isset($data['noBL'])) {
-                $arrivage->setNumeroBL(substr($data['noBL'], 0, 64));
+			if (!empty($noBL = $post->get('noBL'))) {
+                $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (isset($data['destinataire'])) {
-                $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
+			if (!empty($destinataire = $post->get('destinataire'))) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (isset($data['acheteurs'])) {
+			if (!empty($acheteurs = $post->get('acheteurs'))) {
                 // on détache les acheteurs existants...
                 $existingAcheteurs = $arrivage->getAcheteurs();
                 foreach ($existingAcheteurs as $acheteur) {
                     $arrivage->removeAcheteur($acheteur);
                 }
                 // ... et on ajoute ceux sélectionnés
-                foreach ($data['acheteurs'] as $acheteur) {
-                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-                }
-            }
-
-            // TODO PJ supprimer cette copie
-            $path = '../public/uploads/attachements/temp';
-
-            if (is_dir($path)) {
-                foreach (scandir($path) as $file) {
-                    if ('.' === $file) continue;
-                    if ('..' === $file) continue;
-
-                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
-                    if ($pj) $pj->setArrivage($arrivage);
-                    copy($path . '/' . $file, $path . '/../' . $file);
-                    unlink($path . '/' . $file);
-                }
+                $listAcheteurs = explode(',', $acheteurs);
+				foreach ($listAcheteurs as $acheteur) {
+					$arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+				}
             }
 
             $em->flush();
+
+			$listAttachmentIdToKeep = $post->get('files');
+
+			$attachments = $arrivage->getAttachements()->toArray();
+			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
+				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+					$arrivage->removeAttachement($attachment);
+					dump($attachment->getFileName());
+					$path = "../public/uploads/attachements/" . $attachment->getFileName();
+					unlink($path);
+				}
+			}
+			$em->flush();
+
+			$this->addAttachements($request, $arrivage, true);
 
 			$response = [
 				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
 					'arrivage' => $arrivage
 				]),
 			];
-
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
@@ -483,31 +483,6 @@ class ArrivageController extends AbstractController
             }
 
             return new JsonResponse($html);
-        } else {
-            throw new NotFoundHttpException('404');
-        }
-    }
-
-    /**
-     * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
-     */
-    public function deleteAttachement(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-
-            $arrivageId = (int)$data['arrivageId'];
-
-            $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $arrivageId);
-            if ($attachement) {
-                $em->remove($attachement);
-                $em->flush();
-                $response = true;
-            } else {
-                $response = false;
-            }
-
-            return new JsonResponse($response);
         } else {
             throw new NotFoundHttpException('404');
         }
@@ -643,9 +618,7 @@ class ArrivageController extends AbstractController
                     $fileNames[] = $filename;
                     $file->move($path, $filename);
                     $html .= $this->renderView('arrivage/attachementLine.html.twig', [
-                        'arrivage' => null,
                         'pjName' => $filename,
-                        'isNew' => true,
                         'originalName' => $file->getClientOriginalName()
                     ]);
                     $pj = new PieceJointe();
@@ -675,7 +648,6 @@ class ArrivageController extends AbstractController
 		if (!file_exists($path)) {
 			mkdir($path, 0777);
 		}
-
 		for ($i = 0; $i < count($request->files); $i++) {
 			$file = $request->files->get('file' . $i);
 			if ($file) {
@@ -738,32 +710,6 @@ class ArrivageController extends AbstractController
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
-        }
-    }
-
-    /**
-     * @Route("/enlever-une-pj", name="remove_one_kept_pj", options={"expose"=true}, methods="GET|POST")
-     */
-    public function deleteOneAttachmentForNew(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $path = "../public/uploads/attachements/temp/" . $data['pj'];
-            unlink($path);
-            $pj = $this->pieceJointeRepository->findOneByFileName($data['pj']);
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($pj);
-            $em->flush();
-
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    function delete_files($target)
-    {
-        if (is_dir($target)) {
-            array_map('unlink', glob("$target/*.*"));
-            rmdir($target);
         }
     }
 
@@ -991,7 +937,6 @@ class ArrivageController extends AbstractController
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
-                'nameUploadFE' => 'uploadFELitige',
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
