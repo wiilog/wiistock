@@ -18,7 +18,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
-class ChampLibreToChampFixeFixtures extends Fixture implements FixtureGroupInterface
+class ChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -144,6 +144,6 @@ class ChampLibreToChampFixeFixtures extends Fixture implements FixtureGroupInter
     }
 
     public static function getGroups():array {
-        return ['seuilsAlerte'];
+        return ['champsLibresToFixes'];
     }
 }
