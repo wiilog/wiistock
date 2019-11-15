@@ -2,6 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\MouvementStock;
+use DateTime;
+use DateTimeZone;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -156,7 +161,7 @@ class ReceptionController extends AbstractController
             $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
 
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
             // génère le numéro
             $lastNumero = $this->receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ymd'));
@@ -169,8 +174,8 @@ class ReceptionController extends AbstractController
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
+                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
+                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
                 ->setFournisseur($fournisseur)
                 ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
@@ -224,11 +229,12 @@ class ReceptionController extends AbstractController
             $reception = $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
-                ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
+                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
+                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
                 ->setUtilisateur($utilisateur)
+                ->setReference($data['NumeroCommande'])
                 ->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getManager();
@@ -668,6 +674,9 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function finish(Request $request): Response
     {
@@ -693,8 +702,8 @@ class ReceptionController extends AbstractController
                 }
                 $reception
                     ->setStatut($statut)
-                    ->setDateFinReception(new \DateTime('now'))
-                    ->setDateCommande(new \DateTime('now'));
+                    ->setDateFinReception(new DateTime('now'))
+                    ->setDateCommande(new DateTime('now'));
                 $em->flush();
 
                 return new JsonResponse(true);
@@ -870,6 +879,7 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/valider_lot", name="validate_lot", options={"expose"=true}, methods={"GET", "POST"})
+     * @throws Exception
      */
     public function validateLot(Request $request)
     {
@@ -902,7 +912,7 @@ class ReceptionController extends AbstractController
             if ($response['exists'] === true) {
                 $refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
 
-                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
                 $formattedDate = $date->format('ym');
                 $references = $this->articleRepository->getReferencesByRefAndDate($refArticle, $formattedDate);
 
@@ -939,6 +949,16 @@ class ReceptionController extends AbstractController
                             ->setReception($ligne->getReception())
                             ->setType($refArticle->getType())
                             ->setBarCode($this->articleDataService->generateBarCode());
+
+                        $newMouvement = new MouvementStock();
+                        $newMouvement
+                            ->setUser($this->getUser())
+                            ->setArticle($toInsert)
+                            ->setDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
+                            ->setType(MouvementStock::TYPE_ENTREE)
+                            ->setQuantity($toInsert->getQuantite());
+                        $em->persist($newMouvement);
+
                         $em->persist($toInsert);
                         $em->flush();
                         array_push($response['refs'], $toInsert->getBarCode());
