@@ -49,7 +49,7 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\ORMException;
-use FOS\RestBundle\Controller\FOSRestController;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Psr\Log\LoggerInterface;
@@ -64,7 +64,7 @@ use DateTime;
  * Class ApiController
  * @package App\Controller
  */
-class ApiController extends FOSRestController implements ClassResourceInterface
+class ApiController extends AbstractFOSRestController implements ClassResourceInterface
 {
 
     /**
@@ -909,15 +909,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+                $httpCode = Response::HTTP_OK;
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = $this->getDataArray($nomadUser);
-
             } else {
+                $httpCode = Response::HTTP_UNAUTHORIZED;
                 $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+                $this->successDataMsg['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
 
-            return new JsonResponse($this->successDataMsg);
+            return new JsonResponse($this->successDataMsg, $httpCode);
         }
     }
 
