@@ -21,9 +21,11 @@ use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ManutentionRepository;
+use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 
 
@@ -93,7 +95,12 @@ class UserService
 	 */
 	private $preparationRepository;
 
-    public function __construct(DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ManutentionRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+	/**
+	 * @var ReceptionRepository
+	 */
+	private $receptionRepository;
+
+    public function __construct(ReceptionRepository $receptionRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ManutentionRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
     {
         $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;
@@ -108,6 +115,7 @@ class UserService
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->preparationRepository = $preparationRepository;
+        $this->receptionRepository = $receptionRepository;
     }
 
     public function getUserRole($user = null)
@@ -215,7 +223,7 @@ class UserService
 	/**
 	 * @param Utilisateur|int $user
 	 * @return bool
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function isUsedByDemandsOrOrders($user)
 	{
@@ -225,7 +233,8 @@ class UserService
 		$nbOrdresCollecte = $this->ordreCollecteRepository->countByUser($user);
 		$nbManutentions = $this->manutentionRepository->countByUser($user);
 		$nbPrepa = $this->preparationRepository->countByUser($user);
+		$nbReceptions = $this->receptionRepository->countByUser($user);
 
-		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa > 0;
+		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa + $nbReceptions > 0;
 	}
 }
