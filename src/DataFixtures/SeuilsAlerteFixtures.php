@@ -92,6 +92,7 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
                 $manager->flush();
             }
         }
+        $manager->flush();
     }
 
     public static function getGroups():array {
