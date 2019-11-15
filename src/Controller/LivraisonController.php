@@ -403,7 +403,22 @@ class LivraisonController extends AbstractController
 			}
 
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'date demande', 'date validation', 'référence', 'type demande', 'référence article', 'libellé article', 'quantité disponible', 'quantité à prélever']);
+            $headers = array_merge($headers, [
+                'demandeur',
+                'statut',
+                'destination',
+                'commentaire',
+                'dateDemande',
+                'dateValidation',
+                'reference',
+                'type demande',
+                'code prépa',
+                'code livraison',
+                'referenceArticle',
+                'libelleArticle',
+                'quantité disponible',
+                'quantité à prélever'
+            ]);
 
 			// en-têtes champs libres articles
             $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
@@ -426,6 +441,8 @@ class LivraisonController extends AbstractController
 
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
+                    $articleRef = $ligneArticle->getReference();
+                    $availableQuantity = $articleRef->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
 					// champs libres de la demande
 					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
@@ -442,6 +459,7 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $livraisonData[] = $availableQuantity;
                     $livraisonData[] = $ligneArticle->getQuantite();
 
                     // champs libres de l'article de référence
