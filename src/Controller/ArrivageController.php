@@ -1011,10 +1011,11 @@ class ArrivageController extends AbstractController
                 $em->flush();
             }
 
-			$listAttachmentIdToKeep = $post->get('files');
+			$listAttachmentIdToKeep = $post->get('files') ?? [];
 
-			$attachments = $litige->getAttachements()->toArray();
-			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
+            $attachments = $litige->getAttachements()->toArray();
+			foreach ($attachments as $attachment) {
+				/** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
 					$this->removeAndDeleteAttachment($attachment, null, $litige);
 				}
