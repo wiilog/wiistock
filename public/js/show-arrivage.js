@@ -99,12 +99,12 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
-InitialiserModal(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
+initModalArrivage(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
-InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+initModalArrivage(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -114,7 +114,7 @@ InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableAr
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-initModalEditArrivage(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, true, true);
+initModalArrivage(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
@@ -211,13 +211,13 @@ function getCommentAndAddHisto()
     });
 }
 
-function initModalEditArrivage(modal, submit, path, callback, close, clear) {
+function initModalArrivage(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitActionArrivage(modal, path, callback, close, clear);
+        submitActionArrivage(modal, path, table, callback, close, clear);
     });
 }
 
-function submitActionArrivage(modal, path, callback, close, clear) {
+function submitActionArrivage(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -260,7 +260,7 @@ function submitActionArrivage(modal, path, callback, close, clear) {
     modal.find(".elem").remove();
 
     // ... puis on récupère les fichiers ...
-    let files = $('#fileInput')[0].files;
+    let files = modal.find('.fileInput')[0].files;
 
     $.each(files, function(index, file) {
         Data.append('file' + index, file);
@@ -283,6 +283,15 @@ function submitActionArrivage(modal, path, callback, close, clear) {
                     window.location.href = data.redirect + '/1';
                     return;
                 }
+
+                if (table) {
+                    table.ajax.reload(function (json) {
+                        if (data !== undefined) {
+                            $('#myInput').val(json.lastInput);
+                        }
+                    }, false);
+                }
+
                 // mise à jour des données d'en-tête après modification
                 console.log(data.entete);
                 if (data.entete) {

@@ -388,15 +388,11 @@ class ArrivageController extends AbstractController
 			$attachments = $arrivage->getAttachements()->toArray();
 			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-					$arrivage->removeAttachement($attachment);
-					dump($attachment->getFileName());
-					$path = "../public/uploads/attachements/" . $attachment->getFileName();
-					unlink($path);
+					$this->removeAndDeleteAttachment($attachment, $arrivage);
 				}
 			}
-			$em->flush();
 
-			$this->addAttachements($request, $arrivage, true);
+			$this->addAttachements($request, $arrivage);
 
 			$response = [
 				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -424,7 +420,7 @@ class ArrivageController extends AbstractController
                 $entityManager->remove($colis);
             }
             foreach ($arrivage->getAttachements() as $attachement) {
-                $entityManager->remove($attachement);
+                $this->removeAndDeleteAttachment($attachement, $arrivage);
             }
             $entityManager->remove($arrivage);
             $entityManager->flush();
@@ -640,8 +636,9 @@ class ArrivageController extends AbstractController
 	 * @Route("/ajouter-pj", name="add_attachement", options={"expose"=true}, methods="GET|POST")
 	 * @param Request $request
 	 * @param Arrivage $arrivage
+	 * @param Litige|null $litige
 	 */
-	public function addAttachements(Request $request, $arrivage)
+	public function addAttachements(Request $request, $arrivage, $litige = null)
 	{
 		$em = $this->getDoctrine()->getManager();
 		$path = "../public/uploads/attachements/";
@@ -657,8 +654,12 @@ class ArrivageController extends AbstractController
 				$pj = new PieceJointe();
 				$pj
 					->setOriginalName($file->getClientOriginalName())
-					->setFileName($filename)
-					->setArrivage($arrivage);
+					->setFileName($filename);
+				if ($arrivage) {
+					$pj->setArrivage($arrivage);
+				} elseif ($litige) {
+					$pj->setLitige($litige);
+				}
 				$em->persist($pj);
 			}
 		}
@@ -746,26 +747,31 @@ class ArrivageController extends AbstractController
      */
     public function newLitige(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$em = $this->getDoctrine()->getManager();
-
+        if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+			$post = $request->request;
+			$em = $this->getDoctrine()->getManager();
+
             $litige = new Litige();
             $litige
-                ->setStatus($this->statutRepository->find($data['statutLitige']))
-                ->setType($this->typeRepository->find($data['typeLitige']))
+                ->setStatus($this->statutRepository->find($post->get('statutLitige')))
+                ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new \DateTime('now'));
-            foreach ($data['colisLitige'] as $colisId) {
-                $litige->addColi($this->colisRepository->find($colisId));
-            }
-            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+
+            if (!empty($colis = $post->get('colisLitige'))) {
+				$listColisId = explode(',', $colis);
+				foreach ($listColisId as $colisId) {
+					$litige->addColi($this->colisRepository->find($colisId));
+				}
+			}
+            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
             $commentStatut = $statutinstance->getComment();
 
             $trimCommentStatut = trim($commentStatut);
-            $userComment = trim($data['commentaire']);
+            $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
             $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
             if (!empty($commentaire)) {
@@ -777,30 +783,16 @@ class ArrivageController extends AbstractController
                     ->setUser($this->getUser());
                 $em->persist($histo);
             }
-            $path = '../public/uploads/attachements/temp';
-
-            if (is_dir($path)) {
-                foreach (scandir($path) as $file) {
-                    if ('.' === $file) continue;
-                    if ('..' === $file) continue;
-
-                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
-                    if ($pj) $pj->setLitige($litige);
-                    copy($path . '/' . $file, $path . '/../' . $file);
-                    unlink($path . '/' . $file);
-                }
-            }
 
             $em->persist($litige);
             $em->flush();
 
+            $this->addAttachements($request, null, $litige);
+
 			$this->sendMailToAcheteurs($litige);
 
 			$arrivageResponse = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
-            $response = array_merge(
-                $data,
-                $arrivageResponse ? $arrivageResponse : []
-            );
+            $response = $arrivageResponse ? $arrivageResponse : [];
 
             return new JsonResponse($response);
         }
@@ -1125,4 +1117,16 @@ class ArrivageController extends AbstractController
 
         return $response;
     }
+
+	/**
+	 * @param PieceJointe $attachment
+	 * @param Arrivage $arrivage
+	 */
+    private function removeAndDeleteAttachment($attachment, $arrivage)
+	{
+		$arrivage->removeAttachement($attachment);
+		$path = "../public/uploads/attachements/" . $attachment->getFileName();
+		unlink($path);
+		$this->getDoctrine()->getManager()->flush();
+	}
 }

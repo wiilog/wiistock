@@ -76,12 +76,8 @@ function dropOnDiv(event, div) {
     return false;
 }
 
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-function openFEEdit() {
-    $('#fileInput').click();
+function openFE(span) {
+    span.closest('.modal').find('.fileInput').click();
 }
 
 function uploadFE(span) {

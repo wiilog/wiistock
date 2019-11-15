@@ -4,15 +4,9 @@
      ondragover="dragOverDiv(event, $(this))"
      ondragleave="dragLeaveDiv(event, $(this))"
      ondrop="dropOnDiv(event, $(this))">
-    {% if isNew == true %}
-        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
-            <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFE($(this))">
-        </p>
-    {% else %}
-        <p>Faites glisser vos pièces jointes ou <span onclick="openFEEdit()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
-            <input id="fileInput" type="file" name="files[]" multiple class="d-none" onchange="uploadFE($(this))">
-        </p>
-    {% endif %}
+    <p>Faites glisser vos pièces jointes ou <span onclick="openFE($(this))" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
+        <input type="file" name="files[]" multiple class="d-none fileInput" onchange="uploadFE($(this))">
+    </p>
 </div>
 
 {% if isNew != true %}
