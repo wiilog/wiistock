@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
-use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
@@ -442,7 +441,12 @@ class LivraisonController extends AbstractController
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
                     $articleRef = $ligneArticle->getReference();
-                    $availableQuantity = $articleRef->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
+
+                    $quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                        ? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
+                        : $articleRef->getQuantiteStock();
+
+                    $availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
 					// champs libres de la demande
 					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
