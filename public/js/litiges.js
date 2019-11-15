@@ -41,7 +41,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     ],
     columnDefs: [
         {
-            'targets': [6,7,8],
+            'targets': [8,9],
             'visible': false
         }
     ],
