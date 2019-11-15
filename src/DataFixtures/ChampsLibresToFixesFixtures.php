@@ -120,9 +120,9 @@ class ChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterfa
             $manager->flush();
         }
 
-        $this->champLibreRepository->deleteByLabel('stock mini%');
-        $this->champLibreRepository->deleteByLabel('stock alerte%');
-        $this->champLibreRepository->deleteByLabel('prix unitaire%');
+        $this->champLibreRepository->deleteByLabel("'stock mini%'");
+        $this->champLibreRepository->deleteByLabel("'stock alerte%'");
+        $this->champLibreRepository->deleteByLabel("'prix unitaire%'");
     }
 
     public static function getGroups():array {
