@@ -18,7 +18,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
-class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
+class ChampLibreToChampFixeFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -63,7 +63,15 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
      */
     private $emplacementRepository;
 
-    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleRepository $articleRepository,
+                                EmplacementRepository $emplacementRepository,
+                                UserPasswordEncoderInterface $encoder,
+                                TypeRepository $typeRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                StatutRepository $statutRepository,
+                                ReferenceArticleRepository $refArticleRepository,
+                                CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
@@ -81,7 +89,10 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
         $allRefArticles = $this->refArticleRepository->findAll();
         $allArticles = $this->articleRepository->findAll();
 
-        $cpt = 0;
+        $counter = 0;
+
+        $refArticleCount = count($allRefArticles);
+        $articleCount = count($allArticles);
 
         foreach($allRefArticles as $refArticle){
             $valueAlerteSeuil = $this->refArticleRepository->getStockMiniClByRef($refArticle);
@@ -97,15 +108,20 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
             if ($valuePrice != null) {
                 $refArticle->setPrixUnitaire($valuePrice[0]['valeur']);
             }
-            $cpt++;
+            $counter++;
 
-            if ($cpt % 1000 === 0) {
-                dump('Flush 1000 ...');
+            if (($counter % 1000) === 0) {
+                dump("Flush ref articles : $counter / $refArticleCount");
                 $manager->flush();
             }
         }
 
-        $cpt = 0;
+        if (($counter % 1000) !== 0) {
+            dump("Flush ref articles : $counter / $refArticleCount");
+            $manager->flush();
+        }
+
+        $counter = 0;
 
         foreach ($allArticles as $article) {
             $valuePriceArt = $this->articleRepository->getStockPriceClByArt($article);
@@ -113,12 +129,17 @@ class SeuilsAlerteFixtures extends Fixture implements FixtureGroupInterface
             if ($valuePriceArt != null) {
                 $article->setPrixUnitaire($valuePriceArt[0]['valeur']);
             }
-            $cpt++;
+            $counter++;
 
-            if ($cpt % 1000 === 0) {
-                dump('Flush 1000 ...');
+            if ($counter % 1000 === 0) {
+                dump("Flush articles : $counter / $articleCount");
                 $manager->flush();
             }
+        }
+
+        if ($counter % 1000 !== 0) {
+            dump("Flush article : $counter / $articleCount");
+            $manager->flush();
         }
     }
 
