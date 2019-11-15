@@ -342,7 +342,6 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 			$post = $request->request;
-
 			$em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($post->get('id'));
@@ -946,37 +945,42 @@ class ArrivageController extends AbstractController
      */
     public function editLitige(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
 				return $this->redirectToRoute('access_denied');
 			}
+			$post = $request->request;
+            $em = $this->getDoctrine()->getManager();
 
-            $em = $this->getDoctrine()->getEntityManager();
-            $litige = $this->litigeRepository->find($data['id']);
+            $litige = $this->litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
             $typeBeforeName = $litige->getType()->getLabel();
-            $typeAfter = (int)$data['typeLitige'];
+            $typeAfter = (int)$post->get('typeLitige');
             $statutBefore = $litige->getStatus()->getId();
             $statutBeforeName = $litige->getStatus()->getNom();
-            $statutAfter = (int)$data['statutLitige'];
+            $statutAfter = (int)$post->get('statutLitige');
             $litige
                 ->setUpdateDate(new \DateTime('now'))
-                ->setType($this->typeRepository->find($data['typeLitige']))
-                ->setStatus($this->statutRepository->find($data['statutLitige']));
+                ->setType($this->typeRepository->find($post->get('typeLitige')))
+                ->setStatus($this->statutRepository->find($post->get('statutLitige')));
 
-            foreach ($litige->getColis() as $litigeColis) {
-                $litige->removeColi($litigeColis);
-            }
+            if (!empty($colis = $post->get('colis'))) {
+				// on détache les colis existants...
+				$existingColis = $litige->getColis();
+				foreach ($existingColis as $coli) {
+					$litige->removeColi($coli);
+				}
+				// ... et on ajoute ceux sélectionnés
+				$listColis = explode(',', $colis);
+				foreach ($listColis as $colisId) {
+					$litige->addColi($this->colisRepository->find($colisId));
+				}
+			}
 
-            foreach ($data['colis'] as $colis) {
-                $litige->addColi($this->colisRepository->find($colis));
-            }
-
-            $em->persist($litige);
             $em->flush();
 
             $comment = '';
-            $statutinstance = $this->statutRepository->find($data['statutLitige']);
+            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
             $commentStatut = $statutinstance->getComment();
             if ($typeBefore !== $typeAfter) {
                 $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
@@ -989,11 +993,11 @@ class ArrivageController extends AbstractController
                     $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
                     (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
             }
-            if ($data['commentaire']) {
+            if ($post->get('commentaire')) {
                 if (!empty($comment)) {
                     $comment .= "\n";
                 }
-                $comment .= trim($data['commentaire']);
+                $comment .= trim($post->get('commentaire'));
             }
 
             if (!empty($comment)) {
@@ -1006,6 +1010,17 @@ class ArrivageController extends AbstractController
                 $em->persist($histoLitige);
                 $em->flush();
             }
+
+			$listAttachmentIdToKeep = $post->get('files');
+
+			$attachments = $litige->getAttachements()->toArray();
+			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
+				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+					$this->removeAndDeleteAttachment($attachment, null, $litige);
+				}
+			}
+
+			$this->addAttachements($request, null, $litige);
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 
@@ -1121,10 +1136,15 @@ class ArrivageController extends AbstractController
 	/**
 	 * @param PieceJointe $attachment
 	 * @param Arrivage $arrivage
+	 * @param Litige $litige
 	 */
-    private function removeAndDeleteAttachment($attachment, $arrivage)
+    private function removeAndDeleteAttachment($attachment, $arrivage, $litige = null)
 	{
-		$arrivage->removeAttachement($attachment);
+		if ($arrivage) {
+			$arrivage->removeAttachement($attachment);
+		} elseif ($litige) {
+			$litige->removeAttachement($attachment);
+		}
 		$path = "../public/uploads/attachements/" . $attachment->getFileName();
 		unlink($path);
 		$this->getDoctrine()->getManager()->flush();
