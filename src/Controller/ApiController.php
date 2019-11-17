@@ -47,8 +47,8 @@ use App\Service\Nomade\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -58,6 +58,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
+use Throwable;
 
 
 /**
@@ -469,19 +470,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\View()
      * @param Request $request
      * @param PreparationsManagerService $preparationsManager
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
-     * @throws ORMException
+     * @throws NonUniqueResultException
+     * @throws Throwable
      */
     public function finishPrepa(Request $request,
-                                PreparationsManagerService $preparationsManager) {
+                                PreparationsManagerService $preparationsManager,
+                                EntityManagerInterface $entityManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
                 $resData = ['success' => [], 'errors' => []];
-
-                $entityManager = $this->getDoctrine()->getManager();
 
                 $preparations = $data['preparations'];
                 $date = new DateTime();
@@ -495,9 +497,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         // if it has not been begin
                         $preparationsManager->beginPrepa($preparation, $nomadUser);
                         try {
+                            // we create a new entity manager because transactional() can call close() on it if the transaction fail
+                            // So there is one $localEntityManager for each transaction and we don't use the global entityManager to don"t close t
+                            $localEntityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                             // flush auto at the end
-                            $entityManager->transactional(function()
-                                                          use ($preparationsManager, $preparationArray, $preparation, $nomadUser, $date) {
+                            $localEntityManager->transactional(function()
+                                                               use ($preparationsManager, $preparationArray, $preparation, $nomadUser, $date) {
                                 $livraison = $preparationsManager->persistLivraison($preparationArray);
                                 $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
                                 $preparationsManager->closePreparationMouvement($preparation, $preparationArray['emplacement'], $date);
@@ -515,10 +520,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             ];
                         }
                         catch (\Exception $exception) {
-                            dump($exception);
-                            if (!$entityManager->isOpen()) {
-                                $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
-                            }
                             $resData['errors'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId(),

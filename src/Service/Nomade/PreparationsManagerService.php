@@ -17,6 +17,7 @@ use App\Service\ArticleDataService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 
 
 /**
@@ -49,6 +50,7 @@ class PreparationsManagerService {
      * @param string $emplacement
      * @param DateTime $date
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function closePreparationMouvement(Preparation $preparation, string $emplacement, DateTime $date): void {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -57,16 +59,22 @@ class PreparationsManagerService {
         $mouvements = $mouvementRepository->findByPreparation($preparation);
         $emplacementPrepa = $emplacementRepository->findOneByLabel($emplacement);
         foreach ($mouvements as $mouvement) {
-            if ($emplacementPrepa && $emplacementPrepa->getLabel() !== 'tutute') {
+            if ($emplacementPrepa) {
                 $mouvement
                     ->setDate($date)
                     ->setEmplacementTo($emplacementPrepa);
             } else {
-                throw new \Exception(self::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
+                throw new Exception(self::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
             }
         }
     }
 
+    /**
+     * @param Preparation $preparation
+     * @param Livraison $livraison
+     * @param $userNomade
+     * @throws NonUniqueResultException
+     */
     public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -85,6 +93,11 @@ class PreparationsManagerService {
             ->setLivraison($livraison);
     }
 
+    /**
+     * @param array $preparationArray
+     * @return Livraison
+     * @throws NonUniqueResultException
+     */
     public function persistLivraison(array $preparationArray) {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
