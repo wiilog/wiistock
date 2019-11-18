@@ -218,8 +218,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "DELETE FROM App\Entity\ChampLibre cl
-            WHERE cl.label LIKE :label")
-		->setParameter('label', $label . '%');
+            WHERE cl.label LIKE " . $label);
 
         return $query->execute();
     }

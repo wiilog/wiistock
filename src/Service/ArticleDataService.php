@@ -311,9 +311,10 @@ class ArticleDataService
 
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
-            	$data = ['selection' => $this->templating->render('demande/choiceContent.html.twig', [
-            		'maximum' => $availableQuantity
-				])];
+            	$data = [
+            	    'selection' => $this->templating->render('demande/choiceContent.html.twig', [
+                        'maximum' => $availableQuantity
+                    ])];
 			} else {
             	$data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
