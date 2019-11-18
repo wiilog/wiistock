@@ -9,8 +9,6 @@
 namespace App\Command;
 
 
-use App\Entity\Arrivage;
-use App\Entity\Colis;
 use App\Entity\Litige;
 
 use App\Repository\ArrivageRepository;
@@ -81,7 +79,7 @@ class MailsLitigesComand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var Litige[] $litiges */
-        $litiges = $this->litigeRepository->findByStatutLabel(Litige::ATTENTE_ACHETEUR);
+        $litiges = $this->litigeRepository->findByStatutSendNotifToBuyer();
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
