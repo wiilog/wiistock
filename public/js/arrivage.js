@@ -182,7 +182,7 @@ function submitActionArrivage(modal, path) {
     modal.find(".elem").remove();
 
     // ... puis on récupère les fichiers ...
-    let files = $('#fileInputNew')[0].files;
+    let files = modal.find('.fileInput')[0].files;
 
     $.each(files, function(index, file) {
         Data.append('file' + index, file);
