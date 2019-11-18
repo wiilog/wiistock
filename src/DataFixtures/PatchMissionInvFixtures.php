@@ -3,9 +3,8 @@
 namespace App\DataFixtures;
 
 use App\Entity\InventoryMission;
-use App\Repository\ChampLibreRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\ValeurChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -20,10 +19,16 @@ class PatchMissionInvFixtures extends Fixture implements FixtureGroupInterface
      */
     private $referenceArticleRepository;
 
+	/**
+	 * @var EmplacementRepository
+	 */
+    private $emplacementRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
+
+    public function __construct(EmplacementRepository $emplacementRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
     	$this->referenceArticleRepository = $referenceArticleRepository;
+    	$this->emplacementRepository = $emplacementRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -56,10 +61,18 @@ class PatchMissionInvFixtures extends Fixture implements FixtureGroupInterface
 
 			if ($ref) {
 				$mission->addRefArticle($ref);
-//				dump('réf ' . $row[0] . ' ajoutée');
+
+				$location = $this->emplacementRepository->findOneByLabel($row[7]);
+				if ($location) {
+					$ref->setEmplacement($location);
+				} else {
+					dump('l\'emplacement ' . $row[7] . ' n\'existe pas');
+				}
 			} else {
 				dump('la réf ' . $row[0] . ' n\'existe pas');
 			}
+
+
 		}
 
 		$manager->flush();
