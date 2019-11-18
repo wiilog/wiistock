@@ -327,6 +327,8 @@ class RefArticleDataService
                 if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
+                if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+                if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
                 if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
                 if (isset($data['statut'])) {
                     $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $data['statut']);
@@ -392,20 +394,22 @@ class RefArticleDataService
         $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
 
-            $rowCF = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle()? $refArticle->getLibelle() : 'Non défini',
-                "Référence" => $refArticle->getReference()? $refArticle->getReference() : 'Non défini',
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-                "Quantité" => $quantityInStock - $reservedQuantity,
-                "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
-                "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-                "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
-                ]),
-            ];
+        $rowCF = [
+            "id" => $refArticle->getId(),
+            "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
+            "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
+            "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+            "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
+            "Quantité" => $quantityInStock - $reservedQuantity,
+            "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
+            "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
+            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
+            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+            "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                'idRefArticle' => $refArticle->getId(),
+                'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
+            ]),
+        ];
 
         $rows = array_merge($rowCL, $rowCF);
         return $rows;

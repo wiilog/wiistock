@@ -20,15 +20,15 @@ class LitigeRepository extends ServiceEntityRepository
         parent::__construct($registry, Litige::class);
     }
 
-    public function findByStatutLabel($statutLabel)
+    public function findByStatutSendNotifToBuyer()
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT l
 			FROM App\Entity\Litige l
 			JOIN l.status s
-			WHERE s.nom = :statutLabel"
-		)->setParameter('statutLabel', $statutLabel);
+			WHERE s.sendNotifToBuyer = 1"
+		);
 
 		return $query->execute();
 	}

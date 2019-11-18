@@ -12,8 +12,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
@@ -34,12 +34,16 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 class ArticleDataService
 {
@@ -165,9 +169,9 @@ class ArticleDataService
      * @param bool $modifieRefArticle
      * @param bool $byRef
      * @return bool|string
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
@@ -248,9 +252,9 @@ class ArticleDataService
     /**
      * @return array
      *
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
@@ -273,9 +277,9 @@ class ArticleDataService
     /**
      * @return array
      *
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getLivraisonArticlesByRefArticle($refArticle)
     {
@@ -307,9 +311,10 @@ class ArticleDataService
 
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
-            	$data = ['selection' => $this->templating->render('demande/choiceContent.html.twig', [
-            		'maximum' => $availableQuantity
-				])];
+            	$data = [
+            	    'selection' => $this->templating->render('demande/choiceContent.html.twig', [
+                        'maximum' => $availableQuantity
+                    ])];
 			} else {
             	$data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
@@ -345,9 +350,9 @@ class ArticleDataService
      * @param Article $article
      * @param bool $isADemand
      * @return string
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getViewEditArticle($article, $isADemand = false)
     {
@@ -531,9 +536,9 @@ class ArticleDataService
     /**
      * @param ReceptionReferenceArticle $ligne
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
@@ -556,9 +561,9 @@ class ArticleDataService
     /**
      * @param null $params
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function getArticleDataByParams($params = null)
     {
@@ -593,27 +598,40 @@ class ArticleDataService
     /**
      * @param Article $article
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function dataRowRefArticle($article)
     {
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $row =
-                [
-                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                    'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                        'url' => $url,
-                        'articleId' => $article->getId(),
-                    ]),
-                ];
+            $criteriaFactory = Criteria::create();
+            $exprFactory = Criteria::expr();
+            $mouvementsFiltered = $article
+                ->getMouvements()
+                ->matching(
+                    $criteriaFactory
+                        ->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
+                        ->orderBy(['date' => Criteria::DESC])
+                );
+
+            /** @var MouvementStock $mouvementEntree */
+            $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+
+            $row = [
+                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
+                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                    'url' => $url,
+                    'articleId' => $article->getId(),
+                ]),
+            ];
         } else {
             $row =
                 [

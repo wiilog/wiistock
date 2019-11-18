@@ -12,12 +12,13 @@ let tableStatus = $('#tableStatus').DataTable({
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Comment', 'title' : 'Commentaire' },
         { "data": 'Treated', 'title' : 'Statut litige traité' },
+        { "data": 'NotifToBuyer', 'title' : 'Envoie de mails'},
         { "data": 'Order', 'title' : 'Ordre' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
     order: [
         [0, 'asc'],
-        [4, 'asc']
+        [5, 'asc']
     ],
 });
 

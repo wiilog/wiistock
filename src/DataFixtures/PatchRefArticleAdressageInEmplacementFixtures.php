@@ -71,7 +71,7 @@ class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements F
             }
         }
 
-        $this->champLibreRepository->deleteByLabel('adresse');
+        $this->champLibreRepository->deleteByLabel("'adresse'");
         $manager->flush();
     }
 

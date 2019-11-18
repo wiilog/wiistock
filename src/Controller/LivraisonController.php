@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
-use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
@@ -403,7 +402,22 @@ class LivraisonController extends AbstractController
 			}
 
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
+            $headers = array_merge($headers, [
+                'demandeur',
+                'statut',
+                'destination',
+                'commentaire',
+                'dateDemande',
+                'dateValidation',
+                'reference',
+                'type demande',
+                'code prépa',
+                'code livraison',
+                'referenceArticle',
+                'libelleArticle',
+                'quantité disponible',
+                'quantité à prélever'
+            ]);
 
 			// en-têtes champs libres articles
             $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
@@ -426,6 +440,13 @@ class LivraisonController extends AbstractController
 
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
+                    $articleRef = $ligneArticle->getReference();
+
+                    $quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                        ? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
+                        : $articleRef->getQuantiteStock();
+
+                    $availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
 					// champs libres de la demande
 					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
@@ -438,8 +459,11 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : '';
+                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $livraisonData[] = $availableQuantity;
                     $livraisonData[] = $ligneArticle->getQuantite();
 
                     // champs libres de l'article de référence

@@ -993,4 +993,52 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    public function getStockMiniClByRef($ref)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.champLibre c
+            JOIN v.articleReference a
+            WHERE c.label LIKE 'stock mini%' AND v.valeur is not null AND a =:ref"
+        )->setParameter('ref', $ref);
+
+        return $query->execute();
+    }
+
+    public function getStockAlerteClByRef($ref)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.champLibre c
+            JOIN v.articleReference a
+            WHERE c.label LIKE 'stock alerte%' AND v.valeur is not null AND a =:ref"
+        )->setParameter('ref', $ref);
+
+        return $query->execute();
+    }
+
+    public function getStockPriceClByRef($ref)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.champLibre c
+            JOIN v.articleReference a
+            WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:ref"
+        )->setParameter('ref', $ref);
+
+        return $query->execute();
+    }
 }
