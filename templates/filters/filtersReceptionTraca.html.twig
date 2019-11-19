@@ -1,0 +1,44 @@
+<div class="filterService filters">
+    <div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">De</div>
+            </div>
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+        </div>
+    </div>
+
+
+    <div>
+        <div class="input-group">
+            <select class="form-control data minw-150px" name="utilisateur" id="utilisateur" multiple="multiple">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <div class="input-group">
+            <input type="text" class="form-control data" name="reception" id="reception" placeholder="Réception">
+        </div>
+    </div>
+
+    <div>
+        <div class="input-group">
+            <input type="text" class="form-control data" name="arrivage" id="arrivage" placeholder="Arrivage">
+        </div>
+    </div>
+
+    <div>
+        <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
+            <i class="fas fa-filter mr-2"></i>
+            Filtrer
+        </div>
+    </div>
+</div>

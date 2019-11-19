@@ -91,12 +91,18 @@ class Arrivage
      */
     private $attachements;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionTraca", mappedBy="arrivage")
+     */
+    private $receptions;
+
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->receptions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -407,6 +413,37 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($attachement->getArrivage() === $this) {
                 $attachement->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionTraca[]
+     */
+    public function getReceptions(): Collection
+    {
+        return $this->receptions;
+    }
+
+    public function addReception(ReceptionTraca $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(ReceptionTraca $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getArrivage() === $this) {
+                $reception->setArrivage(null);
             }
         }
 
