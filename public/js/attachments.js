@@ -62,11 +62,15 @@ function dragLeaveDiv(event, div) {
     return false;
 }
 
+let droppedFiles = [];
+
 function dropOnDiv(event, div) {
     if (event.dataTransfer) {
         if (event.dataTransfer.files.length) {
             event.preventDefault();
             event.stopPropagation();
+            let array = Array.from(event.dataTransfer.files);
+            droppedFiles = [...droppedFiles, ...array];
             displayRight(div);
             displayAttachements(event.dataTransfer.files, div);
         }
