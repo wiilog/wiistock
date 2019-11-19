@@ -9,7 +9,7 @@ let tableDays = $('#tableDays').DataTable({
     },
     columns:[
         { "data": 'Day', 'title' : 'Jour' },
-        { "data": 'Worked', 'title' : 'Travaillé ou non' },
+        { "data": 'Worked', 'title' : 'Travaillé' },
         { "data": 'Times', 'title' : 'Horaires de travail' },
         { "data": 'Order', 'title' : 'Ordre' },
         { "data": 'Actions', 'title' : 'Actions' },
