@@ -61,13 +61,6 @@ class PatchMissionInvFixtures extends Fixture implements FixtureGroupInterface
 
 			if ($ref) {
 				$mission->addRefArticle($ref);
-
-				$location = $this->emplacementRepository->findOneByLabel($row[7]);
-				if ($location) {
-					$ref->setEmplacement($location);
-				} else {
-					dump('l\'emplacement ' . $row[7] . ' n\'existe pas');
-				}
 			} else {
 				dump('la réf ' . $row[0] . ' n\'existe pas');
 			}
