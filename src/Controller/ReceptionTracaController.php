@@ -78,7 +78,7 @@ class ReceptionTracaController extends AbstractController
                 $rows[] = [
                     'id' => $reception->getId(),
                     'date' => $reception->getDateCreation()->format('d/m/Y H:i:s'),
-                    'Arrivage' => $reception->getArrivage()->getNumeroArrivage(),
+                    'Arrivage' => $reception->getArrivage(),
                     'Réception' => $reception->getNumber(),
                     'Utilisateur' => $reception->getUser()->getUsername(),
                     'Actions' => $this->renderView('reception_traca/datatableRecepTracaRow.html.twig', [

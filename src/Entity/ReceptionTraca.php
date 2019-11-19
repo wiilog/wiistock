@@ -17,7 +17,7 @@ class ReceptionTraca
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="receptions")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $arrivage;
 
@@ -41,12 +41,12 @@ class ReceptionTraca
         return $this->id;
     }
 
-    public function getArrivage(): ?Arrivage
+    public function getArrivage(): ?string
     {
         return $this->arrivage;
     }
 
-    public function setArrivage(?Arrivage $arrivage): self
+    public function setArrivage(?string $arrivage): self
     {
         $this->arrivage = $arrivage;
 
