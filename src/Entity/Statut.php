@@ -447,4 +447,9 @@ class Statut
         return $this;
     }
 
+    public function getTreated(): ?bool
+    {
+        return $this->treated;
+    }
+
 }

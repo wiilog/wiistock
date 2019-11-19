@@ -484,7 +484,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setEmplacementFrom($article->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFERT)
                             ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
+                            ->setDate($preparation->getDate());
                         $em->persist($mouvement);
                         $em->flush();
                     }
@@ -501,7 +501,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setEmplacementFrom($articleRef->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFERT)
                             ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
+                            ->setDate($preparation->getDate());
                         $em->persist($mouvement);
                         $em->flush();
                     }
@@ -604,7 +604,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         ->setEmplacementFrom($emplacement)
                         ->setType(MouvementStock::TYPE_SORTIE)
                         ->setLivraisonOrder($livraison)
-                        ->setExpectedDate($livraison->getDate());
+                        ->setDate($livraison->getDate());
                     $entityManager->persist($mouvement);
 
                     if ($mouvementNomade['is_ref']) {
@@ -685,7 +685,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 										->setType(MouvementStock::TYPE_TRANSFERT)
 										->setPreparationOrder($preparation)
 										->setDate($mouvementRef ? $mouvementRef->getDate() : '')
-										->setExpectedDate($preparation->getDate());
+										->setDate($preparation->getDate());
 									$entityManager->persist($newMouvement);
 									$entityManager->flush();
 									if ($mouvementRef) {
