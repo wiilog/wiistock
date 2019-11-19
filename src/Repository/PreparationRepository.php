@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -75,7 +76,7 @@ class PreparationRepository extends ServiceEntityRepository
     /**
      * @param Utilisateur $user
      * @return int
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function countByUser($user)
     {

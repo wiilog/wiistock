@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Reception;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -44,6 +46,24 @@ class ReceptionRepository extends ServiceEntityRepository
 
 		$result = $query->execute();
 		return $result ? $result[0]['numero'] : null;
+	}
+
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countByUser($user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(r)
+            FROM App\Entity\Reception r
+            WHERE r.utilisateur = :user"
+		)->setParameter('user', $user);
+
+		return $query->getSingleScalarResult();
 	}
 
 }
