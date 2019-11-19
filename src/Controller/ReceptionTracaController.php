@@ -93,5 +93,25 @@ class ReceptionTracaController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @Route("/supprimer", name="reception_traca_delete", options={"expose"=true},methods={"GET","POST"})
+     */
+    public function delete(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $recep = $this->receptionTracaRepository->find($data['recep']);
+
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($recep);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
 
 }

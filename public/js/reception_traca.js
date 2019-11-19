@@ -7,8 +7,6 @@ $('#utilisateur').select2({
 });
 
 let $submitSearchMvt = $('#submitSearchRecep');
-
-
 let pathRecep = Routing.generate('recep_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
     "language": {
@@ -79,10 +77,10 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-let modalDeleteArrivage = $('#modalDeleteMvtTraca');
-let submitDeleteArrivage = $('#submitDeleteMvtTraca');
-let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableRecep);
+let modalDeleteReception = $('#modalDeleteRecepTraca');
+let submitDeleteReception = $('#submitDeleteRecepTraca');
+let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
+InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
 
 $submitSearchMvt.on('click', function () {
     let dateMin = $('#dateMin').val();
