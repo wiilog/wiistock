@@ -295,6 +295,18 @@ class ReferenceArticleController extends Controller
                         'name' => 'Commentaire',
                         "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
                     ],
+                    [
+                        "title" => 'Seuil d\'alerte',
+                        "data" => 'Seuil d\'alerte',
+                        'name' => 'Seuil d\'alerte',
+                        "class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
+                        "title" => 'Seuil de sécurité',
+                        "data" => 'Seuil de sécurité',
+                        'name' => 'Seuil de sécurité',
+                        "class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
+                    ],
 
                 ];
                 foreach ($champs as $champ) {
@@ -547,6 +559,16 @@ class ReferenceArticleController extends Controller
             'label' => FiltreRef::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
             'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Seuil de sécurité',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Seuil d\'alerte',
+            'id' => 0,
+            'typage' => 'number'
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
@@ -1064,7 +1086,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs'];
+            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1103,6 +1125,8 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
         $refData[] = $stringFournisseurs;
         $refData[] = $stringArticlesFournisseur;
+        $refData[] = $ref->getLimitSecurity();
+        $refData[] = $ref->getLimitWarning();
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
