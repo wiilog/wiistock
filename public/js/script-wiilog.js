@@ -825,12 +825,13 @@ let submitNewAssociation = function () {
     let correct = true;
     let params = {};
     $('#modalNewAssociation').find('.needed').each(function (index, input) {
-        if (params[$(input).attr('name')]){
-            params[$(input).attr('name')] += ';' + $(input).val();
-        } else {
-            params[$(input).attr('name')] = $(input).val();
-        }
-        if ($(input).val() === '') {
+        if ($(input).val() !== '') {
+            if (params[$(input).attr('name')]) {
+                params[$(input).attr('name')] += ';' + $(input).val();
+            } else {
+                params[$(input).attr('name')] = $(input).val();
+            }
+        } else if ($(input).val() === '' && !$(input).hasClass('arrivage-input')) {
             correct = false;
         }
     });
@@ -872,5 +873,5 @@ let toggleArrivage = function (button) {
 }
 
 let addArrivageAssociation = function(span) {
-    span.after('<input type="text" id="numero_arrivage" class="form-control data needed arrivage-input" name="numero_arrivage"/>');
+    span.after('<input type="text" id="numero_arrivage" class="form-control needed data arrivage-input" name="numero_arrivage"/>');
 }
