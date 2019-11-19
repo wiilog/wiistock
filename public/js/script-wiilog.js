@@ -819,3 +819,58 @@ function checkZero(data) {
     }
     return data;
 }
+
+
+let submitNewAssociation = function () {
+    let correct = true;
+    let params = {};
+    $('#modalNewAssociation').find('.needed').each(function (index, input) {
+        if (params[$(input).attr('name')]){
+            params[$(input).attr('name')] += ';' + $(input).val();
+        } else {
+            params[$(input).attr('name')] = $(input).val();
+        }
+        if ($(input).val() === '') {
+            correct = false;
+        }
+    });
+    if (correct) {
+        let routeNewAssociation = Routing.generate('reception_traca_new', true);
+        $.post(routeNewAssociation, JSON.stringify(params), function () {
+            $('#modalNewAssociation').find('.close').click();
+            if (typeof tableRecep !== "undefined") tableRecep.ajax.reload();
+            $('#modalNewAssociation').find('.error-msg').text('');
+        })
+    } else {
+        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécéssaires.');
+    }
+}
+
+let toggleArrivage = function (button) {
+    let arrivage$ = $('#numero_arrivage');
+    if (button.data('arrivage')) {
+        let arrivageDiv = arrivage$.parent();
+        arrivageDiv.find('input').each(function() {
+            if ($(this).hasClass('arrivage-input')) {
+                $(this).remove();
+            } else {
+                $(this).val('');
+                $(this).removeClass('needed');
+            }
+        });
+        arrivageDiv.hide();
+        button.text('Avec Arrivage');
+    } else {
+        let arrivageDiv = arrivage$.parent();
+        arrivageDiv.find('input').each(function() {
+            $(this).addClass('needed');
+        });
+        arrivageDiv.show();
+        button.text('Sans Arrivage');
+    }
+    button.data('arrivage', !button.data('arrivage'));
+}
+
+let addArrivageAssociation = function(span) {
+    span.after('<input type="text" id="numero_arrivage" class="form-control data needed arrivage-input" name="numero_arrivage"/>');
+}
