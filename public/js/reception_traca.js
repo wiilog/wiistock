@@ -11,7 +11,10 @@ let pathRecep = Routing.generate('recep_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
     buttons: [
         {
-            extend: 'csv'
+            extend: 'csv',
+            exportOptions: {
+                columns: [0, 1, 2, 3]
+            }
         }
     ],
     "language": {
