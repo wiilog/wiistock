@@ -9,6 +9,11 @@ $('#utilisateur').select2({
 let $submitSearchMvt = $('#submitSearchRecep');
 let pathRecep = Routing.generate('recep_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
+    buttons: [
+        {
+            extend: 'csv'
+        }
+    ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -107,5 +112,9 @@ $submitSearchMvt.on('click', function () {
 
     tableRecep.draw();
 });
+
+let customExport = function() {
+    tableRecep.button('.buttons-csv').trigger();
+};
 
 
