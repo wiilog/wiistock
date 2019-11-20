@@ -64,7 +64,7 @@ class EnCoursController extends AbstractController
                     $references[] = [
                         'Référence' => ($mvt->getRefArticle() ? $mvt->getRefArticle()->getReference() : $mvt->getArticle()->getReference()),
                         'Emplacement' => ($emplacement->getLabel()),
-                        'Durée' => $date->diff($dateMvt)->h . ':' . $date->diff($dateMvt)->i,
+                        'Durée' => ($date->diff($dateMvt)->h < 10 ? '0' . $date->diff($dateMvt)->h : $date->diff($dateMvt)->h)  . ':' . ($date->diff($dateMvt)->i < 10 ? '0' . $date->diff($dateMvt)->i : $date->diff($dateMvt)->i),
                         'Retard' => $retard ? 'Retard' : 'Normal',
                     ];
                 }
