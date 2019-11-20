@@ -100,7 +100,7 @@ class LivraisonsManagerService {
 
         // on termine les mouvements de livraison
         $mouvements = $mouvementRepository->findByLivraison($livraison);
-        dump('mouvements -> ' . implode(', ', array_map(function ($em){return $em->getId();}, $mouvements)));
+
         foreach ($mouvements as $mouvement) {
             $mouvement->setDate($dateEnd);
             if (isset($emplacementTo)) {
