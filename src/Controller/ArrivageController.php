@@ -421,7 +421,11 @@ class ArrivageController extends AbstractController
             if ($canBeDeleted) {
 				$entityManager = $this->getDoctrine()->getManager();
 				foreach ($arrivage->getColis() as $colis) {
+					$litiges = $colis->getLitiges();
 					$entityManager->remove($colis);
+					foreach ($litiges as $litige) {
+						$entityManager->remove($litige);
+					}
 				}
 				foreach ($arrivage->getAttachements() as $attachement) {
 					$this->removeAndDeleteAttachment($attachement, $arrivage);
