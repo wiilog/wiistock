@@ -21,10 +21,12 @@ use Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
+    public const COLLECTE_ALREADY_BEGAN = 'collecte-already-began';
+
 	/**
 	 * @var EntityManagerInterface
 	 */
-    private $em;
+    private $entityManager;
 	/**
 	 * @var \Twig_Environment
 	 */
@@ -50,16 +52,21 @@ class OrdreCollecteService
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 StatutRepository $statutRepository,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
 	{
 	    $this->mailerServerRepository = $mailerServerRepository;
 		$this->templating = $templating;
-		$this->em = $em;
+		$this->entityManager = $entityManager;
 		$this->statutRepository = $statutRepository;
 		$this->mailerService = $mailerService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
 	}
+
+	public function setEntityManager(EntityManagerInterface $entityManager): self {
+        $this->entityManager = $entityManager;
+        return $this;
+    }
 
     /**
      * @param OrdreCollecte $collecte
@@ -100,7 +107,7 @@ class OrdreCollecteService
                     ->setDate($date)
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($collecteReference->getQuantite());
-                $this->em->persist($newMouvement);
+                $this->entityManager->persist($newMouvement);
 			}
 
 			// on modifie le statut des articles liés à la collecte
@@ -115,10 +122,10 @@ class OrdreCollecteService
                     ->setDate($date)
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($article->getQuantite());
-                $this->em->persist($newMouvement);
+                $this->entityManager->persist($newMouvement);
 			}
 		}
-		$this->em->flush();
+		$this->entityManager->flush();
 
         if ($this->mailerServerRepository->findAll()) {
             $this->mailerService->sendMail(

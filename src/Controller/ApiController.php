@@ -38,6 +38,7 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\ORMException;
 use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
@@ -756,48 +757,76 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $resData['success'] = false;
                 $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
-
-
-            return new JsonResponse($resData, $statusCode);
         }
+        return new JsonResponse($resData, $statusCode);
     }
 
     /**
      * @Rest\Post("/api/finishCollecte", name= "api-finish-collecte")
      * @Rest\View()
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws ORMException
      */
-    public function finishCollecte(Request $request)
-    {
+    public function finishCollecte(Request $request,
+                                   EntityManagerInterface $entityManager) {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+                $resData = ['success' => [], 'errors' => []];
 
                 $collectes = $data['collectes'];
 
                 // on termine les collectes
                 foreach ($collectes as $collecteArray) {
                     $collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
+                    try {
+                        if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+                            $entityManager->transactional(function ()
+                                                          use ($collecteArray, $collecte, $nomadUser) {
+                                $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
+                                $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
+                            });
 
-                    if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
-                        $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
-                        $this->successDataMsg['success'] = true;
-                    } else {
+                            $resData['success'][] = [
+                                'numero_collecte' => $collecte->getNumero(),
+                                'id_collecte' => $collecte->getId()
+                            ];
+                        }
+                        else {
+                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGAN);
+                        }
+                    }
+                    catch (Exception $exception) {
+                        // we create a new entity manager because transactional() can call close() on it if transaction failed
+                        if (!$entityManager->isOpen()) {
+                            $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                            $this->ordreCollecteService->setEntityManager($entityManager);
+                        }
+
                         $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
-                        $this->successDataMsg['success'] = false;
-                        $this->successDataMsg['msg'] = "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").";
+
+                        $resData['errors'][] = [
+                            'numero_collecte' => $collecte->getNumero(),
+                            'id_collecte' => $collecte->getId(),
+
+                            'message' => (
+                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGAN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
+                                'Une erreur est survenue'
+                            )
+                        ];
                     }
                 }
             } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
             }
-
-            return new JsonResponse($this->successDataMsg);
         }
+        return new JsonResponse($resData, $statusCode);
     }
 
     /**
