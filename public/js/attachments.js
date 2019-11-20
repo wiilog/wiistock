@@ -139,8 +139,10 @@ function submitActionArrivageLitige(modal, path, table, callback, close, clear) 
     });
     modal.find(".elem").remove();
 
-    // ... puis on récupère les fichiers ...
+    // ... puis on récupère les fichiers (issus du clic)...
     let files = modal.find('.fileInput')[0].files;
+    // ... (issus du drag & drop)
+    files = [...files, ...droppedFiles];
 
     $.each(files, function(index, file) {
         Data.append('file' + index, file);
