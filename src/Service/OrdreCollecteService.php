@@ -105,6 +105,8 @@ class OrdreCollecteService
                     ->setUser($user)
                     ->setRefArticle($refArticle)
                     ->setDate($date)
+                    ->setEmplacementFrom($demandeCollecte->getPointCollecte())
+                    ->setEmplacementTo($refArticle->getEmplacement())
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($collecteReference->getQuantite());
                 $this->entityManager->persist($newMouvement);
@@ -118,8 +120,10 @@ class OrdreCollecteService
                 $newMouvement = new MouvementStock();
                 $newMouvement
                     ->setUser($user)
-                    ->setRefArticle($article)
+                    ->setArticle($article)
                     ->setDate($date)
+                    ->setEmplacementFrom($demandeCollecte->getPointCollecte())
+                    ->setEmplacementTo($article->getEmplacement())
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($article->getQuantite());
                 $this->entityManager->persist($newMouvement);

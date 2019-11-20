@@ -518,8 +518,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $preparation,
                                         $nomadUser,
                                         $livraison,
-                                        $mouvementNomade['is_ref'],
-                                        (bool) $mouvementNomade['reference'],
+                                        (bool) $mouvementNomade['is_ref'],
+                                        $mouvementNomade['reference'],
                                         $emplacement,
                                         (bool) (isset($mouvementNomade['selected_by_article']) && $mouvementNomade['selected_by_article'])
                                     );
@@ -739,8 +739,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'id_livraison' => $livraison->getId(),
 
                                 'message' => (
-                                    ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
-                                        'Une erreur est survenue'
+                                    ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                    (($exception->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
+                                        'Une erreur est survenue')
                                 )
                             ];
                         }

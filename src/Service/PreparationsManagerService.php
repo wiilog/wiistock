@@ -156,8 +156,10 @@ class PreparationsManagerService {
                 ? $article
                 : $referenceArticleRepository->findOneByReference($article);
             if ($refArticle) {
-                $mouvement->setRefArticle($refArticle);
-                $mouvement->setQuantity($mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
+                $mouvement
+                    ->setRefArticle($refArticle)
+                    ->setQuantity($mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
+
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
                 $ligneArticle->setQuantite($mouvement->getQuantity());
             }
@@ -174,10 +176,13 @@ class PreparationsManagerService {
                     ? $quantity
                     : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
 
-                $mouvement->setQuantity($mouvementQuantity);
-                $article->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-                $mouvement->setArticle($article);
-                $article->setQuantiteAPrelever($mouvement->getQuantity());
+                $mouvement
+                    ->setArticle($article)
+                    ->setQuantity($mouvementQuantity);
+
+                $article
+                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
+                    ->setQuantiteAPrelever($mouvement->getQuantity());
 
                 if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $newArticle = [
