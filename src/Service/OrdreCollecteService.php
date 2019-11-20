@@ -70,7 +70,7 @@ class OrdreCollecteService
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-	public function finishCollecte($collecte, $user, DateTime $date)
+	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date)
 	{
 		// on modifie le statut de l'ordre de collecte
 		$collecte
@@ -81,21 +81,6 @@ class OrdreCollecteService
 		// on modifie le statut de la demande de collecte
 		$demandeCollecte = $collecte->getDemandeCollecte();
 		$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
-
-		if ($this->mailerServerRepository->findAll()) {
-			$this->mailerService->sendMail(
-				'FOLLOW GT // Collecte effectuée',
-				$this->templating->render(
-					'mails/mailCollecteDone.html.twig',
-					[
-						'title' => 'Votre demande a bien été collectée.',
-						'collecte' => $demandeCollecte,
-
-					]
-				),
-				$demandeCollecte->getDemandeur()->getEmail()
-			);
-		}
 
 		// on modifie la quantité des articles de référence liés à la collecte
 		$collecteReferences = $this->collecteReferenceRepository->findByCollecte($demandeCollecte);
@@ -134,6 +119,21 @@ class OrdreCollecteService
 			}
 		}
 		$this->em->flush();
+
+        if ($this->mailerServerRepository->findAll()) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Collecte effectuée',
+                $this->templating->render(
+                    'mails/mailCollecteDone.html.twig',
+                    [
+                        'title' => 'Votre demande a bien été collectée.',
+                        'collecte' => $demandeCollecte,
+
+                    ]
+                ),
+                $demandeCollecte->getDemandeur()->getEmail()
+            );
+        }
 	}
 
 }
