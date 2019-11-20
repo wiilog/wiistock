@@ -23,6 +23,7 @@ use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -134,8 +135,12 @@ class ArrivageController extends AbstractController
      */
     private $litigeHistoricRepository;
 
+    /**
+     * @var NatureRepository
+     */
+    private $natureRepository;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -153,6 +158,7 @@ class ArrivageController extends AbstractController
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
+        $this->natureRepository = $natureRepository;
     }
 
     /**
@@ -170,6 +176,7 @@ class ArrivageController extends AbstractController
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'natures' => $this->natureRepository->findAll(),
             'statuts' => [
                 ['nom' => Arrivage::STATUS_CONFORME],
                 ['nom' => Arrivage::STATUS_LITIGE]
@@ -290,6 +297,38 @@ class ArrivageController extends AbstractController
                     if ($pj) $pj->setArrivage($arrivage);
                     copy($path . '/' . $file, $path . '/../' . $file);
                     unlink($path . '/' . $file);
+                }
+            }
+
+            $em->persist($arrivage);
+            $em->flush();
+
+            $natureKey = array_keys($data);
+            foreach ($natureKey as $natureId) {
+                if (gettype($natureId) === 'integer') {
+                    $nature = $this->natureRepository->find($natureId);
+                    for ($i = 0; $i < $data[$natureId]; $i++) {
+                        $arrivageNum = $arrivage->getNumeroArrivage();
+                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+                        if ($highestCode) {
+                            $highestCodeArray = explode('-', $highestCode);
+                            $highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
+                        } else {
+                            $highestCounter = 0;
+                        }
+
+                        $newCounter = sprintf('%05u', $highestCounter + 1);
+
+                        $colis = new Colis();
+                        $code = $arrivageNum . '-' . $newCounter;
+                        $colis
+                            ->setCode($code)
+                            ->setNature($nature)
+                            ->setArrivage($arrivage);
+                        $em->persist($colis);
+                        $em->flush();
+
+                    }
                 }
             }
 
@@ -773,6 +812,7 @@ class ArrivageController extends AbstractController
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
+                'natures' => $this->natureRepository->findAll(),
                 'addColis' => $addColis
             ]);
     }
@@ -881,27 +921,34 @@ class ArrivageController extends AbstractController
 
             $codes = [];
 
-            for ($i = 0; $i < $data['nbColis']; $i++) {
-                $arrivageNum = $arrivage->getNumeroArrivage();
-                $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                if ($highestCode) {
-                    $highestCodeArray = explode('-', $highestCode);
-                    $highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
-                } else {
-                    $highestCounter = 0;
+            $natureKey = array_keys($data);
+            foreach ($natureKey as $natureId) {
+                if (gettype($natureId) === 'integer') {
+                    $nature = $this->natureRepository->find($natureId);
+                    for ($i = 0; $i < $data[$natureId]; $i++) {
+                        $arrivageNum = $arrivage->getNumeroArrivage();
+                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+                        if ($highestCode) {
+                            $highestCodeArray = explode('-', $highestCode);
+                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
+                        } else {
+                            $highestCounter = 0;
+                        }
+
+                        $newCounter = sprintf('%05u', $highestCounter + 1);
+
+                        $colis = new Colis();
+                        $code = $arrivageNum . '-' . $newCounter;
+                        $colis
+                            ->setCode($code)
+                            ->setNature($nature)
+                            ->setArrivage($arrivage);
+                        $em->persist($colis);
+                        $em->flush();
+
+                        $codes[] = $code;
+                    }
                 }
-
-                $newCounter = sprintf('%05u', $highestCounter + 1);
-
-                $colis = new Colis();
-                $code = $arrivageNum . '-' . $newCounter;
-                $colis
-                    ->setCode($code)
-                    ->setArrivage($arrivage);
-                $em->persist($colis);
-                $em->flush();
-
-                $codes[] = $code;
             }
 
             $response = [];
@@ -1133,6 +1180,7 @@ class ArrivageController extends AbstractController
 					$formattedDate = '';
 				}
 				$rows[] = [
+				    'nature' => $colis->getNature() ? $colis->getNature()->getLabel() : '',
 					'code' => $colis->getCode(),
 					'lastMvtDate' => $formattedDate,
 					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',

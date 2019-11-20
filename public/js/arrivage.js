@@ -449,9 +449,11 @@ function submitActionArrivage(modal, path, table, callback, close) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min || isNaN(val)) {
+            if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
+            } else if (!isNaN(val)) {
+                $(this).removeClass('is-invalid');
             }
         }
         // validation valeur des inputs de type password

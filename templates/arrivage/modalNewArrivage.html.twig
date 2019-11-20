@@ -77,6 +77,31 @@
                     </div>
                 </div>
 
+                <div class="row mt-4">
+                    <div class='col-12 mb-2'>
+                        <h3 class='d-flex underlined'>
+                            <i class="d-block mr-2"></i>
+                            Nb de colis à ajouter :
+                        </h3>
+                    </div>
+                    <div class="form-group col-12 blocVisible d-block" id=''>
+                        <div class="d-block">
+                            <div class="row mt-2">
+                                {% for nature in natures %}
+                                    <div class="form-group col-6">
+                                        <label for="">
+                                            {{nature.label | capitalize}}
+                                        </label>
+                                        <input type="number" class="form-control data"
+                                               value="" name="{{ nature.id }}" id="{{ nature.id }}" min="0">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="row">
                     <div class="form-group col-8">
                         <label for="commentaire">Commentaire</label>

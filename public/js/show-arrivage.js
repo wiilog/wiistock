@@ -41,11 +41,15 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+    ],
+    order: [
+        [1, 'asc'],
     ],
 });
 let tableHistoLitige;
