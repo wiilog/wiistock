@@ -788,4 +788,19 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+    public function getStockPriceClByArt($art)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.champLibre c
+            JOIN v.article a
+            WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:art"
+        )->setParameter('art', $art);
+
+        return $query->execute();
+    }
 }
