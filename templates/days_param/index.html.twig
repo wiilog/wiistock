@@ -1,0 +1,17 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage des heures travaillées{% endblock %}
+
+{% block page_content %}
+
+    <h1>Paramétrage des heures travaillées</h1>
+
+    <table id="tableDays" class="table table-striped table-bordered w-100">
+    </table>
+
+    {% include 'days_param/modalEditDays.html.twig' %}
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
