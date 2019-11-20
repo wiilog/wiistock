@@ -11,6 +11,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\StatutRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 
 class OrdreCollecteService
 {
@@ -53,7 +54,7 @@ class OrdreCollecteService
 	 * @param OrdreCollecte $collecte
 	 * @param Utilisateur $user
 	 * @param string $date
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function finishCollecte($collecte, $user, $date)
 	{

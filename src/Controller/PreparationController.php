@@ -5,35 +5,31 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\LigneArticle;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
+use App\Entity\MouvementStock;
 use App\Entity\Preparation;
-
 use App\Entity\ReferenceArticle;
 use App\Repository\PreparationRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\PreparationsManagerService;
 use App\Service\SpecificService;
 use App\Service\UserService;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use App\Service\ArticleDataService;
-
-use App\Form\ReferenceArticleType;
 use App\Repository\ReferenceArticleRepository;
-
 use App\Repository\ArticleRepository;
-
 use App\Entity\Demande;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-
 use App\Repository\StatutRepository;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Repository\LigneArticleRepository;
@@ -117,6 +113,57 @@ class PreparationController extends AbstractController
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;
+    }
+
+
+    /**
+     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"GET"} )
+     * @param $idPrepa
+     * @param EntityManagerInterface $entityManager
+     * @param PreparationsManagerService $preparationsManager
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    public function finishPrepa($idPrepa,
+                                EntityManagerInterface $entityManager,
+                                PreparationsManagerService $preparationsManager): Response {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $preparation = $this->preparationRepository->find($idPrepa);
+
+        // we create mouvements
+        $preparationsManager->createMouvementAndScission($preparation, $this->getUser());
+
+        $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $livraison = $preparationsManager->persistLivraison($dateEnd);
+        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
+        $preparationsManager->closePreparationMouvement($preparation, $dateEnd);
+
+
+        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+        $mouvements = $mouvementRepository->findByPreparation($preparation);
+
+        foreach ($mouvements as $mouvement) {
+            $article = $mouvement->getArticle();
+            $refArticle = $mouvement->getRefArticle();
+            $preparationsManager->treatMouvement(
+                $mouvement->getQuantity(),
+                $preparation,
+                $this->getUser(),
+                $livraison,
+                isset($refArticle),
+                isset($refArticle) ? $refArticle : $article
+            );
+        }
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison->getId(),
+        ]);
     }
 
     /**
@@ -211,42 +258,6 @@ class PreparationController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
-
-    //    /**
-    //     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
-    //     */
-    //    public function addArticle(Request $request): Response
-    //    {
-    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-    //            $article = $this->articleRepository->find($data['article']);
-    //            $preparation = $this->preparationRepository->find($data['preparation']);
-    //            $preparation->addArticle($article);
-    //            $em = $this->getDoctrine()->getManager();
-    //            $em->flush();
-    //
-    //
-    //            return new JsonResponse();
-    //        }
-    //        throw new NotFoundHttpException("404");
-    //    }
-
-    //    /**
-    //     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
-    //     */
-    //    public function deleteArticle(Request $request): Response
-    //    {
-    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-    //                $article = $this->articleRepository->find($data['article']);
-    //                $preparation = $this->preparationRepository->find($data['preparation']);
-    //                $preparation->removeArticle($article);
-    //                $em = $this->getDoctrine()->getManager();
-    //                $em->flush();
-    //
-    //                return new JsonResponse();
-    //            }
-    //        throw new NotFoundHttpException("404");
-    //    }
 
 
     /**
