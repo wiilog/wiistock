@@ -864,4 +864,35 @@ em {
 .arrivage-input {
     margin-bottom: 5px;
 }
+
+#range-buttons-assoc {
+    text-align: center;
+}
+
+.dashboardBR {
+    background-color: white;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 100vh;
+}
+
+.dashboard-item {
+    min-width: 50%;
+    min-height: 40%;
+}
+
+#dashboard-assoc {
+    text-align: center;
+    margin-top: 10px;
+    height: 500px;
+    width: 900px;
+    background-color: white;
+}
+
+#chart-assoc {
+    height: 80%;
+}
 /*# sourceMappingURL=style.css.map */

@@ -7,6 +7,7 @@ use App\Entity\Menu;
 use App\Entity\ReceptionTraca;
 use App\Repository\ReceptionTracaRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\DashboardService;
 use App\Service\UserService;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -38,12 +39,18 @@ class ReceptionTracaController extends AbstractController
     private $receptionTracaRepository;
 
     /**
+     * @var DashboardService
+     */
+    private $dashboardService;
+
+    /**
      * ReceptionTracaController constructor.
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
      */
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserService $userService, ReceptionTracaRepository $receptionTracaRepository)
+    public function __construct(DashboardService $dashboardService, UtilisateurRepository $utilisateurRepository, UserService $userService, ReceptionTracaRepository $receptionTracaRepository)
     {
+        $this->dashboardService = $dashboardService;
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->receptionTracaRepository = $receptionTracaRepository;
@@ -151,6 +158,17 @@ class ReceptionTracaController extends AbstractController
             return new JsonResponse();
         }
 
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/dashboard_assoc", name="dashboard_assoc", options={"expose"=true},methods={"GET","POST"})
+     */
+    public function dashboard_assoc(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            return new JsonResponse($this->dashboardService->getWeekAssoc($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
+        }
         throw new NotFoundHttpException("404");
     }
 
