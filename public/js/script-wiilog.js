@@ -820,7 +820,6 @@ function checkZero(data) {
     return data;
 }
 
-
 let submitNewAssociation = function () {
     let correct = true;
     let params = {};
@@ -831,7 +830,7 @@ let submitNewAssociation = function () {
             } else {
                 params[$(input).attr('name')] = $(input).val();
             }
-        } else if ($(input).val() === '' && !$(input).hasClass('arrivage-input')) {
+        } else if (!$(input).hasClass('arrival-input')) {
             correct = false;
         }
     });
@@ -843,15 +842,14 @@ let submitNewAssociation = function () {
             $('#modalNewAssociation').find('.error-msg').text('');
         })
     } else {
-        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécéssaires.');
+        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
     }
 }
 
 let toggleArrivage = function (button) {
-    let arrivage$ = $('#numero_arrivage');
+    let $arrivageBlock = $('.arrivalNb').first().parent();
     if (button.data('arrivage')) {
-        let arrivageDiv = arrivage$.parent();
-        arrivageDiv.find('input').each(function() {
+        $arrivageBlock.find('input').each(function() {
             if ($(this).hasClass('arrivage-input')) {
                 $(this).remove();
             } else {
@@ -859,19 +857,14 @@ let toggleArrivage = function (button) {
                 $(this).removeClass('needed');
             }
         });
-        arrivageDiv.hide();
+        $arrivageBlock.hide();
         button.text('Avec Arrivage');
     } else {
-        let arrivageDiv = arrivage$.parent();
-        arrivageDiv.find('input').each(function() {
+        $arrivageBlock.find('input').each(function() {
             $(this).addClass('needed');
         });
-        arrivageDiv.show();
+        $arrivageBlock.show();
         button.text('Sans Arrivage');
     }
     button.data('arrivage', !button.data('arrivage'));
-}
-
-let addArrivageAssociation = function(span) {
-    span.after('<input type="text" id="numero_arrivage" class="form-control needed data arrivage-input" name="numero_arrivage"/>');
 }
