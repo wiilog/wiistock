@@ -1,0 +1,14 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stock / En cours{% endblock %}
+
+{% block page_content %}
+    <h1>En cours</h1>
+    <table id="tableEnCours_id" class="table table-striped table-bordered w-100">
+    </table>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/enCours.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
