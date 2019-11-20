@@ -81,15 +81,6 @@ class LivraisonsManagerService {
         $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
         $demande->setStatut($statutLivre);
 
-        $this->mailerService->sendMail(
-            'FOLLOW GT // Livraison effectuée',
-            $this->templating->render('mails/mailLivraisonDone.html.twig', [
-                'livraison' => $demande,
-                'title' => 'Votre demande a bien été livrée.',
-            ]),
-            $demande->getUtilisateur()->getEmail()
-        );
-
         // quantités gérées à la référence
         $ligneArticles = $demande->getLigneArticle();
 
@@ -109,12 +100,22 @@ class LivraisonsManagerService {
 
         // on termine les mouvements de livraison
         $mouvements = $mouvementRepository->findByLivraison($livraison);
+        dump('mouvements -> ' . implode(', ', array_map(function ($em){return $em->getId();}, $mouvements)));
         foreach ($mouvements as $mouvement) {
             $mouvement->setDate($dateEnd);
             if (isset($emplacementTo)) {
                 $mouvement->setEmplacementTo($emplacementTo);
             }
         }
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Livraison effectuée',
+            $this->templating->render('mails/mailLivraisonDone.html.twig', [
+                'livraison' => $demande,
+                'title' => 'Votre demande a bien été livrée.',
+            ]),
+            $demande->getUtilisateur()->getEmail()
+        );
     }
 
 }

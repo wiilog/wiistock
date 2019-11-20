@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Repository\EmplacementRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
@@ -117,7 +118,7 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"GET"} )
+     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"})
      * @param $idPrepa
      * @param EntityManagerInterface $entityManager
      * @param PreparationsManagerService $preparationsManager
@@ -126,13 +127,16 @@ class PreparationController extends AbstractController
      * @throws Exception
      */
     public function finishPrepa($idPrepa,
+                                Request $request,
                                 EntityManagerInterface $entityManager,
+                                EmplacementRepository $emplacementRepository,
                                 PreparationsManagerService $preparationsManager): Response {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $preparation = $this->preparationRepository->find($idPrepa);
+        $emplacementTo = $emplacementRepository->find($request->request->get('emplacement'));
 
         // we create mouvements
         $preparationsManager->createMouvementAndScission($preparation, $this->getUser());
@@ -140,8 +144,7 @@ class PreparationController extends AbstractController
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->persistLivraison($dateEnd);
         $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
-        $preparationsManager->closePreparationMouvement($preparation, $dateEnd);
-
+        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementTo);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
         $mouvements = $mouvementRepository->findByPreparation($preparation);
@@ -155,7 +158,8 @@ class PreparationController extends AbstractController
                 $this->getUser(),
                 $livraison,
                 isset($refArticle),
-                isset($refArticle) ? $refArticle : $article
+                isset($refArticle) ? $refArticle : $article,
+                $emplacementTo
             );
         }
 

@@ -81,7 +81,6 @@ class PreparationsManagerService {
         $demande = $demandes[0];
 
         $livraison->addDemande($demande);
-        dump($livraison->getNumero());
 
         $preparation
             ->addLivraison($livraison)

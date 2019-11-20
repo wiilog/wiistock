@@ -179,6 +179,7 @@ class LivraisonController extends AbstractController
      */
     public function finish(Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
+                           DemandeRepository $demandeRepository,
                            EntityManagerInterface $entityManager): Response {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -186,11 +187,12 @@ class LivraisonController extends AbstractController
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $demande = $demandeRepository->findOneByLivraison($livraison);
             $livraisonsManager->finishLivraison(
                 $this->getUser(),
                 $livraison,
                 $dateEnd,
-                $livraison->getDestination()
+                $demande->getDestination()
             );
             $entityManager->flush();
         }
