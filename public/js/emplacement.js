@@ -23,6 +23,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
+        {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
         {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
