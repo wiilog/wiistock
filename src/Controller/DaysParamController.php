@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Controller;
 
 
@@ -17,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametres-days")
  */
-class DaysParam extends AbstractController
+class DaysParamController extends AbstractController
 {
     /**
      * @var UserService
@@ -36,7 +35,7 @@ class DaysParam extends AbstractController
     }
 
     /**
-     * @Route("/", name="days_param")
+     * @Route("/", name="days_param_index")
      */
     public function index()
     {
@@ -117,8 +116,7 @@ class DaysParam extends AbstractController
             $day = $this->daysWorkedRepository->find($data['day']);
             $dayName = $day->getDay();
 
-            $day
-                ->setWorked($data['worked']);
+            $day->setWorked($data['worked']);
 
             if (isset($data['times'])) {
                 $arrayTimes = explode(';', $data['times']);
@@ -129,17 +127,16 @@ class DaysParam extends AbstractController
                         'msg' => 'Le format des horaires est incorrect.'
                     ]);
                 }
-                $day
-                    ->setTimes($data['times']);
+                $day->setTimes($data['times']);
             }
 
-                $em->persist($day);
-                $em->flush();
+			$em->persist($day);
+			$em->flush();
 
-                return new JsonResponse([
-                    'success' => true,
-                    'msg' => 'Le jour "' . $dayName . '" a bien été modifié.'
-                ]);
+			return new JsonResponse([
+				'success' => true,
+				'msg' => 'Le jour "' . $dayName . '" a bien été modifié.'
+			]);
         }
         throw new NotFoundHttpException('404');
     }

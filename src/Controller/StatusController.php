@@ -62,7 +62,7 @@ class StatusController extends AbstractController
     }
 
     /**
-     * @Route("/", name="status_param")
+     * @Route("/", name="status_param_index")
      */
     public function index()
     {

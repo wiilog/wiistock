@@ -25,7 +25,8 @@ class DaysWorkedRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT dp
-            FROM App\Entity\DaysWorked dp ORDER BY dp.displayOrder ASC
+            FROM App\Entity\DaysWorked dp 
+            ORDER BY dp.displayOrder ASC
             "
         );
         return $query->execute();

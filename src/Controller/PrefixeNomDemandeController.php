@@ -39,7 +39,7 @@ class PrefixeNomDemandeController extends AbstractController
     }
 
     /**
-     * @Route("/prefixe-demande", name="prefixe_demande")
+     * @Route("/prefixe-demande", name="prefixe_demande_index")
      */
     public function index(): Response
     {
