@@ -88,4 +88,58 @@ class DaysWorked
 
         return $this;
     }
+
+    public function getTimeArray(): array
+    {
+        $daysPeriod = explode(';', $this->getTimes());
+        $afternoon = $daysPeriod[1];
+        $morning = $daysPeriod[0];
+
+        $afternoonLastHourAndMinute = explode('-', $afternoon)[1];
+        $afternoonFirstHourAndMinute = explode('-', $afternoon)[0];
+        $morningLastHourAndMinute = explode('-', $morning)[1];
+        $morningFirstHourAndMinute = explode('-', $morning)[0];
+
+        $afternoonLastHour = intval(explode(':', $afternoonLastHourAndMinute)[0]);
+        $afternoonLastMinute = intval(explode(':', $afternoonLastHourAndMinute)[1]);
+        $afternoonFirstHour = intval(explode(':', $afternoonFirstHourAndMinute)[0]);
+        $afternoonFirstMinute = intval(explode(':', $afternoonFirstHourAndMinute)[1]);
+
+        $morningLastHour = intval(explode(':', $morningLastHourAndMinute)[0]);
+        $morningLastMinute = intval(explode(':', $morningLastHourAndMinute)[1]);
+        $morningFirstHour = intval(explode(':', $morningFirstHourAndMinute)[0]);
+        $morningFirstMinute = intval(explode(':', $morningFirstHourAndMinute)[1]);
+
+        return [
+            $morningFirstHour, $morningFirstMinute, $morningLastHour, $morningLastMinute,
+            $afternoonFirstHour, $afternoonFirstMinute, $afternoonLastHour, $afternoonLastMinute
+        ];
+    }
+
+    public function getTimeWorkedDuringThisDay(): int
+    {
+        $daysPeriod = explode(';', $this->getTimes());
+        $afternoon = $daysPeriod[1];
+        $morning = $daysPeriod[0];
+
+        $afternoonLastHourAndMinute = explode('-', $afternoon)[1];
+        $afternoonFirstHourAndMinute = explode('-', $afternoon)[0];
+        $morningLastHourAndMinute = explode('-', $morning)[1];
+        $morningFirstHourAndMinute = explode('-', $morning)[0];
+
+        $afternoonLastHour = intval(explode(':', $afternoonLastHourAndMinute)[0]);
+        $afternoonLastMinute = intval(explode(':', $afternoonLastHourAndMinute)[1]);
+        $afternoonFirstHour = intval(explode(':', $afternoonFirstHourAndMinute)[0]);
+        $afternoonFirstMinute = intval(explode(':', $afternoonFirstHourAndMinute)[1]);
+        $afternoonMinutes = (($afternoonLastHour * 60) + $afternoonLastMinute) - (($afternoonFirstHour * 60) + $afternoonFirstMinute);
+
+        $morningLastHour = intval(explode(':', $morningLastHourAndMinute)[0]);
+        $morningLastMinute = intval(explode(':', $morningLastHourAndMinute)[1]);
+        $morningFirstHour = intval(explode(':', $morningFirstHourAndMinute)[0]);
+        $morningFirstMinute = intval(explode(':', $morningFirstHourAndMinute)[1]);
+        $morningMinutes = (($morningLastHour * 60) + $morningLastMinute) - (($morningFirstHour * 60) + $morningFirstMinute);
+
+        $totalMinutes = $afternoonMinutes + $morningMinutes;
+        return $totalMinutes;
+    }
 }

@@ -70,25 +70,28 @@ class EnCoursController extends AbstractController
         foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacement) {
             foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                    $date = \DateTime::createFromFormat(\DateTime::ATOM, date(\DateTime::ATOM));
-                    $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
-                    $hoursBetween = $this->getHoursBetween($mvt);
-                    $emplacementHours = intval(explode(':', $emplacement->getDateMaxTime())[0]);
-                    $isLate = $hoursBetween > $emplacementHours;
-                    $time = ($hoursBetween < 10 ? '0' . $hoursBetween : $hoursBetween)
+                    $minutesBetween = $this->getMinutesBetween($mvt);
+                    $time =
+                        (floor($minutesBetween / 60) < 10 ? ('0' . floor($minutesBetween / 60)) : floor($minutesBetween / 60))
                         . ':' .
-                        ($this->getExtraMinsBetween($dateMvt, $date) < 10 ?
-                            '0' . $this->getExtraMinsBetween($dateMvt, $date) :
-                            $this->getExtraMinsBetween($dateMvt, $date));
+                        ($minutesBetween % 60 < 10 ? ('0' . $minutesBetween % 60) : ($minutesBetween % 60));
+                    $maxTime = $emplacement->getDateMaxTime();
+                    $timeHours = floor($minutesBetween / 60);
+                    $timeMinutes = $minutesBetween % 60;
+                    $maxTimeHours = intval(explode(':', $maxTime)[0]);
+                    $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
+                    $late = false;
+                    if ($timeHours > $maxTimeHours) {
+                        $late = true;
+                    } else if (intval($timeHours) === $maxTimeHours){
+                        $late =  $timeMinutes > $maxTimeMinutes;
+                    }
                     $emplacements[$emplacement->getLabel()][] = [
                         'ref' => $mvt->getRefArticle(),
                         'time' => $time,
-                        'late' => $isLate,
-                        'max' => $emplacement->getDateMaxTime()
+                        'max' => $emplacement->getDateMaxTime(),
+                        'late' => $late
                     ];
-                    usort($emplacements[$emplacement->getLabel()], function ($e1, $e2) {
-                        return $e1['late'] - $e2['late'];
-                    });
                 }
             }
         }
@@ -101,76 +104,41 @@ class EnCoursController extends AbstractController
      * @return bool
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function getHoursBetween($mvt): int
+    private function getMinutesBetween($mvt): int
     {
-        $date = \DateTime::createFromFormat(\DateTime::ATOM, date(\DateTime::ATOM));
+        $now = \DateTime::createFromFormat(\DateTime::ATOM, date(\DateTime::ATOM));
         $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
-        $interval = \DateInterval::createFromDateString('1 hour');
-        $period = new \DatePeriod($dateMvt, $interval, $date->modify('-1 hour'));
-        $hoursBetween = 0;
-        foreach ($period as $hour) {
-            $day = $this->daysRepository->findByDayAndWorked(strtolower($hour->format('l')));
-            if ($day && $this->hourIsInDayHour($day, $hour)) {
-                $hoursBetween++;
+        $interval = \DateInterval::createFromDateString('1 day');
+        $period = new \DatePeriod($dateMvt, $interval, $now);
+        $minutesBetween = 0;
+        /**
+         * @var $day \DateTime
+         */
+        foreach ($period as $day) {
+            $dayWorked = $this->daysRepository->findByDayAndWorked(strtolower($day->format('l')));
+            $isToday = ($day->diff($now)->format('%a') === '0');
+            $isMvtDay = ($day->diff($dateMvt)->format('%a') === '0');
+            if ($dayWorked) {
+                $timeArray = $dayWorked->getTimeArray();
+                if ($isToday) {
+                    if ($minutesBetween === 0) {
+                        $minutesBetween += (intval($now->diff($dateMvt)->h) - 1)*60 + intval($now->diff($dateMvt)->i);
+                    } else {
+                        $minutesBetween += (
+                            (intval($now->format('H'))*60) + intval($now->format('i')) -
+                            ((($timeArray[0] + 1)*60) + $timeArray[1])
+                        );
+                    }
+                } else if ($isMvtDay && !$isToday) {
+                    $minutesBetween += (
+                        ((($timeArray[6]+1)*60) + $timeArray[7]) -
+                        ((intval($dateMvt->format('H')) + 1)*60) + intval($dateMvt->format('i'))
+                    );
+                } else {
+                    $minutesBetween += $dayWorked->getTimeWorkedDuringThisDay();
+                }
             }
         }
-        return $hoursBetween-1;
-    }
-
-    /**
-     * @param $dateMvt \DateTime
-     * @param $date \DateTime
-     * @return float|int
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    private function getExtraMinsBetween($dateMvt, $date)
-    {
-        $minMvt = intval($dateMvt->format('i'));
-        $minNow = intval($date->format('i'));
-        if (!$this->daysRepository->findByDayAndWorked(strtolower($dateMvt->format('l')))) $minMvt = 0;
-        return $minMvt > $minNow ? $minMvt - $minNow : $minNow - $minMvt;
-    }
-
-    /**
-     * @param $day DaysWorked
-     * @param $hour \DateTime
-     * @return bool
-     */
-    private function hourIsInDayHour($day, $hour): bool
-    {
-        $daysPeriod = explode(';', $day->getTimes());
-        $afternoon = $daysPeriod[1];
-        $morning = $daysPeriod[0];
-
-        $afternoonLastHourAndMinute = explode('-', $afternoon)[1];
-        $afternoonFirstHourAndMinute = explode('-', $afternoon)[0];
-        $morningLastHourAndMinute = explode('-', $morning)[1];
-        $morningFirstHourAndMinute = explode('-', $morning)[0];
-
-        $afternoonLastHour = intval(explode(':', $afternoonLastHourAndMinute)[0]);
-        $afternoonLastMinute = intval(explode(':', $afternoonLastHourAndMinute)[1]);
-        $afternoonFirstHour = intval(explode(':', $afternoonFirstHourAndMinute)[0]);
-        $afternoonFirstMinute = intval(explode(':', $afternoonFirstHourAndMinute)[1]);
-
-        $morningLastHour = intval(explode(':', $morningLastHourAndMinute)[0]);
-        $morningLastMinute = intval(explode(':', $morningLastHourAndMinute)[1]);
-        $morningFirstHour = intval(explode(':', $morningFirstHourAndMinute)[0]);
-        $morningFirstMinute = intval(explode(':', $morningFirstHourAndMinute)[1]);
-
-        $hourTestedMinute = intval($hour->format('i'));
-        $hourTestedHour = intval($hour->format('H'));
-        if (($hourTestedHour < $morningLastHour && $hourTestedHour > $morningFirstHour)
-            || ($hourTestedHour < $afternoonLastHour && $hourTestedHour > $afternoonFirstHour)) {
-            return true;
-        } else if ($hourTestedHour === $morningLastHour) {
-            return $hourTestedMinute <= $morningLastMinute;
-        } else if ($hourTestedHour === $morningFirstHour) {
-            return $hourTestedMinute >= $morningFirstMinute;
-        } else if ($hourTestedHour === $afternoonLastHour) {
-            return $hourTestedMinute <= $afternoonLastMinute;
-        } else if ($hourTestedHour === $afternoonFirstHour) {
-            return $hourTestedMinute >= $afternoonFirstMinute;
-        }
-        return false;
+        return $minutesBetween;
     }
 }
