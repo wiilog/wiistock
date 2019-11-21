@@ -31,7 +31,8 @@ function drawAnnotations() {
                 }
             },
             vAxis: {
-                minValue: 1
+                minValue: 1,
+                format: '#'
             }
         };
         let chart = new google.visualization.ColumnChart(document.getElementById('chart-assoc'));
