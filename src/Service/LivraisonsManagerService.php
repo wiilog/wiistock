@@ -76,7 +76,6 @@ class LivraisonsManagerService {
             $demandeRepository = $this->entityManager->getRepository(Demande::class);
             $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-
             $livraison
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_LIVRE))
                 ->setUtilisateur($user)

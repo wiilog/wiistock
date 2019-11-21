@@ -150,7 +150,6 @@ class PreparationsManagerService {
         }
 
         $this->entityManager->persist($mouvement);
-
         if ($isRef) {
             $refArticle = ($article instanceof ReferenceArticle)
                 ? $article

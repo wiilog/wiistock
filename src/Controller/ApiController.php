@@ -709,23 +709,22 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $emplacement = $this->emplacementRepository->findOneByLabel($livraisonArray['emplacement']);
                         try {
                             if ($emplacement) {
-
-                                $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                                 // flush auto at the end
                                 $entityManager->transactional(function()
                                                                    use($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
                                     $livraisonsManager->setEntityManager($entityManager);
                                     $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $emplacement);
+                                    $entityManager->flush();
                                 });
+
+                                $resData['success'][] = [
+                                    'numero_livraison' => $livraison->getNumero(),
+                                    'id_livraison' => $livraison->getId()
+                                ];
                             }
                             else {
                                 throw new Exception(LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                             }
-
-                            $resData['success'][] = [
-                                'numero_livraison' => $livraison->getNumero(),
-                                'id_livraison' => $livraison->getId()
-                            ];
                         }
                         catch (Exception $exception) {
                             // we create a new entity manager because transactional() can call close() on it if transaction failed
@@ -787,9 +786,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     try {
                         if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                             $entityManager->transactional(function ()
-                                                          use ($collecteArray, $collecte, $nomadUser) {
+                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser) {
+                                $this->ordreCollecteService->setEntityManager($entityManager);
                                 $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
                                 $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
+                                $entityManager->flush();
                             });
 
                             $resData['success'][] = [
