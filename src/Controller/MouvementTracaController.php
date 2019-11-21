@@ -3,13 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
+
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
+use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -51,17 +52,29 @@ class MouvementTracaController extends AbstractController
      */
     private $emplacementRepository;
 
-    /**
-     * ArrivageController constructor.
-     */
+	/**
+	 * @var TypeRepository
+	 */
+    private $typeRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+	/**
+	 * ArrivageController constructor.
+	 * @param TypeRepository $typeRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param StatutRepository $statutRepository
+	 * @param UserService $userService
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 */
+
+    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->statutRepository = $statutRepository;
         $this->userService = $userService;
         $this->mouvementRepository = $mouvementTracaRepository;
+        $this->typeRepository = $typeRepository;
     }
 
     /**
@@ -79,6 +92,47 @@ class MouvementTracaController extends AbstractController
             'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
+
+	/**
+	 * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return Response
+	 * @throws \Exception
+	 */
+	public function new(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$post = $request->request;
+			$em = $this->getDoctrine()->getManager();
+
+			$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+			$randomChars = substr(md5(microtime()), rand(0,26), 5);
+			$formattedDate = $date->format('c') . '_' . $randomChars;
+			$type = $this->statutRepository->find($post->get('type'));
+			$location = $this->emplacementRepository->find($post->get('emplacement'));
+
+			$mvtTraca = new MouvementTraca();
+			$mvtTraca
+				->setDate($formattedDate)
+				->setType($type ? $type->getNom() : '')
+				->setRefArticle($post->get('colis'))
+				->setRefEmplacement($location)
+				->setOperateur($this->getUser());
+//				->setCommentaire($post->get('commentaire') ?? null);
+
+			$em->persist($mvtTraca);
+			$em->flush();
+
+//			$this->addAttachements($request, $arrivage);
+
+			return new JsonResponse(true);
+		}
+		throw new NotFoundHttpException('404 not found');
+	}
 
     /**
      * @Route("/api", name="mvt_traca_api", options={"expose"=true}, methods="GET|POST")

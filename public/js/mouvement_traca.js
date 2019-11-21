@@ -53,7 +53,7 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
         {"data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement'},
-        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'type', 'name': 'type', 'title': 'Action'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
@@ -102,6 +102,11 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
+
+let modalNewMvtTraca = $("#modalNewMvtTraca");
+let submitNewMvtTraca = $("#submitNewMvtTraca");
+let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt);
 
 let modalDeleteArrivage = $('#modalDeleteMvtTraca');
 let submitDeleteArrivage = $('#submitDeleteMvtTraca');
@@ -194,3 +199,13 @@ let mFile = function (csv) {
         }
     }
 }
+
+let editorNewMvtTracaAlreadyDone = false;
+
+function initNewMvtTracaEditor(modal) {
+    if (!editorNewMvtTracaAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewMvtTracaAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+};
