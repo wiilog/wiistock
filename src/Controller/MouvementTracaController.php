@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 
+use App\Entity\PieceJointe;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
@@ -125,9 +128,9 @@ class MouvementTracaController extends AbstractController
 			$mvtTraca = new MouvementTraca();
 			$mvtTraca
 				->setDate($formattedDate)
-				->setType($type ? $type->getNom() : '')
-				->setRefArticle($post->get('colis'))
-				->setRefEmplacement($location)
+				->setType($type)
+				->setColis($post->get('colis'))
+				->setEmplacement($location)
 				->setOperateur($this->getUser())
 				->setCommentaire($post->get('commentaire') ?? null);
 
@@ -160,10 +163,10 @@ class MouvementTracaController extends AbstractController
                 $rows[] = [
                     'id' => $mvt->getId(),
                     'date' => $date->format('d/m/Y H:i:s'),
-                    'refArticle' => $mvt->getRefArticle(),
-                    'refEmplacement' => $mvt->getRefEmplacement(),
-                    'type' => $mvt->getType(),
-                    'operateur' => $mvt->getOperateur(),
+                    'colis' => $mvt->getColis(),
+                    'location' => $mvt->getEmplacement() ? $mvt->getEmplacement()->getLabel() : '',
+                    'type' => $mvt->getType() ? $mvt->getType()->getNom() : '',
+                    'operateur' => $mvt->getOperateur() ? $mvt->getOperateur()->getUsername() : '',
                     'Actions' => $this->renderView('mouvement_traca/datatableMvtTracaRow.html.twig', [
                         'mvt' => $mvt,
                     ])
@@ -177,7 +180,74 @@ class MouvementTracaController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
+	/**
+	 * @Route("/api-modifier", name="mvt_traca_api_edit", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function editApi(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$mvt = $this->mouvementRepository->find($data['id']);
+
+			$json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
+				'mvt' => $mvt,
+				'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+				'attachements' => $mvt->getAttachements()
+			]);
+
+			return new JsonResponse($json);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function edit(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$post = $request->request;
+
+			$type = $this->statutRepository->find($post->get('type'));
+			$location = $this->emplacementRepository->find($post->get('emplacement'));
+
+			$mvt = $this->mouvementRepository->find($post->get('id'));
+			$mvt
+				->setType($type)
+				->setOperateur($this->getUser())
+				->setEmplacement($location)
+//				->setDate()
+				->setColis($post->get('colis'))
+				->setCommentaire($post->get('commentaire'));
+
+			$em = $this->getDoctrine()->getManager();
+			$em->flush();
+
+			$listAttachmentIdToKeep = $post->get('files');
+
+			$attachments = $mvt->getAttachements()->toArray();
+			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
+				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+					$this->attachmentService->removeAndDeleteAttachment($attachment, null, null, $mvt);
+				}
+			}
+
+			$this->attachmentService->addAttachements($request, null, null, $mvt);
+
+			return new JsonResponse();
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+
+	/**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
      */
     public function delete(Request $request): Response
@@ -226,10 +296,10 @@ class MouvementTracaController extends AbstractController
                 $mouvementData = [];
 
                 $mouvementData[] = substr($mouvement->getDate(), 0,10). ' ' . substr($mouvement->getDate(), 11,8);
-                $mouvementData[] = $mouvement->getRefArticle();
-                $mouvementData[] = $mouvement->getRefEmplacement();
-                $mouvementData[] = $mouvement->getType();
-                $mouvementData[] = $mouvement->getOperateur();
+                $mouvementData[] = $mouvement->getColis();
+                $mouvementData[] = $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '';
+                $mouvementData[] = $mouvement->getType() ? $mouvement->getType()->getNom() : '';
+                $mouvementData[] = $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername(): '';
 
                 $data[] = $mouvementData;
             }

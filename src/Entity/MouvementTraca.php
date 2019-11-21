@@ -24,7 +24,7 @@ class MouvementTraca
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $refArticle;
+    private $colis;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -32,17 +32,17 @@ class MouvementTraca
     private $date;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
      */
-    private $refEmplacement;
+    private $emplacement;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
      */
     private $type;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur")
      */
     private $operateur;
 
@@ -59,6 +59,7 @@ class MouvementTraca
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
+        $this->emplacement = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -66,14 +67,14 @@ class MouvementTraca
         return $this->id;
     }
 
-    public function getRefArticle(): ?string
+    public function getColis(): ?string
     {
-        return $this->refArticle;
+        return $this->colis;
     }
 
-    public function setRefArticle(?string $refArticle): self
+    public function setColis(?string $colis): self
     {
-        $this->refArticle = $refArticle;
+        $this->colis = $colis;
 
         return $this;
     }
@@ -90,42 +91,6 @@ class MouvementTraca
         return $this;
     }
 
-    public function getRefEmplacement(): ?string
-    {
-        return $this->refEmplacement;
-    }
-
-    public function setRefEmplacement(?string $refEmplacement): self
-    {
-        $this->refEmplacement = $refEmplacement;
-
-        return $this;
-    }
-
-    public function getType(): ?string
-    {
-        return $this->type;
-    }
-
-    public function setType(?string $type): self
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    public function getOperateur(): ?string
-    {
-        return $this->operateur;
-    }
-
-    public function setOperateur(?string $operateur): self
-    {
-        $this->operateur = $operateur;
-
-        return $this;
-    }
-
     public function getCommentaire(): ?string
     {
         return $this->commentaire;
@@ -134,6 +99,18 @@ class MouvementTraca
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getEmplacement(): ?Emplacement
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?Emplacement $emplacement): self
+    {
+        $this->emplacement = $emplacement;
 
         return $this;
     }
@@ -168,4 +145,29 @@ class MouvementTraca
 
         return $this;
     }
+
+    public function getOperateur(): ?Utilisateur
+    {
+        return $this->operateur;
+    }
+
+    public function setOperateur(?Utilisateur $operateur): self
+    {
+        $this->operateur = $operateur;
+
+        return $this;
+    }
+
+    public function getType(): ?Statut
+    {
+        return $this->type;
+    }
+
+    public function setType(?Statut $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
 }

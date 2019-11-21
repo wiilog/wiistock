@@ -57,4 +57,24 @@ class AttachmentService
 		$this->em->flush();
 	}
 
+	/**
+	 * @param PieceJointe $attachment
+	 * @param Arrivage $arrivage
+	 * @param Litige $litige
+	 * @param MouvementTraca $mvtTraca
+	 */
+	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null)
+	{
+		if ($arrivage) {
+			$arrivage->removeAttachement($attachment);
+		} elseif ($litige) {
+			$litige->removeAttachement($attachment);
+		} elseif ($mvtTraca) {
+			$mvtTraca->removeAttachement($attachment);
+		}
+		$path = "../public/uploads/attachements/" . $attachment->getFileName();
+		unlink($path);
+		$this->em->flush();
+	}
+
 }

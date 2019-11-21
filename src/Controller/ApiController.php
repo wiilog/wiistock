@@ -337,8 +337,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
                         $toInsert = new MouvementTraca();
                         $toInsert
-                            ->setRefArticle($refArticle)
-                            ->setRefEmplacement($refEmplacement)
+                            ->setColis($refArticle)
+                            ->setEmplacement($refEmplacement)
                             ->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
                             ->setDate($mvt['date'])
                             ->setType($type);

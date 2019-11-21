@@ -387,7 +387,7 @@ class ArrivageController extends AbstractController
 			$attachments = $arrivage->getAttachements()->toArray();
 			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-					$this->removeAndDeleteAttachment($attachment, $arrivage);
+					$this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
 				}
 			}
 
@@ -419,7 +419,7 @@ class ArrivageController extends AbstractController
                 $entityManager->remove($colis);
             }
             foreach ($arrivage->getAttachements() as $attachement) {
-                $this->removeAndDeleteAttachment($attachement, $arrivage);
+                $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
             }
             $entityManager->remove($arrivage);
             $entityManager->flush();
@@ -983,7 +983,7 @@ class ArrivageController extends AbstractController
 			foreach ($attachments as $attachment) {
 				/** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-					$this->removeAndDeleteAttachment($attachment, null, $litige);
+					$this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
 				}
 			}
 
@@ -1072,8 +1072,8 @@ class ArrivageController extends AbstractController
 				$rows[] = [
 					'code' => $colis->getCode(),
 					'lastMvtDate' => $formattedDate,
-					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
-					'operator' => $mouvement ? $mouvement->getOperateur() : '',
+					'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
+					'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
 					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
 				];
 			}
@@ -1100,20 +1100,4 @@ class ArrivageController extends AbstractController
         return $response;
     }
 
-	/**
-	 * @param PieceJointe $attachment
-	 * @param Arrivage $arrivage
-	 * @param Litige $litige
-	 */
-    private function removeAndDeleteAttachment($attachment, $arrivage, $litige = null)
-	{
-		if ($arrivage) {
-			$arrivage->removeAttachement($attachment);
-		} elseif ($litige) {
-			$litige->removeAttachement($attachment);
-		}
-		$path = "../public/uploads/attachements/" . $attachment->getFileName();
-		unlink($path);
-		$this->getDoctrine()->getManager()->flush();
-	}
 }

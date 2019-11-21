@@ -66,7 +66,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
 			/** @lang DQL */
 			"SELECT mt
 			FROM App\Entity\MouvementTraca mt
-			WHERE mt.refArticle = :colis
+			WHERE mt.colis = :colis
 			ORDER BY mt.date DESC"
 		)->setParameter('colis', $colis);
 
