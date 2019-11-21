@@ -121,8 +121,8 @@ class MouvementTracaController extends AbstractController
 				->setType($type ? $type->getNom() : '')
 				->setRefArticle($post->get('colis'))
 				->setRefEmplacement($location)
-				->setOperateur($this->getUser());
-//				->setCommentaire($post->get('commentaire') ?? null);
+				->setOperateur($this->getUser())
+				->setCommentaire($post->get('commentaire') ?? null);
 
 			$em->persist($mvtTraca);
 			$em->flush();

@@ -9,7 +9,6 @@ use App\Entity\CategoryType;
 use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
-use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -29,6 +28,7 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\AttachmentService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -109,6 +109,11 @@ class ArrivageController extends AbstractController
      */
     private $specificService;
 
+	/**
+	 * @var AttachmentService
+	 */
+    private $attachmentService;
+
     /**
      * @var ChampLibreRepository
      */
@@ -129,13 +134,7 @@ class ArrivageController extends AbstractController
 	 */
     private $mouvementTracaRepository;
 
-    /**
-     * @var LitigeHistoricRepository
-     */
-    private $litigeHistoricRepository;
-
-
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(AttachmentService $attachmentService, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -153,6 +152,7 @@ class ArrivageController extends AbstractController
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
+        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -283,7 +283,7 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-            $this->addAttachements($request, $arrivage);
+            $this->attachmentService->addAttachements($request, $arrivage);
 
             $data = [
                 "redirect" => $this->generateUrl('arrivage_show', [
@@ -391,7 +391,7 @@ class ArrivageController extends AbstractController
 				}
 			}
 
-			$this->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request, $arrivage);
 
 			$response = [
 				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -631,40 +631,6 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/ajouter-pj", name="add_attachement", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @param Arrivage $arrivage
-	 * @param Litige|null $litige
-	 */
-	public function addAttachements(Request $request, $arrivage, $litige = null)
-	{
-		$em = $this->getDoctrine()->getManager();
-		$path = "../public/uploads/attachements/";
-		if (!file_exists($path)) {
-			mkdir($path, 0777);
-		}
-		for ($i = 0; $i < count($request->files); $i++) {
-			$file = $request->files->get('file' . $i);
-			if ($file) {
-				$filename = uniqid() . '.' . $file->getClientOriginalExtension() ?? '';
-				$file->move($path, $filename);
-
-				$pj = new PieceJointe();
-				$pj
-					->setOriginalName($file->getClientOriginalName())
-					->setFileName($filename);
-				if ($arrivage) {
-					$pj->setArrivage($arrivage);
-				} elseif ($litige) {
-					$pj->setLitige($litige);
-				}
-				$em->persist($pj);
-			}
-		}
-		$em->flush();
-	}
-
     /**
      * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
      */
@@ -786,7 +752,7 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->addAttachements($request, null, $litige);
+			$this->attachmentService->addAttachements($request, null, $litige);
 
 			$this->sendMailToAcheteurs($litige);
 
@@ -1021,7 +987,7 @@ class ArrivageController extends AbstractController
 				}
 			}
 
-			$this->addAttachements($request, null, $litige);
+			$this->attachmentService->addAttachements($request, null, $litige);
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 
