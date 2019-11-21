@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Litige;
+use App\Entity\MouvementTraca;
 use App\Entity\PieceJointe;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,8 +26,9 @@ class AttachmentService
 	 * @param Request $request
 	 * @param Arrivage $arrivage
 	 * @param Litige|null $litige
+	 * @param MouvementTraca|null $mvtTraca
 	 */
-	public function addAttachements(Request $request, $arrivage, $litige = null)
+	public function addAttachements(Request $request, $arrivage, $litige = null, $mvtTraca = null)
 	{
 		$path = "../public/uploads/attachements/";
 		if (!file_exists($path)) {
@@ -46,6 +48,8 @@ class AttachmentService
 					$pj->setArrivage($arrivage);
 				} elseif ($litige) {
 					$pj->setLitige($litige);
+				} elseif ($mvtTraca) {
+					$pj->setMouvementTraca($mvtTraca);
 				}
 				$this->em->persist($pj);
 			}

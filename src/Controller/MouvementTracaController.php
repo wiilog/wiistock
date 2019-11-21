@@ -12,6 +12,7 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\AttachmentService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,11 @@ class MouvementTracaController extends AbstractController
      * @var UserService
      */
     private $userService;
+
+	/**
+	 * @var AttachmentService
+	 */
+    private $attachmentService;
 
     /**
      * @var StatutRepository
@@ -67,7 +73,7 @@ class MouvementTracaController extends AbstractController
 	 * @param MouvementTracaRepository $mouvementTracaRepository
 	 */
 
-    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -75,6 +81,7 @@ class MouvementTracaController extends AbstractController
         $this->userService = $userService;
         $this->mouvementRepository = $mouvementTracaRepository;
         $this->typeRepository = $typeRepository;
+        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -127,7 +134,7 @@ class MouvementTracaController extends AbstractController
 			$em->persist($mvtTraca);
 			$em->flush();
 
-//			$this->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request, null, null, $mvtTraca);
 
 			return new JsonResponse(true);
 		}
