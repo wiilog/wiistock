@@ -94,4 +94,25 @@ class ArrivageRepository extends ServiceEntityRepository
 
         return $query->getScalarResult();
     }
+
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countLitigesUnsolvedByArrivage($arrivage)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(l)
+			FROM App\Entity\Litige l
+			JOIN l.colis c
+			JOIN l.status s
+			WHERE s.treated = 0
+			AND c.arrivage = :arrivage"
+		)->setParameter('arrivage', $arrivage);
+
+		return $query->getSingleScalarResult();
+	}
 }

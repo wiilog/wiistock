@@ -395,7 +395,8 @@ class ArrivageController extends AbstractController
 
 			$response = [
 				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
-					'arrivage' => $arrivage
+					'arrivage' => $arrivage,
+					'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
 				]),
 			];
             return new JsonResponse($response);
@@ -414,18 +415,29 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $entityManager = $this->getDoctrine()->getManager();
-            foreach ($arrivage->getColis() as $colis) {
-                $entityManager->remove($colis);
-            }
-            foreach ($arrivage->getAttachements() as $attachement) {
-                $this->removeAndDeleteAttachment($attachement, $arrivage);
-            }
-            $entityManager->remove($arrivage);
-            $entityManager->flush();
-            $data = [
-                "redirect" => $this->generateUrl('arrivage_index')
-            ];
+
+            $canBeDeleted = ($this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0);
+
+            if ($canBeDeleted) {
+				$entityManager = $this->getDoctrine()->getManager();
+				foreach ($arrivage->getColis() as $colis) {
+					$litiges = $colis->getLitiges();
+					$entityManager->remove($colis);
+					foreach ($litiges as $litige) {
+						$entityManager->remove($litige);
+					}
+				}
+				foreach ($arrivage->getAttachements() as $attachement) {
+					$this->removeAndDeleteAttachment($attachement, $arrivage);
+				}
+				$entityManager->remove($arrivage);
+				$entityManager->flush();
+				$data = [
+					"redirect" => $this->generateUrl('arrivage_index')
+				];
+			} else {
+            	$data = false;
+			}
             return new JsonResponse($data);
         }
 
@@ -716,9 +728,10 @@ class ArrivageController extends AbstractController
     /**
 	 * @param Arrivage $arrivage
 	 * @param bool $addColis
-     * @Route("/voir/{id}/{addColis}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @Route("/voir/{id}/{addColis}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
 	 * @return JsonResponse
-     */
+	 * @throws NonUniqueResultException
+	 */
     public function show(Arrivage $arrivage, bool $addColis = false): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
@@ -737,7 +750,8 @@ class ArrivageController extends AbstractController
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
-                'addColis' => $addColis
+                'addColis' => $addColis,
+				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0
             ]);
     }
 
@@ -1125,8 +1139,9 @@ class ArrivageController extends AbstractController
             if ($arrivageToReload) {
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
-                        'arrivage' => $arrivageToReload
-                    ]),
+                        'arrivage' => $arrivageToReload,
+						'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
+					]),
                 ];
             }
         }
