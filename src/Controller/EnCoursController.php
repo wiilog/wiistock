@@ -41,15 +41,17 @@ class EnCoursController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('en_cours/index.html.twig');
+        return $this->render('en_cours/index.html.twig', [
+            'emplacements' => $this->api()
+        ]);
     }
 
     /**
      * @Route("/encours/api", name="en_cours_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function api(): Response
+    public function api(): array
     {
-        $references = [];
+        $emplacements = [];
         foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacement) {
             foreach ($this->mouvementStockRepository->findByEmplacementTo($emplacement) as $mvt) {
                 if (intval($this->mouvementStockRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
@@ -59,20 +61,20 @@ class EnCoursController extends AbstractController
                     $heureEmplacement = $emplacement->getDateMaxTime() ? intval(explode(':',$emplacement->getDateMaxTime())[0]) : null;
                     $minuteEmplacement = $heureEmplacement ? intval(explode(':',$emplacement->getDateMaxTime())[1]) : null;
                     $retard = true;
-                    if ($heureEmplacement > $diff->h) $retard = false;
-                    if ($heureEmplacement === $diff->h) $retard = !($minuteEmplacement > $diff->i);
-                    $references[] = [
-                        'Référence' => ($mvt->getRefArticle() ? $mvt->getRefArticle()->getReference() : $mvt->getArticle()->getReference()),
-                        'Emplacement' => ($emplacement->getLabel()),
-                        'Durée' => ($date->diff($dateMvt)->h < 10 ? '0' . $date->diff($dateMvt)->h : $date->diff($dateMvt)->h)  . ':' . ($date->diff($dateMvt)->i < 10 ? '0' . $date->diff($dateMvt)->i : $date->diff($dateMvt)->i),
-                        'Retard' => $retard ? 'Retard' : 'Normal',
+                    $diffHours = $diff->h + ($diff->d*24);
+                    if ($heureEmplacement > $diffHours) $retard = false;
+                    if ($heureEmplacement === $diffHours) $retard = !($minuteEmplacement > $diff->i);
+                    $diffString =
+                        ($diffHours < 10 ? '0' . $diffHours : $diffHours)
+                        . ':' . ($date->diff($dateMvt)->i < 10 ? '0' . $date->diff($dateMvt)->i : $date->diff($dateMvt)->i);
+                    $emplacements[$emplacement->getLabel()][] = [
+                        'ref' => ($mvt->getRefArticle() ? $mvt->getRefArticle()->getReference() : $mvt->getArticle()->getReference()),
+                        'time' => $diffString,
+                        'late' => $retard
                     ];
                 }
             }
         }
-
-        return new JsonResponse([
-            'data' => $references
-        ]);
+        return $emplacements;
     }
 }
