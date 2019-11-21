@@ -914,6 +914,7 @@ class ArrivageController extends AbstractController
                 $response['exists'] = false;
             }
 
+            dump($codes);
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 
