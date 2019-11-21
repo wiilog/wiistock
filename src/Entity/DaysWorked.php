@@ -142,4 +142,9 @@ class DaysWorked
         $totalMinutes = $afternoonMinutes + $morningMinutes;
         return $totalMinutes;
     }
+
+    public function getTimeBreakThisDay(): int {
+        $timeArray = $this->getTimeArray();
+        return (($timeArray[4]*60) + $timeArray[5]) - (($timeArray[2]*60) + $timeArray[3]);
+    }
 }

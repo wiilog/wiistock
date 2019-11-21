@@ -123,17 +123,28 @@ class EnCoursController extends AbstractController
                 if ($isToday) {
                     if ($minutesBetween === 0) {
                         $minutesBetween += (intval($now->diff($dateMvt)->h) - 1)*60 + intval($now->diff($dateMvt)->i);
+                        if (((intval($day->format('H'))*60) + intval($day->format('i'))) <= (($timeArray[2]*60) + $timeArray[3])) {
+                            $minutesBetween -= $dayWorked->getTimeBreakThisDay();
+                        } else if (((intval($day->format('H'))*60) + intval($day->format('i'))) <= (($timeArray[4]*60) + $timeArray[5])) {
+                            $minutesBetween -= ((($timeArray[4]*60) + $timeArray[5]) - ((intval($day->format('H'))*60) + intval($day->format('i'))));
+                        }
                     } else {
                         $minutesBetween += (
                             (intval($now->format('H'))*60) + intval($now->format('i')) -
                             ((($timeArray[0] + 1)*60) + $timeArray[1])
                         );
                     }
+
                 } else if ($isMvtDay && !$isToday) {
                     $minutesBetween += (
-                        ((($timeArray[6]+1)*60) + $timeArray[7]) -
-                        ((intval($dateMvt->format('H')) + 1)*60) + intval($dateMvt->format('i'))
+                        ((($timeArray[6])*60) + $timeArray[7]) -
+                        (((intval($dateMvt->format('H')))*60) + intval($dateMvt->format('i')))
                     );
+                    if (((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))) <= (($timeArray[2]*60) + $timeArray[3])) {
+                        $minutesBetween -= $dayWorked->getTimeBreakThisDay();
+                    } else if (((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))) <= (($timeArray[4]*60) + $timeArray[5])) {
+                        $minutesBetween -= ((($timeArray[4]*60) + $timeArray[5]) - ((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))));
+                    }
                 } else {
                     $minutesBetween += $dayWorked->getTimeWorkedDuringThisDay();
                 }
