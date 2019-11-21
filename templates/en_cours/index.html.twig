@@ -17,7 +17,7 @@
                     <th>Retard</th>
                     </thead>
                     <tbody>
-                    {% for encours in emplacement %}
+                    {% for encours in emplacement|reverse %}
                     <tr class="{{ encours.late ? 'table-danger' : '' }}">
                         <td>{{ encours.ref }}</td>
                         <td>{{ encours.max }}</td>

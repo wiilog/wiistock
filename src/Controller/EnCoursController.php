@@ -74,10 +74,7 @@ class EnCoursController extends AbstractController
                     $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
                     $hoursBetween = $this->getHoursBetween($mvt);
                     $emplacementHours = intval(explode(':', $emplacement->getDateMaxTime())[0]);
-                    $isLate = false;
-                    if ($hoursBetween > $emplacementHours) {
-                        $isLate = true;
-                    }
+                    $isLate = $hoursBetween > $emplacementHours;
                     $time = ($hoursBetween < 10 ? '0' . $hoursBetween : $hoursBetween)
                         . ':' .
                         ($this->getExtraMinsBetween($dateMvt, $date) < 10 ?
@@ -89,6 +86,9 @@ class EnCoursController extends AbstractController
                         'late' => $isLate,
                         'max' => $emplacement->getDateMaxTime()
                     ];
+                    usort($emplacements[$emplacement->getLabel()], function ($e1, $e2) {
+                        return $e1['late'] - $e2['late'];
+                    });
                 }
             }
         }
@@ -114,16 +114,21 @@ class EnCoursController extends AbstractController
                 $hoursBetween++;
             }
         }
-        return $hoursBetween;
+        return $hoursBetween-1;
     }
 
     /**
      * @param $dateMvt \DateTime
      * @param $date \DateTime
      * @return float|int
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function getExtraMinsBetween($dateMvt, $date) {
-        return abs(intval($dateMvt->format('i')) - intval($date->format('i')));
+    private function getExtraMinsBetween($dateMvt, $date)
+    {
+        $minMvt = intval($dateMvt->format('i'));
+        $minNow = intval($date->format('i'));
+        if (!$this->daysRepository->findByDayAndWorked(strtolower($dateMvt->format('l')))) $minMvt = 0;
+        return $minMvt > $minNow ? $minMvt - $minNow : $minNow - $minMvt;
     }
 
     /**
