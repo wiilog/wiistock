@@ -3,6 +3,9 @@
 
 namespace App\Controller;
 
+use App\Repository\DaysWorkedRepository;
+use App\Repository\MouvementTracaRepository;
+use phpDocumentor\Reflection\Types\Boolean;
 use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,9 +18,9 @@ class EnCoursController extends AbstractController
 {
 
     /**
-     * @var MouvementStockRepository
+     * @var MouvementTracaRepository
      */
-    private $mouvementStockRepository;
+    private $mouvementTracaRepository;
 
     /**
      * @var EmplacementRepository
@@ -25,19 +28,26 @@ class EnCoursController extends AbstractController
     private $emplacementRepository;
 
     /**
+     * @var DaysWorkedRepository
+     */
+    private $daysRepository;
+
+    /**
      * EnCoursController constructor.
      * @param MouvementStockRepository $mouvementStockRepository
      * @param EmplacementRepository $emplacementRepository
      */
-    public function __construct(MouvementStockRepository $mouvementStockRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository)
     {
-        $this->mouvementStockRepository = $mouvementStockRepository;
+        $this->daysRepository = $daysRepository;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
     }
 
 
     /**
      * @Route("/encours", name="en_cours", methods={"GET"})
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function index(): Response
     {
@@ -48,33 +58,49 @@ class EnCoursController extends AbstractController
 
     /**
      * @Route("/encours/api", name="en_cours_api", options={"expose"=true}, methods="GET|POST")
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Exception
      */
     public function api(): array
     {
         $emplacements = [];
         foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacement) {
-            foreach ($this->mouvementStockRepository->findByEmplacementTo($emplacement) as $mvt) {
-                if (intval($this->mouvementStockRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
+            foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
+                if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                     $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $dateMvt = new \DateTime($mvt->getDate()->format('YmdHis'), new \DateTimeZone('Europe/Paris'));
+                    $dateMvt = new \DateTime(explode('_', $mvt->getDate())[0], new \DateTimeZone('Europe/Paris'));
                     $diff = $date->diff($dateMvt);
-                    $heureEmplacement = $emplacement->getDateMaxTime() ? intval(explode(':',$emplacement->getDateMaxTime())[0]) : null;
-                    $minuteEmplacement = $heureEmplacement ? intval(explode(':',$emplacement->getDateMaxTime())[1]) : null;
-                    $retard = true;
                     $diffHours = $diff->h + ($diff->d*24);
-                    if ($heureEmplacement > $diffHours) $retard = false;
-                    if ($heureEmplacement === $diffHours) $retard = !($minuteEmplacement > $diff->i);
                     $diffString =
                         ($diffHours < 10 ? '0' . $diffHours : $diffHours)
                         . ':' . ($date->diff($dateMvt)->i < 10 ? '0' . $date->diff($dateMvt)->i : $date->diff($dateMvt)->i);
                     $emplacements[$emplacement->getLabel()][] = [
-                        'ref' => ($mvt->getRefArticle() ? $mvt->getRefArticle()->getReference() : $mvt->getArticle()->getReference()),
+                        'ref' => $mvt->getRefArticle(),
                         'time' => $diffString,
-                        'late' => $retard
+                        'late' => $this->isLate($emplacement->getDateMaxTime(), $dateMvt)
                     ];
                 }
             }
         }
         return $emplacements;
+    }
+
+    /**
+     * @param $maxTime string
+     * @param $dateStay \DateTime
+     * @return bool
+     * @throws \Exception
+     */
+    private function isLate($maxTime, $dateStay): bool {
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $daysWorked = $this->daysRepository->findBy([
+            'worked' => true
+        ]);
+        $interval = \DateInterval::createFromDateString('1 day');
+        $period = new \DatePeriod($dateStay, $interval, $now);
+        foreach ($period as $day) {
+            dump($day->format('l Y-m-d H:i:s'));
+        }
+        return true;
     }
 }

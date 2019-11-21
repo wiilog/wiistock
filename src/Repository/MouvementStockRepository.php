@@ -343,40 +343,5 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    /**
-     * @param $emplacement
-     * @return MouvementStock[]
-     */
-    public function findByEmplacementTo($emplacement) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m
-            FROM App\Entity\MouvementStock m
-            WHERE m.emplacementTo = :emp"
-        )->setParameter('emp', $emplacement);
-        return $query->execute();
-    }
 
-    /**
-     * @param $emplacement
-     * @param $mvt MouvementStock
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-    public function findByEmplacementToAndArticleAndDate($emplacement, $mvt) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m
-            WHERE m.emplacementFrom = :emp AND m.date > :date AND (m.article = :article OR m.refArticle = :ref)"
-        )->setParameters([
-            'emp' => $emplacement,
-            'date' => $mvt->getDate(),
-            'article' => $mvt->getArticle(),
-            'ref' => $mvt->getRefArticle()
-        ]);
-        return $query->getSingleScalarResult();
-    }
 }

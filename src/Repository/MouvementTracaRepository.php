@@ -2,8 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
+use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -73,4 +76,40 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		$result = $query->execute();
 		return $result ? $result[0] : null;
 	}
+
+    /**
+     * @param $emplacement Emplacement
+     * @param $mvt MouvementTraca
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
+    public function findByEmplacementToAndArticleAndDate($emplacement, $mvt) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(m)
+            FROM App\Entity\MouvementTraca m
+            WHERE m.refEmplacement = :emp AND m.date > :date AND m.refArticle LIKE :article AND m.type LIKE 'prise'"
+        )->setParameters([
+            'emp' => $emplacement->getLabel(),
+            'date' => $mvt->getDate(),
+            'article' => $mvt->getRefArticle(),
+        ]);
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param $emplacement Emplacement
+     * @return MouvementTraca[]
+     */
+    public function findByEmplacementTo($emplacement) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m
+            FROM App\Entity\MouvementTraca m
+            WHERE m.refEmplacement LIKE :emp AND m.type LIKE 'depose'"
+        )->setParameter('emp', $emplacement->getLabel());
+        return $query->execute();
+    }
 }

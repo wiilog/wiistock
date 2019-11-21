@@ -183,9 +183,9 @@ class EmplacementRepository extends ServiceEntityRepository
             WHERE
             (
                 SELECT COUNT(m)
-                FROM App\Entity\MouvementStock AS m
-                WHERE m.emplacementTo = e.id
-            ) > 0"
+                FROM App\Entity\MouvementTraca AS m
+                WHERE m.refEmplacement = e.label AND m.type LIKE 'depose'
+            ) > 0 AND e.dateMaxTime IS NOT NULL"
         );
         return $query->execute();
     }
