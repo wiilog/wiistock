@@ -1,5 +1,3 @@
-const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
 $('.select2').select2();
 
 $('#utilisateur').select2({
@@ -17,213 +15,6 @@ $('#providers').select2({
         text: 'Fournisseurs',
     }
 });
-
-function dragEnterDiv(event, div) {
-    div.css('border', '3px dashed red');
-}
-
-function dragOverDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed red');
-    return false;
-};
-
-function dragLeaveDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed #BBBBBB');
-    return false;
-}
-
-function dropOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            // Stop the propagation of the event
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                upload(event.dataTransfer.files);
-                clearErrorMsg(div);
-            } else {
-                div.css('border', '3px dashed #BBBBBB');
-            }
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-function dropNewOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                keepForSave(event.dataTransfer.files);
-                clearErrorMsg(div);
-            }
-            else div.css('border', '3px dashed #BBBBBB');
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            valid = false;
-        }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
-    });
-    return valid;
-}
-
-function openFE() {
-    $('#fileInput').click();
-}
-
-function uploadFE(span) {
-    let files = $('#fileInput')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('arrivage_depose', true);
-
-        let arrivageId = $('#dropfile').data('arrivage-id');
-        formData.append('id', arrivageId);
-
-        $.ajax({
-            url: path,
-            data: formData,
-            type:"post",
-            contentType:false,
-            processData:false,
-            cache:false,
-            dataType:"json",
-            success:function(html){
-                let dropfile = $('#dropfile');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('garder_pj', true);
-        $.ajax({
-            url: path,
-            data: formData,
-            type: "post",
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: "json",
-            success: function (html) {
-                let dropfile = $('#dropfileNew');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function keepForSave(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-
-    let path = Routing.generate('garder_pj', true);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
-            let dropfile = $('#dropfileNew');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-
-}
-
-function upload(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-    let path = Routing.generate('arrivage_depose', true);
-
-    let arrivageId = $('#dropfile').data('arrivage-id');
-    formData.append('id', arrivageId);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type: "post",
-        contentType: false,
-        processData: false,
-        cache: false,
-        dataType: "json",
-        success: function (html) {
-            let dropfile = $('#dropfile');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-}
 
 let pathLitigesArrivage = Routing.generate('litige_arrivage_api', true);
 let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
@@ -250,7 +41,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     ],
     columnDefs: [
         {
-            'targets': [6,7,8],
+            'targets': [8,9],
             'visible': false
         }
     ],
@@ -265,7 +56,7 @@ InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitigesA
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
-InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
+initModalArrivage(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");

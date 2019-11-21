@@ -33,7 +33,7 @@
     <div class="col-4">
         <p><strong>Pièces jointes :</strong><br>
         {% for attachement in arrivage.attachements %}
-            <a href="/uploads/attachements/{{ attachement.filename }}">
+            <a href="/uploads/attachements/{{ attachement.filename }}" target="_blank">
                 <i class="fas fa-file"></i> {{ attachement.originalname }}<br>
             </a>
         {% endfor %}
