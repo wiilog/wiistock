@@ -9,7 +9,7 @@
         <select class="form-control data" id="type" name="type">
             <option disabled selected></option>
             {% for statut in statuts %}
-                {% set selected = (statut.nom == mvt.type) ? 'selected' : ''%}
+                {% set selected = (statut.nom == mvt.type.nom) ? 'selected' : ''%}
                 <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
             {% endfor %}
         </select>

@@ -268,9 +268,12 @@ class MouvementTracaController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     */
+	/**
+	 * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @param Request $request
+	 * @return Response
+	 * @throws \Exception
+	 */
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -308,4 +311,27 @@ class MouvementTracaController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/voir", name="mvt_traca_show", options={"expose"=true}, methods={"GET","POST"})
+	 * @param Request $request
+	 * @return Response
+	 */
+    public function show(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$mouvementTraca = $this->mouvementRepository->find($data);
+			$json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
+				'mvt' => $mouvementTraca,
+				'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+				'attachments' => $mouvementTraca->getAttachements()
+			]);
+			return new JsonResponse($json);
+		}
+		throw new NotFoundHttpException('404');
+	}
 }

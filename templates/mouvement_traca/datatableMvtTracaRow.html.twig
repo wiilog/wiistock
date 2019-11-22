@@ -1,4 +1,11 @@
 <div class="d-flex">
+    <div>
+        <div class="btn btn-col-action" data-id='{{ mvt.id }}' data-target='#modalShowMvtTraca' data-toggle='modal'
+             onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
+            <i class='fas fa-eye'></i>
+        </div>
+    </div>
+
     {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <div>
             <div class="btn btn-col-action" data-id='{{ mvt.id }}' data-target='#modalEditMvtTraca' data-toggle='modal'
