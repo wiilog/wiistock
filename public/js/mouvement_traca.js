@@ -59,7 +59,7 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': "Colis"},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
-        {"data": 'type', 'name': 'type', 'title': 'Action'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
     ],
 });

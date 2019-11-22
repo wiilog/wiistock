@@ -291,7 +291,7 @@ class MouvementTracaController extends AbstractController
             }
 
             $headers = [];
-            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur']);
+            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur', 'commentaire', 'pieces jointes']);
             $data = [];
             $data[] = $headers;
 
@@ -303,6 +303,15 @@ class MouvementTracaController extends AbstractController
                 $mouvementData[] = $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '';
                 $mouvementData[] = $mouvement->getType() ? $mouvement->getType()->getNom() : '';
                 $mouvementData[] = $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername(): '';
+                $mouvementData[] = strip_tags($mouvement->getCommentaire());
+
+                $attachments = $mouvement->getAttachements() ? $mouvement->getAttachements()->toArray() : [];
+                $attachmentsNames = [];
+                foreach ($attachments as $attachment) {
+                	$attachmentsNames[] = $attachment->getOriginalName();
+				}
+
+                $mouvementData[] = implode(", ", $attachmentsNames);
 
                 $data[] = $mouvementData;
             }
