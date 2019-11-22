@@ -8,18 +8,20 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid center-content">
-                <div class="form-group center-content">
-                    <label for="label">Numéro d'arrivage*</label>
-                    <input type="text" id="numero_arrivage" class="form-control data needed" name="numero_arrivage"/>
-                    <span class="btn btn-primary" onclick="addArrivageAssociation($(this))"><i class="fa fa-plus"></i></span>
+            <div class="modal-body modal-input container-fluid text-center">
+                <div class="form-group text-center">
+                    <label>Numéro d'arrivage*</label>
+                    <span class="btn btn-primary" onclick="addArrivalAssociation($(this))"><i class="fa fa-plus"></i></span>
+                    <div class="d-flex arrivalNb mb-2">
+                        <input type="text" class="form-control data needed arrival-input" name="numero_arrivage"/>
+                    </div>
                 </div>
 
-                <div class="form-group center-content">
+                <div class="form-group text-center">
                     <label for="Description">Numéro de réception*</label>
                     <input type="text" id="numero_réception" class="form-control data needed" name="numero_réception">
                 </div>
-                <div class="center-content">
+                <div class="text-center">
                     <div class="btn btn-primary" id="removeArrivage" onclick="toggleArrivage($(this))" data-arrivage="true">Sans Arrivage</div>
                 </div>
             </div>

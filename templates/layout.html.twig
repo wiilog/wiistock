@@ -21,7 +21,7 @@
                 <li>
                     <div class="menu-header">
                         {% include 'logo_svg.html.twig' %}
-                        <div class="version"> V1.10.0</div>
+                        <div class="version"> V1.10.1</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -46,7 +46,7 @@
                         <ul class="sidemenu-sub">
                             <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Arrivage</a></li>
                             <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvement</a></li>
-                            <li><a href="{{ path('accueil_receptions_traca') }}" class="sub-item">• Réceptions</a></li>
+                            <li><a href="{{ path('reception_traca_index') }}" class="sub-item">• Réceptions</a></li>
                         </ul>
                     </li>
                 {% endif %}
@@ -203,25 +203,28 @@
                             </li>
 
                             <li>
-                                <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
+                                <a href="{{ path('mailer_server_index') }}" class="sub-item">• Configuration email</a>
                             </li>
                             <li>
-                                <a href="{{ path('etiquettes_param') }}" class="sub-item">• Configuration étiquettes</a>
+                                <a href="{{ path('etiquettes_param_index') }}" class="sub-item">• Configuration étiquettes</a>
                             </li>
                             <li>
                                 <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
                             </li>
                             <li>
-                                <a href="{{ path('prefixe_demande') }}" class="sub-item">• Préfixage noms demandes</a>
+                                <a href="{{ path('prefixe_demande_index') }}" class="sub-item">• Préfixage noms demandes</a>
                             </li>
                             <li>
-                                <a href="{{ path('inventaire_param') }}" class="sub-item">• Inventaire</a>
+                                <a href="{{ path('inventaire_param_index') }}" class="sub-item">• Inventaire</a>
                             </li>
                             <li>
-                                <a href="{{ path('types_param') }}" class="sub-item">• Types</a>
+                                <a href="{{ path('types_param_index') }}" class="sub-item">• Types</a>
                             </li>
                             <li>
-                                <a href="{{ path('status_param') }}" class="sub-item">• Statuts litiges</a>
+                                <a href="{{ path('status_param_index') }}" class="sub-item">• Statuts litiges</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('days_param_index') }}" class="sub-item">• Heures travaillées</a>
                             </li>
                         </ul>
                     </li>

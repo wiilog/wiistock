@@ -7,7 +7,7 @@ $('#utilisateur').select2({
 });
 
 let $submitSearchMvt = $('#submitSearchRecep');
-let pathRecep = Routing.generate('recep_traca_api', true);
+let pathRecep = Routing.generate('reception_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
     buttons: [
         {
@@ -120,4 +120,8 @@ let customExport = function() {
     tableRecep.button('.buttons-csv').trigger();
 };
 
-
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+}

@@ -57,7 +57,7 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/", name="accueil_receptions_traca", methods={"GET"})
+     * @Route("/", name="reception_traca_index", methods={"GET"})
      */
     public function index(): Response
     {
@@ -71,7 +71,7 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="recep_traca_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="reception_traca_api", options={"expose"=true}, methods="GET|POST")
      * @throws \Exception
      */
     public function api(Request $request): Response
@@ -87,10 +87,10 @@ class ReceptionTracaController extends AbstractController
             foreach ($receptions as $reception) {
                 $rows[] = [
                     'id' => $reception->getId(),
-                    'date' => $reception->getDateCreation()->format('d/m/Y H:i:s'),
+                    'date' => $reception->getDateCreation() ? $reception->getDateCreation()->format('d/m/Y H:i:s') : '',
                     'Arrivage' => $reception->getArrivage(),
                     'Réception' => $reception->getNumber(),
-                    'Utilisateur' => $reception->getUser()->getUsername(),
+                    'Utilisateur' => $reception->getUser() ? $reception->getUser()->getUsername() : '',
                     'Actions' => $this->renderView('reception_traca/datatableRecepTracaRow.html.twig', [
                         'recep' => $reception,
                     ])
@@ -109,11 +109,11 @@ class ReceptionTracaController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $recep = $this->receptionTracaRepository->find($data['recep']);
-
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $recep = $this->receptionTracaRepository->find($data['recep']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($recep);
             $entityManager->flush();
@@ -124,7 +124,7 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/nouveau", name="reception_traca_new", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/creer", name="reception_traca_new", options={"expose"=true},methods={"GET","POST"})
      */
     public function new(Request $request): Response
     {
