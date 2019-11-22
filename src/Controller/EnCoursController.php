@@ -7,6 +7,7 @@ use App\Entity\DaysWorked;
 use App\Entity\MouvementTraca;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Service\EnCoursService;
 use phpDocumentor\Reflection\Types\Boolean;
 use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,12 +37,19 @@ class EnCoursController extends AbstractController
     private $daysRepository;
 
     /**
-     * EnCoursController constructor.
-     * @param MouvementStockRepository $mouvementStockRepository
-     * @param EmplacementRepository $emplacementRepository
+     * @var EnCoursService
      */
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository)
+    private $enoursService;
+
+    /**
+     * EnCoursController constructor.
+     * @param MouvementTracaRepository $mouvementTracaRepository
+     * @param EmplacementRepository $emplacementRepository
+     * @param DaysWorkedRepository $daysRepository
+     */
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository, EnCoursService $enCoursService)
     {
+        $this->enoursService = $enCoursService;
         $this->daysRepository = $daysRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -71,26 +79,12 @@ class EnCoursController extends AbstractController
             foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                     $minutesBetween = $this->getMinutesBetween($mvt);
-                    $time =
-                        (floor($minutesBetween / 60) < 10 ? ('0' . floor($minutesBetween / 60)) : floor($minutesBetween / 60))
-                        . ':' .
-                        ($minutesBetween % 60 < 10 ? ('0' . $minutesBetween % 60) : ($minutesBetween % 60));
-                    $maxTime = $emplacement->getDateMaxTime();
-                    $timeHours = floor($minutesBetween / 60);
-                    $timeMinutes = $minutesBetween % 60;
-                    $maxTimeHours = intval(explode(':', $maxTime)[0]);
-                    $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
-                    $late = false;
-                    if ($timeHours > $maxTimeHours) {
-                        $late = true;
-                    } else if (intval($timeHours) === $maxTimeHours){
-                        $late =  $timeMinutes > $maxTimeMinutes;
-                    }
+                    $dataForTable = $this->enoursService->buildDataForDatatable($minutesBetween, $emplacement);
                     $emplacements[$emplacement->getLabel()][] = [
                         'ref' => $mvt->getRefArticle(),
-                        'time' => $time,
+                        'time' => $dataForTable['time'],
                         'max' => $emplacement->getDateMaxTime(),
-                        'late' => $late
+                        'late' => $dataForTable['late']
                     ];
                 }
             }
@@ -103,52 +97,22 @@ class EnCoursController extends AbstractController
      * @param $mvt MouvementTraca
      * @return bool
      * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Exception
      */
     private function getMinutesBetween($mvt): int
     {
-        $now = \DateTime::createFromFormat(\DateTime::ATOM, date(\DateTime::ATOM));
+        $now = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $nowIncluding = (new \DateTime("now", new \DateTimeZone("Europe/Paris")))
+            ->add(new \DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
         $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
         $interval = \DateInterval::createFromDateString('1 day');
-        $period = new \DatePeriod($dateMvt, $interval, $now);
+        $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;
         /**
          * @var $day \DateTime
          */
         foreach ($period as $day) {
-            $dayWorked = $this->daysRepository->findByDayAndWorked(strtolower($day->format('l')));
-            $isToday = ($day->diff($now)->format('%a') === '0');
-            $isMvtDay = ($day->diff($dateMvt)->format('%a') === '0');
-            if ($dayWorked) {
-                $timeArray = $dayWorked->getTimeArray();
-                if ($isToday) {
-                    if ($minutesBetween === 0) {
-                        $minutesBetween += (intval($now->diff($dateMvt)->h) - 1)*60 + intval($now->diff($dateMvt)->i);
-                        if (((intval($day->format('H'))*60) + intval($day->format('i'))) <= (($timeArray[2]*60) + $timeArray[3])) {
-                            $minutesBetween -= $dayWorked->getTimeBreakThisDay();
-                        } else if (((intval($day->format('H'))*60) + intval($day->format('i'))) <= (($timeArray[4]*60) + $timeArray[5])) {
-                            $minutesBetween -= ((($timeArray[4]*60) + $timeArray[5]) - ((intval($day->format('H'))*60) + intval($day->format('i'))));
-                        }
-                    } else {
-                        $minutesBetween += (
-                            (intval($now->format('H'))*60) + intval($now->format('i')) -
-                            ((($timeArray[0] + 1)*60) + $timeArray[1])
-                        );
-                    }
-
-                } else if ($isMvtDay && !$isToday) {
-                    $minutesBetween += (
-                        ((($timeArray[6])*60) + $timeArray[7]) -
-                        (((intval($dateMvt->format('H')))*60) + intval($dateMvt->format('i')))
-                    );
-                    if (((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))) <= (($timeArray[2]*60) + $timeArray[3])) {
-                        $minutesBetween -= $dayWorked->getTimeBreakThisDay();
-                    } else if (((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))) <= (($timeArray[4]*60) + $timeArray[5])) {
-                        $minutesBetween -= ((($timeArray[4]*60) + $timeArray[5]) - ((intval($dateMvt->format('H'))*60) + intval($dateMvt->format('i'))));
-                    }
-                } else {
-                    $minutesBetween += $dayWorked->getTimeWorkedDuringThisDay();
-                }
-            }
+            $minutesBetween += $this->enoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
         }
         return $minutesBetween;
     }
