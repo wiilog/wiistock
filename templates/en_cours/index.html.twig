@@ -15,19 +15,17 @@
                 <table class="table table-striped table-bordered encours-table">
                     <thead>
                     <tr>
-                        <th>Référence</th>
-                        <th>Durée Autorisée</th>
-                        <th>Durée</th>
-                        <th>Retard</th>
+                        <th>Colis</th>
+                        <th>Date de dépose</th>
+                        <th>Délais</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for encours in emplacement %}
                     <tr class="{{ encours.late ? 'table-danger' : '' }}">
                         <td>{{ encours.ref }}</td>
-                        <td>{{ encours.max }}</td>
+                        <td>{{ encours.date }}</td>
                         <td>{{ encours.time }}</td>
-                        <td>{{ encours.late ? 'Retard' : 'Normal' }}</td>
                     </tr>
                     {% endfor %}
                     </tbody>

@@ -78,13 +78,15 @@ class EnCoursController extends AbstractController
         foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacement) {
             foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
+                    //VERIFCECILE
+                    $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
                     $minutesBetween = $this->getMinutesBetween($mvt);
                     $dataForTable = $this->enoursService->buildDataForDatatable($minutesBetween, $emplacement);
                     //VERIFCECILE
                     $emplacements[$emplacement->getLabel()][] = [
                         'ref' => $mvt->getRefArticle(),
                         'time' => $dataForTable['time'],
-                        'max' => $emplacement->getDateMaxTime(),
+                        'date' => $dateMvt->format('d/m/y H:i'),
                         'late' => $dataForTable['late']
                     ];
                 }
@@ -105,6 +107,7 @@ class EnCoursController extends AbstractController
         $now = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
         $nowIncluding = (new \DateTime("now", new \DateTimeZone("Europe/Paris")))
             ->add(new \DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
+        //VERIFCECILE
         $dateMvt = \DateTime::createFromFormat(\DateTime::ATOM, explode('_', $mvt->getDate())[0]);
         $interval = \DateInterval::createFromDateString('1 day');
         $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
