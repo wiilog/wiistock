@@ -1,4 +1,34 @@
 <div class="row">
+    <div class="col">
+        <h1>Arrivage {{ arrivage.numeroarrivage }}</h1>
+        <input hidden value="{{ arrivage.id }}" id="arrivageId">
+        <input hidden value="{{ addColis is defined ? addColis : false }}" id="addColis">
+        <div class="d-none" id="barcodes"></div>
+    </div>
+
+    <div class="col text-right">
+        <a href="" class="btn btn-primary btn-action ml-auto" data-target='#modalNewAssociation' data-toggle='modal'>
+            <i class="fa fa-bullseye mr-2"></i>Association/BR
+        </a>
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
+            <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
+               onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
+               data-toggle='modal' class="btn btn-primary btn-action ml-auto">
+                Modifier
+            </a>
+        {% endif %}
+
+        {% if (canBeDeleted) %}
+            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE'))%}
+                <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
+                   class="btn btn-danger btn-action ml-auto" onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
+                    Supprimer</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
     <div class="col-4">
         <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
     </div>
@@ -33,7 +63,7 @@
     <div class="col-4">
         <p><strong>Pièces jointes :</strong><br>
         {% for attachement in arrivage.attachements %}
-            <a href="/uploads/attachements/{{ attachement.filename }}">
+            <a href="/uploads/attachements/{{ attachement.filename }}" target="_blank">
                 <i class="fas fa-file"></i> {{ attachement.originalname }}<br>
             </a>
         {% endfor %}

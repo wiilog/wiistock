@@ -21,15 +21,19 @@
                 <li>
                     <div class="menu-header">
                         {% include 'logo_svg.html.twig' %}
-                        <div class="version"> V1.10.0</div>
+                        <div class="version"> V1.10.1</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
-                <li class="menu-item">
-                    <a href="{{ path('check_last_login') }}">
+                <li class="menu-item has-submenu">
+                    <a href="#">
                         <i class="fas fa-home"></i>
                         <h4>Accueil</h4>
                     </a>
+                    <ul class="sidemenu-sub">
+                        <li><a href="{{ path('check_last_login') }}" class="sub-item">• Indicateurs</a></li>
+                        <li><a href="{{ path('accueil_dashboard') }}" class="sub-item">• Tableau de bord</a></li>
+                    </ul>
                 </li>
 
                 <!-- ARRIVAGE   -->
@@ -45,6 +49,7 @@
                             <li>
                                 <a href="{{ path('en_cours') }}" class="sub-item">• En cours</a>
                             </li>
+                            <li><a href="{{ path('reception_traca_index') }}" class="sub-item">• Réceptions</a></li>
                         </ul>
                     </li>
                 {% endif %}

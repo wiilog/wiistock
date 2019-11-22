@@ -1,0 +1,18 @@
+{% extends 'layout.html.twig' %}
+
+{% block page_content %}
+    <div id="dashboard-assoc">
+        <div id="chart-assoc"></div>
+        <div class="spinner-border"></div>
+        <div id="range-buttons-assoc">
+            <div class="btn btn-primary" onclick="changeCurrentWeek(false)"><</div>
+            <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+            <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+            <div class="btn btn-primary" onclick="changeCurrentWeek(true)">></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script src = "{{ asset('js/dashboard.js')}}?{{ date().timestamp }}"></script>
+{% endblock %}

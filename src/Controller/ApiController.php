@@ -483,8 +483,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setQuantity($article->getQuantiteAPrelever())
                             ->setEmplacementFrom($article->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFERT)
-                            ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
+                            ->setPreparationOrder($preparation);
                         $em->persist($mouvement);
                         $em->flush();
                     }
@@ -500,8 +499,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             ->setQuantity($ligneArticle->getQuantite())
                             ->setEmplacementFrom($articleRef->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFERT)
-                            ->setPreparationOrder($preparation)
-                            ->setExpectedDate($preparation->getDate());
+                            ->setPreparationOrder($preparation);
                         $em->persist($mouvement);
                         $em->flush();
                     }
@@ -603,8 +601,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         ->setQuantity($mouvementNomade['quantity'])
                         ->setEmplacementFrom($emplacement)
                         ->setType(MouvementStock::TYPE_SORTIE)
-                        ->setLivraisonOrder($livraison)
-                        ->setExpectedDate($livraison->getDate());
+                        ->setLivraisonOrder($livraison);
                     $entityManager->persist($mouvement);
 
                     if ($mouvementNomade['is_ref']) {
@@ -684,8 +681,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 										->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
 										->setType(MouvementStock::TYPE_TRANSFERT)
 										->setPreparationOrder($preparation)
-										->setDate($mouvementRef ? $mouvementRef->getDate() : '')
-										->setExpectedDate($preparation->getDate());
+										->setDate($preparation->getDate());
 									$entityManager->persist($newMouvement);
 									$entityManager->flush();
 									if ($mouvementRef) {

@@ -307,7 +307,12 @@ class ReferenceArticleController extends Controller
                         'name' => 'Seuil de sécurité',
                         "class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
                     ],
-
+                    [
+                        "title" => 'Prix unitaire',
+                        "data" => 'Prix unitaire',
+                        'name' => 'Prix unitaire',
+                        "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+                    ],
                 ];
                 foreach ($champs as $champ) {
                     $columns[] = [
@@ -567,6 +572,11 @@ class ReferenceArticleController extends Controller
         ];
         $champF[] = [
             'label' => 'Seuil d\'alerte',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Prix unitaire',
             'id' => 0,
             'typage' => 'number'
         ];
@@ -1086,7 +1096,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte'];
+            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1127,6 +1137,7 @@ class ReferenceArticleController extends Controller
         $refData[] = $stringArticlesFournisseur;
         $refData[] = $ref->getLimitSecurity();
         $refData[] = $ref->getLimitWarning();
+        $refData[] = $ref->getPrixUnitaire();
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1293,7 +1304,7 @@ class ReferenceArticleController extends Controller
             foreach ($mouvements as $mouvement) {
                 $rows[] =
                     [
-                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y') : 'aucune',
+                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',

@@ -1,25 +1,7 @@
-{% if isNew is defined and isNew == true %}
-    <p class="attachement data" id="{{ pjName }}" name="files[]" value="{{ pjName }}">
-        <a target="_blank">
-            <i class="fa fa-file mr-2"></i>
-            {{ originalName }}
-        </a>
-        <i class="fa fa-times red pointer"
-           onclick="deleteAttachementNew('{{ pjName }}')"></i>
-    </p>
-{% else %}
-    <p class="attachement" id="{{ pjName|withoutExtension }}">
-        <a target="_blank" href="/uploads/attachements/{{ pjName }}">
-            <i class="fa fa-file mr-2"></i>
-            {{ originalName }}
-        </a>
-        {% if litige is defined and litige is not null %}
-            <i class="fa fa-times red pointer"
-               onclick="deleteAttachementLitige('{{ litige.id }}', '{{ originalName|escape('js') }}', '{{ pjName|escape('js') }}')"></i>
-        {% endif %}
-        {% if arrivage is defined and arrivage is not null %}
-            <i class="fa fa-times red pointer"
-               onclick="deleteAttachementArrivage('{{ arrivage.id }}', '{{ originalName|escape('js') }}', '{{ pjName|escape('js') }}')"></i>
-        {% endif %}
-    </p>
-{% endif %}
+<p class="attachement">
+    <input class="data" hidden name="files[]" value="{{ pj.id }}">
+    <a target="_blank" href="/uploads/attachements/{{ pjName }}">
+        <i class="fa fa-file mr-2"></i>{{ originalName }}
+    </a>
+    <i class="fa fa-times red pointer" onclick="removeAttachement($(this))"></i>
+</p>

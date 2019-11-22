@@ -108,7 +108,6 @@ class MouvementStockController extends AbstractController
 
                 $rows[] = [
                     'id' => $mouvement->getId(),
-                    'date attendue' => $mouvement->getExpectedDate() ? $mouvement->getExpectedDate()->format('d/m/Y H:i:s') : '',
                     'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
                     'refArticle' => $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : $mouvement->getRefArticle()->getReference(),
                     'quantite' => $mouvement->getQuantity(),
@@ -170,14 +169,13 @@ class MouvementStockController extends AbstractController
             }
 
             $headers = [];
-            $headers = array_merge($headers, ['date attendue', 'date', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
+            $headers = array_merge($headers, ['date', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
             $data = [];
             $data[] = $headers;
 
             foreach ($mouvements as $mouvement) {
                 $mouvementData = [];
 
-                $mouvementData[] = $mouvement->getExpectedDate() ? $mouvement->getExpectedDate()->format('d/m/Y H:i:s') : '';
                 $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
                 $mouvementData[] = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : '';
 				$mouvementData[] = $mouvement->getQuantity();
