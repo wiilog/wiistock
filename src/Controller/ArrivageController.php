@@ -131,11 +131,6 @@ class ArrivageController extends AbstractController
     private $mouvementTracaRepository;
 
     /**
-     * @var LitigeHistoricRepository
-     */
-    private $litigeHistoricRepository;
-
-    /**
      * @var NatureRepository
      */
     private $natureRepository;
@@ -289,34 +284,31 @@ class ArrivageController extends AbstractController
 
             $em->persist($arrivage);
             $em->flush();
+//TODO CG : supprimer modal addcolis après création arrivage ??
+			$arrivageNum = $arrivage->getNumeroArrivage();
 
-            $natureKey = array_keys($data);
-            foreach ($natureKey as $natureId) {
-                if (gettype($natureId) === 'integer') {
-                    $nature = $this->natureRepository->find($natureId);
-                    for ($i = 0; $i < $data[$natureId]; $i++) {
-                        $arrivageNum = $arrivage->getNumeroArrivage();
-                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                        if ($highestCode) {
-                            $highestCodeArray = explode('-', $highestCode);
-                            $highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
-                        } else {
-                            $highestCounter = 0;
-                        }
+			$natures = $post->get('nature');
+            foreach ($natures as $natureId) {
+				$nature = $this->natureRepository->find($natureId);
 
-                        $newCounter = sprintf('%05u', $highestCounter + 1);
+				$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+				if ($highestCode) {
+					$highestCodeArray = explode('-', $highestCode);
+					$highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
+				} else {
+					$highestCounter = 0;
+				}
 
-                        $colis = new Colis();
-                        $code = $arrivageNum . '-' . $newCounter;
-                        $colis
-                            ->setCode($code)
-                            ->setNature($nature)
-                            ->setArrivage($arrivage);
-                        $em->persist($colis);
-                        $em->flush();
+				$newCounter = sprintf('%05u', $highestCounter + 1);
 
-                    }
-                }
+				$colis = new Colis();
+				$code = $arrivageNum . '-' . $newCounter;
+				$colis
+					->setCode($code)
+					->setNature($nature)
+					->setArrivage($arrivage);
+				$em->persist($colis);
+				$em->flush();
             }
 
 			$this->addAttachements($request, $arrivage);

@@ -38,7 +38,7 @@ class NatureColisParamController extends AbstractController
     }
 
     /**
-     * @Route("/", name="nature_param")
+     * @Route("/", name="nature_param_index")
      */
     public function index()
     {
