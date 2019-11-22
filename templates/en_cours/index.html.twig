@@ -5,30 +5,14 @@
 {% block page_content %}
     <div class="row">
         <div class="col-10"><h1>Emplacements d'En cours : </h1></div>
-        <div class="col-2"><h2>Actualisé le {{ "now"|date("m/d/Y à H:i", "Europe/Paris") }}</h2></div>
+        <div class="col-2"><h2>Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
     </div>
     <br>
     <div class="row">
-        {% for key, emplacement in emplacements %}
+        {% for  emplacement in emplacements %}
             <div class="col-6">
-                <h1>En cours - {{ key }}</h1>
-                <table class="table table-striped table-bordered encours-table">
-                    <thead>
-                    <tr>
-                        <th>Colis</th>
-                        <th>Date de dépose</th>
-                        <th>Délais</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for encours in emplacement %}
-                    <tr class="{{ encours.late ? 'table-danger' : '' }}">
-                        <td>{{ encours.ref }}</td>
-                        <td>{{ encours.date }}</td>
-                        <td>{{ encours.time }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
+                <h1>En cours - {{ emplacement.label }}</h1>
+                <table class="table table-striped table-bordered encours-table" id="{{ emplacement.id }}">
                 </table>
             </div>
         {% endfor %}

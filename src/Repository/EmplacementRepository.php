@@ -179,14 +179,19 @@ class EmplacementRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "
-            SELECT e
-            FROM App\Entity\Emplacement AS e
-            WHERE
-            (
+            SELECT e.id, e.label, (
                 SELECT COUNT(m)
                 FROM App\Entity\MouvementTraca AS m
                 WHERE m.refEmplacement = e.label AND m.type LIKE 'depose'
-            ) > 0 AND e.dateMaxTime IS NOT NULL"
+            ) AS nb
+            FROM App\Entity\Emplacement AS e
+            WHERE
+            (
+                SELECT COUNT(m_other)
+                FROM App\Entity\MouvementTraca AS m_other
+                WHERE m_other.refEmplacement = e.label AND m_other.type LIKE 'depose'
+            ) > 0 AND e.dateMaxTime IS NOT NULL
+            ORDER BY nb DESC"
         );
         return $query->execute();
     }
