@@ -170,6 +170,7 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getResult() ? $query->getResult()[0] : null;
     }
 
+    // TODO VERIFCECILE
     /**
      * @return Emplacement[]
      */

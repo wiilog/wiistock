@@ -80,6 +80,7 @@ class EnCoursController extends AbstractController
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                     $minutesBetween = $this->getMinutesBetween($mvt);
                     $dataForTable = $this->enoursService->buildDataForDatatable($minutesBetween, $emplacement);
+                    // TODO VERIFCECILE
                     $emplacements[$emplacement->getLabel()][] = [
                         'ref' => $mvt->getRefArticle(),
                         'time' => $dataForTable['time'],
