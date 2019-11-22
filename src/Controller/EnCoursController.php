@@ -68,20 +68,8 @@ class EnCoursController extends AbstractController
     public function index(): Response
     {
         return $this->render('en_cours/index.html.twig', [
-            'emplacements' => $this->api()
+            'emplacements' => $this->emplacementRepository->findWhereArticleIs()
         ]);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function api(): array
-    {
-        $emplacements = [];
-        foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacement) {
-            $emplacements[] = $emplacement;
-        }
-        return $emplacements;
     }
 
     /**
