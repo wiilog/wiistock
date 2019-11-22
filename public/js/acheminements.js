@@ -34,12 +34,12 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-InitialiserModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, (data) => {printColis(data);});
+InitialiserModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, (data) => printColis(data));
 
 let modalModifyAcheminements = $('#modalEditAcheminements');
 let submitModifyAcheminements = $('#submitEditAcheminements');
 let urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, tableAcheminements);
+InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, tableAcheminements, (data) => printColis(data));
 
 let modalDeleteAcheminements = $('#modalDeleteAcheminements');
 let submitDeleteAcheminements = $('#submitDeleteAcheminements');
@@ -49,7 +49,7 @@ InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteA
 function printColis(data) {
     if (data.exists) {
         console.log(data);
-        printBarcodes(data.codes, data, ('Colis atachements ' + data.acheminements + '.pdf'));
+        printBarcodes(data.codes, data, ('Colis d\'acheminements ' + data.acheminements + '.pdf'));
     } else {
         $('#cannotGenerate').click();
     }

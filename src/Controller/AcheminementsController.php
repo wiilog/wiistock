@@ -198,7 +198,19 @@ Class AcheminementsController extends AbstractController
 //                );
 //            }
 
-            return new JsonResponse();
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['exists'] = false;
+            }
+
+            $response['codes'] = $data['colis'];
+            $response['acheminements'] = $acheminement->getId();
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
