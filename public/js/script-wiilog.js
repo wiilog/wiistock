@@ -819,3 +819,18 @@ function checkZero(data) {
     }
     return data;
 }
+
+function displayRight(div) {
+    div.addClass('isRight');
+    div.removeClass('isWrong');
+}
+
+function displayWrong(div) {
+    div.removeClass('isRight');
+    div.addClass('isWrong');
+}
+
+function displayNeutral(div) {
+    div.removeClass('isRight');
+    div.removeClass('isWrong');
+}

@@ -22,11 +22,6 @@ class MouvementStock
      */
     private $id;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
-    private $expectedDate;
-
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
@@ -176,18 +171,6 @@ class MouvementStock
     public function setRefArticle(?ReferenceArticle $refArticle): self
     {
         $this->refArticle = $refArticle;
-
-        return $this;
-    }
-
-    public function getExpectedDate(): ?DateTimeInterface
-    {
-        return $this->expectedDate;
-    }
-
-    public function setExpectedDate(?DateTimeInterface $expectedDate): self
-    {
-        $this->expectedDate = $expectedDate;
 
         return $this;
     }
