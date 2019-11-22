@@ -252,13 +252,13 @@ class EnCoursService
      */
     public function buildDataForDatatable(int $minutesBetween, Emplacement $emplacement)
     {
-        $time =
-            (floor($minutesBetween / 60) < 10 ? ('0' . floor($minutesBetween / 60)) : floor($minutesBetween / 60))
-            . ':' .
-            ($minutesBetween % 60 < 10 ? ('0' . $minutesBetween % 60) : ($minutesBetween % 60));
-        $maxTime = $emplacement->getDateMaxTime();
         $timeHours = floor($minutesBetween / 60);
         $timeMinutes = $minutesBetween % 60;
+        $time =
+            ($timeHours < 10 ? ('0' . $timeHours) : $timeHours)
+            . ':' .
+            ($timeMinutes < 10 ? ('0' . $timeMinutes) : ($timeMinutes));
+        $maxTime = $emplacement->getDateMaxTime();
         $maxTimeHours = intval(explode(':', $maxTime)[0]);
         $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
         $late = false;
@@ -267,7 +267,6 @@ class EnCoursService
         } else if (intval($timeHours) === $maxTimeHours) {
             $late = $timeMinutes > $maxTimeMinutes;
         }
-
         return [
             'time' => $time,
             'late' => $late
