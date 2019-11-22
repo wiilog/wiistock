@@ -44,7 +44,7 @@ class EnCoursController extends AbstractController
     /**
      * @var EnCoursService
      */
-    private $enoursService;
+    private $enCoursService;
 
     /**
      * EnCoursController constructor.
@@ -54,7 +54,7 @@ class EnCoursController extends AbstractController
      */
     public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository, EnCoursService $enCoursService)
     {
-        $this->enoursService = $enCoursService;
+        $this->enCoursService = $enCoursService;
         $this->daysRepository = $daysRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -99,7 +99,7 @@ class EnCoursController extends AbstractController
                     //VERIFCECILE
                     $dateMvt = DateTimeAlias::createFromFormat(DateTimeAlias::ATOM, explode('_', $mvt->getDate())[0]);
                     $minutesBetween = $this->getMinutesBetween($mvt);
-                    $dataForTable = $this->enoursService->buildDataForDatatable($minutesBetween, $emplacement);
+                    $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
                     //VERIFCECILE
                     $emplacementInfo[] = [
                         'colis' => $mvt->getRefArticle(),
@@ -137,7 +137,7 @@ class EnCoursController extends AbstractController
          * @var $day DateTimeAlias
          */
         foreach ($period as $day) {
-            $minutesBetween += $this->enoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
+            $minutesBetween += $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
         }
         return $minutesBetween;
     }

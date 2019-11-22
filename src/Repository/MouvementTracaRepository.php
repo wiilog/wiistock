@@ -77,6 +77,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		return $result ? $result[0] : null;
 	}
 
+    //VERIFCECILE
     /**
      * @param $emplacement Emplacement
      * @param $mvt MouvementTraca
