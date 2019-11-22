@@ -43,9 +43,13 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {
             'targets': [8,9],
             'visible': false
-        }
+        },
+        {
+            "type": "customDate",
+            "targets": 5
+        },
     ],
-    order: [[4, 'desc']]
+    order: [[5, 'desc']]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
@@ -130,6 +134,22 @@ $.fn.dataTable.ext.search.push(
         return true;
     }
 );
+
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+});
 
 $('#submitSearchLitigesArrivages').on('click', function () {
     let dateMin = $('#dateMin').val();
