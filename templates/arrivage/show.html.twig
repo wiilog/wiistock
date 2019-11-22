@@ -2,35 +2,11 @@
 {% block title %}Ajout d'article{% endblock %}
 {% block page_content %}
 
-<div class="row">
-    <div class="col">
-        <h1>Arrivage {{ arrivage.numeroarrivage }}</h1>
-        <input hidden value="{{ arrivage.id }}" id="arrivageId">
-        <input hidden value="{{ addColis }}" id="addColis">
-        <div class="d-none" id="barcodes"></div>
+    <div class="zone-entete">
+        {% include "arrivage/enteteArrivage.html.twig" %}
     </div>
 
-    <div class="col text-right">
-    {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
-        <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
-           onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
-           data-toggle='modal' class="btn btn-primary btn-action ml-auto">
-            Modifier
-        </a>
-    {% endif %}
-
-    {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE'))%}
-        <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
-           class="btn btn-danger btn-action ml-auto" onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-            Supprimer</a>
-    {% endif %}
-    </div>
-</div>
-
-<div class="zone-entete">
-    {% include "arrivage/enteteArrivage.html.twig" %}
-</div>
-<div class="row mt-5">
+    <div class="row mt-5">
     <div class="col-6">
         <div class="d-flex justify-content-between h-54px">
             {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
@@ -72,5 +48,6 @@
 {% endblock %}
 
 {% block javascript %}
+<script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
 <script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
 {% endblock javascript %}
