@@ -142,8 +142,7 @@ class PreparationsManagerService {
             ->setUser($userNomade)
             ->setQuantity($quantity)
             ->setType(MouvementStock::TYPE_SORTIE)
-            ->setLivraisonOrder($livraison)
-            ->setExpectedDate($livraison->getDate());
+            ->setLivraisonOrder($livraison);
 
         if (isset($emplacementFrom)) {
             $mouvement->setEmplacementFrom($emplacementFrom);
@@ -231,8 +230,7 @@ class PreparationsManagerService {
                             ->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
                             ->setType(MouvementStock::TYPE_TRANSFERT)
                             ->setPreparationOrder($preparation)
-                            ->setDate($mouvementRef ? $mouvementRef->getDate() : '')
-                            ->setExpectedDate($preparation->getDate());
+                            ->setDate($mouvementRef ? $mouvementRef->getDate() : '');
                         $this->entityManager->persist($newMouvement);
                         if ($mouvementRef) {
                             $this->refMouvementsToRemove[] = $mouvementRef;
@@ -302,8 +300,7 @@ class PreparationsManagerService {
                     ->setQuantity($article->getQuantiteAPrelever())
                     ->setEmplacementFrom($article->getEmplacement())
                     ->setType(MouvementStock::TYPE_TRANSFERT)
-                    ->setPreparationOrder($preparation)
-                    ->setExpectedDate($preparation->getDate());
+                    ->setPreparationOrder($preparation);
                 $this->entityManager->persist($mouvement);
                 $this->entityManager->flush();
             }
@@ -322,8 +319,7 @@ class PreparationsManagerService {
                     ->setQuantity($ligneArticle->getQuantite())
                     ->setEmplacementFrom($articleRef->getEmplacement())
                     ->setType(MouvementStock::TYPE_TRANSFERT)
-                    ->setPreparationOrder($preparation)
-                    ->setExpectedDate($preparation->getDate());
+                    ->setPreparationOrder($preparation);
                 $this->entityManager->persist($mouvement);
                 $this->entityManager->flush();
             }
