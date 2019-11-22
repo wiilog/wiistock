@@ -29,7 +29,12 @@ class MouvementTraca
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $date;
+    private $uniqueIdForMobile;
+
+    /**
+     * @ORM\Column(type="datetime", length=255, nullable=true)
+     */
+    private $datetime;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
@@ -79,14 +84,14 @@ class MouvementTraca
         return $this;
     }
 
-    public function getDate(): ?string
+    public function getUniqueIdForMobile(): ?string
     {
-        return $this->date;
+        return $this->uniqueIdForMobile;
     }
 
-    public function setDate(?string $date): self
+    public function setUniqueIdForMobile(?string $uniqueIdForMobile): self
     {
-        $this->date = $date;
+        $this->uniqueIdForMobile = $uniqueIdForMobile;
 
         return $this;
     }
@@ -166,6 +171,18 @@ class MouvementTraca
     public function setType(?Statut $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getDatetime(): ?\DateTimeInterface
+    {
+        return $this->datetime;
+    }
+
+    public function setDatetime(?\DateTimeInterface $datetime): self
+    {
+        $this->datetime = $datetime;
 
         return $this;
     }

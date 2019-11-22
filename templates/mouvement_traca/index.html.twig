@@ -19,7 +19,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
-               onclick="initNewMvtTracaEditor('#modalNewMvtTraca'), clearModal('#modalNewMvtTraca')">
+               onclick="initNewMvtTracaEditor('#modalNewMvtTraca'), clearModal('#modalNewMvtTraca'), fillDateInNewModal()">
                 <span class="fa fa-plus mr-2"></span>Nouveau mouvement
             </a>
         {% endif %}

@@ -218,6 +218,7 @@ function initNewMvtTracaEditor(modal) {
         editorNewMvtTracaAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'));
 };
 
 let editorEditMvtTracaAlreadyDone = false;
@@ -228,4 +229,10 @@ function initEditMvtTracaEditor(modal) {
         editorEditMvtTracaAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 };
+
+function fillDateInNewModal() {
+    let date = new Date();
+    $('#modalNewMvtTraca').find('.datetime').val(date.toISOString().slice(0,16));
+}

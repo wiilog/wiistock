@@ -119,19 +119,18 @@ class MouvementTracaController extends AbstractController
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
 
-			$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-			$randomChars = substr(md5(microtime()), rand(0,26), 5);
-			$formattedDate = $date->format('c') . '_' . $randomChars;
+			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
+			$operator = $this->utilisateurRepository->find($post->get('operator'));
 
 			$mvtTraca = new MouvementTraca();
 			$mvtTraca
-				->setDate($formattedDate)
-				->setType($type)
+				->setDatetime($date)
+				->setOperateur($operator)
 				->setColis($post->get('colis'))
+				->setType($type)
 				->setEmplacement($location)
-				->setOperateur($this->getUser())
 				->setCommentaire($post->get('commentaire') ?? null);
 
 			$em->persist($mvtTraca);
@@ -158,11 +157,9 @@ class MouvementTracaController extends AbstractController
 
             $rows = [];
             foreach ($mvts as $mvt) {
-				$dateArray = explode('_', $mvt->getDate());
-				$date = new DateTime($dateArray[0]);
                 $rows[] = [
                     'id' => $mvt->getId(),
-                    'date' => $date->format('d/m/Y H:i:s'),
+                    'date' => $mvt->getDatetime() ? $mvt->getDatetime()->format('d/m/Y H:i') : '',
                     'colis' => $mvt->getColis(),
                     'location' => $mvt->getEmplacement() ? $mvt->getEmplacement()->getLabel() : '',
                     'type' => $mvt->getType() ? $mvt->getType()->getNom() : '',
@@ -205,6 +202,8 @@ class MouvementTracaController extends AbstractController
 
 	/**
 	 * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return Response
 	 */
 	public function edit(Request $request): Response
 	{
@@ -215,16 +214,18 @@ class MouvementTracaController extends AbstractController
 
 			$post = $request->request;
 
+			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
+			$operator = $this->utilisateurRepository->find($post->get('operator'));
 
 			$mvt = $this->mouvementRepository->find($post->get('id'));
 			$mvt
-				->setType($type)
-				->setOperateur($this->getUser())
-				->setEmplacement($location)
-//				->setDate()
+				->setDatetime($date)
+				->setOperateur($operator)
 				->setColis($post->get('colis'))
+				->setType($type)
+				->setEmplacement($location)
 				->setCommentaire($post->get('commentaire'));
 
 			$em = $this->getDoctrine()->getManager();
@@ -283,9 +284,8 @@ class MouvementTracaController extends AbstractController
             $newDateMax = new DateTime($dateMax);
             $mouvements = $this->mouvementRepository->findByDates($dateMin, $dateMax);
             foreach($mouvements as $mouvement) {
-                $date = substr($mouvement->getDate(),0, -10);
-                $newDate = new DateTime($date);
-                if ($newDateMin >= $newDate || $newDateMax <= $newDate) {
+                $date = $mouvement->getDatetime();
+                if ($newDateMin >= $date || $newDateMax <= $date) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }
@@ -298,7 +298,7 @@ class MouvementTracaController extends AbstractController
             foreach ($mouvements as $mouvement) {
                 $mouvementData = [];
 
-                $mouvementData[] = substr($mouvement->getDate(), 0,10). ' ' . substr($mouvement->getDate(), 11,8);
+                $mouvementData[] = $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '';
                 $mouvementData[] = $mouvement->getColis();
                 $mouvementData[] = $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '';
                 $mouvementData[] = $mouvement->getType() ? $mouvement->getType()->getNom() : '';
