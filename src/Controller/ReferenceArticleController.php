@@ -1304,7 +1304,7 @@ class ReferenceArticleController extends Controller
             foreach ($mouvements as $mouvement) {
                 $rows[] =
                     [
-                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y') : 'aucune',
+                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
