@@ -21,7 +21,6 @@ function drawAnnotations() {
             data.addRow([key, Number(value), String(value)]);
         }
         let options = {
-            title: 'Réceptions (Nombre d\'associations)',
             annotations: {
                 alwaysOutside: true,
                 textStyle: {

@@ -897,12 +897,22 @@ em {
 #dashboard-assoc {
     text-align: center;
     margin-top: 10px;
+    border: 1px solid black;
     height: 500px;
     width: 900px;
     background-color: white;
 }
 
+#dashboard-retard {
+    text-align: center;
+    margin-top: 10px;
+    height: 500px;
+    width: 900px;
+    border: 1px solid black;
+    background-color: white;
+}
+
 #chart-assoc {
-    height: 80%;
+    height: 70%;
 }
 /*# sourceMappingURL=style.css.map */
