@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Urgence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -19,32 +20,24 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-    // /**
-    //  * @return Urgence[] Returns an array of Urgence objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    /**
+     * @param Arrivage $arrivage the arrivage to analyse
+     * @return int the number of emergencies
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByArrivageData(Arrivage $arrivage)
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(u) 
+                FROM App\Entity\Urgence u
+                WHERE u.dateStart <= :date AND u.dateEnd >= :date AND u.commande LIKE :commande"
+        )->setParameters([
+            'date' => $arrivage->getDate(),
+            'commande' => $arrivage->getNumeroBL()
+        ]);
 
-    /*
-    public function findOneBySomeField($value): ?Urgence
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
 }

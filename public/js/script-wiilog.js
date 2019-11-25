@@ -883,3 +883,9 @@ let toggleArrivage = function (button) {
     }
     button.data('arrivage', !button.data('arrivage'));
 }
+
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+};

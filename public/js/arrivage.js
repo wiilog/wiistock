@@ -32,7 +32,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[11, "desc"]],
+    order: [[13, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
@@ -52,7 +52,17 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
+    "columnDefs": [
+        {
+            "targets": [ 13 ],
+            "visible": false
+        }
+    ],
+    "rowCallback" : function(row, data) {
+        if (data.urgent === true) $(row).addClass('table-danger');
+    }
 });
 
 function listColis(elem) {
@@ -140,7 +150,7 @@ $submitSearchArrivage.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-
+    let urgence = $('#urgence-filter').is(':checked');
     saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
 
     tableArrivage
@@ -151,6 +161,11 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .columns('Destinataire:name')
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    tableArrivage
+        .columns('urgent:name')
+        .search(urgence ? 'true' : '')
         .draw();
 
     tableArrivage
