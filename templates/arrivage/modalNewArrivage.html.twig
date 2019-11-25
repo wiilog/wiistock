@@ -89,8 +89,8 @@
                                         <label for="">
                                             {{nature.label | capitalize}}
                                         </label>
-                                        <input type="number" class="form-control data"
-                                               value="" name="nature[]" id="{{ nature.id }}" min="0">
+                                        <input type="number" class="form-control data-array"
+                                               value="" name="nature" data-id="{{ nature.id }}" min="0">
                                     </div>
                                 {% endfor %}
                             </div>
@@ -102,7 +102,7 @@
                     <div class="form-group col-3">
                         <label>Imprimer colis</label>
                         <label class="switch">
-                            <input class="checkbox" type="checkbox" name="ImprColis">
+                            <input class="checkbox" type="checkbox" name="printColis">
                             <span class="slider round"></span>
                         </label>
                     </div>
@@ -110,7 +110,7 @@
                     <div class="form-group col-3">
                         <label>Imprimer arrivage</label>
                         <label class="switch">
-                            <input class="checkbox" type="checkbox" name="ImprArrivage">
+                            <input class="checkbox" type="checkbox" name="printArrivage">
                             <span class="slider round"></span>
                         </label>
                     </div>

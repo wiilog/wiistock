@@ -140,7 +140,7 @@ class ArrivageController extends AbstractController
      */
     private $natureRepository;
 
-    public function __construct(Attachement Service $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -204,7 +204,6 @@ class ArrivageController extends AbstractController
             }
 
             $rows = [];
-            $response = [];
             foreach ($arrivages as $arrivage) {
                 $acheteursUsernames = [];
                 $url = $this->generateUrl('arrivage_show', [
@@ -292,36 +291,38 @@ class ArrivageController extends AbstractController
 
             $em->persist($arrivage);
             $em->flush();
-//TODO CG : supprimer modal addcolis après création arrivage ??
+
 			$arrivageNum = $arrivage->getNumeroArrivage();
 
             $codes = [];
 
-			$natures = $post->get('nature');
-			dump($natures);
-            foreach ($natures as $natureId) {
-				$nature = $this->natureRepository->find($natureId);
+			$natures = json_decode($post->get('nature'), true);
 
-				$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-				if ($highestCode) {
-					$highestCodeArray = explode('-', $highestCode);
-					$highestCounter = $highestCodeArray ? $highestCodeArray[1]: 0;
-				} else {
-					$highestCounter = 0;
+            foreach ($natures as $natureArray) {
+				$nature = $this->natureRepository->find($natureArray['id']);
+
+				for ($i = 0; $i < $natureArray['val']; $i++) {
+
+					$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+					if ($highestCode) {
+						$highestCodeArray = explode('-', $highestCode);
+						$highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
+					} else {
+						$highestCounter = 0;
+					}
+
+					$newCounter = sprintf('%05u', $highestCounter + 1);
+
+					$colis = new Colis();
+					$code = $arrivageNum . '-' . $newCounter;
+					$colis
+						->setCode($code)
+						->setNature($nature)
+						->setArrivage($arrivage);
+					$em->persist($colis);
+					$em->flush();
+                	$codes[] = $code;
 				}
-
-				$newCounter = sprintf('%05u', $highestCounter + 1);
-
-				$colis = new Colis();
-				$code = $arrivageNum . '-' . $newCounter;
-				$colis
-					->setCode($code)
-					->setNature($nature)
-					->setArrivage($arrivage);
-				$em->persist($colis);
-				$em->flush();
-
-                $codes[] = $code;
             }
 
             $response = [];
@@ -337,7 +338,7 @@ class ArrivageController extends AbstractController
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 
-			$this->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request, $arrivage);
 
 			$em->persist($arrivage);
             $em->flush();

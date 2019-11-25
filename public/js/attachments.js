@@ -101,13 +101,26 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+    let inputsArray = modal.find(".data-array");
+
     let Data = new FormData();
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
+    let name;
+    let vals = [];
+    let arrayIdVal = {};
+
+    inputsArray.each(function () {
+        arrayIdVal = {id: $(this).data('id'), val: $(this).val()};
+        vals.push(arrayIdVal);
+        name = $(this).attr("name");
+        Data.append(name, JSON.stringify(vals));
+    });
+
     inputs.each(function () {
         let val = $(this).val();
-        let name = $(this).attr("name");
+        name = $(this).attr("name");
         Data.append(name, val);
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -162,7 +175,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             dataType: 'json',
             success: (data) => {
                 if (data.redirect) {
-                    window.location.href = data.redirect + '/1';
+                    window.location.href = data.redirect;
                     return;
                 }
 
