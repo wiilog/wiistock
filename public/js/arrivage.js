@@ -22,9 +22,19 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchArrivage.click();
+
+        initFilterDateToday();
+        $submitSearchArrivage.click();
     }, 'json');
 });
+
+function initFilterDateToday() {
+    // par défaut filtre date du jour
+    let today = new Date();
+    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
+    $('#dateMin').val(formattedToday);
+    $('#dateMax').val(formattedToday);
+}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
@@ -32,7 +42,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[11, "desc"]],
+    order: [[1, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
@@ -40,6 +50,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
         {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
@@ -50,9 +61,21 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
+    columnDefs: [
+        {
+            targets: 0,
+            className: 'noVis'
+        }
+    ],
+    dom: 'lBftip',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)'
+        }
+    ]
 });
 
 function listColis(elem) {

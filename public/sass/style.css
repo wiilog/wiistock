@@ -1,3 +1,4 @@
+@charset "UTF-8";
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
   margin: 0;
   padding: 0;
@@ -382,6 +383,37 @@ a:hover {
 .curve_chart_line {
   height: 75px;
   width: 300px;
+}
+
+#range-buttons-assoc {
+  text-align: center;
+}
+
+.dashboardBR {
+  background-color: white;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.dashboard-item {
+  min-width: 50%;
+  min-height: 40%;
+}
+
+#dashboard-assoc {
+  margin-top: 10px;
+  height: 500px;
+  width: 900px;
+  background-color: white;
+  text-align: center;
+}
+
+#chart-assoc {
+  height: 80%;
 }
 
 .btn {
@@ -816,6 +848,30 @@ em {
 }
 .modal .select2-selection .select2-selection__rendered {
   line-height: calc(2.25rem + 2px) !important;
+}
+
+.dt-buttons {
+  background-image: none !important;
+}
+.dt-buttons .dt-button {
+  font-size: 1rem;
+}
+.dt-buttons .buttons-colvis {
+  background: #c6c6c6;
+  border-radius: 50px;
+  border: none;
+  color: white;
+}
+.dt-buttons .buttons-colvis:hover {
+  background: #424242;
+  background-image: none !important;
+}
+.dt-buttons .buttons-colvis:before {
+  font-family: "FontAwesome";
+  content: "";
+}
+.dt-buttons .buttons-colvis span {
+  display: none;
 }
 
 /*# sourceMappingURL=style.css.map */
