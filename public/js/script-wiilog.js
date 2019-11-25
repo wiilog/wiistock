@@ -859,7 +859,7 @@ let submitNewAssociation = function () {
     } else {
         $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
     }
-}
+};
 
 let toggleArrivage = function (button) {
     let $arrivageBlock = $('.arrivalNb').first().parent();
@@ -882,4 +882,10 @@ let toggleArrivage = function (button) {
         button.text('Sans Arrivage');
     }
     button.data('arrivage', !button.data('arrivage'));
-}
+};
+
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+};
