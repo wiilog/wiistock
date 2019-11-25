@@ -61,7 +61,7 @@ function addInputColisClone(button)
     let $toClone = $modal.find('.inputColisClone').first();
     let $parent = $toClone.parent();
     $toClone.clone().appendTo($parent);
-
+    $parent.children().last().find('.data-array').val('');
 }
 
 function changeStatus(button) {
