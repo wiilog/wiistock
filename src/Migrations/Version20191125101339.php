@@ -36,6 +36,10 @@ final class Version20191125101339 extends AbstractMigration
 		$this->addSql('UPDATE mouvement_traca SET type = ( SELECT statut.id FROM statut WHERE statut.nom LIKE mouvement_traca.type )');
 		$this->addSql('ALTER TABLE mouvement_traca CHANGE `type` `type` int(11)');
 		$this->addSql('ALTER TABLE mouvement_traca ADD FOREIGN KEY `mouvement_traca_statut_fk1` (type) REFERENCES statut(id)');
+
+        // remplit champ mouvement_traca.datetime avec données champ mouvement_traca.date
+		$this->addSql('ALTER TABLE mouvement_traca ADD `datetime` datetime');
+		$this->addSql('UPDATE mouvement_traca SET datetime = STR_TO_DATE(REPLACE(LEFT(mouvement_traca.date, 19), "T", " "), "%Y-%m-%d %T")');
     }
 
     public function down(Schema $schema) : void
@@ -57,5 +61,9 @@ final class Version20191125101339 extends AbstractMigration
 		$this->addSql('ALTER TABLE mouvement_traca DROP FOREIGN KEY `mouvement_traca_statut_fk1`');
 		$this->addSql('ALTER TABLE mouvement_traca CHANGE type type varchar(255)');
 		$this->addSql('UPDATE mouvement_traca SET type = ( SELECT statut.nom FROM statut WHERE statut.id = mouvement_traca.type )');
+
+		// supprime champ mouvement_traca.datetime
+		$this->addSql('ALTER TABLE mouvement_traca DROP `datetime`');
+
     }
 }
