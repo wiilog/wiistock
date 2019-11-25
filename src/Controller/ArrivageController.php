@@ -760,12 +760,11 @@ class ArrivageController extends AbstractController
 
     /**
 	 * @param Arrivage $arrivage
-	 * @param bool $addColis
-	 * @Route("/voir/{id}/{addColis}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
 	 * @return JsonResponse
 	 * @throws NonUniqueResultException
 	 */
-    public function show(Arrivage $arrivage, bool $addColis = false): Response
+    public function show(Arrivage $arrivage): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
             return $this->redirectToRoute('access_denied');
@@ -784,7 +783,6 @@ class ArrivageController extends AbstractController
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
 				'natures' => $this->natureRepository->findAll(),
-				'addColis' => $addColis,
 				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0
             ]);
     }

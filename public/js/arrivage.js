@@ -204,7 +204,7 @@ function submitActionArrivage(modal, path) {
             dataType: 'json',
             success: (data) => {
                 if (data.redirect) {
-                    window.location.href = data.redirect + '/1';
+                    window.location.href = data.redirect;
                     return;
                 }
             }
