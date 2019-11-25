@@ -176,6 +176,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $litigeHistorics;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionTraca", mappedBy="user")
+     */
+    private $receptionsTraca;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -197,6 +202,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->acheminements = new ArrayCollection();
         $this->acheminementsReceive = new ArrayCollection();
         $this->acheminementsRequester = new ArrayCollection();
+        $this->receptionsTraca = new ArrayCollection();
     }
 
     public function getId()
@@ -966,6 +972,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($acheminementsRequester->getRequester() === $this) {
                 $acheminementsRequester->setRequester(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionTraca[]
+     */
+    public function getReceptionsTraca(): Collection
+    {
+        return $this->receptionsTraca;
+    }
+
+    public function addReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    {
+        if (!$this->receptionsTraca->contains($receptionsTraca)) {
+            $this->receptionsTraca[] = $receptionsTraca;
+            $receptionsTraca->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    {
+        if ($this->receptionsTraca->contains($receptionsTraca)) {
+            $this->receptionsTraca->removeElement($receptionsTraca);
+            // set the owning side to null (unless already changed)
+            if ($receptionsTraca->getUser() === $this) {
+                $receptionsTraca->setUser(null);
             }
         }
 

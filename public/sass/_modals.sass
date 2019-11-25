@@ -24,9 +24,13 @@
 
 .comment
   height: auto
-  min-height: 45px
+  min-height: calc(2.25rem + 2px)
   max-height: 25vh
   overflow: auto
 
-.modal-open
-  padding-right: 0px !important
+.input
+  border: 1px solid #ced4da
+  border-radius: .25rem
+  &.disabled
+    background-color: #e9ecef
+    opacity: 1

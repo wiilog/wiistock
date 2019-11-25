@@ -49,6 +49,7 @@ class FiltreSup
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="filtresSup")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $user;
 

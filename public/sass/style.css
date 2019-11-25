@@ -246,7 +246,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -331,13 +333,18 @@ a:hover {
 
 .comment {
   height: auto;
-  min-height: 45px;
+  min-height: calc(2.25rem + 2px);
   max-height: 25vh;
   overflow: auto;
 }
 
-.modal-open {
-  padding-right: 0px !important;
+.input {
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+}
+.input.disabled {
+  background-color: #e9ecef;
+  opacity: 1;
 }
 
 .accueil-back {
@@ -763,10 +770,6 @@ button:focus {
   background-color: #8e8e8e;
 }
 
-.select2-selection.select2-selection--multiple {
-  min-height: 38px !important;
-}
-
 .commentOverflow {
   height: 25vh;
   width: 120vh;
@@ -794,6 +797,25 @@ em {
   border: 3px dashed #b2b2b2;
   line-height: 50px;
   text-align: center;
+}
+
+.isWrong {
+  border: 3px dashed #cc0000;
+}
+
+.isRight {
+  border: 3px dashed #00b31e;
+}
+
+.select2-selection.select2-selection--multiple {
+  min-height: 38px !important;
+}
+
+.modal .select2-selection {
+  min-height: calc(2.25rem + 2px);
+}
+.modal .select2-selection .select2-selection__rendered {
+  line-height: calc(2.25rem + 2px) !important;
 }
 
 /*# sourceMappingURL=style.css.map */

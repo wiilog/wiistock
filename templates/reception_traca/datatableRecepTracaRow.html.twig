@@ -1,0 +1,9 @@
+<div class="d-flex">
+    {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE')) %}
+        <div data-id='{{ recep.id }}' data-target='#modalDeleteRecepTraca' data-toggle='modal'
+             class='btn btn-col-action'
+             onclick="deleteRow($(this), $('#modalDeleteRecepTraca'), $('#submitDeleteRecepTraca'))">
+            <i class='fas fa-trash'></i>
+        </div>
+    {% endif %}
+</div>

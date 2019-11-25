@@ -595,7 +595,7 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
             $(this).val("");
         }
         if ($(this).attr('id') === 'statut') {
@@ -833,4 +833,68 @@ function checkZero(data) {
         data = "0" + data;
     }
     return data;
+}
+
+function displayRight(div) {
+    div.addClass('isRight');
+    div.removeClass('isWrong');
+}
+
+function displayWrong(div) {
+    div.removeClass('isRight');
+    div.addClass('isWrong');
+}
+
+function displayNeutral(div) {
+    div.removeClass('isRight');
+    div.removeClass('isWrong');
+}
+
+let submitNewAssociation = function () {
+    let correct = true;
+    let params = {};
+    $('#modalNewAssociation').find('.needed').each(function (index, input) {
+        if ($(input).val() !== '') {
+            if (params[$(input).attr('name')]) {
+                params[$(input).attr('name')] += ';' + $(input).val();
+            } else {
+                params[$(input).attr('name')] = $(input).val();
+            }
+        } else if (!$(input).hasClass('arrival-input')) {
+            correct = false;
+        }
+    });
+    if (correct) {
+        let routeNewAssociation = Routing.generate('reception_traca_new', true);
+        $.post(routeNewAssociation, JSON.stringify(params), function () {
+            $('#modalNewAssociation').find('.close').click();
+            if (typeof tableRecep !== "undefined") tableRecep.ajax.reload();
+            $('#modalNewAssociation').find('.error-msg').text('');
+        })
+    } else {
+        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
+    }
+}
+
+let toggleArrivage = function (button) {
+    let $arrivageBlock = $('.arrivalNb').first().parent();
+    if (button.data('arrivage')) {
+        $arrivageBlock.find('input').each(function() {
+            if ($(this).hasClass('arrivage-input')) {
+                $(this).remove();
+            } else {
+                $(this).val('');
+                $(this).removeClass('needed');
+            }
+        });
+        $arrivageBlock.hide();
+        button.text('Avec Arrivage');
+    } else {
+        $arrivageBlock.find('input').each(function() {
+            $(this).addClass('needed');
+        });
+        $arrivageBlock.show();
+        button.text('Sans Arrivage');
+    }
+    button.data('arrivage', !button.data('arrivage'));
 }

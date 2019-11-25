@@ -93,6 +93,11 @@ class Statut
      */
     private $litiges;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendNotifToBuyer;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -485,6 +490,18 @@ class Statut
                 $acheminement->setStatut(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSendNotifToBuyer(): ?bool
+    {
+        return $this->sendNotifToBuyer;
+    }
+
+    public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self
+    {
+        $this->sendNotifToBuyer = $sendNotifToBuyer;
 
         return $this;
     }
