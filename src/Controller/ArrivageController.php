@@ -198,6 +198,7 @@ class ArrivageController extends AbstractController
             }
 
             $rows = [];
+            $response = [];
             foreach ($arrivages as $arrivage) {
                 $acheteursUsernames = [];
                 $url = $this->generateUrl('arrivage_show', [
@@ -276,7 +277,8 @@ class ArrivageController extends AbstractController
 			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			if (!empty($acheteurs = $post->get('acheteurs'))) {
+			if (!empty($post->get('acheteurs'))) {
+			    $acheteurs = explode(',', $post->get('acheteurs'));
                 foreach ($acheteurs as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
@@ -287,7 +289,10 @@ class ArrivageController extends AbstractController
 //TODO CG : supprimer modal addcolis après création arrivage ??
 			$arrivageNum = $arrivage->getNumeroArrivage();
 
+            $codes = [];
+
 			$natures = $post->get('nature');
+			dump($natures);
             foreach ($natures as $natureId) {
 				$nature = $this->natureRepository->find($natureId);
 
@@ -309,7 +314,22 @@ class ArrivageController extends AbstractController
 					->setArrivage($arrivage);
 				$em->persist($colis);
 				$em->flush();
+
+                $codes[] = $code;
             }
+
+            $response = [];
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['exists'] = false;
+            }
+
+            $response['codes'] = $codes;
+            $response['arrivage'] = $arrivage->getNumeroArrivage();
 
 			$this->addAttachements($request, $arrivage);
 
