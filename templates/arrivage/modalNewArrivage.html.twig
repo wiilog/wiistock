@@ -21,6 +21,9 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
+                    </div>
 
                     <div class="form-group col">
                         <label for="transporteur">Transporteur*</label>
@@ -30,6 +33,9 @@
                                 <option value="{{ transporteur.id }}">{{ transporteur.label }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i class="fa fa-plus"></i></span>
                     </div>
 
                     <div class="form-group col">
@@ -41,6 +47,53 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" onclick="toggleInput('chauffeurDisplay', 'addChauffeur')"><i class="fa fa-plus"></i></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="row col-4 formulaire">
+                        <div class="form-group col-9" id="fournisseurDisplay">
+                            <label for="newFournisseur">Nom fournisseur</label>
+                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire" name="Nom" maxlength="64">
+                            <label for="newFournisseurCode">Code référence</label>
+                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire" name="Code" maxlength="64">
+                        </div>
+                        <div class="form-group col-3" id="addFournisseur">
+                            <span class="btn btn-primary" onclick="newLine(Routing.generate('fournisseur_new', true), $(this))"><i class="fa fa-plus"></i></span>
+                        </div>
+                    </div>
+                    <div class="row col-4 formulaire">
+                        <div class="form-group col-9" id="transporteurDisplay">
+                            <label for="newTransporteur">Nom transporteur</label>
+                            <input type="text" id="newTransporteur" class="form-control newFormulaire" name="label" maxlength="64">
+                            <label for="newTransporteurCode">Nom transporteur</label>
+                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire" name="code" maxlength="64">
+                        </div>
+                        <div class="form-group col-3" id="addTransporteur">
+                            <span class="btn btn-primary" onclick="newLine(Routing.generate('transporteur_new', true), $(this))"><i class="fa fa-plus"></i></span>
+                        </div>
+                    </div>
+                    <div class="row col-4 formulaire">
+                        <div class="form-group col-9" id="chauffeurDisplay">
+                            <label for="newChauffeurName">Nom</label>
+                            <input type="text" id="newChauffeurName" class="form-control newFormulaire" name="nom" maxlength="64">
+                            <label for="newChauffeurFirstName">Prénom chauffeur</label>
+                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire" name="prenom" maxlength="64">
+                            <label for="newChauffeurNumero">N°doc ID</label>
+                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire" name="documentID" maxlength="64">
+                            <label for="newChauffeurTransporteur">Transporteur*</label>
+                            <select class="form-control newFormulaire" id="newChauffeurTransporteur" name="transporteur">
+                                <option disabled selected></option>
+                                {% for transporteur in transporteurs %}
+                                    <option value="{{ transporteur.id }}">{{ transporteur.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group col-3" id="addChauffeur">
+                            <span class="btn btn-primary" onclick="newLine(Routing.generate('chauffeur_new', true), $(this))"><i class="fa fa-plus"></i></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-4">
@@ -50,7 +103,7 @@
 
                     <div class="form-group col-4">
                         <label for="noBL">N° commande / BL</label>
-                        <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64">
+                        <input type="text" id="noBL" class="form-control needed data" name="noBL" maxlength="64">
                     </div>
                 </div>
 
@@ -74,6 +127,10 @@
                                 </option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="Immatriculation">Immatriculation</label>
+                        <input type="text" id="Immatriculation" class="form-control data" name="immatriculation" maxlength="64">
                     </div>
                 </div>
 

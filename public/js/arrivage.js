@@ -326,3 +326,30 @@ let aFile = function (csv) {
         }
     }
 }
+
+function toggleInput(id, button) {
+    let $toShow = document.getElementById(id);
+    let $toAdd = document.getElementById(button);
+    // let $div = document.getElementById(div);
+    if ($toShow.style.visibility === "hidden"){
+        $toShow.style.visibility = "visible";
+        $toAdd.style.visibility = "visible";
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.style.visibility = "hidden";
+        $toAdd.style.visibility = "hidden";
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+       params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+
+    });
+}

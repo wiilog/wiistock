@@ -254,7 +254,8 @@ class ArrivageController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setCommentaire($post->get('commentaire') ?? null);
+                ->setCommentaire($post->get('commentaire') ?? null)
+                ->setImmatriculation($post->get('immatriculation') ?? null);
 
             if (!empty($fournisseur = $post->get('fournisseur'))) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
@@ -274,11 +275,12 @@ class ArrivageController extends AbstractController
 			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			if (!empty($acheteurs = $post->get('acheteurs'))) {
-                foreach ($acheteurs as $acheteur) {
-                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-                }
-            }
+//			if (!empty($acheteurs = $post->get('acheteurs'))) {
+//                foreach ($acheteurs as $acheteur) {
+//                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+//                }
+//            }
+            // TODO remettre acheteurs en place
 
             $em->persist($arrivage);
             $em->flush();
