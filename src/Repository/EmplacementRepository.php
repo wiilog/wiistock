@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -54,7 +55,7 @@ class EmplacementRepository extends ServiceEntityRepository
 	/**
 	 * @param string $label
 	 * @return Emplacement|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();

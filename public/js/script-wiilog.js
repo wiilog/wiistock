@@ -580,7 +580,7 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
             $(this).val("");
         }
         if ($(this).attr('id') === 'statut') {
@@ -859,7 +859,7 @@ let submitNewAssociation = function () {
     } else {
         $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
     }
-}
+};
 
 let toggleArrivage = function (button) {
     let $arrivageBlock = $('.arrivalNb').first().parent();
@@ -882,4 +882,10 @@ let toggleArrivage = function (button) {
         button.text('Sans Arrivage');
     }
     button.data('arrivage', !button.data('arrivage'));
-}
+};
+
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+};

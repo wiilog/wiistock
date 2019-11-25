@@ -103,12 +103,12 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalArrivage(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
+initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalArrivage(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -118,7 +118,7 @@ InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableAr
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-initModalArrivage(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
+initModalWithAttachments(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');

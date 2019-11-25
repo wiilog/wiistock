@@ -130,7 +130,7 @@ function printLabels(data) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-initModalNewArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -141,7 +141,7 @@ function initNewArrivageEditor(modal) {
         editorNewArrivageAlreadyDone = true;
     }
 }
-
+//TODO CG 2 fonctions ci-dessous
 function initModalNewArrivage(modal, submit, path) {
     submit.click(function () {
         submitActionArrivage(modal, path);
