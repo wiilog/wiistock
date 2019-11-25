@@ -91,13 +91,13 @@ function uploadFE(span) {
     displayAttachements(files, dropFrame);
 }
 
-function initModalArrivage(modal, submit, path, table = null, callback = null, close = true, clear = true) {
+function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitActionArrivageLitige(modal, path, table, callback, close, clear);
+        submitActionWithAttachments(modal, path, table, callback, close, clear);
     });
 }
 
-function submitActionArrivageLitige(modal, path, table, callback, close, clear) {
+function submitActionWithAttachments(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
