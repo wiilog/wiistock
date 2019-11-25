@@ -588,7 +588,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 }
 
                 $mouvementsNomade = $data['mouvements'];
-				$listMvtToRemove = [];
+                $listMvtToRemove = [];
 
                 // on crée les mouvements de livraison
                 foreach ($mouvementsNomade as $mouvementNomade) {
@@ -624,9 +624,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             // on prend la quantité donnée dans le mouvement
                             // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
                             $mouvementQuantity = (
-                                $isSelectedByArticle
-                                    ? $mouvementNomade['quantity']
-                                    : $this->mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity()
+                            $isSelectedByArticle
+                                ? $mouvementNomade['quantity']
+                                : $this->mouvementRepository->findByRefAndPrepa($article->getId(), $preparation->getId())->getQuantity()
                             );
 
                             $mouvement->setQuantity($mouvementQuantity);
@@ -659,35 +659,35 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 if ($article->getDemande()) {
                                     throw new BadRequestHttpException('article-already-selected');
                                 } else {
-									// on crée le lien entre l'article et la demande
+                                    // on crée le lien entre l'article et la demande
                                     $demande = $demandeRepository->findOneByLivraison($livraison);
                                     $article->setDemande($demande);
 
-									// et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
+                                    // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-									if (!empty($ligneArticle)) {
+                                    if (!empty($ligneArticle)) {
                                         $entityManager->remove($ligneArticle);
                                     }
 
-									// on crée le mouvement de transfert de l'article
-									$mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
-									$newMouvement = new MouvementStock();
-									$newMouvement
-										->setUser($nomadUser)
-										->setArticle($article)
-										->setQuantity($article->getQuantiteAPrelever())
-										->setEmplacementFrom($article->getEmplacement())
-										->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
-										->setType(MouvementStock::TYPE_TRANSFERT)
-										->setPreparationOrder($preparation)
-										->setDate($preparation->getDate());
-									$entityManager->persist($newMouvement);
-									$entityManager->flush();
-									if ($mouvementRef) {
-									    $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
+                                    // on crée le mouvement de transfert de l'article
+                                    $mouvementRef = $this->mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
+                                    $newMouvement = new MouvementStock();
+                                    $newMouvement
+                                        ->setUser($nomadUser)
+                                        ->setArticle($article)
+                                        ->setQuantity($article->getQuantiteAPrelever())
+                                        ->setEmplacementFrom($article->getEmplacement())
+                                        ->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
+                                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                                        ->setPreparationOrder($preparation)
+                                        ->setDate($preparation->getDate());
+                                    $entityManager->persist($newMouvement);
+                                    $entityManager->flush();
+                                    if ($mouvementRef) {
+                                        $listMvtToRemove[$mouvementRef->getId()] = $mouvementRef;
                                     }
-								}
+                                }
                             }
                         }
                     }
@@ -695,11 +695,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $entityManager->flush();
                 }
 
-				// on supprime les mouvements de transfert créés pour les réf gérées à l'articles
-				// (elles ont été remplacées plus haut par les mouvements de transfert des articles)
-				foreach ($listMvtToRemove as $mvtToRemove){
-					$entityManager->remove($mvtToRemove);
-				}
+                // on supprime les mouvements de transfert créés pour les réf gérées à l'articles
+                // (elles ont été remplacées plus haut par les mouvements de transfert des articles)
+                foreach ($listMvtToRemove as $mvtToRemove) {
+                    $entityManager->remove($mvtToRemove);
+                }
 
                 $entityManager->flush();
                 $this->successDataMsg['success'] = true;
@@ -1264,7 +1264,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     /**
      * @Rest\Get("/api/nomade-versions")
      */
-    public function getAvailableVersionsAction() {
+    public function getAvailableVersionsAction()
+    {
         return new JsonResponse($this->getParameter('nomade_versions') ?? '*');
     }
 
@@ -1300,6 +1301,34 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
             $response->setContent(json_encode($this->successDataMsg));
             return $response;
+        }
+    }
+
+    /**
+     * @Rest\Post("/api/emplacement", name= "api-new-emp")
+     */
+    public function addEmplacement(Request $request)
+    {
+        if (!$request->isXmlHttpRequest()) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
+                if (!$this->emplacementRepository->findOneByLabel($request->request->get('label'))) {
+                    $toInsert = new Emplacement();
+                    $toInsert
+                        ->setLabel($request->request->get('label'))
+                        ->setIsActive(true)
+                        ->setDescription('')
+                        ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($toInsert);
+                    $em->flush();
+                    $this->successDataMsg['success'] = true;
+                    $this->successDataMsg['msg'] = $toInsert->getId();
+                } else {
+                    $this->successDataMsg['success'] = false;
+                    $this->successDataMsg['msg'] = "Un emplacement portant ce nom existe déjà.";
+                }
+            }
+            return new JsonResponse($this->successDataMsg);
         }
     }
 
