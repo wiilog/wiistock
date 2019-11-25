@@ -69,7 +69,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
 			"SELECT mt
 			FROM App\Entity\MouvementTraca mt
 			WHERE mt.colis = :colis
-			ORDER BY mt.date DESC"
+			ORDER BY mt.datetime DESC"
 		)->setParameter('colis', $colis);
 
 		$result = $query->execute();

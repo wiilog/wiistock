@@ -1076,13 +1076,13 @@ class ArrivageController extends AbstractController
 			$rows = [];
 			foreach ($listColis as $colis) { /** @var $colis Colis */
 				$mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
-				$rows[] = [
-					'code' => $colis->getCode(),
-					'lastMvtDate' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
-					'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
-					'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
-				];
+                $rows[] = [
+                    'code' => $colis->getCode(),
+                    'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
+                    'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
+                    'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
+                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+                ];
 			}
 			$data['data'] = $rows;
 
