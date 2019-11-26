@@ -92,11 +92,12 @@ class MouvementTracaRepository extends ServiceEntityRepository
         /** @lang DQL */
             "SELECT COUNT(m)
             FROM App\Entity\MouvementTraca m
-            WHERE m.refEmplacement = :emp AND m.date > :date AND m.refArticle LIKE :article AND m.type LIKE 'prise'"
+            JOIN m.type t
+            WHERE m.emplacement = :emp AND m.datetime > :date AND m.colis LIKE :article AND t.nom LIKE 'prise'"
         )->setParameters([
-            'emp' => $emplacement->getLabel(),
-            'date' => $mvt->getDate(),
-            'article' => $mvt->getRefArticle(),
+            'emp' => $emplacement,
+            'date' => $mvt->getDatetime(),
+            'article' => $mvt->getColis(),
         ]);
         return $query->getSingleScalarResult();
     }
@@ -112,8 +113,9 @@ class MouvementTracaRepository extends ServiceEntityRepository
         /** @lang DQL */
             "SELECT m
             FROM App\Entity\MouvementTraca m
-            WHERE m.refEmplacement LIKE :emp AND m.type LIKE 'depose'"
-        )->setParameter('emp', $emplacement->getLabel());
+            JOIN m.type t
+            WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
+        )->setParameter('emp', $emplacement);
         return $query->execute();
     }
 }

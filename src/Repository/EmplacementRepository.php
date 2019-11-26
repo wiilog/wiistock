@@ -183,14 +183,18 @@ class EmplacementRepository extends ServiceEntityRepository
             SELECT e.id, e.label, (
                 SELECT COUNT(m)
                 FROM App\Entity\MouvementTraca AS m
-                WHERE m.refEmplacement = e.label AND m.type LIKE 'depose'
+                JOIN m.emplacement e_other
+                JOIN m.type t
+                WHERE e_other.label = e.label AND t.nom LIKE 'depose'
             ) AS nb
             FROM App\Entity\Emplacement AS e
             WHERE
             (
                 SELECT COUNT(m_other)
                 FROM App\Entity\MouvementTraca AS m_other
-                WHERE m_other.refEmplacement = e.label AND m_other.type LIKE 'depose'
+                JOIN m_other.emplacement e_other_other
+                JOIN m_other.type t_other
+                WHERE e_other_other.label = e.label AND t_other.nom LIKE 'depose'
             ) > 0 AND e.dateMaxTime IS NOT NULL
             ORDER BY nb DESC"
         );
