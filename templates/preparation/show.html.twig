@@ -56,11 +56,13 @@
                                     class="btn btn-primary btn-action ml-auto">Commencer la préparation
                             </button>
                         {% endif %}
-                        <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
-                           class="btn btn-primary btn-action ml-auto d-none">Valider</a>
+                        <button id="finishPreparation" data-toggle="modal" data-target="#modalSubmitPreparation"
+                           onclick="clearEmplacementModal()"
+                           class="btn btn-primary btn-action ml-auto d-none">Valider</button>
                     {% else %}
-                        <a href="{{path('livraison_new', {'id': preparation.id}) }}"
-                           class="btn btn-primary btn-action ml-auto">Valider</a>
+                        <button id="finishPreparation" data-toggle="modal" data-target="#modalSubmitPreparation"
+                                onclick="clearEmplacementModal()"
+                           class="btn btn-primary btn-action ml-auto">Valider</button>
                     {% endif %}
                 {% endif %}
             {% endif %}
@@ -78,6 +80,7 @@
     {% include 'preparation/modalDeleteArticle.html.twig' %}
     {% include 'preparation/modalNewArticle.html.twig' %}
     {% include 'preparation/modalDeletePreparation.html.twig' %}
+    {% include 'preparation/modalSubmitPreparation.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}
 <div id="splittingContent">
