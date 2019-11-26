@@ -36,7 +36,7 @@ class MailerServerController extends AbstractController
     }
 
     /**
-     * @Route("/mailer/server", name="mailer_server")
+     * @Route("/mailer/server", name="mailer_server_index")
      */
     public function index(): response
     {

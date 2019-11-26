@@ -9,7 +9,6 @@ use App\Entity\CategoryType;
 use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
-use App\Entity\LitigeHistoricRepository;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
@@ -29,6 +28,7 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\AttachmentService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -109,6 +109,11 @@ class ArrivageController extends AbstractController
      */
     private $specificService;
 
+	/**
+	 * @var AttachmentService
+	 */
+    private $attachmentService;
+
     /**
      * @var ChampLibreRepository
      */
@@ -129,13 +134,7 @@ class ArrivageController extends AbstractController
 	 */
     private $mouvementTracaRepository;
 
-    /**
-     * @var LitigeHistoricRepository
-     */
-    private $litigeHistoricRepository;
-
-
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(AttachmentService $attachmentService, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -153,6 +152,7 @@ class ArrivageController extends AbstractController
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
+        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -283,7 +283,7 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-            $this->addAttachements($request, $arrivage);
+            $this->attachmentService->addAttachements($request, $arrivage);
 
             $data = [
                 "redirect" => $this->generateUrl('arrivage_show', [
@@ -387,11 +387,11 @@ class ArrivageController extends AbstractController
 			$attachments = $arrivage->getAttachements()->toArray();
 			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-					$this->removeAndDeleteAttachment($attachment, $arrivage);
+					$this->attachmentService->removeAndDeleteAttachment($attachment, $arrivage);
 				}
 			}
 
-			$this->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request, $arrivage);
 
 			$response = [
 				'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -428,7 +428,7 @@ class ArrivageController extends AbstractController
 					}
 				}
 				foreach ($arrivage->getAttachements() as $attachement) {
-					$this->removeAndDeleteAttachment($attachement, $arrivage);
+					$this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
 				}
 				$entityManager->remove($arrivage);
 				$entityManager->flush();
@@ -643,40 +643,6 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/ajouter-pj", name="add_attachement", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @param Arrivage $arrivage
-	 * @param Litige|null $litige
-	 */
-	public function addAttachements(Request $request, $arrivage, $litige = null)
-	{
-		$em = $this->getDoctrine()->getManager();
-		$path = "../public/uploads/attachements/";
-		if (!file_exists($path)) {
-			mkdir($path, 0777);
-		}
-		for ($i = 0; $i < count($request->files); $i++) {
-			$file = $request->files->get('file' . $i);
-			if ($file) {
-				$filename = uniqid() . '.' . $file->getClientOriginalExtension() ?? '';
-				$file->move($path, $filename);
-
-				$pj = new PieceJointe();
-				$pj
-					->setOriginalName($file->getClientOriginalName())
-					->setFileName($filename);
-				if ($arrivage) {
-					$pj->setArrivage($arrivage);
-				} elseif ($litige) {
-					$pj->setLitige($litige);
-				}
-				$em->persist($pj);
-			}
-		}
-		$em->flush();
-	}
-
     /**
      * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
      */
@@ -800,7 +766,7 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->addAttachements($request, null, $litige);
+			$this->attachmentService->addAttachements($request, null, $litige);
 
 			$this->sendMailToAcheteurs($litige);
 
@@ -1031,11 +997,11 @@ class ArrivageController extends AbstractController
 			foreach ($attachments as $attachment) {
 				/** @var PieceJointe $attachment */
 				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-					$this->removeAndDeleteAttachment($attachment, null, $litige);
+					$this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
 				}
 			}
 
-			$this->addAttachements($request, null, $litige);
+			$this->attachmentService->addAttachements($request, null, $litige);
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 
@@ -1110,20 +1076,13 @@ class ArrivageController extends AbstractController
 			$rows = [];
 			foreach ($listColis as $colis) { /** @var $colis Colis */
 				$mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
-				if ($mouvement) {
-					$dateArray = explode('_', $mouvement->getDate());
-					$date = new DateTime($dateArray[0]);
-					$formattedDate = $date->format('d/m/Y H:i');
-				} else {
-					$formattedDate = '';
-				}
-				$rows[] = [
-					'code' => $colis->getCode(),
-					'lastMvtDate' => $formattedDate,
-					'lastLocation' => $mouvement ? $mouvement->getRefEmplacement() : '',
-					'operator' => $mouvement ? $mouvement->getOperateur() : '',
-					'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
-				];
+                $rows[] = [
+                    'code' => $colis->getCode(),
+                    'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
+                    'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
+                    'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
+                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+                ];
 			}
 			$data['data'] = $rows;
 
@@ -1149,20 +1108,4 @@ class ArrivageController extends AbstractController
         return $response;
     }
 
-	/**
-	 * @param PieceJointe $attachment
-	 * @param Arrivage $arrivage
-	 * @param Litige $litige
-	 */
-    private function removeAndDeleteAttachment($attachment, $arrivage, $litige = null)
-	{
-		if ($arrivage) {
-			$arrivage->removeAttachement($attachment);
-		} elseif ($litige) {
-			$litige->removeAttachement($attachment);
-		}
-		$path = "../public/uploads/attachements/" . $attachment->getFileName();
-		unlink($path);
-		$this->getDoctrine()->getManager()->flush();
-	}
 }
