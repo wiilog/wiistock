@@ -25,7 +25,7 @@ class SetDaysFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        foreach (['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] as $index => $dayString) {
+        foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $index => $dayString) {
             $day = new DaysWorked();
             $day
                 ->setDisplayOrder($index + 1)
