@@ -22,13 +22,14 @@ class MouvementTracaRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementTraca::class);
     }
 
-    public function getOneByDate($date) {
+    public function findOneByUniqueIdForMobile($uniqueId) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            'SELECT mvt
+        	/** @lang DQL */
+			'SELECT mvt
                 FROM App\Entity\MouvementTraca mvt
-                WHERE mvt.date = :date'
-        )->setParameter('date', $date);
+                WHERE mvt.uniqueIdForMobile = :date'
+        )->setParameter('date', $uniqueId);
         return $query->getOneOrNullResult();
     }
 
@@ -48,9 +49,10 @@ class MouvementTracaRepository extends ServiceEntityRepository
         $dateMin = $dateMinDate->format('Y-m-d H:i:s');
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
+        	/** @lang DQL */
             'SELECT m
             FROM App\Entity\MouvementTraca m
-            WHERE m.date BETWEEN :dateMin AND :dateMax'
+            WHERE m.datetime BETWEEN :dateMin AND :dateMax'
         )->setParameters([
             'dateMin' => $dateMin,
             'dateMax' => $dateMax
@@ -69,8 +71,8 @@ class MouvementTracaRepository extends ServiceEntityRepository
 			/** @lang DQL */
 			"SELECT mt
 			FROM App\Entity\MouvementTraca mt
-			WHERE mt.refArticle = :colis
-			ORDER BY mt.date DESC"
+			WHERE mt.colis = :colis
+			ORDER BY mt.datetime DESC"
 		)->setParameter('colis', $colis);
 
 		$result = $query->execute();

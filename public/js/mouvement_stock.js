@@ -42,7 +42,6 @@ let tableMvt = $('#tableMvts').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'date attendue', 'name': 'date attendue', 'title': 'Date attendue'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
