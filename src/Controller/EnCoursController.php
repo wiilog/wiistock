@@ -120,13 +120,13 @@ class EnCoursController extends AbstractController
                 foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                     if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                         //VERIFCECILE
-                        $dateMvt = DateTimeAlias::createFromFormat(DateTimeAlias::ATOM, explode('_', $mvt->getDate())[0]);
+                        $dateMvt = $mvt->getDatetime();
                         $minutesBetween = $this->getMinutesBetween($mvt);
                         $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
                         //VERIFCECILE
                         if ($dataForTable['late']) {
                             $retards[] = [
-                                'colis' => $mvt->getRefArticle(),
+                                'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
                                 'date' => $dateMvt->format('d/m/y H:i'),
                                 'emp' => $emplacement->getLabel(),

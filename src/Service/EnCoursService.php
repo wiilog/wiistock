@@ -141,6 +141,8 @@ class EnCoursService
         $isToday = ($day->format('Ymd') === $now->format('Ymd'));
         $isMvtDay = ($day->format('Ymd') === $dateMvt->format('Ymd'));
         $minutesWorked = 0;
+        $dateMvt->setTimezone(new \DateTimeZone("Europe/Paris"));
+        $dateMvt->modify('-1 hour');
         $diffMinutesBetweenMvtAndNow = ((intval($now->diff($dateMvt)->h)) * 60) + intval($now->diff($dateMvt)->i);
         $dayTestedTimeInMinutes = ((intval($day->format('H')) * 60) + intval($day->format('i')));
         $nowTimeInMinutes = (intval($now->format('H')) * 60) + intval($now->format('i'));
