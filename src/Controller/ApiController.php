@@ -1026,6 +1026,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function addEmplacement(Request $request)
     {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest()) {
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
                 if (!$this->emplacementRepository->findOneByLabel($request->request->get('label'))) {
@@ -1038,14 +1040,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $em = $this->getDoctrine()->getManager();
                     $em->persist($toInsert);
                     $em->flush();
-                    $this->successDataMsg['success'] = true;
-                    $this->successDataMsg['msg'] = $toInsert->getId();
+                    $resData['success'] = true;
+                    $resData['msg'] = $toInsert->getId();
                 } else {
-                    $this->successDataMsg['success'] = false;
-                    $this->successDataMsg['msg'] = "Un emplacement portant ce nom existe déjà.";
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = false;
+                    $resData['msg'] = "Un emplacement portant ce nom existe déjà.";
                 }
             }
-            return new JsonResponse($this->successDataMsg);
+            else {
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+            return new JsonResponse($resData, $statusCode);
         }
     }
 
