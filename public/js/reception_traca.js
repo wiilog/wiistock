@@ -119,9 +119,3 @@ $submitSearchMvt.on('click', function () {
 let customExport = function() {
     tableRecep.button('.buttons-csv').trigger();
 };
-
-let addArrivalAssociation = function(span) {
-    let $arrivalInput = span.parent().find('.arrivalNb').first();
-    let $parent = $arrivalInput.parent();
-    $arrivalInput.clone().appendTo($parent);
-}
