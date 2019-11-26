@@ -16,7 +16,25 @@ $(function () {
     if (addColis) {
         $('#btnModalAddColis').click();
     }
+
+    //check si on doit print les colis ou l'arrivage à la création
+    let printColis = $('#printColis').val();
+    let printArrivage = $('#printArrivage').val();
+    if (printColis) {
+        getDataAndPrintLabels($('#arrivageId').val());
+    }
+    if (printArrivage) {
+        printBarcode($('#numeroArrivage').val());
+    }
 });
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
+}
 
 function printLabels(data) {
     if (data.exists) {

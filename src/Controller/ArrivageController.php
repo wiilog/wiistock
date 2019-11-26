@@ -325,19 +325,6 @@ class ArrivageController extends AbstractController
 				}
             }
 
-            $response = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
-
-            $response['codes'] = $codes;
-            $response['arrivage'] = $arrivage->getNumeroArrivage();
-
 			$this->attachmentService->addAttachements($request, $arrivage);
 
 			$em->persist($arrivage);
@@ -345,10 +332,21 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request, $arrivage);
 
+            $printColis = null;
+            $printArrivage = null;
+            if ($post->get('printColis') === 'true') {
+                $printColis = true;
+            }
+            if ($post->get('printArrivage') === 'true') {
+                $printArrivage = true;
+            }
+
             $data = [
                 "redirect" => $this->generateUrl('arrivage_show', [
                     'id' => $arrivage->getId(),
-                ])
+                ]),
+                'printColis' => $printColis,
+                'printArrivage' => $printArrivage,
             ];
             return new JsonResponse($data);
         }
@@ -753,11 +751,11 @@ class ArrivageController extends AbstractController
 
     /**
 	 * @param Arrivage $arrivage
-	 * @Route("/voir/{id}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
 	 * @return JsonResponse
 	 * @throws NonUniqueResultException
 	 */
-    public function show(Arrivage $arrivage): Response
+    public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
             return $this->redirectToRoute('access_denied');
@@ -776,6 +774,8 @@ class ArrivageController extends AbstractController
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
 				'natures' => $this->natureRepository->findAll(),
+				'printColis' => $printColis,
+				'printArrivage' => $printArrivage,
 				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0
             ]);
     }
