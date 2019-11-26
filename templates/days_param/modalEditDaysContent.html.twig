@@ -6,7 +6,7 @@
 
             <div class="form-group col-12" id="days">
                 <label for="">Jour</label>
-                <input type="text" class="form-control" name="days" value="{{ day.day }}" disabled>
+                <input type="text" class="form-control" name="days" value="{{ dayWeek }}" disabled>
             </div>
 
             <div class="form-group col-12" id="worked">
@@ -21,9 +21,9 @@
             <div class="form-group col-12" id="times">
                 <label for="">Heures travaillées</label>
                 <input type="text" class="form-control data" name="times" value="{{ day.times }}">
-                <span class="italic small">
+                <span class="italic small text-center">
                     <i class="far fa-question-circle"></i>
-                    Horaires sous la forme HH:MM-HH:MM;HH:MM-HH:MM...
+                    Horaires sous la forme HH:MM-HH:MM;HH:MM-HH:MM
                 </span>
             </div>
     </div>

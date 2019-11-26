@@ -2,7 +2,9 @@
     <div class="col">
         <h1>Arrivage {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
-        <input hidden value="{{ addColis is defined ? addColis : false }}" id="addColis">
+        <input hidden value="{{ arrivage.numeroarrivage  }}" id="numeroArrivage">
+        <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
+        <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
         <div class="d-none" id="barcodes"></div>
     </div>
 
