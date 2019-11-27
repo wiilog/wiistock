@@ -141,6 +141,15 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
+function printLabels(data) {
+    if (data.exists) {
+        console.log('print');
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);

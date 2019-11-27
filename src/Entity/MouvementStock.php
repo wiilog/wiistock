@@ -71,11 +71,13 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="collecte_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $collecteOrder;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="preparation_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $preparationOrder;
 

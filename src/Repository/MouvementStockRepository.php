@@ -342,4 +342,6 @@ class MouvementStockRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
+
 }
