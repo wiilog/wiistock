@@ -11,6 +11,7 @@ use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 
+use App\Entity\OrdreCollecteReference;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
@@ -86,9 +87,9 @@ class OrdreCollecteController extends AbstractController
      */
     private $typeRepository;
 
-	/**
-	 * @var OrdreCollecteService
-	 */
+    /**
+     * @var OrdreCollecteService
+     */
     private $ordreCollecteService;
 
 
@@ -144,7 +145,7 @@ class OrdreCollecteController extends AbstractController
                     'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
                     'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
-                    'Type' => ($demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '' ),
+                    'Type' => ($demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
                 ];
             }
@@ -179,9 +180,9 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($collecte->getStatut()->getNom() ===  OrdreCollecte::STATUT_A_TRAITER) {
-        	$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        	$this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date);
+        if ($collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date);
         }
 
         return $this->redirectToRoute('ordre_collecte_show', [
@@ -198,14 +199,10 @@ class OrdreCollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $demande = $collecte->getDemandeCollecte();
-
             if ($demande) {
                 $rows = [];
-
-                $ligneArticle = $this->collecteReferenceRepository->findByCollecte($demande->getId());
-                foreach ($ligneArticle as $ligneArticle) {
+                foreach ($collecte->getOrdreCollecteReferences() as $ligneArticle) {
                     $referenceArticle = $ligneArticle->getReferenceArticle();
 
                     $rows[] = [
@@ -221,8 +218,7 @@ class OrdreCollecteController extends AbstractController
                     ];
                 }
 
-                $articles = $this->articleRepository->findByCollecteId($demande->getId());
-                foreach ($articles as $article) {
+                foreach ($collecte->getArticles() as $article) {
                     $rows[] = [
                         'Référence' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         'Libellé' => $article->getLabel(),
@@ -246,7 +242,7 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     *  @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
+     * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
      */
     public function new(Collecte $demandeCollecte): Response
     {
@@ -264,6 +260,18 @@ class OrdreCollecteController extends AbstractController
             ->setStatut($statut)
             ->setDemandeCollecte($demandeCollecte);
         $entityManager = $this->getDoctrine()->getManager();
+        foreach ($demandeCollecte->getArticles() as $article) {
+            $ordreCollecte->addArticle($article);
+        }
+        foreach ($demandeCollecte->getCollecteReferences() as $collecteReference) {
+            $ordreCollecteReference = new OrdreCollecteReference();
+            $ordreCollecteReference
+                ->setOrdreCollecte($ordreCollecte)
+                ->setQuantite($collecteReference->getQuantite())
+                ->setReferenceArticle($collecteReference->getReferenceArticle());
+            $entityManager->persist($ordreCollecteReference);
+            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
+        }
         $entityManager->persist($ordreCollecte);
 
         // on modifie le statut de la demande de collecte liée
@@ -277,11 +285,11 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     *  @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"} )
+     * @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"} )
      */
     public function apiEditArticle(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -289,7 +297,7 @@ class OrdreCollecteController extends AbstractController
             $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
             $modif = isset($data['ref']) && !($data['ref'] === 0);
 
-            $json =  $this->renderView(
+            $json = $this->renderView(
                 'ordre_collecte/modalEditArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
@@ -304,13 +312,13 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/modifier-article", name="ordre_collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function editArticle(Request  $request): Response
+    public function editArticle(Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
             if (isset($data['quantite'])) $ligneArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
 
@@ -337,8 +345,10 @@ class OrdreCollecteController extends AbstractController
 
             $collecte
                 ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
-
             $entityManager = $this->getDoctrine()->getManager();
+            foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
+                $entityManager->remove($cr);
+            }
             $entityManager->remove($ordreCollecte);
             $entityManager->flush();
             $data = [
