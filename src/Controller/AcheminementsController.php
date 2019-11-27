@@ -135,17 +135,18 @@ Class AcheminementsController extends AbstractController
 
             $em->flush();
 
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
+            $requester = $this->utilisateurRepository->find($data['demandeur']);
+            $receiver = $this->utilisateurRepository->find($data['destinataire']);
+
+            $response['exists'] = true;
 
             $response['codes'] = $data['colis'];
-            $response['acheminements'] = $acheminements->getId();
+            $response['date'] = $date->format('d/m/Y H:i');
+            $response['demandeur'] = $requester->getUsername();
+            $response['destinataire'] = $receiver->getUsername();
+            $response['depose'] = $data['depose'];
+            $response['prise'] = $data['prise'];
+            $response['acheminements'] = (string)$acheminements->getId();
             return new JsonResponse($response);
         }
         throw new XmlHttpException('404 not found');
@@ -178,7 +179,6 @@ Class AcheminementsController extends AbstractController
 
             $acheminement
                 ->setDate($date)
-                ->setDate($date)
                 ->setRequester($this->utilisateurRepository->find($data['demandeur']))
                 ->setReceiver($this->utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
@@ -198,17 +198,18 @@ Class AcheminementsController extends AbstractController
 //                );
 //            }
 
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
+            $requester = $this->utilisateurRepository->find($data['demandeur']);
+            $receiver = $this->utilisateurRepository->find($data['destinataire']);
+
+            $response['exists'] = true;
 
             $response['codes'] = $data['colis'];
-            $response['acheminements'] = $acheminement->getId();
+            $response['date'] = $date->format('Y-m-d H:i:s');
+            $response['demandeur'] = $requester->getUsername();
+            $response['destinataire'] = $receiver->getUsername();
+            $response['depose'] = $data['depose'];
+            $response['prise'] = $data['prise'];
+            $response['acheminements'] = (string)$acheminement->getId();
 
             return new JsonResponse($response);
         }

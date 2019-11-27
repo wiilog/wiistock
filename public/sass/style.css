@@ -246,9 +246,7 @@ a:hover {
 }
 
 /* Login    
- *
  * *================= 
- *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -382,6 +380,37 @@ a:hover {
 .curve_chart_line {
   height: 75px;
   width: 300px;
+}
+
+#range-buttons-assoc {
+  text-align: center;
+}
+
+.dashboardBR {
+  background-color: white;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.dashboard-item {
+  min-width: 50%;
+  min-height: 40%;
+}
+
+#dashboard-assoc {
+  margin-top: 10px;
+  height: 500px;
+  width: 900px;
+  background-color: white;
+  text-align: center;
+}
+
+#chart-assoc {
+  height: 80%;
 }
 
 .btn {
