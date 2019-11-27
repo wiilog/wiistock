@@ -390,7 +390,7 @@ a:hover {
     width: 300px;
 }
 
-#range-buttons-assoc {
+.range-buttons {
     text-align: center;
 }
 
@@ -409,16 +409,19 @@ a:hover {
     min-height: 40%;
 }
 
-#dashboard-assoc {
-    margin-top: 10px;
-    height: 500px;
+.dashboard-box {
+    margin-top: 1px;
+    margin-left: -1px;
+    margin-bottom: -2px;
+    height: 450px;
+    border: 1px solid black;
     width: 900px;
     background-color: white;
     text-align: center;
 }
 
-#chart-assoc {
-    height: 80%;
+.chart {
+    height: 70%;
 }
 
 .btn {
@@ -916,7 +919,11 @@ em {
 
 /*# sourceMappingURL=style.css.map */
 .urgence-filter {
-  border-radius: 3px;
-  background-color: white;
-  padding: 7px;
+    border-radius: 3px;
+    background-color: white;
+    padding: 7px;
+}
+
+#dashboard-retard .title {
+    text-align: center;
 }

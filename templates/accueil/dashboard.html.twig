@@ -2,18 +2,29 @@
 
 {% block page_content %}
     <div class="row">
-        <div id="dashboard-assoc" class="col-6">
-            <h1>Réceptions (nombre d'associations)</h1>
-            <div id="chart-assoc"></div>
+        <div id="dashboard-arrival" class="col-6 dashboard-box">
+            <h1>Arrivage (UM)</h1>
+            <div class="chart"></div>
             <div class="spinner-border"></div>
-            <div id="range-buttons-assoc">
-                <div class="btn btn-primary" onclick="changeCurrentWeek(false)"><</div>
+            <div class="range-buttons">
+                <div class="btn btn-primary" onclick="changeCurrentWeek(false, 'dashboard-arrival')"><</div>
                 <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
                 <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                <div class="btn btn-primary" onclick="changeCurrentWeek(true)">></div>
+                <div class="btn btn-primary" onclick="changeCurrentWeek(true, 'dashboard-arrival')">></div>
             </div>
         </div>
-        <div class="col-6" id="dashboard-retard">
+        <div id="dashboard-assoc" class="col-6 dashboard-box">
+            <h1>Réceptions (nombre d'associations)</h1>
+            <div class="chart"></div>
+            <div class="spinner-border"></div>
+            <div class="range-buttons">
+                <div class="btn btn-primary" onclick="changeCurrentWeek(false, 'dashboard-assoc')"><</div>
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+                <div class="btn btn-primary" onclick="changeCurrentWeek(true, 'dashboard-assoc')">></div>
+            </div>
+        </div>
+        <div class="col-6 dashboard-box">
             <div class="title">
                 <h1>Colis en retards</h1>
             </div>
