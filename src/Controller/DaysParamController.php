@@ -28,6 +28,16 @@ class DaysParamController extends AbstractController
      */
     private $daysWorkedRepository;
 
+    private $engDayToFr = [
+        'monday' => 'Lundi',
+        'tuesday' => 'Mardi',
+        'wednesday' => 'Mercredi',
+        'thursday' => 'Jeudi',
+        'friday' => 'Vendredi',
+        'saturday' => 'Samedi',
+        'sunday' => 'Dimanche',
+    ];
+
     public function __construct(UserService $userService, DaysWorkedRepository $daysWorkedRepository)
     {
         $this->userService = $userService;
@@ -65,7 +75,7 @@ class DaysParamController extends AbstractController
 
                 $rows[] =
                     [
-                        'Day' => $day->getDay(),
+                        'Day' => $this->engDayToFr[$day->getDay()],
                         'Worked' => $day->getWorked() ? 'oui' : 'non',
                         'Times' => $day->getTimes() ?? '',
                         'Order' => $day->getDisplayOrder(),
@@ -95,6 +105,7 @@ class DaysParamController extends AbstractController
 
             $json = $this->renderView('days_param/modalEditDaysContent.html.twig', [
                 'day' => $day,
+                'dayWeek' => $this->engDayToFr[$day->getDay()]
             ]);
 
             return new JsonResponse($json);
