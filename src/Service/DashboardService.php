@@ -43,14 +43,14 @@ class DashboardService
             'value' => 'Nombre d\'arrivages'
         ],
         [
-            'annotation' => true,
-            'type' => 'string',
-            'role' => 'annotation'
+            'type' => 'number',
+            'value' => 'Taux d\'arrivages conformes'
         ],
         [
-            'type' => 'number',
-            'value' => 'Nombre d\'arrivages conformes'
-        ],
+            'annotation' => true,
+            'type' => 'string',
+            'role' => 'tooltip'
+        ]
     ];
 
     private $columnsForAssoc = [
@@ -62,11 +62,6 @@ class DashboardService
             'type' => 'number',
             'value' => 'Réceptions'
         ],
-        [
-            'annotation' => true,
-            'type' => 'string',
-            'role' => 'annotation'
-        ]
     ];
 
     public function getWeekAssoc($firstDay, $lastDay, $after)
@@ -114,23 +109,22 @@ class DashboardService
         $rows = [];
         $rows[$firstDay] = [];
         $rows[$firstDay]['count'] = 0;
-        $rows[$firstDay]['conform'] = 0;
+        $rows[$firstDay]['conform'] = 100;
         foreach (['1', '2', '3', '4', '5'] as $dayIncrement) {
             $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))] = [];
             $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['count'] = 0;
-            $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['conform'] = 0;
+            $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['conform'] = 100;
         }
         $rows[$lastDay] = [];
         $rows[$lastDay]['count'] = 0;
-        $rows[$lastDay]['conform'] = 0;
+        $rows[$lastDay]['conform'] = 100;
         foreach ($this->arrivageRepository->countByDays($firstDay, $lastDay) as $qttPerDay) {
             $rows[$qttPerDay['date']->format('d/m/Y')]['count'] += $qttPerDay['count'];
             $dateHistory = $qttPerDay['date']->setTime(0, 0);
             $rows[$qttPerDay['date']->format('d/m/Y')]['conform'] =
-                round(
-                    ($this->arrivalHistoryRepository->getByDate($dateHistory)->getConformRate()/100) *
-                    ($this->arrivalHistoryRepository->getByDate($dateHistory)->getNumberOfArrivals())
-                );
+                $this->arrivalHistoryRepository->getByDate($dateHistory)
+                    ? $this->arrivalHistoryRepository->getByDate($dateHistory)->getConformRate()
+                    : 100;
         }
         return [
             'columns' => $this->columnsForArrival,

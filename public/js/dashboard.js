@@ -1,9 +1,10 @@
 $('.range-buttons').hide();
 google.charts.load('current', {packages: ['corechart']});
-google.charts.setOnLoadCallback(function() {
+google.charts.setOnLoadCallback(function () {
     drawAnnotations('dashboard-assoc');
     drawAnnotations('dashboard-arrival');
 });
+
 function drawAnnotations(parent) {
     let data = new google.visualization.DataTable();
     let currentWeekRoute = Routing.generate(parent, true);
@@ -20,24 +21,36 @@ function drawAnnotations(parent) {
             }
         });
         for (const [key, value] of Object.entries(chartData.rows)) {
-            if (value.conform !== undefined) data.addRow([key, Number(value.count), String(value.count), Number(value.conform)]);
-            else data.addRow([key, Number(value.count), String(value.count)]);
+            if (value.conform !== undefined) data.addRow(
+                [
+                    key,
+                    Number(value.count),
+                    Number(value.conform),
+                    key + ' : ' + String(value.conform) + '%']);
+            else data.addRow([key, Number(value.count)]);
         }
         let options = {
-            annotations: {
-                alwaysOutside: true,
-                textStyle: {
-                    fontSize: 14,
-                    color: '#000',
-                    auraColor: 'none'
-                }
-            },
-            vAxis: {
-                minValue: 1,
-                format: '#'
+            vAxes: {
+                0: {
+                    minValue: 1,
+                    format: '#',
+                },
+                1: {
+                    maxValue: 100,
+                    minValue: 0,
+                    format: '#',
+                    gridlines: {color: 'transparent'},
+                },
             },
             seriesType: 'bars',
-            series: {1: {type: 'line'}},
+            pointSize: 5,
+            series: {
+                1: {
+                    pointShape: 'circle',
+                    type: 'line',
+                    targetAxisIndex: 1
+                }
+            },
             legend: {position: 'top'}
         };
         console.log(data);
@@ -67,22 +80,36 @@ let changeCurrentWeek = function (after, parent) {
             }
         });
         for (const [key, value] of Object.entries(chartData.rows)) {
-            if (value.conform !== undefined) data.addRow([key, Number(value.count), String(value.count), Number(value.conform)]);
-            else data.addRow([key, Number(value.count), String(value.count)]);
+            if (value.conform !== undefined) data.addRow(
+                [
+                    key,
+                    Number(value.count),
+                    Number(value.conform),
+                    key + ' : ' + String(value.conform) + '%']);
+            else data.addRow([key, Number(value.count)]);
         }
         let options = {
-            annotations: {
-                alwaysOutside: true,
-                textStyle: {
-                    fontSize: 14,
-                    color: '#000',
-                    auraColor: 'none'
+            vAxes: {
+                0: {
+                    minValue: 1,
+                    format: '#',
+                },
+                1: {
+                    maxValue: 100,
+                    minValue: 0,
+                    format: '#',
+                    gridlines: {color: 'transparent'},
+                },
+            },
+            seriesType: 'bars',
+            pointSize: 5,
+            series: {
+                1: {
+                    pointShape: 'circle',
+                    type: 'line',
+                    targetAxisIndex: 1
                 }
             },
-            vAxis: {
-                minValue: 1
-            },
-            series: {1: {type: 'line'}},
             legend: {position: 'top'}
         };
         let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
