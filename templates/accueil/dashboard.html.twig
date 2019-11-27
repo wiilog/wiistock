@@ -1,0 +1,27 @@
+{% extends 'layout.html.twig' %}
+
+{% block page_content %}
+    <div class="row">
+        <div id="dashboard-assoc" class="col-6">
+            <h1>Réceptions (nombre d'associations)</h1>
+            <div id="chart-assoc"></div>
+            <div class="spinner-border"></div>
+            <div id="range-buttons-assoc">
+                <div class="btn btn-primary" onclick="changeCurrentWeek(false)"><</div>
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+                <div class="btn btn-primary" onclick="changeCurrentWeek(true)">></div>
+            </div>
+        </div>
+        <div class="col-6" id="dashboard-retard">
+            <div class="title">
+                <h1>Colis en retards</h1>
+            </div>
+            <table class="table table-striped table-bordered retards-table"></table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script src = "{{ asset('js/dashboard.js')}}?{{ date().timestamp }}"></script>
+{% endblock %}

@@ -318,61 +318,64 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
                 foreach ($data['mouvements'] as $mvt) {
-                    if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                        $refEmplacement = $mvt['ref_emplacement'];
-                        $refArticle = $mvt['ref_article'];
-                        $type = $mvt['type'];
+                    if (!$this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date'])) {
+                        $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
+						$type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
 
-                        $toInsert = new MouvementTraca();
-                        $toInsert
-                            ->setRefArticle($refArticle)
-                            ->setRefEmplacement($refEmplacement)
-                            ->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
-                            ->setDate($mvt['date'])
-                            ->setType($type);
-                        $em->persist($toInsert);
-                        $numberOfRowsInserted++;
+						// création de l'emplacement s'il n'existe pas
+						if (!$location) {
+							$emplacement = new Emplacement();
+							$emplacement->setLabel($mvt['ref_emplacement']);
+							$em->persist($emplacement);
+							$em->flush();
+						}
+						$operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+						$dateArray = explode('_', $mvt['date']);
 
-                        $emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
+						$date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
 
-                        if ($emplacement) {
+						$mouvementTraca = new MouvementTraca();
+						$mouvementTraca
+							->setColis($mvt['ref_article'])
+							->setEmplacement($location)
+							->setOperateur($operator)
+							->setUniqueIdForMobile($mvt['date'])
+							->setDatetime($date)
+							->setType($type);
+						$em->persist($mouvementTraca);
+						$numberOfRowsInserted++;
 
-                            $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
-                            $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
+//						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+						if ($location) {
+							$isDepose = $type === MouvementTraca::TYPE_DEPOSE;
+							$colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
-                            if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
-                                $fournisseur = $this->fournisseurRepository->findOneByColis($colis);
-                                $arrivage = $colis->getArrivage();
-                                $destinataire = $arrivage->getDestinataire();
-                                if ($this->mailerServerRepository->findOneMailerServer()) {
-                                    $dateArray = explode('_', $toInsert->getDate());
-                                    $date = new DateTime($dateArray[0]);
-                                    $this->mailerService->sendMail(
-                                        'FOLLOW GT // Dépose effectuée',
-                                        $this->renderView(
-                                            'mails/mailDeposeTraca.html.twig',
-                                            [
-                                                'title' => 'Votre colis a été livré.',
-                                                'colis' => $colis->getCode(),
-                                                'emplacement' => $emplacement,
-                                                'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
-                                                'date' => $date,
-                                                'operateur' => $toInsert->getOperateur(),
-                                                'pjs' => $arrivage->getAttachements()
-                                            ]
-                                        ),
-                                        $destinataire->getEmail()
-                                    );
-                                } else {
-                                    $this->logger->critical('Parametrage mail non defini.');
-                                }
-                            }
-                        } else {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($refEmplacement);
-                            $em->persist($emplacement);
-                            $em->flush();
-                        }
+							if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
+								$fournisseur = $this->fournisseurRepository->findOneByColis($colis);
+								$arrivage = $colis->getArrivage();
+								$destinataire = $arrivage->getDestinataire();
+								if ($this->mailerServerRepository->findOneMailerServer()) {
+									$this->mailerService->sendMail(
+										'FOLLOW GT // Dépose effectuée',
+										$this->renderView(
+											'mails/mailDeposeTraca.html.twig',
+											[
+												'title' => 'Votre colis a été livré.',
+												'colis' => $colis->getCode(),
+												'emplacement' => $location->getLabel(),
+												'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
+												'date' => $date,
+												'operateur' => $operator,
+												'pjs' => $arrivage->getAttachements()
+											]
+										),
+										$destinataire->getEmail()
+									);
+								} else {
+									$this->logger->critical('Parametrage mail non defini.');
+								}
+							}
+						}
                     }
                 }
                 $em->flush();
@@ -1018,6 +1021,42 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $response->setContent(json_encode($this->successDataMsg));
             return $response;
+        }
+    }
+
+    /**
+     * @Rest\Post("/api/emplacement", name= "api-new-emp")
+     */
+    public function addEmplacement(Request $request)
+    {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
+        if (!$request->isXmlHttpRequest()) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
+                if (!$this->emplacementRepository->findOneByLabel($request->request->get('label'))) {
+                    $toInsert = new Emplacement();
+                    $toInsert
+                        ->setLabel($request->request->get('label'))
+                        ->setIsActive(true)
+                        ->setDescription('')
+                        ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($toInsert);
+                    $em->flush();
+                    $resData['success'] = true;
+                    $resData['msg'] = $toInsert->getId();
+                } else {
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = false;
+                    $resData['msg'] = "Un emplacement portant ce nom existe déjà.";
+                }
+            }
+            else {
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+            return new JsonResponse($resData, $statusCode);
         }
     }
 

@@ -53,7 +53,7 @@ class ParamTypesController extends AbstractController
     }
 
     /**
-     * @Route("/", name="types_param")
+     * @Route("/", name="types_param_index")
      */
     public function index()
     {

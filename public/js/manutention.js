@@ -62,7 +62,6 @@ $.fn.dataTable.ext.search.push(
         if (typeof indexDate === "undefined") return true;
 
         let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
         if (
             (dateMin == "" && dateMax == "")
             ||

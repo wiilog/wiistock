@@ -62,7 +62,7 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/", name="inventaire_param")
+     * @Route("/", name="inventaire_param_index")
      */
     public function index()
     {
