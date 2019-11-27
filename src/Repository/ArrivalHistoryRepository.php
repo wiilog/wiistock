@@ -19,32 +19,15 @@ class ArrivalHistoryRepository extends ServiceEntityRepository
         parent::__construct($registry, ArrivalHistory::class);
     }
 
-    // /**
-    //  * @return ArrivalHistory[] Returns an array of ArrivalHistory objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function getByDate($date)
     {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+        "SELECT h
+              FROM App\Entity\ArrivalHistory h
+              WHERE h.day = :date"
+        )->setParameter('date', $date);
+        return $query->getOneOrNullResult();
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?ArrivalHistory
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }
