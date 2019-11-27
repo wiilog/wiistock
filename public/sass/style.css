@@ -246,10 +246,12 @@ a:hover {
   height: 5rem;
 }
 
+.logo-wrapper {
+  padding: 25px;
+}
+
 /* Login    
- *
  * *================= 
- *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
