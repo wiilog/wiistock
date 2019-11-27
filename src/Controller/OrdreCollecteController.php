@@ -15,6 +15,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
+use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\MailerServerRepository;
@@ -29,6 +30,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -63,6 +65,11 @@ class OrdreCollecteController extends AbstractController
     private $collecteReferenceRepository;
 
     /**
+     * @var OrdreCollecteReferenceRepository
+     */
+    private $ordreCollecteReferenceRepository;
+
+    /**
      * @var ArticleRepository
      */
     private $articleRepository;
@@ -93,8 +100,9 @@ class OrdreCollecteController extends AbstractController
     private $ordreCollecteService;
 
 
-    public function __construct(OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+    public function __construct(OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository, OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
+        $this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->typeRepository = $typeRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
@@ -294,7 +302,7 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
+            $ligneArticle = $this->ordreCollecteReferenceRepository->find($data['id']);
             $modif = isset($data['ref']) && !($data['ref'] === 0);
 
             $json = $this->renderView(
@@ -317,9 +325,8 @@ class OrdreCollecteController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $ligneArticle = $this->ordreCollecteReferenceRepository->find($data['ligneArticle']);
             if (isset($data['quantite'])) $ligneArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
 
             $this->getDoctrine()->getManager()->flush();
