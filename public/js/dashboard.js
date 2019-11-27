@@ -25,7 +25,7 @@ function drawAnnotations(parent) {
                 [
                     key,
                     Number(value.count),
-                    Number(value.conform),
+                    value.conform,
                     key + ' : ' + String(value.conform) + '%']);
             else data.addRow([key, Number(value.count)]);
         }
@@ -84,7 +84,7 @@ let changeCurrentWeek = function (after, parent) {
                 [
                     key,
                     Number(value.count),
-                    Number(value.conform),
+                    value.conform,
                     key + ' : ' + String(value.conform) + '%']);
             else data.addRow([key, Number(value.count)]);
         }

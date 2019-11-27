@@ -109,22 +109,22 @@ class DashboardService
         $rows = [];
         $rows[$firstDay] = [];
         $rows[$firstDay]['count'] = 0;
-        $rows[$firstDay]['conform'] = 100;
+        $rows[$firstDay]['conform'] = null;
         foreach (['1', '2', '3', '4', '5'] as $dayIncrement) {
             $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))] = [];
             $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['count'] = 0;
-            $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['conform'] = 100;
+            $rows[date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['conform'] = null;
         }
         $rows[$lastDay] = [];
         $rows[$lastDay]['count'] = 0;
-        $rows[$lastDay]['conform'] = 100;
+        $rows[$lastDay]['conform'] = null;
         foreach ($this->arrivageRepository->countByDays($firstDay, $lastDay) as $qttPerDay) {
             $rows[$qttPerDay['date']->format('d/m/Y')]['count'] += $qttPerDay['count'];
             $dateHistory = $qttPerDay['date']->setTime(0, 0);
             $rows[$qttPerDay['date']->format('d/m/Y')]['conform'] =
                 $this->arrivalHistoryRepository->getByDate($dateHistory)
                     ? $this->arrivalHistoryRepository->getByDate($dateHistory)->getConformRate()
-                    : 100;
+                    : null;
         }
         return [
             'columns' => $this->columnsForArrival,
