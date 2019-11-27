@@ -320,7 +320,7 @@ class MouvementTracaController extends AbstractController
                 $colis = $this->colisRepository->findOneByCode($mouvement->getColis());
                 if ($colis) {
                     $arrivage = $colis->getArrivage();
-                    // TODO $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');
+                    $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');
                 } else {
                     $mouvementData[] = 'non';
                 }
