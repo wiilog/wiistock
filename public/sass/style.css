@@ -251,7 +251,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -855,25 +857,37 @@ em {
 .dt-buttons {
   background-image: none !important;
 }
+.dt-buttons .buttons-columnVisibility {
+  background-image: none !important;
+  background-color: #fcfcfc !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.dt-buttons .buttons-columnVisibility.active {
+  background-color: #c6c6c6 !important;
+}
 .dt-buttons .dt-button {
   font-size: 1rem;
 }
 .dt-buttons .buttons-colvis {
-  background: #c6c6c6;
-  border-radius: 50px;
-  border: none;
   color: white;
-}
-.dt-buttons .buttons-colvis:hover {
-  background: #424242;
-  background-image: none !important;
 }
 .dt-buttons .buttons-colvis:before {
   font-family: "FontAwesome";
-  content: "";
+  content: "";
 }
-.dt-buttons .buttons-colvis span {
+
+.dt-btn {
+  background: #c6c6c6;
+  border-radius: 4px !important;
+  border: none;
+}
+.dt-btn span {
   display: none;
+}
+.dt-btn:hover {
+  background: #424242;
+  background-image: none !important;
 }
 
 /*# sourceMappingURL=style.css.map */

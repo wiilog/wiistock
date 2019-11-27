@@ -69,12 +69,17 @@ let tableArrivage = $('#tableArrivages').DataTable({
             className: 'noVis'
         }
     ],
-    dom: 'lBftip',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
     buttons: [
         {
             extend: 'colvis',
-            columns: ':not(.noVis)'
-        }
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
     ]
 });
 
