@@ -35,9 +35,8 @@ class EmplacementRepository extends ServiceEntityRepository
             "SELECT e.id, e.label
             FROM App\Entity\Emplacement e
             "
-             );
-        ;
-        return $query->execute(); 
+        );;
+        return $query->execute();
     }
 
     public function countByLabel($label)
@@ -52,23 +51,23 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param string $label
-	 * @return Emplacement|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByLabel($label) {
+    /**
+     * @param string $label
+     * @return Emplacement|null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findOneByLabel($label)
+    {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT e
             FROM App\Entity\Emplacement e
             WHERE e.label = :label
             "
-        )->setParameter('label', $label);
-        ;
+        )->setParameter('label', $label);;
         return $query->getOneOrNullResult();
     }
-   
+
     public function getNoOne($id)
     {
         $entityManager = $this->getEntityManager();
@@ -77,17 +76,16 @@ class EmplacementRepository extends ServiceEntityRepository
             FROM App\Entity\Emplacement e
             WHERE e.id <> :id
             "
-             )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
+        )->setParameter('id', $id);;
+        return $query->execute();
     }
 
     public function getIdAndLabelActiveBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        	/** @lang DQL */
-          "SELECT e.id, e.label as text
+        /** @lang DQL */
+            "SELECT e.id, e.label as text
           FROM App\Entity\Emplacement e
           WHERE e.label LIKE :search
           AND e.isActive = 1
@@ -107,8 +105,8 @@ class EmplacementRepository extends ServiceEntityRepository
             ->from('App\Entity\Emplacement', 'e');
 
         if ($excludeInactive) {
-        	$qb->where('e.isActive = 1');
-		}
+            $qb->where('e.isActive = 1');
+        }
 
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
@@ -124,11 +122,9 @@ class EmplacementRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
-            if (!empty($params->get('order')))
-            {
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $qb->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
                 }
             }
@@ -138,11 +134,11 @@ class EmplacementRepository extends ServiceEntityRepository
         }
         $query = $qb->getQuery();
         return [
-        	'data' => $query ? $query->getResult() : null,
-			'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
+            'data' => $query ? $query->getResult() : null,
+            'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
             'count' => $countQuery,
-			'total' => $countTotal
-		];
+            'total' => $countTotal
+        ];
     }
 
     public function countAll()
@@ -172,6 +168,36 @@ class EmplacementRepository extends ServiceEntityRepository
             WHERE c.label LIKE 'adresse%' AND v.valeur is not null AND a =:refArticle)"
         )->setParameter('refArticle', $refArticle);
 
-        return $query->getResult() ? $query->getResult()[0] : null ;
+        return $query->getResult() ? $query->getResult()[0] : null;
+    }
+
+    //VERIFCECILE
+    /**
+     * @return Emplacement[]
+     */
+    public function findWhereArticleIs()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "
+            SELECT e.id, e.label, (
+                SELECT COUNT(m)
+                FROM App\Entity\MouvementTraca AS m
+                JOIN m.emplacement e_other
+                JOIN m.type t
+                WHERE e_other.label = e.label AND t.nom LIKE 'depose'
+            ) AS nb
+            FROM App\Entity\Emplacement AS e
+            WHERE
+            (
+                SELECT COUNT(m_other)
+                FROM App\Entity\MouvementTraca AS m_other
+                JOIN m_other.emplacement e_other_other
+                JOIN m_other.type t_other
+                WHERE e_other_other.label = e.label AND t_other.nom LIKE 'depose'
+            ) > 0 AND e.dateMaxTime IS NOT NULL
+            ORDER BY nb DESC"
+        );
+        return $query->execute();
     }
 }

@@ -31,4 +31,22 @@ class DaysWorkedRepository extends ServiceEntityRepository
         );
         return $query->execute();
     }
+
+    /**
+     * @param $day
+     * @return DaysWorked
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByDayAndWorked($day)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT dp
+            FROM App\Entity\DaysWorked dp 
+            WHERE dp.day LIKE :day AND dp.worked = 1
+            "
+        )->setParameter('day', $day);
+        return $query->getOneOrNullResult();
+    }
 }

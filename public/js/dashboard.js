@@ -21,7 +21,6 @@ function drawAnnotations() {
             data.addRow([key, Number(value), String(value)]);
         }
         let options = {
-            title: 'Réceptions (Nombre d\'associations)',
             annotations: {
                 alwaysOutside: true,
                 textStyle: {
@@ -64,7 +63,6 @@ let changeCurrentWeek = function (after) {
             data.addRow([key, Number(value), String(value)]);
         }
         let options = {
-            title: 'Réceptions (Nombre d\'associations)',
             annotations: {
                 alwaysOutside: true,
                 textStyle: {
@@ -87,3 +85,24 @@ let changeCurrentWeek = function (after) {
         $('#range-buttons-assoc').show();
     }, 'json');
 };
+
+let routeForLate = Routing.generate('api_retard', true);
+
+$('.retards-table').DataTable({
+    dom: 'ftipr',
+    pageLength: 5,
+    processing: true,
+    "language": {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    ajax: {
+        "url": routeForLate,
+        "type": "POST",
+    },
+    columns: [
+        {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+        {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
+        {"data": 'time', 'name': 'delai', 'title': 'Délai'},
+        {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+    ]
+});

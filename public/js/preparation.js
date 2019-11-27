@@ -9,6 +9,9 @@ $('#utilisateur').select2({
 let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
 
 $(function() {
+    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
+    $('#preparation-emplacement + .select2').addClass('col-6');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PREPA);;
@@ -294,4 +297,10 @@ function limitInput($input) {
     // //     input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
     // }
 
+}
+
+function clearEmplacementModal() {
+    $('#preparation-emplacement').html('');
+    $('#preparation-emplacement').val('');
+    $('#select2-preparation-emplacement-container').html('');
 }
