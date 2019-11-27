@@ -16,7 +16,25 @@ $(function () {
     if (addColis) {
         $('#btnModalAddColis').click();
     }
+
+    //check si on doit print les colis ou l'arrivage à la création
+    let printColis = $('#printColis').val();
+    let printArrivage = $('#printArrivage').val();
+    if (printColis) {
+        getDataAndPrintLabels($('#arrivageId').val());
+    }
+    if (printArrivage) {
+        printBarcode($('#numeroArrivage').val());
+    }
 });
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
+}
 
 function printLabels(data) {
     if (data.exists) {
@@ -25,6 +43,14 @@ function printLabels(data) {
     } else {
         $('#cannotGenerate').click();
     }
+}
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
 }
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
@@ -39,11 +65,15 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+    ],
+    order: [
+        [1, 'asc'],
     ],
 });
 let tableHistoLitige;
