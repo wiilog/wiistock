@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 
 use App\Entity\PieceJointe;
+use App\Repository\ColisRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
@@ -61,6 +62,11 @@ class MouvementTracaController extends AbstractController
      */
     private $emplacementRepository;
 
+    /**
+     * @var ColisRepository
+     */
+    private $colisRepository;
+
 	/**
 	 * @var TypeRepository
 	 */
@@ -76,8 +82,9 @@ class MouvementTracaController extends AbstractController
 	 * @param MouvementTracaRepository $mouvementTracaRepository
 	 */
 
-    public function __construct(AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(ColisRepository $colisRepository, AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
+        $this->colisRepository = $colisRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->statutRepository = $statutRepository;
@@ -291,7 +298,7 @@ class MouvementTracaController extends AbstractController
             }
 
             $headers = [];
-            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur', 'commentaire', 'pieces jointes']);
+            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur', 'commentaire', 'pieces jointes', 'urgence']);
             $data = [];
             $data[] = $headers;
 
@@ -310,7 +317,13 @@ class MouvementTracaController extends AbstractController
                 foreach ($attachments as $attachment) {
                 	$attachmentsNames[] = $attachment->getOriginalName();
 				}
-
+                $colis = $this->colisRepository->findOneByCode($mouvement->getColis());
+                if ($colis) {
+                    $arrivage = $colis->getArrivage();
+                    // TODO $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');
+                } else {
+                    $mouvementData[] = 'non';
+                }
                 $mouvementData[] = implode(", ", $attachmentsNames);
 
                 $data[] = $mouvementData;
