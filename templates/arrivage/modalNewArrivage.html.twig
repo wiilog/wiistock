@@ -14,7 +14,7 @@
                 <div class="row">
                     <div class="form-group col w-100">
                         <label for="fournisseur">Fournisseur*</label>
-                        <select class="form-control data ajax-autocomplete-fournisseur needed" name="fournisseur" id="fournisseur">
+                        <select class="form-control data ajax-autocomplete-fournisseur ajax-autocomplete needed" name="fournisseur" id="fournisseur">
                         </select>
                     </div>
 
@@ -51,24 +51,16 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-4">
+                    <div class="form-group col-4 w-100">
                         <label for="destinataire">Destinataire*</label>
-                        <select class="form-control data needed" id="destinataire" name="destinataire">
-                            <option disabled selected></option>
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-                            {% endfor %}
+                        <select class="form-control data ajax-autocomplete-user needed ajax-autocomplete" name="destinataire" id="destinataire">
                         </select>
                     </div>
                     <div class="form-group w-100 col-4">
                         <label for="acheteurs">Acheteur(s)</label>
-                        <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
-                                id="acheteurs">
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.username }}">
-                                    {{ utilisateur.username }}
-                                </option>
-                            {% endfor %}
+                        <select name="acheteurs" id="acheteurs" multiple="multiple"
+                                class="form-control ajax-autocomplete-user data needed ajax-autocomplete">
+                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>>
                         </select>
                     </div>
                 </div>

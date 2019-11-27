@@ -149,7 +149,6 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 
 function printLabels(data) {
     if (data.exists) {
-        console.log('print');
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
     } else {
         $('#cannotGenerate').click();
@@ -169,7 +168,8 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
 }
 
 let $submitSearchArrivage = $('#submitSearchArrivage');
@@ -243,7 +243,6 @@ function overrideSearch() {
     $input.off();
     $input.on('keyup', function(e) {
         if (e.key === 'Enter'){
-            console.log(this.value);
             tableArrivage.search(this.value).draw();
         }
     });

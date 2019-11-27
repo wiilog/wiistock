@@ -179,7 +179,6 @@ class ArrivageController extends AbstractController
         }
 
         return $this->render('arrivage/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -253,9 +252,9 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
 			if (!empty($post->get('acheteurs'))) {
-			    $acheteurs = explode(',', $post->get('acheteurs'));
-                foreach ($acheteurs as $acheteur) {
-                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+			    $acheteursId = explode(',', $post->get('acheteurs'));
+                foreach ($acheteursId as $acheteurId) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
                 }
             }
 
