@@ -317,6 +317,7 @@ class MouvementTracaController extends AbstractController
                 foreach ($attachments as $attachment) {
                 	$attachmentsNames[] = $attachment->getOriginalName();
 				}
+                $mouvementData[] = implode(", ", $attachmentsNames);
                 $colis = $this->colisRepository->findOneByCode($mouvement->getColis());
                 if ($colis) {
                     $arrivage = $colis->getArrivage();
@@ -324,8 +325,6 @@ class MouvementTracaController extends AbstractController
                 } else {
                     $mouvementData[] = 'non';
                 }
-                $mouvementData[] = implode(", ", $attachmentsNames);
-
                 $data[] = $mouvementData;
             }
             return new JsonResponse($data);
