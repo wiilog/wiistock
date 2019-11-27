@@ -1,14 +1,4 @@
-// const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
 $('.select2').select2();
-
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Destinataire',
-    }
-});
-
-let $submitSearchArrivage = $('#submitSearchArrivage');
 
 $(function() {
     // filtres enregistrés en base pour chaque utilisateur
@@ -26,6 +16,8 @@ $(function() {
         initFilterDateToday();
         $submitSearchArrivage.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
 });
 
 function initFilterDateToday() {
@@ -39,6 +31,8 @@ function initFilterDateToday() {
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -47,6 +41,9 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ajax: {
         "url": pathArrivage,
         "type": "POST"
+    },
+    'drawCallback': function() {
+        overrideSearch();
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
@@ -67,6 +64,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {
             targets: 0,
             className: 'noVis'
+        },
+        {
+            orderable: false,
+            targets: [0, 11]
         }
     ],
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
@@ -168,30 +169,19 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
 }
 
+let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
+    let utilisateurs = $('#utilisateur').val();
 
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
+    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurs);
 
-    tableArrivage
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('Destinataire:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .draw();
+    tableArrivage.draw();
 });
 
 function generateCSVArrivage () {
@@ -246,4 +236,16 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+function overrideSearch() {
+    let $input = $('#tableArrivages_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            console.log(this.value);
+            tableArrivage.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
 }

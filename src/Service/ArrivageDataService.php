@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Service;
+
+use App\Entity\Arrivage;
+
+use App\Entity\FiltreSup;
+use App\Repository\ArrivageRepository;
+
+use Doctrine\ORM\NonUniqueResultException;
+use Symfony\Component\Security\Core\Security;
+use App\Repository\FiltreSupRepository;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ArrivageDataService
+{
+    /**
+     * @var \Twig_Environment
+     */
+    private $templating;
+
+    /**
+     * @var ArrivageRepository
+     */
+    private $arrivageRepository;
+
+    /**
+     * @var RouterInterface
+     */
+    private $router;
+
+	/**
+	 * @var UserService
+	 */
+    private $userService;
+
+    private $security;
+
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    private $em;
+
+    public function __construct(UserService $userService, ArrivageRepository $arrivageRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    {
+    
+        $this->templating = $templating;
+        $this->em = $em;
+        $this->router = $router;
+        $this->arrivageRepository = $arrivageRepository;
+        $this->userService = $userService;
+        $this->filtreSupRepository = $filtreSupRepository;
+        $this->security = $security;
+    }
+
+	/**
+	 * @param array|null $params
+	 * @param int|null $userId
+	 * @return array
+	 * @throws NonUniqueResultException
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 */
+    public function getDataForDatatable($params = null, $userId)
+    {
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+
+		$queryResult = $this->arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
+
+		$arrivages = $queryResult['data'];
+
+		$rows = [];
+		foreach ($arrivages as $arrivage) {
+			$rows[] = $this->dataRowArrivage($arrivage);
+		}
+		return [
+			'data' => $rows,
+			'recordsFiltered' => $queryResult['count'],
+			'recordsTotal' => $queryResult['total'],
+		];
+    }
+
+	/**
+	 * @param Arrivage $arrivage
+	 * @return array
+	 * @throws NonUniqueResultException
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 */
+    public function dataRowArrivage($arrivage)
+    {
+		$url = $this->router->generate('arrivage_show', [
+			'id' => $arrivage->getId(),
+		]);
+
+		$acheteursUsernames = [];
+		foreach ($arrivage->getAcheteurs() as $acheteur) {
+			$acheteursUsernames[] = $acheteur->getUsername();
+		}
+
+		$row = [
+			'id' => $arrivage->getId(),
+			'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
+			'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
+			'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
+			'NoTracking' => $arrivage->getNoTracking() ?? '',
+			'NumeroBL' => $arrivage->getNumeroBL() ?? '',
+			'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
+			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
+			'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
+			'Acheteurs' => implode(', ', $acheteursUsernames),
+			'Statut' => $arrivage->getStatus(),
+			'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
+			'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
+			'Actions' => $this->templating->render(
+				'arrivage/datatableArrivageRow.html.twig',
+				['url' => $url, 'arrivage' => $arrivage]
+			),
+		];
+
+        return $row;
+    }
+}

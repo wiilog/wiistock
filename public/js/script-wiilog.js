@@ -520,8 +520,8 @@ function ajaxAutoFournisseurInit(select) {
         minimumInputLength: 1,
     });
 }
-
-function ajaxAutoUserInit(select) {
+//TODO CG
+function ajaxAutoUserInit(select, placeholder = 'Utilisateur') {
     select.select2({
         ajax: {
             url: Routing.generate('get_user'),
@@ -537,6 +537,9 @@ function ajaxAutoUserInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
     });
 }
 

@@ -8,6 +8,11 @@
 
     {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName' : 'submitSearchArrivage'} %}
 
+    <input type="hidden" id="dateMinFilter">
+    <input type="hidden" id="dateMaxFilter">
+    <input type="hidden" id="statutFilter">
+    <input type="hidden" id="usersFilter">
+
     <div class="container-fluid">
 
         <h1>Arrivages</h1>
@@ -17,6 +22,7 @@
                 <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                    data-backdrop="static" data-keyboard="false"
                    onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
+
                     <span class="fa fa-plus mr-2"></span>Nouvel arrivage
                 </a>
             {% endif %}

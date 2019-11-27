@@ -96,7 +96,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['user'])) {
+			if (!empty($data['user'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -106,8 +106,9 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$carriers = str_replace('|', ',', $data['user']);
-				$filter->setValue($carriers);
+
+				$users = implode(',', $data['user']);
+				$filter->setValue($users);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
@@ -203,8 +204,8 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$carriers = str_replace('|', ',', $data['providers']);
-				$filter->setValue($carriers);
+				$providers = str_replace('|', ',', $data['providers']);
+				$filter->setValue($providers);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);

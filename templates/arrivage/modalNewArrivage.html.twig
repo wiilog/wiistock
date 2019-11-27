@@ -12,13 +12,9 @@
 
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="form-group col">
+                    <div class="form-group col w-100">
                         <label for="fournisseur">Fournisseur*</label>
-                        <select class="form-control data needed" id="fournisseur" name="fournisseur">
-                            <option disabled selected></option>
-                            {% for fournisseur in fournisseurs %}
-                                <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
-                            {% endfor %}
+                        <select class="form-control data ajax-autocomplete-fournisseur needed" name="fournisseur" id="fournisseur">
                         </select>
                     </div>
 

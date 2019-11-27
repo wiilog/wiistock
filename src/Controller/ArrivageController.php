@@ -29,6 +29,7 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -115,6 +116,11 @@ class ArrivageController extends AbstractController
 	 */
     private $attachmentService;
 
+	/**
+	 * @var ArrivageDataService
+	 */
+    private $arrivageDataService;
+
     /**
      * @var ChampLibreRepository
      */
@@ -140,7 +146,7 @@ class ArrivageController extends AbstractController
      */
     private $natureRepository;
 
-    public function __construct(AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(ArrivageDataService $arrivageDataService, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -160,6 +166,7 @@ class ArrivageController extends AbstractController
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->attachmentService = $attachmentService;
         $this->natureRepository = $natureRepository;
+        $this->arrivageDataService = $arrivageDataService;
     }
 
     /**
@@ -173,7 +180,6 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -195,46 +201,10 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
-                $arrivages = $this->arrivageRepository->findAll();
-            } else {
-                $currentUser = $this->getUser();
-                /** @var Utilisateur $currentUser */
-                $arrivages = $currentUser->getArrivagesAcheteur();
-            }
+            $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
+            $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
 
-            $rows = [];
-            foreach ($arrivages as $arrivage) {
-                $acheteursUsernames = [];
-                $url = $this->generateUrl('arrivage_show', [
-                    'id' => $arrivage->getId(),
-                ]);
-                foreach ($arrivage->getAcheteurs() as $acheteur) {
-                    $acheteursUsernames[] = $acheteur->getUsername();
-                }
-
-                $rows[] = [
-                    'id' => $arrivage->getId(),
-                    'NumeroArrivage' => $arrivage->getNumeroArrivage() ? $arrivage->getNumeroArrivage() : '',
-                    'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-                    'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
-                    'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
-                    'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
-                    'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
-                    'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
-                    'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-                    'Acheteurs' => implode(', ', $acheteursUsernames),
-                    'Statut' => $arrivage->getStatus(),
-                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
-                    'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-                    'Actions' => $this->renderView(
-                        'arrivage/datatableArrivageRow.html.twig',
-                        ['url' => $url, 'arrivage' => $arrivage]
-                    ),
-                ];
-            }
-
-            $data['data'] = $rows;
+            $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
 
             return new JsonResponse($data);
         }
