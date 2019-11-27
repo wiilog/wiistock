@@ -141,14 +141,12 @@ class ArrivageController extends AbstractController
      * @var UrgenceRepository
      */
     private $urgenceRepository;
-
-    public function __construct(UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     /**
      * @var NatureRepository
      */
     private $natureRepository;
 
-    public function __construct(AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
@@ -294,10 +292,11 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
             if (!empty($acheteurs = $post->get('acheteurs'))) {
-			if (!empty($post->get('acheteurs'))) {
-			    $acheteurs = explode(',', $post->get('acheteurs'));
-                foreach ($acheteurs as $acheteur) {
-                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                if (!empty($post->get('acheteurs'))) {
+                    $acheteurs = explode(',', $post->get('acheteurs'));
+                    foreach ($acheteurs as $acheteur) {
+                        $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                    }
                 }
             }
 
@@ -798,8 +797,7 @@ class ArrivageController extends AbstractController
 				'natures' => $this->natureRepository->findAll(),
 				'printColis' => $printColis,
 				'printArrivage' => $printArrivage,
-				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0
-                'addColis' => $addColis,
+				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
             ]);
     }
 
