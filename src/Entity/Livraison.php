@@ -61,7 +61,7 @@ class Livraison
 	 */
 	private $mouvements;
 
-    
+
     public function __construct()
     {
         $this->demande = new ArrayCollection();
