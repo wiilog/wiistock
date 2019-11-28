@@ -14,7 +14,6 @@ $(function() {
         });
 
         initFilterDateToday();
-        $submitSearchArrivage.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
@@ -67,7 +66,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         },
         {
             orderable: false,
-            targets: [0, 11]
+            targets: [0]
         }
     ],
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
@@ -179,9 +178,7 @@ $submitSearchArrivage.on('click', function () {
     let statut = $('#statut').val();
     let utilisateurs = $('#utilisateur').val();
 
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurs);
-
-    tableArrivage.draw();
+    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurs, null, null, null, null, null, tableArrivage);
 });
 
 function generateCSVArrivage () {
