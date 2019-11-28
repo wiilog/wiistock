@@ -172,11 +172,11 @@ class ArrivageRepository extends ServiceEntityRepository
 //						->andWhere('s2.treated = 0 OR s2.treated is null')
 //						->groupBy('a4.id');
 //					$query2 = $subQb2->getQuery()->getDQL();
-//dump($subQb2->getQuery()->getSQL());
+
 //					$qb
 //						->addSelect('(' . $query2 . ') as nbLitiges')
 //						->andWhere('nbLitiges > 0');
-//dump($qb->getQuery()->getSQL());
+
 
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);

@@ -159,7 +159,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['colis'])) {
+			if (!empty($data['colis'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -169,7 +169,18 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$filter->setValue($data['colis']);
+
+				if (is_array($data['colis'])) {
+					$values = [];
+					foreach ($data['colis'] as $oneColis) {
+						$values[] = $oneColis['id'] . ':' . $oneColis['text'];
+					}
+					$colis = implode(',', $values);
+				} else {
+					$colis = $data['colis'];
+				}
+
+				$filter->setValue($colis);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);

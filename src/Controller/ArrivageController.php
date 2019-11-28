@@ -718,11 +718,13 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
+	/**
 	 * @param Arrivage $arrivage
-	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param bool $printColis
+	 * @param bool $printArrivage
 	 * @return JsonResponse
 	 * @throws NonUniqueResultException
+	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
