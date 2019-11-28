@@ -38,16 +38,24 @@ function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+    let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
+    let name;
+    let vals = [];
+    inputsArray.each(function () {
+        name = $(this).attr("name");
+        vals.push($(this).val());
+        Data[name] = vals;
+    });
 
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
-        let name = $input.attr("name");
+        name = $input.attr("name");
         Data[name] = val;
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
@@ -267,6 +275,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         afterLoadingEditModal()
     }, 'json');
 
+}
+
+function newModal(path, modal)
+{
+    $.post(path, function (resp) {
+        modal.find('.modal-body').html(resp);
+    }, 'json');
 }
 
 function setMaxQuantityEdit(select) {
@@ -580,7 +595,7 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
             $(this).val("");
         }
         if ($(this).attr('id') === 'statut') {
@@ -603,7 +618,9 @@ function clearModal(modal) {
     // on vide les éditeurs de texte
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
-    $modal.find('.clear').html('')
+    $modal.find('.clear').html('');
+    $modal.find('.attachement').remove();
+    $modal.find('.isRight').removeClass('isRight');
 }
 
 function clearCheckboxes($modal) {
@@ -859,7 +876,7 @@ let submitNewAssociation = function () {
     } else {
         $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
     }
-}
+};
 
 let toggleArrivage = function (button) {
     let $arrivageBlock = $('.arrivalNb').first().parent();
@@ -882,4 +899,10 @@ let toggleArrivage = function (button) {
         button.text('Sans Arrivage');
     }
     button.data('arrivage', !button.data('arrivage'));
-}
+};
+
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+};

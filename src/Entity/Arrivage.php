@@ -96,6 +96,11 @@ class Arrivage
      */
     private $immatriculation;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isUrgent;
+
 
     public function __construct()
     {
@@ -426,6 +431,18 @@ class Arrivage
     public function setImmatriculation(?string $immatriculation): self
     {
         $this->immatriculation = $immatriculation;
+
+        return $this;
+    }
+
+    public function getIsUrgent(): ?bool
+    {
+        return $this->isUrgent;
+    }
+
+    public function setIsUrgent(?bool $isUrgent): self
+    {
+        $this->isUrgent = $isUrgent;
 
         return $this;
     }

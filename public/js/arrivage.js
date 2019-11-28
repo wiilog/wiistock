@@ -32,7 +32,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[11, "desc"]],
+    order: [[13, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
@@ -52,7 +52,17 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
+    "columnDefs": [
+        {
+            "targets": [ 13 ],
+            "visible": false
+        }
+    ],
+    "rowCallback" : function(row, data) {
+        if (data.urgent === true) $(row).addClass('table-danger');
+    }
 });
 
 function listColis(elem) {
@@ -118,10 +128,19 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
+function printLabels(data) {
+    if (data.exists) {
+        console.log('print');
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-initModalNewArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -133,122 +152,6 @@ function initNewArrivageEditor(modal) {
     }
 }
 
-function initModalNewArrivage(modal, submit, path) {
-    submit.click(function () {
-        submitActionArrivage(modal, path);
-    });
-}
-
-function submitActionArrivage(modal, path) {
-    // On récupère toutes les données qui nous intéressent
-    // dans les inputs...
-    let inputs = modal.find(".data");
-    let Data = new FormData();
-    let missingInputs = [];
-    let wrongNumberInputs = [];
-    let passwordIsValid = true;
-    inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
-        Data.append(name, val);
-        // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').text();
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-            $(this).addClass('is-invalid');
-        }
-        // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
-            if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
-            }
-        }
-    });
-
-    // ... et dans les checkboxes
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        Data.append([$(this).attr("name")], $(this).is(':checked'));
-    });
-    $("div[name='id']").each(function () {
-        Data.append([$(this).attr("name")], $(this).attr('value'));
-    });
-    modal.find(".elem").remove();
-
-    // ... puis on récupère les fichiers (issus du clic)...
-    let files = modal.find('.fileInput')[0].files;
-    // ... (issus du drag & drop)
-    files = [...files, ...droppedFiles];
-
-    $.each(files, function(index, file) {
-        Data.append('file' + index, file);
-    });
-
-    // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        $.ajax({
-            url: path,
-            data: Data,
-            type: 'post',
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: 'json',
-            success: (data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect + '/1';
-                    return;
-                }
-            }
-        });
-    } else {
-        // ... sinon on construit les messages d'erreur
-        let msg = '';
-
-        // cas où il manque des champs obligatoires
-        if (missingInputs.length > 0) {
-            if (missingInputs.length == 1) {
-                msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-            } else {
-                msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-            }
-        }
-        // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-        if (wrongNumberInputs.length > 0) {
-            wrongNumberInputs.forEach(function (elem) {
-                let label = elem.closest('.form-group').find('label').text();
-
-                msg += 'La valeur du champ ' + label;
-
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                    }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
-                }
-
-            })
-        }
-        modal.find('.error-msg').html(msg);
-    }
-}
-
 $submitSearchArrivage.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
@@ -256,7 +159,7 @@ $submitSearchArrivage.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-
+    let urgence = $('#urgence-filter').is(':checked');
     saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
 
     tableArrivage
@@ -267,6 +170,11 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .columns('Destinataire:name')
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    tableArrivage
+        .columns('urgent:name')
+        .search(urgence ? 'true' : '')
         .draw();
 
     tableArrivage

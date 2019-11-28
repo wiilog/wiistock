@@ -14,7 +14,15 @@
 <div class="container-fluid">
 
     <h1>Mouvements</h1>
+
     <div class ="row">
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            <a href="" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary"
+               data-backdrop="static" data-keyboard="false"
+               onclick="initNewMvtTracaEditor('#modalNewMvtTraca'), clearModal('#modalNewMvtTraca'), fillDateInNewModal()">
+                <span class="fa fa-plus mr-2"></span>Nouveau mouvement
+            </a>
+        {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
         <div class="btn btn-primary" onclick='generateCSVMouvement()'>
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
@@ -36,10 +44,14 @@
     </div>
 </div>
 
+{% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
+{% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
+{% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
 {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
 
 {% endblock %}
 
 {% block javascript %}
+<script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
 <script src="{{ asset('js/mouvement_traca.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

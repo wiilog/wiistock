@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Acheminements;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -107,8 +108,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Arrivage::STATUS_CONFORME,
 				Arrivage::STATUS_LITIGE,
 			],
-			CategorieStatut::LITIGE_ARR => []
-		];
+			CategorieStatut::LITIGE_ARR => [],
+            CategorieStatut::ACHEMINEMENT => [
+                Acheminements::STATUT_A_TRAITER,
+                Acheminements::STATUT_TRAITE,
+            ]
+        ];
 
     	foreach ($categoriesStatus as $categoryName => $statuses) {
 

@@ -2,8 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
+use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -19,13 +22,14 @@ class MouvementTracaRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementTraca::class);
     }
 
-    public function getOneByDate($date) {
+    public function findOneByUniqueIdForMobile($uniqueId) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            'SELECT mvt
+        	/** @lang DQL */
+			'SELECT mvt
                 FROM App\Entity\MouvementTraca mvt
-                WHERE mvt.date = :date'
-        )->setParameter('date', $date);
+                WHERE mvt.uniqueIdForMobile = :date'
+        )->setParameter('date', $uniqueId);
         return $query->getOneOrNullResult();
     }
 
@@ -45,9 +49,10 @@ class MouvementTracaRepository extends ServiceEntityRepository
         $dateMin = $dateMinDate->format('Y-m-d H:i:s');
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
+        	/** @lang DQL */
             'SELECT m
             FROM App\Entity\MouvementTraca m
-            WHERE m.date BETWEEN :dateMin AND :dateMax'
+            WHERE m.datetime BETWEEN :dateMin AND :dateMax'
         )->setParameters([
             'dateMin' => $dateMin,
             'dateMax' => $dateMax
@@ -66,11 +71,51 @@ class MouvementTracaRepository extends ServiceEntityRepository
 			/** @lang DQL */
 			"SELECT mt
 			FROM App\Entity\MouvementTraca mt
-			WHERE mt.refArticle = :colis
-			ORDER BY mt.date DESC"
+			WHERE mt.colis = :colis
+			ORDER BY mt.datetime DESC"
 		)->setParameter('colis', $colis);
 
 		$result = $query->execute();
 		return $result ? $result[0] : null;
 	}
+
+    //VERIFCECILE
+    /**
+     * @param $emplacement Emplacement
+     * @param $mvt MouvementTraca
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
+    public function findByEmplacementToAndArticleAndDate($emplacement, $mvt) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(m)
+            FROM App\Entity\MouvementTraca m
+            JOIN m.type t
+            WHERE m.emplacement = :emp AND m.datetime > :date AND m.colis LIKE :article AND t.nom LIKE 'prise'"
+        )->setParameters([
+            'emp' => $emplacement,
+            'date' => $mvt->getDatetime(),
+            'article' => $mvt->getColis(),
+        ]);
+        return $query->getSingleScalarResult();
+    }
+
+    //VERIFCECILE
+    /**
+     * @param $emplacement Emplacement
+     * @return MouvementTraca[]
+     */
+    public function findByEmplacementTo($emplacement) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m
+            FROM App\Entity\MouvementTraca m
+            JOIN m.type t
+            WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
+        )->setParameter('emp', $emplacement);
+        return $query->execute();
+    }
 }
