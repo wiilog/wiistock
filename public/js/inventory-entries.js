@@ -40,6 +40,9 @@ $(function () {
         },
         minimumInputLength: 3,
     });
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
+
 });
 
 let mission = $('#missionId').val();

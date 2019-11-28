@@ -20,7 +20,15 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
             } else {
@@ -29,19 +37,28 @@ $(function() {
         });
         if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
 });
 
 let pathMvt = Routing.generate('mouvement_stock_api', true);
 let tableMvt = $('#tableMvts').DataTable({
-    "language": {
+    responsive: true,
+    serverSide: true,
+    processing: true,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "order": [[0, "desc"]],
+    order: [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
+    'drawCallback': function() {
+        overrideSearch();
+    },
     columns: [
+        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
@@ -49,9 +66,25 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
-        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
     ],
+    columnDefs: [
+        {
+            orderable: false,
+            targets: [0]
+        }
+    ]
 });
+
+function overrideSearch() {
+    let $input = $('#tableMvts_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            tableMvt.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {
@@ -102,21 +135,9 @@ $submitSearchMvt.on('click', function () {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let emplacement = $('#emplacement').val();
-    let demandeur = $('#utilisateur').val()
-    let demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|')
+    let demandeur = $('#utilisateur').select2('data');
 
-    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeurPiped, null, emplacement);
-
-    tableMvt
-        .columns('type:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableMvt
-        .columns('operateur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
+    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeur, null, emplacement);
 
     tableMvt.draw();
 });

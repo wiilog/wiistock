@@ -19,6 +19,16 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class MouvementStockRepository extends ServiceEntityRepository
 {
+	private const DtToDbLabels = [
+		'date' => 'date',
+		'refArticle' => 'refArticle',
+		'quantite' => 'quantity',
+		'origine' => 'emplacementFrom',
+		'destination' => 'emplacementTo',
+		'type' => 'type',
+		'operateur' => 'user',
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, MouvementStock::class);
@@ -343,5 +353,123 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param array|null $params
+	 * @param array|null $filters
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function findByParamsAndFilters($params, $filters)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('m')
+			->from('App\Entity\MouvementStock', 'm');
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$qb
+						->andWhere('m.type = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'emplacement':
+					$qb
+						->join('m.emplacementFrom', 'ef')
+						->join('m.emplacementTo', 'et')
+						->andWhere('ef.label = :location OR et.label = :location')
+						->setParameter('location', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('m.user', 'u')
+						->andWhere("u.id in (:userId)")
+						->setParameter('userId', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('m.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']. " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb->andWhere('m.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+			}
+		}
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->leftJoin('m.refArticle', 'ra3')
+						->leftJoin('m.emplacementFrom', 'ef3')
+						->leftJoin('m.emplacementTo', 'et3')
+						->leftJoin('m.utilisateur', 'u3')
+						->andWhere('
+						ra3.reference LIKE :value OR
+						ef3.label LIKE :value OR
+						et3.label LIKE :value OR
+						m.type LIKE :value OR
+						u3.username LIKE :value
+						')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('order')))
+			{
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order))
+				{
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					if ($column === 'refArticle') {
+						$qb
+							->leftJoin('m.refArticle', 'ra2')
+							->orderBy('ra2.reference', $order);
+					} else if ($column === 'emplacementFrom') {
+						$qb
+							->leftJoin('m.emplacementFrom', 'ef2')
+							->orderBy('ef2.label', $order);
+					} else if ($column === 'emplacementTo') {
+						$qb
+							->leftJoin('m.emplacementTo', 'et2')
+							->orderBy('et2.label', $order);
+					} else if ($column === 'user') {
+						$qb
+							->leftJoin('m.user', 'u2')
+							->orderBy('u2.username', $order);
+					} else {
+						$qb
+							->orderBy('m.' . $column, $order);
+					}
+				}
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return [
+			'data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
 
 }

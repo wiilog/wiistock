@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 $('#emplacement').select2({
     placeholder: {
         id: 0,
@@ -21,7 +15,15 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
             } else {
@@ -30,30 +32,26 @@ $(function() {
         });
         if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 });
 
 let pathMvt = Routing.generate('mvt_traca_api', true);
 let tableMvt = $('#tableMvts').DataTable({
-    "language": {
+    responsive: true,
+    serverSide: true,
+    processing: true,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "processing": true,
-    "order": [[1, "desc"]],
+    order: [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
-    "columnDefs": [
-        {
-            "type": "customDate",
-            "targets": 0
-        },
-        {
-            "orderable": false,
-            "targets": 0
-        }
-
-    ],
+    'drawCallback': function() {
+        overrideSearch();
+    },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
@@ -62,7 +60,29 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
     ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 0
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
+
+    ],
 });
+
+function overrideSearch() {
+    let $input = $('#tableMvts_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            tableMvt.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}
 
 $.extend($.fn.dataTableExt.oSort, {
     "customDate-pre": function (a) {
@@ -129,29 +149,9 @@ $submitSearchMvt.on('click', function () {
     let article = $('#colis').val();
     let emplacement = $('#emplacement').val();
     let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|');
+    let demandeur = $('#utilisateur').select2('data');
 
-    saveFilters(PAGE_MVT_TRACA, dateMin, dateMax, statut, demandeurPiped, null, emplacement, article);
-
-    tableMvt
-        .columns('type:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableMvt
-        .columns('operateur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refEmplacement:name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refArticle:name')
-        .search(article)
-        .draw();
+    saveFilters(PAGE_MVT_TRACA, dateMin, dateMax, statut, demandeur, null, emplacement, article);
 
     tableMvt.draw();
 });

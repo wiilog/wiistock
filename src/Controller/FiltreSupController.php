@@ -107,7 +107,11 @@ class FiltreSupController extends AbstractController
 					$em->persist($filter);
 				}
 
-				$users = implode(',', $data['user']);
+				$values = [];
+				foreach ($data['user'] as $oneUser) {
+					$values[] = $oneUser['id'] . ':' . $oneUser['text'];
+				}
+				$users = implode(',', $values);
 				$filter->setValue($users);
 				$em->flush();
 			} else {
