@@ -317,31 +317,34 @@ class ArrivageController extends AbstractController
 
 			$natures = json_decode($post->get('nature'), true);
 
-            foreach ($natures as $natureArray) {
-				$nature = $this->natureRepository->find($natureArray['id']);
+			$checkNatures = $this->natureRepository->countAll();
+			if ($checkNatures != 0) {
+                foreach ($natures as $natureArray) {
+                    $nature = $this->natureRepository->find($natureArray['id']);
 
-				for ($i = 0; $i < $natureArray['val']; $i++) {
+                    for ($i = 0; $i < $natureArray['val']; $i++) {
 
-					$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-					if ($highestCode) {
-						$highestCodeArray = explode('-', $highestCode);
-						$highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-					} else {
-						$highestCounter = 0;
-					}
+                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+                        if ($highestCode) {
+                            $highestCodeArray = explode('-', $highestCode);
+                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
+                        } else {
+                            $highestCounter = 0;
+                        }
 
-					$newCounter = sprintf('%05u', $highestCounter + 1);
+                        $newCounter = sprintf('%05u', $highestCounter + 1);
 
-					$colis = new Colis();
-					$code = $arrivageNum . '-' . $newCounter;
-					$colis
-						->setCode($code)
-						->setNature($nature)
-						->setArrivage($arrivage);
-					$em->persist($colis);
-					$em->flush();
-                	$codes[] = $code;
-				}
+                        $colis = new Colis();
+                        $code = $arrivageNum . '-' . $newCounter;
+                        $colis
+                            ->setCode($code)
+                            ->setNature($nature)
+                            ->setArrivage($arrivage);
+                        $em->persist($colis);
+                        $em->flush();
+                        $codes[] = $code;
+                    }
+                }
             }
 
 			$this->attachmentService->addAttachements($request, $arrivage);
