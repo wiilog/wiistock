@@ -618,7 +618,9 @@ function clearModal(modal) {
     // on vide les éditeurs de texte
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
-    $modal.find('.clear').html('')
+    $modal.find('.clear').html('');
+    $modal.find('.attachement').remove();
+    $modal.find('.isRight').removeClass('isRight');
 }
 
 function clearCheckboxes($modal) {
