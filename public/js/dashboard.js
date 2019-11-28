@@ -1,13 +1,20 @@
-$('#range-buttons-assoc').hide();
-google.charts.load('current', {packages: ['corechart', 'bar']});
-google.charts.setOnLoadCallback(drawAnnotations);
+let resizeTimer;
+$('.range-buttons').hide();
+google.charts.load('current', {packages: ['corechart']});
+google.charts.setOnLoadCallback(function () {
+    drawAnnotations('dashboard-assoc');
+    drawAnnotations('dashboard-arrival');
+});
 
-function drawAnnotations() {
+function drawAnnotations(parent, after = true, fromStart = true) {
+    $('#' + parent + ' > .range-buttons').hide();
+    $('#' + parent + ' > .spinner-border').show();
     let data = new google.visualization.DataTable();
-    let currentWeekRoute = Routing.generate('dashboard_assoc', true);
+    let currentWeekRoute = Routing.generate(parent, true);
     let params = {
-        'firstDay': $('#dashboard-assoc > #range-buttons-assoc > .firstDay').data('day'),
-        'lastDay': $('#dashboard-assoc > #range-buttons-assoc > .lastDay').data('day'),
+        'firstDay': $('#' + parent + ' > .range-buttons > .firstDay').data('day'),
+        'lastDay': $('#' + parent + ' > .range-buttons > .lastDay').data('day'),
+        'after': (fromStart ? 'now' : after)
     };
     $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
         chartData.columns.forEach(column => {
@@ -18,77 +25,75 @@ function drawAnnotations() {
             }
         });
         for (const [key, value] of Object.entries(chartData.rows)) {
-            data.addRow([key, Number(value), String(value)]);
+            if (value.conform !== undefined) data.addRow(
+                [
+                    key,
+                    Number(value.count) !== 0 ? Number(value.count) : null,
+                    value.conform,
+                    key + ' : ' + String(value.conform) + '%']);
+            else data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
         }
         let options = {
-            annotations: {
-                alwaysOutside: true,
+            vAxes: {
+                0: {
+                    minValue: 1,
+                    format: '#',
+                    textStyle: {
+                        color: 'black',
+                        fontName: 'Montserrat',
+                    }
+                },
+                1: {
+                    maxValue: 100,
+                    minValue: 0,
+                    format: '#',
+                    gridlines: {color: 'transparent'},
+                    textStyle: {
+                        color: 'black',
+                        fontName: 'Montserrat',
+                    }
+                },
+            },
+            hAxis: {
                 textStyle: {
-                    fontSize: 14,
-                    color: '#000',
-                    auraColor: 'none'
+                    color: 'black',
+                    fontName: 'Montserrat',
                 }
             },
-            vAxis: {
-                minValue: 1,
-                format: '#'
-            }
+            interpolateNulls: true,
+            seriesType: 'bars',
+            pointSize: 5,
+            series: {
+                1: {
+                    pointShape: 'circle',
+                    type: 'line',
+                    targetAxisIndex: 1,
+                }
+            },
+            legend: {
+                position: 'top',
+                textStyle: {
+                    color: 'black',
+                    fontName: 'Montserrat',
+                }
+            },
+            colors: ['#130078', 'Red'],
         };
-        let chart = new google.visualization.ColumnChart(document.getElementById('chart-assoc'));
+        let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
         chart.draw(data, options);
-        $('#range-buttons-assoc').show();
-        $('.spinner-border').hide();
+        $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDay);
+        $('#' + parent + ' > .range-buttons > .firstDay').text(chartData.firstDay + ' - ');
+        $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDay);
+        $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
+        $('#' + parent + ' > .range-buttons').show();
+        $('#' + parent + ' > .spinner-border').hide();
     }, 'json');
 }
-
-let changeCurrentWeek = function (after) {
-    $('#range-buttons-assoc').hide();
-    $('.spinner-border').show();
-    let data = new google.visualization.DataTable();
-    let currentWeekRoute = Routing.generate('dashboard_assoc', true);
-    let params = {
-        'firstDay': $('#dashboard-assoc > #range-buttons-assoc > .firstDay').data('day'),
-        'lastDay': $('#dashboard-assoc > #range-buttons-assoc > .lastDay').data('day'),
-        'after': after
-    };
-    $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
-        chartData.columns.forEach(column => {
-            if (column.annotation) {
-                data.addColumn({type: column.type, role: column.role});
-            } else {
-                data.addColumn(column.type, column.value);
-            }
-        });
-        for (const [key, value] of Object.entries(chartData.rows)) {
-            data.addRow([key, Number(value), String(value)]);
-        }
-        let options = {
-            annotations: {
-                alwaysOutside: true,
-                textStyle: {
-                    fontSize: 14,
-                    color: '#000',
-                    auraColor: 'none'
-                }
-            },
-            vAxis: {
-                minValue: 1
-            }
-        };
-        let chart = new google.visualization.ColumnChart(document.getElementById('chart-assoc'));
-        chart.draw(data, options);
-        $('#dashboard-assoc > #range-buttons-assoc > .firstDay').data('day', chartData.firstDay);
-        $('#dashboard-assoc > #range-buttons-assoc > .firstDay').text(chartData.firstDay + ' - ');
-        $('#dashboard-assoc > #range-buttons-assoc > .lastDay').data('day', chartData.lastDay);
-        $('#dashboard-assoc > #range-buttons-assoc > .lastDay').text(chartData.lastDay);
-        $('.spinner-border').hide();
-        $('#range-buttons-assoc').show();
-    }, 'json');
-};
 
 let routeForLate = Routing.generate('api_retard', true);
 
 $('.retards-table').DataTable({
+    responsive: true,
     dom: 'ftipr',
     pageLength: 5,
     processing: true,
@@ -105,4 +110,12 @@ $('.retards-table').DataTable({
         {"data": 'time', 'name': 'delai', 'title': 'Délai'},
         {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
     ]
+});
+
+$(window).resize(function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+        drawAnnotations('dashboard-assoc');
+        drawAnnotations('dashboard-arrival');
+    }, 250);
 });

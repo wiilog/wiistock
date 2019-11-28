@@ -32,6 +32,7 @@ use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
+use App\Service\DashboardService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -146,8 +147,14 @@ class ArrivageController extends AbstractController
      */
     private $natureRepository;
 
-    public function __construct(UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var DashboardService
+     */
+    private $dashboardService;
+
+    public function __construct(DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -1199,6 +1206,17 @@ class ArrivageController extends AbstractController
         }
 
         return $response;
+    }
+
+    /**
+     * @Route("/dashboard_arrivage", name="dashboard-arrival", options={"expose"=true},methods={"GET","POST"})
+     */
+    public function dashboard_assoc(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            return new JsonResponse($this->dashboardService->getWeekArrival($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
+        }
+        throw new NotFoundHttpException("404");
     }
 
 }

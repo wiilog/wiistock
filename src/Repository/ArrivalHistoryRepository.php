@@ -19,6 +19,11 @@ class ArrivalHistoryRepository extends ServiceEntityRepository
         parent::__construct($registry, ArrivalHistory::class);
     }
 
+    /**
+     * @param $date
+     * @return ArrivalHistory | null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function getByDate($date)
     {
         $em = $this->getEntityManager();
