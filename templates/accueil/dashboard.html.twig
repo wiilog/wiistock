@@ -1,36 +1,37 @@
 {% extends 'layout.html.twig' %}
 
 {% block page_content %}
-    <div class="row">
-        <div id="dashboard-arrival" class="col-6 dashboard-box">
+    <div class="row justify-content-center">
+        <div id="dashboard-arrival" class="dashboard-box">
             <h1>Arrivage (UM)</h1>
             <div class="chart"></div>
             <div class="spinner-border"></div>
             <div class="range-buttons">
-                <div class="btn btn-primary" onclick="changeCurrentWeek(false, 'dashboard-arrival')"><</div>
+                <div class="btn btn-primary" onclick="drawAnnotations('dashboard-arrival', false, false)"><</div>
                 <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
                 <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                <div class="btn btn-primary" onclick="changeCurrentWeek(true, 'dashboard-arrival')">></div>
+                <div class="btn btn-primary" onclick="drawAnnotations('dashboard-arrival', true, false)">></div>
             </div>
         </div>
-        <div id="dashboard-assoc" class="col-6 dashboard-box">
+        <div id="dashboard-assoc" class="dashboard-box">
             <h1>Réceptions (nombre d'associations)</h1>
             <div class="chart"></div>
             <div class="spinner-border"></div>
             <div class="range-buttons">
-                <div class="btn btn-primary" onclick="changeCurrentWeek(false, 'dashboard-assoc')"><</div>
+                <div class="btn btn-primary" onclick="drawAnnotations('dashboard-assoc', false, false)"><</div>
                 <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
                 <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                <div class="btn btn-primary" onclick="changeCurrentWeek(true, 'dashboard-assoc')">></div>
+                <div class="btn btn-primary" onclick="drawAnnotations('dashboard-assoc', true, false)">></div>
             </div>
         </div>
-        <div class="col-6 dashboard-box">
+        <div class="dashboard-box retard">
             <div class="title">
-                <h1>Colis en retards</h1>
+                <h1>Colis en retard</h1>
             </div>
-            <table class="table table-striped table-bordered retards-table"></table>
+            <table class="table table-striped table-bordered retards-table w-100"></table>
         </div>
     </div>
+
 {% endblock %}
 
 {% block javascript %}
