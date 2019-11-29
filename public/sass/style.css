@@ -733,6 +733,30 @@ button:focus {
   border-radius: 50%;
 }
 
+#fournisseurDisplay {
+  visibility: hidden;
+}
+
+#transporteurDisplay {
+  visibility: hidden;
+}
+
+#chauffeurDisplay {
+  visibility: hidden;
+}
+
+#addChauffeur {
+  visibility: hidden;
+}
+
+#addFournisseur {
+  visibility: hidden;
+}
+
+#addTransporteur {
+  visibility: hidden;
+}
+
 .radio-btn .btn {
   color: white;
   background-color: #130078;

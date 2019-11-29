@@ -536,6 +536,28 @@ function ajaxAutoFournisseurInit(select) {
     });
 }
 
+function ajaxAutoChauffeurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_chauffeur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
 function ajaxAutoUserInit(select) {
     select.select2({
         ajax: {

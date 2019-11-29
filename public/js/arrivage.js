@@ -150,6 +150,9 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
 $submitSearchArrivage.on('click', function () {
@@ -236,21 +239,21 @@ let aFile = function (csv) {
 }
 
 function toggleInput(id, button) {
-    let $toShow = document.getElementById(id);
-    let $toAdd = document.getElementById(button);
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
     // let $div = document.getElementById(div);
-    if ($toShow.style.visibility === "hidden"){
-        $toShow.style.visibility = "visible";
-        $toAdd.style.visibility = "visible";
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
         // $div.style.visibility = "visible";
     } else {
-        $toShow.style.visibility = "hidden";
-        $toAdd.style.visibility = "hidden";
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
         // $div.style.visibility = "hidden";
     }
 }
 
-function newLine(path, button)
+function newLine(path, button, toHide, buttonAdd)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
@@ -258,6 +261,9 @@ function newLine(path, button)
        params[$(this).attr('name')] = $(this).val();
     });
     $.post(path, JSON.stringify(params), function (resp) {
-
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
     });
 }
