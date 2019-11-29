@@ -158,26 +158,13 @@ class ArrivageRepository extends ServiceEntityRepository
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
+        $statut = null;
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				//TODO CG
 				case 'statut':
-//					$subQb2 = $em->createQueryBuilder();
-//					$subQb2
-//						->select('count(l2)')
-//						->from('App\Entity\Arrivage', 'a4')
-//						->leftJoin('a4.colis', 'col')
-//						->leftJoin('col.litiges', 'l2')
-//						->leftJoin('l2.status', 's2')
-//						->andWhere('s2.treated = 0 OR s2.treated is null')
-//						->groupBy('a4.id');
-//					$query2 = $subQb2->getQuery()->getDQL();
-
-//					$qb
-//						->addSelect('(' . $query2 . ') as nbLitiges')
-//						->andWhere('nbLitiges > 0');
-
-
+					$statut = $filter['value'];
+                    break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
@@ -222,6 +209,7 @@ class ArrivageRepository extends ServiceEntityRepository
 				}
 			}
 
+			$orderStatut = null;
 			if (!empty($params->get('order')))
 			{
 				$order = $params->get('order')[0]['dir'];
@@ -259,7 +247,10 @@ class ArrivageRepository extends ServiceEntityRepository
 							->leftJoin('a.colis', 'col2')
 							->orderBy('nbum', $order)
 							->groupBy('col2.arrivage');
-					} else {
+					} else if ($column === 'statut') {
+					    $orderStatut = $order;
+                    }
+					else {
 						$qb
 							->orderBy('a.' . $column, $order);
 					}
@@ -267,18 +258,33 @@ class ArrivageRepository extends ServiceEntityRepository
 			}
 		}
 
-		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+        $arrivages = $qb->getQuery()->getResult();
+        if ($statut) {
+            $arrivages = array_filter($arrivages, function($arrivage) use ($statut) {
+                return ($arrivage->getStatus() === $statut);
+            });
+        }
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($orderStatut) {
+            usort($arrivages, function($arrivage1, $arrivage2) use ($orderStatut) {
+                return $orderStatut === 'asc'
+                    ?
+                    strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
+                    :
+                    strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
+            });
+        }
 
-		$query = $qb->getQuery();
+        $countFiltered = count($arrivages);
+        if (!empty($params)) {
+            if ((!empty($params->get('start')) || $params->get('start') === "0") && !empty($params->get('length'))) {
+                $arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
+            }
+        }
+
 
 		return [
-			'data' => $query ? $query->getResult() : null ,
+			'data' => $arrivages ?? null ,
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];

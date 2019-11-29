@@ -636,7 +636,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
@@ -650,7 +650,9 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     if (providers) params.providers = providers;
     params.page = page;
 
-    $.post(path, JSON.stringify(params), 'json');
+    $.post(path, JSON.stringify(params), function() {
+        if (table) table.draw();
+    }, 'json');
 }
 
 function checkAndDeleteRow(icon, modalName, route, submit) {
