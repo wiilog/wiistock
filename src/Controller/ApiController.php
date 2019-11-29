@@ -48,6 +48,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
 use Throwable;
@@ -305,8 +306,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/addMouvementTraca", name="api-add-mouvement-traca")
      * @Rest\Get("/api/addMouvementTraca")
      * @Rest\View()
+     * @param Request $request
+     * @param KernelInterface $kernel
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function addMouvementTraca(Request $request)
+    public function addMouvementTraca(Request $request,
+                                      KernelInterface $kernel)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = new Response();
@@ -334,7 +340,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $dateArray = explode('_', $mvt['date']);
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
-                        dump($mvt);
+
                         $mouvementTraca = new MouvementTraca();
                         $mouvementTraca
                             ->setColis($mvt['ref_article'])
@@ -353,14 +359,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             if (!file_exists($path)) {
                                 mkdir($path, 0777);
                             }
-                            $fileName = 'signature' . $mouvementTraca->getUniqueIdForMobile() . '.png';
+                            $fileName = 'signature' . str_replace(':', '', $mouvementTraca->getUniqueIdForMobile()) . '.jpeg';
                             file_put_contents(
-                                $fileName,
-                                file_get_contents($mvt['signature']));
-                            rename(
-                                $fileName
-                                ,
-                                $path . $fileName);
+                                $path . $fileName,
+                                file_get_contents($mvt['signature'])
+                            );
                             $pj = new PieceJointe();
                             $pj
                                 ->setOriginalName($fileName)
