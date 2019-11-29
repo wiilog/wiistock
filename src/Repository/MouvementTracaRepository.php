@@ -181,6 +181,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
 					$qb
 						->andWhere('m.colis LIKE :colis')
 						->setParameter('colis', '%' . $filter['value'] . '%');
+					break;
 			}
 		}
 

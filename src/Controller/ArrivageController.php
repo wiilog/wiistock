@@ -523,7 +523,7 @@ class ArrivageController extends AbstractController
     }
 
     private function sendMailToAcheteurs(Litige $litige) {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 

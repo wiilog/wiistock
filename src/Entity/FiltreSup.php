@@ -13,8 +13,8 @@ class FiltreSup
 	const FIELD_DATE_MAX = 'dateMax';
 	const FIELD_STATUT = 'statut';
 	const FIELD_USERS = 'utilisateurs';
-	const FIELD_CARRIERS = 'transporteurs';
-	const FIELD_PROVIDERS = 'fournisseurs';
+	const FIELD_CARRIERS = 'carriers';
+	const FIELD_PROVIDERS = 'providers';
 	const FIELD_TYPE = 'type';
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
@@ -29,6 +29,7 @@ class FiltreSup
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
 	const PAGE_INV_ENTRIES = 'inv_entries';
+	const PAGE_LITIGE_ARR = 'litige_arrivage';
 
     /**
      * @ORM\Id()
