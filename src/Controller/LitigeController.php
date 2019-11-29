@@ -138,9 +138,7 @@ class LitigeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
             'providers' => $this->fournisseurRepository->findAllSorted(),
             'carriers' => $this->transporteurRepository->findAllSorted(),
-            'drivers' => $this->chauffeurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'allColis' => $this->colisRepository->findAll()
 		]);
     }
 
