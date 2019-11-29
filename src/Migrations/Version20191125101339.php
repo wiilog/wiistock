@@ -24,17 +24,17 @@ final class Version20191125101339 extends AbstractMigration
 
         // transforme champ mouvement_traca.operateur en clé étrangère vers la table utilisateur
         $this->addSql('UPDATE mouvement_traca SET operateur = ( SELECT utilisateur.id FROM utilisateur WHERE utilisateur.username LIKE mouvement_traca.operateur )');
-        $this->addSql('ALTER TABLE mouvement_traca CHANGE operateur operateur int(11)');
+        $this->addSql('ALTER TABLE mouvement_traca CHANGE operateur operateur_id int(11)');
         $this->addSql('ALTER TABLE mouvement_traca ADD CONSTRAINT `mouvement_traca_utilisateur_fk1` FOREIGN KEY (operateur) REFERENCES utilisateur(id)');
 
         // transforme champ mouvement_traca.emplacement en clé étrangère vers la table emplacement
 		$this->addSql('UPDATE mouvement_traca SET ref_emplacement = ( SELECT emplacement.id FROM emplacement WHERE emplacement.label LIKE mouvement_traca.ref_emplacement )');
-		$this->addSql('ALTER TABLE mouvement_traca CHANGE ref_emplacement ref_emplacement int(11)');
+		$this->addSql('ALTER TABLE mouvement_traca CHANGE ref_emplacement emplacement_id int(11)');
 		$this->addSql('ALTER TABLE mouvement_traca ADD CONSTRAINT `mouvement_traca_emplacement_fk1` FOREIGN KEY (ref_emplacement) REFERENCES emplacement(id)');
 
         // transforme champ mouvement_traca.type en clé étrangère vers la table statut
 		$this->addSql('UPDATE mouvement_traca SET type = ( SELECT statut.id FROM statut WHERE statut.nom LIKE mouvement_traca.type )');
-		$this->addSql('ALTER TABLE mouvement_traca CHANGE `type` `type` int(11)');
+		$this->addSql('ALTER TABLE mouvement_traca CHANGE `type` type_id int(11)');
 		$this->addSql('ALTER TABLE mouvement_traca ADD CONSTRAINT `mouvement_traca_statut_fk1` FOREIGN KEY (type) REFERENCES statut(id)');
 
         // remplit champ mouvement_traca.datetime avec données champ mouvement_traca.date
