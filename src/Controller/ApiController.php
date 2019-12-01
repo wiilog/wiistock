@@ -303,16 +303,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/addMouvementTraca", name="api-add-mouvement-traca")
-     * @Rest\Get("/api/addMouvementTraca")
+     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvement-traca")
      * @Rest\View()
      * @param Request $request
      * @param KernelInterface $kernel
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function addMouvementTraca(Request $request,
-                                      KernelInterface $kernel)
+    public function postMouvementTraca(Request $request,
+                                       KernelInterface $kernel)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = new Response();
