@@ -134,16 +134,17 @@ class MouvementTracaRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT m.colis as ref_article, 
+            "SELECT m.colis as ref_article,
                      t.nom as type,
-                     o.username as operateur, 
+                     o.username as operateur,
                      e.label as ref_emplacement,
-                     m.uniqueIdForMobile as date
+                     m.uniqueIdForMobile as date,
+                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished
             FROM App\Entity\MouvementTraca m
             JOIN m.type t
             JOIN m.operateur o
             JOIN m.emplacement e
-            WHERE o = :op AND t.nom LIKE 'prise' AND m.deposed = 0"
+            WHERE o = :op AND t.nom LIKE 'prise' AND m.finished = 0"
         )->setParameter('op', $operator);
         return $query->execute();
     }

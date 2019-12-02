@@ -320,7 +320,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
-                foreach ($data['mouvements'] as $mvt) {
+                $mouvementsNomade = json_decode($data['mouvements'], true);
+                foreach ($mouvementsNomade as $mvt) {
                     if (!$this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date'])) {
                         $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                         $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
@@ -344,7 +345,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             ->setOperateur($operator)
                             ->setUniqueIdForMobile($mvt['date'])
                             ->setDatetime($date)
-                            ->setDeposed($mvt['finished'])
+                            ->setFinished($mvt['finished'])
                             ->setType($type);
                         if (!empty($mvt['commentaire'])) {
                             $mouvementTraca->setCommentaire($mvt['commentaire']);
@@ -402,7 +403,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     } else {
                         $toEdit = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
-                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setDeposed($mvt['finished']);
+                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setFinished($mvt['finished']);
                     }
                 }
                 $em->flush();

@@ -64,7 +64,7 @@ class MouvementTraca
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $deposed;
+    private $finished;
 
     public function __construct()
     {
@@ -192,14 +192,14 @@ class MouvementTraca
         return $this;
     }
 
-    public function getDeposed(): ?bool
+    public function isFinished(): ?bool
     {
-        return $this->deposed;
+        return $this->finished;
     }
 
-    public function setDeposed(?bool $deposed): self
+    public function setFinished(?bool $finished): self
     {
-        $this->deposed = $deposed;
+        $this->finished = $finished;
 
         return $this;
     }
