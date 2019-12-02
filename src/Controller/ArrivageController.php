@@ -1058,17 +1058,18 @@ class ArrivageController extends AbstractController
 
             $comment = '';
             $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
+            $descriptionType = $litige->getType()->getDescription();
             if ($typeBefore !== $typeAfter) {
-                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
+                $comment .= "Changement du type : "
+                    . $typeBeforeName . " -> " . $litige->getType()->getLabel() . "." .
+                    (!empty($descriptionType) ? ("\n" . $descriptionType . ".") : '');
             }
             if ($statutBefore !== $statutAfter) {
                 if (!empty($comment)) {
                     $comment .= "\n";
                 }
                 $comment .= "Changement du statut : " .
-                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
-                    (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
+                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".";
             }
             if ($post->get('commentaire')) {
                 if (!empty($comment)) {
