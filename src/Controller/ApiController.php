@@ -348,6 +348,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             ->setOperateur($operator)
                             ->setUniqueIdForMobile($mvt['date'])
                             ->setDatetime($date)
+                            ->setDeposed($mvt['finished'])
                             ->setType($type);
                         if (!empty($mvt['commentaire'])) {
                             $mouvementTraca->setCommentaire($mvt['commentaire']);
@@ -403,6 +404,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                             }
                         }
+                    } else {
+                        $toEdit = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setDeposed($mvt['finished']);
                     }
                 }
                 $em->flush();
@@ -970,7 +974,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
-            'anomalies' => array_merge($refAnomalies, $artAnomalies)
+            'anomalies' => array_merge($refAnomalies, $artAnomalies),
+            'prises' => $this->mouvementTracaRepository->findPrisesByOperatorAndNotDeposed($user)
         ];
 
         return $data;
