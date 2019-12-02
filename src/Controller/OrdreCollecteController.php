@@ -102,7 +102,7 @@ class OrdreCollecteController extends AbstractController
     /**
      * @var EmplacementRepository
      */
-    private $emplacmentRepository;
+    private $emplacementRepository;
 
 
     public function __construct(EmplacementRepository $emplacementRepository, OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
@@ -118,7 +118,7 @@ class OrdreCollecteController extends AbstractController
         $this->mailerService = $mailerService;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->ordreCollecteService = $ordreCollecteService;
-        $this->emplacmentRepository = $emplacementRepository;
+        $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
@@ -204,7 +204,7 @@ class OrdreCollecteController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             if ($collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                 $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacmentRepository->find($data['depositLocation']));
+                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacementRepository->find($data['depositLocation']));
             }
 
             $data = [
@@ -218,14 +218,14 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/api-article/{id}", name="ordre_collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function apiArticle(Request $request, OrdreCollecte $collecte): Response
+    public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $collecte->getDemandeCollecte();
+            $demande = $ordreCollecte->getDemandeCollecte();
 
             if ($demande) {
                 $rows = [];
@@ -242,7 +242,7 @@ class OrdreCollecteController extends AbstractController
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
                             'refArticleId' => $ligneArticle->getReferenceArticle()->getId(),
-                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                            'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
                         ])
                     ];
                 }
@@ -256,7 +256,7 @@ class OrdreCollecteController extends AbstractController
                         'Quantité' => $article->getQuantite(),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
-                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                            'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
                         ])
                     ];
                 }
