@@ -70,6 +70,7 @@ class OrdreCollecteService
     }
 
     /**
+     * TODO CG mouvements
      * @param OrdreCollecte $collecte
      * @param Utilisateur $user
      * @param DateTime $date
@@ -79,7 +80,7 @@ class OrdreCollecteService
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation)
+	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
 	{
 		// on modifie le statut de l'ordre de collecte
 		$collecte
