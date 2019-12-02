@@ -33,4 +33,17 @@ class NatureRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function countAll()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(n)
+            FROM App\Entity\Nature n
+           "
+        );
+
+        return $query->getSingleScalarResult();
+    }
 }

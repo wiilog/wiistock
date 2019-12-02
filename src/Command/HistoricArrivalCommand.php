@@ -58,7 +58,10 @@ class HistoricArrivalCommand extends Command
             if ($arrivage->getStatus() === Arrivage::STATUS_CONFORME) return true;
             return false;
         });
-        $conformRate = (int)((count($arrivageWithoutLitiges) / count($arrivagesToday)) * 100);
+        $conformRate = count($arrivagesToday) > 0
+            ?
+            (int)((count($arrivageWithoutLitiges) / count($arrivagesToday)) * 100)
+            : null;
         $todayHistory = new ArrivalHistory();
         $todayHistory
             ->setNumberOfArrivals(count($arrivagesToday))

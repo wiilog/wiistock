@@ -61,6 +61,11 @@ class MouvementTraca
 	 */
 	private $attachements;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $finished;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -183,6 +188,18 @@ class MouvementTraca
     public function setDatetime(?\DateTimeInterface $datetime): self
     {
         $this->datetime = $datetime;
+
+        return $this;
+    }
+
+    public function isFinished(): ?bool
+    {
+        return $this->finished;
+    }
+
+    public function setFinished(?bool $finished): self
+    {
+        $this->finished = $finished;
 
         return $this;
     }

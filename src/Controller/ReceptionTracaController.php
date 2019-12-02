@@ -162,7 +162,7 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/dashboard_assoc", name="dashboard_assoc", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/dashboard_assoc", name="dashboard-assoc", options={"expose"=true},methods={"GET","POST"})
      */
     public function dashboard_assoc(Request $request): Response
     {
