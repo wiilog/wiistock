@@ -355,6 +355,14 @@ a:hover {
   opacity: 1;
 }
 
+.line-arrivage-new-data {
+  display: none;
+}
+
+.formulaire {
+  margin-right: 15px;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;

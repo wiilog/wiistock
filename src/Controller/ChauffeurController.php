@@ -262,7 +262,7 @@ class ChauffeurController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_chauffeur", options={"expose"=true})
+     * @Route("/autocomplete-chauffeur", name="get_chauffeur", options={"expose"=true})
      */
     public function getChauffeur(Request $request)
     {
@@ -270,11 +270,8 @@ class ChauffeurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return new JsonResponse(['results' => null]);
             }
-
             $search = $request->query->get('term');
-
             $chauffeur = $this->chauffeurRepository->getIdAndLibelleBySearch($search);
-
             return new JsonResponse(['results' => $chauffeur]);
         }
         throw new NotFoundHttpException("404");

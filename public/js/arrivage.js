@@ -1,5 +1,5 @@
 // const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
+let numberOfDataOpened = 0;
 $('.select2').select2();
 
 $('#utilisateur').select2({
@@ -243,12 +243,18 @@ function toggleInput(id, button) {
     let $toAdd = $('#' + button);
     // let $div = document.getElementById(div);
     if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
         $toShow.css('visibility', "visible");
         $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
         // $div.style.visibility = "visible";
     } else {
         $toShow.css('visibility', "hidden");
         $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
         // $div.style.visibility = "hidden";
     }
 }
@@ -265,5 +271,10 @@ function newLine(path, button, toHide, buttonAdd)
         let $toAdd = $('#' + buttonAdd);
         $toShow.css('visibility', "hidden");
         $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
     });
 }
