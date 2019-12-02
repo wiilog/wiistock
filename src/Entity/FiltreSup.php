@@ -28,6 +28,7 @@ class FiltreSup
 	const PAGE_ARRIVAGE = 'arrivage';
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
+	const PAGE_ACHEMINEMENTS = 'acheminements';
 
     /**
      * @ORM\Id()

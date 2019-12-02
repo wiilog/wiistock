@@ -38,7 +38,7 @@ let tableMvt = $('#tableMvts').DataTable({
         url: "/js/i18n/dataTableLanguage.json",
     },
     "processing": true,
-    "order": [[0, "desc"]],
+    "order": [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
@@ -47,15 +47,20 @@ let tableMvt = $('#tableMvts').DataTable({
         {
             "type": "customDate",
             "targets": 0
+        },
+        {
+            "orderable": false,
+            "targets": 0
         }
+
     ],
     columns: [
-        {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
-        {"data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement'},
-        {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'date', 'name': 'date', 'title': 'Date'},
+        {"data": "colis", 'name': 'colis', 'title': "Colis"},
+        {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
     ],
 });
 
@@ -102,6 +107,16 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
+
+let modalNewMvtTraca = $("#modalNewMvtTraca");
+let submitNewMvtTraca = $("#submitNewMvtTraca");
+let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt);
+
+let modalEditMvtTraca = $("#modalEditMvtTraca");
+let submitEditMvtTraca = $("#submitEditMvtTraca");
+let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
+initModalWithAttachments(modalEditMvtTraca, submitEditMvtTraca, urlEditMvtTraca, tableMvt);
 
 let modalDeleteArrivage = $('#modalDeleteMvtTraca');
 let submitDeleteArrivage = $('#submitDeleteMvtTraca');
@@ -193,4 +208,31 @@ let mFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+let editorNewMvtTracaAlreadyDone = false;
+
+function initNewMvtTracaEditor(modal) {
+    if (!editorNewMvtTracaAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewMvtTracaAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'));
+};
+
+let editorEditMvtTracaAlreadyDone = false;
+
+function initEditMvtTracaEditor(modal) {
+    if (!editorEditMvtTracaAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-edit');
+        editorEditMvtTracaAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+};
+
+function fillDateInNewModal() {
+    let date = new Date();
+    $('#modalNewMvtTraca').find('.datetime').val(date.toISOString().slice(0,16));
 }

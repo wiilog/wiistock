@@ -34,6 +34,11 @@ class Colis
      */
     private $litiges;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="colis")
+     */
+    private $nature;
+
     public function __construct()
     {
         $this->litiges = new ArrayCollection();
@@ -89,6 +94,18 @@ class Colis
             $this->litiges->removeElement($litige);
             $litige->removeColi($this);
         }
+
+        return $this;
+    }
+
+    public function getNature(): ?Nature
+    {
+        return $this->nature;
+    }
+
+    public function setNature(?Nature $nature): self
+    {
+        $this->nature = $nature;
 
         return $this;
     }
