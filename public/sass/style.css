@@ -1,3 +1,4 @@
+@charset "UTF-8";
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
   margin: 0;
   padding: 0;
@@ -256,7 +257,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -915,6 +918,42 @@ em {
 }
 .modal .select2-selection .select2-selection__rendered {
   line-height: calc(2.25rem + 2px) !important;
+}
+
+.dt-buttons {
+  background-image: none !important;
+}
+.dt-buttons .buttons-columnVisibility {
+  background-image: none !important;
+  background-color: #fcfcfc !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.dt-buttons .buttons-columnVisibility.active {
+  background-color: #c6c6c6 !important;
+}
+.dt-buttons .dt-button {
+  font-size: 1rem;
+}
+.dt-buttons .buttons-colvis {
+  color: white;
+}
+.dt-buttons .buttons-colvis:before {
+  font-family: "FontAwesome";
+  content: "";
+}
+
+.dt-btn {
+  background: #c6c6c6;
+  border-radius: 4px !important;
+  border: none;
+}
+.dt-btn span {
+  display: none;
+}
+.dt-btn:hover {
+  background: #424242;
+  background-image: none !important;
 }
 
 /*# sourceMappingURL=style.css.map */
