@@ -12,7 +12,6 @@ use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
@@ -46,7 +45,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-use DateTime;
 
 /**
  * @Route("/arrivage")
@@ -1057,12 +1055,11 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $comment = '';
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
-            $descriptionType = $litige->getType()->getDescription();
+            $typeDescription = $litige->getType()->getDescription();
             if ($typeBefore !== $typeAfter) {
                 $comment .= "Changement du type : "
                     . $typeBeforeName . " -> " . $litige->getType()->getLabel() . "." .
-                    (!empty($descriptionType) ? ("\n" . $descriptionType . ".") : '');
+                    (!empty($typeDescription) ? ("\n" . $typeDescription . ".") : '');
             }
             if ($statutBefore !== $statutAfter) {
                 if (!empty($comment)) {
