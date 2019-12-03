@@ -6,8 +6,7 @@ use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use App\Entity\ReferenceArticle;
+
 
 class PatchAlerteFixtures extends Fixture implements FixtureGroupInterface
 {
