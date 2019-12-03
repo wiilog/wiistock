@@ -75,6 +75,8 @@ $(function() {
         });
         if (data.length > 0) $submitSearchOrdreCollecte.click();
     }, 'json');
+
+    ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
@@ -85,7 +87,8 @@ $submitSearchOrdreCollecte.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type);
+    let demandCollect = $('#demandCollect').val();
+    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
 
     tableCollecte
         .columns('Statut:name')

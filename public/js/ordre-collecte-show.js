@@ -32,4 +32,49 @@ InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteO
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");
 let submitFinishCollecte = $("#submitFinishCollecte");
-InitialiserModal(modalFinishCollecte, submitFinishCollecte, urlFinishCollecte);
+
+submitFinishCollecte.on('click', function() {
+    // on récupère les lignes sélectionnées
+    let $inactiveChecks = $('#tableArticle').find('.btn-check:not(.active)');
+    let rowsData = [];
+    $inactiveChecks.each(function() {
+        rowsData.push({
+            'id': $(this).data('id'),
+            'isRef': $(this).data('is-ref')
+        });
+    });
+
+    // on récupère le point de dépose
+    let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
+
+    if (depositLocationId) {
+        let params = {'rows': rowsData, 'depositLocationId': depositLocationId};
+
+        $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
+            modalFinishCollecte.find('.close').click();
+            $('.zone-entete').html(data);
+            $inactiveChecks.each(function() {
+                tableArticle
+                    .row($(this).parents('tr'))
+                    .remove()
+                    .draw();
+            });
+        });
+    } else {
+        modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
+    }
+});
+
+function toggleCheck($elem) {
+    $elem.toggleClass('active');
+}
+
+function checkIfRowSelected() {
+    let $activeChecks = $('#tableArticle').find('.active');
+    if ($activeChecks.length === 0) {
+        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
+    } else {
+        $('#btnModalFinishCollecte').click();
+    }
+
+}

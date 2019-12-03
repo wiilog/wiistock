@@ -213,6 +213,25 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+			if (isset($data['demandCollect'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DEM_COLLECTE, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_DEM_COLLECTE)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+				$filter->setValue($data['demandCollect']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DEM_COLLECTE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
 
 			$em->flush();
 

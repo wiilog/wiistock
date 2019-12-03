@@ -91,6 +91,24 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    /**
+	 * @param int $ordreCollecteId
+	 * @return Article[]|null
+	 */
+    public function findByOrdreCollecteId($ordreCollecteId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        	/** @lang DQL */
+            "SELECT a
+             FROM App\Entity\Article a
+             JOIN a.ordreCollecte oc
+             WHERE oc.id =:id
+            "
+        )->setParameter('id', $ordreCollecteId);
+        return $query->getResult();
+    }
+
 	/**
 	 * @param Demande|int $demande
 	 * @return Article[]|null

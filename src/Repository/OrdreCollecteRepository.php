@@ -25,17 +25,17 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	/**
 	 * @param Collecte $collecte
 	 * @return OrdreCollecte
-	 * @throws NonUniqueResultException
 	 */
-    public function findOneByDemandeCollecte($collecte)
+    public function findByDemandeCollecte($collecte)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
+        	/** @lang DQL */
             'SELECT oc
             FROM App\Entity\OrdreCollecte oc
             WHERE oc.demandeCollecte = :collecte'
         )->setParameter('collecte', $collecte);
-        return $query->getOneOrNullResult();
+        return $query->execute();
     }
 
 	/**

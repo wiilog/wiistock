@@ -46,7 +46,7 @@ class OrdreCollecte
     private $date;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
      */
     private $demandeCollecte;
 

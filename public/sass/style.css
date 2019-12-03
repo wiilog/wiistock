@@ -255,8 +255,10 @@ a:hover {
   padding: 25px;
 }
 
-/* Login
- * *=================
+/* Login    
+ *
+ * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -380,6 +382,14 @@ a:hover {
 
 .big-font {
   font-size: 3rem;
+}
+
+#alerts {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .alert-danger {
@@ -511,6 +521,26 @@ a:hover {
 
 button:focus {
   outline: 0 !important;
+}
+
+.btn-check {
+  background: white !important;
+  border: #424242 !important;
+}
+.btn-check i {
+  color: #424242;
+}
+.btn-check:hover {
+  background: #1ea534 !important;
+}
+.btn-check:hover i {
+  color: white;
+}
+.btn-check.active {
+  background: #1ea534 !important;
+}
+.btn-check.active i {
+  color: white;
 }
 
 .sidemenu-bg {

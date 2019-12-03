@@ -3,22 +3,24 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
+
+use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\MailerServerRepository;
+use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\StatutRepository;
 
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+
+use DateTime;
 use Twig_Environment;
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
@@ -49,7 +51,19 @@ class OrdreCollecteService
 	 */
 	private $collecteReferenceRepository;
 
-    public function __construct(MailerServerRepository $mailerServerRepository,
+	/**
+	 * @var OrdreCollecteReferenceRepository
+	 */
+	private $ordreCollecteReferenceRepository;
+
+	/**
+	 * @var ArticleRepository
+	 */
+	private $articleRepository;
+
+    public function __construct(ArticleRepository $articleRepository,
+								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
+								MailerServerRepository $mailerServerRepository,
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 StatutRepository $statutRepository,
@@ -62,6 +76,8 @@ class OrdreCollecteService
 		$this->statutRepository = $statutRepository;
 		$this->mailerService = $mailerService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
+		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
+		$this->articleRepository = $articleRepository;
 	}
 
 	public function setEntityManager(EntityManagerInterface $entityManager): self {
@@ -69,36 +85,107 @@ class OrdreCollecteService
         return $this;
     }
 
-    /**
-     * TODO CG mouvements
-     * @param OrdreCollecte $collecte
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param Emplacement $depositLocation
-     * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
+	/**
+	 * @param OrdreCollecte $collecte
+	 * @param Utilisateur $user
+	 * @param DateTime $date
+	 * @param Emplacement $depositLocation
+	 * @param array $mouvements
+	 * @throws NonUniqueResultException
+	 */
+    public function buildListAndFinishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
 	{
+		// transforme liste articles à ajouter en liste articles à supprimer de la collecte
+		$listRefRef = $listArtRef = [];
+		foreach($mouvements as $mouvement) {
+			if ($mouvement['is_ref']) {
+				$listRefRef[] = $mouvement['reference'];
+			} else {
+				$listArtRef[] = $mouvement['reference'];
+			}
+		}
+
+		$rowsToRemove = [];
+		$listOrdreCollecteReference = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($collecte);
+		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
+			$refArticle = $ordreCollecteReference->getReferenceArticle();
+			if (!in_array($refArticle->getReference(), $listRefRef)) {
+				$rowsToRemove[] = [
+					'id' => $refArticle->getId(),
+					'isRef' => 1
+				];
+			}
+		}
+
+		$listArticles = $this->articleRepository->findByOrdreCollecteId($collecte->getId());
+		foreach ($listArticles as $article) {
+			if (!in_array($article->getReference(), $listArtRef)) {
+				$rowsToRemove[] = [
+					'id' => $article->getId(),
+					'isRef' => 0
+				];
+			}
+		}
+
+		$this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove);
+	}
+
+	/**
+	 * @param OrdreCollecte $collecte
+	 * @param Utilisateur $user
+	 * @param DateTime $date
+	 * @param Emplacement $depositLocation
+	 * @param array $toRemove
+	 * @throws NonUniqueResultException
+	 */
+	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $toRemove)
+	{
+		$em = $this->entityManager;
+		$demandeCollecte = $collecte->getDemandeCollecte();
+
+		// cas de collecte partielle
+		if (!empty($toRemove)) {
+			$newCollecte = new OrdreCollecte();
+			$statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+			$newCollecte
+				->setDate($collecte->getDate())
+				->setNumero('C-' . $date->format('YmdHis'))
+				->setDemandeCollecte($collecte->getDemandeCollecte())
+				->setStatut($statutATraiter);
+
+			$em->persist($newCollecte);
+
+			foreach ($toRemove as $mouvement) {
+				if ($mouvement['isRef'] == 1) {
+					$ordreCollecteRef = $this->ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($collecte, $mouvement['id']);
+					$collecte->removeOrdreCollecteReference($ordreCollecteRef);
+					$newCollecte->addOrdreCollecteReference($ordreCollecteRef);
+				} else {
+					$article = $this->articleRepository->find($mouvement['id']);
+					$collecte->removeArticle($article);
+					$newCollecte->addArticle($article);
+				}
+			}
+			$em->flush();
+		} else {
+		// cas de collecte totale
+			$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+			$demandeCollecte
+				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE))
+				->setValidationDate($dateNow);
+		}
+
 		// on modifie le statut de l'ordre de collecte
 		$collecte
 			->setUtilisateur($user)
 			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
-		// on modifie le statut de la demande de collecte
-		$demandeCollecte = $collecte->getDemandeCollecte();
-		$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
-
 		// on modifie la quantité des articles de référence liés à la collecte
-		$collecteReferences = $this->collecteReferenceRepository->findByCollecte($demandeCollecte);
-
-		$addToStock = $demandeCollecte->getStockOrDestruct();
+		$collecteReferences = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($collecte);
 
 		// cas de mise en stockage
-		if ($addToStock) {
+		if ($demandeCollecte->getStockOrDestruct()) {
 			foreach ($collecteReferences as $collecteReference) {
 				$refArticle = $collecteReference->getReferenceArticle();
 				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
@@ -116,10 +203,10 @@ class OrdreCollecteService
 			}
 
 			// on modifie le statut des articles liés à la collecte
-			$articles = $demandeCollecte->getArticles();
+			$articles = $collecte->getArticles();
 			foreach ($articles as $article) {
 				$article
-                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF))
+                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
                     ->setEmplacement($depositLocation);
 
                 $newMouvement = new MouvementStock();
@@ -135,20 +222,20 @@ class OrdreCollecteService
 			}
 		}
 		$this->entityManager->flush();
-
-        if ($this->mailerServerRepository->findAll()) {
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
-                $this->templating->render(
-                    'mails/mailCollecteDone.html.twig',
-                    [
-                        'title' => 'Votre demande a bien été collectée.',
-                        'collecte' => $demandeCollecte,
-
-                    ]
-                ),
-                $demandeCollecte->getDemandeur()->getEmail()
-            );
-        }
+//TODO CG modif mail infos ordre et pas demande
+//        if ($this->mailerServerRepository->findAll()) {
+//            $this->mailerService->sendMail(
+//                'FOLLOW GT // Collecte effectuée',
+//                $this->templating->render(
+//                    'mails/mailCollecteDone.html.twig',
+//                    [
+//                        'title' => 'Votre demande a bien été collectée.',
+//                        'collecte' => $demandeCollecte,
+//
+//                    ]
+//                ),
+//                $demandeCollecte->getDemandeur()->getEmail()
+//            );
+//        }
 	}
 }

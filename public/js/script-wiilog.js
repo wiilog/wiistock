@@ -555,6 +555,28 @@ function ajaxAutoUserInit(select) {
     });
 }
 
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
+        }
+    });
+}
+
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
@@ -647,7 +669,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null, demandCollect = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
