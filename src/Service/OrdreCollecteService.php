@@ -91,6 +91,7 @@ class OrdreCollecteService
 	 * @param DateTime $date
 	 * @param Emplacement $depositLocation
 	 * @param array $mouvements
+	 * @return OrdreCollecte|null
 	 * @throws NonUniqueResultException
 	 */
     public function buildListAndFinishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
@@ -127,7 +128,7 @@ class OrdreCollecteService
 			}
 		}
 
-		$this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove);
+		return $this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove);
 	}
 
 	/**
@@ -136,6 +137,7 @@ class OrdreCollecteService
 	 * @param DateTime $date
 	 * @param Emplacement $depositLocation
 	 * @param array $toRemove
+	 * @return OrdreCollecte|null
 	 * @throws NonUniqueResultException
 	 */
 	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $toRemove)
@@ -237,5 +239,7 @@ class OrdreCollecteService
 //                $demandeCollecte->getDemandeur()->getEmail()
 //            );
 //        }
+
+		return $newCollecte ?? null;
 	}
 }

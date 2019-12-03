@@ -591,6 +591,24 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+    public function getByCollecteId($collecteId) {
+
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte, ra.barCode
+			FROM App\Entity\ReferenceArticle ra
+			LEFT JOIN ra.emplacement e
+			JOIN ra.collecteReferences cr
+			JOIN cr.collecte dc
+			JOIN dc.ordreCollecte oc
+			JOIN oc.statut s
+			WHERE oc.id = :id"
+		)->setParameter('id', $collecteId);
+
+		return $query->execute();
+	}
+
 
     public function countByEmplacement($emplacementId)
     {

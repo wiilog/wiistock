@@ -794,14 +794,25 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
 
                                 $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['emplacement']);
-                                $this->ordreCollecteService->buildListAndFinishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
+                                $newCollecte = $this->ordreCollecteService->buildListAndFinishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
                                 $entityManager->flush();
-                            });
 
-                            $resData['success'][] = [
-                                'numero_collecte' => $collecte->getNumero(),
-                                'id_collecte' => $collecte->getId()
-                            ];
+								if (!empty($newCollecte)) {
+									$newCollecteId = $newCollecte->getId();
+									$newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
+
+									$articlesCollecte = $this->articleRepository->getByCollecteId($newCollecteId);
+									$refArticlesCollecte = $this->referenceArticleRepository->getByCollecteId($newCollecteId);
+									$articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
+								}
+
+								$resData['success'][] = [
+									'numero_collecte' => $collecte->getNumero(),
+									'id_collecte' => $collecte->getId(),
+									'newCollecte' => $newCollecteArray ?? null,
+									'articlesCollecte' => $articlesCollecte ?? null
+								];
+                            });
                         }
                         else {
                             throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGAN);
