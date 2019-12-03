@@ -186,6 +186,7 @@ function initNewReceptionEditor(modal) {
         editorNewReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
 };
 
 var editorEditReceptionAlreadyDone = false;
@@ -195,6 +196,7 @@ function initEditReceptionEditor(modal) {
         editorEditReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur-edit'));
     ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 };
 
@@ -362,4 +364,45 @@ function finishReception(receptionId) {
             alertErrorMsg(data);
         }
     }, 'json');
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+        params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
+    });
 }

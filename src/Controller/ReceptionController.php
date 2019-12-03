@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\MouvementStock;
+use App\Repository\TransporteurRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -69,6 +70,11 @@ class ReceptionController extends AbstractController
     private $referenceArticleRepository;
 
     /**
+     * @var TransporteurRepository
+     */
+    private $transporteurRepository;
+
+    /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
@@ -124,7 +130,7 @@ class ReceptionController extends AbstractController
     private $articleDataService;
 
 
-    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(TransporteurRepository $transporteurRepository, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
@@ -141,6 +147,7 @@ class ReceptionController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->transporteurRepository = $transporteurRepository;
     }
 
 
@@ -155,6 +162,7 @@ class ReceptionController extends AbstractController
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
 
@@ -177,6 +185,7 @@ class ReceptionController extends AbstractController
                 ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
                 ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
                 ->setFournisseur($fournisseur)
+                ->setTransporteur($transporteur)
                 ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
@@ -224,6 +233,7 @@ class ReceptionController extends AbstractController
             }
 
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
             $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut = $this->statutRepository->find(intval($data['statut']));
             $reception = $this->receptionRepository->find($data['receptionId']);
@@ -233,6 +243,7 @@ class ReceptionController extends AbstractController
                 ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
+                ->setTransporteur($transporteur)
                 ->setUtilisateur($utilisateur)
                 ->setReference($data['NumeroCommande'])
                 ->setCommentaire($data['commentaire']);

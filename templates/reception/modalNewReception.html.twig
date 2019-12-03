@@ -12,19 +12,54 @@
             <div class="modal-body modal-input container-fluid">
 
                 <div class='row'>
-                    <div class="form-group w-100 col-6">
+                    <div class="form-group w-100 col-4">
                         <label for="fournisseurs">Fournisseur*</label>
                         <select class="form-control ajax-autocomplete-fournisseur data needed" name="fournisseur"
                             required>
                         </select>
                     </div>
-                    <div class="form-group col-6">
-                        <label>Numéro de commande</label>
-                        <input type="text" class="form-control data" name="reference">
+                    <div class="form-group col-2">
+                        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
+                    </div>
+                    <div class="form-group w-100 col-4">
+                        <label for="transporteur">Transporteur</label>
+                        <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete" name="transporteur" id="transporteur">
+                        </select>
+                    </div>
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i class="fa fa-plus"></i></span>
+                    </div>
+                </div>
+                <div class="row line-arrivage-new-data">
+                    <div class="row col-6 formulaire">
+                        <div class="form-group col-10" id="fournisseurDisplay">
+                            <label for="newFournisseur">Nom fournisseur</label>
+                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire" name="Nom" maxlength="64">
+                            <label for="newFournisseurCode">Code référence</label>
+                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire" name="Code" maxlength="64">
+                        </div>
+                        <div class="form-group col-2" id="addFournisseur">
+                            <span class="btn btn-success" onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur')"><i class="fas fa-check-circle"></i></span>
+                        </div>
+                    </div>
+                    <div class="row col-6 formulaire">
+                        <div class="form-group col-10" id="transporteurDisplay">
+                            <label for="newTransporteur">Nom transporteur</label>
+                            <input type="text" id="newTransporteur" class="form-control newFormulaire" name="label" maxlength="64">
+                            <label for="newTransporteurCode">Nom transporteur</label>
+                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire" name="code" maxlength="64">
+                        </div>
+                        <div class="form-group col-2" id="addTransporteur">
+                            <span class="btn btn-success" onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur')"><i class="fas fa-check-circle"></i></span>
+                        </div>
                     </div>
                 </div>
 
                 <div class='row'>
+                    <div class="form-group col-6">
+                        <label>Numéro de commande</label>
+                        <input type="text" class="form-control data" name="reference">
+                    </div>
                     <div class="form-group col-6">
                         <label for="date-attendue">Date attendue</label>
                         <input type="date" class="form-control data" name="date-attendue" value="" required="true"
