@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\FieldsParam;
 use App\Entity\MouvementStock;
+use App\Repository\FieldsParamRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -114,6 +116,11 @@ class ReceptionController extends AbstractController
     private $dimensionsEtiquettesRepository;
 
     /**
+     * @var FieldsParamRepository
+     */
+    private $fieldsParamRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -124,7 +131,7 @@ class ReceptionController extends AbstractController
     private $articleDataService;
 
 
-    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(FieldsParamRepository $fieldsParamRepository, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
@@ -141,6 +148,7 @@ class ReceptionController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->fieldsParamRepository = $fieldsParamRepository;
     }
 
 
@@ -154,7 +162,11 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+
+            if ($data['fournisseur'] == null && $data['reference'] == null && $data['date-attendue'] == null && $data['date-commande'] == null) {
+                return new JsonResponse(false);
+            }
+
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
 
@@ -170,18 +182,38 @@ class ReceptionController extends AbstractController
             $cpt = sprintf('%04u', $i);
             $numero = 'R' . $date->format('ymd') . $cpt;
 
+            if ($data['fournisseur'] != null) {
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $reception
+                    ->setFournisseur($fournisseur);
+            }
+
+            if ($data['reference'] != null) {
+                $reception
+                    ->setReference($data['reference']);
+            }
+
+            if ($data['date-attendue'] != null) {
+                $reception
+                    ->setDateAttendue(new DateTime($data['date-attendue']));
+            }
+
+            if ($data['date-commande'] != null) {
+                $reception
+                    ->setDateCommande(new DateTime($data['date-commande']));
+            }
+
+            if ($data['commentaire'] != null) {
+                $reception
+                    ->setCommentaire($data['commentaire']);
+            }
+
             $reception
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
-                ->setFournisseur($fournisseur)
-                ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
-                ->setType($type)
-                ->setCommentaire($data['commentaire']);
-
+                ->setType($type);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -223,19 +255,57 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-            $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut = $this->statutRepository->find(intval($data['statut']));
             $reception = $this->receptionRepository->find($data['receptionId']);
+
+            if ($data['fournisseur'] != null) {
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $reception
+                    ->setFournisseur($fournisseur);
+            }
+
+            if ($data['NumeroCommande'] != null) {
+                $reception
+                    ->setReference($data['NumeroCommande']);
+            } else {
+                $reception
+                    ->setReference('');
+            }
+
+            if ($data['date-attendue'] != null) {
+                $reception
+                    ->setDateAttendue(new DateTime($data['date-attendue']));
+            }
+
+            if ($data['date-commande'] != null) {
+                $reception
+                    ->setDateCommande(new DateTime($data['date-commande']));
+            }
+
+            if ($data['commentaire'] != null) {
+                $reception
+                    ->setCommentaire($data['commentaire']);
+            } else {
+                $reception
+                    ->setCommentaire('');
+            }
+
+            if ($data['utilisateur'] != null) {
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $reception
+                    ->setUtilisateur($utilisateur);
+            }
+
+            if ($data['NumeroReception'] != null) {
+                $reception
+                    ->setNumeroReception($data['NumeroReception']);
+            } else {
+                $reception
+                    ->setNumeroReception('');
+            }
+
             $reception
-                ->setNumeroReception($data['NumeroReception'])
-                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
-                ->setStatut($statut)
-                ->setFournisseur($fournisseur)
-                ->setUtilisateur($utilisateur)
-                ->setReference($data['NumeroCommande'])
-                ->setCommentaire($data['commentaire']);
+                ->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -309,13 +379,26 @@ class ReceptionController extends AbstractController
                     'champsLibres' => $champsLibres,
                 ];
             }
+
+            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::RECEPTION);
+
+            $fields = [];
+            foreach ($fieldsParam as $field) {
+                $fields[str_replace(' ', '', $field['fieldCode'])] = [
+                    'fieldCode' => $field['fieldCode'],
+                    'mustToCreate' => $field['mustToCreate'],
+                    'mustToModify' => $field['mustToModify'],
+                ];
+            }
+
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
-                'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
-                'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
+                'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur() ? $reception->getFournisseur()->getId() : ''),
+                'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur() ? $reception->getUtilisateur()->getId() : ''),
                 'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                'typeChampsLibres' => $typeChampLibre
+                'typeChampsLibres' => $typeChampLibre,
+                'fieldsParam' => $fields,
             ]);
             return new JsonResponse($json);
         }
@@ -410,6 +493,7 @@ class ReceptionController extends AbstractController
         }
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::RECEPTION);
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -422,9 +506,19 @@ class ReceptionController extends AbstractController
             ];
         }
 
+        $fields = [];
+        foreach ($fieldsParam as $field) {
+            $fields[str_replace(' ', '', $field['fieldCode'])] = [
+                'fieldCode' => $field['fieldCode'],
+                'mustToCreate' => $field['mustToCreate'],
+                'mustToModify' => $field['mustToModify'],
+            ];
+        }
+
         return $this->render('reception/index.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'fieldsParam' => $fields,
         ]);
     }
 

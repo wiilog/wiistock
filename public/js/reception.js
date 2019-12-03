@@ -102,7 +102,7 @@ function initModalCondit(tableFromArticle) {
     let modalEditInnerArticle = $("#modalEditArticle");
     let submitEditInnerArticle = $("#submitEditArticle");
     let urlEditInnerArticle = Routing.generate('article_edit', true);
-    InitialiserModal(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle);
+    InitialiserModal(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle, ReceptionErrorEdit, false);
 
     let modalDeleteInnerArticle = $("#modalDeleteArticle");
     let submitDeleteInnerArticle = $("#submitDeleteArticle");
@@ -113,7 +113,16 @@ function initModalCondit(tableFromArticle) {
 let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
 let urlReceptionIndex = Routing.generate('reception_new', true)
-InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
+InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table, ReceptionError, false);
+
+function ReceptionError(data) {
+    if (data == false ) {
+        let modal = $("#modalNewReception");
+        let msg = 'Aucun champs n\'est renseigné, il est impossible de créer la réception.';
+        displayError(modal, msg, data);
+    }
+}
+
 
 let ModalDelete = $("#modalDeleteReception");
 let SubmitDelete = $("#submitDeleteReception");
@@ -124,7 +133,6 @@ let modalModifyReception = $('#modalEditReception');
 let submitModifyReception = $('#submitEditReception');
 let urlModifyReception = Routing.generate('reception_edit', true);
 InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception, table);
-
 
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('reception_article_api', { 'id': id }, true);

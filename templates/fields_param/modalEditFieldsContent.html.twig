@@ -1,0 +1,42 @@
+<form method="">
+    <div class="modal-body modal-input container-fluid row">
+        <div class="col-12 form-group required d-none">
+            <input type="text" class="form-control data needed" name="field" required="" value="{{ field.id }}">
+        </div>
+
+        <div class="row">
+            <div class="col-12 form-group required">
+                <label>Agit sur :</label>
+                <input type="text" class="form-control" name="entityCode" required="" value="{{ field.entityCode }}" disabled>
+            </div>
+
+            <div class="col-12 form-group required">
+                <label>Champs fixe :</label>
+                <input type="text" class="form-control" name="fieldCode" required="" value="{{ field.fieldCode }}" disabled>
+            </div>
+        </div>
+
+        <div class="row">
+            {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
+            <div class="form-group col-12">
+                <label>Obligatoire à la création ?</label>
+                <label class="switch">
+                    <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="row">
+            {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
+            <div class="form-group col-12">
+                <label>Obligatoire à la modification ?</label>
+                <label class="switch">
+                    <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+    </div>
+</form>
