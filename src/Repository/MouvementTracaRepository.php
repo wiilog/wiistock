@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
-use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -22,6 +22,11 @@ class MouvementTracaRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementTraca::class);
     }
 
+    /**
+     * @param $uniqueId
+     * @return MouvementTraca
+     * @throws NonUniqueResultException
+     */
     public function findOneByUniqueIdForMobile($uniqueId) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -116,6 +121,29 @@ class MouvementTracaRepository extends ServiceEntityRepository
             JOIN m.type t
             WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
         )->setParameter('emp', $emplacement);
+        return $query->execute();
+    }
+
+    /**
+     * @param Utilisateur $operator
+     * @return MouvementTraca[]
+     */
+    public function findPrisesByOperatorAndNotDeposed(Utilisateur $operator) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT m.colis as ref_article,
+                     t.nom as type,
+                     o.username as operateur,
+                     e.label as ref_emplacement,
+                     m.uniqueIdForMobile as date,
+                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished
+            FROM App\Entity\MouvementTraca m
+            JOIN m.type t
+            JOIN m.operateur o
+            JOIN m.emplacement e
+            WHERE o = :op AND t.nom LIKE 'prise' AND m.finished = 0"
+        )->setParameter('op', $operator);
         return $query->execute();
     }
 }

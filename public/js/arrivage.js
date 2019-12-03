@@ -1,5 +1,5 @@
 // const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
+let numberOfDataOpened = 0;
 $('.select2').select2();
 
 $('#utilisateur').select2({
@@ -62,13 +62,21 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
     columnDefs: [
         {
             targets: 0,
             className: 'noVis'
+        },
+        {
+            targets: 13,
+            visible: false
         }
     ],
+    "rowCallback" : function(row, data) {
+        if (data.urgent === true) $(row).addClass('table-danger');
+    },
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
     buttons: [
         {
@@ -168,6 +176,9 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
 $submitSearchArrivage.on('click', function () {
@@ -177,7 +188,7 @@ $submitSearchArrivage.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-
+    let urgence = $('#urgence-filter').is(':checked');
     saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
 
     tableArrivage
@@ -188,6 +199,11 @@ $submitSearchArrivage.on('click', function () {
     tableArrivage
         .columns('Destinataire:name')
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    tableArrivage
+        .columns('urgent:name')
+        .search(urgence ? 'true' : '')
         .draw();
 
     tableArrivage
@@ -246,4 +262,45 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+       params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
+    });
 }

@@ -43,15 +43,17 @@
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-truck"></i>
-                            <h4>Arrivage</h4>
+                            <h4>Traçabilité</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Arrivage</a></li>
+                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Flux - Arrivage</a></li>
                             <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvement</a></li>
+                            <li><a href="{{ path('acheminements_index') }}" class="sub-item">• Acheminements</a></li>
                             <li><a href="{{ path('reception_traca_index') }}" class="sub-item">• Réceptions</a></li>
                             <li>
                                 <a href="{{ path('en_cours') }}" class="sub-item">• En cours</a>
                             </li>
+                            <li><a href="{{ path('urgence_index') }}" class="sub-item">• Urgences</a></li>
                         </ul>
                     </li>
                 {% endif %}
@@ -163,7 +165,7 @@
                         </ul>
                     </li>
                 {% endif %}
-                
+
                 <!-- REFERENTIEL -->
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
