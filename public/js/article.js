@@ -1,62 +1,92 @@
 let pathArticle = Routing.generate('article_api', true);
-
-let tableArticle = $('#tableArticle_id').DataTable({
-    serverSide: true,
-    processing: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax: {
-        "url": pathArticle,
-        "type": "POST",
-        'dataSrc': function (json) {
-            $('#listArticleIdToPrint').val(json.listId);
-            if (!$(".statutVisible").val()) {
-                tableArticle.column('Statut:name').visible(false);
-            }
-            return json.data;
-        }
-    },
-    'drawCallback': function () {
-         overrideSearch();
-    },
-    columns: [
-        { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
-        { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-        { "data": 'Date et heure', 'name': 'Date et heure', 'title': 'Date et heure' },
-        { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-        { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
-    ],
-    columnDefs: [
-        { "orderable": false, "targets": 5 }
-    ],
+let tableArticle;
+$(function () {
+    initTableArticle();
 });
 
-let modalEditArticle = $("#modalEditArticle");
-let submitEditArticle = $("#submitEditArticle");
-let urlEditArticle = Routing.generate('article_edit', true);
-InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+function initTableArticle() {
+    $.post(Routing.generate('article_api_columns'), function (columns) {
+        tableArticle = $('#tableArticle_id')
+            .on('error.dt', function (e, settings, techNote, message) {
+                console.log('An error has been reported by DataTables: ', message);
+            }).DataTable({
+                serverSide: true,
+                processing: true,
+                paging: true,
+                scrollX: true,
+                order: [[1, 'asc']],
+                "language": {
+                    url: "/js/i18n/dataTableLanguage.json",
+                },
+                ajax: {
+                    "url": pathArticle,
+                    "type": "POST",
+                    'dataSrc': function (json) {
+                        $('#listArticleIdToPrint').val(json.listId);
+                        if (!$(".statutVisible").val()) {
+                            tableArticle.column('Statut:name').visible(false);
+                        }
+                        return json.data;
+                    }
+                },
+                initComplete: function () {
+                    loadSpinnerAR($('#spinner'));
+                    init();
+                    hideAndShowColumns();
+                    overrideSearch();
+                },
+                "drawCallback": function (settings) {
+                    resizeTable();
+                },
+                columns: columns,
+            });
+    });
+}
 
-let modalNewArticle = $("#modalNewArticle");
-let submitNewArticle = $("#submitNewArticle");
-let urlNewArticle = Routing.generate('article_new', true);
-InitialiserModal(modalNewArticle, submitNewArticle, urlNewArticle, tableArticle);
-
-let modalDeleteArticle = $("#modalDeleteArticle");
-let submitDeleteArticle = $("#submitDeleteArticle");
-let urlDeleteArticle = Routing.generate('article_delete', true);
-InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+function loadSpinnerAR(div) {
+    div.removeClass('d-flex');
+    div.addClass('d-none');
+}
 
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
-}
+};
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    let modalEditArticle = $("#modalEditArticle");
+    let submitEditArticle = $("#submitEditArticle");
+    let urlEditArticle = Routing.generate('article_edit', true);
+    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+
+    let modalNewArticle = $("#modalNewArticle");
+    let submitNewArticle = $("#submitNewArticle");
+    let urlNewArticle = Routing.generate('article_new', true);
+    InitialiserModal(modalNewArticle, submitNewArticle, urlNewArticle, tableArticle);
+
+    let modalDeleteArticle = $("#modalDeleteArticle");
+    let submitDeleteArticle = $("#submitDeleteArticle");
+    let urlDeleteArticle = Routing.generate('article_delete', true);
+    InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+
+    let modalColumnVisible = $('#modalColumnVisible');
+    let submitColumnVisible = $('#submitColumnVisible');
+    let urlColumnVisible = Routing.generate('save_column_visible_for_article', true);
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+
+    tableArticle.on('responsive-resize', function (e, datatable) {
+        resizeTable();
+    });
+
 }
+
+function resizeTable() {
+    tableArticle
+        .columns.adjust()
+        .responsive.recalc();
+}
+
 function initNewArticleEditor(modal) {
     initEditor(modal + ' .editor-container-new');
 };
@@ -162,8 +192,7 @@ function printSingleArticleBarcode(button) {
                 'Etiquette article ' + response.articleRef.artLabel + '.pdf',
                 [response.articleRef.barcodeLabel],
             );
-        }
-        else {
+        } else {
             $('#cannotGenerate').click();
         }
     });
@@ -181,8 +210,8 @@ function changeStatus(button) {
 function overrideSearch() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
+    $input.on('keyup', function (e) {
+        if (e.key === 'Enter') {
             if ($input.val() === '') {
                 $('.justify-content-end').find('.printButton').addClass('btn-disabled');
                 $('.justify-content-end').find('.printButton').removeClass('btn-primary');
@@ -191,7 +220,7 @@ function overrideSearch() {
                 $('.justify-content-end').find('.printButton').addClass('btn-primary');
             }
             tableArticle.search(this.value).draw();
-        }  else if (e.key === 'Backspace' && $input.val() === '') {
+        } else if (e.key === 'Backspace' && $input.val() === '') {
             $('.justify-content-end').find('.printButton').addClass('btn-disabled');
             $('.justify-content-end').find('.printButton').removeClass('btn-primary');
         }
@@ -204,8 +233,8 @@ function getDataAndPrintLabels() {
     let listArticles = $("#listArticleIdToPrint").val();
     let params = JSON.stringify({
         listArticles: listArticles,
-        start : tableArticle.page.info().start,
-        length : tableArticle.page.info().length
+        start: tableArticle.page.info().start,
+        length: tableArticle.page.info().length
     });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
@@ -216,4 +245,38 @@ function getDataAndPrintLabels() {
                 response.barcodesLabels);
         }
     });
+}
+
+function saveRapidSearch() {
+    let searchesWanted = [];
+    $('#rapidSearch tbody td').each(function () {
+        searchesWanted.push($(this).html());
+    });
+    let params = {
+        recherches: searchesWanted
+    };
+    let json = JSON.stringify(params);
+    $.post(Routing.generate('update_user_searches_for_article', true), json, function (data) {
+        $("#modalRapidSearch").find('.close').click();
+        tableArticle.search(tableArticle.search()).draw();
+    });
+}
+
+function showOrHideColumn(check) {
+
+    let columnName = check.data('name');
+
+    let column = tableArticle.column(columnName + ':name');
+
+    column.visible(!column.visible());
+
+    let tableRefArticleColumn = $('#tableArticle_id_wrapper');
+    tableRefArticleColumn.find('th, td').removeClass('hide');
+    tableRefArticleColumn.find('th, td').addClass('display');
+    check.toggleClass('data');
+}
+
+function hideAndShowColumns() {
+    tableArticle.columns('.hide').visible(false);
+    tableArticle.columns('.display').visible(true);
 }

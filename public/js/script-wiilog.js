@@ -928,3 +928,24 @@ let addArrivalAssociation = function(span) {
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
 };
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
+        });
+    }
+}

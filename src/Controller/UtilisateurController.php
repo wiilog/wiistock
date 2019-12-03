@@ -413,4 +413,21 @@ class UtilisateurController extends Controller
         return new JsonResponse();
     }
 
+    /**
+     * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateSearchesArticle(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            /**
+             * @var Utilisateur $user
+             */
+            $user = $this->getUser();
+            $user->setRechercheForArticle($data['recherches']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+        }
+        return new JsonResponse();
+    }
+
 }

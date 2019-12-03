@@ -559,12 +559,6 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
         ];
-
-        $champF[] = [
-            'label' => FiltreRef::CHAMP_FIXE_REF_ART_FOURN,
-            'id' => 0,
-            'typage' => 'text'
-        ];
         $champF[] = [
             'label' => 'Seuil de sécurité',
             'id' => 0,

@@ -181,6 +181,16 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $receptionsTraca;
 
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $rechercheForArticle;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $columnsVisibleForArticle;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1005,6 +1015,30 @@ class Utilisateur implements UserInterface, EquatableInterface
                 $receptionsTraca->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRechercheForArticle()
+    {
+        return $this->rechercheForArticle;
+    }
+
+    public function setRechercheForArticle($rechercheForArticle): self
+    {
+        $this->rechercheForArticle = $rechercheForArticle;
+
+        return $this;
+    }
+
+    public function getColumnsVisibleForArticle()
+    {
+        return $this->columnsVisibleForArticle;
+    }
+
+    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
+    {
+        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
 
         return $this;
     }
