@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieStatut;
 use App\Entity\MouvementStock;
+use App\Service\ReceptionService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -123,9 +125,15 @@ class ReceptionController extends AbstractController
      */
     private $articleDataService;
 
+    /**
+     * @var ReceptionService
+     */
+    private $receptionService;
 
-    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+
+    public function __construct(ReceptionService $receptionService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
+        $this->receptionService = $receptionService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -332,29 +340,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $receptions = $this->receptionRepository->findAll();
-            $rows = [];
-            foreach ($receptions as $reception) {
-                $url = $this->generateUrl('reception_show', [
-                    'id' => $reception->getId(),
-                ]);
-                $rows[] =
-                    [
-                        'id' => ($reception->getId()),
-                        "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                        "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                        "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y') : ''),
-                        "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                        "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                        "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                        "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
-                        'Actions' => $this->renderView(
-                            'reception/datatableReceptionRow.html.twig',
-                            ['url' => $url, 'reception' => $reception]
-                        ),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->receptionService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -425,6 +411,7 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
     }
 
