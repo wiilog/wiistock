@@ -834,13 +834,13 @@ class ArrivageController extends AbstractController
                     $litige->addColi($this->colisRepository->find($colisId));
                 }
             }
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
 
-            $trimCommentStatut = trim($commentStatut);
+            $typeDescription = $litige->getType()->getDescription();
+
+            $trimmedTypeDescription = trim($typeDescription);
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
-            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
+            $commentaire = $userComment . (!empty($trimmedTypeDescription) ? ($nl . $trimmedTypeDescription) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
