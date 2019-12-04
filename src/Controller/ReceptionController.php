@@ -6,6 +6,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\MouvementStock;
+use App\Service\ReceptionService;
 use App\Entity\PieceJointe;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
@@ -139,6 +140,10 @@ class ReceptionController extends AbstractController
      * @var LitigeRepository
      */
     private $litigeRepository;
+    /**
+     * @var ReceptionService
+     */
+    private $receptionService;
 
     /**
      * @var PieceJointeRepository
@@ -146,11 +151,12 @@ class ReceptionController extends AbstractController
     private $pieceJointeRepository;
 
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
+        $this->receptionService = $receptionService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -357,26 +363,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $receptions = $this->receptionRepository->findAll();
-            $rows = [];
-            foreach ($receptions as $reception) {
-                $rows[] =
-                    [
-                        'id' => ($reception->getId()),
-                        "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                        "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                        "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y') : ''),
-                        "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                        "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
-                        "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                        "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
-                        'Actions' => $this->renderView(
-                            'reception/datatableReceptionRow.html.twig',
-                            ['reception' => $reception]
-                        ),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->receptionService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -447,6 +434,7 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
     }
 
