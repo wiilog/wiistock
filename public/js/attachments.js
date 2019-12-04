@@ -123,12 +123,13 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         name = $(this).attr("name");
         Data.append(name, val);
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {

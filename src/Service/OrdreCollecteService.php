@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\Collecte;
+use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
@@ -72,12 +73,13 @@ class OrdreCollecteService
      * @param OrdreCollecte $collecte
      * @param Utilisateur $user
      * @param DateTime $date
+     * @param Emplacement $depositLocation
      * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date)
+	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation)
 	{
 		// on modifie le statut de l'ordre de collecte
 		$collecte
@@ -106,7 +108,7 @@ class OrdreCollecteService
                     ->setRefArticle($refArticle)
                     ->setDate($date)
                     ->setEmplacementFrom($demandeCollecte->getPointCollecte())
-                    ->setEmplacementTo($refArticle->getEmplacement())
+                    ->setEmplacementTo($depositLocation)
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($collecteReference->getQuantite());
                 $this->entityManager->persist($newMouvement);
@@ -115,7 +117,9 @@ class OrdreCollecteService
 			// on modifie le statut des articles liés à la collecte
 			$articles = $demandeCollecte->getArticles();
 			foreach ($articles as $article) {
-				$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
+				$article
+                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF))
+                    ->setEmplacement($depositLocation);
 
                 $newMouvement = new MouvementStock();
                 $newMouvement
@@ -123,7 +127,7 @@ class OrdreCollecteService
                     ->setArticle($article)
                     ->setDate($date)
                     ->setEmplacementFrom($demandeCollecte->getPointCollecte())
-                    ->setEmplacementTo($article->getEmplacement())
+                    ->setEmplacementTo($depositLocation)
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setQuantity($article->getQuantite());
                 $this->entityManager->persist($newMouvement);
@@ -146,5 +150,4 @@ class OrdreCollecteService
             );
         }
 	}
-
 }
