@@ -789,11 +789,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     try {
                         if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                             $entityManager->transactional(function ()
-                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser) {
+                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
                                 $this->ordreCollecteService->setEntityManager($entityManager);
                                 $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
 
-                                $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['emplacement']);
+                                $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
                                 $newCollecte = $this->ordreCollecteService->buildListAndFinishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
                                 $entityManager->flush();
 
@@ -810,7 +810,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 									'numero_collecte' => $collecte->getNumero(),
 									'id_collecte' => $collecte->getId(),
 									'newCollecte' => $newCollecteArray ?? null,
-									'articlesCollecte' => $articlesCollecte ?? null
+									'articlesCollecte' => $articlesCollecte ?? []
 								];
                             });
                         }

@@ -64,18 +64,12 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	public function getByStatutLabelAndUser($statutLabel, $user)
 	{
 		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
-            FROM App\Entity\OrdreCollecte oc
-            LEFT JOIN oc.demandeCollecte dc
-            LEFT JOIN dc.pointCollecte pc
-            LEFT JOIN oc.statut s
-            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))"
-		)->setParameters([
-			'statutLabel' => $statutLabel,
-			'user' => $user,
-		]);
+		$query = $entityManager
+            ->createQuery($this->getQueryBy() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
+            ->setParameters([
+                'statutLabel' => $statutLabel,
+                'user' => $user,
+            ]);
 		return $query->execute();
 	}
 
@@ -86,15 +80,23 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	public function getById($ordreCollecteId)
 	{
 		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
+		$query = $entityManager
+            ->createQuery($this->getQueryBy() . " WHERE oc.id = :id")
+            ->setParameter('id', $ordreCollecteId);
+		$result = $query->execute();
+		return !empty($result) ? $result[0] : null;
+	}
+
+	private function getQueryBy(): string  {
+	    return (/** @lang DQL */
+            "SELECT oc.id,
+                    oc.numero as number,
+                    pc.label as location_from,
+                    dc.stockOrDestruct as forStock
             FROM App\Entity\OrdreCollecte oc
             LEFT JOIN oc.demandeCollecte dc
             LEFT JOIN dc.pointCollecte pc
-            LEFT JOIN oc.statut s
-            WHERE oc.id = :id"
-		)->setParameter('id', $ordreCollecteId);
-		return $query->execute();
-	}
+            LEFT JOIN oc.statut s"
+        );
+    }
 }
