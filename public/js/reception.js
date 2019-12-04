@@ -73,6 +73,7 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    "lengthMenu": [5, 10, 25],
     scrollX: true,
     ajax: {
         "url": pathLitigesReception,
@@ -315,6 +316,7 @@ InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('reception_article_api', { 'id': id }, true);
 let tableArticle = $('#tableArticle_id').DataTable({
+    "lengthMenu": [5, 10, 25],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
