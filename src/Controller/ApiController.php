@@ -843,7 +843,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             });
                         }
                         else {
-                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGAN);
+                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGUN);
                         }
                     } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
@@ -852,6 +852,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $this->ordreCollecteService->setEntityManager($entityManager);
                         }
 
+                        dump($exception);
+
                         $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
 
                         $resData['errors'][] = [
@@ -859,7 +861,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_collecte' => $collecte->getId(),
 
                             'message' => (
-                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGAN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
+                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
                                 'Une erreur est survenue'
                             )
                         ];

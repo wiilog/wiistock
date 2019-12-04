@@ -33,7 +33,7 @@ use Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
-    public const COLLECTE_ALREADY_BEGAN = 'collecte-already-began';
+    public const COLLECTE_ALREADY_BEGUN = 'collecte-already-began';
 
 	/**
 	 * @var EntityManagerInterface

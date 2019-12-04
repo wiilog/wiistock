@@ -182,7 +182,7 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             /** @lang DQL */
             "UPDATE App\Entity\Article a
-            SET a.type = null 
+            SET a.type = null
             WHERE a.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -543,11 +543,11 @@ class ArticleRepository extends ServiceEntityRepository
 	public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT 
+            "SELECT
                     DISTINCT a.reference,
-                    a.label, 
-                    e.label as location, 
-                    a.quantite as quantity, 
+                    a.label,
+                    e.label as location,
+                    a.quantite as quantity,
                     ra.reference as reference_article,
                     a.barCode
 			FROM App\Entity\Article a
@@ -616,11 +616,15 @@ class ArticleRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-			"SELECT a.reference, e.label as location, a.label, a.quantite as quantity, 0 as is_ref, oc.id as id_collecte, a.barCode
+			"SELECT a.reference,
+                         e.label as location,
+                         a.label,
+                         a.quantite as quantity,
+                         0 as is_ref, oc.id as id_collecte,
+                         a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.collectes c
-			JOIN c.ordreCollecte oc
+			JOIN a.ordreCollecte oc
 			LEFT JOIN oc.statut s
 			WHERE oc.id = :id"
 		)->setParameter('id', $collecteId);
@@ -750,8 +754,8 @@ class ArticleRepository extends ServiceEntityRepository
             LEFT JOIN a.statut sa
             LEFT JOIN a.emplacement ae
             WHERE c.frequency = :frequency
-            AND ra.typeQuantite = :typeQuantity 
-            AND a.dateLastInventory is null 
+            AND ra.typeQuantite = :typeQuantity
+            AND a.dateLastInventory is null
             AND sa.nom = :status
             ORDER BY ae.label"
 		)->setParameters([
