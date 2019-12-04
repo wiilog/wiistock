@@ -27,14 +27,15 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachement($elem) {
+    let deleted = false;
     let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();
-    droppedFiles.every(file => {
-        if (file.name === fileName) {
+    droppedFiles.forEach(file => {
+        if (file.name === fileName && !deleted) {
+            deleted = true;
             droppedFiles.splice(droppedFiles.indexOf(file), 1);
-            return false;
         }
-    })
+    });
 }
 
 function checkFilesFormat(files, div) {
@@ -97,6 +98,7 @@ function uploadFE(span) {
     let dropFrame = span.closest('.dropFrame');
 
     displayAttachements(files, dropFrame);
+    span[0].value = "";
 }
 
 function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
