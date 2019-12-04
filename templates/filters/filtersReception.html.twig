@@ -1,0 +1,12 @@
+{% extends 'filters/filters.html.twig' %}
+{% block emplacementFilter %}{% endblock %}
+{% block userFilter %}{% endblock %}
+{% block typeFilter %}{% endblock %}
+{% block fournisseur %}
+    <div>
+        <div class="input-group fournisseurFilterContainer">
+            <select class="form-control minw-150px" name="fournisseur" id="fournisseurFilter" multiple="multiple">
+            </select>
+        </div>
+    </div>
+{% endblock %}

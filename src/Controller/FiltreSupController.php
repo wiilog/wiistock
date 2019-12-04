@@ -38,7 +38,6 @@ class FiltreSupController extends AbstractController
 
 			$page = $data['page'];
 			$user = $this->getUser();
-
 			if (isset($data['dateMin'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MIN, $page, $user);
 				if (!$filter) {
@@ -96,26 +95,46 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['user'])) {
-				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
-				if (!$filter) {
-					$filter = new FiltreSup();
-					$filter
-						->setField(FiltreSup::FIELD_USERS)
-						->setPage($page)
-						->setUser($user);
-					$em->persist($filter);
-				}
-				$carriers = str_replace('|', ',', $data['user']);
-				$filter->setValue($carriers);
-				$em->flush();
-			} else {
-				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
-				if ($filter) {
-					$em->remove($filter);
-					$em->flush();
-				}
-			}
+            if (isset($data['user'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_USERS)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $carriers = str_replace('|', ',', $data['user']);
+                $filter->setValue($carriers);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
+            if (isset($data['fournisseur'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_FOURNISSEUR, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_FOURNISSEUR)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $fournisseurs = str_replace('|', ',', $data['fournisseur']);
+                $filter->setValue($fournisseurs);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_FOURNISSEUR, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
 			if (isset($data['type'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_TYPE, $page, $user);
 				if (!$filter) {

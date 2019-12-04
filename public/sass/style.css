@@ -459,6 +459,10 @@ a:hover {
   height: 70%;
 }
 
+.fournisseurFilterContainer .select2-selection {
+  overflow: auto;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;

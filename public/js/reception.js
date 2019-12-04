@@ -1,8 +1,32 @@
 $('.select2').select2();
 
+function loadFournisseurFilter() {
+    $('#fournisseurFilter').select2({
+        ajax: {
+            url: Routing.generate('get_fournisseur_for_filter'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: 'Fournisseur'
+    });
+}
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
+    serverSide: true,
+    processing: true,
     order: [[0, "desc"]],
     "columnDefs": [
         {
@@ -44,6 +68,31 @@ $.extend($.fn.dataTableExt.oSort, {
         return ((a < b) ? 1 : ((a > b) ? -1 : 0));
     }
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = table.column('Date de création:title').index();
+
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+        if (
+            (dateMin === "" && dateMax === "")
+            ||
+            (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
 function initDatatableConditionnement() {
@@ -363,3 +412,62 @@ function finishReception(receptionId) {
         }
     }, 'json');
 }
+
+$submitSearchReception = $('#submitSearchReception');
+
+$submitSearchReception.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    let fournisseur = $('#fournisseurFilter').val();
+    let fournisseurString = fournisseur.toString();
+    let fournisseurPiped = fournisseurString.split(',').join('|');
+    saveFilters(PAGE_RECEPTION, dateMin, dateMax, statut, null, null, null, null, null, null, fournisseurPiped, function() {
+        table
+            .columns('Statut:name')
+            .search(statut ? '^' + statut + '$' : '', true, false)
+            .draw();
+
+        table
+            .columns('Fournisseur:name')
+            .search(fournisseurPiped ? '^' + fournisseurPiped + '$' : '', true, false)
+            .draw();
+
+        table
+            .draw();
+    });
+});
+
+$(function() {
+    loadFournisseurFilter();
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_RECEPTION);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field === 'fournisseur') {
+                let values = [];
+                element.value.split(',').forEach(val => {
+                    values.push({
+                        id: val,
+                        text: val
+                    })
+                });
+                values.forEach(value => {
+                    $('#fournisseurFilter').select2("trigger", "select", {
+                        data: value
+                    });
+                });
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        let now = new Date();
+        let day = ("0" + now.getDate()).slice(-2);
+        let month = ("0" + (now.getMonth() + 1)).slice(-2);
+        let today = now.getFullYear()+"-"+(month)+"-"+(day) ;
+        if ($('#dateMax').val() === '') $('#dateMax').val(today);
+        if ($('#dateMin').val() === '') $('#dateMin').val(today);
+        $submitSearchReception.click();
+    }, 'json');
+});
