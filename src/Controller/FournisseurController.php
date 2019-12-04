@@ -44,7 +44,7 @@ class FournisseurController extends AbstractController
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-    
+
     /**
      * @var FournisseurDataService
      */
@@ -82,7 +82,7 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->fournisseurDataService->getDataForDatatable($request->request);
-     
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -109,7 +109,6 @@ class FournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
 			// unicité du code fournisseur
 			$codeAlreadyUsed = intval($this->fournisseurRepository->countByCode($data['Code']));
 
