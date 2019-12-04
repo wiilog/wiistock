@@ -705,6 +705,7 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     if (colis) params.colis = colis;
     if (carriers) params.carriers = carriers;
     if (providers) params.providers = providers;
+    if (demandCollect) params.demandCollect = demandCollect;
     params.page = page;
 
     $.post(path, JSON.stringify(params), 'json');

@@ -6,21 +6,30 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
+use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use DateTime;
+use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig_Environment;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
@@ -57,11 +66,35 @@ class OrdreCollecteService
 	private $ordreCollecteReferenceRepository;
 
 	/**
+	 * @var OrdreCollecteRepository
+	 */
+	private $ordreCollecteRepository;
+
+	/**
 	 * @var ArticleRepository
 	 */
 	private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository,
+	/**
+	 * @var FiltreSupRepository
+	 */
+	private $filtreSupRepository;
+
+	/**
+	 * @var Utilisateur
+	 */
+	private $user;
+
+	/**
+	 * @var Router
+	 */
+	private $router;
+
+    public function __construct(RouterInterface $router,
+    							TokenStorageInterface $tokenStorage,
+    							FiltreSupRepository $filtreSupRepository,
+    							OrdreCollecteRepository $ordreCollecteRepository,
+    							ArticleRepository $articleRepository,
 								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
 								MailerServerRepository $mailerServerRepository,
                                 CollecteReferenceRepository $collecteReferenceRepository,
@@ -78,6 +111,10 @@ class OrdreCollecteService
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
 		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
 		$this->articleRepository = $articleRepository;
+		$this->ordreCollecteRepository = $ordreCollecteRepository;
+		$this->filtreSupRepository = $filtreSupRepository;
+		$this->user = $tokenStorage->getToken()->getUser();
+		$this->router = $router;
 	}
 
 	public function setEntityManager(EntityManagerInterface $entityManager): self {
@@ -144,6 +181,7 @@ class OrdreCollecteService
 	{
 		$em = $this->entityManager;
 		$demandeCollecte = $collecte->getDemandeCollecte();
+		$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
 		// cas de collecte partielle
 		if (!empty($toRemove)) {
@@ -151,7 +189,7 @@ class OrdreCollecteService
 			$statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 			$newCollecte
 				->setDate($collecte->getDate())
-				->setNumero('C-' . $date->format('YmdHis'))
+				->setNumero('C-' . $dateNow->format('YmdHis'))
 				->setDemandeCollecte($collecte->getDemandeCollecte())
 				->setStatut($statutATraiter);
 
@@ -171,7 +209,6 @@ class OrdreCollecteService
 			$em->flush();
 		} else {
 		// cas de collecte totale
-			$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 			$demandeCollecte
 				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE))
 				->setValidationDate($dateNow);
@@ -241,5 +278,51 @@ class OrdreCollecteService
 //        }
 
 		return $newCollecte ?? null;
+	}
+
+	public function getDataForDatatable($params = null)
+	{
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
+
+		$collectes = $queryResult['data'];
+
+		$rows = [];
+		foreach ($collectes as $collecte) {
+			$rows[] = $this->dataRowCollecte($collecte);
+		}
+
+		return [
+			'data' => $rows,
+			'recordsTotal' => $queryResult['total'],
+			'recordsFiltered' => $queryResult['count'],
+		];
+	}
+
+	/**
+	 * @param OrdreCollecte $collecte
+	 * @return array
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
+	private function dataRowCollecte($collecte)
+	{
+		$demandeCollecte = $collecte->getDemandeCollecte();
+
+		$url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
+		$row = [
+			'id' => $collecte->getId() ?? '',
+			'Numéro' => $collecte->getNumero() ?? '',
+			'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
+			'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
+			'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
+			'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
+			'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
+				'url' => $url,
+			])
+		];
+
+		return $row;
 	}
 }

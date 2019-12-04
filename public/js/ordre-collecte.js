@@ -11,11 +11,17 @@ let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
 let pathCollecte = Routing.generate('ordre_collecte_api');
 
 let tableCollecte = $('#tableCollecte').DataTable({
-    order: [[2, 'desc']],
+    serverSide: true,
+    processing: true,
+    order: [[3, 'desc']],
     columnDefs: [
         {
-            "type": "customDate",
-            "targets": 2
+            type: "customDate",
+            targets: 3
+        },
+        {
+            orderable: false,
+            targets: 0
         }
     ],
     language: {
@@ -25,13 +31,16 @@ let tableCollecte = $('#tableCollecte').DataTable({
         'url': pathCollecte,
         "type": "POST"
     },
+    drawCallback: function() {
+        overrideSearch();
+    },
     columns: [
+        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
     ],
 });
 
@@ -123,3 +132,14 @@ $.extend($.fn.dataTableExt.oSort, {
         return ((a < b) ? 1 : ((a > b) ? -1 : 0));
     }
 });
+
+function overrideSearch() {
+    let $input = $('#tableCollecte_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            tableCollecte.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}

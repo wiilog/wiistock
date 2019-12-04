@@ -157,25 +157,8 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collectes = $this->ordreCollecteRepository->findAll();
-            $rows = [];
-            foreach ($collectes as $collecte) {
-                $demandeCollecte = $collecte->getDemandeCollecte();
-                $url['show'] = $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()]);
-                $rows[] = [
-                    'id' => ($collecte->getId() ? $collecte->getId() : ''),
-                    'Numéro' => ($collecte->getNumero() ? $collecte->getNumero() : ''),
-                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
-                    'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
-                    'Type' => ($demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', [
-                    	'url' => $url,
-					])
-                ];
-            }
+			$data = $this->ordreCollecteService->getDataForDatatable($request->request);
 
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
