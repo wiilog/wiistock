@@ -45,7 +45,7 @@ class DaysParamController extends AbstractController
     }
 
     /**
-     * @Route("/", name="days_param_index")
+     * @Route("/", name="reunification")
      */
     public function index()
     {
@@ -53,7 +53,7 @@ class DaysParamController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('days_param/index.html.twig', [
+        return $this->render('parametrage_global/index.html.twig', [
 
         ]);
     }
@@ -79,7 +79,7 @@ class DaysParamController extends AbstractController
                         'Worked' => $day->getWorked() ? 'oui' : 'non',
                         'Times' => $day->getTimes() ?? '',
                         'Order' => $day->getDisplayOrder(),
-                        'Actions' => $this->renderView('days_param/datatableDaysRow.html.twig', [
+                        'Actions' => $this->renderView('parametrage_global/datatableDaysRow.html.twig', [
                             'url' => $url,
                             'dayId' => $day->getId(),
                         ]),
@@ -103,7 +103,7 @@ class DaysParamController extends AbstractController
 
             $day = $this->daysWorkedRepository->find($data['id']);
 
-            $json = $this->renderView('days_param/modalEditDaysContent.html.twig', [
+            $json = $this->renderView('parametrage_global/modalEditDaysContent.html.twig', [
                 'day' => $day,
                 'dayWeek' => $this->engDayToFr[$day->getDay()]
             ]);

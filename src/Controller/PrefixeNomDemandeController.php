@@ -39,7 +39,7 @@ class PrefixeNomDemandeController extends AbstractController
     }
 
     /**
-     * @Route("/prefixe-demande", name="prefixe_demande_index")
+     * @Route("/prefixe-demande", name="reunification")
      */
     public function index(): Response
     {
@@ -47,7 +47,7 @@ class PrefixeNomDemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('prefixe_demande/prefixeDemande.html.twig');
+        return $this->render('parametrage_global/index.html.twig');
     }
 
     /**

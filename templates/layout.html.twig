@@ -94,17 +94,6 @@
                         </ul>
                     </li>
                 {% endif %}
-
-                <!-- RECEPTION -->
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-                    <li class="menu-item">
-                        <a href="{{ path("reception_index") }}">
-                            <i class="fas fa-arrow-alt-circle-down "></i>
-                            <h4>Réception</h4>
-                        </a>
-                    </li>
-                {% endif %}
-
                 <!-- ORDRE -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
@@ -123,6 +112,9 @@
                             {% endif %}
                             {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
                                 <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                            {% endif %}
+                            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path("reception_index") }}" class="sub-item">• Réception</a></li>
                             {% endif %}
                         </ul>
                     </li>
@@ -200,6 +192,9 @@
                         </a>
                         <ul class="sidemenu-sub">
                             <li>
+                                <a href="{{ path('reunification') }}" class="sub-item">• Paramétrage global</a>
+                            </li>
+                            <li>
                                 <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
                             </li>
                             <li>
@@ -208,18 +203,8 @@
                             <li>
                                 <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
                             </li>
-
-                            <li>
-                                <a href="{{ path('mailer_server_index') }}" class="sub-item">• Configuration email</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('etiquettes_param_index') }}" class="sub-item">• Configuration étiquettes</a>
-                            </li>
                             <li>
                                 <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('prefixe_demande_index') }}" class="sub-item">• Préfixage noms demandes</a>
                             </li>
                             <li>
                                 <a href="{{ path('inventaire_param_index') }}" class="sub-item">• Inventaire</a>
@@ -229,9 +214,6 @@
                             </li>
                             <li>
                                 <a href="{{ path('status_param_index') }}" class="sub-item">• Statuts litiges</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('days_param_index') }}" class="sub-item">• Heures travaillées</a>
                             </li>
                             <li>
                                 <a href="{{ path('nature_param_index') }}" class="sub-item">• Nature des colis</a>

@@ -36,7 +36,7 @@ class MailerServerController extends AbstractController
     }
 
     /**
-     * @Route("/mailer/server", name="mailer_server_index")
+     * @Route("/mailer/server", name="reunification")
      */
     public function index(): response
     {
@@ -45,7 +45,7 @@ class MailerServerController extends AbstractController
         }
 
         $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
-        return $this->render('mailer_server/index.html.twig', [
+        return $this->render('parametrage_global/index.html.twig', [
             'mailerServer' => $mailerServer
         ]);
     }

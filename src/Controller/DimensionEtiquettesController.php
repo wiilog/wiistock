@@ -23,7 +23,7 @@ use App\Entity\DimensionsEtiquettes;
 class DimensionEtiquettesController extends AbstractController
 {
     /**
-     * @var DimensionsEtiquettesRepository 
+     * @var DimensionsEtiquettesRepository
      */
     private $dimensionsEtiquettesRepository;
 
@@ -39,7 +39,7 @@ class DimensionEtiquettesController extends AbstractController
     }
 
     /**
-     * @Route("/parametrage", name="etiquettes_param_index")
+     * @Route("/parametrage", name="reunification")
      */
     public function index(): response
     {
@@ -48,7 +48,7 @@ class DimensionEtiquettesController extends AbstractController
         }
 
         $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
-        return $this->render('dimensions_etiquettes/index.html.twig', [
+        return $this->render('parametrage_global/index.html.twig', [
             'dimensions_etiquettes' => $dimensions
         ]);
     }
