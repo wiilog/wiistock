@@ -64,18 +64,12 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	public function getByStatutLabelAndUser($statutLabel, $user)
 	{
 		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
-            FROM App\Entity\OrdreCollecte oc
-            LEFT JOIN oc.demandeCollecte dc
-            LEFT JOIN dc.pointCollecte pc
-            LEFT JOIN oc.statut s
-            WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))"
-		)->setParameters([
-			'statutLabel' => $statutLabel,
-			'user' => $user,
-		]);
+		$query = $entityManager
+            ->createQuery($this->getQueryBy() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
+            ->setParameters([
+                'statutLabel' => $statutLabel,
+                'user' => $user,
+            ]);
 		return $query->execute();
 	}
 
@@ -86,28 +80,36 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	public function getById($ordreCollecteId)
 	{
 		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT oc.id, oc.numero as number, pc.label as location, dc.stockOrDestruct as forStock
+		$query = $entityManager
+            ->createQuery($this->getQueryBy() . " WHERE oc.id = :id")
+            ->setParameter('id', $ordreCollecteId);
+		$result = $query->execute();
+		return !empty($result) ? $result[0] : null;
+	}
+
+	private function getQueryBy(): string  {
+	    return (/** @lang DQL */
+            "SELECT oc.id,
+                    oc.numero as number,
+                    pc.label as location_from,
+                    dc.stockOrDestruct as forStock
             FROM App\Entity\OrdreCollecte oc
             LEFT JOIN oc.demandeCollecte dc
             LEFT JOIN dc.pointCollecte pc
-            LEFT JOIN oc.statut s
-            WHERE oc.id = :id"
-		)->setParameter('id', $ordreCollecteId);
-		return $query->execute();
-	}
+            LEFT JOIN oc.statut s"
+        );
+    }
 
-	public function findByParamsAndFilters($params, $filters)
-	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
+    public function findByParamsAndFilters($params, $filters)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
 
-		$qb
-			->select('oc')
-			->from('App\Entity\OrdreCollecte', 'oc');
+        $qb
+            ->select('oc')
+            ->from('App\Entity\OrdreCollecte', 'oc');
 
-		$countTotal = count($qb->getQuery()->getResult());
+        $countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -158,27 +160,27 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 			}
 		}
 
-		//Filter search
-		if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
-				if (!empty($search)) {
-					$qb
-						->join('oc.statut', 's2')
-						->join('oc.utilisateur', 'u2')
-						->join('oc.demandeCollecte', 'dc2')
-						->join('dc2.type', 't2')
-						->andWhere('oc.numero LIKE :value
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->join('oc.statut', 's2')
+                        ->join('oc.utilisateur', 'u2')
+                        ->join('oc.demandeCollecte', 'dc2')
+                        ->join('dc2.type', 't2')
+                        ->andWhere('oc.numero LIKE :value
 						OR s2.nom LIKE :value
 						OR u2.username LIKE :value
 						OR t2.label LIKE :value')
-						->setParameter('value', '%' . $search . '%');
-				}
-			}
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
 
-			if (!empty($params->get('order'))) {
-				$order = $params->get('order')[0]['dir'];
-				if (!empty($order)) {
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
 //					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 //
 //					switch ($column) {

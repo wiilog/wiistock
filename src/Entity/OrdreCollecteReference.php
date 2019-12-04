@@ -27,7 +27,7 @@ class OrdreCollecteReference
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="ordreCollecteReferences")
      */
     private $referenceArticle;
 

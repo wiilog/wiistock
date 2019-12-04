@@ -38,7 +38,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT r.id, r.libelle 
+            "SELECT r.id, r.libelle
             FROM App\Entity\ReferenceArticle r
             "
         );
@@ -48,7 +48,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getBetweenLimits($min, $step) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT ra 
+            "SELECT ra
                   FROM App\Entity\ReferenceArticle ra
                   ORDER BY ra.id ASC"
         )
@@ -63,7 +63,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT r.id, r.libelle, r.reference, r.commentaire, r.quantite_stock, r.type_quantite, r.statut, r.type
             FROM App\Entity\ReferenceArticle r
-            WHERE r.id = :id 
+            WHERE r.id = :id
             "
         )->setParameter('id', $id);
 
@@ -77,7 +77,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             "SELECT ra
             FROM App\Entity\ReferenceArticle ra
             JOIN App\Entity\ReceptionReferenceArticle rra
-            WHERE rra.referenceArticle = ra AND rra = :ligne 
+            WHERE rra.referenceArticle = ra AND rra = :ligne
         "
         )->setParameter('ligne', $ligne);
         return $query->getOneOrNullResult();
@@ -396,7 +396,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "UPDATE App\Entity\ReferenceArticle ra
-            SET ra.type = null 
+            SET ra.type = null
             WHERE ra.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -498,7 +498,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         return $em->createQuery(
             'SELECT SUM(l.quantite)
-                  FROM App\Entity\LigneArticle l 
+                  FROM App\Entity\LigneArticle l
                   JOIN l.demande d
                   JOIN d.statut s
                   WHERE l.reference = :refArticle AND s.nom = :statut'
@@ -512,7 +512,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         return $em->createQuery(
             'SELECT SUM(l.quantite)
-                  FROM App\Entity\LigneArticle l 
+                  FROM App\Entity\LigneArticle l
                   JOIN l.demande d
                   WHERE l.reference = :refArticle AND l.id != :id AND d.statut = :statut'
         )->setParameters([
@@ -525,13 +525,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			"SELECT 
+			"SELECT
                     ra.reference,
-                    ra.typeQuantite as type_quantite, 
-                    e.label as location, 
-                    ra.libelle as label, 
-                    la.quantite as quantity, 
-                    1 as is_ref, 
+                    ra.typeQuantite as type_quantite,
+                    e.label as location,
+                    ra.libelle as label,
+                    la.quantite as quantity,
+                    1 as is_ref,
                     ra.barCode,
                     p.id as id_prepa
 			FROM App\Entity\ReferenceArticle ra
@@ -596,12 +596,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte, ra.barCode
+			"SELECT ra.reference,
+                         e.label as location,
+                         ra.libelle as label,
+                         ocr.quantite as quantity,
+                         1 as is_ref,
+                         oc.id as id_collecte,
+                         ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
-			JOIN ra.collecteReferences cr
-			JOIN cr.collecte dc
-			JOIN dc.ordreCollecte oc
+			JOIN ra.ordreCollecteReferences ocr
+			JOIN ocr.ordreCollecte oc
 			JOIN oc.statut s
 			WHERE oc.id = :id"
 		)->setParameter('id', $collecteId);
@@ -845,7 +850,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             LEFT JOIN ra.emplacement rae
             WHERE c.frequency = :frequency
             AND ra.typeQuantite = :typeQuantity
-            AND ra.dateLastInventory is null 
+            AND ra.dateLastInventory is null
             AND sra.nom = :refActive
             ORDER BY rae.label"
 		)->setParameters([
