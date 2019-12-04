@@ -125,6 +125,18 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, li
                 }
             },
         });
+        let values = [];
+        data.colis.forEach(val => {
+            values.push({
+                id: val.id,
+                text: val.text
+            })
+        });
+        values.forEach(value => {
+            $('#colisEditLitige').select2("trigger", "select", {
+                data: value
+            });
+        });
         modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         afterLoadingEditModal()
     }, 'json');

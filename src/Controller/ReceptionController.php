@@ -872,7 +872,10 @@ class ReceptionController extends AbstractController
             $acheteursCode = [];
             $reception = $this->receptionRepository->find($data['reception']);
             foreach ($litige->getArticles() as $colis) {
-                $colisCode[] = $colis->getId();
+                $colisCode[] = [
+                    'id' => $colis->getId(),
+                    'text' => $colis->getBarCode()
+                ];
             }
             foreach ($litige->getBuyers() as $buyer) {
                 $acheteursCode[] = $buyer->getId();
