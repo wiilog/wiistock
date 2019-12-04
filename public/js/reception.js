@@ -1,5 +1,19 @@
 $('.select2').select2();
-
+$('.select2-autocomplete-articles').select2({
+    ajax: {
+        url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        searching: function () {
+            return 'Recherche en cours...';
+        },
+        noResults: function () {
+            return 'Aucun résultat.';
+        }
+    },
+});
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
@@ -71,7 +85,21 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, li
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('#colisEditLitige').val(data.colis).select2();
+        modal.find('#colisEditLitige').select2({
+            ajax: {
+                url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+                dataType: 'json',
+                delay: 250,
+            },
+            language: {
+                searching: function () {
+                    return 'Recherche en cours...';
+                },
+                noResults: function () {
+                    return 'Aucun résultat.';
+                }
+            },
+        });
         modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         afterLoadingEditModal()
     }, 'json');

@@ -663,10 +663,6 @@ class ReceptionController extends AbstractController
         } else {
             $valeurChampLibreTab = [];
         }
-        $allArticles = [];
-        foreach ($reception->getArticles() as $article) {
-            $allArticles[] = $article;
-        }
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
@@ -696,9 +692,24 @@ class ReceptionController extends AbstractController
             'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'allArticles' => $allArticles,
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
         ]);
+    }
+
+    /**
+     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getArticles(Request $request, Reception $reception)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $articles = $this->articleRepository->getArticleByReception($reception->getId());
+
+            return new JsonResponse(['results' => $articles]);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -878,16 +889,11 @@ class ReceptionController extends AbstractController
             foreach ($litige->getBuyers() as $buyer) {
                 $acheteursCode[] = $buyer->getId();
             }
-            $allArticles = [];
-            foreach ($reception->getArticles() as $article) {
-                $allArticles[] = $article;
-            }
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
-                'articles' => $allArticles,
                 'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 

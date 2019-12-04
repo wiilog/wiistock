@@ -27,7 +27,14 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachement($elem) {
+    let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();
+    droppedFiles.every(file => {
+        if (file.name === fileName) {
+            droppedFiles.splice(droppedFiles.indexOf(file), 1);
+            return false;
+        }
+    })
 }
 
 function checkFilesFormat(files, div) {
@@ -86,6 +93,7 @@ function openFE(span) {
 
 function uploadFE(span) {
     let files = span[0].files;
+    droppedFiles = [...droppedFiles, ...files];
     let dropFrame = span.closest('.dropFrame');
 
     displayAttachements(files, dropFrame);
@@ -151,12 +159,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append([$(this).attr("name")], $(this).attr('value'));
     });
     modal.find(".elem").remove();
-
-    // ... puis on récupère les fichiers (issus du clic)...
-    let files = modal.find('.fileInput')[0].files;
-    // ... (issus du drag & drop)
-    files = [...files, ...droppedFiles];
-    $.each(files, function(index, file) {
+    $.each(droppedFiles, function(index, file) {
         Data.append('file' + index, file);
     });
 
@@ -205,7 +208,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     clearModal(modal);
                 }
                 droppedFiles = [];
-                modal.find('.fileInput')[0].value = "";
                 if (callback !== null) callback(data);
             }
         });

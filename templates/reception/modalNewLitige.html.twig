@@ -31,10 +31,7 @@
                     </div>
                     <div class="form-group col-6">
                         <label for="colisLitige">Articles*</label>
-                        <select class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige" multiple="multiple">
-                            {% for article in allArticles %}
-                                <option value="{{ article.id }}">{{ article.barcode }}</option>
-                            {% endfor %}
+                        <select class="form-control select2 w-100 data needed select2-autocomplete-articles" id="colisLitige" name="colisLitige" multiple="multiple">
                         </select>
                     </div>
                     <div class="form-group w-100 col-5">

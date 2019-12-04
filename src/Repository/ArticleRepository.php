@@ -164,7 +164,7 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             /** @lang DQL */
             "UPDATE App\Entity\Article a
-            SET a.type = null 
+            SET a.type = null
             WHERE a.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -175,7 +175,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a
+            "SELECT a.id as id, a.barCode as text
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
@@ -525,11 +525,11 @@ class ArticleRepository extends ServiceEntityRepository
 	public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT 
+            "SELECT
                     DISTINCT a.reference,
-                    a.label, 
-                    e.label as location, 
-                    a.quantite as quantity, 
+                    a.label,
+                    e.label as location,
+                    a.quantite as quantity,
                     ra.reference as reference_article,
                     a.barCode
 			FROM App\Entity\Article a
@@ -715,8 +715,8 @@ class ArticleRepository extends ServiceEntityRepository
             LEFT JOIN a.statut sa
             LEFT JOIN a.emplacement ae
             WHERE c.frequency = :frequency
-            AND ra.typeQuantite = :typeQuantity 
-            AND a.dateLastInventory is null 
+            AND ra.typeQuantite = :typeQuantity
+            AND a.dateLastInventory is null
             AND sa.nom = :status
             ORDER BY ae.label"
 		)->setParameters([
