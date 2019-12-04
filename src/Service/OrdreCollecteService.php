@@ -280,9 +280,16 @@ class OrdreCollecteService
 		return $newCollecte ?? null;
 	}
 
-	public function getDataForDatatable($params = null)
+	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+		if ($demandeCollecteIdFilter) {
+			$filters = [
+				['field' => 'demandeCollecte',
+				'value' => $demandeCollecteIdFilter]
+			];
+		} else {
+			$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+		}
 		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 
 		$collectes = $queryResult['data'];

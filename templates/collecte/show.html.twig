@@ -28,8 +28,7 @@
         {% else %}
             {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
             <div class="col text-right">
-{#                TODO CG envoyer vers liste ordres avec numéro demande en filtre par défaut #}
-                    <a href="{{path('ordre_collecte_index') }}" class="btn btn-primary btn-action">
+                    <a href="{{path('ordre_collecte_index', {'demandId': collecte.id}) }}" class="btn btn-primary btn-action">
                         Aller vers les ordres de collecte
                     </a>
                 </div>

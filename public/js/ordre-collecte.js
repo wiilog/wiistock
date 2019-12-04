@@ -29,6 +29,9 @@ let tableCollecte = $('#tableCollecte').DataTable({
     },
     ajax: {
         'url': pathCollecte,
+        'data' : {
+          'filterDemand': $('#filterDemand').val()
+        },
         "type": "POST"
     },
     drawCallback: function() {
@@ -71,21 +74,28 @@ $.fn.dataTable.ext.search.push(
 );
 
 $(function() {
+    ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ORDRE_COLLECTE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    let params = JSON.stringify(PAGE_ORDRE_COLLECTE);
+
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 $('#utilisateur').val(element.value.split(',')).select2();
+            } else if (element.field == 'demCollecte') {
+                let valueArray = element.value.split(':');
+                let id = valueArray[0];
+                let label = valueArray[1];
+                let option = new Option(label, id, true, true);
+                $('#demandCollect').append(option).trigger('change');
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
         if (data.length > 0) $submitSearchOrdreCollecte.click();
     }, 'json');
-
-    ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
@@ -96,23 +106,8 @@ $submitSearchOrdreCollecte.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-    let demandCollect = $('#demandCollect').val();
+    let demandCollect = $('#demandCollect').select2('data');
     saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
-
-    tableCollecte
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Opérateur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
 
     tableCollecte.draw();
 });

@@ -143,10 +143,17 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 						->setParameter('dateMax', $filter['value'] . '23:59:00');
 					break;
 				case 'demCollecte':
+					$value = explode(':', $filter['value'])[0];
 					$qb
 						->join('oc.demandeCollecte', 'dcb')
-						->andWhere('dcb.numero = :numero')
-						->setParameter('numero', $filter['value']);
+						->andWhere('dcb.id = :id')
+						->setParameter('id', $value);
+					break;
+				case 'demandeCollecte':
+					$qb
+						->join('oc.demandeCollecte', 'dcb')
+						->andWhere('dcb.id = :id')
+						->setParameter('id', $filter['value']);
 					break;
 			}
 		}

@@ -32,6 +32,7 @@ use Exception;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -131,16 +132,19 @@ class OrdreCollecteController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
-    /**
-     * @Route("/", name="ordre_collecte_index")
-     */
-    public function index()
+	/**
+	 * @Route("/liste/{demandId}", name="ordre_collecte_index")
+	 * @param string|null $demandId
+	 * @return RedirectResponse|Response
+	 */
+    public function index(string $demandId = null)
     {
         if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
         return $this->render('ordre_collecte/index.html.twig', [
+        	'filterDemand' => $demandId,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
@@ -157,7 +161,9 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			$data = $this->ordreCollecteService->getDataForDatatable($request->request);
+            // cas d'un filtre par demande de collecte
+            $filterDemand = $request->request->get('filterDemand');
+			$data = $this->ordreCollecteService->getDataForDatatable($request->request, $filterDemand);
 
             return new JsonResponse($data);
         }
