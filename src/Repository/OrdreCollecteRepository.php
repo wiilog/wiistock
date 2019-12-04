@@ -17,6 +17,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class OrdreCollecteRepository extends ServiceEntityRepository
 {
+	const DtToDbLabels = [
+		'Numéro' => 'numero',
+		'Statut' => 'statut',
+		'Date' => 'date',
+		'Opérateur' => 'utilisateur',
+		'Type' => 'type'
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, OrdreCollecte::class);
@@ -180,34 +188,31 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
+
                 if (!empty($order)) {
-//					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-//
-//					switch ($column) {
-//						case 'type':
-//							$qb
-//								->leftJoin('c.type', 't2')
-//								->orderBy('t2.label', $order);
-//							break;
-//						case 'statut':
-//							$qb
-//								->leftJoin('c.statut', 's2')
-//								->orderBy('s2.nom', $order);
-//							break;
-//						case 'demandeur':
-//							$qb
-//								->leftJoin('c.demandeur', 'd2')
-//								->orderBy('d2.username', $order);
-//							break;
-//						case 'date':
-//							$qb
-//								->leftJoin('c.ordreCollecte', 'oc2')
-//								->orderBy('oc2.date', $order);
-//							break;
-//						default:
-//							$qb->orderBy('c.' . $column, $order);
-//							break;
-//					}
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					switch ($column) {
+						case 'type':
+							$qb
+								->leftJoin('oc.demandeCollecte', 'dc3')
+								->leftJoin('dc3.type', 't3')
+								->orderBy('t3.label', $order);
+							break;
+						case 'statut':
+							$qb
+								->leftJoin('oc.statut', 's3')
+								->orderBy('s3.nom', $order);
+							break;
+						case 'utilisateur':
+							$qb
+								->leftJoin('oc.utilisateur', 'u3')
+								->orderBy('u3.username', $order);
+							break;
+						default:
+							$qb->orderBy('oc.' . $column, $order);
+							break;
+					}
 				}
 			}
 		}
