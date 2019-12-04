@@ -29,6 +29,102 @@ let table = $('#tableReception_id').DataTable({
     ],
 });
 
+let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
+let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    scrollX: true,
+    ajax: {
+        "url": pathLitigesReception,
+        "type": "POST",
+    },
+    columns: [
+        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'status', 'name': 'status', 'title': 'Statut'},
+        {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
+        {"data": 'date', 'name': 'date', 'title': 'Date'},
+    ],
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 4,
+            "visible": false
+        }
+    ],
+    order: [
+        [4, 'desc'],
+    ],
+});
+
+function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+    let path = Routing.generate('litige_api_edit_reception', true);
+    let modal = $('#modalEditLitige');
+    let submit = $('#submitEditLitige');
+
+    let params = {
+        litigeId: litigeId,
+        reception: receptionId
+    };
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.error-msg').html('');
+        modal.find('.modal-body').html(data.html);
+        modal.find('#colisEditLitige').val(data.colis).select2();
+        modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
+        afterLoadingEditModal()
+    }, 'json');
+
+    modal.find(submit).attr('value', litigeId);
+}
+
+function getCommentAndAddHisto()
+{
+    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
+    let dataComment = commentLitige.val();
+
+    $.post(path, JSON.stringify(dataComment), function (response) {
+        tableHistoLitige.ajax.reload();
+        commentLitige.val('');
+    });
+}
+
+function openTableHisto() {
+    let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
+    tableHistoLitige = $('#tableHistoLitige').DataTable({
+        language: {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        ajax: {
+            "url": pathHistoLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+        ],
+        dom: '<"top">rt<"bottom"lp><"clear">'
+    });
+}
+
+let modalNewLitige = $('#modalNewLitige');
+let submitNewLitige = $('#submitNewLitige');
+let urlNewLitige = Routing.generate('litige_new_reception', true);
+initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableLitigesReception);
+
+let modalEditLitige = $('#modalEditLitige');
+let submitEditLitige = $('#submitEditLitige');
+let urlEditLitige = Routing.generate('litige_edit_reception', true);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesReception);
+
+let ModalDeleteLitige = $("#modalDeleteLitige");
+let SubmitDeleteLitige = $("#submitDeleteLitige");
+let urlDeleteLitige = Routing.generate('litige_delete_reception', true);
+InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesReception);
+
 $.extend($.fn.dataTableExt.oSort, {
     "customDate-pre": function (a) {
         let dateParts = a.split('/'),
@@ -111,7 +207,7 @@ function initModalCondit(tableFromArticle) {
 }
 
 let modalReceptionNew = $("#modalNewReception");
-let SubmitNewReception = $("#submitButton");
+let SubmitNewReception = $("#submitReceptionButton");
 let urlReceptionIndex = Routing.generate('reception_new', true)
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
 

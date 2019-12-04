@@ -58,9 +58,9 @@ class LitigeRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			/** @lang DQL */
 			"SELECT DISTINCT(l.id) as id,
-                         l.creationDate, 
+                         l.creationDate,
                          l.updateDate,
-                         tr.label as carrier, 
+                         tr.label as carrier,
                          f.nom as provider,
                          a.numeroArrivage,
                          t.label as type,
@@ -131,6 +131,21 @@ class LitigeRepository extends ServiceEntityRepository
             INNER JOIN c.arrivage a
             WHERE a.id = :arrivage'
         )->setParameter('arrivage', $arrivage);
+
+        return $query->execute();
+    }
+
+    public function findByReception($reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT DISTINCT l
+            FROM App\Entity\Litige l
+            INNER JOIN l.articles a
+            INNER JOIN a.reception r
+            WHERE r.id = :reception'
+        )->setParameter('reception', $reception);
 
         return $query->execute();
     }

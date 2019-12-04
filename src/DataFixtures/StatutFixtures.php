@@ -108,7 +108,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Arrivage::STATUS_CONFORME,
 				Arrivage::STATUS_LITIGE,
 			],
-			CategorieStatut::LITIGE_ARR => [],
+            CategorieStatut::LITIGE_ARR => [],
+            CategorieStatut::LITIGE_RECEPT => [],
             CategorieStatut::ACHEMINEMENT => [
                 Acheminements::STATUT_A_TRAITER,
                 Acheminements::STATUT_TRAITE,
