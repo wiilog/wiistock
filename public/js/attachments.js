@@ -157,7 +157,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     let files = modal.find('.fileInput')[0].files;
     // ... (issus du drag & drop)
     files = [...files, ...droppedFiles];
-
     $.each(files, function(index, file) {
         Data.append('file' + index, file);
     });
@@ -201,8 +200,11 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     $('.zone-entete').html(data.entete)
                 }
 
-                if (clear) clearModal(modal);
-
+                if (clear) {
+                    clearModal(modal);
+                }
+                droppedFiles = [];
+                modal.find('.fileInput')[0].value = "";
                 if (callback !== null) callback(data);
             }
         });
