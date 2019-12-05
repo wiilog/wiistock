@@ -161,12 +161,12 @@ class ArrivageRepository extends ServiceEntityRepository
         $statut = null;
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
-				//TODO CG
 				case 'statut':
 					$statut = $filter['value'];
                     break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
+					dump($value);
 					$qb
 						->join('a.destinataire', 'dest')
 						->andWhere("dest.id in (:userId)")

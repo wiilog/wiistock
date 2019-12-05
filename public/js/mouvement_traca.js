@@ -63,13 +63,12 @@ let tableMvt = $('#tableMvts').DataTable({
     columnDefs: [
         {
             type: "customDate",
-            targets: 0
+            targets: 1
         },
         {
             orderable: false,
             targets: 0
         }
-
     ],
 });
 

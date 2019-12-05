@@ -9,6 +9,7 @@ use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -86,7 +87,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 	 * @param $dateMin
 	 * @param $dateMax
 	 * @return MouvementStock[]
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{
@@ -108,10 +109,11 @@ class MouvementStockRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    /**
-     * @param string[] $types
-     * @return int
-     */
+	/**
+	 * @param string[] $types
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
 	public function countByTypes($types, $dateDebut = '', $dateFin = '')
     {
         $em = $this->getEntityManager();
@@ -357,7 +359,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 	 * @param array|null $params
 	 * @param array|null $filters
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function findByParamsAndFilters($params, $filters)
 	{

@@ -636,13 +636,13 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
+function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
     if (dateMax) params.dateMax = dateMax;
     if (statut) params.statut = statut;
-    if (user) params.user = user;
+    if (users) params.users = users;
     if (type) params.type = type;
     if (location) params.location = location;
     if (colis) params.colis = colis;

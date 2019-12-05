@@ -96,7 +96,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (!empty($data['user'])) {
+			if (!empty($data['users'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -108,7 +108,7 @@ class FiltreSupController extends AbstractController
 				}
 
 				$values = [];
-				foreach ($data['user'] as $oneUser) {
+				foreach ($data['users'] as $oneUser) {
 					$values[] = $oneUser['id'] . ':' . $oneUser['text'];
 				}
 				$users = implode(',', $values);
