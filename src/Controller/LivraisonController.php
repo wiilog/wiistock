@@ -28,6 +28,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
 
+use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\UserService;
@@ -129,8 +130,13 @@ class LivraisonController extends AbstractController
      */
     private $mailerService;
 
+	/**
+	 * @var LivraisonService
+	 */
+    private $livraisonService;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+
+    public function __construct(LivraisonService $livraisonService, CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -147,6 +153,7 @@ class LivraisonController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
+        $this->livraisonService = $livraisonService;
     }
 
     /**
@@ -159,7 +166,6 @@ class LivraisonController extends AbstractController
         }
 
         return $this->render('livraison/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
@@ -211,23 +217,8 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $livraisons = $this->livraisonRepository->findAll();
-            $rows = [];
-            foreach ($livraisons as $livraison) {
-                $demande = $this->demandeRepository->findOneByLivraison($livraison);
-                $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
-                $rows[] = [
-                    'id' => ($livraison->getId() ? $livraison->getId() : ''),
-                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
-                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
-                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
-                ];
-            }
+			$data = $this->livraisonService->getDataForDatatable($request->request);
 
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

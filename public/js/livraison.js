@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 let $submitSearchLivraison = $('#submitSearchLivraison');
 
 $(function() {
@@ -15,38 +9,57 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
         if (data.length > 0)$submitSearchLivraison.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 });
 
 let pathLivraison = Routing.generate('livraison_api');
 let tableLivraison = $('#tableLivraison_id').DataTable({
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[2, "desc"]],
+    order: [[3, "desc"]],
     ajax: {
         'url': pathLivraison,
         "type": "POST"
     },
-    columnDefs: [
-        {
-            "type": "customDate",
-            "targets": 2
-        }
-    ],
+    'drawCallback': function() {
+        overrideSearch($('#tableLivraison_id_filter input'), tableLivraison);
+    },
     columns: [
+        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 3
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
     ],
 });
 
@@ -95,27 +108,10 @@ $submitSearchLivraison.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val()
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
+    let utilisateurs = $('#utilisateur').select2('data');
     let type = $('#type').val();
 
-    saveFilters(PAGE_ORDRE_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
-
-    tableLivraison
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableLivraison
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableLivraison
-        .columns('Opérateur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
+    saveFilters(PAGE_ORDRE_LIVRAISON, dateMin, dateMax, statut, utilisateurs, type);
 
     tableLivraison.draw();
 });
@@ -142,3 +138,14 @@ let modalDeleteLivraison = $('#modalDeleteLivraison');
 let submitDeleteLivraison = $('#submitDeleteLivraison');
 let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
 InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
+
+
+function overrideSearch($input, table) {
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            table.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}
