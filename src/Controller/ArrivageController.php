@@ -32,6 +32,7 @@ use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
+use App\Service\DashboardService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -146,8 +147,14 @@ class ArrivageController extends AbstractController
      */
     private $natureRepository;
 
-    public function __construct(UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var DashboardService
+     */
+    private $dashboardService;
+
+    public function __construct(DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -180,7 +187,6 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-            'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -317,31 +323,34 @@ class ArrivageController extends AbstractController
 
 			$natures = json_decode($post->get('nature'), true);
 
-            foreach ($natures as $natureArray) {
-				$nature = $this->natureRepository->find($natureArray['id']);
+			$checkNatures = $this->natureRepository->countAll();
+			if ($checkNatures != 0) {
+                foreach ($natures as $natureArray) {
+                    $nature = $this->natureRepository->find($natureArray['id']);
 
-				for ($i = 0; $i < $natureArray['val']; $i++) {
+                    for ($i = 0; $i < $natureArray['val']; $i++) {
 
-					$highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-					if ($highestCode) {
-						$highestCodeArray = explode('-', $highestCode);
-						$highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-					} else {
-						$highestCounter = 0;
-					}
+                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
+                        if ($highestCode) {
+                            $highestCodeArray = explode('-', $highestCode);
+                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
+                        } else {
+                            $highestCounter = 0;
+                        }
 
-					$newCounter = sprintf('%05u', $highestCounter + 1);
+                        $newCounter = sprintf('%05u', $highestCounter + 1);
 
-					$colis = new Colis();
-					$code = $arrivageNum . '-' . $newCounter;
-					$colis
-						->setCode($code)
-						->setNature($nature)
-						->setArrivage($arrivage);
-					$em->persist($colis);
-					$em->flush();
-                	$codes[] = $code;
-				}
+                        $colis = new Colis();
+                        $code = $arrivageNum . '-' . $newCounter;
+                        $colis
+                            ->setCode($code)
+                            ->setNature($nature)
+                            ->setArrivage($arrivage);
+                        $em->persist($colis);
+                        $em->flush();
+                        $codes[] = $code;
+                    }
+                }
             }
 
 			$this->attachmentService->addAttachements($request, $arrivage);
@@ -1196,6 +1205,17 @@ class ArrivageController extends AbstractController
         }
 
         return $response;
+    }
+
+    /**
+     * @Route("/dashboard_arrivage", name="dashboard-arrival", options={"expose"=true},methods={"GET","POST"})
+     */
+    public function dashboard_assoc(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            return new JsonResponse($this->dashboardService->getWeekArrival($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
+        }
+        throw new NotFoundHttpException("404");
     }
 
 }

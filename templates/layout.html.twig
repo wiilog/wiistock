@@ -23,7 +23,7 @@
                         <div class="logo-wrapper">
                             {% include 'logo.svg.twig' %}
                         </div>
-                        <div class="version"> V1.10.1</div>
+                        <div class="version"> V2.0.0</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -46,7 +46,7 @@
                             <h4>Traçabilité</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Arrivage</a></li>
+                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Flux - Arrivage</a></li>
                             <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvement</a></li>
                             <li><a href="{{ path('acheminements_index') }}" class="sub-item">• Acheminements</a></li>
                             <li><a href="{{ path('reception_traca_index') }}" class="sub-item">• Réceptions</a></li>
@@ -165,7 +165,7 @@
                         </ul>
                     </li>
                 {% endif %}
-                
+
                 <!-- REFERENTIEL -->
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
