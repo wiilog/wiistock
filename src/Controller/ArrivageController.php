@@ -454,12 +454,15 @@ class ArrivageController extends AbstractController
             if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($acheteurs = $post->get('acheteurs'))) {
-                // on détache les acheteurs existants...
-                $existingAcheteurs = $arrivage->getAcheteurs();
-                foreach ($existingAcheteurs as $acheteur) {
-                    $arrivage->removeAcheteur($acheteur);
-                }
+			$acheteurs = $post->get('acheteurs');
+            // on détache les acheteurs existants...
+            $existingAcheteurs = $arrivage->getAcheteurs();
+
+            foreach ($existingAcheteurs as $existingAcheteur) {
+                $arrivage->removeAcheteur($existingAcheteur);
+            }
+            if (!empty($acheteurs))
+            {
                 // ... et on ajoute ceux sélectionnés
                 $listAcheteurs = explode(',', $acheteurs);
                 foreach ($listAcheteurs as $acheteur) {
