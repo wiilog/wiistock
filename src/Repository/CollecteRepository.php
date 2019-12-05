@@ -204,4 +204,5 @@ class CollecteRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
 }

@@ -590,7 +590,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
 	{
 		$em = $this->getEntityManager();
 		//TODO patch temporaire CEA (sur quantité envoyée)
@@ -604,7 +604,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getByCollecteId($collecteId)
+	public function getByOrdreCollecteId($collecteId)
 	{
 		$em = $this->getEntityManager();
 		$query = $em

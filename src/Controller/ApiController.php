@@ -829,8 +829,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 									$newCollecteId = $newCollecte->getId();
 									$newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
 
-									$articlesCollecte = $this->articleRepository->getByCollecteId($newCollecteId);
-									$refArticlesCollecte = $this->referenceArticleRepository->getByCollecteId($newCollecteId);
+									$articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
+									$refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
 									$articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
 								}
 
@@ -970,8 +970,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
-        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();

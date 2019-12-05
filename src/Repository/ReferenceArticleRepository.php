@@ -570,7 +570,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
+    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 
 		$em = $this->getEntityManager();
 		$query = $em
@@ -583,7 +583,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByCollecteId($collecteId) {
+    public function getByOrdreCollecteId($collecteId) {
 
 		$em = $this->getEntityManager();
 		$query = $em
