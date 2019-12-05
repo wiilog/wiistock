@@ -28,3 +28,8 @@ let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
 let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
 InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle);
+
+let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
+let modalFinishCollecte = $("#modalFinishCollecte");
+let submitFinishCollecte = $("#submitFinishCollecte");
+InitialiserModal(modalFinishCollecte, submitFinishCollecte, urlFinishCollecte);
