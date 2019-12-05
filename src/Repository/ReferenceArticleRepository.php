@@ -573,20 +573,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 
 		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ra.reference, e.label as location, ra.libelle as label, cr.quantite as quantity, 1 as is_ref, oc.id as id_collecte, ra.barCode
-			FROM App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
-			JOIN ra.collecteReferences cr
-			JOIN cr.collecte dc
-			JOIN dc.ordreCollecte oc
-			JOIN oc.statut s
-			WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
-            'user' => $user,
-        ]);
+		$query = $em
+			->createQuery($this->getRefArticleQuery() . " WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->setParameters([
+				'statutLabel' => $statutLabel,
+				'user' => $user,
+			]);
 
 		return $query->execute();
 	}
@@ -594,8 +586,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByCollecteId($collecteId) {
 
 		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
+		$query = $em
+			->createQuery($this->getRefArticleQuery() . " WHERE oc.id = :id")
+			->setParameter('id', $collecteId);
+
+		return $query->execute();
+	}
+
+	private function getRefArticleQuery()
+	{
+		return (/** @lang DQL */
 			"SELECT ra.reference,
                          e.label as location,
                          ra.libelle as label,
@@ -607,11 +607,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr
 			JOIN ocr.ordreCollecte oc
-			JOIN oc.statut s
-			WHERE oc.id = :id"
-		)->setParameter('id', $collecteId);
-
-		return $query->execute();
+			JOIN oc.statut s");
 	}
 
 

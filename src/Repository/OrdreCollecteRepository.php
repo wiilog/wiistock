@@ -73,7 +73,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager
-            ->createQuery($this->getQueryBy() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
+            ->createQuery($this->getOrdreCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
             ->setParameters([
                 'statutLabel' => $statutLabel,
                 'user' => $user,
@@ -89,13 +89,13 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager
-            ->createQuery($this->getQueryBy() . " WHERE oc.id = :id")
+            ->createQuery($this->getOrdreCollecteQuery() . " WHERE oc.id = :id")
             ->setParameter('id', $ordreCollecteId);
 		$result = $query->execute();
 		return !empty($result) ? $result[0] : null;
 	}
 
-	private function getQueryBy(): string  {
+	private function getOrdreCollecteQuery(): string  {
 	    return (/** @lang DQL */
             "SELECT oc.id,
                     oc.numero as number,

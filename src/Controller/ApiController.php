@@ -852,8 +852,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $this->ordreCollecteService->setEntityManager($entityManager);
                         }
 
-                        dump($exception);
-
                         $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
 
                         $resData['errors'][] = [
