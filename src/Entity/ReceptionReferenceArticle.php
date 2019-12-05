@@ -54,7 +54,7 @@ class ReceptionReferenceArticle
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private $commande;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="receptionReferenceArticles")
@@ -150,14 +150,14 @@ class ReceptionReferenceArticle
         return $this;
     }
 
-    public function getLabel(): ?string
+    public function getCommande(): ?string
     {
-        return $this->label;
+        return $this->commande;
     }
 
-    public function setLabel(?string $label): self
+    public function setCommande(?string $commande): self
     {
-        $this->label = $label;
+        $this->commande = $commande;
 
         return $this;
     }

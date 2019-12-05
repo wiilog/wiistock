@@ -363,6 +363,10 @@ a:hover {
   margin-right: 15px;
 }
 
+#new-ref-inner-body {
+  border: 1px solid black;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;

@@ -1,4 +1,5 @@
 $('.select2').select2();
+$('.body-add-ref').css('display', 'none');
 $('.select2-autocomplete-articles').select2({
     ajax: {
         url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
@@ -37,6 +38,7 @@ function loadFournisseurFilter() {
         placeholder: 'Fournisseur'
     });
 }
+
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
@@ -57,14 +59,14 @@ let table = $('#tableReception_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date', 'title': 'Date de création' },
-        { "data": 'DateFin', 'title': 'Date de fin de réception' },
-        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
-        { "data": 'Fournisseur', 'title': 'Fournisseur' },
-        { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Statut', 'title': 'Statut' },
-        { "data": 'Commentaire', 'title': 'Commentaire'},
-        { "data": 'Actions', 'title': 'Actions' }
+        {"data": 'Date', 'title': 'Date de création'},
+        {"data": 'DateFin', 'title': 'Date de fin de réception'},
+        {"data": 'Numéro de commande', 'title': 'Numéro de commande'},
+        {"data": 'Fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Référence', 'title': 'Référence'},
+        {"data": 'Statut', 'title': 'Statut'},
+        {"data": 'Commentaire', 'title': 'Commentaire'},
+        {"data": 'Actions', 'title': 'Actions'}
     ],
 });
 
@@ -98,7 +100,8 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     ],
 });
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {
+}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -145,8 +148,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, li
     modal.find(submit).attr('value', litigeId);
 }
 
-function getCommentAndAddHisto()
-{
+function getCommentAndAddHisto() {
     let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
@@ -233,6 +235,7 @@ $.fn.dataTable.ext.search.push(
 );
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
+
 function initDatatableConditionnement() {
     let tableFromArticle = $('#tableArticleInner_id').DataTable({
         info: false,
@@ -252,12 +255,12 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
-            { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-            { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-            { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-            { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-            { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+            {"data": 'Référence', 'name': 'Référence', 'title': 'Référence'},
+            {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
+            {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
+            {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
+            {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
         ],
         aoColumnDefs: [{
             'sType': 'natural',
@@ -273,7 +276,6 @@ function initDatatableConditionnement() {
 
     initModalCondit(tableFromArticle);
 }
-
 
 
 $.extend($.fn.dataTableExt.oSort, {
@@ -314,7 +316,7 @@ InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception
 
 
 //AJOUTE_ARTICLE
-let pathAddArticle = Routing.generate('reception_article_api', { 'id': id }, true);
+let pathAddArticle = Routing.generate('reception_article_api', {'id': id}, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     "lengthMenu": [5, 10, 25],
     language: {
@@ -325,12 +327,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Libellé', 'title': 'Libellé' },
-        { "data": 'Fournisseur', 'title': 'Fournisseur' },
-        { "data": 'A recevoir', 'title': 'A recevoir' },
-        { "data": 'Reçu', 'title': 'Reçu' },
-        { "data": 'Actions', 'title': 'Actions' }
+        {"data": 'Référence', 'title': 'Référence'},
+        {"data": 'Commande', 'title': 'Commande'},
+        {"data": 'A recevoir', 'title': 'A recevoir'},
+        {"data": 'Reçu', 'title': 'Reçu'},
+        {"data": 'Actions', 'title': 'Actions'}
     ],
 });
 
@@ -368,6 +369,7 @@ let printBarcode = function (button) {
 
 //initialisation editeur de texte une seule fois
 var editorNewReceptionAlreadyDone = false;
+
 function initNewReceptionEditor(modal) {
     if (!editorNewReceptionAlreadyDone) {
         initEditorInModal(modal);
@@ -377,6 +379,7 @@ function initNewReceptionEditor(modal) {
 };
 
 var editorEditReceptionAlreadyDone = false;
+
 function initEditReceptionEditor(modal) {
     if (!editorEditReceptionAlreadyDone) {
         initEditorInModal(modal);
@@ -387,6 +390,7 @@ function initEditReceptionEditor(modal) {
 };
 
 var editorNewArticleAlreadyDone = false;
+
 function initNewArticleEditor(modal) {
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
 
@@ -394,9 +398,11 @@ function initNewArticleEditor(modal) {
         initEditorInModal(modal);
         editorNewArticleAlreadyDone = true;
     }
+    clearAddRefModal();
 };
 
 var editorEditArticleAlreadyDone = false;
+
 function initEditArticleEditor() {
     if (!editorEditArticleAlreadyDone) {
         initEditorInModal();
@@ -432,6 +438,7 @@ let getArticleFournisseur = function () {
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
+    clearAddRefModal();
 }
 
 function addLot(button) {
@@ -459,7 +466,7 @@ function createArticleAndBarcodes(button, receptionId) {
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
         if (response.exists) {
-            printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
+            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
             tableArticle.ajax.reload(function (json) {
                 if (this.responseText !== undefined) {
                     $('#myInput').val(json.lastInput);
@@ -484,8 +491,7 @@ function printSingleBarcode(button) {
                     'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
                     [response.barcodeLabel]
                 );
-            }
-            else {
+            } else {
                 $('#cannotGenerate').click();
             }
         } else {
@@ -496,6 +502,7 @@ function printSingleBarcode(button) {
             $submit.attr('data-id', button.data('id'))
             initDatatableConditionnement();
             $submit.addClass('d-none');
+            $('#reference-list').html(response.article);
         }
     });
 }
@@ -512,38 +519,77 @@ function printSingleArticleBarcode(button) {
                 'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
                 [response.articleRef.barcodeLabel]
             );
-        }
-        else {
+        } else {
             $('#cannotGenerate').click();
         }
     });
 }
 
-function checkIfQuantityArticle($select){
-    let referenceId = $select.val();
-    let path = Routing.generate('check_if_quantity_article');
-    let params = JSON.stringify(referenceId);
-    let $label = $('#label');
-
-    if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
-        $.post(path, params, function(quantityByArticle){
-            $label.removeClass('is-invalid');
-            if(quantityByArticle) {
-                $label.addClass('needed');
-                $label.closest('div').find('label').html('Libellé*');
-                $label.closest('.modal-body').find('#quantite').attr('disabled', true);
-            } else {
-                $label.removeClass('needed');
-                $label.closest('div').find('label').html('Libellé');
-                $label.closest('.modal-body').find('#quantite').attr('disabled', false);
-            }
-        });
-    }
-
+function addArticle() {
+    let path = Routing.generate('get_modal_new_ref', true);
+    $.post(path, {}, function (modalNewRef) {
+        $('#innerNewRef').html(modalNewRef);
+        console.log()
+        initNewReferenceArticleEditor();
+    });
 }
 
+function articleChanged() {
+    $('.body-add-ref').css('display', 'flex');
+    $('#innerNewRef').html('');
+}
+
+function toggleRequiredChampsFixes(button) {
+    displayRequiredChampsFixesByTypeQuantite(button.data('title'));
+}
+
+function displayRequiredChampsFixesByTypeQuantite(typeQuantite) {
+    if (typeQuantite === 'article') {
+        $('#quantite').removeClass('needed');
+        $('#emplacement').removeClass('needed');
+        $('#type_quantite').val('article');
+    } else {
+        $('#quantite').addClass('needed');
+        $('#emplacement').addClass('needed');
+        $('#type_quantite').val('reference');
+    }
+}
+
+function loadAndDisplayInfos(select) {
+    let $modal = select.closest('.modal');
+
+    $modal.find('.newContent').removeClass('d-none');
+    $modal.find('.newContent').addClass('d-block');
+
+    $modal.find('span[role="textbox"]').each(function () {
+        $(this).parent().css('border-color', '');
+    });
+}
+
+function displayErrorRA(data, modal) {
+    if (data.success === true) {
+        modal.parent().html('');
+    } else {
+        modal.find('.error-msg').html(data.msg);
+    }
+}
+
+let editorNewReferenceArticleAlreadyDone = false;
+function initNewReferenceArticleEditor() {
+    if (!editorNewReferenceArticleAlreadyDone) {
+        initEditor('.editor-container-new');
+        editorNewReferenceArticleAlreadyDone = true;
+    }
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    let modalRefArticleNew = $("#new-ref-inner-body");
+    let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
+    let urlRefArticleNew = Routing.generate('reference_article_new', true);
+    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
+};
+
 function finishReception(receptionId) {
-    $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function(data) {
+    $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function (data) {
         if (data === true) {
             window.location.href = Routing.generate('reception_index', true);
         } else {
@@ -561,7 +607,7 @@ $submitSearchReception.on('click', function () {
     let fournisseur = $('#fournisseurFilter').val();
     let fournisseurString = fournisseur.toString();
     let fournisseurPiped = fournisseurString.split(',').join('|');
-    saveFilters(PAGE_RECEPTION, dateMin, dateMax, statut, null, null, null, null, null, null, fournisseurPiped, function() {
+    saveFilters(PAGE_RECEPTION, dateMin, dateMax, statut, null, null, null, null, null, null, fournisseurPiped, function () {
         table
             .columns('Statut:name')
             .search(statut ? '^' + statut + '$' : '', true, false)
@@ -577,13 +623,18 @@ $submitSearchReception.on('click', function () {
     });
 });
 
-$(function() {
+function clearAddRefModal() {
+    $('#innerNewRef').html('');
+    $('.body-add-ref').css('display', 'none');
+}
+
+$(function () {
     loadFournisseurFilter();
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_RECEPTION);
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field === 'fournisseur') {
                 let values = [];
                 element.value.split(',').forEach(val => {
@@ -598,15 +649,181 @@ $(function() {
                     });
                 });
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
         let now = new Date();
         let day = ("0" + now.getDate()).slice(-2);
         let month = ("0" + (now.getMonth() + 1)).slice(-2);
-        let today = now.getFullYear()+"-"+(month)+"-"+(day) ;
+        let today = now.getFullYear() + "-" + (month) + "-" + (day);
         if ($('#dateMax').val() === '') $('#dateMax').val(today);
         if ($('#dateMin').val() === '') $('#dateMin').val(today);
         $submitSearchReception.click();
     }, 'json');
 });
+
+function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () { }, close = true) {
+    submit.click(function () {
+        submitActionRefArticleFromRecep(modal, path, callback, close);
+    });
+}
+
+function afterLoadingEditModal($button) {
+    toggleRequiredChampsLibres($button, 'edit');
+    initRequiredChampsFixes($button);
+}
+
+function submitActionRefArticleFromRecep(modal, path, callback = null, close = true) {
+    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
+    // si tout va bien on envoie la requête ajax...
+    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
+        if (close == true) modal.find('.close').click();
+        $.post(path, JSON.stringify(Data), function(data) {
+            if (data.success) $('#innerNewRef').html('');
+            else modal.find('.error-msg').html('');
+        });
+        modal.find('.error-msg').html('');
+
+    } else {
+        // ... sinon on construit les messages d'erreur
+        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
+        modal.find('.error-msg').html(msg);
+    }
+
+}
+
+function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
+    let msg = '';
+
+    if(doublonRef ){
+        msg+= "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
+    }
+
+    // cas où il manque des champs obligatoires
+    if (missingInputs.length > 0) {
+        if (missingInputs.length == 1) {
+            msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
+        } else {
+            msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
+        }
+    }
+    // cas où les champs number ne respectent pas les valeurs imposées (min et max)
+    if (wrongNumberInputs.length > 0) {
+        wrongNumberInputs.forEach(function (elem) {
+            let label = elem.closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
+            missingInputs.push(label);
+
+            msg += 'La valeur du champ ' + label;
+
+            let min = elem.attr('min');
+            let max = elem.attr('max');
+
+            if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+            } else if (typeof (min) == 'undefined') {
+                msg += ' doit être inférieure à ' + max + ".<br>";
+            } else if (typeof (max) == 'undefined') {
+                msg += ' doit être supérieure à ' + min + ".<br>";
+            }
+        })
+    }
+
+    return msg;
+}
+
+function getDataFromModal(modal) {
+    // On récupère toutes les données qui nous intéressent
+    // dans les inputs...
+    let Data = {};
+    let inputs = modal.find(".data");
+    // Trouver les champs correspondants aux infos fournisseurs...
+    let fournisseursWithRefAndLabel = [];
+    let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
+    let labelFournisseur = modal.find('input[name="labelFournisseur"]');
+    let refsF = [];
+    let missingInputs = [];
+    let wrongNumberInputs = [];
+    let doublonRef = false;
+    modal.find('select[name="fournisseur"]').each(function (index) {
+        if ($(this).val()) {
+            if (fournisseurReferences.eq(index).val()) {
+                fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+                if (refsF.includes(fournisseurReferences.eq(index).val())) {
+                    doublonRef = true;
+                    fournisseurReferences.eq(index).addClass('is-invalid');
+                } else {
+                    refsF.push(fournisseurReferences.eq(index).val());
+                }
+            }
+        }
+    });
+    Data['frl'] = fournisseursWithRefAndLabel;
+    inputs.each(function () {
+        const $input = $(this);
+        let val = $input.val();
+        let name = $input.attr("name");
+        if (!Data[name] || parseInt(Data[name], 10) === 0) {
+            Data[name] = val;
+        }
+        let label = $input.closest('.form-group').find('label').first().text();
+        // validation données obligatoires
+        if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
+            missingInputs.push(label);
+            $input.addClass('is-invalid');
+            $input.next().find('.select2-selection').addClass('is-invalid');
+        }
+
+        // validation valeur des inputs de type number
+        // protection pour les cas où il y a des champs cachés
+        if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
+            if (val > max || val < min || isNaN(val)) {
+                wrongNumberInputs.push($input);
+                $input.addClass('is-invalid');
+            }
+        }
+    });
+    // ... et dans les checkboxes
+    let checkboxes = modal.find('.checkbox');
+    checkboxes.each(function () {
+        Data[$(this).attr("name")] = $(this).is(':checked');
+    });
+    return { Data, missingInputs, wrongNumberInputs, doublonRef };
+}
+
+function clearModalRefArticleFromRecep(modal, data) {
+    if (typeof(data.msg) == 'undefined') {
+        // on vide tous les inputs
+        let inputs = modal.find('.modal-body').find(".data, .newContent>input");
+        inputs.each(function () {
+            if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && $(this).attr('id') !== 'type_quantite') { //TODO type quantite trop specifique -> pq ne pas passer par celui de script-wiilog ? (et ajouter la classe checkbox)
+                $(this).val("");
+            }
+        });
+        // on vide tous les select2
+        let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+        selects.each(function () {
+            $(this).val(null).trigger('change');
+        });
+        // on remet toutes les checkboxes sur off
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+            $(this).prop('checked', false);
+        })
+    } else {
+        if (typeof(data.codeError) != 'undefined') {
+            switch(data.codeError) {
+                case 'DOUBLON-REF':
+                    modal.find('.is-invalid').removeClass('is-invalid');
+                    modal.find('#reference').addClass('is-invalid');
+                    break;
+            }
+        }
+    }
+}

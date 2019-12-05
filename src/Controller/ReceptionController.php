@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\MouvementStock;
+use App\Repository\InventoryCategoryRepository;
 use App\Service\ReceptionService;
 use App\Entity\PieceJointe;
 use App\Repository\LitigeRepository;
@@ -150,9 +152,14 @@ class ReceptionController extends AbstractController
      */
     private $pieceJointeRepository;
 
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
 
-    public function __construct(ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(InventoryCategoryRepository $inventoryCategoryRepository, ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
@@ -387,15 +394,14 @@ class ReceptionController extends AbstractController
                 $rows[] =
                     [
                         "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
-                        "Fournisseur" => ($ligneArticle->getFournisseur() ? $ligneArticle->getFournisseur()->getNom() : ''),
-                        "Libellé" => ($ligneArticle->getLabel() ? $ligneArticle->getLabel() : ''),
+                        "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
                         "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                         "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                         'Actions' => $this->renderView(
                             'reception/datatableLigneRefArticleRow.html.twig',
                             [
                                 'ligneId' => $ligneArticle->getId(),
-                                'type' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ? 'box' : 'print',
+                                'type' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ? 'list' : 'print',
                                 'refArticle' => $ligneArticle->getReferenceArticle()->getReference(),
                                 'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
                             ]
@@ -520,12 +526,12 @@ class ReceptionController extends AbstractController
 
             $receptionReferenceArticle = new ReceptionReferenceArticle;
             $receptionReferenceArticle
-                ->setLabel($contentData['libelle'])
-                ->setAnomalie($anomalie)
+                ->setCommande($contentData['commande'])
+                ->setAnomalie($contentData['anomalie'])
+                ->setCommentaire($contentData['commentaire'])
 //                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
                 ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
-                ->setCommentaire($contentData['commentaire'])
                 ->setReception($reception);
 
             if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
@@ -595,7 +601,7 @@ class ReceptionController extends AbstractController
             $reception = $receptionReferenceArticle->getReception();
 
             $receptionReferenceArticle
-                ->setLabel($data['libelle'])
+                ->setCommande($data['commande'])
                 ->setAnomalie($data['anomalie'])
 //                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
@@ -1066,28 +1072,60 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/check-if-quantity-article", name="check_if_quantity_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function checkIfQuantityArticle(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $referenceId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_REF_FROM_RECEP)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            if ($referenceId) {
-                $refArticle = $this->referenceArticleRepository->find($referenceId);
-                $typeQuantite = $refArticle ? $refArticle->getTypeQuantite() : '';
-
-                $quantityByArticle = $typeQuantite == ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                return new JsonResponse($quantityByArticle);
+            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $inventoryCategories = $this->inventoryCategoryRepository->findAll();
+            $typeChampLibre =  [];
+            foreach ($types as $type) {
+                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+                $typeChampLibre[] = [
+                    'typeLabel' =>  $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'champsLibres' => $champsLibres,
+                ];
             }
-            return new JsonResponse();
-
+            return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
+                'typeChampsLibres' => $typeChampLibre,
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
+                'categories' => $inventoryCategories,
+            ]));
         }
         throw new NotFoundHttpException("404");
     }
 
+    /**
+     * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function checkBeforeLigneDelete(Request $request) {
+        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+            $ligne = $this->receptionReferenceArticleRepository->find($id);
+            $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
+
+            $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
+            $articles = [];
+            foreach ($listArticleFournisseur as $articleFournisseur) {
+                foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
+                    if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
+                }
+            }
+            if (count($articles) <= 0) {
+                $delete = true;
+                $html = 'Voulez-vous réellement supprimer cette ligne article ?';
+            } else {
+                $delete = false;
+                $html = 'Vous ne pouvez pas supprimer cette ligne <br>En effet, il y a eu réception d\'articles sur cette référence';
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+    }
 
     /**
      * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})
@@ -1242,12 +1280,12 @@ class ReceptionController extends AbstractController
                             ->setReferenceArticle($refArticle)
                             ->setFournisseur($reception->getFournisseur())
                             ->setReference($refArticle->getReference())
-                            ->setLabel($ligne->getLabel());
+                            ->setLabel($ligne->getCommande());
                         $em->persist($articleFournisseur);
 
                         $formattedCounter = sprintf('%05u', $counter);
                         $toInsert
-                            ->setLabel($ligne->getLabel())
+                            ->setLabel($ligne->getCommande())
                             ->setConform(true)
                             ->setStatut($statut)
                             ->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)

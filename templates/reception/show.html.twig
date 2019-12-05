@@ -35,7 +35,7 @@
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col-6">
+        <div class="col-7">
             <div class="col text-right">
                 {% if modifiable %}
                     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -55,7 +55,7 @@
             <table id="tableArticle_id" class="table table-striped table-bordered w-100">
             </table>
         </div>
-        <div class="col-6">
+        <div class="col-5">
             <div class="d-flex h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalNewLitige' data-toggle='modal'
