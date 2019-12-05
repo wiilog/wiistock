@@ -39,7 +39,7 @@ class FiltreSupController extends AbstractController
 			$page = $data['page'];
 			$user = $this->getUser();
 
-			if (isset($data['dateMin'])) {
+			if (!empty($data['dateMin'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MIN, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -58,7 +58,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['dateMax'])) {
+			if (!empty($data['dateMax'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MAX, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -77,7 +77,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['statut'])) {
+			if (!empty($data['statut'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -121,7 +121,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['type'])) {
+			if (!empty($data['type'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_TYPE, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -140,7 +140,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['location'])) {
+			if (!empty($data['location'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMPLACEMENT, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -258,6 +258,26 @@ class FiltreSupController extends AbstractController
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DEM_COLLECTE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (isset($data['urgence']) && $data['urgence']) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMERGENCY, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_EMERGENCY)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['urgence']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMERGENCY, $page, $user);
 				if ($filter) {
 					$em->remove($filter);
 					$em->flush();

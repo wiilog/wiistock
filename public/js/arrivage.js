@@ -17,6 +17,10 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            } else if (element.field = 'emergency') {
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -67,7 +71,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
     columnDefs: [
         {
@@ -77,11 +80,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {
             orderable: false,
             targets: [0]
-        },
-        //TODO CG
-        {
-            targets: 13,
-            visible: false
         }
     ],
     "rowCallback" : function(row, data) {
@@ -195,15 +193,15 @@ function initNewArrivageEditor(modal) {
 
 let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateurs = $('#utilisateur').select2('data');
-    let urgence = $('#urgence-filter').is(':checked');
-
-//TODO CG table ?? -> save filters qui intègre draw ??
-    //TODO CG urgent ?
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurs, null, null, null, null, null, tableArrivage);
+    let filters = {
+        page: PAGE_ARRIVAGE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        urgence: $('#urgence-filter').is(':checked')
+    }
+    saveFilters(filters, tableArrivage);
 
     tableArrivage.draw();
 });

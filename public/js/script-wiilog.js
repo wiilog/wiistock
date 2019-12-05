@@ -696,22 +696,9 @@ function alertSuccessMsg(data) {
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
-//TODO CG
-// function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
-function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, demandCollect = null) {
+//TODO CG finir de modifier les appels
+function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
-    let params = {};
-    if (dateMin) params.dateMin = dateMin;
-    if (dateMax) params.dateMax = dateMax;
-    if (statut) params.statut = statut;
-    if (users) params.users = users;
-    if (type) params.type = type;
-    if (location) params.location = location;
-    if (colis) params.colis = colis;
-    if (carriers) params.carriers = carriers;
-    if (providers) params.providers = providers;
-    if (demandCollect) params.demandCollect = demandCollect;
-    params.page = page;
 
     $.post(path, JSON.stringify(params), function() {
         if (table) table.draw();

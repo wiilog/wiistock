@@ -193,7 +193,6 @@ class ArrivageController extends AbstractController
         }
 
         return $this->render('arrivage/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -214,47 +213,6 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-//TODO CG
-//			if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
-//				$arrivages = $this->arrivageRepository->findAll();
-//			} else {
-//				$currentUser = $this->getUser();
-//				/** @var Utilisateur $currentUser */
-//				$arrivages = $currentUser->getArrivagesAcheteur();
-//			}
-//
-//			$rows = [];
-//			foreach ($arrivages as $arrivage) {
-//				$acheteursUsernames = [];
-//				$url = $this->generateUrl('arrivage_show', [
-//					'id' => $arrivage->getId(),
-//				]);
-//				foreach ($arrivage->getAcheteurs() as $acheteur) {
-//					$acheteursUsernames[] = $acheteur->getUsername();
-//				}
-//				$rows[] = [
-//					'id' => $arrivage->getId(),
-//					'NumeroArrivage' => $arrivage->getNumeroArrivage() ? $arrivage->getNumeroArrivage() : '',
-//					'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-//					'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
-//					'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
-//					'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
-//					'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
-//					'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
-//					'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-//					'Acheteurs' => implode(', ', $acheteursUsernames),
-//					'Statut' => $arrivage->getStatus(),
-//					'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
-//					'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-//					'Actions' => $this->renderView(
-//						'arrivage/datatableArrivageRow.html.twig',
-//						['url' => $url, 'arrivage' => $arrivage]
-//					),
-//					'urgent' => $arrivage->getIsUrgent() === true ? true : false,
-//				];
-//			}
-
 
             $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
