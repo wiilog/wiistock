@@ -166,7 +166,6 @@ class ArrivageRepository extends ServiceEntityRepository
                     break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
-					dump($value);
 					$qb
 						->join('a.destinataire', 'dest')
 						->andWhere("dest.id in (:userId)")
