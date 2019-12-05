@@ -101,7 +101,7 @@ class ReceptionService
                 'id' => ($reception->getId()),
                 "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
                 "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y') : ''),
+                "DateFin" => ($reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : ''),
                 "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                 "Commentaire" => ($reception->getCommentaire() ? $reception->getCommentaire() : ''),
                 "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
