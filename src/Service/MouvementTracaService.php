@@ -13,11 +13,12 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Twig_Environment;
 
 class MouvementTracaService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,7 +46,7 @@ class MouvementTracaService
 
     private $em;
 
-    public function __construct(UserService $userService, MouvementTracaRepository $mouvementTracaRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService, MouvementTracaRepository $mouvementTracaRepository, RouterInterface $router, EntityManagerInterface $em, Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
     {
         $this->templating = $templating;
         $this->em = $em;
