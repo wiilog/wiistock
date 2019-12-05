@@ -51,10 +51,9 @@ $submitSearchAcheminements.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-
-    saveFilters(PAGE_ACHEMINEMENTS, dateMin, dateMax, statut);
-
-    tableAcheminements.draw();
+    saveFilters(PAGE_ACHEMINEMENTS, dateMin, dateMax, statut, null, null, null, null, null, null, function() {
+        tableAcheminements.draw()
+    });
 });
 
 $(function() {
