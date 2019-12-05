@@ -3,26 +3,25 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
-use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
-
 use App\Entity\OrdreCollecteReference;
+
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\MailerServerRepository;
-
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+
 use App\Service\MailerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
@@ -30,15 +29,14 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
 
 
 /**
@@ -111,7 +109,12 @@ class OrdreCollecteController extends AbstractController
      */
     private $emplacementRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository, OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+	/**
+	 * @var ReferenceArticleRepository
+	 */
+    private $referenceArticleRepository;
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, EmplacementRepository $emplacementRepository, OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository, OrdreCollecteService $ordreCollecteService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -126,18 +129,25 @@ class OrdreCollecteController extends AbstractController
         $this->mailerServerRepository = $mailerServerRepository;
         $this->ordreCollecteService = $ordreCollecteService;
         $this->emplacementRepository = $emplacementRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
-    /**
-     * @Route("/", name="ordre_collecte_index")
-     */
-    public function index()
+	/**
+	 * @Route("/liste/{demandId}", name="ordre_collecte_index")
+	 * @param string|null $demandId
+	 * @return RedirectResponse|Response
+	 */
+    public function index(string $demandId = null)
     {
         if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $demandeCollecte = $demandId ? $this->collecteRepository->find($demandId) : null;
+
         return $this->render('ordre_collecte/index.html.twig', [
+        	'filterDemand' => $demandId ? ($demandId . ':' . $demandeCollecte->getNumero()) : null,
+            'disabled' => $demandeCollecte != null,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
@@ -154,23 +164,10 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collectes = $this->ordreCollecteRepository->findAll();
-            $rows = [];
-            foreach ($collectes as $collecte) {
-                $demandeCollecte = $collecte->getDemandeCollecte();
-                $url['show'] = $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()]);
-                $rows[] = [
-                    'id' => ($collecte->getId() ? $collecte->getId() : ''),
-                    'Numéro' => ($collecte->getNumero() ? $collecte->getNumero() : ''),
-                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
-                    'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
-                    'Type' => ($demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
-                ];
-            }
+            // cas d'un filtre par demande de collecte
+            $filterDemand = $request->request->get('filterDemand');
+			$data = $this->ordreCollecteService->getDataForDatatable($request->request, $filterDemand);
 
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -197,10 +194,7 @@ class OrdreCollecteController extends AbstractController
      * @param OrdreCollecte $collecte
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     * @throws Exception
+	 * @throws Exception
      */
     public function finish(Request $request, OrdreCollecte $collecte): Response
     {
@@ -211,12 +205,13 @@ class OrdreCollecteController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             if ($collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                 $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacementRepository->find($data['depositLocation']));
+                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacementRepository->find($data['depositLocationId']), $data['rows']);
             }
 
-            $data = [
-                'redirect' => $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()])
-            ];
+            $data = $this->renderView('ordre_collecte/enteteOrdreCollecte.html.twig', [
+            	'collecte' => $collecte,
+				'finished' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
+			]);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -243,11 +238,12 @@ class OrdreCollecteController extends AbstractController
                         "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
                         "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                        "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
+                        "Quantité" => $ligneArticle->getQuantite() ?? ' ',
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
-                            'refArticleId' => $ligneArticle->getReferenceArticle()->getId(),
-                            'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
+                            'refArticleId' => $referenceArticle->getId(),
+                            'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
+                            'modifiable' => $ordreCollecte->getStatut() ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) : false,
                         ])
                     ];
                 }
@@ -260,6 +256,7 @@ class OrdreCollecteController extends AbstractController
                         'Quantité' => $article->getQuantite(),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
+                            'refArt' => $article->getReference(),
                             'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
                         ])
                     ];
