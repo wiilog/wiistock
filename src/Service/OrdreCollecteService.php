@@ -8,21 +8,26 @@ use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\MailerServerRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use DateTime;
+use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -90,6 +95,8 @@ class OrdreCollecteService
 	 */
 	private $router;
 
+	private $mouvementTracaRepository;
+
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
     							FiltreSupRepository $filtreSupRepository,
@@ -100,6 +107,7 @@ class OrdreCollecteService
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 StatutRepository $statutRepository,
+                                MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
 	{
@@ -115,6 +123,7 @@ class OrdreCollecteService
 		$this->filtreSupRepository = $filtreSupRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
+		$this->mouvementTracaRepository = $mouvementTracaRepository;
 	}
 
 	public function setEntityManager(EntityManagerInterface $entityManager): self {
@@ -131,7 +140,12 @@ class OrdreCollecteService
 	 * @return OrdreCollecte|null
 	 * @throws NonUniqueResultException
 	 */
-    public function buildListAndFinishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
+    public function buildListAndFinishCollecte(OrdreCollecte $collecte,
+                                               Utilisateur $user,
+                                               DateTime $date,
+                                               Emplacement $depositLocation,
+                                               array $mouvements,
+                                               bool $fromNomade = false)
 	{
 		// transforme liste articles à ajouter en liste articles à supprimer de la collecte
 		$listRefRef = $listArtRef = [];
@@ -165,44 +179,46 @@ class OrdreCollecteService
 			}
 		}
 
-		return $this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove);
+		return $this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove, $fromNomade);
 	}
 
-	/**
-	 * @param OrdreCollecte $collecte
-	 * @param Utilisateur $user
-	 * @param DateTime $date
-	 * @param Emplacement $depositLocation
-	 * @param array $toRemove
-	 * @return OrdreCollecte|null
-	 * @throws NonUniqueResultException
-	 */
-	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $toRemove)
+    /**
+     * @param OrdreCollecte $ordreCollecte
+     * @param Utilisateur $user
+     * @param DateTime $date
+     * @param Emplacement $depositLocation
+     * @param array $toRemove
+     * @param bool $fromNomade
+     * @return OrdreCollecte|null
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+	public function finishCollecte(OrdreCollecte $ordreCollecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $toRemove, bool $fromNomade = false)
 	{
 		$em = $this->entityManager;
-		$demandeCollecte = $collecte->getDemandeCollecte();
-		$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
+		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
 		// cas de collecte partielle
 		if (!empty($toRemove)) {
 			$newCollecte = new OrdreCollecte();
 			$statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 			$newCollecte
-				->setDate($collecte->getDate())
+				->setDate($ordreCollecte->getDate())
 				->setNumero('C-' . $dateNow->format('YmdHis'))
-				->setDemandeCollecte($collecte->getDemandeCollecte())
+				->setDemandeCollecte($ordreCollecte->getDemandeCollecte())
 				->setStatut($statutATraiter);
 
 			$em->persist($newCollecte);
 
 			foreach ($toRemove as $mouvement) {
 				if ($mouvement['isRef'] == 1) {
-					$ordreCollecteRef = $this->ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($collecte, $mouvement['id']);
-					$collecte->removeOrdreCollecteReference($ordreCollecteRef);
+					$ordreCollecteRef = $this->ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($ordreCollecte, $mouvement['id']);
+					$ordreCollecte->removeOrdreCollecteReference($ordreCollecteRef);
 					$newCollecte->addOrdreCollecteReference($ordreCollecteRef);
 				} else {
 					$article = $this->articleRepository->find($mouvement['id']);
-					$collecte->removeArticle($article);
+					$ordreCollecte->removeArticle($article);
 					$newCollecte->addArticle($article);
 				}
 			}
@@ -215,49 +231,29 @@ class OrdreCollecteService
 		}
 
 		// on modifie le statut de l'ordre de collecte
-		$collecte
+		$ordreCollecte
 			->setUtilisateur($user)
 			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
-		$collecteReferences = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($collecte);
+		$collecteReferences = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
 
 		// cas de mise en stockage
 		if ($demandeCollecte->getStockOrDestruct()) {
 			foreach ($collecteReferences as $collecteReference) {
 				$refArticle = $collecteReference->getReferenceArticle();
 				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
-
-                $newMouvement = new MouvementStock();
-                $newMouvement
-                    ->setUser($user)
-                    ->setRefArticle($refArticle)
-                    ->setDate($date)
-                    ->setEmplacementFrom($demandeCollecte->getPointCollecte())
-                    ->setEmplacementTo($depositLocation)
-                    ->setType(MouvementStock::TYPE_ENTREE)
-                    ->setQuantity($collecteReference->getQuantite());
-                $this->entityManager->persist($newMouvement);
+                $this->persistMouvements($user, $refArticle, $date, $demandeCollecte->getPointCollecte(), $depositLocation, $fromNomade);
 			}
 
 			// on modifie le statut des articles liés à la collecte
-			$articles = $collecte->getArticles();
+			$articles = $ordreCollecte->getArticles();
 			foreach ($articles as $article) {
 				$article
                     ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
                     ->setEmplacement($depositLocation);
-
-                $newMouvement = new MouvementStock();
-                $newMouvement
-                    ->setUser($user)
-                    ->setArticle($article)
-                    ->setDate($date)
-                    ->setEmplacementFrom($demandeCollecte->getPointCollecte())
-                    ->setEmplacementTo($depositLocation)
-                    ->setType(MouvementStock::TYPE_ENTREE)
-                    ->setQuantity($article->getQuantite());
-                $this->entityManager->persist($newMouvement);
+                $this->persistMouvements($user, $article, $date, $demandeCollecte->getPointCollecte(), $depositLocation, $fromNomade);
 			}
 		}
 		$this->entityManager->flush();
@@ -280,6 +276,13 @@ class OrdreCollecteService
 		return $newCollecte ?? null;
 	}
 
+    /**
+     * @param null $params
+     * @return array
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
 	public function getDataForDatatable($params = null)
 	{
 		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
@@ -311,7 +314,7 @@ class OrdreCollecteService
 		$demandeCollecte = $collecte->getDemandeCollecte();
 
 		$url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
-		$row = [
+		return [
 			'id' => $collecte->getId() ?? '',
 			'Numéro' => $collecte->getNumero() ?? '',
 			'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
@@ -322,7 +325,76 @@ class OrdreCollecteService
 				'url' => $url,
 			])
 		];
-
-		return $row;
 	}
+
+    /**
+     * @param Utilisateur $user
+     * @param ReferenceArticle|Article $article
+     * @param DateTime $date
+     * @param Emplacement $locationFrom
+     * @param Emplacement $locationTo
+     * @param bool $fromNomade
+     * @throws NonUniqueResultException
+     */
+	private function persistMouvements(Utilisateur $user,
+                                       $article,
+                                       DateTime $date,
+                                       Emplacement $locationFrom,
+                                       Emplacement $locationTo,
+                                       bool $fromNomade = false): void {
+        $newMouvement = new MouvementStock();
+        $newMouvement
+            ->setUser($user)
+            ->setArticle($article)
+            ->setEmplacementFrom($locationFrom)
+            ->setType(MouvementStock::TYPE_ENTREE)
+            ->setQuantity($article->getQuantite());
+
+        if($article instanceof Article) {
+            $newMouvement->setArticle($article);
+        }
+        else if($article instanceof ReferenceArticle) {
+            $newMouvement->setRefArticle($article);
+        }
+
+        if ($fromNomade) {
+            $mouvementTraca = new MouvementTraca();
+            $typePrise = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE);
+
+            $mouvementTraca
+                ->setColis($article->getReference())
+                ->setEmplacement($locationFrom)
+                ->setOperateur($user)
+                ->setUniqueIdForMobile($this->generateUniqueIdForMobile($date))
+                ->setDatetime($date)
+                ->setFinished(false)
+                ->setType($typePrise)
+                ->setMouvementStock($newMouvement);
+        }
+        else {
+            $newMouvement
+                ->setDate($date)
+                ->setEmplacementTo($locationTo);
+        }
+
+        $this->entityManager->persist($newMouvement);
+
+        if (isset($mouvementTraca)) {
+            $this->entityManager->persist($mouvementTraca);
+        }
+    }
+
+    private function generateUniqueIdForMobile(DateTime $date): string {
+	    $uniqueId = null;
+        //same format as moment.defaultFormat
+        $dateStr = $date->format('Y-m-dTH:i:sP');
+        $randomLength = 9;
+	    do {
+            $random = strtolower(substr(sha1(rand()), 0, $randomLength));
+	        $uniqueId = $dateStr . '_' . $random;
+	        $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
+        } while (count($existingMouvements) === 0);
+
+	    return $uniqueId;
+    }
 }

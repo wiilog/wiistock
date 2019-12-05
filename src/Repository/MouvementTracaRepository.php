@@ -17,6 +17,10 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class MouvementTracaRepository extends ServiceEntityRepository
 {
+
+    public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
+    public const MOUVEMENT_TRACA_STOCK = 'stock';
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, MouvementTraca::class);
@@ -33,8 +37,8 @@ class MouvementTracaRepository extends ServiceEntityRepository
         	/** @lang DQL */
 			'SELECT mvt
                 FROM App\Entity\MouvementTraca mvt
-                WHERE mvt.uniqueIdForMobile = :date'
-        )->setParameter('date', $uniqueId);
+                WHERE mvt.uniqueIdForMobile = :uniqueId'
+        )->setParameter('uniqueId', $uniqueId);
         return $query->getOneOrNullResult();
     }
 
@@ -126,12 +130,16 @@ class MouvementTracaRepository extends ServiceEntityRepository
 
     /**
      * @param Utilisateur $operator
+     * @param string $type self::MOUVEMENT_TRACA_STOCK | self::MOUVEMENT_TRACA_DEFAULT
      * @return MouvementTraca[]
      */
-    public function findPrisesByOperatorAndNotDeposed(Utilisateur $operator) {
+    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator, string $type) {
         $em = $this->getEntityManager();
+        $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
+            ? ' AND m.mouvementStock IS NOT NULL'
+            : ' AND m.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
         $query = $em->createQuery(
-        /** @lang DQL */
+            (/** @lang DQL */
             "SELECT m.colis as ref_article,
                      t.nom as type,
                      o.username as operateur,
@@ -142,7 +150,9 @@ class MouvementTracaRepository extends ServiceEntityRepository
             JOIN m.type t
             JOIN m.operateur o
             JOIN m.emplacement e
-            WHERE o = :op AND t.nom LIKE 'prise' AND m.finished = 0"
+            WHERE o = :op
+              AND t.nom LIKE 'prise'
+              AND m.finished = 0") . $typeCondition
         )->setParameter('op', $operator);
         return $query->execute();
     }

@@ -51,6 +51,13 @@ class MouvementTraca
      */
     private $operateur;
 
+    /**
+     * @var MouvementStock|null
+	 * @ORM\ManyToOne(targetEntity="App\Entity\MouvementStock")
+     * @ORM\JoinColumn(name="mouvement_stock_id", referencedColumnName="id", nullable=true)
+     */
+    private $mouvementStock;
+
 	/**
 	 * @ORM\Column(type="text", nullable=true)
 	 */
@@ -113,8 +120,7 @@ class MouvementTraca
         return $this;
     }
 
-    public function getEmplacement(): ?Emplacement
-    {
+    public function getEmplacement(): ?Emplacement {
         return $this->emplacement;
     }
 
@@ -197,10 +203,17 @@ class MouvementTraca
         return $this->finished;
     }
 
-    public function setFinished(?bool $finished): self
-    {
+    public function setFinished(?bool $finished): self {
         $this->finished = $finished;
+        return $this;
+    }
 
+    public function getMouvementStock(): ?MouvementStock {
+        return $this->mouvementStock;
+    }
+
+    public function setMouvementStock(?MouvementStock $mouvementStock): self {
+        $this->mouvementStock = $mouvementStock;
         return $this;
     }
 

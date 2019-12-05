@@ -308,8 +308,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function postMouvementTraca(Request $request)
-    {
+    public function postMouvementTraca(Request $request) {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
@@ -322,7 +321,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $numberOfRowsInserted = 0;
                 $mouvementsNomade = json_decode($data['mouvements'], true);
                 foreach ($mouvementsNomade as $mvt) {
-                    if (!$this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date'])) {
+                    $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                    if (!isset($mouvementTraca)) {
                         $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                         $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
 
@@ -401,9 +401,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                             }
                         }
-                    } else {
-                        $toEdit = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
-                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setFinished($mvt['finished']);
+                    }
+                    else if ($mouvementTraca->getType()->getNom() === MouvementTraca::TYPE_PRISE) {
+                        $mouvementTraca->setFinished($mvt['finished']);
                     }
                 }
                 $em->flush();
@@ -980,7 +980,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
-        $data = [
+        return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
@@ -993,10 +993,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
-            'prises' => $this->mouvementTracaRepository->findPrisesByOperatorAndNotDeposed($user)
+            'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
+            'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK)
         ];
-
-        return $data;
     }
 
     /**
