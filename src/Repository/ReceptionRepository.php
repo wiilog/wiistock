@@ -87,7 +87,6 @@ class ReceptionRepository extends ServiceEntityRepository
             ->from('App\Entity\Reception', 'r');
 
         $countTotal = count($qb->getQuery()->getResult());
-
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -105,24 +104,25 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->setParameter('fournisseur', $value);
                     break;
                 case 'dateMin':
+                    dump($filter['value'] . '00:00:00');
                     $qb->andWhere('r.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value']);
+                        ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
                     break;
                 case 'dateMax':
+                    dump($filter['value'] . '23:59:59');
                     $qb->andWhere('r.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value']);
+                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
             }
         }
-
         //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('r.date LIKE :value 
-                        OR r.dateFinReception LIKE :value 
+                        ->andWhere('r.date LIKE :value
+                        OR r.dateFinReception LIKE :value
                         OR r.numeroReception LIKE :value
                         OR r.reference LIKE :value
                         OR r.commentaire lIKE :value')

@@ -997,29 +997,37 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-            $reception = $this->receptionRepository->find($receptionId);
+            $reception = $this->receptionRepository->find($data['id']);
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
 
             if (empty($listReceptionReferenceArticle)) {
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
-                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+                if ($data['confirmed'] === true) {
+                    $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 
-                foreach ($listReceptionReferenceArticle as $receptionRA) {
-                    $referenceArticle = $receptionRA->getReferenceArticle();
-                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                        $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                    foreach ($listReceptionReferenceArticle as $receptionRA) {
+                        $referenceArticle = $receptionRA->getReferenceArticle();
+                        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                            $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                        }
                     }
-                }
-                $reception
-                    ->setStatut($statut)
-                    ->setDateFinReception(new DateTime('now'))
-                    ->setDateCommande(new DateTime('now'));
-                $em->flush();
+                    $reception
+                        ->setStatut($statut)
+                        ->setDateFinReception(new DateTime('now'))
+                        ->setDateCommande(new DateTime('now'));
+                    $em->flush();
 
-                return new JsonResponse(true);
+                    return new JsonResponse(1);
+                } else {
+                    $partielle = false;
+                    foreach ($listReceptionReferenceArticle as $receptionRA) {
+                        if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
+                    }
+                    return new JsonResponse($partielle ? 0 : 1);
+                }
             }
         }
         throw new NotFoundHttpException("404");

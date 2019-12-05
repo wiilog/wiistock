@@ -214,7 +214,7 @@ $.fn.dataTable.ext.search.push(
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
         let indexDate = table.column('Date de création:title').index();
-
+        console.log(indexDate);
         if (typeof indexDate === "undefined") return true;
 
         let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
@@ -575,6 +575,7 @@ function displayErrorRA(data, modal) {
 }
 
 let editorNewReferenceArticleAlreadyDone = false;
+
 function initNewReferenceArticleEditor() {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor('.editor-container-new');
@@ -588,10 +589,15 @@ function initNewReferenceArticleEditor() {
     InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
 };
 
-function finishReception(receptionId) {
-    $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function (data) {
-        if (data === true) {
+function finishReception(receptionId, confirmed) {
+    $.post(Routing.generate('reception_finish'), JSON.stringify({
+        id: receptionId,
+        confirmed: confirmed
+    }), function (data) {
+        if (data === 1) {
             window.location.href = Routing.generate('reception_index', true);
+        } else if (data === 0) {
+            $('#finishReception').click();
         } else {
             alertErrorMsg(data);
         }
@@ -608,16 +614,6 @@ $submitSearchReception.on('click', function () {
     let fournisseurString = fournisseur.toString();
     let fournisseurPiped = fournisseurString.split(',').join('|');
     saveFilters(PAGE_RECEPTION, dateMin, dateMax, statut, null, null, null, null, null, null, fournisseurPiped, function () {
-        table
-            .columns('Statut:name')
-            .search(statut ? '^' + statut + '$' : '', true, false)
-            .draw();
-
-        table
-            .columns('Fournisseur:name')
-            .search(fournisseurPiped ? '^' + fournisseurPiped + '$' : '', true, false)
-            .draw();
-
         table
             .draw();
     });
@@ -662,7 +658,8 @@ $(function () {
     }, 'json');
 });
 
-function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () { }, close = true) {
+function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () {
+}, close = true) {
     submit.click(function () {
         submitActionRefArticleFromRecep(modal, path, callback, close);
     });
@@ -674,11 +671,11 @@ function afterLoadingEditModal($button) {
 }
 
 function submitActionRefArticleFromRecep(modal, path, callback = null, close = true) {
-    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
+    let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModal(modal);
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
-        $.post(path, JSON.stringify(Data), function(data) {
+        $.post(path, JSON.stringify(Data), function (data) {
             if (data.success) $('#innerNewRef').html('');
             else modal.find('.error-msg').html('');
         });
@@ -695,8 +692,8 @@ function submitActionRefArticleFromRecep(modal, path, callback = null, close = t
 function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
     let msg = '';
 
-    if(doublonRef ){
-        msg+= "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
+    if (doublonRef) {
+        msg += "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
     }
 
     // cas où il manque des champs obligatoires
@@ -794,11 +791,11 @@ function getDataFromModal(modal) {
     checkboxes.each(function () {
         Data[$(this).attr("name")] = $(this).is(':checked');
     });
-    return { Data, missingInputs, wrongNumberInputs, doublonRef };
+    return {Data, missingInputs, wrongNumberInputs, doublonRef};
 }
 
 function clearModalRefArticleFromRecep(modal, data) {
-    if (typeof(data.msg) == 'undefined') {
+    if (typeof (data.msg) == 'undefined') {
         // on vide tous les inputs
         let inputs = modal.find('.modal-body').find(".data, .newContent>input");
         inputs.each(function () {
@@ -817,8 +814,8 @@ function clearModalRefArticleFromRecep(modal, data) {
             $(this).prop('checked', false);
         })
     } else {
-        if (typeof(data.codeError) != 'undefined') {
-            switch(data.codeError) {
+        if (typeof (data.codeError) != 'undefined') {
+            switch (data.codeError) {
                 case 'DOUBLON-REF':
                     modal.find('.is-invalid').removeClass('is-invalid');
                     modal.find('#reference').addClass('is-invalid');
