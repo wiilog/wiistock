@@ -310,6 +310,7 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $this->attachmentService->addAttachements($request, $arrivage);
+
             if ($arrivage->getNumeroBL()) {
                 $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
@@ -353,12 +354,12 @@ class ArrivageController extends AbstractController
                 }
             }
 
-			$this->attachmentService->addAttachements($request, $arrivage);
+//			$this->attachmentService->addAttachements($request, $arrivage);
 
-			$em->persist($arrivage);
-            $em->flush();
-
-            $this->attachmentService->addAttachements($request, $arrivage);
+//			$em->persist($arrivage);
+//            $em->flush();
+//
+//            $this->attachmentService->addAttachements($request, $arrivage);
 
             $printColis = null;
             $printArrivage = null;
