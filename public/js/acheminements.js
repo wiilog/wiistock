@@ -46,6 +46,16 @@ let submitDeleteAcheminements = $('#submitDeleteAcheminements');
 let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
 InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
 
+function printAcheminement(id) {
+    let params = {
+        id: id
+    };
+    let json = JSON.stringify(params);
+    $.post(Routing.generate('get_info_to_print', true), json, function(data) {
+        printColis(data);
+    });
+}
+
 function printColis(data) {
     let a4 = [3508, 2480];
     if (data.exists) {
