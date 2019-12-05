@@ -157,16 +157,12 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     // ... (issus du drag & drop)
     files = [...files, ...droppedFiles];
 
-    console.log(files);
     $.each(files, function(index, file) {
         Data.append('file' + index, file);
     });
-    console.log(missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid);
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        console.log("whatwrogng");
         if (close == true) modal.find('.close').click();
-        console.log('hun');
         $.ajax({
             url: path,
             data: Data,
@@ -176,9 +172,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             cache: false,
             dataType: 'json',
             success: (data) => {
-                console.log(data);
                 if (data.redirect) {
-                    console.log('1 !!!');
                     let print = null;
                     if (data.printColis === true && data.printArrivage === true) {
                         print = '/1/1';
@@ -189,7 +183,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     } else if (data.printColis !== true && data.printArrivage !== true) {
                         print = '/0/0';
                     }
-                    console.log(window.location.href);
                     window.location.href = data.redirect + print;
                     return;
                 }
