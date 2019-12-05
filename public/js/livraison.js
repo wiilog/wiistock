@@ -138,14 +138,3 @@ let modalDeleteLivraison = $('#modalDeleteLivraison');
 let submitDeleteLivraison = $('#submitDeleteLivraison');
 let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
 InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
-
-
-function overrideSearch($input, table) {
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            table.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}

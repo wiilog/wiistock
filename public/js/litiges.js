@@ -57,7 +57,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         "type": "POST",
     },
     'drawCallback': function() {
-        overrideSearch();
+        overrideSearch($('#tableLitigesArrivages_filter input'), tableLitigesArrivage);
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
@@ -70,17 +70,6 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
     ],
 });
-
-function overrideSearch() {
-    let $input = $('#tableLitigesArrivages_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableLitigesArrivage.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
 
 let modalNewLitiges = $('#modalNewLitiges');
 let submitNewLitiges = $('#submitNewLitiges');

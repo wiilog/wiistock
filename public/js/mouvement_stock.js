@@ -49,7 +49,7 @@ let tableMvt = $('#tableMvts').DataTable({
         "type": "POST"
     },
     'drawCallback': function() {
-        overrideSearch();
+        overrideSearch($('#tableMvts_filter input'), tableMvt);
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
@@ -68,17 +68,6 @@ let tableMvt = $('#tableMvts').DataTable({
         }
     ]
 });
-
-function overrideSearch() {
-    let $input = $('#tableMvts_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableMvt.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {

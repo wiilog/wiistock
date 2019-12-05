@@ -50,7 +50,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     'drawCallback': function() {
-        overrideSearch();
+        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
@@ -241,15 +241,4 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
-}
-
-function overrideSearch() {
-    let $input = $('#tableArrivages_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableArrivage.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
 }

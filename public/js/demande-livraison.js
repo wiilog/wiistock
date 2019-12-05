@@ -77,7 +77,7 @@ let tableDemande = $('#table_demande').DataTable({
         "type": "POST",
     },
     'drawCallback': function() {
-        overrideSearch();
+        overrideSearch($('#table_demande_filter input'), tableDemande);
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
@@ -98,17 +98,6 @@ let tableDemande = $('#table_demande').DataTable({
         }
     ],
 });
-
-function overrideSearch() {
-    let $input = $('#table_demande_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableDemande.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
 
 let $submitSearchDemande = $('#submitSearchDemandeLivraison');
 $submitSearchDemande.on('click', function () {

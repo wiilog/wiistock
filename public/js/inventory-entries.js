@@ -81,7 +81,7 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         "type": "POST"
     },
     'drawCallback': function() {
-        overrideSearch();
+        overrideSearch($('#tableMissionEntries_filter input'), tableMvt);
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },
@@ -92,17 +92,6 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         { "data": 'Quantity', 'title' : 'Quantité' }
     ],
 });
-
-function overrideSearch() {
-    let $input = $('#tableMissionEntries_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableMvt.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
 
 let $submitSearchEntry = $('#submitSearchEntry');
 $submitSearchEntry.on('click', function () {

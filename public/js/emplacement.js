@@ -17,7 +17,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         }
     },
     'drawCallback': function () {
-        overrideSearch();
+        overrideSearchEmplacement();
     },
     columns: [
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
@@ -73,7 +73,7 @@ function displayErrorEmplacement(data) {
     displayError(modal, msg, data);
 }
 
-function overrideSearch() {
+function overrideSearchEmplacement() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
     $input.on('keyup', function (e) {
