@@ -610,7 +610,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN oc.statut s");
 	}
 
-
     public function countByEmplacement($emplacementId)
     {
         $entityManager = $this->getEntityManager();
