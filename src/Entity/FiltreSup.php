@@ -18,6 +18,7 @@ class FiltreSup
 	const FIELD_TYPE = 'type';
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
+	const FIELD_DEM_COLLECTE = 'demCollecte';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -28,6 +29,7 @@ class FiltreSup
 	const PAGE_ARRIVAGE = 'arrivage';
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
+	const PAGE_ACHEMINEMENTS = 'acheminements';
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
 

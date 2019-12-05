@@ -105,6 +105,43 @@ class EnCoursController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+    /**
+     * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function apiForRetard(Request $request): Response {
+        if ($request->isXmlHttpRequest()) {
+            $retards = [];
+            foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacementArray) {
+                $emplacement = $this->emplacementRepository->find($emplacementArray['id']);
+                foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
+                    if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
+                        //VERIFCECILE
+                        $dateMvt = $mvt->getDatetime();
+                        $minutesBetween = $this->getMinutesBetween($mvt);
+                        $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
+                        //VERIFCECILE
+                        if ($dataForTable['late']) {
+                            $retards[] = [
+                                'colis' => $mvt->getColis(),
+                                'time' => $dataForTable['time'],
+                                'date' => $dateMvt->format('d/m/y H:i'),
+                                'emp' => $emplacement->getLabel(),
+                            ];
+                        }
+                    }
+                }
+            }
+            return new JsonResponse([
+                'data' => $retards
+            ]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
     /**
      * @param $mvt MouvementTraca
      * @return int

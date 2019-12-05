@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -44,9 +46,25 @@ class OrdreCollecte
     private $date;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="ordreCollecte")
      */
     private $demandeCollecte;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", mappedBy="ordreCollecte")
+     */
+    private $articles;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecteReference", mappedBy="ordreCollecte")
+     */
+    private $ordreCollecteReferences;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+        $this->ordreCollecteReferences = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -110,6 +128,65 @@ class OrdreCollecte
     public function setDemandeCollecte(?Collecte $demandeCollecte): self
     {
         $this->demandeCollecte = $demandeCollecte;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->addOrdreCollecte($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            $article->removeOrdreCollecte($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecteReference[]
+     */
+    public function getOrdreCollecteReferences(): Collection
+    {
+        return $this->ordreCollecteReferences;
+    }
+
+    public function addOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
+    {
+        if (!$this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+            $this->ordreCollecteReferences[] = $ordreCollecteReference;
+            $ordreCollecteReference->setOrdreCollecte($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
+    {
+        if ($this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+            $this->ordreCollecteReferences->removeElement($ordreCollecteReference);
+            // set the owning side to null (unless already changed)
+            if ($ordreCollecteReference->getOrdreCollecte() === $this) {
+                $ordreCollecteReference->setOrdreCollecte(null);
+            }
+        }
 
         return $this;
     }

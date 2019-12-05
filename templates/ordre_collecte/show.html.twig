@@ -3,73 +3,23 @@
 {% block title %}Collecte{% endblock %}
 
 {% block page_content %}
-<div class="row">
-    <div class="col">
-        <h1>Ordre de collecte n°{{ collecte.numero }}</h1>
+    <div class="zone-entete">
+        {% include 'ordre_collecte/enteteOrdreCollecte.html.twig' %}
     </div>
 
-    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-        <div class="col text-right">
-            <a href="{{path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
-                Aller vers la demande de collecte
-            </a>
-        </div>
-    {% endif %}
-</div>
+    <table id="tableArticle" class="table table-striped table-bordered w-100">
+    </table>
 
-<div class="row">
-    <div class="col-4">
-        <p><strong> Statut : </strong> {{ collecte.statut ? collecte.statut.nom : '' }}</p>
-        <p><strong> Numéro : </strong> {{ collecte.numero }}</p>
-        <p><strong> Demandeur : </strong>
-            {{collecte.demandeCollecte.demandeur ? collecte.demandeCollecte.demandeur.username :'' }}</p>
-        <p><strong> Opérateur : </strong> {{collecte.utilisateur ? collecte.utilisateur.username : '' }}</p>
-    </div>
-    <div class="col-4">
-        <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}</p>
-        <p><strong> Point de collecte : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
-        <p><strong> Destination : </strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
-        </p>
-    </div>
-    <div class="col-12">
-        <p><strong>Commentaire :</strong></p>
-        <div class="commentOverflow">
-            <p>{{ collecte.demandeCollecte.commentaire|raw }}</p>
-        </div>
-    </div>
-</div>
+    <a href="{{ path('ordre_collecte_index') }}" class='btn'>Retour à la liste</a>
+    <input id="collecte-id" hidden value="{{ collecte.id }}">
 
-<div class="row">
-    <div class="col text-right">
-        {% if not finished %}
-            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
-                   data-id='{{collecte.id}}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
-                   class="btn btn-danger btn-action ml-auto">
-                    Supprimer
-                </a>
-                <a class="btn btn-primary btn-action" href={{path('ordre_collecte_finish', {'id': collecte.id})}}>
-                    Finir la collecte
-                </a>
-            {% endif %}
-        {% endif %}
-    </div>
-</div>
-
-<table id="tableArticle" class="table table-striped table-bordered w-100">
-</table>
-
-<a href="{{ path('ordre_collecte_index') }}" class='btn'>Retour à la liste</a>
-<input id="collecte-id" hidden value="{{ collecte.id }}">
-
-{% include 'ordre_collecte/modalEditArticle.html.twig' %}
-{% include 'reference_article/modalShowRefArticle.html.twig' %}
-{% include 'article/modalShowArticle.html.twig' %}
-{% include 'ordre_collecte/modalDeleteOrdreCollecte.html.twig' %}
+    {% include 'ordre_collecte/modalEditArticle.html.twig' %}
+    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include 'article/modalShowArticle.html.twig' %}
+    {% include 'ordre_collecte/modalDeleteOrdreCollecte.html.twig' %}
+    {% include 'ordre_collecte/modalFinishCollecte.html.twig' %}
 
 {% endblock %}
 {% block javascript %}
-
-<script src="{{ asset('js/ordre-collecte-show.js') }}?{{ date().timestamp }}"></script>
-
+    <script src="{{ asset('js/ordre-collecte-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

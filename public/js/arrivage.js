@@ -1,3 +1,4 @@
+let numberOfDataOpened = 0;
 $('.select2').select2();
 
 $(function() {
@@ -66,6 +67,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
     columnDefs: [
         {
@@ -75,8 +77,16 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {
             orderable: false,
             targets: [0]
+        },
+        //TODO CG
+        {
+            targets: 13,
+            visible: false
         }
     ],
+    "rowCallback" : function(row, data) {
+        if (data.urgent === true) $(row).addClass('table-danger');
+    },
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
     buttons: [
         {
@@ -156,6 +166,7 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 
 function printLabels(data) {
     if (data.exists) {
+        console.log('print');
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
     } else {
         $('#cannotGenerate').click();
@@ -177,6 +188,9 @@ function initNewArrivageEditor(modal) {
     }
     ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
 let $submitSearchArrivage = $('#submitSearchArrivage');
@@ -185,8 +199,13 @@ $submitSearchArrivage.on('click', function () {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let utilisateurs = $('#utilisateur').select2('data');
+    let urgence = $('#urgence-filter').is(':checked');
 
+//TODO CG table ?? -> save filters qui intègre draw ??
+    //TODO CG urgent ?
     saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurs, null, null, null, null, null, tableArrivage);
+
+    tableArrivage.draw();
 });
 
 function generateCSVArrivage () {
@@ -241,4 +260,45 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+       params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
+    });
 }

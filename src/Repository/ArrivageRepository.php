@@ -35,11 +35,11 @@ class ArrivageRepository extends ServiceEntityRepository
         parent::__construct($registry, Arrivage::class);
     }
 
-	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
-	 * @return Arrivage[]|null
-	 */
+    /**
+     * @param string $dateMin
+     * @param string $dateMax
+     * @return Arrivage[]|null
+     */
     public function findByDates($dateMin, $dateMax)
     {
         $entityManager = $this->getEntityManager();
@@ -128,8 +128,31 @@ class ArrivageRepository extends ServiceEntityRepository
 			AND c.arrivage = :arrivage"
 		)->setParameter('arrivage', $arrivage);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param $firstDay
+     * @param $lastDay
+     * @return mixed
+     * @throws \Exception
+     */
+    public function countByDays($firstDay, $lastDay)
+    {
+        $from = new \DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
+        $to = new \DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a) as count, a.date as date
+                FROM App\Entity\Arrivage a
+                WHERE a.date BETWEEN :firstDay AND :lastDay
+                GROUP BY a.date"
+        )->setParameters([
+            'lastDay' => $to,
+            'firstDay' => $from
+        ]);
+        return $query->execute();
+    }
 
 	/**
 	 * @param array|null $params
@@ -158,12 +181,12 @@ class ArrivageRepository extends ServiceEntityRepository
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
-        $statut = null;
+		$statut = null;
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'statut':
 					$statut = $filter['value'];
-                    break;
+					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
@@ -247,8 +270,8 @@ class ArrivageRepository extends ServiceEntityRepository
 							->orderBy('nbum', $order)
 							->groupBy('col2.arrivage');
 					} else if ($column === 'statut') {
-					    $orderStatut = $order;
-                    }
+						$orderStatut = $order;
+					}
 					else {
 						$qb
 							->orderBy('a.' . $column, $order);
@@ -257,29 +280,29 @@ class ArrivageRepository extends ServiceEntityRepository
 			}
 		}
 
-        $arrivages = $qb->getQuery()->getResult();
-        if ($statut) {
-            $arrivages = array_filter($arrivages, function($arrivage) use ($statut) {
-                return ($arrivage->getStatus() === $statut);
-            });
-        }
+		$arrivages = $qb->getQuery()->getResult();
+		if ($statut) {
+			$arrivages = array_filter($arrivages, function($arrivage) use ($statut) {
+				return ($arrivage->getStatus() === $statut);
+			});
+		}
 
-        if ($orderStatut) {
-            usort($arrivages, function($arrivage1, $arrivage2) use ($orderStatut) {
-                return $orderStatut === 'asc'
-                    ?
-                    strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
-                    :
-                    strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
-            });
-        }
+		if ($orderStatut) {
+			usort($arrivages, function($arrivage1, $arrivage2) use ($orderStatut) {
+				return $orderStatut === 'asc'
+					?
+					strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
+					:
+					strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
+			});
+		}
 
-        $countFiltered = count($arrivages);
-        if (!empty($params)) {
-            if ((!empty($params->get('start')) || $params->get('start') === "0") && !empty($params->get('length'))) {
-                $arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
-            }
-        }
+		$countFiltered = count($arrivages);
+		if (!empty($params)) {
+			if ((!empty($params->get('start')) || $params->get('start') === "0") && !empty($params->get('length'))) {
+				$arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
+			}
+		}
 
 
 		return [
@@ -288,4 +311,5 @@ class ArrivageRepository extends ServiceEntityRepository
 			'total' => $countTotal
 		];
 	}
+
 }

@@ -91,6 +91,16 @@ class Arrivage
      */
     private $attachements;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $immatriculation;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isUrgent;
+
 
     public function __construct()
     {
@@ -409,6 +419,30 @@ class Arrivage
                 $attachement->setArrivage(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImmatriculation(): ?string
+    {
+        return $this->immatriculation;
+    }
+
+    public function setImmatriculation(?string $immatriculation): self
+    {
+        $this->immatriculation = $immatriculation;
+
+        return $this;
+    }
+
+    public function getIsUrgent(): ?bool
+    {
+        return $this->isUrgent;
+    }
+
+    public function setIsUrgent(?bool $isUrgent): self
+    {
+        $this->isUrgent = $isUrgent;
 
         return $this;
     }

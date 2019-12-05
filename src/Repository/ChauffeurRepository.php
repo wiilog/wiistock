@@ -45,4 +45,16 @@ class ChauffeurRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
 
     }
+
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT c.id, c.nom as text
+          FROM App\Entity\Chauffeur c
+          WHERE c.nom LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
 }

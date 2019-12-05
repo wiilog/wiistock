@@ -5,6 +5,7 @@ let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
+    "lengthMenu": [10, 25, 50, 100, 1000],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },

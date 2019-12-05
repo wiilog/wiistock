@@ -39,16 +39,24 @@ function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+    let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
+    let name;
+    let vals = [];
+    inputsArray.each(function () {
+        name = $(this).attr("name");
+        vals.push($(this).val());
+        Data[name] = vals;
+    });
 
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
-        let name = $input.attr("name");
+        name = $input.attr("name");
         Data[name] = val;
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
@@ -267,7 +275,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         afterLoadingEditModal()
     }, 'json');
+}
 
+function newModal(path, modal)
+{
+    $.post(path, function (resp) {
+        modal.find('.modal-body').html(resp);
+    }, 'json');
 }
 
 function setMaxQuantityEdit(select) {
@@ -521,6 +535,29 @@ function ajaxAutoFournisseurInit(select) {
         minimumInputLength: 1,
     });
 }
+
+function ajaxAutoChauffeurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_chauffeur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
 //TODO CG
 function ajaxAutoUserInit(select, placeholder = '') {
     select.select2({
@@ -540,6 +577,28 @@ function ajaxAutoUserInit(select, placeholder = '') {
         minimumInputLength: 1,
         placeholder: {
             text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
         }
     });
 }
@@ -607,7 +666,9 @@ function clearModal(modal) {
     // on vide les éditeurs de texte
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
-    $modal.find('.clear').html('')
+    $modal.find('.clear').html('');
+    $modal.find('.attachement').remove();
+    $modal.find('.isRight').removeClass('isRight');
 }
 
 function clearCheckboxes($modal) {
@@ -635,8 +696,9 @@ function alertSuccessMsg(data) {
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
-
-function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
+//TODO CG
+// function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, table = null) {
+function saveFilters(page, dateMin, dateMax, statut, users, type = null, location = null, colis = null, carriers = null, providers = null, demandCollect = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
@@ -648,6 +710,7 @@ function saveFilters(page, dateMin, dateMax, statut, users, type = null, locatio
     if (colis) params.colis = colis;
     if (carriers) params.carriers = carriers;
     if (providers) params.providers = providers;
+    if (demandCollect) params.demandCollect = demandCollect;
     params.page = page;
 
     $.post(path, JSON.stringify(params), function() {
