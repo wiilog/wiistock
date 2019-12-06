@@ -6,15 +6,15 @@ let pathManut = Routing.generate('manutention_api', true);
 let tableManutention = $('#tableManutention_id').DataTable({
     serverSide: true,
     processing: true,
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
         },
         {
             "orderable" : false,
-            "targets" : 5
+            "targets" : 0
         }
     ],
     language: {
@@ -28,12 +28,12 @@ let tableManutention = $('#tableManutention_id').DataTable({
         overrideSearch($('#tableManutention_id_filter input'), tableManutention);
     },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
         { "data": 'Date souhaitée', 'name': 'Date souhaitée', 'title': 'Date souhaitée' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 

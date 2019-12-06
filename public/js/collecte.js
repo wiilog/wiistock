@@ -4,13 +4,16 @@ let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
     processing: true,
     serverSide: true,
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
         },
-        { "orderable": false, "targets": 6 }
+        {
+            "orderable": false,
+            "targets": [0]
+        }
     ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -21,13 +24,13 @@ let table = $('#tableCollecte_id').DataTable({
 
     },
     columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
         {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
         {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
     ]
 });
 

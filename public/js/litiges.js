@@ -69,6 +69,12 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
     ],
+    columnDefs: [
+        {
+            orderable: false,
+            targets: [0]
+        }
+    ],
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
     buttons: [
         {
