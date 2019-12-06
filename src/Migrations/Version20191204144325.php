@@ -22,6 +22,7 @@ final class Version20191204144325 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
+        $this->addSql('ALTER TABLE collecte ADD COLUMN validation_date DATETIME');
         $this->addSql('UPDATE collecte c SET c.validation_date = (SELECT oc.date FROM ordre_collecte oc WHERE oc.demande_collecte_id = c.id LIMIT 1)');
     }
 
@@ -30,6 +31,7 @@ final class Version20191204144325 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
+        $this->addSql('ALTER TABLE collecte DROP COLUMN validation_date');
         $this->addSql('UPDATE collecte c SET c.validation_date = null');
     }
 }
