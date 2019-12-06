@@ -9,6 +9,7 @@ const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_RCPT_TRACA = 'reception_traca';
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -696,7 +697,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
-//TODO CG finir de modifier les appels
+
 function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
 

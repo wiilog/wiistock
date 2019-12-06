@@ -20,6 +20,8 @@ class FiltreSup
 	const FIELD_COLIS = 'colis';
 	const FIELD_DEM_COLLECTE = 'demCollecte';
 	const FIELD_EMERGENCY = 'emergency';
+	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
+	const FIELD_RECEPTION_STRING = 'reception_string';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -33,6 +35,7 @@ class FiltreSup
 	const PAGE_ACHEMINEMENTS = 'acheminements';
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
+	const PAGE_RCPT_TRACA = 'reception_traca';
 
     /**
      * @ORM\Id()

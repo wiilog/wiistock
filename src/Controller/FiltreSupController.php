@@ -283,6 +283,44 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+            if (!empty($data['arrivage_string'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ARRIVAGE_STRING, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_ARRIVAGE_STRING)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $filter->setValue($data['arrivage_string']);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ARRIVAGE_STRING, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
+            if (!empty($data['reception_string'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_RECEPTION_STRING, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_RECEPTION_STRING)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $filter->setValue($data['reception_string']);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_RECEPTION_STRING, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
 
 			$em->flush();
 
