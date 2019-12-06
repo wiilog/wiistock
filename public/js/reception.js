@@ -65,7 +65,7 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+            { "data": 'Code', 'name': 'Code', 'title': 'Code article' },
             { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
             { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
             { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },

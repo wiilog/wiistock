@@ -10,6 +10,7 @@ const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
+const PAGE_ACHEMINEMENTS = 'acheminements';
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -276,6 +277,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         afterLoadingEditModal()
     }, 'json');
+
 }
 
 function newModal(path, modal)
@@ -559,7 +561,6 @@ function ajaxAutoChauffeurInit(select) {
     });
 }
 
-//TODO CG
 function ajaxAutoUserInit(select, placeholder = '') {
     select.select2({
         ajax: {

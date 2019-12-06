@@ -12,8 +12,6 @@ use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Urgence;
-use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
@@ -47,7 +45,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
-use DateTime;
 
 /**
  * @Route("/arrivage")
@@ -414,17 +411,20 @@ class ArrivageController extends AbstractController
 			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			if (!empty($acheteurs = $post->get('acheteurs'))) {
-                // on détache les acheteurs existants...
-                $existingAcheteurs = $arrivage->getAcheteurs();
-                foreach ($existingAcheteurs as $acheteur) {
-                    $arrivage->removeAcheteur($acheteur);
-                }
+			$acheteurs = $post->get('acheteurs');
+            // on détache les acheteurs existants...
+            $existingAcheteurs = $arrivage->getAcheteurs();
+
+            foreach ($existingAcheteurs as $existingAcheteur) {
+                $arrivage->removeAcheteur($existingAcheteur);
+            }
+            if (!empty($acheteurs))
+            {
                 // ... et on ajoute ceux sélectionnés
                 $listAcheteurs = explode(',', $acheteurs);
-				foreach ($listAcheteurs as $acheteur) {
-					$arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-				}
+                foreach ($listAcheteurs as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
             }
 
             $em->flush();
@@ -545,7 +545,7 @@ class ArrivageController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-    	//TODO CG tester que request existe
+    	//TODO HM getId ?
 		$acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
@@ -799,13 +799,13 @@ class ArrivageController extends AbstractController
                     $litige->addColi($this->colisRepository->find($colisId));
                 }
             }
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
 
-            $trimCommentStatut = trim($commentStatut);
+            $typeDescription = $litige->getType()->getDescription();
+
+            $trimmedTypeDescription = trim($typeDescription);
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
-            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
+            $commentaire = $userComment . (!empty($trimmedTypeDescription) ? ($nl . $trimmedTypeDescription) : '');
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -1020,18 +1020,18 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $comment = '';
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
+            $typeDescription = $litige->getType()->getDescription();
             if ($typeBefore !== $typeAfter) {
-                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
+                $comment .= "Changement du type : "
+                    . $typeBeforeName . " -> " . $litige->getType()->getLabel() . "." .
+                    (!empty($typeDescription) ? ("\n" . $typeDescription . ".") : '');
             }
             if ($statutBefore !== $statutAfter) {
                 if (!empty($comment)) {
                     $comment .= "\n";
                 }
                 $comment .= "Changement du statut : " .
-                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
-                    (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
+                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".";
             }
             if ($post->get('commentaire')) {
                 if (!empty($comment)) {

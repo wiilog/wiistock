@@ -69,6 +69,18 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
     ],
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
