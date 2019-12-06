@@ -310,6 +310,7 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $this->attachmentService->addAttachements($request, $arrivage);
+
             if ($arrivage->getNumeroBL()) {
                 $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
@@ -353,12 +354,12 @@ class ArrivageController extends AbstractController
                 }
             }
 
-			$this->attachmentService->addAttachements($request, $arrivage);
+//			$this->attachmentService->addAttachements($request, $arrivage);
 
-			$em->persist($arrivage);
-            $em->flush();
-
-            $this->attachmentService->addAttachements($request, $arrivage);
+//			$em->persist($arrivage);
+//            $em->flush();
+//
+//            $this->attachmentService->addAttachements($request, $arrivage);
 
             $printColis = null;
             $printArrivage = null;
@@ -453,12 +454,15 @@ class ArrivageController extends AbstractController
             if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($acheteurs = $post->get('acheteurs'))) {
-                // on détache les acheteurs existants...
-                $existingAcheteurs = $arrivage->getAcheteurs();
-                foreach ($existingAcheteurs as $acheteur) {
-                    $arrivage->removeAcheteur($acheteur);
-                }
+			$acheteurs = $post->get('acheteurs');
+            // on détache les acheteurs existants...
+            $existingAcheteurs = $arrivage->getAcheteurs();
+
+            foreach ($existingAcheteurs as $existingAcheteur) {
+                $arrivage->removeAcheteur($existingAcheteur);
+            }
+            if (!empty($acheteurs))
+            {
                 // ... et on ajoute ceux sélectionnés
                 $listAcheteurs = explode(',', $acheteurs);
                 foreach ($listAcheteurs as $acheteur) {

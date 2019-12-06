@@ -11,11 +11,17 @@ let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
 let pathCollecte = Routing.generate('ordre_collecte_api');
 
 let tableCollecte = $('#tableCollecte').DataTable({
-    order: [[2, 'desc']],
+    serverSide: true,
+    processing: true,
+    order: [[3, 'desc']],
     columnDefs: [
         {
-            "type": "customDate",
-            "targets": 2
+            type: "customDate",
+            targets: 3
+        },
+        {
+            orderable: false,
+            targets: 0
         }
     ],
     language: {
@@ -23,15 +29,21 @@ let tableCollecte = $('#tableCollecte').DataTable({
     },
     ajax: {
         'url': pathCollecte,
+        'data' : {
+          'filterDemand': $('#filterDemand').val()
+        },
         "type": "POST"
     },
+    drawCallback: function() {
+        overrideSearch();
+    },
     columns: [
+        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
     ],
 });
 
@@ -62,19 +74,40 @@ $.fn.dataTable.ext.search.push(
 );
 
 $(function() {
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ORDRE_COLLECTE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
-        if (data.length > 0) $submitSearchOrdreCollecte.click();
-    }, 'json');
+    ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
+
+    // cas d'un filtre par demande de collecte
+    let filterDemand = $('#filterDemand').val();
+
+    if (filterDemand) {
+        let valueArray = filterDemand.split(':');
+        let id = valueArray[0];
+        let label = valueArray[1];
+        let option = new Option(label, id, true, true);
+        $('#demandCollect').append(option).trigger('change');
+    } else {
+
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ORDRE_COLLECTE);
+
+        $.post(path, params, function (data) {
+            data.forEach(function (element) {
+                if (element.field == 'utilisateurs') {
+                    $('#utilisateur').val(element.value.split(',')).select2();
+                } else if (element.field == 'demCollecte') {
+                    let valueArray = element.value.split(':');
+                    let id = valueArray[0];
+                    let label = valueArray[1];
+                    let option = new Option(label, id, true, true);
+                    $('#demandCollect').append(option).trigger('change');
+                } else {
+                    $('#' + element.field).val(element.value);
+                }
+            });
+            if (data.length > 0) $submitSearchOrdreCollecte.click();
+        }, 'json');
+    }
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
@@ -85,22 +118,8 @@ $submitSearchOrdreCollecte.on('click', function () {
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
-    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type);
-
-    tableCollecte
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Opérateur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
+    let demandCollect = $('#demandCollect').select2('data');
+    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
 
     tableCollecte.draw();
 });
@@ -120,3 +139,14 @@ $.extend($.fn.dataTableExt.oSort, {
         return ((a < b) ? 1 : ((a > b) ? -1 : 0));
     }
 });
+
+function overrideSearch() {
+    let $input = $('#tableCollecte_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            tableCollecte.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}

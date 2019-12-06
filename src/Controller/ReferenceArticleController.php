@@ -886,7 +886,7 @@ class ReferenceArticleController extends Controller
 							->setConform(true)
 							->setStatut($statut)
 							->setReference($ref . '-' . $index)
-							->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+							->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
 							//TODO quantite, quantitie ?
 							->setEmplacement($collecte->getPointCollecte())
 							->setArticleFournisseur($articleFournisseur)
