@@ -45,7 +45,23 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
             'visible': false
         }
     ],
-    order: [[4, 'desc']]
+    order: [[4, 'desc']],
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
+});
+
+tableLitigesArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
@@ -56,7 +72,7 @@ InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitigesA
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
-initModalArrivage(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");

@@ -20,11 +20,11 @@ class ArrivageRepository extends ServiceEntityRepository
         parent::__construct($registry, Arrivage::class);
     }
 
-	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
-	 * @return Arrivage[]|null
-	 */
+    /**
+     * @param string $dateMin
+     * @param string $dateMax
+     * @return Arrivage[]|null
+     */
     public function findByDates($dateMin, $dateMax)
     {
         $entityManager = $this->getEntityManager();
@@ -39,48 +39,48 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-	public function countByFournisseur($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(a)
+    public function countByFournisseur($fournisseurId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a)
 			FROM App\Entity\Arrivage a
 			WHERE a.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
+        )->setParameter('fournisseurId', $fournisseurId);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	public function countByChauffeur($chauffeur)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(a)
+    public function countByChauffeur($chauffeur)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
 			FROM App\Entity\Arrivage a
 			WHERE a.chauffeur = :chauffeur"
-		)->setParameter('chauffeur', $chauffeur);
+        )->setParameter('chauffeur', $chauffeur);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
-	public function countColisByArrivage($arrivage)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(c)
+    /**
+     * @param Arrivage $arrivage
+     * @return int
+     * @throws NonUniqueResultException
+     */
+    public function countColisByArrivage($arrivage)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(c)
 			FROM App\Entity\Colis c
 			WHERE c.arrivage = :arrivage"
-		)->setParameter('arrivage', $arrivage->getId());
+        )->setParameter('arrivage', $arrivage->getId());
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
     public function getColisByArrivage($arrivage)
     {
@@ -95,24 +95,47 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->getScalarResult();
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
-	public function countLitigesUnsolvedByArrivage($arrivage)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(l)
+    /**
+     * @param Arrivage $arrivage
+     * @return int
+     * @throws NonUniqueResultException
+     */
+    public function countLitigesUnsolvedByArrivage($arrivage)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(l)
 			FROM App\Entity\Litige l
 			JOIN l.colis c
 			JOIN l.status s
 			WHERE s.treated = 0
 			AND c.arrivage = :arrivage"
-		)->setParameter('arrivage', $arrivage);
+        )->setParameter('arrivage', $arrivage);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param $firstDay
+     * @param $lastDay
+     * @return mixed
+     * @throws \Exception
+     */
+    public function countByDays($firstDay, $lastDay)
+    {
+        $from = new \DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
+        $to = new \DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a) as count, a.date as date
+                FROM App\Entity\Arrivage a
+                WHERE a.date BETWEEN :firstDay AND :lastDay
+                GROUP BY a.date"
+        )->setParameters([
+            'lastDay' => $to,
+            'firstDay' => $from
+        ]);
+        return $query->execute();
+    }
 }
