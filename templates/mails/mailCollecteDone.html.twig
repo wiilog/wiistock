@@ -33,7 +33,7 @@ Liste des articles :<br>
             <td class="td">{{ article.quantite }}</td>
         </tr>
     {% endfor %}
-    {% for collecteRef in collecte.collecteReferences %}
+    {% for collecteRef in collecte.ordreCollecteReferences %}
         <tr>
             <td class="td">{{ collecteRef.referenceArticle.reference }}</td>
             <td class="td">{{ collecteRef.referenceArticle.libelle }}</td>
