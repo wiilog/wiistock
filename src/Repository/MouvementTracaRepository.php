@@ -145,11 +145,14 @@ class MouvementTracaRepository extends ServiceEntityRepository
                      o.username as operateur,
                      e.label as ref_emplacement,
                      m.uniqueIdForMobile as date,
-                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished
+                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished,
+                     (CASE WHEN m.fromStock IS NOT NULL THEN 1 ELSE 0 END) as fromStock,
+                     mouvementStock.quantity as quantity
             FROM App\Entity\MouvementTraca m
             JOIN m.type t
             JOIN m.operateur o
             JOIN m.emplacement e
+            LEFT JOIN m.mouvementStock mouvementStock
             WHERE o = :op
               AND t.nom LIKE 'prise'
               AND m.finished = 0") . $typeCondition

@@ -993,6 +993,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
+
             'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
             'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK)
         ];
