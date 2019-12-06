@@ -202,6 +202,10 @@ class ArrivageRepository extends ServiceEntityRepository
 					$qb->andWhere('a.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
+				case 'emergency':
+					$qb
+						->andWhere('a.isUrgent = :isUrgent')
+						->setParameter('isUrgent', $filter['value']);
 			}
 		}
 

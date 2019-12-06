@@ -105,15 +105,16 @@ $.extend($.fn.dataTableExt.oSort, {
 });
 
 $submitSearchLivraison.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateurs = $('#utilisateur').select2('data');
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_ORDRE_LIVRAISON,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        type: $('#type').val(),
+    };
 
-    saveFilters(PAGE_ORDRE_LIVRAISON, dateMin, dateMax, statut, utilisateurs, type);
-
-    tableLivraison.draw();
+    saveFilters(filters, tableLivraison);
 });
 
 let pathArticle = Routing.generate('livraison_article_api', {'id': id});

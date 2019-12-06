@@ -155,18 +155,18 @@ $.fn.dataTable.ext.search.push(
 );
 
 $submitSearchLitigesArr.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_LITIGE_ARR,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        type: $('#type').val(),
+        carriers: $('#carriers').select2('data'),
+        providers: $('#providers').select2('data'),
+        users: $('#utilisateur').select2('data'),
+    }
 
-    let carriers = $('#carriers').select2('data');
-    let providers = $('#providers').select2('data');
-    let utilisateurs = $('#utilisateur').select2('data');
-
-    saveFilters(PAGE_LITIGE_ARR, dateMin, dateMax, statut, utilisateurs, type, null, null, carriers, providers);
-
-    tableLitigesArrivage.draw();
+    saveFilters(filters, tableLitigesArrivage);
 });
 
 function generateCSVLitigeArrivage() {

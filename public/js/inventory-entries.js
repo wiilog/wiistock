@@ -81,7 +81,7 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         "type": "POST"
     },
     'drawCallback': function() {
-        overrideSearch($('#tableMissionEntries_filter input'), tableMvt);
+        overrideSearch($('#tableMissionEntries_filter input'), tableEntries);
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },
@@ -95,15 +95,16 @@ let tableEntries = $('#tableMissionEntries').DataTable({
 
 let $submitSearchEntry = $('#submitSearchEntry');
 $submitSearchEntry.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let reference = $('#reference').select2('data');
-    let emplacement = $('#emplacement').val();
-    let operator = $('#utilisateur').select2('data');
+    let filters = {
+        page: PAGE_INV_ENTRIES,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        colis: $('#reference').select2('data'),
+        location: $('#emplacement').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    saveFilters(PAGE_INV_ENTRIES, dateMin, dateMax, null, operator, null, emplacement, reference);
-
-    tableEntries.draw();
+    saveFilters(filters, tableEntries);
 });
 
 function generateCSVEntries () {

@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Demandeur',
-    }
-});
-
 let $submitSearchManut = $('#submitSearchManutention');
 
 let pathManut = Routing.generate('manutention_api', true);
@@ -30,6 +24,9 @@ let tableManutention = $('#tableManutention_id').DataTable({
         "url": pathManut,
         "type": "POST",
     },
+    'drawCallback': function() {
+        overrideSearch($('#tableManutention_id_filter input'), tableManutention);
+    },
     columns: [
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
@@ -41,16 +38,16 @@ let tableManutention = $('#tableManutention_id').DataTable({
 });
 
 $submitSearchManut.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let user = $('#utilisateur').val();
-    let demandeurString = user.toString();
-    demandeurPiped = demandeurString.split(',').join('|');
 
-    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
+    let filters = {
+        page: PAGE_MANUT,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    tableManutention.draw();
+    saveFilters(filters, tableManutention);
 });
 
 $.fn.dataTable.ext.search.push(
@@ -126,6 +123,8 @@ $(function() {
         });
         if (data.length > 0) $submitSearchManut.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 });
 
 // filtres de recheches

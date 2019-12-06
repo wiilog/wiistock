@@ -92,15 +92,16 @@ $.fn.dataTable.ext.search.push(
 );
 
 $submitSearchPrepa.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateurs = $('#utilisateur').select2('data');
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_PREPA,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        type: $('#type').val(),
+    };
 
-    saveFilters(PAGE_PREPA, dateMin, dateMax, statut, utilisateurs, type);
-
-    table.draw();
+    saveFilters(filters, table);
 });
 
 $.extend($.fn.dataTableExt.oSort, {

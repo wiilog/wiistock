@@ -132,16 +132,17 @@ let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
 $submitSearchMvt.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let article = $('#colis').val();
-    let emplacement = $('#emplacement').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').select2('data');
+    let filters = {
+        page: PAGE_MVT_TRACA,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        colis: $('#colis').val(),
+        location: $('#emplacement').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    saveFilters(PAGE_MVT_TRACA, dateMin, dateMax, statut, demandeur, null, emplacement, article);
-
-    tableMvt.draw();
+    saveFilters(filters, tableMvt);
 });
 
 function generateCSVMouvement () {

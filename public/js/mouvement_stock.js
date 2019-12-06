@@ -114,15 +114,16 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 let $submitSearchMvt = $('#submitSearchMvt');
 $submitSearchMvt.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let emplacement = $('#emplacement').val();
-    let demandeur = $('#utilisateur').select2('data');
+    let filters = {
+        page: PAGE_MVT_STOCK,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        emplacement: $('#emplacement').val(),
+        demandeur: $('#utilisateur').select2('data'),
+    };
 
-    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeur, null, emplacement);
-
-    tableMvt.draw();
+    saveFilters(filters, tableMvt);
 });
 
 function generateCSVMouvement () {

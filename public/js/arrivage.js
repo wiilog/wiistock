@@ -202,8 +202,6 @@ $submitSearchArrivage.on('click', function () {
         urgence: $('#urgence-filter').is(':checked')
     }
     saveFilters(filters, tableArrivage);
-
-    tableArrivage.draw();
 });
 
 function generateCSVArrivage () {
