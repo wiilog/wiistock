@@ -360,7 +360,11 @@ let printBarcode = function (button) {
     };
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
+            if (response.refs.length > 0 ) {
+                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
+            } else {
+                alertErrorMsg('Aucune étiquette à imprimer.');
+            }
         } else {
             $('#cannotGenerate').click();
         }
