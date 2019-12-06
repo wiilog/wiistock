@@ -11,10 +11,27 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group">
-                    <label for="nbColis">Nombre de colis</label>
-                    <input type="number" id="nbColis" class="form-control data" name="nbColis" min="0">
+                <div class="row mt-4">
+                    <div class='col-12 mb-2'>
+                        <h3 class="label">Nb de colis à ajouter :</h3>
+                    </div>
+                    <div class="form-group col-12 blocVisible d-block" id=''>
+                        <div class="d-block">
+                            <div class="row mt-2">
+                                {% for nature in natures %}
+                                    <div class="form-group col-6">
+                                        <label for="">
+                                            {{nature.label | capitalize}}
+                                        </label>
+                                        <input type="number" class="form-control data"
+                                               value="" name="{{ nature.id }}" id="{{ nature.id }}" min="0">
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">

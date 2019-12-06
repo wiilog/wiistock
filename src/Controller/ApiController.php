@@ -12,6 +12,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\PieceJointe;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
@@ -301,11 +302,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/addMouvementTraca", name="api-add-mouvement-traca")
-     * @Rest\Get("/api/addMouvementTraca")
+     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvement-traca")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function addMouvementTraca(Request $request)
+    public function postMouvementTraca(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = new Response();
@@ -317,36 +320,66 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
-                foreach ($data['mouvements'] as $mvt) {
-                    if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                        $refEmplacement = $mvt['ref_emplacement'];
-                        $refArticle = $mvt['ref_article'];
-                        $type = $mvt['type'];
+                $mouvementsNomade = json_decode($data['mouvements'], true);
+                foreach ($mouvementsNomade as $mvt) {
+                    if (!$this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date'])) {
+                        $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
+                        $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
 
-                        $toInsert = new MouvementTraca();
-                        $toInsert
-                            ->setRefArticle($refArticle)
-                            ->setRefEmplacement($refEmplacement)
-                            ->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
-                            ->setDate($mvt['date'])
+                        // création de l'emplacement s'il n'existe pas
+                        if (!$location) {
+                            $emplacement = new Emplacement();
+                            $emplacement->setLabel($mvt['ref_emplacement']);
+                            $em->persist($emplacement);
+                            $em->flush();
+                        }
+                        $operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+                        $dateArray = explode('_', $mvt['date']);
+
+                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
+
+                        $mouvementTraca = new MouvementTraca();
+                        $mouvementTraca
+                            ->setColis($mvt['ref_article'])
+                            ->setEmplacement($location)
+                            ->setOperateur($operator)
+                            ->setUniqueIdForMobile($mvt['date'])
+                            ->setDatetime($date)
+                            ->setFinished($mvt['finished'])
                             ->setType($type);
-                        $em->persist($toInsert);
+                        if (!empty($mvt['commentaire'])) {
+                            $mouvementTraca->setCommentaire($mvt['commentaire']);
+                        }
+                        $em->persist($mouvementTraca);
                         $numberOfRowsInserted++;
-
-                        $emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
-
-                        if ($emplacement) {
-
+                        if (!empty($mvt['signature'])) {
+                            $path = "../public/uploads/attachements/";
+                            if (!file_exists($path)) {
+                                mkdir($path, 0777);
+                            }
+                            $fileName = 'signature' . str_replace(':', '', $mouvementTraca->getUniqueIdForMobile()) . '.jpeg';
+                            file_put_contents(
+                                $path . $fileName,
+                                file_get_contents($mvt['signature'])
+                            );
+                            $pj = new PieceJointe();
+                            $pj
+                                ->setOriginalName($fileName)
+                                ->setFileName($fileName)
+                                ->setMouvementTraca($mouvementTraca);
+                            $em->persist($pj);
+                        }
+                        $em->flush();
+//						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+                        if ($location) {
                             $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
-                            if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+                            if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
                                 $fournisseur = $this->fournisseurRepository->findOneByColis($colis);
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findOneMailerServer()) {
-                                    $dateArray = explode('_', $toInsert->getDate());
-                                    $date = new DateTime($dateArray[0]);
                                     $this->mailerService->sendMail(
                                         'FOLLOW GT // Dépose effectuée',
                                         $this->renderView(
@@ -354,10 +387,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             [
                                                 'title' => 'Votre colis a été livré.',
                                                 'colis' => $colis->getCode(),
-                                                'emplacement' => $emplacement,
+                                                'emplacement' => $location->getLabel(),
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $toInsert->getOperateur(),
+                                                'operateur' => $operator,
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
@@ -367,12 +400,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $this->logger->critical('Parametrage mail non defini.');
                                 }
                             }
-                        } else {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($refEmplacement);
-                            $em->persist($emplacement);
-                            $em->flush();
                         }
+                    } else {
+                        $toEdit = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setFinished($mvt['finished']);
                     }
                 }
                 $em->flush();
@@ -751,8 +782,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $this->successDataMsg['success'] = true;
 
-            }
-            else {
+            } else {
                 $statusCode = Response::HTTP_UNAUTHORIZED;
                 $resData['success'] = false;
                 $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -771,7 +801,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws ORMException
      */
     public function finishCollecte(Request $request,
-                                   EntityManagerInterface $entityManager) {
+                                   EntityManagerInterface $entityManager)
+    {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -786,23 +817,35 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     try {
                         if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                             $entityManager->transactional(function ()
-                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser) {
+                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
                                 $this->ordreCollecteService->setEntityManager($entityManager);
                                 $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
-                                $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date);
-                                $entityManager->flush();
-                            });
 
-                            $resData['success'][] = [
-                                'numero_collecte' => $collecte->getNumero(),
-                                'id_collecte' => $collecte->getId()
-                            ];
+                                $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
+                                $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
+                                $entityManager->flush();
+
+								if (!empty($newCollecte)) {
+									$newCollecteId = $newCollecte->getId();
+									$newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
+
+									$articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
+									$refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
+									$articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
+								}
+
+								$resData['success'][] = [
+									'numero_collecte' => $collecte->getNumero(),
+									'id_collecte' => $collecte->getId(),
+									'newCollecte' => $newCollecteArray ?? null,
+									'articlesCollecte' => $articlesCollecte ?? []
+								];
+                            });
                         }
                         else {
-                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGAN);
+                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGUN);
                         }
-                    }
-                    catch (Exception $exception) {
+                    } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -816,7 +859,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_collecte' => $collecte->getId(),
 
                             'message' => (
-                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGAN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
+                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
                                 'Une erreur est survenue'
                             )
                         ];
@@ -927,8 +970,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
-        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -947,7 +990,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
-            'anomalies' => array_merge($refAnomalies, $artAnomalies)
+            'anomalies' => array_merge($refAnomalies, $artAnomalies),
+            'prises' => $this->mouvementTracaRepository->findPrisesByOperatorAndNotDeposed($user)
         ];
 
         return $data;
@@ -982,7 +1026,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Get("/api/nomade-versions")
      */
-    public function getAvailableVersionsAction() {
+    public function getAvailableVersionsAction()
+    {
         return new JsonResponse($this->getParameter('nomade_versions') ?? '*');
     }
 
@@ -1018,6 +1063,41 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $response->setContent(json_encode($this->successDataMsg));
             return $response;
+        }
+    }
+
+    /**
+     * @Rest\Post("/api/emplacement", name= "api-new-emp")
+     */
+    public function addEmplacement(Request $request)
+    {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
+        if (!$request->isXmlHttpRequest()) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
+                if (!$this->emplacementRepository->findOneByLabel($request->request->get('label'))) {
+                    $toInsert = new Emplacement();
+                    $toInsert
+                        ->setLabel($request->request->get('label'))
+                        ->setIsActive(true)
+                        ->setDescription('')
+                        ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($toInsert);
+                    $em->flush();
+                    $resData['success'] = true;
+                    $resData['msg'] = $toInsert->getId();
+                } else {
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = false;
+                    $resData['msg'] = "Un emplacement portant ce nom existe déjà.";
+                }
+            } else {
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+            return new JsonResponse($resData, $statusCode);
         }
     }
 

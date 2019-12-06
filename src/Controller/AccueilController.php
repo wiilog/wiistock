@@ -8,6 +8,8 @@ use App\Repository\ArticleRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\DashboardService;
+use http\Env\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -84,8 +86,14 @@ class AccueilController extends AbstractController
      */
     private $fiabilityByReferenceRepository;
 
-    public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
+    /**
+     * @var DashboardService
+     */
+    private $dashboardService;
+
+    public function __construct(DashboardService $dashboardService, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
+        $this->dashboardService = $dashboardService;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
@@ -110,7 +118,6 @@ class AccueilController extends AbstractController
     	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
-
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
     	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
         $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
@@ -164,6 +171,17 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
+        ]);
+    }
+
+    /**
+     * @Route("/dashboard", name="accueil_dashboard", methods={"GET"})
+     */
+    public function dashboard(): Response
+    {
+        return $this->render('accueil/dashboard.html.twig', [
+            'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
+            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
         ]);
     }
 

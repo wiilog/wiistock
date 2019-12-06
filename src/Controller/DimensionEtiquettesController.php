@@ -39,7 +39,7 @@ class DimensionEtiquettesController extends AbstractController
     }
 
     /**
-     * @Route("/parametrage", name="etiquettes_param")
+     * @Route("/parametrage", name="etiquettes_param_index")
      */
     public function index(): response
     {

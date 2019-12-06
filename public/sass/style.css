@@ -245,12 +245,18 @@ a:hover {
   height: 5rem;
 }
 
+.urgence-filter {
+  border-radius: 3px;
+  background-color: white;
+  padding: 7px;
+}
+
 .logo-wrapper {
   padding: 25px;
 }
 
-/* Login    
- * *================= 
+/* Login
+ * *=================
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -335,13 +341,18 @@ a:hover {
 
 .comment {
   height: auto;
-  min-height: 45px;
+  min-height: calc(2.25rem + 2px);
   max-height: 25vh;
   overflow: auto;
 }
 
-.modal-open {
-  padding-right: 0px !important;
+.input {
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+}
+.input.disabled {
+  background-color: #e9ecef;
+  opacity: 1;
 }
 
 .accueil-back {
@@ -379,6 +390,49 @@ a:hover {
 .curve_chart_line {
   height: 75px;
   width: 300px;
+}
+
+#range-buttons-assoc {
+  text-align: center;
+}
+
+.dashboardBR {
+  background-color: white;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.dashboard-item {
+  min-width: 50%;
+  min-height: 40%;
+}
+
+#dashboard-assoc {
+  margin-top: 5px;
+  height: 450px;
+  border: 1px solid black;
+  width: 900px;
+  background-color: white;
+  text-align: center;
+}
+
+#dashboard-retard {
+  margin-top: 5px;
+  height: 450px;
+  border: 1px solid black;
+  width: 900px;
+  background-color: white;
+}
+#dashboard-retard .title {
+  text-align: center;
+}
+
+#chart-assoc {
+  height: 70%;
 }
 
 .btn {
@@ -767,10 +821,6 @@ button:focus {
   background-color: #8e8e8e;
 }
 
-.select2-selection.select2-selection--multiple {
-  min-height: 38px !important;
-}
-
 .commentOverflow {
   height: 25vh;
   width: 120vh;
@@ -806,6 +856,17 @@ em {
 
 .isRight {
   border: 3px dashed #00b31e;
+}
+
+.select2-selection.select2-selection--multiple {
+  min-height: 38px !important;
+}
+
+.modal .select2-selection {
+  min-height: calc(2.25rem + 2px);
+}
+.modal .select2-selection .select2-selection__rendered {
+  line-height: calc(2.25rem + 2px) !important;
 }
 
 /*# sourceMappingURL=style.css.map */
