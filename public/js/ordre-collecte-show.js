@@ -28,3 +28,54 @@ let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
 let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
 InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle);
+
+let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
+let modalFinishCollecte = $("#modalFinishCollecte");
+let submitFinishCollecte = $("#submitFinishCollecte");
+
+submitFinishCollecte.on('click', function() {
+    // on récupère les lignes sélectionnées
+    let $table = $('#tableArticle');
+    let $rowsSelected = $table.find('.btn-check.active');
+    let $rowsToDelete = $table.find('.btn-check:not(.active)');
+    let rowsData = [];
+    $rowsSelected.each(function() {
+        rowsData.push({
+            'reference': $(this).data('ref'),
+            'is_ref': $(this).data('is-ref')
+        });
+    });
+
+    // on récupère le point de dépose
+    let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
+
+    if (depositLocationId) {
+        let params = {'rows': rowsData, 'depositLocationId': depositLocationId};
+
+        $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
+            modalFinishCollecte.find('.close').click();
+            $('.zone-entete').html(data);
+            $rowsToDelete.each(function() {
+                tableArticle
+                    .row($(this).parents('tr'))
+                    .remove()
+                    .draw();
+            });
+        });
+    } else {
+        modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
+    }
+});
+
+function toggleCheck($elem) {
+    $elem.toggleClass('active');
+}
+
+function checkIfRowSelected() {
+    let $activeChecks = $('#tableArticle').find('.active');
+    if ($activeChecks.length === 0) {
+        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
+    } else {
+        $('#btnModalFinishCollecte').click();
+    }
+}

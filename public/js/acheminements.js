@@ -56,6 +56,37 @@ function printAcheminement(id) {
     });
 }
 
+let $submitSearchAcheminements = $('#submitSearchAcheminements');
+$submitSearchAcheminements.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
+    let statut = $('#statut').val();
+    saveFilters(PAGE_ACHEMINEMENTS, dateMin, dateMax, statut, null, null, null, null, null, null, function() {
+        tableAcheminements.draw()
+    });
+});
+
+$(function() {
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchAcheminements.click();
+    }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ACHEMINEMENTS);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchAcheminements.click();
+    }, 'json');
+});
+
 function printColis(data) {
     let a4 = [3508, 2480];
     if (data.exists) {

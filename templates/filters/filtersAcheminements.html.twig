@@ -1,0 +1,40 @@
+<div class="filterService filters">
+    {% block dateFilter %}
+        <div>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">De</div>
+                </div>
+                <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">Au</div>
+                </div>
+                <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+            </div>
+        </div>
+    {% endblock %}
+    {% block statusFilter %}
+        <div>
+            <div class="input-group">
+                <select class="form-control data" name="statut" id="statut"
+                        placeholder='{{ statut is defined  ? statut : 'statut' }}'>
+                    <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
+                    {% for statut in statuts %}
+                        {% if filterStatus is defined and statut.nom == filterStatus%}
+                            {% set selected = 'selected' %}
+                        {% else %}
+                            {% set selected = '' %}
+                        {% endif %}
+                        <option value="{{ statut.nom }}" {{ selected }}>{{ statut.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    {% endblock %}
+    <div>
+        <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
+            <i class="fas fa-filter mr-2"></i>
+            Filtrer
+        </div>
+    </div>
+</div>
