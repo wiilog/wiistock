@@ -41,6 +41,13 @@ class PieceJointe
      */
     private $litige;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="attachements")
+     * @ORM\JoinColumn(name="mvt_traca_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $mouvementTraca;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +97,18 @@ class PieceJointe
     public function setLitige(?Litige $litige): self
     {
         $this->litige = $litige;
+
+        return $this;
+    }
+
+    public function getMouvementTraca(): ?MouvementTraca
+    {
+        return $this->mouvementTraca;
+    }
+
+    public function setMouvementTraca(?MouvementTraca $mouvementTraca): self
+    {
+        $this->mouvementTraca = $mouvementTraca;
 
         return $this;
     }

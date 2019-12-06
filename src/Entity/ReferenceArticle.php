@@ -94,6 +94,11 @@ class ReferenceArticle
     private $collecteReferences;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecteReference", mappedBy="referenceArticle")
+     */
+    private $ordreCollecteReferences;
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
@@ -170,6 +175,7 @@ class ReferenceArticle
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryCategoryHistory = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
+        $this->ordreCollecteReferences = new ArrayCollection();
     }
 
     public function getId()
@@ -695,6 +701,37 @@ class ReferenceArticle
     public function setLimitWarning($limitWarning): self
     {
         $this->limitWarning = $limitWarning;
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecteReference[]
+     */
+    public function getOrdreCollecteReferences(): Collection
+    {
+        return $this->ordreCollecteReferences;
+    }
+
+    public function addOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
+    {
+        if (!$this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+            $this->ordreCollecteReferences[] = $ordreCollecteReference;
+            $ordreCollecteReference->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdreCollecteReference(OrdreCollecteReference $ordreCollecteReference): self
+    {
+        if ($this->ordreCollecteReferences->contains($ordreCollecteReference)) {
+            $this->ordreCollecteReferences->removeElement($ordreCollecteReference);
+            // set the owning side to null (unless already changed)
+            if ($ordreCollecteReference->getReferenceArticle() === $this) {
+                $ordreCollecteReference->setReferenceArticle(null);
+            }
+        }
+
         return $this;
     }
 

@@ -1,0 +1,13 @@
+<div class="d-flex">
+    <div>
+        <div class="btn btn-col-action" data-id='{{ urgence.id }}' data-target='#modalEditUrgence' data-toggle='modal'
+             onclick="editRow($(this), Routing.generate('urgence_edit_api', true), $('#modalEditUrgence'), $('#submitEditUrgence'), true)">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
+    </div>
+    <div class="btn btn-col-action" data-id='{{ urgence.id }}' data-target='#modalDeleteUrgence'
+         data-toggle='modal'
+         onclick="deleteRow($(this), $('#modalDeleteUrgence'), $('#submitDeleteUrgence'))">
+        <i class='fas fa-trash'></i>
+    </div>
+</div>

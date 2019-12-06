@@ -111,6 +111,16 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $manutentions;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="receiver")
+     */
+    private $acheminementsReceive;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="requester")
+     */
+    private $acheminementsRequester;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
@@ -166,6 +176,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $litigeHistorics;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionTraca", mappedBy="user")
+     */
+    private $receptionsTraca;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -184,6 +199,10 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->types = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
+        $this->acheminements = new ArrayCollection();
+        $this->acheminementsReceive = new ArrayCollection();
+        $this->acheminementsRequester = new ArrayCollection();
+        $this->receptionsTraca = new ArrayCollection();
     }
 
     public function getId()
@@ -860,6 +879,130 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($litigeHistoric->getUser() === $this) {
                 $litigeHistoric->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminements(): Collection
+    {
+        return $this->acheminements;
+    }
+
+    public function addAcheminement(Acheminements $acheminement): self
+    {
+        if (!$this->acheminements->contains($acheminement)) {
+            $this->acheminements[] = $acheminement;
+            $acheminement->setDemandeur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminement(Acheminements $acheminement): self
+    {
+        if ($this->acheminements->contains($acheminement)) {
+            $this->acheminements->removeElement($acheminement);
+            // set the owning side to null (unless already changed)
+            if ($acheminement->getDemandeur() === $this) {
+                $acheminement->setDemandeur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminementsReceive(): Collection
+    {
+        return $this->acheminementsReceive;
+    }
+
+    public function addAcheminementsReceive(Acheminements $acheminementsReceive): self
+    {
+        if (!$this->acheminementsReceive->contains($acheminementsReceive)) {
+            $this->acheminementsReceive[] = $acheminementsReceive;
+            $acheminementsReceive->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminementsReceive(Acheminements $acheminementsReceive): self
+    {
+        if ($this->acheminementsReceive->contains($acheminementsReceive)) {
+            $this->acheminementsReceive->removeElement($acheminementsReceive);
+            // set the owning side to null (unless already changed)
+            if ($acheminementsReceive->getReceiver() === $this) {
+                $acheminementsReceive->setReceiver(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminementsRequester(): Collection
+    {
+        return $this->acheminementsRequester;
+    }
+
+    public function addAcheminementsRequester(Acheminements $acheminementsRequester): self
+    {
+        if (!$this->acheminementsRequester->contains($acheminementsRequester)) {
+            $this->acheminementsRequester[] = $acheminementsRequester;
+            $acheminementsRequester->setRequester($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminementsRequester(Acheminements $acheminementsRequester): self
+    {
+        if ($this->acheminementsRequester->contains($acheminementsRequester)) {
+            $this->acheminementsRequester->removeElement($acheminementsRequester);
+            // set the owning side to null (unless already changed)
+            if ($acheminementsRequester->getRequester() === $this) {
+                $acheminementsRequester->setRequester(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionTraca[]
+     */
+    public function getReceptionsTraca(): Collection
+    {
+        return $this->receptionsTraca;
+    }
+
+    public function addReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    {
+        if (!$this->receptionsTraca->contains($receptionsTraca)) {
+            $this->receptionsTraca[] = $receptionsTraca;
+            $receptionsTraca->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    {
+        if ($this->receptionsTraca->contains($receptionsTraca)) {
+            $this->receptionsTraca->removeElement($receptionsTraca);
+            // set the owning side to null (unless already changed)
+            if ($receptionsTraca->getUser() === $this) {
+                $receptionsTraca->setUser(null);
             }
         }
 

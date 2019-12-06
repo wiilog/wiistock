@@ -1,0 +1,38 @@
+<form method="" class="modal fade" id="modalNewUrgence" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Nouvelle urgence</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="dateStart">Date de début*</label>
+                    <input type="datetime-local" class="form-control data needed" name="dateStart">
+                </div>
+
+                <div class="form-group">
+                    <label for="dateEnd">Date de fin*</label>
+                    <input type="datetime-local" class="form-control data needed" name="dateEnd">
+                </div>
+
+                <div class="form-group needed">
+                    <label for="source">Numéro de commande*</label>
+                    <input class="form-control data needed" name="commande">
+                </div>
+            </div>
+
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewUrgence" type="button" class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
