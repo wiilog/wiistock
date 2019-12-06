@@ -119,7 +119,7 @@ $submitSearchOrdreCollecte.on('click', function () {
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
     let demandCollect = $('#demandCollect').select2('data');
-    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
+    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, null, demandCollect);
 
     tableCollecte.draw();
 });

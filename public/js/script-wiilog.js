@@ -694,7 +694,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user = null, type = null, location = null, colis = null, carriers = null, providers = null, callback = null) {
+function saveFilters(page, dateMin, dateMax, statut, user = null, type = null, location = null, colis = null, carriers = null, providers = null, callback = null, demandCollect = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
