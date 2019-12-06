@@ -108,6 +108,7 @@ class ChauffeurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            dump($data);
             $chauffeur = new Chauffeur();
 
             $chauffeur
@@ -256,6 +257,22 @@ class ChauffeurController extends AbstractController
 
             $transporteur = $this->transporteurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $transporteur]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autocomplete-chauffeur", name="get_chauffeur", options={"expose"=true})
+     */
+    public function getChauffeur(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+                return new JsonResponse(['results' => null]);
+            }
+            $search = $request->query->get('term');
+            $chauffeur = $this->chauffeurRepository->getIdAndLibelleBySearch($search);
+            return new JsonResponse(['results' => $chauffeur]);
         }
         throw new NotFoundHttpException("404");
     }

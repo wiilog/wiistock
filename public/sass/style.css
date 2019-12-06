@@ -255,8 +255,8 @@ a:hover {
   padding: 25px;
 }
 
-/* Login    
- * *================= 
+/* Login
+ * *=================
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -411,43 +411,27 @@ a:hover {
   min-height: 40%;
 }
 
-.dashboard-box {
-  margin: 5px;
+#dashboard-assoc {
+  margin-top: 5px;
   height: 450px;
   border: 1px solid black;
+  width: 900px;
   background-color: white;
   text-align: center;
-  width: 44%;
 }
 
-.page-item.active .page-link {
-  background-color: #130078 !important;
-  border-color: #130078 !important;
-  color: #fff !important;
+#dashboard-retard {
+  margin-top: 5px;
+  height: 450px;
+  border: 1px solid black;
+  width: 900px;
+  background-color: white;
 }
-
-.page-link {
-  color: #130078 !important;
-}
-
-.retard {
-  padding: 10px;
-}
-
-.chart {
-  height: 70%;
-  width: 99%;
-}
-
-.range-buttons {
+#dashboard-retard .title {
   text-align: center;
 }
 
 #chart-assoc {
-  height: 70%;
-}
-
-#chart-arrival {
   height: 70%;
 }
 

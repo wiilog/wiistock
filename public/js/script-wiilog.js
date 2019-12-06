@@ -536,6 +536,28 @@ function ajaxAutoFournisseurInit(select) {
     });
 }
 
+function ajaxAutoChauffeurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_chauffeur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
 function ajaxAutoUserInit(select) {
     select.select2({
         ajax: {
@@ -552,6 +574,28 @@ function ajaxAutoUserInit(select) {
             }
         },
         minimumInputLength: 1,
+    });
+}
+
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
+        }
     });
 }
 
@@ -649,7 +693,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null, demandCollect = null) {
     let path = Routing.generate('filter_sup_new');
     let params = {};
     if (dateMin) params.dateMin = dateMin;
@@ -661,6 +705,7 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     if (colis) params.colis = colis;
     if (carriers) params.carriers = carriers;
     if (providers) params.providers = providers;
+    if (demandCollect) params.demandCollect = demandCollect;
     params.page = page;
 
     $.post(path, JSON.stringify(params), 'json');
