@@ -18,7 +18,7 @@ class ReceptionTracaRepository extends ServiceEntityRepository
         'date' => 'dateCreation',
         'Arrivage' => 'arrivage',
         'Réception' => 'number',
-        'Utilisateur' => 'users',
+        'Utilisateur' => 'user',
     ];
 
     public function __construct(RegistryInterface $registry)

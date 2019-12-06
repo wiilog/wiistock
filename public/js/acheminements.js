@@ -2,15 +2,11 @@ let pathacheminements = Routing.generate('acheminements_api', true);
 let tableAcheminements = $('#tableAcheminement').DataTable({
     serverSide: true,
     processing: true,
-    order: [[0, 'desc']],
+    order: [[1, "desc"]],
     columnDefs: [
         {
-            "type": "customDate",
-            "targets": 0
-        },
-        {
             "orderable" : false,
-            "targets" : 5
+            "targets" : [0]
         }
     ],
     language: {
@@ -21,13 +17,13 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
         "type": "POST",
     },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
         { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': 'Emplacement prise' },
         { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': 'Emplacement de dépose' },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 
