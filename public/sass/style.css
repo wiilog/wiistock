@@ -257,9 +257,7 @@ a:hover {
 }
 
 /* Login    
- *
  * *================= 
- *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -794,8 +792,8 @@ a:hover {
 .filters > div .select2-selection__placeholder {
   vertical-align: middle;
 }
-.filters .minw-150px + .select2-container {
-  min-width: 150px;
+.filters .minw-150px .select2-container {
+  min-width: 150px !important;
 }
 
 .filterService {
