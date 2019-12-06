@@ -578,6 +578,28 @@ function ajaxAutoUserInit(select) {
     });
 }
 
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
+        }
+    });
+}
+
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
@@ -684,6 +706,7 @@ function saveFilters(page, dateMin, dateMax, statut, user = null, type = null, l
     if (colis) params.colis = colis;
     if (carriers) params.carriers = carriers;
     if (providers) params.providers = providers;
+    if (demandCollect) params.demandCollect = demandCollect;
     params.page = page;
 
     $.post(path, JSON.stringify(params), function() {
