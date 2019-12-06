@@ -42,7 +42,8 @@ submitFinishCollecte.on('click', function() {
     $rowsSelected.each(function() {
         rowsData.push({
             'reference': $(this).data('ref'),
-            'is_ref': $(this).data('is-ref')
+            'is_ref': $(this).data('is-ref'),
+            'quantity': $(this).data('quantity')
         });
     });
 

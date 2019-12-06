@@ -138,11 +138,16 @@ class OrdreCollecteService
 		$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
 		$listRefRef = $listArtRef = [];
+		$referenceToQuantity = [];
+		$artToQuantity = [];
 		foreach($mouvements as $mouvement) {
+		    $quantity = isset($mouvement['quantity']) ? $mouvement['quantity'] : $mouvement['quantite'];
 			if ($mouvement['is_ref']) {
 				$listRefRef[] = $mouvement['reference'];
+                $referenceToQuantity[$mouvement['reference']] = $quantity;
 			} else {
 				$listArtRef[] = $mouvement['reference'];
+                $artToQuantity[$mouvement['reference']] = $quantity;
 			}
 		}
 
@@ -157,6 +162,13 @@ class OrdreCollecteService
 					'isRef' => 1
 				];
 			}
+			else {
+                $quantity = $referenceToQuantity[$refArticle->getReference()];
+                $oldQuantity = $ordreCollecteReference->getQuantite();
+                if($quantity > 0 && $quantity < $oldQuantity) {
+                    $ordreCollecteReference->setQuantite($quantity);
+                }
+            }
 		}
 
 		$listArticles = $this->articleRepository->findByOrdreCollecteId($collecte->getId());
@@ -167,6 +179,13 @@ class OrdreCollecteService
 					'isRef' => 0
 				];
 			}
+			else {
+                $quantity = $artToQuantity[$article->getReference()];
+                $oldQuantity = $article->getQuantite();
+                if($quantity > 0 && $quantity < $oldQuantity) {
+                    $article->setQuantite($quantity);
+                }
+            }
 		}
 
 		// cas de collecte partielle
@@ -196,7 +215,8 @@ class OrdreCollecteService
 			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_COLLECTE, Collecte::STATUS_INCOMPLETE));
 
 			$em->flush();
-		} else {
+		}
+		else {
 		// cas de collecte totale
 			$demandeCollecte
 				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE))
