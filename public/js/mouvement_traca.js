@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 $('#emplacement').select2({
     placeholder: {
         id: 0,
@@ -21,7 +15,15 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
             } else {
@@ -30,32 +32,43 @@ $(function() {
         });
         if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 });
 
 let pathMvt = Routing.generate('mvt_traca_api', true);
 let tableMvt = $('#tableMvts').DataTable({
-    "language": {
+    responsive: true,
+    serverSide: true,
+    processing: true,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "processing": true,
-    "order": [[0, "desc"]],
+    order: [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
-    "columnDefs": [
-        {
-            "type": "customDate",
-            "targets": 0
-        }
-    ],
+    'drawCallback': function() {
+        overrideSearch($('#tableMvts_filter input'), tableMvt);
+    },
     columns: [
-        {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
-        {"data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement'},
-        {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'date', 'name': 'date', 'title': 'Date'},
+        {"data": "colis", 'name': 'colis', 'title': "Colis"},
+        {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 1
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
     ],
 });
 
@@ -103,42 +116,33 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
+let modalNewMvtTraca = $("#modalNewMvtTraca");
+let submitNewMvtTraca = $("#submitNewMvtTraca");
+let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt);
+
+let modalEditMvtTraca = $("#modalEditMvtTraca");
+let submitEditMvtTraca = $("#submitEditMvtTraca");
+let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
+initModalWithAttachments(modalEditMvtTraca, submitEditMvtTraca, urlEditMvtTraca, tableMvt);
+
 let modalDeleteArrivage = $('#modalDeleteMvtTraca');
 let submitDeleteArrivage = $('#submitDeleteMvtTraca');
 let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
 $submitSearchMvt.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let article = $('#colis').val();
-    let emplacement = $('#emplacement').val();
-    let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|');
+    let filters = {
+        page: PAGE_MVT_TRACA,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        colis: $('#colis').val(),
+        location: $('#emplacement').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    saveFilters(PAGE_MVT_TRACA, dateMin, dateMax, statut, demandeurPiped, null, emplacement, article);
-
-    tableMvt
-        .columns('type:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableMvt
-        .columns('operateur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refEmplacement:name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refArticle:name')
-        .search(article)
-        .draw();
-
-    tableMvt.draw();
+    saveFilters(filters, tableMvt);
 });
 
 function generateCSVMouvement () {
@@ -193,4 +197,31 @@ let mFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+let editorNewMvtTracaAlreadyDone = false;
+
+function initNewMvtTracaEditor(modal) {
+    if (!editorNewMvtTracaAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewMvtTracaAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'));
+};
+
+let editorEditMvtTracaAlreadyDone = false;
+
+function initEditMvtTracaEditor(modal) {
+    if (!editorEditMvtTracaAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-edit');
+        editorEditMvtTracaAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+};
+
+function fillDateInNewModal() {
+    let date = new Date();
+    $('#modalNewMvtTraca').find('.datetime').val(date.toISOString().slice(0,16));
 }

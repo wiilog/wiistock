@@ -101,20 +101,15 @@ class CollecteService
 	 * @throws \Twig_Error_Loader
 	 * @throws \Twig_Error_Runtime
 	 * @throws \Twig_Error_Syntax
-	 * @throws NonUniqueResultException
 	 */
     public function dataRowCollecte($collecte)
     {
-    	$ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
-
-    	$ordreCollecteDate = $ordreCollecte ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '';
-
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);
         $row =
             [
                 'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
                 'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                'Validation' => $ordreCollecteDate,
+                'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : null,
                 'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
                 'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
                 'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),

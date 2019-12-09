@@ -1,14 +1,5 @@
-const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
+let numberOfDataOpened = 0;
 $('.select2').select2();
-
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Destinataire',
-    }
-});
-
-let $submitSearchArrivage = $('#submitSearchArrivage');
 
 $(function() {
     // filtres enregistrés en base pour chaque utilisateur
@@ -17,29 +8,58 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field = 'emergency') {
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchArrivage.click();
+
+        initFilterDateToday();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
 });
+
+function initFilterDateToday() {
+    // par défaut filtre date du jour
+    let today = new Date();
+    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
+    $('#dateMin').val(formattedToday);
+    $('#dateMax').val(formattedToday);
+}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[11, "desc"]],
+    order: [[1, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
         "type": "POST"
     },
+    'drawCallback': function() {
+        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
+    },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
         {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
@@ -50,9 +70,33 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
+    columnDefs: [
+        {
+            targets: 0,
+            className: 'noVis'
+        },
+        {
+            orderable: false,
+            targets: [0]
+        }
+    ],
+    "rowCallback" : function(row, data) {
+        if (data.urgent === true) $(row).addClass('table-danger');
+    },
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
 });
 
 function listColis(elem) {
@@ -118,10 +162,19 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
+function printLabels(data) {
+    if (data.exists) {
+        console.log('print');
+        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -131,439 +184,25 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
-let quillEdit;
-let originalText = '';
-
-// function toggleLitige(select) {
-//     let bloc = select.closest('.modal').find('#litigeBloc');
-//     let status = select.find('option:selected').text();
-//
-//     let litigeType = bloc.find('#litigeType');
-//     let constantConform = $('#constantConforme').val();
-//
-//     if (status === constantConform) {
-//         litigeType.removeClass('needed');
-//         bloc.addClass('d-none');
-//
-//     } else {
-//         bloc.removeClass('d-none');
-//         litigeType.addClass('needed');
-//     }
-// }
-
-function addCommentaire(select, bool) {
-    let params = {
-        typeLitigeId: select.val()
-    };
-
-    let quillType = bool ? quillNew : quillEdit;
-    originalText = quillType.getText().trim();
-
-    $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
-        if (comment) {
-            let d = new Date();
-            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
-            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
-
-            let textToInsert = originalText.length > 0 && !bool ? originalText + "\n\n" : '';
-
-            quillType.setContents([
-                {insert: textToInsert},
-                {insert: date + ' : '},
-                {insert: comment},
-                {insert: '\n'},
-            ]);
-        }
-    });
-}
-
-function dragEnterDiv(event, div) {
-    div.css('border', '3px dashed red');
-}
-
-function dragOverDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed red');
-    return false;
-};
-
-function dragLeaveDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed #BBBBBB');
-    return false;
-}
-
-function dropOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            // Stop the propagation of the event
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                upload(event.dataTransfer.files);
-                clearErrorMsg(div);
-            } else {
-                div.css('border', '3px dashed #BBBBBB');
-            }
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-function dropNewOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                keepForSave(event.dataTransfer.files);
-                clearErrorMsg(div);
-            }
-            else div.css('border', '3px dashed #BBBBBB');
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            valid = false;
-        }
-        // else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-        //     div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-        //     valid = false;
-        // }
-    });
-    return valid;
-}
-
-function openFE() {
-    $('#fileInput').click();
-}
-
-function uploadFE(span) {
-    let files = $('#fileInput')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('arrivage_depose', true);
-
-        let arrivageId = $('#dropfile').data('arrivage-id');
-        formData.append('id', arrivageId);
-
-        $.ajax({
-            url: path,
-            data: formData,
-            type:"post",
-            contentType:false,
-            processData:false,
-            cache:false,
-            dataType:"json",
-            success:function(html){
-                let dropfile = $('#dropfile');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('garder_pj', true);
-        $.ajax({
-            url: path,
-            data: formData,
-            type: "post",
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: "json",
-            success: function (html) {
-                let dropfile = $('#dropfileNew');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function keepForSave(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-
-    let path = Routing.generate('garder_pj', true);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
-            let dropfile = $('#dropfileNew');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-
-}
-
-function upload(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-    let path = Routing.generate('arrivage_depose', true);
-
-    let arrivageId = $('#dropfile').data('arrivage-id');
-    formData.append('id', arrivageId);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type: "post",
-        contentType: false,
-        processData: false,
-        cache: false,
-        dataType: "json",
-        success: function (html) {
-            let dropfile = $('#dropfile');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-}
-
-function InitModalArrivage(modal, submit, path, table, callback = null, close = true) {
-    submit.click(function () {
-        submitActionArrivage(modal, path, table, callback, close);
-    });
-}
-
-function submitActionArrivage(modal, path, table, callback, close) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-
-        if (this.readyState == 4 && this.status == 200) {
-            $('.errorMessage').html(JSON.parse(this.responseText));
-            data = JSON.parse(this.responseText);
-            $('p.attachement').each(function() {
-                $(this).remove();
-            });
-            if (data.redirect) {
-                window.location.href = data.redirect + '/1';
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            table.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-
-            clearModal(modal);
-
-            if (callback !== null) callback(data);
-            if (close == true) {
-                modal.find('.close').click();
-            }
-        }
-    };
-
-    // On récupère toutes les données qui nous intéressent
-    // dans les inputs...
-    let inputs = modal.find(".data");
-    let Data = {};
-    let missingInputs = [];
-    let wrongNumberInputs = [];
-    let passwordIsValid = true;
-    inputs.each(function () {
-        let val = $(this).val();
-        let name = $(this).attr("name");
-        Data[name] = val;
-        // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').text();
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-            $(this).addClass('is-invalid');
-        }
-        // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
-            if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
-            }
-        }
-        // validation valeur des inputs de type password
-        if ($(this).attr('type') === 'password') {
-            let password = $(this).val();
-            let isNotChanged = $(this).hasClass('optional-password') && password === "";
-            if (!isNotChanged) {
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
-                }
-            }
-        }
-    });
-
-    // ... et dans les checkboxes
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
-    });
-    $("div[name='id']").each(function () {
-        Data[$(this).attr("name")] = $(this).attr('value');
-    });
-    modal.find(".elem").remove();
-    // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        Json = {};
-        Json = JSON.stringify(Data);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
-    } else {
-
-        // ... sinon on construit les messages d'erreur
-        let msg = '';
-
-        // cas où il manque des champs obligatoires
-        if (missingInputs.length > 0) {
-            if (missingInputs.length == 1) {
-                msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-            } else {
-                msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-            }
-        }
-        // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-        if (wrongNumberInputs.length > 0) {
-            wrongNumberInputs.forEach(function (elem) {
-                let label = elem.closest('.form-group').find('label').text();
-
-                msg += 'La valeur du champ ' + label;
-
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                    }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
-                }
-
-            })
-        }
-        modal.find('.error-msg').html(msg);
-    }
-}
-
+let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
-
-    tableArrivage
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('Destinataire:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .draw();
+    let filters = {
+        page: PAGE_ARRIVAGE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        urgence: $('#urgence-filter').is(':checked')
+    }
+    saveFilters(filters, tableArrivage);
 });
-
-function deleteAttachementNew(pj) {
-    let params = {
-        pj: pj
-    };
-    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function() {
-        $('#modalNewArrivage').find('p.attachement').each(function() {
-            if ($(this).attr('id') === pj) $(this).remove();
-        });
-    });
-}
 
 function generateCSVArrivage () {
     loadSpinner($('#spinnerArrivage'));
@@ -617,4 +256,45 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+       params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
+    });
 }

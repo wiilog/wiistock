@@ -405,6 +405,7 @@ class RefArticleDataService
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+            "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
                 'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,

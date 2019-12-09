@@ -158,6 +158,11 @@ class EmplacementController extends AbstractController
 				->setDescription($data["Description"])
 				->setIsActive(true)
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
+
+            if (isset($data['dateMaxTime'])) {
+                $emplacement
+                    ->setDateMaxTime($data['dateMaxTime']);
+            }
             $em->persist($emplacement);
             $em->flush();
             return new JsonResponse(true);
@@ -218,6 +223,11 @@ class EmplacementController extends AbstractController
                 ->setDescription($data["Description"])
             	->setIsDeliveryPoint($data["isDeliveryPoint"])
 				->setIsActive($data['isActive']);
+
+            if (isset($data['dateMaxTime'])) {
+                $emplacement
+                    ->setDateMaxTime($data['dateMaxTime']);
+            }
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();

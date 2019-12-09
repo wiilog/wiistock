@@ -1,0 +1,20 @@
+<div class="d-flex">
+    <div>
+        <div class="btn btn-col-action"
+             onclick="printAcheminement({{ acheminement.id }})">
+            <i class='fas fa-print'></i>
+        </div>
+    </div>
+    <div>
+        <div class="btn btn-col-action" data-id='{{ acheminement.id }}' data-target='#modalEditAcheminements' data-toggle='modal'
+             onclick="editRow($(this), Routing.generate('acheminement_edit_api', true), $('#modalEditAcheminements'), $('#submitEditAcheminements'), true)">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
+    </div>
+    <div>
+        <div class="btn btn-col-action" data-id='{{ acheminement.id }}' data-target='#modalDeleteAcheminements' data-toggle='modal'
+             onclick="deleteRow($(this), $('#modalDeleteAcheminements'), $('#submitDeleteAcheminements'))">
+            <i class='fas fa-trash'></i>
+        </div>
+    </div>
+</div>

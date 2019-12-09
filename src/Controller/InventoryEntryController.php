@@ -10,6 +10,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\InventoryEntryRepository;
 
 use App\Repository\UtilisateurRepository;
+use App\Service\InventoryEntryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,12 +46,18 @@ class InventoryEntryController extends AbstractController
 	 */
     private $emplacementRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, UtilisateurRepository $userRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
+	/**
+	 * @var InventoryEntryService
+	 */
+    private $inventoryEntryService;
+
+    public function __construct(InventoryEntryService $inventoryEntryService, EmplacementRepository $emplacementRepository, UtilisateurRepository $userRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
     {
         $this->userService = $userService;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->userRepository = $userRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->inventoryEntryService = $inventoryEntryService;
     }
 
     /**
@@ -63,7 +70,6 @@ class InventoryEntryController extends AbstractController
         }
 
         return $this->render('saisie_inventaire/index.html.twig', [
-        	'utilisateurs' => $this->userRepository->getIdAndUsername(),
 			'emplacements' => $this->emplacementRepository->findAll(),
 		]);
     }
@@ -78,30 +84,8 @@ class InventoryEntryController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$entries = $this->inventoryEntryRepository->findAll();
+			$data = $this->inventoryEntryService->getDataForDatatable($request->request);
 
-			$rows = [];
-			foreach ($entries as $entry) {
-				if ($article = $entry->getArticle()) {
-					$label = $article->getLabel();
-					$ref = $article->getReference();
-				} else if ($refArticle = $entry->getRefArticle()) {
-						$label = $refArticle->getLibelle();
-						$ref = $refArticle->getReference();
-				} else {
-					$ref = $label = '';
-				}
-				$rows[] =
-					[
-						'Ref' => $ref,
-						'Label' => $label,
-						'Operator' => $entry->getOperator()->getUsername(),
-						'Location' => $entry->getLocation()->getLabel(),
-						'Date' => $entry->getDate()->format('d/m/Y'),
-						'Quantity' => $entry->getQuantity(),
-					];
-			}
-			$data['data'] = $rows;
 			return new JsonResponse($data);
 		} else {
 			throw new NotFoundHttpException("404");

@@ -1,30 +1,35 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Utilisateur',
-    }
-});
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('demande_article_api', {id: id}, true);
 let tableArticle = $('#table-lignes').DataTable({
-    "language": {
+    processing: true,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "processing": true,
-    "order": [[0, "desc"]],
-    "ajax": {
+    order: [[1, "desc"]],
+    ajax: {
         "url": pathArticle,
         "type": "POST"
     },
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-        {"data": 'Actions', 'title': 'Actions'}
-    ]
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 0
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
+    ],
 });
 
 let modalNewArticle = $("#modalNewArticle");
@@ -61,47 +66,51 @@ $.extend($.fn.dataTableExt.oSort, {
 //DEMANDE
 let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
-    processing: true,
     serverSide: true,
-    order: [[0, 'desc']],
-    columnDefs: [
-        {
-            "type": "customDate",
-            "targets": 0
-        },
-        {"orderable": false, "targets": 5}
-
-    ],
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    order: [[1, 'desc']],
     ajax: {
         "url": pathDemande,
         "type": "POST",
     },
+    'drawCallback': function() {
+        overrideSearch($('#table_demande_filter input'), tableDemande);
+    },
     columns: [
-        {"data": 'Date', 'name': 'Date'},
-        {"data": 'Demandeur', 'name': 'Demandeur'},
-        {"data": 'Numéro', 'name': 'Numéro'},
-        {"data": 'Statut', 'name': 'Statut'},
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
+        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
+        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
+        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
-        {"data": 'Actions', 'name': 'Actions'},
-    ]
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 1
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
+    ],
 });
 
 let $submitSearchDemande = $('#submitSearchDemandeLivraison');
 $submitSearchDemande.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let user = $('#utilisateur').val();
-    let userString = user.toString();
-    let userPiped = userString.split(',').join('|');
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_DEM_LIVRAISON,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        type: $('#type').val(),
+    };
 
-    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, userPiped, type);
-
-    tableDemande.draw();
+    saveFilters(filters, tableDemande);
 });
 
 $.fn.dataTable.ext.search.push(
@@ -207,7 +216,15 @@ $(function () {
     $.post(path, params, function (data) {
         data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else {
                 $('#' + element.field).val(element.value);
             }
@@ -216,6 +233,7 @@ $(function () {
     }, 'json');
 
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
 });
 
 let editorNewLivraisonAlreadyDone = false;

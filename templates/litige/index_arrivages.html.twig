@@ -31,7 +31,6 @@
             </table>
         </div>
 
-        {% include 'litige/modalNewLitige.html.twig' %}
         {% include 'arrivage/modalEditLitige.html.twig' %}
         {% include 'litige/modalDeleteLitige.html.twig' %}
 
@@ -40,5 +39,6 @@
 {% endblock %}
 
 {% block javascript %}
+<script src = "{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
 <script src = "{{ asset('js/litiges.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

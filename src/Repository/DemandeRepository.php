@@ -205,8 +205,8 @@ class DemandeRepository extends ServiceEntityRepository
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('d.utilisateur', 'u')
-						->andWhere("u.username in (:username)")
-						->setParameter('username', $value);
+						->andWhere("u.id in (:id)")
+						->setParameter('id', $value);
 					break;
 				case 'dateMin':
 					$qb->andWhere('d.date >= :dateMin')
@@ -225,7 +225,16 @@ class DemandeRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('d.numero LIKE :value OR d.date LIKE :value')
+						->join('d.statut', 's2')
+						->join('d.type', 't2')
+						->join('d.utilisateur', 'u2')
+                        ->andWhere('
+                  		d.date LIKE :value
+                  		OR u2.username LIKE :value
+                        OR d.numero LIKE :value
+               			OR s2.nom LIKE :value
+               			OR t2.label LIKE :value
+                        ')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
