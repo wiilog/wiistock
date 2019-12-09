@@ -18,7 +18,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         }
     },
     'drawCallback': function () {
-         overrideSearch();
+         overrideSearchArticle();
     },
     columns: [
         { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
@@ -178,7 +178,7 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function overrideSearch() {
+function overrideSearchArticle() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
     $input.on('keyup', function(e) {

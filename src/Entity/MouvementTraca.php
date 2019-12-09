@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,90 +24,184 @@ class MouvementTraca
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $refArticle;
+    private $colis;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $date;
+    private $uniqueIdForMobile;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="datetime", length=255, nullable=true)
      */
-    private $refEmplacement;
+    private $datetime;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
+     */
+    private $emplacement;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
      */
     private $type;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur")
      */
     private $operateur;
+
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+	private $commentaire;
+
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="mouvementTraca")
+	 */
+	private $attachements;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $finished;
+
+    public function __construct()
+    {
+        $this->attachements = new ArrayCollection();
+        $this->emplacement = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getRefArticle(): ?string
+    public function getColis(): ?string
     {
-        return $this->refArticle;
+        return $this->colis;
     }
 
-    public function setRefArticle(?string $refArticle): self
+    public function setColis(?string $colis): self
     {
-        $this->refArticle = $refArticle;
+        $this->colis = $colis;
 
         return $this;
     }
 
-    public function getDate(): ?string
+    public function getUniqueIdForMobile(): ?string
     {
-        return $this->date;
+        return $this->uniqueIdForMobile;
     }
 
-    public function setDate(?string $date): self
+    public function setUniqueIdForMobile(?string $uniqueIdForMobile): self
     {
-        $this->date = $date;
+        $this->uniqueIdForMobile = $uniqueIdForMobile;
 
         return $this;
     }
 
-    public function getRefEmplacement(): ?string
+    public function getCommentaire(): ?string
     {
-        return $this->refEmplacement;
+        return $this->commentaire;
     }
 
-    public function setRefEmplacement(?string $refEmplacement): self
+    public function setCommentaire(?string $commentaire): self
     {
-        $this->refEmplacement = $refEmplacement;
+        $this->commentaire = $commentaire;
 
         return $this;
     }
 
-    public function getType(): ?string
+    public function getEmplacement(): ?Emplacement
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?Emplacement $emplacement): self
+    {
+        $this->emplacement = $emplacement;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PieceJointe[]
+     */
+    public function getAttachements(): Collection
+    {
+        return $this->attachements;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setMouvementTraca($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getMouvementTraca() === $this) {
+                $attachement->setMouvementTraca(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOperateur(): ?Utilisateur
+    {
+        return $this->operateur;
+    }
+
+    public function setOperateur(?Utilisateur $operateur): self
+    {
+        $this->operateur = $operateur;
+
+        return $this;
+    }
+
+    public function getType(): ?Statut
     {
         return $this->type;
     }
 
-    public function setType(?string $type): self
+    public function setType(?Statut $type): self
     {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getOperateur(): ?string
+    public function getDatetime(): ?\DateTimeInterface
     {
-        return $this->operateur;
+        return $this->datetime;
     }
 
-    public function setOperateur(?string $operateur): self
+    public function setDatetime(?\DateTimeInterface $datetime): self
     {
-        $this->operateur = $operateur;
+        $this->datetime = $datetime;
 
         return $this;
     }
+
+    public function isFinished(): ?bool
+    {
+        return $this->finished;
+    }
+
+    public function setFinished(?bool $finished): self
+    {
+        $this->finished = $finished;
+
+        return $this;
+    }
+
 }

@@ -8,6 +8,9 @@ const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
+const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_RCPT_TRACA = 'reception_traca';
+const PAGE_ACHEMINEMENTS = 'acheminements';
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -38,16 +41,24 @@ function submitAction(modal, path, table, callback, close, clear) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+    let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
+    let name;
+    let vals = [];
+    inputsArray.each(function () {
+        name = $(this).attr("name");
+        vals.push($(this).val());
+        Data[name] = vals;
+    });
 
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
-        let name = $input.attr("name");
+        name = $input.attr("name");
         Data[name] = val;
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
@@ -267,6 +278,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         afterLoadingEditModal()
     }, 'json');
 
+}
+
+function newModal(path, modal)
+{
+    $.post(path, function (resp) {
+        modal.find('.modal-body').html(resp);
+    }, 'json');
 }
 
 function setMaxQuantityEdit(select) {
@@ -521,7 +539,29 @@ function ajaxAutoFournisseurInit(select) {
     });
 }
 
-function ajaxAutoUserInit(select) {
+function ajaxAutoChauffeurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_chauffeur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+function ajaxAutoUserInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_user'),
@@ -537,6 +577,31 @@ function ajaxAutoUserInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
+        }
     });
 }
 
@@ -580,7 +645,7 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
             $(this).val("");
         }
         if ($(this).attr('id') === 'statut') {
@@ -603,7 +668,9 @@ function clearModal(modal) {
     // on vide les éditeurs de texte
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
-    $modal.find('.clear').html('')
+    $modal.find('.clear').html('');
+    $modal.find('.attachement').remove();
+    $modal.find('.isRight').removeClass('isRight');
 }
 
 function clearCheckboxes($modal) {
@@ -632,21 +699,12 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null) {
+function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
-    let params = {};
-    if (dateMin) params.dateMin = dateMin;
-    if (dateMax) params.dateMax = dateMax;
-    if (statut) params.statut = statut;
-    if (user) params.user = user;
-    if (type) params.type = type;
-    if (location) params.location = location;
-    if (colis) params.colis = colis;
-    if (carriers) params.carriers = carriers;
-    if (providers) params.providers = providers;
-    params.page = page;
 
-    $.post(path, JSON.stringify(params), 'json');
+    $.post(path, JSON.stringify(params), function() {
+        if (table) table.draw();
+    }, 'json');
 }
 
 function checkAndDeleteRow(icon, modalName, route, submit) {
@@ -833,4 +891,69 @@ function displayWrong(div) {
 function displayNeutral(div) {
     div.removeClass('isRight');
     div.removeClass('isWrong');
+}
+
+let submitNewAssociation = function () {
+    let correct = true;
+    let params = {};
+    $('#modalNewAssociation').find('.needed').each(function (index, input) {
+        if ($(input).val() !== '') {
+            if (params[$(input).attr('name')]) {
+                params[$(input).attr('name')] += ';' + $(input).val();
+            } else {
+                params[$(input).attr('name')] = $(input).val();
+            }
+        } else if (!$(input).hasClass('arrival-input')) {
+            correct = false;
+        }
+    });
+    if (correct) {
+        let routeNewAssociation = Routing.generate('reception_traca_new', true);
+        $.post(routeNewAssociation, JSON.stringify(params), function () {
+            $('#modalNewAssociation').find('.close').click();
+            if (typeof tableRecep !== "undefined") tableRecep.ajax.reload();
+            $('#modalNewAssociation').find('.error-msg').text('');
+        })
+    } else {
+        $('#modalNewAssociation').find('.error-msg').text('Veuillez renseigner tous les champs nécessaires.');
+    }
+};
+
+let toggleArrivage = function (button) {
+    let $arrivageBlock = $('.arrivalNb').first().parent();
+    if (button.data('arrivage')) {
+        $arrivageBlock.find('input').each(function() {
+            if ($(this).hasClass('arrivage-input')) {
+                $(this).remove();
+            } else {
+                $(this).val('');
+                $(this).removeClass('needed');
+            }
+        });
+        $arrivageBlock.hide();
+        button.text('Avec Arrivage');
+    } else {
+        $arrivageBlock.find('input').each(function() {
+            $(this).addClass('needed');
+        });
+        $arrivageBlock.show();
+        button.text('Sans Arrivage');
+    }
+    button.data('arrivage', !button.data('arrivage'));
+};
+
+let addArrivalAssociation = function(span) {
+    let $arrivalInput = span.parent().find('.arrivalNb').first();
+    let $parent = $arrivalInput.parent();
+    $arrivalInput.clone().appendTo($parent);
+};
+
+function overrideSearch($input, table) {
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            table.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
 }

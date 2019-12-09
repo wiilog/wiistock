@@ -1,0 +1,35 @@
+<form class="modal fade" id="modalNewAssociation" role="dialog"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enregistrer une réception</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid text-center">
+                <div class="form-group text-center">
+                    <label>Numéro d'arrivage*</label>
+                    <span class="btn btn-primary" onclick="addArrivalAssociation($(this))"><i class="fa fa-plus"></i></span>
+                    <div class="d-flex arrivalNb mb-2">
+                        <input type="text" class="form-control data needed arrival-input" name="numero_arrivage"/>
+                    </div>
+                </div>
+
+                <div class="form-group text-center">
+                    <label for="Description">Numéro de réception*</label>
+                    <input type="text" id="numero_réception" class="form-control data needed" name="numero_réception">
+                </div>
+                <div class="text-center">
+                    <div class="btn btn-primary" id="removeArrivage" onclick="toggleArrivage($(this))" data-arrivage="true">Sans Arrivage</div>
+                </div>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <div id="submitNewRecep" class="btn btn-success" onclick="submitNewAssociation()">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</form>

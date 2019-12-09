@@ -1,26 +1,20 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Demandeur',
-    }
-});
-
 let $submitSearchManut = $('#submitSearchManutention');
 
 let pathManut = Routing.generate('manutention_api', true);
 let tableManutention = $('#tableManutention_id').DataTable({
     serverSide: true,
     processing: true,
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
         },
         {
             "orderable" : false,
-            "targets" : 5
+            "targets" : 0
         }
     ],
     language: {
@@ -30,27 +24,30 @@ let tableManutention = $('#tableManutention_id').DataTable({
         "url": pathManut,
         "type": "POST",
     },
+    'drawCallback': function() {
+        overrideSearch($('#tableManutention_id_filter input'), tableManutention);
+    },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
         { "data": 'Date souhaitée', 'name': 'Date souhaitée', 'title': 'Date souhaitée' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 
 $submitSearchManut.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let user = $('#utilisateur').val();
-    let demandeurString = user.toString();
-    demandeurPiped = demandeurString.split(',').join('|');
 
-    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
+    let filters = {
+        page: PAGE_MANUT,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    tableManutention.draw();
+    saveFilters(filters, tableManutention);
 });
 
 $.fn.dataTable.ext.search.push(
@@ -62,7 +59,6 @@ $.fn.dataTable.ext.search.push(
         if (typeof indexDate === "undefined") return true;
 
         let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
         if (
             (dateMin == "" && dateMax == "")
             ||
@@ -127,6 +123,8 @@ $(function() {
         });
         if (data.length > 0) $submitSearchManut.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 });
 
 // filtres de recheches

@@ -16,14 +16,41 @@ $(function () {
     if (addColis) {
         $('#btnModalAddColis').click();
     }
+
+    //check si on doit print les colis ou l'arrivage à la création
+    let printColis = $('#printColis').val();
+    let printArrivage = $('#printArrivage').val();
+    if (printColis) {
+        getDataAndPrintLabels($('#arrivageId').val());
+    }
+    if (printArrivage) {
+        printBarcode($('#numeroArrivage').val());
+    }
 });
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
+}
 
 function printLabels(data) {
     if (data.exists) {
+        console.log(data);
         printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
     } else {
         $('#cannotGenerate').click();
     }
+}
+
+function printBarcode(code) {
+    let path = Routing.generate('get_print_data', true);
+
+    $.post(path, function (response) {
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+    });
 }
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
@@ -38,11 +65,15 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+    ],
+    order: [
+        [1, 'asc'],
     ],
 });
 let tableHistoLitige;
@@ -62,10 +93,31 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        "columnDefs": [
+            {
+                "type": "customDate",
+                "targets": 1
+            },
+        ],
         dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+});
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
@@ -99,12 +151,12 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalArrivage(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
+initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalArrivage(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -114,7 +166,7 @@ InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableAr
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-initModalArrivage(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
+initModalWithAttachments(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');

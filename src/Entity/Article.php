@@ -134,6 +134,11 @@ class Article
      */
     private $dateLastInventory;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\OrdreCollecte", inversedBy="articles")
+     */
+    private $ordreCollecte;
+
 
     public function __construct()
     {
@@ -143,6 +148,7 @@ class Article
         $this->valeurChampsLibres = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
+        $this->ordreCollecte = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -442,30 +448,30 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-                   {
-                       return $this->inventoryEntries;
-                   }
+                                  {
+                                      return $this->inventoryEntries;
+                                  }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-               	{
-               		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-               			$this->inventoryEntries[] = $inventoryEntry;
-               			$inventoryEntry->setArticle($this);
-               		}
-               
-               		return $this;
-               	}
+                              	{
+                              		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+                              			$this->inventoryEntries[] = $inventoryEntry;
+                              			$inventoryEntry->setArticle($this);
+                              		}
+                              
+                              		return $this;
+                              	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if ($this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries->removeElement($inventoryEntry);
-			// set the owning side to null (unless already changed)
-			if ($inventoryEntry->getArticle() === $this) {
-				$inventoryEntry->setArticle(null);
-			}
-		}
-	}
+               	{
+               		if ($this->inventoryEntries->contains($inventoryEntry)) {
+               			$this->inventoryEntries->removeElement($inventoryEntry);
+               			// set the owning side to null (unless already changed)
+               			if ($inventoryEntry->getArticle() === $this) {
+               				$inventoryEntry->setArticle(null);
+               			}
+               		}
+               	}
 
     /**
      * @return Collection|InventoryMission[]
@@ -513,6 +519,32 @@ class Article
     public function setBarCode(?string $barCode): self
     {
         $this->barCode = $barCode;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getOrdreCollecte(): Collection
+    {
+        return $this->ordreCollecte;
+    }
+
+    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if (!$this->ordreCollecte->contains($ordreCollecte)) {
+            $this->ordreCollecte[] = $ordreCollecte;
+        }
+
+        return $this;
+    }
+
+    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if ($this->ordreCollecte->contains($ordreCollecte)) {
+            $this->ordreCollecte->removeElement($ordreCollecte);
+        }
 
         return $this;
     }
