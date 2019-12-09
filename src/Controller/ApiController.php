@@ -1103,4 +1103,40 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         }
     }
 
+    /**
+     * @Rest\Post("/api/articles", name= "api-get-articles")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function getArticles(Request $request): Response {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
+        if (!$request->isXmlHttpRequest()) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
+                $barCode = $request->query->get('barCode');
+                $location = $request->query->get('location');
+
+                if (!empty($barCode) && !empty($location)) {
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = true;
+                    $resData['articles'] = array_merge(
+                        $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
+                        $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
+                    );
+                }
+                else {
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = false;
+                    $resData['articles'] = [];
+                }
+            } else {
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+        }
+        return new JsonResponse($resData, $statusCode);
+    }
+
 }

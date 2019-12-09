@@ -827,18 +827,24 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-    public function getStockPriceClByArt($art)
-    {
+	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
         $em = $this->getEntityManager();
 
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT v.valeur
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.champLibre c
-            JOIN v.article a
-            WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:art"
-        )->setParameter('art', $art);
+        $query = $em
+            ->createQuery(
+                "SELECT article.reference as reference,
+                             article.quantite as quantity,
+                             0 as is_ref
+                FROM App\Entity\Article article
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', Article::STATUT_ACTIF);
 
         return $query->execute();
     }
