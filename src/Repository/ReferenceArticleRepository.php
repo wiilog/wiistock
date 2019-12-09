@@ -174,7 +174,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $index++;
 
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
-                if ($filter['value'] === Article::STATUT_ACTIF) {
+                if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
                     $qb->leftJoin('ra.statut', 'sra');
                     $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
