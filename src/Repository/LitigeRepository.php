@@ -137,6 +137,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('t.label as type')
 			->addSelect('a.id as arrivageId')
 			->addSelect('s.nom as status')
+			->addSelect('lh.date as dateHisto')
 			->from('App\Entity\Litige', 'l')
 			->leftJoin('l.colis', 'c')
 			->leftJoin('l.type', 't')
