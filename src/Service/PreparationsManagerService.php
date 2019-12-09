@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -13,10 +14,19 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Repository\DemandeRepository;
+use App\Repository\FiltreSupRepository;
+use App\Repository\PreparationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Security;
+use Twig_Environment;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 
 /**
@@ -36,8 +46,50 @@ class PreparationsManagerService {
      */
     private $refMouvementsToRemove;
 
-    public function __construct(ArticleDataService $articleDataService,
+	/**
+	 * @var Twig_Environment
+	 */
+	private $templating;
+
+	/**
+	 * @var RouterInterface
+	 */
+	private $router;
+
+	/**
+	 * @var PreparationRepository
+	 */
+	private $preparationRepository;
+
+	/**
+	 * @var Security
+	 */
+	private $security;
+
+	/**
+	 * @var FiltreSupRepository
+	 */
+	private $filtreSupRepository;
+
+	/**
+	 * @var DemandeRepository
+	 */
+	private $demandeRepository;
+
+    public function __construct(DemandeRepository $demandeRepository,
+								FiltreSupRepository $filtreSupRepository,
+								Security $security,
+								PreparationRepository $preparationRepository,
+								RouterInterface $router,
+								Twig_Environment $templating,
+								ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager) {
+    	$this->demandeRepository = $demandeRepository;
+    	$this->filtreSupRepository = $filtreSupRepository;
+    	$this->security = $security;
+    	$this->preparationRepository = $preparationRepository;
+    	$this->router = $router;
+    	$this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->articleDataService = $articleDataService;
         $this->refMouvementsToRemove = [];
@@ -334,5 +386,53 @@ class PreparationsManagerService {
             $this->entityManager->flush();
         }
     }
+
+	/**
+	 * @param array|null $params
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function getDataForDatatable($params = null)
+	{
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPA, $this->security->getUser());
+
+		$queryResult = $this->preparationRepository->findByParamsAndFilters($params, $filters);
+
+		$preparations = $queryResult['data'];
+
+		$rows = [];
+		foreach ($preparations as $preparation) {
+			$rows[] = $this->dataRowPreparation($preparation);
+		}
+
+		return [
+			'data' => $rows,
+			'recordsFiltered' => $queryResult['count'],
+			'recordsTotal' => $queryResult['total'],
+		];
+	}
+
+	/**
+	 * @param Preparation $preparation
+	 * @return array
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
+	private function dataRowPreparation($preparation)
+	{
+		$demande = $this->demandeRepository->findOneByPreparation($preparation);
+		$url['show'] = $this->router->generate('preparation_show', ['id' => $preparation->getId()]);
+		$row = [
+			'Numéro' => $preparation->getNumero() ?? '',
+			'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
+			'Opérateur' => $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
+			'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
+			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
+			'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+		];
+
+		return $row;
+	}
 
 }

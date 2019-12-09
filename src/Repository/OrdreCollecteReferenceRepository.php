@@ -26,7 +26,7 @@ class OrdreCollecteReferenceRepository extends ServiceEntityRepository
 	/**
 	 * @param OrdreCollecte $collecte
 	 * @param int $refId
-	 * @return mixed
+	 * @return OrdreCollecteReference
 	 * @throws NonUniqueResultException
 	 */
     public function findByOrdreCollecteAndRefId($collecte, $refId)

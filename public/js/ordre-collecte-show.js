@@ -35,12 +35,15 @@ let submitFinishCollecte = $("#submitFinishCollecte");
 
 submitFinishCollecte.on('click', function() {
     // on récupère les lignes sélectionnées
-    let $inactiveChecks = $('#tableArticle').find('.btn-check:not(.active)');
+    let $table = $('#tableArticle');
+    let $rowsSelected = $table.find('.btn-check.active');
+    let $rowsToDelete = $table.find('.btn-check:not(.active)');
     let rowsData = [];
-    $inactiveChecks.each(function() {
+    $rowsSelected.each(function() {
         rowsData.push({
-            'id': $(this).data('id'),
-            'isRef': $(this).data('is-ref')
+            'reference': $(this).data('ref'),
+            'is_ref': $(this).data('is-ref'),
+            'quantity': $(this).data('quantity')
         });
     });
 
@@ -53,7 +56,7 @@ submitFinishCollecte.on('click', function() {
         $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
             modalFinishCollecte.find('.close').click();
             $('.zone-entete').html(data);
-            $inactiveChecks.each(function() {
+            $rowsToDelete.each(function() {
                 tableArticle
                     .row($(this).parents('tr'))
                     .remove()
@@ -76,5 +79,4 @@ function checkIfRowSelected() {
     } else {
         $('#btnModalFinishCollecte').click();
     }
-
 }

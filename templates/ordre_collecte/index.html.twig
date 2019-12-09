@@ -6,12 +6,24 @@
     </div>
 {% include 'filters/filtersOrderCollect.html.twig' with {'btnName' : 'submitSearchOrdreCollecte'} %}
 
+
 <div class="container-fluid">
-    <h1>Ordres de collecte</h1>
+    <div class="d-flex justify-content-between">
+        <h1>Ordres de collecte</h1>
+        {% if filterDemand is defined and filterDemand is not null %}
+            <div>
+                <a href="{{ path('ordre_collecte_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
+                <a href="{{ path('collecte_show', {'id': filterDemand}) }}" class='btn btn-action'>Retour à la demande</a>
+            </div>
+        {% endif %}
+    </div>
+
     <table id="tableCollecte" class="table table-striped table-bordered w-100">
     </table>
 </div>
-
+    {% if filterDemand is defined and filterDemand is not null %}
+        <input hidden id="filterDemand" value="{{ filterDemand }}"
+    {% endif %}
 {% endblock %}
 {% block javascript %}
 <script src="{{asset('js/ordre-collecte.js')}}?{{ date().timestamp }}"></script>

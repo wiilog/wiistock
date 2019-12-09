@@ -590,32 +590,33 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
 	{
 		$em = $this->getEntityManager();
-		$query = $em->createQuery(
 		//TODO patch temporaire CEA (sur quantité envoyée)
-		/** @lang DQL */
-			"SELECT a.reference, e.label as location, a.label, a.quantite as quantity, 0 as is_ref, oc.id as id_collecte, a.barCode
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.collectes c
-			JOIN c.ordreCollecte oc
-			LEFT JOIN oc.statut s
-			WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))"
-		)->setParameters([
-			'statutLabel' => $statutLabel,
-			'user' => $user,
-		]);
+		$query = $em
+			->createQuery($this->getArticleQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->setParameters([
+				'statutLabel' => $statutLabel,
+				'user' => $user,
+			]);
 
 		return $query->execute();
 	}
 
-	public function getByCollecteId($collecteId)
+	public function getByOrdreCollecteId($collecteId)
 	{
 		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
+		$query = $em
+			->createQuery($this->getArticleQuery() . " WHERE oc.id = :id")
+			->setParameter('id', $collecteId);
+
+		return $query->execute();
+	}
+
+	private function getArticleQuery()
+	{
+		return (/** @lang DQL */
 			"SELECT a.reference,
                          e.label as location,
                          a.label,
@@ -625,11 +626,8 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.ordreCollecte oc
-			LEFT JOIN oc.statut s
-			WHERE oc.id = :id"
-		)->setParameter('id', $collecteId);
-
-		return $query->execute();
+			LEFT JOIN oc.statut s"
+		);
 	}
 
 	/**

@@ -822,15 +822,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
 
                                 $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                                $newCollecte = $this->ordreCollecteService->buildListAndFinishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
+                                $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
                                 $entityManager->flush();
 
 								if (!empty($newCollecte)) {
 									$newCollecteId = $newCollecte->getId();
 									$newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
 
-									$articlesCollecte = $this->articleRepository->getByCollecteId($newCollecteId);
-									$refArticlesCollecte = $this->referenceArticleRepository->getByCollecteId($newCollecteId);
+									$articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
+									$refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
 									$articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
 								}
 
@@ -851,8 +851,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                             $this->ordreCollecteService->setEntityManager($entityManager);
                         }
-
-                        dump($exception);
 
                         $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
 
@@ -972,8 +970,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
         $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
-        $articlesCollecte = $this->articleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();

@@ -17,6 +17,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class OrdreCollecteRepository extends ServiceEntityRepository
 {
+	const DtToDbLabels = [
+		'Numéro' => 'numero',
+		'Statut' => 'statut',
+		'Date' => 'date',
+		'Opérateur' => 'utilisateur',
+		'Type' => 'type'
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, OrdreCollecte::class);
@@ -65,7 +73,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager
-            ->createQuery($this->getQueryBy() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
+            ->createQuery($this->getOrdreCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
             ->setParameters([
                 'statutLabel' => $statutLabel,
                 'user' => $user,
@@ -81,13 +89,13 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager
-            ->createQuery($this->getQueryBy() . " WHERE oc.id = :id")
+            ->createQuery($this->getOrdreCollecteQuery() . " WHERE oc.id = :id")
             ->setParameter('id', $ordreCollecteId);
 		$result = $query->execute();
 		return !empty($result) ? $result[0] : null;
 	}
 
-	private function getQueryBy(): string  {
+	private function getOrdreCollecteQuery(): string  {
 	    return (/** @lang DQL */
             "SELECT oc.id,
                     oc.numero as number,
@@ -111,47 +119,54 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 
         $countTotal = count($qb->getQuery()->getResult());
 
-        // filtres sup
-        foreach ($filters as $filter) {
-            switch ($filter['field']) {
-                case 'statut':
-                    $qb
-                        ->join('oc.statut', 's')
-                        ->andWhere('s.nom = :statut')
-                        ->setParameter('statut', $filter['value']);
-                    break;
-                case 'type':
-                    $qb
-                        ->join('oc.demandeCollecte', 'dc')
-                        ->join('dc.type', 't')
-                        ->andWhere('t.label = :type')
-                        ->setParameter('type', $filter['value']);
-                    break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('oc.utilisateur', 'u')
-                        ->andWhere("u.username in (:username)")
-                        ->setParameter('username', $value);
-                    break;
-                case 'dateMin':
-                    $qb
-                        ->andWhere('oc.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
-                    break;
-                case 'dateMax':
-                    $qb
-                        ->andWhere('oc.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . '23:59:00');
-                    break;
-                case 'demCollecte':
-                    $qb
-                        ->join('oc.demandeCollecte', 'dcb')
-                        ->andWhere('dcb.numero = :numero')
-                        ->setParameter('numero', $filter['value']);
-                    break;
-            }
-        }
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch ($filter['field']) {
+				case 'statut':
+					$qb
+						->join('oc.statut', 's')
+						->andWhere('s.nom = :statut')
+						->setParameter('statut', $filter['value']);
+					break;
+				case 'type':
+					$qb
+						->join('oc.demandeCollecte', 'dc')
+						->join('dc.type', 't')
+						->andWhere('t.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('oc.utilisateur', 'u')
+						->andWhere("u.username in (:username)")
+						->setParameter('username', $value);
+					break;
+				case 'dateMin':
+					$qb
+						->andWhere('oc.date >= :dateMin')
+						->setParameter('dateMin', $filter['value'] . ' 00:00:00');
+					break;
+				case 'dateMax':
+					$qb
+						->andWhere('oc.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . '23:59:00');
+					break;
+				case 'demCollecte':
+					$value = explode(':', $filter['value'])[0];
+					$qb
+						->join('oc.demandeCollecte', 'dcb')
+						->andWhere('dcb.id = :id')
+						->setParameter('id', $value);
+					break;
+				case 'demandeCollecte':
+					$qb
+						->join('oc.demandeCollecte', 'dcb')
+						->andWhere('dcb.id = :id')
+						->setParameter('id', $filter['value']);
+					break;
+			}
+		}
 
         //Filter search
         if (!empty($params)) {
@@ -173,51 +188,49 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
+
                 if (!empty($order)) {
-//					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-//
-//					switch ($column) {
-//						case 'type':
-//							$qb
-//								->leftJoin('c.type', 't2')
-//								->orderBy('t2.label', $order);
-//							break;
-//						case 'statut':
-//							$qb
-//								->leftJoin('c.statut', 's2')
-//								->orderBy('s2.nom', $order);
-//							break;
-//						case 'demandeur':
-//							$qb
-//								->leftJoin('c.demandeur', 'd2')
-//								->orderBy('d2.username', $order);
-//							break;
-//						case 'date':
-//							$qb
-//								->leftJoin('c.ordreCollecte', 'oc2')
-//								->orderBy('oc2.date', $order);
-//							break;
-//						default:
-//							$qb->orderBy('c.' . $column, $order);
-//							break;
-//					}
-                }
-            }
-        }
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
-        // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+					switch ($column) {
+						case 'type':
+							$qb
+								->leftJoin('oc.demandeCollecte', 'dc3')
+								->leftJoin('dc3.type', 't3')
+								->orderBy('t3.label', $order);
+							break;
+						case 'statut':
+							$qb
+								->leftJoin('oc.statut', 's3')
+								->orderBy('s3.nom', $order);
+							break;
+						case 'utilisateur':
+							$qb
+								->leftJoin('oc.utilisateur', 'u3')
+								->orderBy('u3.username', $order);
+							break;
+						default:
+							$qb->orderBy('oc.' . $column, $order);
+							break;
+					}
+				}
+			}
+		}
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
 
-        $query = $qb->getQuery();
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
 
-        return ['data' => $query ? $query->getResult() : null ,
-            'count' => $countFiltered,
-            'total' => $countTotal
-        ];
-    }
+		$query = $qb->getQuery();
+
+		return ['data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
+
 }

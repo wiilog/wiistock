@@ -8,12 +8,19 @@ let tableChauffeur = $('#tableChauffeur_id').DataTable({
         "url": pathChauffeur,
         "type": "POST"
     },
+    order: [[1, 'desc']],
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Nom', 'name': 'Nom', 'title': 'Nom' },
         { "data": 'Prénom', 'name': 'Prénom', 'title': 'Prénom' },
         { "data": 'DocumentID', 'name': 'DocumentID', 'title': 'DocumentID' },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+    ],
+    columnDefs: [
+        {
+            "orderable" : false,
+            "targets" : 0
+        },
     ],
 });
 

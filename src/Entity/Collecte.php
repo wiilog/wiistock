@@ -14,6 +14,7 @@ class Collecte
     const CATEGORIE = 'collecte';
 
     const STATUS_COLLECTE = 'collecté';
+    const STATUS_INCOMPLETE = 'partiellement collecté';
     const STATUS_A_TRAITER = 'à traiter';
     const STATUS_BROUILLON = 'brouillon';
 

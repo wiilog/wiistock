@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
 
 let pathCollecte = Routing.generate('ordre_collecte_api');
@@ -29,6 +23,9 @@ let tableCollecte = $('#tableCollecte').DataTable({
     },
     ajax: {
         'url': pathCollecte,
+        'data' : {
+          'filterDemand': $('#filterDemand').val()
+        },
         "type": "POST"
     },
     drawCallback: function() {
@@ -71,50 +68,55 @@ $.fn.dataTable.ext.search.push(
 );
 
 $(function() {
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ORDRE_COLLECTE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
-        if (data.length > 0) $submitSearchOrdreCollecte.click();
-    }, 'json');
-
     ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+
+    // cas d'un filtre par demande de collecte
+    let filterDemand = $('#filterDemand').val();
+
+    if (filterDemand) {
+        let valueArray = filterDemand.split(':');
+        let id = valueArray[0];
+        let label = valueArray[1];
+        let option = new Option(label, id, true, true);
+        $('#demandCollect').append(option).trigger('change');
+    } else {
+
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ORDRE_COLLECTE);
+
+        $.post(path, params, function (data) {
+            data.forEach(function (element) {
+                if (element.field == 'utilisateurs') {
+                    $('#utilisateur').val(element.value.split(',')).select2();
+                } else if (element.field == 'demCollecte') {
+                    let valueArray = element.value.split(':');
+                    let id = valueArray[0];
+                    let label = valueArray[1];
+                    let option = new Option(label, id, true, true);
+                    $('#demandCollect').append(option).trigger('change');
+                } else {
+                    $('#' + element.field).val(element.value);
+                }
+            });
+            if (data.length > 0) $submitSearchOrdreCollecte.click();
+        }, 'json');
+    }
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let type = $('#type').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let demandCollect = $('#demandCollect').val();
-    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
+    let filters = {
+        page: PAGE_ORDRE_COLLECTE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        type: $('#type').val(),
+        users: $('#utilisateur').select2('data'),
+        demandCollect: $('#demandCollect').select2('data'),
+    };
 
-    tableCollecte
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableCollecte
-        .columns('Opérateur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableCollecte.draw();
+    saveFilters(filters, tableCollecte);
 });
 
 $.extend($.fn.dataTableExt.oSort, {

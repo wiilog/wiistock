@@ -29,7 +29,9 @@
     {% if modifiable %}
         <div>
             <div class="btn btn-col-action btn-check"
-                 data-is-ref='{{ refArticleId is defined ? 1 : 0 }}' data-id='{{ refArticleId is defined ? refArticleId : id }}'
+                 data-is-ref='{{ refArticleId is defined ? 1 : 0 }}'
+                 data-ref='{{ refRef is defined ? refRef : refArt }}'
+                 data-quantity="{{ quantity }}"
                  onclick="toggleCheck($(this))">
                 <i class='fas fa-check'></i>
             </div>

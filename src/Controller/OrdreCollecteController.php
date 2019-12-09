@@ -32,6 +32,7 @@ use Exception;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -131,16 +132,22 @@ class OrdreCollecteController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
-    /**
-     * @Route("/", name="ordre_collecte_index")
-     */
-    public function index()
+	/**
+	 * @Route("/liste/{demandId}", name="ordre_collecte_index")
+	 * @param string|null $demandId
+	 * @return RedirectResponse|Response
+	 */
+    public function index(string $demandId = null)
     {
         if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $demandeCollecte = $demandId ? $this->collecteRepository->find($demandId) : null;
+
         return $this->render('ordre_collecte/index.html.twig', [
+        	'filterDemand' => $demandId ? ($demandId . ':' . $demandeCollecte->getNumero()) : null,
+            'disabled' => $demandeCollecte != null,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
@@ -157,7 +164,9 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			$data = $this->ordreCollecteService->getDataForDatatable($request->request);
+            // cas d'un filtre par demande de collecte
+            $filterDemand = $request->request->get('filterDemand');
+			$data = $this->ordreCollecteService->getDataForDatatable($request->request, $filterDemand);
 
             return new JsonResponse($data);
         }
@@ -229,11 +238,13 @@ class OrdreCollecteController extends AbstractController
                         "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
                         "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                        "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
+                        "Quantité" => $ligneArticle->getQuantite() ?? ' ',
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
-                            'refArticleId' => $ligneArticle->getReferenceArticle()->getId(),
-                            'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                            'refArticleId' => $referenceArticle->getId(),
+                            'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
+                            'quantity' => $ligneArticle->getQuantite(),
+                            'modifiable' => $ordreCollecte->getStatut() ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) : false,
                         ])
                     ];
                 }
@@ -246,6 +257,8 @@ class OrdreCollecteController extends AbstractController
                         'Quantité' => $article->getQuantite(),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
+                            'refArt' => $article->getReference(),
+                            'quantity' => $article->getQuantite(),
                             'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
                         ])
                     ];

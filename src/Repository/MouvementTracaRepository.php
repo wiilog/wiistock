@@ -21,6 +21,14 @@ class MouvementTracaRepository extends ServiceEntityRepository
     public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
     public const MOUVEMENT_TRACA_STOCK = 'stock';
 
+	private const DtToDbLabels = [
+		'date' => 'datetime',
+		'colis' => 'colis',
+		'location' => 'emplacement',
+		'type' => 'status',
+		'operateur' => 'user',
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, MouvementTraca::class);
@@ -126,6 +134,126 @@ class MouvementTracaRepository extends ServiceEntityRepository
             WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
         )->setParameter('emp', $emplacement);
         return $query->execute();
+    }
+
+    /**
+     * @param array|null $params
+     * @param array|null $filters
+     * @return array
+     * @throws \Exception
+     */
+    public function findByParamsAndFilters($params, $filters)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('m')
+            ->from('App\Entity\MouvementTraca', 'm');
+
+        $countTotal = count($qb->getQuery()->getResult());
+
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch($filter['field']) {
+                case 'statut':
+                    $qb
+                        ->leftJoin('m.type', 's')
+                        ->andWhere('s.nom = :type')
+                        ->setParameter('type', $filter['value']);
+                    break;
+                case 'emplacement':
+                    $qb
+                        ->join('m.emplacement', 'e')
+                        ->andWhere('e.label = :location')
+                        ->setParameter('location', $filter['value']);
+                    break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('m.operateur', 'u')
+                        ->andWhere("u.id in (:userId)")
+                        ->setParameter('userId', $value);
+                    break;
+                case 'dateMin':
+                    $qb
+                        ->andWhere('m.date >= :dateMin')
+                        ->setParameter('dateMin', $filter['value']. " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb
+                        ->andWhere('m.date <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+                case 'colis':
+                    $qb
+                        ->andWhere('m.colis LIKE :colis')
+                        ->setParameter('colis', '%' . $filter['value'] . '%');
+                    break;
+            }
+        }
+
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->leftJoin('m.emplacement', 'e2')
+                        ->leftJoin('m.operateur', 'u2')
+                        ->leftJoin('m.type', 's2')
+                        ->andWhere('
+						m.colis LIKE :value OR
+						e2.label LIKE :value OR
+						s2.nom LIKE :value OR
+						u2.username LIKE :value
+						')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            if (!empty($params->get('order')))
+            {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+                    if ($column === 'emplacement') {
+                        $qb
+                            ->leftJoin('m.emplacement', 'e3')
+                            ->orderBy('e3.label', $order);
+                    } else if ($column === 'status') {
+                        $qb
+                            ->leftJoin('m.type', 's3')
+                            ->orderBy('s3.nom', $order);
+                    } else if ($column === 'user') {
+                        $qb
+                            ->leftJoin('m.operateur', 'u3')
+                            ->orderBy('u3.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('m.' . $column, $order);
+                    }
+                }
+            }
+        }
+
+        // compte éléments filtrés
+        $countFiltered = count($qb->getQuery()->getResult());
+
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $query = $qb->getQuery();
+
+        return [
+            'data' => $query ? $query->getResult() : null ,
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
     }
 
     /**

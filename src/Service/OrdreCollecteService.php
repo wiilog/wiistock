@@ -22,12 +22,10 @@ use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use DateTime;
-use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -131,34 +129,47 @@ class OrdreCollecteService
         return $this;
     }
 
-	/**
-	 * @param OrdreCollecte $collecte
-	 * @param Utilisateur $user
-	 * @param DateTime $date
-	 * @param Emplacement $depositLocation
-	 * @param array $mouvements
-	 * @return OrdreCollecte|null
-	 * @throws NonUniqueResultException
-	 */
-    public function buildListAndFinishCollecte(OrdreCollecte $collecte,
-                                               Utilisateur $user,
-                                               DateTime $date,
-                                               Emplacement $depositLocation,
-                                               array $mouvements,
-                                               bool $fromNomade = false)
+    /**
+     * @param OrdreCollecte $ordreCollecte
+     * @param Utilisateur $user
+     * @param DateTime $date
+     * @param Emplacement $depositLocation
+     * @param array $mouvements
+     * @param bool $fromNomade
+     * @return OrdreCollecte|null
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function finishCollecte(OrdreCollecte $ordreCollecte,
+                                   Utilisateur $user,
+                                   DateTime $date,
+                                   Emplacement $depositLocation,
+                                   array $mouvements,
+                                   bool $fromNomade = false)
 	{
-		// transforme liste articles à ajouter en liste articles à supprimer de la collecte
+		$em = $this->entityManager;
+		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
+		$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
 		$listRefRef = $listArtRef = [];
+		$referenceToQuantity = [];
+		$artToQuantity = [];
 		foreach($mouvements as $mouvement) {
+		    $quantity = isset($mouvement['quantity']) ? $mouvement['quantity'] : $mouvement['quantite'];
 			if ($mouvement['is_ref']) {
 				$listRefRef[] = $mouvement['reference'];
+                $referenceToQuantity[$mouvement['reference']] = $quantity;
 			} else {
 				$listArtRef[] = $mouvement['reference'];
+                $artToQuantity[$mouvement['reference']] = $quantity;
 			}
 		}
 
+		// on construit la liste des lignes à transférer vers une nouvelle collecte
 		$rowsToRemove = [];
-		$listOrdreCollecteReference = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($collecte);
+		$listOrdreCollecteReference = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
 		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
 			$refArticle = $ordreCollecteReference->getReferenceArticle();
 			if (!in_array($refArticle->getReference(), $listRefRef)) {
@@ -167,9 +178,16 @@ class OrdreCollecteService
 					'isRef' => 1
 				];
 			}
+			else {
+                $quantity = $referenceToQuantity[$refArticle->getReference()];
+                $oldQuantity = $ordreCollecteReference->getQuantite();
+                if($quantity > 0 && $quantity < $oldQuantity) {
+                    $ordreCollecteReference->setQuantite($quantity);
+                }
+            }
 		}
 
-		$listArticles = $this->articleRepository->findByOrdreCollecteId($collecte->getId());
+		$listArticles = $this->articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
 		foreach ($listArticles as $article) {
 			if (!in_array($article->getReference(), $listArtRef)) {
 				$rowsToRemove[] = [
@@ -177,30 +195,17 @@ class OrdreCollecteService
 					'isRef' => 0
 				];
 			}
+			else {
+                $quantity = $artToQuantity[$article->getReference()];
+                $oldQuantity = $article->getQuantite();
+                if($quantity > 0 && $quantity < $oldQuantity) {
+                    $article->setQuantite($quantity);
+                }
+            }
 		}
 
-		return $this->finishCollecte($collecte, $user, $date, $depositLocation, $rowsToRemove, $fromNomade);
-	}
-
-    /**
-     * @param OrdreCollecte $ordreCollecte
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param Emplacement $depositLocation
-     * @param array $toRemove
-     * @param bool $fromNomade
-     * @return OrdreCollecte|null
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-	public function finishCollecte(OrdreCollecte $ordreCollecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $toRemove, bool $fromNomade = false)
-	{
-		$em = $this->entityManager;
-		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
-		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
 		// cas de collecte partielle
-		if (!empty($toRemove)) {
+		if (!empty($rowsToRemove)) {
 			$newCollecte = new OrdreCollecte();
 			$statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 			$newCollecte
@@ -211,7 +216,7 @@ class OrdreCollecteService
 
 			$em->persist($newCollecte);
 
-			foreach ($toRemove as $mouvement) {
+			foreach ($rowsToRemove as $mouvement) {
 				if ($mouvement['isRef'] == 1) {
 					$ordreCollecteRef = $this->ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($ordreCollecte, $mouvement['id']);
 					$ordreCollecte->removeOrdreCollecteReference($ordreCollecteRef);
@@ -222,8 +227,12 @@ class OrdreCollecteService
 					$newCollecte->addArticle($article);
 				}
 			}
+
+			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_COLLECTE, Collecte::STATUS_INCOMPLETE));
+
 			$em->flush();
-		} else {
+		}
+		else {
 		// cas de collecte totale
 			$demandeCollecte
 				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE))
@@ -244,7 +253,14 @@ class OrdreCollecteService
 			foreach ($collecteReferences as $collecteReference) {
 				$refArticle = $collecteReference->getReferenceArticle();
 				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
-                $this->persistMouvements($user, $refArticle, $date, $demandeCollecte->getPointCollecte(), $depositLocation, $fromNomade);
+                $this->persistMouvements(
+                    $user,
+                    $refArticle,
+                    $date,
+                    $demandeCollecte->getPointCollecte(),
+                    $depositLocation,
+                    $fromNomade
+                );
 			}
 
 			// on modifie le statut des articles liés à la collecte
@@ -253,39 +269,58 @@ class OrdreCollecteService
 				$article
                     ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
                     ->setEmplacement($depositLocation);
-                $this->persistMouvements($user, $article, $date, $demandeCollecte->getPointCollecte(), $depositLocation, $fromNomade);
+                $this->persistMouvements(
+                    $user,
+                    $article,
+                    $date,
+                    $demandeCollecte->getPointCollecte(),
+                    $depositLocation,
+                    $fromNomade
+                );
 			}
 		}
 		$this->entityManager->flush();
-//TODO CG modif mail infos ordre et pas demande
-//        if ($this->mailerServerRepository->findAll()) {
-//            $this->mailerService->sendMail(
-//                'FOLLOW GT // Collecte effectuée',
-//                $this->templating->render(
-//                    'mails/mailCollecteDone.html.twig',
-//                    [
-//                        'title' => 'Votre demande a bien été collectée.',
-//                        'collecte' => $demandeCollecte,
-//
-//                    ]
-//                ),
-//                $demandeCollecte->getDemandeur()->getEmail()
-//            );
-//        }
+
+		$partialCollect = !empty($rowsToRemove);
+
+		if ($this->mailerServerRepository->findAll()) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Collecte effectuée',
+                $this->templating->render(
+                    'mails/mailCollecteDone.html.twig',
+                    [
+                        'title' => $partialCollect ?
+							'Votre demande de collecte a été partiellement effectuée.' :
+							'Votre demande de collecte a bien été effectuée.',
+                        'collecte' => $ordreCollecte,
+						'demande' => $demandeCollecte,
+                    ]
+                ),
+                $demandeCollecte->getDemandeur()->getEmail()
+            );
+        }
 
 		return $newCollecte ?? null;
 	}
 
     /**
      * @param null $params
+     * @param null $demandeCollecteIdFilter
      * @return array
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-	public function getDataForDatatable($params = null)
+	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+		if ($demandeCollecteIdFilter) {
+			$filters = [
+				['field' => 'demandeCollecte',
+				'value' => $demandeCollecteIdFilter]
+			];
+		} else {
+			$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+		}
 		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 
 		$collectes = $queryResult['data'];
@@ -336,7 +371,7 @@ class OrdreCollecteService
      * @param bool $fromNomade
      * @throws NonUniqueResultException
      */
-	private function persistMouvements(Utilisateur $user,
+    private function persistMouvements(Utilisateur $user,
                                        $article,
                                        DateTime $date,
                                        Emplacement $locationFrom,
@@ -385,16 +420,16 @@ class OrdreCollecteService
     }
 
     private function generateUniqueIdForMobile(DateTime $date): string {
-	    $uniqueId = null;
+        $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format('Y-m-dTH:i:sP');
         $randomLength = 9;
-	    do {
+        do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
-	        $uniqueId = $dateStr . '_' . $random;
-	        $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
+            $uniqueId = $dateStr . '_' . $random;
+            $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
         } while (count($existingMouvements) === 0);
 
-	    return $uniqueId;
+        return $uniqueId;
     }
 }
