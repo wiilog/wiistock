@@ -22,10 +22,12 @@ use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use DateTime;
+use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -141,6 +143,7 @@ class OrdreCollecteService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws Exception
      */
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
@@ -151,7 +154,7 @@ class OrdreCollecteService
 	{
 		$em = $this->entityManager;
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
-		$dateNow = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
 		$listRefRef = $listArtRef = [];
 		$referenceToQuantity = [];
