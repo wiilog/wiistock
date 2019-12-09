@@ -144,7 +144,7 @@ class OrdreCollecteService
 		$referenceToQuantity = [];
 		$artToQuantity = [];
 		foreach($mouvements as $mouvement) {
-		    $quantity = isset($mouvement['quantity']) ? $mouvement['quantity'] : $mouvement['quantite'];
+		    $quantity = $mouvement['quantity'] ?? $mouvement['quantite'];
 			if ($mouvement['is_ref']) {
 				$listRefRef[] = $mouvement['reference'];
                 $referenceToQuantity[$mouvement['reference']] = $quantity;
