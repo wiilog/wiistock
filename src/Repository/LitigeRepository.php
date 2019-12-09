@@ -226,10 +226,10 @@ class LitigeRepository extends ServiceEntityRepository
 							->orderBy('s.nom', $order);
 					} else if ($column === 'lastHistoric') {
 						$qb
-							->orderBy('lh.date', $order);
+							->orderBy('dateHisto', $order);
 					} else if ($column === 'acheteurs') {
 						$qb
-							->orderBy('ach.username', $order);
+							->orderBy('achUsername', $order);
 					} else if ($column === 'numeroArrivage') {
 						$qb
 							->orderBy('a.numeroArrivage', $order);
