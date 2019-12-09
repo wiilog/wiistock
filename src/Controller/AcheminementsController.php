@@ -153,6 +153,31 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
+     * @Route("/get-info", name="get_info_to_print", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getInfo(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $acheminement = $this->acheminementsRepository->find($data['id']);
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+            $response['exists'] = true;
+
+            $response['codes'] = $acheminement->getColis();
+            $response['date'] = $date->format('d/m/Y H:i');
+            $response['demandeur'] = $acheminement->getRequester()->getUsername();
+            $response['destinataire'] = $acheminement->getReceiver()->getUsername();
+            $response['depose'] = $acheminement->getLocationDrop();
+            $response['prise'] = $acheminement->getLocationTake();
+            $response['acheminements'] = (string)$acheminement->getId();
+
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
      * @Route("/api-new", name="acheminements_new_api", options={"expose"=true}, methods="GET|POST")
      */
     public function newApi(): Response

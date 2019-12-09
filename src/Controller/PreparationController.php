@@ -100,7 +100,12 @@ class PreparationController extends AbstractController
      */
     private $utilisateurRepository;
 
-    public function __construct(TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+	/**
+	 * @var PreparationsManagerService
+	 */
+    private $preparationsManagerService;
+
+    public function __construct(PreparationsManagerService $preparationsManagerService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->typeRepository = $typeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -114,6 +119,7 @@ class PreparationController extends AbstractController
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;
+        $this->preparationsManagerService = $preparationsManagerService;
     }
 
 
@@ -226,7 +232,6 @@ class PreparationController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         return $this->render('preparation/index.html.twig', [
-			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
 			'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
@@ -241,23 +246,11 @@ class PreparationController extends AbstractController
         {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
+
             }
 
-            $preparations = $this->preparationRepository->findAll();
-            $rows = [];
-            foreach ($preparations as $preparation) {
-                $demande = $this->demandeRepository->findOneByPreparation($preparation);
-                $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
-                $rows[] = [
-                    'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
-                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
-					'Opérateur' => ($preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : ''),
-					'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
-                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
-                ];
-            }
-            $data['data'] = $rows;
+            $data = $this->preparationsManagerService->getDataForDatatable($request->request);
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

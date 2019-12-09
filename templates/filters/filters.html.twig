@@ -1,3 +1,4 @@
+{% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
 <div class="filterService filters">
     {% block dateFilter %}
     <div>
@@ -5,11 +6,11 @@
             <div class="input-group-prepend">
                 <div class="input-group-text">De</div>
             </div>
-            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début" {{ disabled }}>
             <div class="input-group-prepend">
                 <div class="input-group-text">Au</div>
             </div>
-            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin" {{ disabled }}>
         </div>
     </div>
     {% endblock %}
@@ -20,7 +21,7 @@
     {% block emplacementFilter %}
         <div>
             <div class="input-group maxw-250px">
-                <select class="form-control data select2" name="emplacement" id="emplacement">
+                <select class="form-control data select2" name="emplacement" id="emplacement" {{ disabled }}>
                     <option></option>
                     {% for emplacement in emplacements %}
                         <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
@@ -33,7 +34,7 @@
     {% block statusFilter %}
     <div>
         <div class="input-group">
-            <select class="form-control data" name="statut" id="statut"
+            <select class="form-control data" name="statut" id="statut" {{ disabled }}
                     placeholder='{{ statut is defined  ? statut : 'statut' }}'>
                 <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
                 {% for statut in statuts %}
@@ -50,12 +51,9 @@
     {% endblock %}
 
     {% block userFilter %}
-    <div>
-        <div class="input-group">
-            <select class="form-control data minw-150px" name="utilisateur" id="utilisateur" multiple="multiple" >
-                {% for utilisateur in utilisateurs %}
-                    <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
-                {% endfor %}
+    <div class="minw-150px">
+        <div class="input-group w-100">
+            <select id="utilisateur" name="utilisateur" class="form-control data ajax-autocomplete-user min-150px" multiple="multiple" {{ disabled }}>
             </select>
         </div>
     </div>
@@ -65,7 +63,7 @@
     {% if types is defined %}
     <div>
         <div class="input-group">
-            <select type="text" class="form-control data" name="type"
+            <select type="text" class="form-control data" name="type" {{ disabled }}
                     id="type">
                 <option value>Type</option>
                 {% for type in types %}
