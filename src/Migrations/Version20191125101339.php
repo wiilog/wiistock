@@ -14,7 +14,7 @@ final class Version20191125101339 extends AbstractMigration
 {
     public function getDescription() : string
     {
-        return '';
+        return 'transform mouvementTraca fields';
     }
 
     public function up(Schema $schema) : void
