@@ -6,6 +6,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
     "lengthMenu": [10, 25, 50, 100, 1000],
+    order: [[1, 'desc']],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -18,21 +19,22 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         }
     },
     'drawCallback': function () {
-        overrideSearch();
+        overrideSearchEmplacement();
     },
     columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
         {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
         {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
     buttons: [
         'copy', 'excel', 'pdf'
     ],
     columnDefs: [
-        { "orderable": false, "targets": 4 }
+        { "orderable": false, "targets": 5 },
+        { "orderable": false, "targets": 0 }
     ]
 });
 
@@ -74,7 +76,7 @@ function displayErrorEmplacement(data) {
     displayError(modal, msg, data);
 }
 
-function overrideSearch() {
+function overrideSearchEmplacement() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
     $input.on('keyup', function (e) {

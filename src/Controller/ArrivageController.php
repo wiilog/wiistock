@@ -12,7 +12,6 @@ use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
-use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
@@ -30,6 +29,7 @@ use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\DashboardService;
 use App\Service\SpecificService;
@@ -116,6 +116,11 @@ class ArrivageController extends AbstractController
      */
     private $attachmentService;
 
+	/**
+	 * @var ArrivageDataService
+	 */
+    private $arrivageDataService;
+
     /**
      * @var ChampLibreRepository
      */
@@ -150,7 +155,7 @@ class ArrivageController extends AbstractController
      */
     private $dashboardService;
 
-    public function __construct(DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
@@ -172,6 +177,7 @@ class ArrivageController extends AbstractController
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->attachmentService = $attachmentService;
         $this->natureRepository = $natureRepository;
+        $this->arrivageDataService = $arrivageDataService;
     }
 
     /**
@@ -184,7 +190,6 @@ class ArrivageController extends AbstractController
         }
 
         return $this->render('arrivage/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -206,46 +211,10 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
-                $arrivages = $this->arrivageRepository->findAll();
-            } else {
-                $currentUser = $this->getUser();
-                /** @var Utilisateur $currentUser */
-                $arrivages = $currentUser->getArrivagesAcheteur();
-            }
+            $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
+            $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
 
-            $rows = [];
-            foreach ($arrivages as $arrivage) {
-                $acheteursUsernames = [];
-                $url = $this->generateUrl('arrivage_show', [
-                    'id' => $arrivage->getId(),
-                ]);
-                foreach ($arrivage->getAcheteurs() as $acheteur) {
-                    $acheteursUsernames[] = $acheteur->getUsername();
-                }
-                $rows[] = [
-                    'id' => $arrivage->getId(),
-                    'NumeroArrivage' => $arrivage->getNumeroArrivage() ? $arrivage->getNumeroArrivage() : '',
-                    'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-                    'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
-                    'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
-                    'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
-                    'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
-                    'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
-                    'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-                    'Acheteurs' => implode(', ', $acheteursUsernames),
-                    'Statut' => $arrivage->getStatus(),
-                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
-                    'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-                    'Actions' => $this->renderView(
-                        'arrivage/datatableArrivageRow.html.twig',
-                        ['url' => $url, 'arrivage' => $arrivage]
-                    ),
-                    'urgent' => $arrivage->getIsUrgent() === true ? true : false,
-                ];
-            }
-
-            $data['data'] = $rows;
+            $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
 
             return new JsonResponse($data);
         }
@@ -282,34 +251,31 @@ class ArrivageController extends AbstractController
             if (!empty($transporteur = $post->get('transporteur'))) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
+			if (!empty($chauffeur = $post->get('chauffeur'))) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $post->get('noTracking'))) {
+			if (!empty($noTracking = $post->get('noTracking'))) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($noBL = $post->get('noBL'))) {
+			if (!empty($noBL = $post->get('noBL'))) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
-
             }
-            if (!empty($destinataire = $post->get('destinataire'))) {
+			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($acheteurs = $post->get('acheteurs'))) {
-                if (!empty($post->get('acheteurs'))) {
-                    $acheteurs = explode(',', $post->get('acheteurs'));
-                    foreach ($acheteurs as $acheteur) {
-                        $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-                    }
+			//TODO CG tester si pas username
+			if (!empty($post->get('acheteurs'))) {
+			    $acheteursId = explode(',', $post->get('acheteurs'));
+                foreach ($acheteursId as $acheteurId) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
                 }
             }
 
             $em->persist($arrivage);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request, $arrivage);
-
-            if ($arrivage->getNumeroBL()) {
+			$this->attachmentService->addAttachements($request, $arrivage);
+			if ($arrivage->getNumeroBL()) {
                 $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
                     $arrivage->setIsUrgent(true);
@@ -351,13 +317,6 @@ class ArrivageController extends AbstractController
                     }
                 }
             }
-
-//			$this->attachmentService->addAttachements($request, $arrivage);
-
-//			$em->persist($arrivage);
-//            $em->flush();
-//
-//            $this->attachmentService->addAttachements($request, $arrivage);
 
             $printColis = null;
             $printArrivage = null;
@@ -434,22 +393,22 @@ class ArrivageController extends AbstractController
             if (!empty($commentaire = $post->get('commentaire'))) {
                 $arrivage->setCommentaire($commentaire);
             }
-            if (!empty($fournisseur = $post->get('fournisseur'))) {
+			if (!empty($fournisseur = $post->get('fournisseur'))) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (!empty($transporteur = $post->get('transporteur'))) {
+			if (!empty($transporteur = $post->get('transporteur'))) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
+			if (!empty($chauffeur = $post->get('chauffeur'))) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $post->get('noTracking'))) {
+			if (!empty($noTracking = $post->get('noTracking'))) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($noBL = $post->get('noBL'))) {
+			if (!empty($noBL = $post->get('noBL'))) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (!empty($destinataire = $post->get('destinataire'))) {
+			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
 			$acheteurs = $post->get('acheteurs');
@@ -470,7 +429,7 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
-            $listAttachmentIdToKeep = $post->get('files');
+			$listAttachmentIdToKeep = $post->get('files');
 
             $attachments = $arrivage->getAttachements()->toArray();
             foreach ($attachments as $attachment) {
@@ -586,7 +545,8 @@ class ArrivageController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
+    	//TODO HM getId ?
+		$acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -781,11 +741,13 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
+	/**
 	 * @param Arrivage $arrivage
-	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param bool $printColis
+	 * @param bool $printArrivage
 	 * @return JsonResponse
 	 * @throws NonUniqueResultException
+	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {

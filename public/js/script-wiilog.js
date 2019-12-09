@@ -8,6 +8,8 @@ const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
+const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
 
 $.fn.dataTable.ext.errMode = (resp) => {
@@ -559,7 +561,7 @@ function ajaxAutoChauffeurInit(select) {
     });
 }
 
-function ajaxAutoUserInit(select) {
+function ajaxAutoUserInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_user'),
@@ -575,6 +577,9 @@ function ajaxAutoUserInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
     });
 }
 
@@ -694,23 +699,11 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(page, dateMin, dateMax, statut, user = null, type = null, location = null, colis = null, carriers = null, providers = null, callback = null) {
+function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
-    let params = {};
-    if (dateMin) params.dateMin = dateMin;
-    if (dateMax) params.dateMax = dateMax;
-    if (statut) params.statut = statut;
-    if (user) params.user = user;
-    if (type) params.type = type;
-    if (location) params.location = location;
-    if (colis) params.colis = colis;
-    if (carriers) params.carriers = carriers;
-    if (providers) params.providers = providers;
-    if (demandCollect) params.demandCollect = demandCollect;
-    params.page = page;
 
     $.post(path, JSON.stringify(params), function() {
-        if (callback) callback();
+        if (table) table.draw();
     }, 'json');
 }
 
@@ -954,3 +947,13 @@ let addArrivalAssociation = function(span) {
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
 };
+
+function overrideSearch($input, table) {
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            table.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}

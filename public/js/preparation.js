@@ -1,52 +1,67 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
 
 $(function() {
-    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
-    $('#preparation-emplacement + .select2').addClass('col-6');
-
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PREPA);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
         if (data.length > 0)$submitSearchPrepa.click();
     }, 'json');
+
+    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
+    $('#preparation-emplacement + .select2').addClass('col-6');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 });
 
 let path = Routing.generate('preparation_api');
 let table = $('#table_id').DataTable({
-    order: [[1, 'desc']],
-    columnDefs: [
-        {
-            "type": "customDate",
-            "targets": 2
-        }
-    ],
-    "language": {
+    serverSide: true,
+    processing: true,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax: path,
+    order: [[3, 'desc']],
+    ajax: {
+        url: path,
+        type: 'POST'
+    },
+    'drawCallback': function() {
+        overrideSearch($('#table_id_filter input'), table);
+    },
     columns: [
+        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 3
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
     ],
 });
 
@@ -77,32 +92,16 @@ $.fn.dataTable.ext.search.push(
 );
 
 $submitSearchPrepa.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val()
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_PREPA,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        type: $('#type').val(),
+    };
 
-    saveFilters(PAGE_PREPA, dateMin, dateMax, statut, utilisateurPiped, type);
-
-    table
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    table
-        .columns('Opérateur:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    table.draw();
+    saveFilters(filters, table);
 });
 
 $.extend($.fn.dataTableExt.oSort, {

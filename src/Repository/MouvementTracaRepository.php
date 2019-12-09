@@ -4,9 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
+
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -17,6 +19,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class MouvementTracaRepository extends ServiceEntityRepository
 {
+	private const DtToDbLabels = [
+		'date' => 'datetime',
+		'colis' => 'colis',
+		'location' => 'emplacement',
+		'type' => 'status',
+		'operateur' => 'user',
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, MouvementTraca::class);
@@ -124,15 +134,136 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    /**
-     * @param Utilisateur $operator
-     * @return MouvementTraca[]
-     */
-    public function findPrisesByOperatorAndNotDeposed(Utilisateur $operator) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m.colis as ref_article,
+	/**
+	 * @param array|null $params
+	 * @param array|null $filters
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function findByParamsAndFilters($params, $filters)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('m')
+			->from('App\Entity\MouvementTraca', 'm');
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$qb
+						->leftJoin('m.type', 's')
+						->andWhere('s.nom = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'emplacement':
+					$qb
+						->join('m.emplacement', 'e')
+						->andWhere('e.label = :location')
+						->setParameter('location', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('m.operateur', 'u')
+						->andWhere("u.id in (:userId)")
+						->setParameter('userId', $value);
+					break;
+				case 'dateMin':
+					$qb
+						->andWhere('m.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']. " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb
+						->andWhere('m.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+				case 'colis':
+					$qb
+						->andWhere('m.colis LIKE :colis')
+						->setParameter('colis', '%' . $filter['value'] . '%');
+					break;
+			}
+		}
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->leftJoin('m.emplacement', 'e2')
+						->leftJoin('m.operateur', 'u2')
+						->leftJoin('m.type', 's2')
+						->andWhere('
+						m.colis LIKE :value OR
+						e2.label LIKE :value OR
+						s2.nom LIKE :value OR
+						u2.username LIKE :value
+						')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('order')))
+			{
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order))
+				{
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					if ($column === 'emplacement') {
+						$qb
+							->leftJoin('m.emplacement', 'e3')
+							->orderBy('e3.label', $order);
+					} else if ($column === 'status') {
+						$qb
+							->leftJoin('m.type', 's3')
+							->orderBy('s3.nom', $order);
+					} else if ($column === 'user') {
+						$qb
+							->leftJoin('m.operateur', 'u3')
+							->orderBy('u3.username', $order);
+					} else {
+						$qb
+							->orderBy('m.' . $column, $order);
+					}
+				}
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return [
+			'data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
+
+
+	/**
+	 * @param Utilisateur $operator
+	 * @return MouvementTraca[]
+	 */
+	public function findPrisesByOperatorAndNotDeposed(Utilisateur $operator) {
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT m.colis as ref_article,
                      t.nom as type,
                      o.username as operateur,
                      e.label as ref_emplacement,
@@ -143,7 +274,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
             JOIN m.operateur o
             JOIN m.emplacement e
             WHERE o = :op AND t.nom LIKE 'prise' AND m.finished = 0"
-        )->setParameter('op', $operator);
-        return $query->execute();
-    }
+		)->setParameter('op', $operator);
+		return $query->execute();
+	}
 }

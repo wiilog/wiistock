@@ -130,6 +130,9 @@ class OrdreCollecteService
 	 * @param array $mouvements
 	 * @return OrdreCollecte|null
 	 * @throws NonUniqueResultException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
 	 */
 	public function finishCollecte(OrdreCollecte $collecte, Utilisateur $user, DateTime $date, Emplacement $depositLocation, array $mouvements)
 	{
@@ -270,21 +273,25 @@ class OrdreCollecteService
 			}
 		}
 		$this->entityManager->flush();
-//TODO CG modif mail infos ordre et pas demande
-//        if ($this->mailerServerRepository->findAll()) {
-//            $this->mailerService->sendMail(
-//                'FOLLOW GT // Collecte effectuée',
-//                $this->templating->render(
-//                    'mails/mailCollecteDone.html.twig',
-//                    [
-//                        'title' => 'Votre demande a bien été collectée.',
-//                        'collecte' => $demandeCollecte,
-//
-//                    ]
-//                ),
-//                $demandeCollecte->getDemandeur()->getEmail()
-//            );
-//        }
+
+		$partialCollect = !empty($rowsToRemove);
+
+		if ($this->mailerServerRepository->findAll()) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Collecte effectuée',
+                $this->templating->render(
+                    'mails/mailCollecteDone.html.twig',
+                    [
+                        'title' => $partialCollect ?
+							'Votre demande de collecte a été partiellement effectuée.' :
+							'Votre demande de collecte a bien été effectuée.',
+                        'collecte' => $collecte,
+						'demande' => $demandeCollecte,
+                    ]
+                ),
+                $demandeCollecte->getDemandeur()->getEmail()
+            );
+        }
 
 		return $newCollecte ?? null;
 	}

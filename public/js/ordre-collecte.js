@@ -1,11 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Opérateur',
-    }
-});
-
 let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
 
 let pathCollecte = Routing.generate('ordre_collecte_api');
@@ -75,6 +69,7 @@ $.fn.dataTable.ext.search.push(
 
 $(function() {
     ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
     // cas d'un filtre par demande de collecte
     let filterDemand = $('#filterDemand').val();
@@ -111,17 +106,17 @@ $(function() {
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let type = $('#type').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let demandCollect = $('#demandCollect').select2('data');
-    saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type, null, null, null, null, demandCollect);
+    let filters = {
+        page: PAGE_ORDRE_COLLECTE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        type: $('#type').val(),
+        users: $('#utilisateur').select2('data'),
+        demandCollect: $('#demandCollect').select2('data'),
+    };
 
-    tableCollecte.draw();
+    saveFilters(filters, tableCollecte);
 });
 
 $.extend($.fn.dataTableExt.oSort, {

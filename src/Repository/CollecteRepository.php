@@ -17,7 +17,7 @@ class CollecteRepository extends ServiceEntityRepository
 {
     private const DtToDbLabels = [
         'Création' => 'date',
-        'Validation' => 'validation',
+        'Validation' => 'validationDate',
         'Demandeur' => 'demandeur',
         'Objet' => 'objet',
         'Statut' => 'statut',

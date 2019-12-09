@@ -1,22 +1,19 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Demandeur',
-    }
-});
-
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
     processing: true,
     serverSide: true,
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
         },
-        { "orderable": false, "targets": 6 }
+        {
+            "orderable": false,
+            "targets": [0]
+        }
     ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -27,29 +24,28 @@ let table = $('#tableCollecte_id').DataTable({
 
     },
     columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
         {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
         {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
     ]
 });
 
 let $submitSearchCollecte = $('#submitSearchCollecte');
 $submitSearchCollecte.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let user = $('#utilisateur').val();
-    let userString = user.toString();
-    let userPiped = userString.split(',').join('|');
-    let type = $('#type').val();
+    let filters = {
+        page: PAGE_DEM_COLLECTE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        type: $('#type').val()
+    };
 
-    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, userPiped, type);
-
-    table.draw();
+    saveFilters(filters, table);
 });
 
 let modalNewCollecte = $("#modalNewCollecte");
@@ -155,13 +151,23 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
         if (data.length > 0)$submitSearchCollecte.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 });
 
 function ajaxGetCollecteArticle(select) {

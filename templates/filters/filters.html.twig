@@ -51,12 +51,9 @@
     {% endblock %}
 
     {% block userFilter %}
-    <div>
-        <div class="input-group">
-            <select class="form-control data minw-150px" name="utilisateur" id="utilisateur" multiple="multiple" {{ disabled }}>
-                {% for utilisateur in utilisateurs %}
-                    <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
-                {% endfor %}
+    <div class="minw-150px">
+        <div class="input-group w-100">
+            <select id="utilisateur" name="utilisateur" class="form-control data ajax-autocomplete-user min-150px" multiple="multiple" {{ disabled }}>
             </select>
         </div>
     </div>
