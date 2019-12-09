@@ -9,7 +9,15 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class FieldsParam
 {
-    const RECEPTION = 'réception';
+    const ENTITY_CODE_RECEPTION = 'réception';
+
+    const FIELD_CODE_FOURNISSEUR = 'fournisseur';
+    const FIELD_CODE_NUM_COMMANDE = 'numero de commande';
+    const FIELD_CODE_DATE_ATTENDUE = 'date attendue';
+    const FIELD_CODE_DATE_COMMANDE = 'date commande';
+    const FIELD_CODE_COMMENTAIRE = 'commentaire';
+    const FIELD_CODE_UTILISATEUR = 'utilisateur';
+    const FIELD_CODE_NUM_RECEPTION = 'numero reception';
 
     /**
      * @ORM\Id()

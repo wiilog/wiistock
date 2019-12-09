@@ -5,67 +5,53 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
+use App\Repository\FieldsParamRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
 class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterface
 {
-    public function __construct()
+	/**
+	 * @var FieldsParamRepository
+	 */
+	private $fieldsParamRepository;
+
+	public function __construct(FieldsParamRepository $fieldsParamRepository)
+	{
+		$this->fieldsParamRepository = $fieldsParamRepository;
+	}
+
+	public function load(ObjectManager $manager)
     {
+    	$listFieldCodes = [
+    		FieldsParam::FIELD_CODE_FOURNISSEUR,
+			FieldsParam::FIELD_CODE_NUM_COMMANDE,
+			FieldsParam::FIELD_CODE_COMMENTAIRE,
+			FieldsParam::FIELD_CODE_DATE_ATTENDUE,
+			FieldsParam::FIELD_CODE_DATE_COMMANDE,
+			FieldsParam::FIELD_CODE_UTILISATEUR,
+			FieldsParam::FIELD_CODE_NUM_RECEPTION,
+			];
 
-    }
-
-    public function load(ObjectManager $manager)
-    {
-        $fieldFournisseur = new FieldsParam();
-        $fieldFournisseur
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Fournisseur');
-        $manager->persist($fieldFournisseur);
-
-        $fieldNumero = new FieldsParam();
-        $fieldNumero
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Numero de commande');
-        $manager->persist($fieldNumero);
-
-        $fieldWaitedDate = new FieldsParam();
-        $fieldWaitedDate
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Date attendue');
-        $manager->persist($fieldWaitedDate);
-
-        $fieldOrderDate = new FieldsParam();
-        $fieldOrderDate
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Date commande');
-        $manager->persist($fieldOrderDate);
-
-        $fieldComment = new FieldsParam();
-        $fieldComment
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Commentaire');
-        $manager->persist($fieldComment);
-
-
-        $fieldUser = new FieldsParam();
-        $fieldUser
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Utilisateur');
-        $manager->persist($fieldUser);
-
-        $fieldReception = new FieldsParam();
-        $fieldReception
-            ->setEntityCode(FieldsParam::RECEPTION)
-            ->setFieldCode('Numero reception');
-        $manager->persist($fieldReception);
+    	foreach ($listFieldCodes as $fieldCode) {
+			$field = $this->fieldsParamRepository->findBy(['fieldCode' => $fieldCode]);
+			if (!$field) {
+				$field = new FieldsParam();
+				$field
+					->setEntityCode(FieldsParam::ENTITY_CODE_RECEPTION)
+					->setFieldCode($fieldCode);
+				$manager->persist($field);
+				$manager->flush();
+				dump('Champ fixe ' . FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode . ' créé.');
+			}
+		}
 
         $manager->flush();
     }
 
     public static function getGroups(): array
     {
-        return ['setFields'];
+        return ['setFields', 'fixtures'];
     }
 }
