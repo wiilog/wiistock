@@ -144,6 +144,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
 			->leftJoin('l.litigeHistorics', 'lh')
+			->leftJoin('a.acheteurs', 'ach')
 			->leftJoin('l.status', 's');
 
 		$countTotal = count($qb->getQuery()->getResult());
@@ -176,8 +177,7 @@ class LitigeRepository extends ServiceEntityRepository
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('a.acheteurs', 'ach2')
-						->andWhere("ach2.id in (:userId)")
+						->andWhere("ach.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
 				case 'dateMin':
@@ -199,11 +199,10 @@ class LitigeRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('a.acheteurs', 'ach3')
 						->andWhere('
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
-						ach3.username LIKE :value OR
+						ach.username LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value	
 						')
@@ -229,8 +228,7 @@ class LitigeRepository extends ServiceEntityRepository
 							->orderBy('lh.date', $order);
 					} else if ($column === 'acheteurs') {
 						$qb
-							->leftJoin('a.acheteurs', 'ach4')
-							->orderBy('ach4.username', $order);
+							->orderBy('ach.username', $order);
 					} else if ($column === 'numeroArrivage') {
 						$qb
 							->orderBy('a.numeroArrivage', $order);
