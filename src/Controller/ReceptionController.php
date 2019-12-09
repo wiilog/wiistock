@@ -163,10 +163,6 @@ class ReceptionController extends AbstractController
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            if ($data['fournisseur'] == null && $data['reference'] == null && $data['date-attendue'] == null && $data['date-commande'] == null) {
-                return new JsonResponse(false);
-            }
-
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
 
@@ -188,27 +184,11 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
-            if ($data['reference'] != null) {
-                $reception
-                    ->setReference($data['reference']);
-            }
-
-            if ($data['date-attendue'] != null) {
-                $reception
-                    ->setDateAttendue(new DateTime($data['date-attendue']));
-            }
-
-            if ($data['date-commande'] != null) {
-                $reception
-                    ->setDateCommande(new DateTime($data['date-commande']));
-            }
-
-            if ($data['commentaire'] != null) {
-                $reception
-                    ->setCommentaire($data['commentaire']);
-            }
-
             $reception
+				->setReference($data['reference'])
+				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+				->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
@@ -264,48 +244,19 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
-            if ($data['NumeroCommande'] != null) {
-                $reception
-                    ->setReference($data['NumeroCommande']);
-            } else {
-                $reception
-                    ->setReference('');
-            }
-
-            if ($data['date-attendue'] != null) {
-                $reception
-                    ->setDateAttendue(new DateTime($data['date-attendue']));
-            }
-
-            if ($data['date-commande'] != null) {
-                $reception
-                    ->setDateCommande(new DateTime($data['date-commande']));
-            }
-
-            if ($data['commentaire'] != null) {
-                $reception
-                    ->setCommentaire($data['commentaire']);
-            } else {
-                $reception
-                    ->setCommentaire('');
-            }
-
-            if ($data['utilisateur'] != null) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-                $reception
-                    ->setUtilisateur($utilisateur);
-            }
-
-            if ($data['NumeroReception'] != null) {
-                $reception
-                    ->setNumeroReception($data['NumeroReception']);
-            } else {
-                $reception
-                    ->setNumeroReception('');
-            }
+			if ($data['utilisateur'] != null) {
+				$utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+				$reception
+					->setUtilisateur($utilisateur);
+			}
 
             $reception
-                ->setStatut($statut);
+				->setReference($data['numeroCommande'])
+            	->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+				->setNumeroReception($data['numeroReception'])
+				->setStatut($statut)
+            	->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -380,12 +331,11 @@ class ReceptionController extends AbstractController
                 ];
             }
 
-            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::RECEPTION);
+            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
             $fields = [];
             foreach ($fieldsParam as $field) {
-                $fields[str_replace(' ', '', $field['fieldCode'])] = [
-                    'fieldCode' => $field['fieldCode'],
+                $fields[$field['fieldCode']] = [
                     'mustToCreate' => $field['mustToCreate'],
                     'mustToModify' => $field['mustToModify'],
                 ];
@@ -393,8 +343,6 @@ class ReceptionController extends AbstractController
 
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
-                'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur() ? $reception->getFournisseur()->getId() : ''),
-                'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur() ? $reception->getUtilisateur()->getId() : ''),
                 'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
@@ -493,7 +441,7 @@ class ReceptionController extends AbstractController
         }
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::RECEPTION);
+        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -508,8 +456,7 @@ class ReceptionController extends AbstractController
 
         $fields = [];
         foreach ($fieldsParam as $field) {
-            $fields[str_replace(' ', '', $field['fieldCode'])] = [
-                'fieldCode' => $field['fieldCode'],
+            $fields[$field['fieldCode']] = [
                 'mustToCreate' => $field['mustToCreate'],
                 'mustToModify' => $field['mustToModify'],
             ];

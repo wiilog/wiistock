@@ -69,18 +69,6 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getNoOne($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT e.id, e.label
-            FROM App\Entity\Emplacement e
-            WHERE e.id <> :id
-            "
-        )->setParameter('id', $id);;
-        return $query->execute();
-    }
-
     public function getIdAndLabelActiveBySearch($search)
     {
         $em = $this->getEntityManager();

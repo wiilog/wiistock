@@ -1,7 +1,7 @@
 <div class='col-6'>
     <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
     <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
-    <p><strong>Fournisseur :</strong> {{ reception.fournisseur.nom ?? '' }}</p>
+    <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? (reception.fournisseur.nom ?? '') : '' }}</p>
     <p><strong>Commentaire :</strong> {{ reception.commentaire|raw}}</p>
 </div>
 <div class="col-6">

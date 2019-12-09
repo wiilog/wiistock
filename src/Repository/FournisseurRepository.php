@@ -27,17 +27,6 @@ class FournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, Fournisseur::class);
     }
 
-    public function getNoOne($fournisseur)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT f
-            FROM App\Entity\Fournisseur f
-            WHERE f.id <> :fournisseur"
-        )->setParameter('fournisseur', $fournisseur);;
-        return $query->execute();
-    }
-
     public function findOneByCodeReference($code)
     {
         $entityManager = $this->getEntityManager();

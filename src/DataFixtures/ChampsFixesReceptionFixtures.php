@@ -25,25 +25,26 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
 	public function load(ObjectManager $manager)
     {
     	$listFieldCodes = [
-    		FieldsParam::FIELD_CODE_FOURNISSEUR,
-			FieldsParam::FIELD_CODE_NUM_COMMANDE,
-			FieldsParam::FIELD_CODE_COMMENTAIRE,
-			FieldsParam::FIELD_CODE_DATE_ATTENDUE,
-			FieldsParam::FIELD_CODE_DATE_COMMANDE,
-			FieldsParam::FIELD_CODE_UTILISATEUR,
-			FieldsParam::FIELD_CODE_NUM_RECEPTION,
+    		[FieldsParam::FIELD_CODE_FOURNISSEUR, FieldsParam::FIELD_LABEL_FOURNISSEUR],
+			[FieldsParam::FIELD_CODE_NUM_COMMANDE, FieldsParam::FIELD_LABEL_NUM_COMMANDE],
+			[FieldsParam::FIELD_CODE_COMMENTAIRE, FieldsParam::FIELD_LABEL_COMMENTAIRE],
+			[FieldsParam::FIELD_CODE_DATE_ATTENDUE, FieldsParam::FIELD_LABEL_DATE_ATTENDUE],
+			[FieldsParam::FIELD_CODE_DATE_COMMANDE, FieldsParam::FIELD_LABEL_DATE_COMMANDE],
+			[FieldsParam::FIELD_CODE_UTILISATEUR, FieldsParam::FIELD_LABEL_UTILISATEUR],
+			[FieldsParam::FIELD_CODE_NUM_RECEPTION, FieldsParam::FIELD_LABEL_NUM_RECEPTION],
 			];
 
     	foreach ($listFieldCodes as $fieldCode) {
-			$field = $this->fieldsParamRepository->findBy(['fieldCode' => $fieldCode]);
+			$field = $this->fieldsParamRepository->findBy(['fieldCode' => $fieldCode[0]]);
 			if (!$field) {
 				$field = new FieldsParam();
 				$field
 					->setEntityCode(FieldsParam::ENTITY_CODE_RECEPTION)
-					->setFieldCode($fieldCode);
+					->setFieldLabel($fieldCode[1])
+					->setFieldCode($fieldCode[0]);
 				$manager->persist($field);
 				$manager->flush();
-				dump('Champ fixe ' . FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode . ' créé.');
+				dump('Champ fixe ' . FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode[0] . ' créé.');
 			}
 		}
 

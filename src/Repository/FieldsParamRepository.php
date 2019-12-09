@@ -22,7 +22,8 @@ class FieldsParamRepository extends ServiceEntityRepository
     function getByEntity($entity) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT f.fieldCode, f.mustToCreate, f.mustToModify
+        	/** @lang DQL */
+            "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify
             FROM App\Entity\FieldsParam f
             WHERE f.entityCode = :entity"
         )->setParameter('entity', $entity);
