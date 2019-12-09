@@ -21,6 +21,7 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\LitigeService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -87,6 +88,12 @@ class LitigeController extends AbstractController
 	private $pieceJointeRepository;
 
 	/**
+	 * @var LitigeService
+	 */
+	private $litigeService;
+
+	/**
+	 * @param LitigeService $litigeService
 	 * @param PieceJointeRepository $pieceJointeRepository
 	 * @param ColisRepository $colisRepository
 	 * @param UserService $userService ;
@@ -98,11 +105,9 @@ class LitigeController extends AbstractController
 	 * @param TransporteurRepository $transporteurRepository
 	 * @param ChauffeurRepository $chauffeurRepository
 	 * @param TypeRepository $typeRepository
-     * @param ColisRepository $colisRepository
-     * @param LitigeHistoricRepository $litigeHistoricRepository
-	 * @param UserService $userService;
+	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
-	public function __construct(PieceJointeRepository $pieceJointeRepository, ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
+	public function __construct(LitigeService $litigeService, PieceJointeRepository $pieceJointeRepository, ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -116,6 +121,7 @@ class LitigeController extends AbstractController
 		$this->colisRepository = $colisRepository;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
+		$this->litigeService = $litigeService;
 	}
 
 	/**
@@ -129,13 +135,10 @@ class LitigeController extends AbstractController
         }
 
         return $this->render('litige/index_arrivages.html.twig',[
-			'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
             'providers' => $this->fournisseurRepository->findAllSorted(),
             'carriers' => $this->transporteurRepository->findAllSorted(),
-            'drivers' => $this->chauffeurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'allColis' => $this->colisRepository->findAll()
 		]);
     }
 
@@ -148,32 +151,7 @@ class LitigeController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$litiges = $this->litigeRepository->getAllWithArrivageData();
-			$rows = [];
-			foreach ($litiges as $litige) {
-				$litigeId = $litige['id'];
-				$acheteursUsernames = $this->litigeRepository->getAcheteursByLitige($litigeId, 'username');
-
-				$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litige['id']);
-				$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
-				$rows[] = [
-					'type' => $litige['type'] ?? '',
-					'arrivalNumber' => $litige['numeroArrivage'] ?? '',
-					'buyers' => implode(', ', $acheteursUsernames),
-					'provider' => $litige['provider'] ?? '',
-					'carrier' => $litige['carrier'] ?? '',
-					'lastHistoric' => $lastHistoricStr,
-					'status' => $litige['status'] ?? '',
-					'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y') : '',
-					'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y') : '',
-					'actions' => $this->renderView('litige/datatableLitigesArrivageRow.html.twig', [
-						'litigeId' => $litige['id'],
-                        'arrivageId' => $litige['arrivageId']
-					])
-				];
-			}
-
-			$data['data'] = $rows;
+			$data = $this->litigeService->getDataForDatatable($request->request);
 
 			return new JsonResponse($data);
 		}

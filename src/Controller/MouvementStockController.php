@@ -5,12 +5,15 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
+
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
+
+use App\Service\MouvementStockService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,23 +47,34 @@ class MouvementStockController extends AbstractController
      */
     private $utilisateurRepository;
 
-
     /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
 
-    /**
-     * ArrivageController constructor.
-     */
+	/**
+	 * @var MouvementStockService
+	 */
+    private $mouvementStockService;
 
-    public function __construct(EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementStockRepository $mouvementStockRepository)
+	/**
+	 * ArrivageController constructor.
+	 * @param MouvementStockService $mouvementStockService
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param StatutRepository $statutRepository
+	 * @param UserService $userService
+	 * @param MouvementStockRepository $mouvementStockRepository
+	 */
+
+    public function __construct(MouvementStockService $mouvementStockService, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->statutRepository = $statutRepository;
         $this->userService = $userService;
         $this->mouvementStockRepository = $mouvementStockRepository;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -74,7 +88,6 @@ class MouvementStockController extends AbstractController
 
         return $this->render('mouvement_stock/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
@@ -89,41 +102,7 @@ class MouvementStockController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $mouvements = $this->mouvementStockRepository->findAll();
-
-            $rows = [];
-            foreach ($mouvements as $mouvement) {
-            	if ($mouvement->getPreparationOrder()) {
-            		$orderPath = 'preparation_show';
-            		$orderId = $mouvement->getPreparationOrder()->getId();
-				} else if ($mouvement->getLivraisonOrder()) {
-            		$orderPath = 'livraison_show';
-            		$orderId = $mouvement->getLivraisonOrder()->getId();
-				} else if ($mouvement->getCollecteOrder()) {
-            		$orderPath = 'ordre_collecte_show';
-            		$orderId = $mouvement->getCollecteOrder()->getId();
-				} else {
-            		$orderPath = $orderId = null;
-				}
-
-                $rows[] = [
-                    'id' => $mouvement->getId(),
-                    'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
-                    'refArticle' => $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : $mouvement->getRefArticle()->getReference(),
-                    'quantite' => $mouvement->getQuantity(),
-                    'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
-                    'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
-                    'type' => $mouvement->getType(),
-                    'operateur' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '',
-                    'actions' => $this->renderView('mouvement_stock/datatableMvtStockRow.html.twig', [
-                        'mvt' => $mouvement,
-						'orderPath' => $orderPath,
-						'orderId' => $orderId
-                    ])
-                ];
-            }
-
-            $data['data'] = $rows;
+            $data = $this->mouvementStockService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

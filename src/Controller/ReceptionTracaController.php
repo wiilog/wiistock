@@ -8,6 +8,7 @@ use App\Entity\ReceptionTraca;
 use App\Repository\ReceptionTracaRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\DashboardService;
+use App\Service\ReceptionTracaService;
 use App\Service\UserService;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,16 +45,22 @@ class ReceptionTracaController extends AbstractController
     private $dashboardService;
 
     /**
+     * @var ReceptionTracaService
+     */
+    private $receptionTracaService;
+
+    /**
      * ReceptionTracaController constructor.
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
      */
-    public function __construct(DashboardService $dashboardService, UtilisateurRepository $utilisateurRepository, UserService $userService, ReceptionTracaRepository $receptionTracaRepository)
+    public function __construct(DashboardService $dashboardService, UtilisateurRepository $utilisateurRepository, UserService $userService, ReceptionTracaRepository $receptionTracaRepository, ReceptionTracaService $receptionTracaService)
     {
         $this->dashboardService = $dashboardService;
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->receptionTracaRepository = $receptionTracaRepository;
+        $this->receptionTracaService = $receptionTracaService;
     }
 
     /**
@@ -81,22 +88,7 @@ class ReceptionTracaController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $receptions = $this->receptionTracaRepository->findAll();
-
-            $rows = [];
-            foreach ($receptions as $reception) {
-                $rows[] = [
-                    'id' => $reception->getId(),
-                    'date' => $reception->getDateCreation() ? $reception->getDateCreation()->format('d/m/Y H:i:s') : '',
-                    'Arrivage' => $reception->getArrivage(),
-                    'Réception' => $reception->getNumber(),
-                    'Utilisateur' => $reception->getUser() ? $reception->getUser()->getUsername() : '',
-                    'Actions' => $this->renderView('reception_traca/datatableRecepTracaRow.html.twig', [
-                        'recep' => $reception,
-                    ])
-                ];
-            }
-            $data['data'] = $rows;
+            $data = $this->receptionTracaService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

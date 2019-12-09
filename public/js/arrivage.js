@@ -1,14 +1,5 @@
-// const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
 let numberOfDataOpened = 0;
 $('.select2').select2();
-
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Destinataire',
-    }
-});
-
-let $submitSearchArrivage = $('#submitSearchArrivage');
 
 $(function() {
     // filtres enregistrés en base pour chaque utilisateur
@@ -17,15 +8,28 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field = 'emergency') {
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
 
         initFilterDateToday();
-        $submitSearchArrivage.click();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
 });
 
 function initFilterDateToday() {
@@ -39,6 +43,8 @@ function initFilterDateToday() {
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -47,6 +53,9 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ajax: {
         "url": pathArrivage,
         "type": "POST"
+    },
+    'drawCallback': function() {
+        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
@@ -62,7 +71,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
     columnDefs: [
         {
@@ -70,8 +78,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
             className: 'noVis'
         },
         {
-            targets: 13,
-            visible: false
+            orderable: false,
+            targets: [0]
         }
     ],
     "rowCallback" : function(row, data) {
@@ -177,37 +185,23 @@ function initNewArrivageEditor(modal) {
         editorNewArrivageAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
+let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let urgence = $('#urgence-filter').is(':checked');
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
-
-    tableArrivage
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('Destinataire:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('urgent:name')
-        .search(urgence ? 'true' : '')
-        .draw();
-
-    tableArrivage
-        .draw();
+    let filters = {
+        page: PAGE_ARRIVAGE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        urgence: $('#urgence-filter').is(':checked')
+    }
+    saveFilters(filters, tableArrivage);
 });
 
 function generateCSVArrivage () {

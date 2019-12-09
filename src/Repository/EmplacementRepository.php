@@ -20,6 +20,7 @@ class EmplacementRepository extends ServiceEntityRepository
         'Nom' => 'label',
         'Description' => 'description',
         'Point de livraison' => 'isDeliveryPoint',
+        'Délai maximum' => 'dateMaxTime',
         'Actif / Inactif' => 'isActive',
     ];
 
@@ -160,7 +161,7 @@ class EmplacementRepository extends ServiceEntityRepository
             "
             SELECT e
             FROM App\Entity\Emplacement e
-            WHERE e.label IN 
+            WHERE e.label IN
             (SELECT v.valeur
             FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
