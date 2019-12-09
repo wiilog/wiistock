@@ -142,6 +142,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->leftJoin('l.type', 't')
 			->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
+			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('l.status', 's');
 
 		$countTotal = count($qb->getQuery()->getResult());
@@ -198,13 +199,12 @@ class LitigeRepository extends ServiceEntityRepository
 				if (!empty($search)) {
 					$qb
 						->leftJoin('a.acheteurs', 'ach3')
-						->leftJoin('l.litigeHistorics', 'lh3')
 						->andWhere('
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						ach3.username LIKE :value OR
 						s.nom LIKE :value OR
-						lh3.comment LIKE :value	
+						lh.comment LIKE :value	
 						')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -225,8 +225,7 @@ class LitigeRepository extends ServiceEntityRepository
 							->orderBy('s.nom', $order);
 					} else if ($column === 'lastHistoric') {
 						$qb
-							->leftJoin('l.litigeHistorics', 'lh4')
-							->orderBy('lh4.date', $order);
+							->orderBy('lh.date', $order);
 					} else if ($column === 'acheteurs') {
 						$qb
 							->leftJoin('a.acheteurs', 'ach4')

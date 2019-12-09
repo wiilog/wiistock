@@ -51,7 +51,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[4, 'desc']],
+    order: [[2, 'desc']],
     ajax: {
         "url": pathLitigesArrivage,
         "type": "POST",
