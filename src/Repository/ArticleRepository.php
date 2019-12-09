@@ -825,6 +825,26 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function findArticleByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT article
+                FROM App\Entity\Article article
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', Article::STATUT_ACTIF);
+
+        return $query->execute();
+    }
+
 	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
         $em = $this->getEntityManager();
 

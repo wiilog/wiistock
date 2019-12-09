@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\InventoryEntry;
@@ -12,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
-use App\Entity\PieceJointe;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
@@ -30,9 +30,11 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
+use App\Service\AttachmentService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
@@ -302,25 +304,31 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvement-traca")
+     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvements-traca")
      * @Rest\View()
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
+     * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function postMouvementTraca(Request $request) {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function postMouvementsTraca(Request $request,
+                                        MouvementStockService $mouvementStockService,
+                                        AttachmentService $attachmentService,
+                                        EntityManagerInterface $entityManager) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
 
-                $em = $this->getDoctrine()->getManager();
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $numberOfRowsInserted = 0;
-                $mouvementsNomade = json_decode($data['mouvements'], true);
-                foreach ($mouvementsNomade as $mvt) {
+                $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+                foreach ($mouvementsNomade as $index => $mvt) {
                     $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                     if (!isset($mouvementTraca)) {
                         $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
@@ -330,10 +338,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         if (!$location) {
                             $emplacement = new Emplacement();
                             $emplacement->setLabel($mvt['ref_emplacement']);
-                            $em->persist($emplacement);
-                            $em->flush();
+                            $entityManager->persist($emplacement);
+                            $entityManager->flush();
                         }
-                        $operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+
                         $dateArray = explode('_', $mvt['date']);
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
@@ -342,35 +350,60 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $mouvementTraca
                             ->setColis($mvt['ref_article'])
                             ->setEmplacement($location)
-                            ->setOperateur($operator)
+                            ->setOperateur($nomadUser)
                             ->setUniqueIdForMobile($mvt['date'])
                             ->setDatetime($date)
                             ->setFinished($mvt['finished'])
                             ->setType($type);
+
+                        // set mouvement de stock
+                        if (isset($mvt['fromStock']) && $mvt['fromStock']) {
+                            if ($type->getNom() === MouvementTraca::TYPE_PRISE) {
+                                $articles = $this->articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                /** @var Article|null $article */
+                                $article = count($articles) > 0 ? $articles[0] : null;
+                                if (!isset($article)) {
+                                    $references = $this->referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                    /** @var ReferenceArticle|null $article */
+                                    $article = count($references) > 0 ? $references[0] : null;
+                                }
+
+                                if (isset($article)) {
+                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $article->getQuantite(), $article, MouvementStock::TYPE_ENTREE);
+                                    $mouvementTraca->setMouvementStock($newMouvement);
+                                }
+                            }
+                            else { // MouvementTraca::TYPE_DEPOSE
+                                $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
+                                    [
+                                        'colis' => $mouvementTraca->getColis(),
+                                        'type' => $type,
+                                        'finished' => false
+                                    ],
+                                    [ 'datetime' => 'DESC' ]
+                                );
+                                $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
+                                if (isset($mouvementTracaPrise)) {
+                                    $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
+                                    $mouvementTraca->setMouvementStock($mouvementStockPrise);
+                                    $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
+                                }
+                            }
+
+                        }
+
                         if (!empty($mvt['commentaire'])) {
                             $mouvementTraca->setCommentaire($mvt['commentaire']);
                         }
-                        $em->persist($mouvementTraca);
+                        $entityManager->persist($mouvementTraca);
                         $numberOfRowsInserted++;
-                        if (!empty($mvt['signature'])) {
-                            $path = "../public/uploads/attachements/";
-                            if (!file_exists($path)) {
-                                mkdir($path, 0777);
-                            }
-                            $fileName = 'signature' . str_replace(':', '', $mouvementTraca->getUniqueIdForMobile()) . '.jpeg';
-                            file_put_contents(
-                                $path . $fileName,
-                                file_get_contents($mvt['signature'])
-                            );
-                            $pj = new PieceJointe();
-                            $pj
-                                ->setOriginalName($fileName)
-                                ->setFileName($fileName)
-                                ->setMouvementTraca($mouvementTraca);
-                            $em->persist($pj);
+
+                        $signatureFile = $request->files->get("signature_$index");
+                        if (!empty($signatureFile)) {
+                            $attachmentService->addAttachements([$signatureFile], null, null, $mouvementTraca);
                         }
-                        $em->flush();
-//						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+
+                        // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
                             $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
@@ -390,7 +423,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                 'emplacement' => $location->getLabel(),
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $operator,
+                                                'operateur' => $nomadUser,
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
@@ -406,7 +439,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $mouvementTraca->setFinished($mvt['finished']);
                     }
                 }
-                $em->flush();
+                $entityManager->flush();
 
                 $s = $numberOfRowsInserted > 0 ? 's' : '';
                 $this->successDataMsg['success'] = true;

@@ -96,6 +96,7 @@ class OrdreCollecteService
 	private $router;
 
 	private $mouvementTracaRepository;
+	private $mouvementStockService;
 
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
@@ -107,6 +108,7 @@ class OrdreCollecteService
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 StatutRepository $statutRepository,
+                                MouvementStockService $mouvementStockService,
                                 MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
@@ -124,6 +126,7 @@ class OrdreCollecteService
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
 		$this->mouvementTracaRepository = $mouvementTracaRepository;
+		$this->mouvementStockService = $mouvementStockService;
 	}
 
 	public function setEntityManager(EntityManagerInterface $entityManager): self {
@@ -262,6 +265,7 @@ class OrdreCollecteService
                     $date,
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
+                    $collecteReference->getQuantite(),
                     $fromNomade
                 );
 			}
@@ -278,6 +282,7 @@ class OrdreCollecteService
                     $date,
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
+                    $article->getQuantite(),
                     $fromNomade
                 );
 			}
@@ -371,6 +376,7 @@ class OrdreCollecteService
      * @param DateTime $date
      * @param Emplacement $locationFrom
      * @param Emplacement $locationTo
+     * @param int $quantity
      * @param bool $fromNomade
      * @throws NonUniqueResultException
      */
@@ -379,25 +385,15 @@ class OrdreCollecteService
                                        DateTime $date,
                                        Emplacement $locationFrom,
                                        Emplacement $locationTo,
+                                       int $quantity,
                                        bool $fromNomade = false): void {
-        $newMouvement = new MouvementStock();
-        $newMouvement
-            ->setUser($user)
-            ->setArticle($article)
-            ->setEmplacementFrom($locationFrom)
-            ->setType(MouvementStock::TYPE_ENTREE)
-            ->setQuantity($article->getQuantite());
-
-        if($article instanceof Article) {
-            $newMouvement->setArticle($article);
-        }
-        else if($article instanceof ReferenceArticle) {
-            $newMouvement->setRefArticle($article);
-        }
+        $mouvementStock = $this->mouvementStockService->createMouvementStock($user, $locationFrom, $quantity, $article, MouvementStock::TYPE_ENTREE);
 
         if ($fromNomade) {
             $mouvementTraca = new MouvementTraca();
             $typePrise = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE);
+
+            // TODO AB article en inactif ?
 
             $mouvementTraca
                 ->setColis($article->getReference())
@@ -407,15 +403,14 @@ class OrdreCollecteService
                 ->setDatetime($date)
                 ->setFinished(false)
                 ->setType($typePrise)
-                ->setMouvementStock($newMouvement);
+                ->setMouvementStock($mouvementStock);
         }
         else {
-            $newMouvement
-                ->setDate($date)
-                ->setEmplacementTo($locationTo);
+            // TODO AB article en actif
+            $this->mouvementStockService->finishMouvementStock($mouvementStock, $date, $locationTo);
         }
 
-        $this->entityManager->persist($newMouvement);
+        $this->entityManager->persist($mouvementStock);
 
         if (isset($mouvementTraca)) {
             $this->entityManager->persist($mouvementTraca);
