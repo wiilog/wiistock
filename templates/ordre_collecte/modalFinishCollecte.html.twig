@@ -1,0 +1,24 @@
+<form method="" class="modal fade" id="modalFinishCollecte" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Choisissez un point de dépose</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-12">
+                    <label for="label">Point de dépose*</label>
+                    <select class="form-control ajax-autocompleteEmplacement depositLocation w-100">
+                    </select>
+                </div>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitFinishCollecte" type="button" class="btn btn-success">Finir la collecte</button>
+            </div>
+        </div>
+    </div>
+</form>

@@ -3,11 +3,15 @@ $('.select2').select2();
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
-    order: [[0, "desc"]],
+    order: [[1, "desc"]],
     "columnDefs": [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
+        },
+        {
+            "orderable" : false,
+            "targets" : 0
         }
     ],
     language: {
@@ -18,6 +22,7 @@ let table = $('#tableReception_id').DataTable({
         "type": "POST"
     },
     columns: [
+        { "data": 'Actions', 'title': 'Actions' },
         { "data": 'Date', 'title': 'Date de création' },
         { "data": 'DateFin', 'title': 'Date de fin de réception' },
         { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
@@ -25,7 +30,6 @@ let table = $('#tableReception_id').DataTable({
         { "data": 'Référence', 'title': 'Référence' },
         { "data": 'Statut', 'title': 'Statut' },
         { "data": 'Commentaire', 'title': 'Commentaire'},
-        { "data": 'Actions', 'title': 'Actions' }
     ],
 });
 
@@ -65,7 +69,7 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+            { "data": 'Code', 'name': 'Code', 'title': 'Code article' },
             { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
             { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
             { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },

@@ -1,14 +1,5 @@
-// const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
+let numberOfDataOpened = 0;
 $('.select2').select2();
-
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Destinataire',
-    }
-});
-
-let $submitSearchArrivage = $('#submitSearchArrivage');
 
 $(function() {
     // filtres enregistrés en base pour chaque utilisateur
@@ -17,29 +8,58 @@ $(function() {
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field = 'emergency') {
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchArrivage.click();
+
+        initFilterDateToday();
     }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
 });
+
+function initFilterDateToday() {
+    // par défaut filtre date du jour
+    let today = new Date();
+    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
+    $('#dateMin').val(formattedToday);
+    $('#dateMax').val(formattedToday);
+}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[13, "desc"]],
+    order: [[1, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
         "type": "POST"
     },
+    'drawCallback': function() {
+        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
+    },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
         {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
@@ -50,19 +70,33 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'urgent', 'name': 'urgent', 'title': 'Urgence'},
     ],
-    "columnDefs": [
+    columnDefs: [
         {
-            "targets": [ 13 ],
-            "visible": false
+            targets: 0,
+            className: 'noVis'
+        },
+        {
+            orderable: false,
+            targets: [0]
         }
     ],
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
-    }
+    },
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
 });
 
 function listColis(elem) {
@@ -150,35 +184,24 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
+let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-    let urgence = $('#urgence-filter').is(':checked');
-    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
-
-    tableArrivage
-        .columns('Statut:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('Destinataire:name')
-        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
-        .draw();
-
-    tableArrivage
-        .columns('urgent:name')
-        .search(urgence ? 'true' : '')
-        .draw();
-
-    tableArrivage
-        .draw();
+    let filters = {
+        page: PAGE_ARRIVAGE,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        users: $('#utilisateur').select2('data'),
+        urgence: $('#urgence-filter').is(':checked')
+    }
+    saveFilters(filters, tableArrivage);
 });
 
 function generateCSVArrivage () {
@@ -233,4 +256,45 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    inputs.each(function () {
+       params[$(this).attr('name')] = $(this).val();
+    });
+    $.post(path, JSON.stringify(params), function (resp) {
+        let $toShow = $('#' + toHide);
+        let $toAdd = $('#' + buttonAdd);
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened--;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        console.log()
+    });
 }

@@ -63,7 +63,6 @@ class EmplacementDataService
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
-
     
     public function getDataForDatatable($params = null)
     {
