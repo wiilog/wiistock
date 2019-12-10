@@ -122,16 +122,11 @@ function getDataAndPrintLabels() {
 function printSingleArticleBarcode(button) {
     const params = {'emplacement': button.data('id')};
     $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            printBarcodes(
-                [response.emplacementLabel],
-                response,
-                'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
-            );
-        }
-        else {
-            $('#cannotGenerate').click();
-        }
+        printBarcodes(
+            [response.emplacementLabel],
+            response,
+            'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
+        );
     });
 }
 
