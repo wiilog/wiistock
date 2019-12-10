@@ -13,8 +13,7 @@ const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
 
 /** Constants which define a valid barcode */
-const BARCODE_LENGTH = 21;
-const BARCODE_INVALID_REGEX = /[^\x20-\x7e]/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9 ]{1,21}$/;
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -204,7 +203,7 @@ function submitAction(modal, path, table, callback, close, clear) {
 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
         }
 
         modal.find('.error-msg').html(msg);
@@ -218,7 +217,7 @@ function submitAction(modal, path, table, callback, close, clear) {
  */
 function isBarcodeValid($input) {
     const value = $input.val();
-    return Boolean(!value || ((value.length <= BARCODE_LENGTH) && !BARCODE_INVALID_REGEX.test(value)));
+    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
 }
 
 //DELETE
