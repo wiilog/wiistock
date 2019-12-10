@@ -12,6 +12,9 @@ const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
 
+/** Constants which define a valid barcode */
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9 ]{1,21}$/;
+
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
@@ -75,12 +78,12 @@ function submitAction(modal, path, table, callback, close, clear) {
             $input.removeClass('is-invalid');
         }
 
-        // if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-        //     $input.addClass('is-invalid');
-        //     $input.parent().addClass('is-invalid');
-        //     barcodeIsInvalid = label;
-        // }
-
+        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+            $input.addClass('is-invalid');
+            $input.parent().addClass('is-invalid');
+            label = label.replace(/\*/, '');
+            barcodeIsInvalid = label;
+        }
 
         // validation valeur des inputs de type number
         if ($input.attr('type') === 'number') {
@@ -200,13 +203,22 @@ function submitAction(modal, path, table, callback, close, clear) {
 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
         }
 
         modal.find('.error-msg').html(msg);
     }
 }
 
+/**
+ * Check if value in the given jQuery input is a valid barcode
+ * @param $input
+ * @return {boolean}
+ */
+function isBarcodeValid($input) {
+    const value = $input.val();
+    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {
