@@ -17,6 +17,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Utilisateur implements UserInterface, EquatableInterface
 {
+	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
+	const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+	const SEARCH_DEFAULT = ["Libellé", "Référence"];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

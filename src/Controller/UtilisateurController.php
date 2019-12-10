@@ -152,8 +152,9 @@ class UtilisateurController extends Controller
                 ->setRole($role)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
-                ->setRecherche(["Libellé", "Référence"]);
+                ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
+				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
 
             if ($password !== '') {
 				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
