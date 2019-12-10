@@ -801,11 +801,14 @@ class ArrivageController extends AbstractController
             }
 
             $typeDescription = $litige->getType()->getDescription();
+            $typeLabel = $litige->getType()->getLabel();
+            $statutNom = $litige->getStatus()->getNom();
 
             $trimmedTypeDescription = trim($typeDescription);
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
-            $commentaire = $userComment . (!empty($trimmedTypeDescription) ? ($nl . $trimmedTypeDescription) : '');
+            $trimmedTypeDescription = !empty($trimmedTypeDescription) ? "\n" . $trimmedTypeDescription : '';
+            $commentaire = $userComment . $nl . 'Type à la création -> '. $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
