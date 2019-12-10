@@ -23,6 +23,9 @@ let table = $('#tableCollecte_id').DataTable({
         "type": "POST",
 
     },
+    drawCallback: function() {
+        overrideSearch($('#tableCollecte_id_filter input'), table);
+    },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
