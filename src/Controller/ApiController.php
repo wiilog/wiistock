@@ -371,6 +371,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 if (isset($article)) {
                                     $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $article->getQuantite(), $article, MouvementStock::TYPE_ENTREE);
                                     $mouvementTraca->setMouvementStock($newMouvement);
+
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $article->setStatut($status);
                                 }
                             }
                             else { // MouvementTraca::TYPE_DEPOSE
@@ -387,9 +394,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
                                     $mouvementTraca->setMouvementStock($mouvementStockPrise);
                                     $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
+
+                                    $article = $mouvementStockPrise->getArticle() ? $mouvementStockPrise->getArticle() : $mouvementStockPrise->getRefArticle();
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_ACTIF]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $article->setStatut($status);
                                 }
                             }
-
                         }
 
                         if (!empty($mvt['commentaire'])) {
