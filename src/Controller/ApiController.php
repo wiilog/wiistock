@@ -245,23 +245,26 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/connect", name= "api-connect")
-     * @Rest\Get("/api/connect")
+     * @Rest\Post("/api/connect", name="api-connect")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
      */
     public function connection(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
 
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+            dump($request->request->all());
+
+            $user = $this->utilisateurRepository->findOneBy(['username' => $request->request->get('login')]);
 
             if ($user !== null) {
-                if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
+                if ($this->passwordEncoder->isPasswordValid($user, $request->request->get('password'))) {
                     $apiKey = $this->apiKeyGenerator();
 
                     $user->setApiKey($apiKey);
@@ -284,7 +287,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/ping", name= "api-ping")
      * @Rest\Get("/api/ping")
      * @Rest\View()
      */
@@ -482,9 +484,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function beginPrepa(Request $request,
                                PreparationsManagerService $preparationsManager)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $preparation = $this->preparationRepository->find($data['id']);
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
+                $id = $request->request->get('id');
+                $preparation = $this->preparationRepository->find($id);
 
                 if (($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) ||
                     ($preparation->getUtilisateur() === $nomadUser)) {
@@ -528,12 +532,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 EntityManagerInterface $entityManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $resData = ['success' => [], 'errors' => []];
 
-                $preparations = $data['preparations'];
+                $preparations = json_decode($request->request->get('preparations'), true);
 
                 // on termine les préparations
                 // même comportement que LivraisonController.new()
@@ -623,12 +628,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function beginLivraison(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            $id = $request->request->get('id');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $livraison = $this->livraisonRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $livraison = $this->livraisonRepository->find($id);
 
                 if (
                     ($livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) &&
@@ -658,12 +666,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function beginCollecte(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $ordreCollecte = $this->ordreCollecteRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $ordreCollecte = $this->ordreCollecteRepository->find($id);
 
                 if (
                     $ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
@@ -693,16 +703,19 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function validateManut(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $manut = $this->manutentionRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $manut = $this->manutentionRepository->find($id);
 
                 if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
-                    if ($data['commentaire'] !== "") {
-                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $data['commentaire']);
+                    $commentaire = $request->request->get('commentaire');
+                    if (!empty($commentaire)) {
+                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                     }
                     $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
@@ -744,10 +757,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     LivraisonsManagerService $livraisonsManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
-                $livraisons = $data['livraisons'];
+                $livraisons = json_encode($request->request->get('livraisons'), true);
                 $resData = ['success' => [], 'errors' => []];
 
                 // on termine les livraisons
@@ -825,11 +839,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $resData = ['success' => [], 'errors' => []];
 
-                $collectes = $data['collectes'];
+                $collectes = json_encode($request->request->get('collectes'), true);
 
                 // on termine les collectes
                 foreach ($collectes as $collecteArray) {
@@ -898,21 +913,28 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function addInventoryEntries(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
 
-                foreach ($data['entries'] as $entry) {
+                $entries = json_encode($request->request->get('entries'), true);
+
+                foreach ($entries as $entry) {
                     $newEntry = new InventoryEntry();
 
                     $mission = $this->inventoryMissionRepository->find($entry['id_mission']);
@@ -1022,8 +1044,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function getData(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $httpCode = Response::HTTP_OK;
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = $this->getDataArray($nomadUser);
@@ -1054,21 +1077,33 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
      * @Rest\Get("/api/treatAnomalies")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function treatAnomalies(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $numberOfRowsInserted = 0;
 
-                foreach ($data['anomalies'] as $anomaly) {
-                    $this->inventoryService->doTreatAnomaly($anomaly['id'], $anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
+                $anomalies = json_encode($request->request->get('anomalies'), true);
+                foreach ($anomalies as $anomaly) {
+                    $this->inventoryService->doTreatAnomaly(
+                        $anomaly['id'],
+                        $anomaly['reference'],
+                        $anomaly['is_ref'],
+                        $anomaly['quantity'],
+                        $anomaly['comment'],
+                        $nomadUser
+                    );
                     $numberOfRowsInserted++;
                 }
 

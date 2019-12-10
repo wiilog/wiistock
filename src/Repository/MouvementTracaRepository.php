@@ -274,7 +274,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
                      e.label as ref_emplacement,
                      m.uniqueIdForMobile as date,
                      (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished,
-                     (CASE WHEN m.fromStock IS NOT NULL THEN 1 ELSE 0 END) as fromStock,
+                     (CASE WHEN m.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) as fromStock,
                      mouvementStock.quantity as quantity
             FROM App\Entity\MouvementTraca m
             JOIN m.type t
