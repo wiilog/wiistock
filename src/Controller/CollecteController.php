@@ -194,23 +194,23 @@ class CollecteController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
-     */
+	/**
+	 * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param Collecte $collecte
+	 * @return Response
+	 */
     public function show(Collecte $collecte): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
 		$valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeCollecte($collecte);
 
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
-            'ordreCollecte' => $ordreCollecte,
 			'champsLibres' => $valeursChampLibre
 		]);
     }
@@ -578,7 +578,6 @@ class CollecteController extends AbstractController
 				$pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
 				$destination = ($data['destination'] == 0) ? false : true;
 
-				$ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
 				$type = $this->typeRepository->find($data['type']);
 				$collecte
 					->setDate(new \DateTime($data['date-collecte']))
@@ -614,7 +613,6 @@ class CollecteController extends AbstractController
 					'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
-						'ordreCollecte' => $ordreCollecte,
 						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeCollecte($collecte)
 					]),
 				];
@@ -668,4 +666,23 @@ class CollecteController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+	/**
+	 * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function getDemandCollectAutoComplete(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$search = $request->query->get('term');
+
+			$collectes = $this->collecteRepository->getIdAndLibelleBySearch($search);
+
+			return new JsonResponse(['results' => $collectes]);
+		}
+		throw new NotFoundHttpException("404");
+	}
 }

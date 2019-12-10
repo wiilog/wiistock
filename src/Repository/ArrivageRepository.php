@@ -15,6 +15,21 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArrivageRepository extends ServiceEntityRepository
 {
+	private const DtToDbLabels = [
+		'Date' => 'date',
+		'NumeroArrivage' => 'numeroArrivage',
+		'Transporteur' => 'transporteur',
+		'Chauffeur' => 'chauffeur',
+		'NoTracking' => 'noTracking',
+		'NumeroBL' => 'numeroBL',
+		'Fournisseur' => 'fournisseur',
+		'Destinataire' => 'destinataire',
+		'Acheteurs' => 'acheteurs',
+		'NbUM' => 'nbUM',
+		'Statut' => 'statut',
+		'Utilisateur' => 'utilisateur',
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Arrivage::class);
@@ -39,48 +54,48 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countByFournisseur($fournisseurId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(a)
+	public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(a)
 			FROM App\Entity\Arrivage a
 			WHERE a.fournisseur = :fournisseurId"
-        )->setParameter('fournisseurId', $fournisseurId);
+		)->setParameter('fournisseurId', $fournisseurId);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
-    public function countByChauffeur($chauffeur)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(a)
+	public function countByChauffeur($chauffeur)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(a)
 			FROM App\Entity\Arrivage a
 			WHERE a.chauffeur = :chauffeur"
-        )->setParameter('chauffeur', $chauffeur);
+		)->setParameter('chauffeur', $chauffeur);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
-    /**
-     * @param Arrivage $arrivage
-     * @return int
-     * @throws NonUniqueResultException
-     */
-    public function countColisByArrivage($arrivage)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(c)
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countColisByArrivage($arrivage)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(c)
 			FROM App\Entity\Colis c
 			WHERE c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage->getId());
+		)->setParameter('arrivage', $arrivage->getId());
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
     public function getColisByArrivage($arrivage)
     {
@@ -95,23 +110,23 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->getScalarResult();
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return int
-     * @throws NonUniqueResultException
-     */
-    public function countLitigesUnsolvedByArrivage($arrivage)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(l)
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countLitigesUnsolvedByArrivage($arrivage)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(l)
 			FROM App\Entity\Litige l
 			JOIN l.colis c
 			JOIN l.status s
 			WHERE s.treated = 0
 			AND c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage);
+		)->setParameter('arrivage', $arrivage);
 
         return $query->getSingleScalarResult();
     }
@@ -138,4 +153,167 @@ class ArrivageRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+	/**
+	 * @param array|null $params
+	 * @param array|null $filters
+	 * @param int|null $userId
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function findByParamsAndFilters($params, $filters, $userId)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('a')
+			->from('App\Entity\Arrivage', 'a');
+
+		// filtre arrivages de l'utilisateur
+		if ($userId) {
+			$qb
+				->join('a.acheteurs', 'ach')
+				->where('ach.id = :userId')
+				->setParameter('userId', $userId);
+		}
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		$statut = null;
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'statut':
+					$statut = $filter['value'];
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.destinataire', 'dest')
+						->andWhere("dest.id in (:userId)")
+						->setParameter('userId', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('a.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']. " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb->andWhere('a.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+				case 'emergency':
+					$qb
+						->andWhere('a.isUrgent = :isUrgent')
+						->setParameter('isUrgent', $filter['value']);
+			}
+		}
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->leftJoin('a.transporteur', 't3')
+						->leftJoin('a.chauffeur', 'ch3')
+						->leftJoin('a.fournisseur', 'f3')
+						->leftJoin('a.destinataire', 'd3')
+						->leftJoin('a.acheteurs', 'ach3')
+						->leftJoin('a.utilisateur', 'u3')
+						->andWhere('
+						a.numeroArrivage LIKE :value
+						OR t3.label LIKE :value
+						OR ch3.nom LIKE :value
+						OR a.noTracking LIKE :value
+						OR a.numeroBL LIKE :value
+						OR f3.nom LIKE :value
+						OR d3.username LIKE :value
+						OR ach3.username LIKE :value
+						OR u3.username LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			$orderStatut = null;
+			if (!empty($params->get('order')))
+			{
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order))
+				{
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					if ($column === 'transporteur') {
+						$qb
+							->leftJoin('a.transporteur', 't2')
+							->orderBy('t2.label', $order);
+					} else if ($column === 'chauffeur') {
+						$qb
+							->leftJoin('a.chauffeur', 'c2')
+							->orderBy('c2.nom', $order);
+					} else if ($column === 'fournisseur') {
+						$qb
+							->leftJoin('a.fournisseur', 'f2')
+							->orderBy('f2.nom', $order);
+					} else if ($column === 'destinataire') {
+						$qb
+							->leftJoin('a.destinataire', 'a2')
+							->orderBy('a2.username', $order);
+					} else if ($column === 'acheteurs') {
+						$qb
+							->leftJoin('a.acheteurs', 'ach2')
+							->orderBy('ach2.username', $order);
+					} else if ($column === 'utilisateur') {
+						$qb
+							->leftJoin('a.utilisateur', 'u2')
+							->orderBy('u2.username', $order);
+					} else if ($column === 'nbUM') {
+						$qb
+							->addSelect('count(col2.id) as hidden nbum')
+							->leftJoin('a.colis', 'col2')
+							->orderBy('nbum', $order)
+							->groupBy('col2.arrivage');
+					} else if ($column === 'statut') {
+						$orderStatut = $order;
+					}
+					else {
+						$qb
+							->orderBy('a.' . $column, $order);
+					}
+				}
+			}
+		}
+
+		$arrivages = $qb->getQuery()->getResult();
+		if ($statut) {
+			$arrivages = array_filter($arrivages, function($arrivage) use ($statut) {
+				return ($arrivage->getStatus() === $statut);
+			});
+		}
+
+		if ($orderStatut) {
+			usort($arrivages, function($arrivage1, $arrivage2) use ($orderStatut) {
+				return $orderStatut === 'asc'
+					?
+					strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
+					:
+					strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
+			});
+		}
+
+		$countFiltered = count($arrivages);
+		if (!empty($params)) {
+			if ((!empty($params->get('start')) || $params->get('start') === "0") && !empty($params->get('length'))) {
+				$arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
+			}
+		}
+
+
+		return [
+			'data' => $arrivages ?? null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
+
 }

@@ -481,6 +481,9 @@ class ReferenceArticleController extends Controller
                 "Emplacement" => $emplacement,
                 "Statut" => $refArticle->getStatut(),
                 "Commentaire" => $refArticle->getCommentaire(),
+                "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
+                "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+                "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
 					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
@@ -877,7 +880,7 @@ class ReferenceArticleController extends Controller
 							->setConform(true)
 							->setStatut($statut)
 							->setReference($ref . '-' . $index)
-							->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+							->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
 							//TODO quantite, quantitie ?
 							->setEmplacement($collecte->getPointCollecte())
 							->setArticleFournisseur($articleFournisseur)

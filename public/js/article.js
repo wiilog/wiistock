@@ -33,7 +33,7 @@ function initTableArticle() {
                     loadSpinnerAR($('#spinner'));
                     init();
                     hideAndShowColumns();
-                    overrideSearch();
+                    overrideSearchArticle();
                 },
                 "drawCallback": function (settings) {
                     resizeTable();
@@ -80,12 +80,10 @@ function init() {
     });
 
 }
-
 function resizeTable() {
     tableArticle
         .columns.adjust()
         .responsive.recalc();
-}
 
 function initNewArticleEditor(modal) {
     initEditor(modal + ' .editor-container-new');
@@ -207,10 +205,10 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function overrideSearch() {
+function overrideSearchArticle() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
-    $input.on('keyup', function (e) {
+    $input.on('keyup', function(e) {
         if (e.key === 'Enter') {
             if ($input.val() === '') {
                 $('.justify-content-end').find('.printButton').addClass('btn-disabled');

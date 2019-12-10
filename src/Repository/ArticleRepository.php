@@ -51,16 +51,16 @@ class ArticleRepository extends ServiceEntityRepository
     }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a.reference
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a.reference
             FROM App\Entity\Article a
             WHERE a.reference LIKE :refPrefix'
-        )->setParameter('refPrefix', $refPrefix . $date . '%');
+		)->setParameter('refPrefix', $refPrefix . $date . '%');
 
-        return array_column($query->execute(), 'reference');
-    }
+		return array_column($query->execute(), 'reference');
+	}
 
     /**
      * @param $id
@@ -104,6 +104,24 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
         return $query->getResult();
     }
+
+	/**
+	 * @param int $ordreCollecteId
+	 * @return Article[]|null
+	 */
+	public function findByOrdreCollecteId($ordreCollecteId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT a
+             FROM App\Entity\Article a
+             JOIN a.ordreCollecte oc
+             WHERE oc.id =:id
+            "
+		)->setParameter('id', $ordreCollecteId);
+		return $query->getResult();
+	}
 
     /**
      * @param Demande|int $demande
@@ -176,9 +194,9 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
+            /** @lang DQL */
             "UPDATE App\Entity\Article a
-            SET a.type = null 
+            SET a.type = null
             WHERE a.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -201,7 +219,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        /** @lang DQL */
+        	/** @lang DQL */
             "SELECT a.id, a.reference, a.label, a.quantite, a.barCode
             FROM App\Entity\Article a
             "
@@ -209,11 +227,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getIdAndRefBySearch($search, $activeOnly = false)
-    {
-        $em = $this->getEntityManager();
+	public function getIdAndRefBySearch($search, $activeOnly = false)
+	{
+		$em = $this->getEntityManager();
 
-        $dql = "SELECT a.id, a.reference as text
+		$dql = "SELECT a.id, a.reference as text
           FROM App\Entity\Article a
           LEFT JOIN a.statut s
           WHERE a.reference LIKE :search";
@@ -222,12 +240,12 @@ class ArticleRepository extends ServiceEntityRepository
             $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
         }
 
-        $query = $em
-            ->createQuery($dql)
-            ->setParameter('search', '%' . $search . '%');
+		$query = $em
+			->createQuery($dql)
+			->setParameter('search', '%' . $search . '%');
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     public function getRefByRecep($id)
     {
@@ -255,28 +273,28 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param Statut $statut
-     * @return Article[]
-     */
-    public function findByRefArticleAndStatut($refArticle, $statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param Statut $statut
+	 * @return Article[]
+	 */
+	public function findByRefArticleAndStatut($refArticle, $statut)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
 			WHERE a.statut =:statut AND ra = :refArticle
 			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statut' => $statut
+		]);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut)
     {
@@ -308,19 +326,19 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.statut s
 			WHERE s.nom =:statusLabel AND ra = :refArticle
 			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statusLabel' => $statusLabel
-        ]);
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statusLabel' => $statusLabel
+		]);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
-    public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
+	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
@@ -328,13 +346,13 @@ class ArticleRepository extends ServiceEntityRepository
 			AND a.demande is null
 			ORDER BY a.quantite DESC
 			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statut' => $statut
+		]);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     public function findByEtat($etat)
     {
@@ -583,12 +601,12 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        /** @lang DQL */
+        	/** @lang DQL */
             "SELECT COUNT(a)
             FROM App\Entity\Article a
             JOIN a.statut s
             WHERE s.nom = :active"
-        )->setParameter('active', Article::STATUT_ACTIF);
+		)->setParameter('active', Article::STATUT_ACTIF);
 
         return $query->getSingleScalarResult();
     }
@@ -599,27 +617,27 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Article a"
-        );
+		);
 
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param int $limit
-     * @return Article[]|null
-     */
+	/**
+	 * @param int $limit
+	 * @return Article[]|null
+	 */
     public function findByQuantityMoreThan($limit)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.quantite > :limit"
-        )->setParameter('limit', $limit);
+		)->setParameter('limit', $limit);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     /**
      * @return Article[]|null
@@ -652,24 +670,24 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN d.preparation p
 			JOIN p.statut s
 			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
             'enCours' => $enCours,
             'user' => $user
         ]);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT 
+            "SELECT
                     DISTINCT a.reference,
-                    a.label, 
-                    e.label as location, 
-                    a.quantite as quantity, 
+                    a.label,
+                    e.label as location,
+                    a.quantite as quantity,
                     ra.reference as reference_article,
                     a.barCode
 			FROM App\Entity\Article a
@@ -712,26 +730,45 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        //TODO patch temporaire CEA (sur quantité envoyée)
-        /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantite as quantity, 0 as is_ref, oc.id as id_collecte, a.barCode
+	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	{
+		$em = $this->getEntityManager();
+		//TODO patch temporaire CEA (sur quantité envoyée)
+		$query = $em
+			->createQuery($this->getArticleQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->setParameters([
+				'statutLabel' => $statutLabel,
+				'user' => $user,
+			]);
+
+		return $query->execute();
+	}
+
+	public function getByOrdreCollecteId($collecteId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em
+			->createQuery($this->getArticleQuery() . " WHERE oc.id = :id")
+			->setParameter('id', $collecteId);
+
+		return $query->execute();
+	}
+
+	private function getArticleQuery()
+	{
+		return (/** @lang DQL */
+		"SELECT a.reference,
+			 e.label as location,
+			 a.label,
+			 a.quantite as quantity,
+			 0 as is_ref, oc.id as id_collecte,
+			 a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.collectes c
-			JOIN c.ordreCollecte oc
-			LEFT JOIN oc.statut s
-			WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user,
-        ]);
-
-        return $query->execute();
-    }
+			JOIN a.ordreCollecte oc
+			LEFT JOIN oc.statut s"
+		);
+	}
 
     /**
      * @param string $reference
@@ -746,26 +783,26 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
 			FROM App\Entity\Article a
 			WHERE a.reference = :reference"
-        )->setParameter('reference', $reference);
+		)->setParameter('reference', $reference);
 
-        return $query->getOneOrNullResult();
-    }
+		return $query->getOneOrNullResult();
+	}
 
-    /**
-     * @param string $reference
-     * @return Article|null
-     */
-    public function findByReference($reference)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT a
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 */
+	public function findByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
 			FROM App\Entity\Article a
 			WHERE a.reference = :reference"
-        )->setParameter('reference', $reference);
+		)->setParameter('reference', $reference);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
     public function countByEmplacement($emplacementId)
     {
@@ -810,8 +847,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT COUNT(a)
             FROM App\Entity\InventoryMission im
             LEFT JOIN im.articles a
-            WHERE im = :mission
-"
+            WHERE im = :mission"
         )->setParameter('mission', $mission);
 
         return $query->getSingleScalarResult();
@@ -855,8 +891,8 @@ class ArticleRepository extends ServiceEntityRepository
             LEFT JOIN a.statut sa
             LEFT JOIN a.emplacement ae
             WHERE c.frequency = :frequency
-            AND ra.typeQuantite = :typeQuantity 
-            AND a.dateLastInventory is null 
+            AND ra.typeQuantite = :typeQuantity
+            AND a.dateLastInventory is null
             AND sa.nom = :status
             ORDER BY ae.label"
         )->setParameters([
@@ -870,17 +906,17 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    /**
-     * @param string $dateCode
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-    public function getHighestBarCodeByDateCode($dateCode)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a.barCode
+	/**
+	 * @param string $dateCode
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getHighestBarCodeByDateCode($dateCode)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"SELECT a.barCode
 		FROM App\Entity\Article a
 		WHERE a.barCode LIKE :barCode
 		ORDER BY a.barCode DESC

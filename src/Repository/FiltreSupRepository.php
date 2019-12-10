@@ -49,7 +49,7 @@ class FiltreSupRepository extends ServiceEntityRepository
 	/**
 	 * @param string $page
 	 * @param Utilisateur $user
-	 * @return FiltreSup|null
+	 * @return array
 	 */
 	public function getFieldAndValueByPageAndUser($page, $user)
 	{
