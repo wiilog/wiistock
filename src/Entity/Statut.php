@@ -84,9 +84,19 @@ class Statut
     private $manutentions;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="statut")
+     */
+    private $acheminements;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
      */
     private $litiges;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendNotifToBuyer;
 
     public function __construct()
     {
@@ -99,6 +109,7 @@ class Statut
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+        $this->acheminements = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -443,6 +454,54 @@ class Statut
     public function setDisplayOrder(int $displayOrder): self
     {
         $this->displayOrder = $displayOrder;
+
+        return $this;
+    }
+
+    public function getTreated(): ?bool
+    {
+        return $this->treated;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminements(): Collection
+    {
+        return $this->acheminements;
+    }
+
+    public function addAcheminement(Acheminements $acheminement): self
+    {
+        if (!$this->acheminements->contains($acheminement)) {
+            $this->acheminements[] = $acheminement;
+            $acheminement->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminement(Acheminements $acheminement): self
+    {
+        if ($this->acheminements->contains($acheminement)) {
+            $this->acheminements->removeElement($acheminement);
+            // set the owning side to null (unless already changed)
+            if ($acheminement->getStatut() === $this) {
+                $acheminement->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getSendNotifToBuyer(): ?bool
+    {
+        return $this->sendNotifToBuyer;
+    }
+
+    public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self
+    {
+        $this->sendNotifToBuyer = $sendNotifToBuyer;
 
         return $this;
     }

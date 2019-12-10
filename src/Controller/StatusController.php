@@ -62,7 +62,7 @@ class StatusController extends AbstractController
     }
 
     /**
-     * @Route("/", name="status_param")
+     * @Route("/", name="status_param_index")
      */
     public function index()
     {
@@ -98,6 +98,7 @@ class StatusController extends AbstractController
                         'Categorie' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
                         'Comment' => $status->getComment(),
                         'Treated' => $status->isTreated() ? 'oui' : 'non',
+                        'NotifToBuyer' => $status->getSendNotifToBuyer() ? 'oui' : 'non',
                         'Order' => $status->getDisplayOrder() ?? '',
                         'Actions' => $this->renderView('status/datatableStatusRow.html.twig', [
                             'url' => $url,
@@ -133,6 +134,7 @@ class StatusController extends AbstractController
                     ->setNom($data['label'])
                     ->setComment($data['description'])
 					->setTreated($data['treated'])
+                    ->setSendNotifToBuyer($data['sendMails'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category);
 
@@ -163,11 +165,11 @@ class StatusController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $type = $this->statusRepository->find($data['id']);
+            $status = $this->statusRepository->find($data['id']);
             $categories = $this->categoryStatusRepository->findByLabelLike('litige');
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
-                'status' => $type,
+                'status' => $status,
                 'categories' => $categories,
             ]);
 
@@ -199,6 +201,7 @@ class StatusController extends AbstractController
                     ->setNom($data['label'])
                     ->setCategorie($category)
 					->setTreated($data['treated'])
+                    ->setSendNotifToBuyer($data['sendMails'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment']);
 

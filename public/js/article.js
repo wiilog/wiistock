@@ -18,12 +18,13 @@ let tableArticle = $('#tableArticle_id').DataTable({
         }
     },
     'drawCallback': function () {
-         overrideSearch();
+         overrideSearchArticle();
     },
     columns: [
         { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
         { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Date et heure', 'name': 'Date et heure', 'title': 'Date et heure' },
         { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
         { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
@@ -177,7 +178,7 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function overrideSearch() {
+function overrideSearchArticle() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
     $input.on('keyup', function(e) {

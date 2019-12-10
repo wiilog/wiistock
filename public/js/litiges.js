@@ -1,12 +1,5 @@
-const allowedExtensions = ['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv', 'txt'];
-
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Acheteurs',
-    }
-});
 $('#carriers').select2({
     placeholder: {
         text: 'Transporteurs',
@@ -18,223 +11,53 @@ $('#providers').select2({
     }
 });
 
-function dragEnterDiv(event, div) {
-    div.css('border', '3px dashed red');
-}
+let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
-function dragOverDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed red');
-    return false;
-};
-
-function dragLeaveDiv(event, div) {
-    event.preventDefault();
-    event.stopPropagation();
-    div.css('border', '3px dashed #BBBBBB');
-    return false;
-}
-
-function dropOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            // Stop the propagation of the event
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                upload(event.dataTransfer.files);
-                clearErrorMsg(div);
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_LITIGE_ARR);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field == 'providers') {
+                $('#providers').val(element.value).select2();
+            } else if (element.field == 'carriers') {
+                $('#carriers').val(element.value).select2();
             } else {
-                div.css('border', '3px dashed #BBBBBB');
-            }
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-function dropNewOnDiv(event, div) {
-    if (event.dataTransfer) {
-        if (event.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            div.css('border', '3px dashed green');
-
-            let valid = checkFilesFormat(event.dataTransfer.files, div);
-
-            if (valid) {
-                keepForSave(event.dataTransfer.files);
-                clearErrorMsg(div);
-            }
-            else div.css('border', '3px dashed #BBBBBB');
-        }
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-    return false;
-}
-
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            valid = false;
-        }
-        else if (!(allowedExtensions.includes(file.name.split('.').pop())) && valid) {
-            div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
-            valid = false;
-        }
-    });
-    return valid;
-}
-
-function openFE() {
-    $('#fileInput').click();
-}
-
-function uploadFE(span) {
-    let files = $('#fileInput')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('arrivage_depose', true);
-
-        let arrivageId = $('#dropfile').data('arrivage-id');
-        formData.append('id', arrivageId);
-
-        $.ajax({
-            url: path,
-            data: formData,
-            type:"post",
-            contentType:false,
-            processData:false,
-            cache:false,
-            dataType:"json",
-            success:function(html){
-                let dropfile = $('#dropfile');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
+                $('#'+element.field).val(element.value);
             }
         });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
+        if (data.length > 0) $submitSearchLitigesArr.click();
+    }, 'json');
 
-function openFENew() {
-    $('#fileInputNew').click();
-}
-
-function uploadFENew(span) {
-    let files = $('#fileInputNew')[0].files;
-    let formData = new FormData();
-    let div = span.closest('.dropFrame');
-    clearErrorMsg(div);
-
-    let valid = checkFilesFormat(files, div);
-
-    if (valid) {
-        $.each(files, function (index, file) {
-            formData.append('file' + index, file);
-        });
-        let path = Routing.generate('garder_pj', true);
-        $.ajax({
-            url: path,
-            data: formData,
-            type: "post",
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: "json",
-            success: function (html) {
-                let dropfile = $('#dropfileNew');
-                dropfile.css('border', '3px dashed #BBBBBB');
-                dropfile.after(html);
-            }
-        });
-    } else {
-        div.css('border', '3px dashed #BBBBBB');
-    }
-}
-
-function keepForSave(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-
-    let path = Routing.generate('garder_pj', true);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
-            let dropfile = $('#dropfileNew');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-
-}
-
-function upload(files) {
-
-    let formData = new FormData();
-    $.each(files, function (index, file) {
-        formData.append('file' + index, file);
-    });
-    let path = Routing.generate('arrivage_depose', true);
-
-    let arrivageId = $('#dropfile').data('arrivage-id');
-    formData.append('id', arrivageId);
-
-    $.ajax({
-        url: path,
-        data: formData,
-        type: "post",
-        contentType: false,
-        processData: false,
-        cache: false,
-        dataType: "json",
-        success: function (html) {
-            let dropfile = $('#dropfile');
-            dropfile.css('border', '3px dashed #BBBBBB');
-            dropfile.after(html);
-        }
-    });
-}
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+});
 
 let pathLitigesArrivage = Routing.generate('litige_arrivage_api', true);
 let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    scrollX: true,
+    order: [[4, 'desc']],
     ajax: {
         "url": pathLitigesArrivage,
         "type": "POST",
+    },
+    'drawCallback': function() {
+        overrideSearch($('#tableLitigesArrivages_filter input'), tableLitigesArrivage);
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
@@ -245,16 +68,25 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
-        {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur', 'target': 8},
-        {"data": 'carrier', 'name': 'carrier', 'title': 'Transporteur', 'target': 9},
     ],
     columnDefs: [
         {
-            'targets': [6,7,8],
-            'visible': false
+            orderable: false,
+            targets: [0]
         }
     ],
-    order: [[4, 'desc']]
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
@@ -265,7 +97,7 @@ InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitigesA
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
-InitialiserModal(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
@@ -340,53 +172,19 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-$('#submitSearchLitigesArrivages').on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let type = $('#type').val();
+$submitSearchLitigesArr.on('click', function () {
+    let filters = {
+        page: PAGE_LITIGE_ARR,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        type: $('#type').val(),
+        carriers: $('#carriers').select2('data'),
+        providers: $('#providers').select2('data'),
+        users: $('#utilisateur').select2('data'),
+    }
 
-    let carriers = $('#carriers').val();
-    let carriersString = carriers.toString();
-    let carriersPiped = carriersString.split(',').join('|');
-
-    let providers = $('#providers').val();
-    let providersString = providers.toString();
-    let providersPiped = providersString.split(',').join('|');
-
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-
-    saveFilters(PAGE_LITIGE_ARR, dateMin, dateMax, statut, utilisateurPiped, type, null, null, carriersPiped, providersPiped);
-
-    tableLitigesArrivage
-        .columns('status:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('buyers:name')
-        .search(utilisateurPiped ? '' + utilisateurPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('carrier:name')
-        .search(carriersPiped ? '' + carriersPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('provider:name')
-        .search(providersPiped ? '' + providersPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .draw();
+    saveFilters(filters, tableLitigesArrivage);
 });
 
 function generateCSVLitigeArrivage() {

@@ -295,7 +295,24 @@ class ReferenceArticleController extends Controller
                         'name' => 'Commentaire',
                         "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
                     ],
-
+                    [
+                        "title" => 'Seuil d\'alerte',
+                        "data" => 'Seuil d\'alerte',
+                        'name' => 'Seuil d\'alerte',
+                        "class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
+                        "title" => 'Seuil de sécurité',
+                        "data" => 'Seuil de sécurité',
+                        'name' => 'Seuil de sécurité',
+                        "class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
+                        "title" => 'Prix unitaire',
+                        "data" => 'Prix unitaire',
+                        'name' => 'Prix unitaire',
+                        "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+                    ],
                 ];
                 foreach ($champs as $champ) {
                     $columns[] = [
@@ -394,8 +411,8 @@ class ReferenceArticleController extends Controller
             if ($data['limitSecurity']) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
-            if ($data['alertWarning']) {
-            	$refArticle->setLimitWarning($data['alertWarning']);
+            if ($data['limitWarning']) {
+            	$refArticle->setLimitWarning($data['limitWarning']);
 			}
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
@@ -464,6 +481,9 @@ class ReferenceArticleController extends Controller
                 "Emplacement" => $emplacement,
                 "Statut" => $refArticle->getStatut(),
                 "Commentaire" => $refArticle->getCommentaire(),
+                "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
+                "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+                "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
 					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
@@ -547,6 +567,21 @@ class ReferenceArticleController extends Controller
             'label' => FiltreRef::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
             'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Seuil de sécurité',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Seuil d\'alerte',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Prix unitaire',
+            'id' => 0,
+            'typage' => 'number'
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
@@ -851,7 +886,7 @@ class ReferenceArticleController extends Controller
 							->setConform(true)
 							->setStatut($statut)
 							->setReference($ref . '-' . $index)
-							->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+							->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
 							//TODO quantite, quantitie ?
 							->setEmplacement($collecte->getPointCollecte())
 							->setArticleFournisseur($articleFournisseur)
@@ -1064,7 +1099,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs'];
+            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1103,6 +1138,9 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
         $refData[] = $stringFournisseurs;
         $refData[] = $stringArticlesFournisseur;
+        $refData[] = $ref->getLimitSecurity();
+        $refData[] = $ref->getLimitWarning();
+        $refData[] = $ref->getPrixUnitaire();
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1269,7 +1307,7 @@ class ReferenceArticleController extends Controller
             foreach ($mouvements as $mouvement) {
                 $rows[] =
                     [
-                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y') : 'aucune',
+                        'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',

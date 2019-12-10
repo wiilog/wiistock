@@ -15,7 +15,16 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class InventoryEntryRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+	private const DtToDbLabels = [
+		'Ref' => 'reference',
+		'Label' => 'label',
+		'Date' => 'date',
+		'Location' => 'location',
+		'Operator' => 'operator',
+		'Quantity' => 'quantity',
+	];
+
+	public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, InventoryEntry::class);
     }
@@ -64,5 +73,122 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	/**
+	 * @param array|null $params
+	 * @param array|null $filters
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function findByParamsAndFilters($params, $filters)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('ie')
+			->from('App\Entity\InventoryEntry', 'ie');
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'emplacement':
+					$qb
+						->join('ie.location', 'l')
+						->andWhere('l.label = :location')
+						->setParameter('location', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('ie.operator', 'u')
+						->andWhere("u.id in (:userId)")
+						->setParameter('userId', $value);
+					break;
+				case 'dateMin':
+					$qb->andWhere('ie.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']. " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb->andWhere('ie.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+				case 'colis':
+					$value = explode(',', $filter['value']);
+					$qb->join('ie.refArticle', 'ra')
+						->andWhere('ra.id = :reference')
+						->setParameter('reference', $value);
+					break;
+			}
+		}
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					$qb
+						->leftJoin('ie.refArticle', 'ra2')
+						->leftJoin('ie.location', 'l2')
+						->leftJoin('ie.utilisateur', 'u2')
+						->andWhere('
+						ra2.reference LIKE :value OR
+						ra2.libelle LIKE :value OR
+						l2.label LIKE :value OR
+						u2.username LIKE :value')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('order')))
+			{
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order))
+				{
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					if ($column === 'reference') {
+						$qb
+							->leftJoin('ie.refArticle', 'ra3')
+							->orderBy('ra3.reference', $order);
+					} else if ($column === 'label') {
+						$qb
+							->leftJoin('ie.refArticle', 'ra3')
+							->orderBy('ra3.libelle', $order);
+					} else if ($column === 'location') {
+						$qb
+							->leftJoin('ie.location', 'l3')
+							->orderBy('l3.label', $order);
+					} else if ($column === 'operator') {
+						$qb
+							->leftJoin('ie.operator', 'u3')
+							->orderBy('u3.username', $order);
+					} else {
+						$qb
+							->orderBy('ie.' . $column, $order);
+					}
+				}
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return [
+			'data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
+
 
 }

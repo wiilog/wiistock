@@ -17,7 +17,7 @@ class CollecteRepository extends ServiceEntityRepository
 {
     private const DtToDbLabels = [
         'Création' => 'date',
-        'Validation' => 'validation',
+        'Validation' => 'validationDate',
         'Demandeur' => 'demandeur',
         'Objet' => 'objet',
         'Statut' => 'statut',
@@ -190,4 +190,19 @@ class CollecteRepository extends ServiceEntityRepository
 			'total' => $countTotal
 		];
 	}
+
+
+	public function getIdAndLibelleBySearch($search)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT c.id, c.numero as text
+          FROM App\Entity\Collecte c
+          WHERE c.numero LIKE :search"
+		)->setParameter('search', '%' . $search . '%');
+
+		return $query->execute();
+	}
+
 }

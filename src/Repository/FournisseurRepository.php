@@ -2,8 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Colis;
 use App\Entity\Fournisseur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -145,6 +147,11 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param Colis $colis
+	 * @return Fournisseur
+	 * @throws NonUniqueResultException
+	 */
     public function findOneByColis($colis)
     {
         $em = $this->getEntityManager();

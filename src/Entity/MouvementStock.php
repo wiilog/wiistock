@@ -2,8 +2,7 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,11 +21,6 @@ class MouvementStock
      * @ORM\Column(type="integer")
      */
     private $id;
-
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
-    private $expectedDate;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -77,11 +71,13 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="collecte_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $collecteOrder;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="preparation_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $preparationOrder;
 
@@ -95,12 +91,12 @@ class MouvementStock
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -175,18 +171,6 @@ class MouvementStock
     public function setRefArticle(?ReferenceArticle $refArticle): self
     {
         $this->refArticle = $refArticle;
-
-        return $this;
-    }
-
-    public function getExpectedDate(): ?\DateTimeInterface
-    {
-        return $this->expectedDate;
-    }
-
-    public function setExpectedDate(?\DateTimeInterface $expectedDate): self
-    {
-        $this->expectedDate = $expectedDate;
 
         return $this;
     }

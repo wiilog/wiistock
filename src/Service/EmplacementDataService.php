@@ -63,7 +63,6 @@ class EmplacementDataService
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
-
     
     public function getDataForDatatable($params = null)
     {
@@ -124,6 +123,7 @@ class EmplacementDataService
                     'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
                     'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
 					'Point de livraison' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
+                    'Délai maximum' => $emplacement->getDateMaxTime() ?? '',
 					'Actif / Inactif' => $emplacement->getIsActive() ? 'actif' : 'inactif',
                     'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                         'url' => $url,

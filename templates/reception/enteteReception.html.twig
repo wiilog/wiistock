@@ -6,6 +6,7 @@
 </div>
 <div class="col-6">
     <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>
+    <p><strong>Numéro de commande :</strong> {{ reception.reference ? reception.reference : ' ' }}</p>
     <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
     <p><strong>Date de création :</strong>
         {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>

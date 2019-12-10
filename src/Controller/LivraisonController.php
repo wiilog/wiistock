@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
-use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
@@ -29,11 +28,16 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
 
+use App\Service\LivraisonService;
+use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\UserService;
 
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -41,6 +45,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 
 /**
@@ -123,8 +130,13 @@ class LivraisonController extends AbstractController
      */
     private $mailerService;
 
+	/**
+	 * @var LivraisonService
+	 */
+    private $livraisonService;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+
+    public function __construct(LivraisonService $livraisonService, CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -141,44 +153,7 @@ class LivraisonController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
-    }
-
-    /**
-     * @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
-     */
-    public function new($id): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $preparation = $this->preparationRepository->find($id);
-
-        $demande1 = $preparation->getDemandes();
-        $demande = $demande1[0];
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
-        $livraison = new Livraison();
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison
-            ->setDate($date)
-            ->setNumero('L-' . $date->format('YmdHis'))
-            ->setStatut($statut);
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($livraison);
-        $preparation
-            ->addLivraison($livraison)
-            ->setUtilisateur($this->getUser())
-            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
-
-        $demande
-            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_PREPARE))
-            ->setLivraison($livraison);
-        $entityManager->flush();
-        $livraison = $preparation->getLivraisons()->toArray();
-
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison[0]->getId(),
-        ]);
+        $this->livraisonService = $livraisonService;
     }
 
     /**
@@ -191,7 +166,6 @@ class LivraisonController extends AbstractController
         }
 
         return $this->render('livraison/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
@@ -199,51 +173,35 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Livraison $livraison
+     * @param LivraisonsManagerService $livraisonsManager
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     * @throws Exception
      */
-    public function finish(Livraison $livraison): Response
-    {
+    public function finish(Livraison $livraison,
+                           LivraisonsManagerService $livraisonsManager,
+                           DemandeRepository $demandeRepository,
+                           EntityManagerInterface $entityManager): Response {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
-            $livraison
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
-                ->setUtilisateur($this->getUser())
-                ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
-
-            $demande = $this->demandeRepository->findOneByLivraison($livraison);
-
-            $statutLivre = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_LIVRE);
-            $demande->setStatut($statutLivre);
-
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Livraison effectuée',
-                $this->renderView('mails/mailLivraisonDone.html.twig', [
-					'livraison' => $demande,
-					'title' => 'Votre demande a bien été livrée.',
-				]),
-                $demande->getUtilisateur()->getEmail()
+            $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $demande = $demandeRepository->findOneByLivraison($livraison);
+            $livraisonsManager->finishLivraison(
+                $this->getUser(),
+                $livraison,
+                $dateEnd,
+                $demande->getDestination()
             );
-
-            // quantités gérées à la référence
-            $ligneArticles = $this->ligneArticleRepository->findByDemande($demande);
-
-            foreach ($ligneArticles as $ligneArticle) {
-                $refArticle = $ligneArticle->getReference();
-                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
-            }
-
-            // quantités gérées à l'article
-            $articles = $demande->getArticles();
-
-            foreach ($articles as $article) {
-                $article
-					->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF))
-					->setEmplacement($demande->getDestination());
-            }
+            $entityManager->flush();
         }
-        $this->getDoctrine()->getManager()->flush();
         return $this->redirectToRoute('livraison_show', [
             'id' => $livraison->getId()
         ]);
@@ -259,23 +217,8 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $livraisons = $this->livraisonRepository->findAll();
-            $rows = [];
-            foreach ($livraisons as $livraison) {
-                $demande = $this->demandeRepository->findOneByLivraison($livraison);
-                $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
-                $rows[] = [
-                    'id' => ($livraison->getId() ? $livraison->getId() : ''),
-                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
-                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
-                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
-                    'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
-                ];
-            }
+			$data = $this->livraisonService->getDataForDatatable($request->request);
 
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -403,7 +346,22 @@ class LivraisonController extends AbstractController
 			}
 
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
+            $headers = array_merge($headers, [
+                'demandeur',
+                'statut',
+                'destination',
+                'commentaire',
+                'dateDemande',
+                'dateValidation',
+                'reference',
+                'type demande',
+                'code prépa',
+                'code livraison',
+                'referenceArticle',
+                'libelleArticle',
+                'quantité disponible',
+                'quantité à prélever'
+            ]);
 
 			// en-têtes champs libres articles
             $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
@@ -426,6 +384,13 @@ class LivraisonController extends AbstractController
 
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
+                    $articleRef = $ligneArticle->getReference();
+
+                    $quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                        ? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
+                        : $articleRef->getQuantiteStock();
+
+                    $availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
 					// champs libres de la demande
 					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
@@ -438,8 +403,11 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : '';
+                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $livraisonData[] = $availableQuantity;
                     $livraisonData[] = $ligneArticle->getQuantite();
 
                     // champs libres de l'article de référence

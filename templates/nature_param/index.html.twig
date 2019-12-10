@@ -1,0 +1,26 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage des natures de colis{% endblock %}
+
+{% block page_content %}
+
+    <h1>Natures des colis</h1>
+
+    <div class='col-12 mb-5'>
+        <a href="" data-toggle="modal" data-target="#modalNewNature" class="btn btn-primary">
+            <span class="fa fa-plus mr-2"></span>Nouvelle nature
+        </a>
+    </div>
+
+    <table id="tableNatures" class="table table-striped table-bordered w-100">
+    </table>
+
+    {% include 'nature_param/modalNewNature.html.twig' %}
+    {% include 'nature_param/modalEditNature.html.twig' %}
+    {% include 'nature_param/modalDeleteNature.html.twig' %}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/nature.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
