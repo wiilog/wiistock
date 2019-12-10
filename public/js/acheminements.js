@@ -128,7 +128,7 @@ function printColis(data) {
 
         });
     } else {
-        $('#cannotGenerate').click();
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
     }
 }
 
