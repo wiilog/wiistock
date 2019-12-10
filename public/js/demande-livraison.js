@@ -204,36 +204,36 @@ function setMaxQuantity(select) {
 
 // applique les filtres si pré-remplis
 $(function () {
-    let val = $('#statut').val();
-    if (val != null && val != '') {
-        $submitSearchDemandeLivraison.click();
-    }
-
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_DEM_LIVRAISON);
-    ;
-    $.post(path, params, function (data) {
-        data.forEach(function (element) {
-            if (element.field == 'utilisateurs') {
-                let values = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-            } else {
-                $('#' + element.field).val(element.value);
-            }
-        });
-        if (data.length > 0) $submitSearchDemandeLivraison.click();
-    }, 'json');
-
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
+    let val = $('#statut').val();
+    if (val) {
+        $('#statut').val(val);
+    }
+    else
+    {
+            // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_DEM_LIVRAISON);
+        $.post(path, params, function (data) {
+            data.forEach(function (element) {
+                if (element.field == 'utilisateurs') {
+                    let values = element.value.split(',');
+                    let $utilisateur = $('#utilisateur');
+                    values.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let username = valueArray[1];
+                        let option = new Option(username, id, true, true);
+                        $utilisateur.append(option).trigger('change');
+                    });
+                } else {
+                    $('#' + element.field).val(element.value);
+                }
+            });
+            if (data.length > 0) $submitSearchDemandeLivraison.click();
+        }, 'json');
+    }
 });
 
 let editorNewLivraisonAlreadyDone = false;

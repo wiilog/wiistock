@@ -510,6 +510,7 @@ class DemandeController extends AbstractController
 				break;
 		}
 
+        dump($filter);
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
@@ -556,8 +557,8 @@ class DemandeController extends AbstractController
 			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
 				return $this->redirectToRoute('access_denied');
 			}
-
-			$data = $this->demandeLivraisonService->getDataForDatatable($request->request);
+            $filterDemandLivraison = $request->request->get('statut');
+			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterDemandLivraison);
 
 			return new JsonResponse($data);
 		} else {
