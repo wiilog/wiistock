@@ -84,6 +84,7 @@ function resizeTable() {
     tableArticle
         .columns.adjust()
         .responsive.recalc();
+}
 
 function initNewArticleEditor(modal) {
     initEditor(modal + ' .editor-container-new');
