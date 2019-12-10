@@ -18,6 +18,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 
@@ -35,6 +36,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -558,13 +560,15 @@ class ArticleDataService
         return ['data' => $rows];
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param null $params
+	 * @param Utilisateur $user
+	 * @return array
+	 * @throws DBALException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
     public function getArticleDataByParams($params = null, $user)
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
@@ -600,7 +604,7 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
     public function dataRowRefArticle($article)
     {

@@ -210,18 +210,19 @@ function overrideSearchArticle() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
     $input.on('keyup', function(e) {
+        let $printBtn = $('.justify-content-end').find('.printButton');
         if (e.key === 'Enter') {
             if ($input.val() === '') {
-                $('.justify-content-end').find('.printButton').addClass('btn-disabled');
-                $('.justify-content-end').find('.printButton').removeClass('btn-primary');
+                $printBtn.addClass('btn-disabled');
+                $printBtn.removeClass('btn-primary');
             } else {
-                $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
-                $('.justify-content-end').find('.printButton').addClass('btn-primary');
+                $printBtn.removeClass('btn-disabled');
+                $printBtn.addClass('btn-primary');
             }
             tableArticle.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
-            $('.justify-content-end').find('.printButton').addClass('btn-disabled');
-            $('.justify-content-end').find('.printButton').removeClass('btn-primary');
+            $printBtn.addClass('btn-disabled');
+            $printBtn.removeClass('btn-primary');
         }
     });
     $input.attr('placeholder', 'entrée pour valider');

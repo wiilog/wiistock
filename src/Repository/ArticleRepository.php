@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -377,6 +378,12 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param array|null $params
+	 * @param string|null $statutLabel
+	 * @param Utilisateur $user
+	 * @return array
+	 */
     public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
     {
         $em = $this->getEntityManager();
@@ -403,7 +410,16 @@ class ArticleRepository extends ServiceEntityRepository
                 if (!empty($searchValue)) {
                     $ids = [];
                     $query = [];
-                    foreach ($user->getRechercheForArticle() as $key => $searchField) {
+
+                    // valeur par défaut si aucune valeur enregistrée pour cet utilisateur
+					$searchForArticle = $user->getRechercheForArticle();
+					if (empty($searchForArticle)) {
+						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
+						$user->setRechercheForArticle($searchForArticle);
+						$em->flush();
+					}
+
+                    foreach ($searchForArticle as $key => $searchField) {
                         switch ($searchField) {
                             case 'Type':
                                 $subqb = $em->createQueryBuilder();

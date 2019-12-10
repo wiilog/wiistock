@@ -317,86 +317,90 @@ class ArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $columnsVisible = $this->getUser()->getColumnsVisibleForArticle();
+            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+            $columnsVisible = $currentUser->getColumnsVisibleForArticle();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
             $category = CategoryType::ARTICLE;
             $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-            $columns = [];
-            if ($columnsVisible) {
-                $columns = [
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions',
-                        'name' => 'Actions',
-                        "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+            if (empty($columnsVisible)) {
+				$columnsVisible = Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT;
+				$currentUser->setColumnsVisibleForArticle($columnsVisible);
+				$this->getDoctrine()->getManager()->flush();
+			}
 
-                    ],
-                    [
-                        "title" => 'Libellé',
-                        "data" => 'Libellé',
-                        'name' => 'Libellé',
-                        "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+			$columns = [
+				[
+					"title" => 'Actions',
+					"data" => 'Actions',
+					'name' => 'Actions',
+					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
 
-                    ],
-                    [
-                        "title" => 'Référence article',
-                        "data" => 'Référence article',
-                        'name' => 'Référence article',
-                        "class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Référence',
-                        "data" => 'Référence',
-                        'name' => 'Référence',
-                        "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Type',
-                        "data" => 'Type',
-                        'name' => 'Type',
-                        "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Statut',
-                        "data" => 'Statut',
-                        'name' => 'Statut',
-                        "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Quantité',
-                        "data" => 'Quantité',
-                        'name' => 'Quantité',
-                        "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Emplacement',
-                        "data" => 'Emplacement',
-                        'name' => 'Emplacement',
-                        "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Commentaire',
-                        "data" => 'Commentaire',
-                        'name' => 'Commentaire',
-                        "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Prix unitaire',
-                        "data" => 'Prix unitaire',
-                        'name' => 'Prix unitaire',
-                        "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                ];
-                foreach ($champs as $champ) {
-                    $columns[] = [
-                        "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label'],
-                        'name' => $champ['label'],
-                        "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-                    ];
-                }
-            }
+				],
+				[
+					"title" => 'Libellé',
+					"data" => 'Libellé',
+					'name' => 'Libellé',
+					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+
+				],
+				[
+					"title" => 'Référence article',
+					"data" => 'Référence article',
+					'name' => 'Référence article',
+					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Référence',
+					"data" => 'Référence',
+					'name' => 'Référence',
+					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Type',
+					"data" => 'Type',
+					'name' => 'Type',
+					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Statut',
+					"data" => 'Statut',
+					'name' => 'Statut',
+					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Quantité',
+					"data" => 'Quantité',
+					'name' => 'Quantité',
+					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Emplacement',
+					"data" => 'Emplacement',
+					'name' => 'Emplacement',
+					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Commentaire',
+					"data" => 'Commentaire',
+					'name' => 'Commentaire',
+					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Prix unitaire',
+					"data" => 'Prix unitaire',
+					'name' => 'Prix unitaire',
+					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+			];
+			foreach ($champs as $champ) {
+				$columns[] = [
+					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"data" => $champ['label'],
+					'name' => $champ['label'],
+					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+				];
+			}
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
