@@ -227,7 +227,7 @@ function getDataAndPrintLabels(codes) {
         let codeColis = [];
         if (response.response.exists) {
             if (response.codeColis.length === 0) {
-                alertErrorMsg("Il n'y a aucun colis à imprimer.");
+                alertErrorMsg("Il n'y a aucun colis à imprimer.", true);
             } else {
                 for (const code of response.codeColis) {
                     codeColis.push(code.code)
