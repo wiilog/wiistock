@@ -458,33 +458,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
-     * @Rest\View()
-     */
-    public function setMouvement(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $mouvementsR = $data['mouvement'];
-                foreach ($mouvementsR as $mouvementR) {
-                    $mouvement = new MouvementStock;
-                    $mouvement
-                        ->setType($mouvementR['type'])
-                        ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
-                        ->setEmplacementFrom($this->emplacemnt->$mouvementR[''])
-                        ->setUser($mouvementR['']);
-                }
-                $this->successDataMsg['success'] = true;
-            } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-            }
-
-            return new JsonResponse($this->successDataMsg);
-        }
-    }
-
-    /**
      * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
      * @Rest\View()
      * @param Request $request
