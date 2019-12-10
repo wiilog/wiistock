@@ -29,7 +29,7 @@ let tableCollecte = $('#tableCollecte').DataTable({
         "type": "POST"
     },
     drawCallback: function() {
-        overrideSearch();
+        overrideSearch($('#tableCollecte_filter input'), tableCollecte);
     },
     columns: [
         {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
@@ -113,7 +113,7 @@ $submitSearchOrdreCollecte.on('click', function () {
         statut: $('#statut').val(),
         type: $('#type').val(),
         users: $('#utilisateur').select2('data'),
-        demandCollect: $('#demandCollect').select2('data'),
+        // demandCollect: $('#demandCollect').select2('data'),
     };
 
     saveFilters(filters, tableCollecte);
@@ -134,14 +134,3 @@ $.extend($.fn.dataTableExt.oSort, {
         return ((a < b) ? 1 : ((a > b) ? -1 : 0));
     }
 });
-
-function overrideSearch() {
-    let $input = $('#tableCollecte_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
-            tableCollecte.search(this.value).draw();
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}

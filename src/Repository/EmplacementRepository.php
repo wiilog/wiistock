@@ -40,14 +40,31 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countByLabel($label)
+	/**
+	 * @param string $label
+	 * @param int|null $emplacementId
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+    public function countByLabel($label, $emplacementId = null)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(e.label)
+        $dql = /** @lang DQL */
+			"SELECT COUNT(e.label)
             FROM App\Entity\Emplacement e
-            WHERE e.label = :label"
-        )->setParameter('label', $label);
+            WHERE e.label = :label";
+
+		if ($emplacementId) {
+			$dql .= " AND e.id != :id";
+		}
+
+        $query = $entityManager
+			->createQuery($dql)
+			->setParameter('label', $label);
+
+		if ($emplacementId) {
+			$query->setParameter('id', $emplacementId);
+		}
 
         return $query->getSingleScalarResult();
     }

@@ -217,6 +217,12 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+			// on vérifie que l'emplacement n'existe pas déjà
+			$emplacementAlreadyExist = $this->emplacementRepository->countByLabel(trim($data['Label']), $data['id']);
+			if ($emplacementAlreadyExist) {
+				return new JsonResponse(false);
+			}
+
             $emplacement = $this->emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
