@@ -323,12 +323,6 @@ class ArticleController extends Controller
             $category = CategoryType::ARTICLE;
             $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-            if (empty($columnsVisible)) {
-				$columnsVisible = Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT;
-				$currentUser->setColumnsVisibleForArticle($columnsVisible);
-				$this->getDoctrine()->getManager()->flush();
-			}
-
 			$columns = [
 				[
 					"title" => 'Actions',

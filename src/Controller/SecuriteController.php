@@ -81,6 +81,7 @@ class SecuriteController extends Controller
         } else if ($error) {
             $errorToDisplay = 'Identifiants incorrects.';
         }
+
         return $this->render('securite/login.html.twig', [
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
@@ -128,6 +129,7 @@ class SecuriteController extends Controller
      */
     public function checkLastLogin(EntityManagerInterface $em)
     {
+    	/** @var Utilisateur $user */
         $user = $this->getUser();
 
         if (!$user) {
@@ -140,9 +142,19 @@ class SecuriteController extends Controller
             );
         }
         $user->setLastLogin(new \Datetime('', new \DateTimeZone('Europe/Paris')));
-        $em->flush();
 
-        return $this->redirectToRoute('accueil');
+        // remplit champ columnVisiblesForArticle si vide
+		if (empty($user->getColumnsVisibleForArticle())) {
+			$user->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT);
+		}
+		// remplit champ columnVisibles si vide
+		if (empty($user->getColumnVisible())) {
+			$user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
+		}
+
+		$em->flush();
+
+		return $this->redirectToRoute('accueil');
     }
 
     /**

@@ -243,12 +243,6 @@ class ReferenceArticleController extends Controller
             $category = CategoryType::ARTICLE;
             $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-			if (empty($columnsVisible)) {
-				$columnsVisible = Utilisateur::COL_VISIBLE_REF_DEFAULT;
-				$currentUser->setColumnVisible($columnsVisible);
-				$this->getDoctrine()->getManager()->flush();
-			}
-
 			$columns = [
 				[
 					"title" => 'Actions',
