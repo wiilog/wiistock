@@ -363,13 +363,11 @@ let printBarcode = function (button) {
     };
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
-            if (response.refs.length > 0 ) {
+            if (response.refs.length > 0) {
                 printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
             } else {
-                alertErrorMsg('Aucune étiquette à imprimer.');
+                alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
             }
-        } else {
-            $('#cannotGenerate').click();
         }
     });
 }
@@ -618,21 +616,6 @@ function checkIfQuantityArticle($select){
         });
     }
 }
-
-let editorNewReferenceArticleAlreadyDone = false;
-
-function initNewReferenceArticleEditor() {
-    if (!editorNewReferenceArticleAlreadyDone) {
-        initEditor('.editor-container-new');
-        editorNewReferenceArticleAlreadyDone = true;
-    }
-    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    let modalRefArticleNew = $("#new-ref-inner-body");
-    let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
-    let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
-};
 
 function finishReception(receptionId, confirmed) {
     $.post(Routing.generate('reception_finish'), JSON.stringify({
