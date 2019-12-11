@@ -371,6 +371,7 @@ class ReceptionController extends AbstractController
             }
 
             $data = $this->receptionService->getDataForDatatable($request->request);
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -438,7 +439,7 @@ class ReceptionController extends AbstractController
         }
 
         return $this->render('reception/index.html.twig', [
-            'typeChampsLibres' => $typeChampLibre,
+			'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);

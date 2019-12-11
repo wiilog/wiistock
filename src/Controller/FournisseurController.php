@@ -277,22 +277,4 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/autocomplete-for-filter", name="get_fournisseur_for_filter", options={"expose"=true})
-     */
-    public function getFournisseurForFilter(Request $request)
-    {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-                return new JsonResponse(['results' => null]);
-            }
-
-            $search = $request->query->get('term');
-
-            $fournisseur = $this->fournisseurRepository->getIdAndLibelleBySearchForFilter($search);
-
-            return new JsonResponse(['results' => $fournisseur]);
-        }
-        throw new NotFoundHttpException("404");
-    }
 }

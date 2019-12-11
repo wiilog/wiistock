@@ -530,7 +530,7 @@ let ajaxAutoArticlesInit = function (select) {
     });
 }
 
-function ajaxAutoFournisseurInit(select) {
+function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
@@ -549,6 +549,9 @@ function ajaxAutoFournisseurInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
     });
 }
 
@@ -719,7 +722,7 @@ function alertSuccessMsg(data) {
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
-//TODO CG
+
 function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
 

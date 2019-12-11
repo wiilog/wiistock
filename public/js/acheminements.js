@@ -54,12 +54,14 @@ function printAcheminement(id) {
 
 let $submitSearchAcheminements = $('#submitSearchAcheminements');
 $submitSearchAcheminements.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    saveFilters(PAGE_ACHEMINEMENTS, dateMin, dateMax, statut, null, null, null, null, null, null, function() {
-        tableAcheminements.draw()
-    });
+    let filters = {
+      page: PAGE_ACHEMINEMENTS,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+    };
+
+    saveFilters(filters, tableAcheminements);
 });
 
 $(function() {

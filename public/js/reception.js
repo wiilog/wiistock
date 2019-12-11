@@ -16,32 +16,11 @@ $('.select2-autocomplete-articles').select2({
     },
 });
 
-function loadFournisseurFilter() {
-    $('#fournisseurFilter').select2({
-        ajax: {
-            url: Routing.generate('get_fournisseur_for_filter'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-        placeholder: 'Fournisseur'
-    });
-}
-
-//RECEPTION
+// RECEPTION
 let path = Routing.generate('reception_api', true);
-let table = $('#tableReception_id').DataTable({
+let tableReception = $('#tableReception_id').DataTable({
+    serverSide: true,
+    processing: true,
     order: [[1, "desc"]],
     "columnDefs": [
         {
@@ -58,7 +37,10 @@ let table = $('#tableReception_id').DataTable({
     },
     ajax: {
         "url": path,
-        "type": "POST"
+        "type": "POST",
+    },
+    'drawCallback': function() {
+        overrideSearch($('#tableReception_id_filter input'), tableReception);
     },
     columns: [
         { "data": 'Actions', 'title': 'Actions' },
@@ -90,7 +72,7 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
     ],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 4,
@@ -211,31 +193,6 @@ $.extend($.fn.dataTableExt.oSort, {
     }
 });
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = table.column('Date de création:title').index();
-        console.log(indexDate);
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-        if (
-            (dateMin === "" && dateMax === "")
-            ||
-            (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
 let pathArticle = Routing.generate('article_by_reception_api', true);
 
 function initDatatableConditionnement() {
@@ -279,16 +236,16 @@ function initDatatableConditionnement() {
     initModalCondit(tableFromArticle);
 }
 
-
-$.extend($.fn.dataTableExt.oSort, {
-    "natural-asc": function (a, b) {
-        return parseInt(a) < parseInt(b) ? -1 : 1;
-    },
-    "natural-desc": function (a, b) {
-        return parseInt(a) < parseInt(b) ? -1 : 1;
-    }
-});
-
+//
+// $.extend($.fn.dataTableExt.oSort, {
+//     "natural-asc": function (a, b) {
+//         return parseInt(a) < parseInt(b) ? -1 : 1;
+//     },
+//     "natural-desc": function (a, b) {
+//         return parseInt(a) < parseInt(b) ? -1 : 1;
+//     }
+// });
+//
 function initModalCondit(tableFromArticle) {
     let modalEditInnerArticle = $("#modalEditArticle");
     let submitEditInnerArticle = $("#submitEditArticle");
@@ -302,19 +259,19 @@ function initModalCondit(tableFromArticle) {
 }
 
 let modalReceptionNew = $("#modalNewReception");
-let SubmitNewReception = $("#submitReceptionButton"); //TODO CG ou submitreception??
+let SubmitNewReception = $("#submitReceptionButton");
 let urlReceptionIndex = Routing.generate('reception_new', true)
-InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
+InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, tableReception);
 
 let ModalDelete = $("#modalDeleteReception");
 let SubmitDelete = $("#submitDeleteReception");
 let urlDeleteReception = Routing.generate('reception_delete', true)
-InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception, table);
+InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception, tableReception);
 
 let modalModifyReception = $('#modalEditReception');
 let submitModifyReception = $('#submitEditReception');
 let urlModifyReception = Routing.generate('reception_edit', true);
-InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception, table);
+InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception, tableReception);
 
 
 //AJOUTE_ARTICLE
@@ -329,7 +286,6 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        //TODO CG libellé et fourniss disparus ?
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Commande', 'title': 'Commande'},
         {"data": 'A recevoir', 'title': 'A recevoir'},
@@ -403,18 +359,8 @@ function initNewArticleEditor(modal) {
         initEditorInModal(modal);
         editorNewArticleAlreadyDone = true;
     }
-    clearAddRefModal(); //TODO CG
+    clearAddRefModal();
 };
-
-var editorEditArticleAlreadyDone = false;
-
-function initEditArticleEditor() {
-    if (!editorEditArticleAlreadyDone) {
-        initEditorInModal();
-        editorEditArticleAlreadyDone = true;
-    }
-};
-
 
 let getArticleFournisseur = function () {
     xhttp = new XMLHttpRequest();
@@ -496,9 +442,6 @@ function printSingleBarcode(button) {
                     'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
                     [response.barcodeLabel]
                 );
-            } //TODO CG les cannot generate ont pas disparu ?? 1426
-            else {
-                $('#cannotGenerate').click();
             }
         } else {
             $('#ligneSelected').val(button.data('id'));
@@ -635,16 +578,15 @@ function finishReception(receptionId, confirmed) {
 $submitSearchReception = $('#submitSearchReception');
 
 $submitSearchReception.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let fournisseur = $('#fournisseurFilter').val();
-    let fournisseurString = fournisseur.toString();
-    let fournisseurPiped = fournisseurString.split(',').join('|');
-    saveFilters(PAGE_RECEPTION, dateMin, dateMax, statut, null, null, null, null, null, null, fournisseurPiped, function () {
-        table
-            .draw();
-    });
+    let filters = {
+        page: PAGE_RECEPTION,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        providers: $('#providers').select2('data'),
+    }
+
+    saveFilters(filters, tableReception);
 });
 
 function clearAddRefModal() {
@@ -653,37 +595,28 @@ function clearAddRefModal() {
 }
 
 $(function () {
-    loadFournisseurFilter();
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_RECEPTION);
     $.post(path, params, function (data) {
         data.forEach(function (element) {
-            if (element.field === 'fournisseur') {
-                let values = [];
-                element.value.split(',').forEach(val => {
-                    values.push({
-                        id: val,
-                        text: val
-                    })
-                });
-                values.forEach(value => {
-                    $('#fournisseurFilter').select2("trigger", "select", {
-                        data: value
-                    });
+            if (element.field == 'providers') {
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $providers.append(option).trigger('change');
                 });
             } else {
                 $('#' + element.field).val(element.value);
             }
         });
-        let now = new Date();
-        let day = ("0" + now.getDate()).slice(-2);
-        let month = ("0" + (now.getMonth() + 1)).slice(-2);
-        let today = now.getFullYear() + "-" + (month) + "-" + (day);
-        if ($('#dateMax').val() === '') $('#dateMax').val(today);
-        if ($('#dateMin').val() === '') $('#dateMin').val(today);
-        $submitSearchReception.click();
     }, 'json');
+
+    ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () {
@@ -852,4 +785,3 @@ function clearModalRefArticleFromRecep(modal, data) {
         }
     }
 }
-//TODO CG check tout fichier

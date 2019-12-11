@@ -96,20 +96,18 @@ class ReceptionRepository extends ServiceEntityRepository
                         ->andWhere('s.nom = :statut')
                         ->setParameter('statut', $filter['value']);
                     break;
-                case 'fournisseur':
+                case 'providers':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('r.fournisseur', 'f')
-                        ->andWhere("f.nom in (:fournisseur)")
+                        ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
                     break;
                 case 'dateMin':
-                    dump($filter['value'] . '00:00:00');
                     $qb->andWhere('r.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
                     break;
                 case 'dateMax':
-                    dump($filter['value'] . '23:59:59');
                     $qb->andWhere('r.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
@@ -121,11 +119,14 @@ class ReceptionRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
+						->leftJoin('r.statut', 's2')
+						->leftJoin('r.fournisseur', 'f2')
                         ->andWhere('r.date LIKE :value
-                        OR r.dateFinReception LIKE :value
                         OR r.numeroReception LIKE :value
                         OR r.reference LIKE :value
-                        OR r.commentaire lIKE :value')
+                        OR r.commentaire lIKE :value
+                        OR s2.nom LIKE :value
+                        OR f2.nom LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
