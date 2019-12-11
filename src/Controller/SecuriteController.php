@@ -152,6 +152,15 @@ class SecuriteController extends Controller
 			$user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
 		}
 
+		// remplit champ recherche rapide si vide
+		if (empty($user->getRecherche())) {
+			$user->setRecherche(Utilisateur::SEARCH_DEFAULT);
+		}
+		// remplit champ recherche rapide article si vide
+		if (empty($user->getRechercheForArticle())) {
+			$user->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT);
+		}
+
 		$em->flush();
 
 		return $this->redirectToRoute('accueil');
