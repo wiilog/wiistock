@@ -184,16 +184,12 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
             printBarcodes(
                 [response.articleRef.barcode],
                 response,
                 'Etiquette article ' + response.articleRef.artLabel + '.pdf',
                 [response.articleRef.barcodeLabel],
             );
-        } else {
-            $('#cannotGenerate').click();
-        }
     });
 }
 

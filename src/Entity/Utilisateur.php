@@ -195,6 +195,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArticle;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
+     */
+    private $litiges;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -217,6 +222,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->acheminementsReceive = new ArrayCollection();
         $this->acheminementsRequester = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId()
@@ -1043,6 +1049,34 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
     {
         $this->columnsVisibleForArticle = $columnsVisibleForArticle;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->addBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            $litige->removeBuyer($this);
+        }
 
         return $this;
     }

@@ -1,6 +1,7 @@
 let pathUrgences = Routing.generate('urgence_api', true);
 let tableUrgence = $('#tableUrgences').DataTable({
     processing: true,
+    serverSide: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },

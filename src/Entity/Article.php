@@ -139,6 +139,11 @@ class Article
      */
     private $ordreCollecte;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles")
+     */
+    private $litiges;
+
 
     public function __construct()
     {
@@ -149,6 +154,7 @@ class Article
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -448,30 +454,30 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-                                  {
-                                      return $this->inventoryEntries;
-                                  }
+   {
+	   return $this->inventoryEntries;
+   }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-                              	{
-                              		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-                              			$this->inventoryEntries[] = $inventoryEntry;
-                              			$inventoryEntry->setArticle($this);
-                              		}
-                              
-                              		return $this;
-                              	}
+	{
+		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries[] = $inventoryEntry;
+			$inventoryEntry->setArticle($this);
+		}
+
+		return $this;
+	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-               	{
-               		if ($this->inventoryEntries->contains($inventoryEntry)) {
-               			$this->inventoryEntries->removeElement($inventoryEntry);
-               			// set the owning side to null (unless already changed)
-               			if ($inventoryEntry->getArticle() === $this) {
-               				$inventoryEntry->setArticle(null);
-               			}
-               		}
-               	}
+	{
+		if ($this->inventoryEntries->contains($inventoryEntry)) {
+			$this->inventoryEntries->removeElement($inventoryEntry);
+			// set the owning side to null (unless already changed)
+			if ($inventoryEntry->getArticle() === $this) {
+				$inventoryEntry->setArticle(null);
+			}
+		}
+	}
 
     /**
      * @return Collection|InventoryMission[]
@@ -544,6 +550,34 @@ class Article
     {
         if ($this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte->removeElement($ordreCollecte);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            $litige->removeArticle($this);
         }
 
         return $this;

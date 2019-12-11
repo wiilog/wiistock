@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\UrgenceRepository;
+use App\Service\UrgenceService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,10 +33,16 @@ class UrgencesController extends AbstractController
      */
     private $urgenceRepository;
 
-    public function __construct(UserService $userService, UrgenceRepository $urgenceRepository)
+    /**
+     * @var UrgenceService
+     */
+    private $urgenceService;
+
+    public function __construct(UserService $userService, UrgenceRepository $urgenceRepository, UrgenceService $urgenceService)
     {
         $this->userService = $userService;
         $this->urgenceRepository = $urgenceRepository;
+        $this->urgenceService = $urgenceService;
     }
 
     /**
@@ -61,21 +68,7 @@ class UrgencesController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $urgences = $this->urgenceRepository->findAll();
-            $rows = [];
-            foreach ($urgences as $urgence) {
-                $rows[] =
-                    [
-                        'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
-                        'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
-                        'commande' => $urgence->getCommande(),
-                        'actions' => $this->renderView('urgence/datatableUrgenceRow.html.twig', [
-                            'urgence' => $urgence
-                        ])
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->urgenceService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

@@ -13,7 +13,7 @@ use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
 use App\Service\UserService;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 /**
  * @Route("/admin/utilisateur")
  */
-class UtilisateurController extends Controller
+class UtilisateurController extends AbstractController
 {
     /**
      * @var UtilisateurRepository
@@ -384,14 +384,12 @@ class UtilisateurController extends Controller
 
     /**
      * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function getUserAutoComplete(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $search = $request->query->get('term');
 
             $fournisseur = $this->utilisateurRepository->getIdAndLibelleBySearch($search);
