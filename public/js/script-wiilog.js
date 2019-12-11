@@ -14,7 +14,7 @@ const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
 
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9 ]{1,21}$/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ ]{1,21}$/;
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -799,7 +799,19 @@ function createJsPDFBarcode(apiResponse) {
  * @param {string} fileName
  */
 function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
-    if (barcodes && barcodes.length) {
+    // on vérifie la validité des code-barres
+    barcodes.forEach(element => {
+        if (!BARCODE_VALID_REGEX.test(element)) {
+            alertErrorMsg('Le code-barre ' + element + ' ne peut pas être imprimé : il ne doit pas contenir de caractères spéciaux ni d\'accents.', true);
+            return;
+        }
+    });
+
+    if (!barcodes || barcodes.length === 0) {
+        alertErrorMsg("Il n'y a rien à imprimer.", true);
+    } else if (apiResponse.exists === false) {
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
+    } else {
         const doc = createJsPDFBarcode(apiResponse);
         const docSize = doc.internal.pageSize;
         let docWidth = docSize.getWidth();
@@ -855,8 +867,6 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 format: "CODE128",
             });
         });
-    } else {
-        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
     }
 }
 
