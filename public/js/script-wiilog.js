@@ -14,7 +14,7 @@ const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
 
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ ]{1,21}$/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -699,7 +699,13 @@ function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger
+            .css('display', 'block')
+            .css('opacity', '1');
+
+        if (remove == true) {
+            $alertDanger.delay(2000).fadeOut(2000);
+        }
         $alertDanger.find('.error-msg').html(data);
     }
 }
@@ -707,7 +713,9 @@ function alertErrorMsg(data, remove = false) {
 function alertSuccessMsg(data) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
-    $alertSuccess.css('display', 'block');
+    $alertSuccess
+        .css('display', 'block')
+        .css('opacity', '1');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
