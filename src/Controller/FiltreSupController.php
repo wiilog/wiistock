@@ -96,7 +96,6 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			//TODO CG (user/users ? + fournisseur ?)
 			if (!empty($data['users'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
 				if (!$filter) {
