@@ -17,6 +17,10 @@ class ParamClient
     const DOMAIN_NAME_SAFRAN_REC = 'https://scs1-rec.follow-gt.fr/';
     const DOMAIN_NAME_SAFRAN_PROD = 'https://scs1-prod.follow-gt.fr/';
 
+	const COLLINS = 'COLLINS';
+    const DOMAIN_NAME_COLLINS_REC = 'https://col1-rec.follow-gt.fr/';
+    const DOMAIN_NAME_COLLINS_PROD = 'https://col1-prod.follow-gt.fr/';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

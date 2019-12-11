@@ -40,7 +40,10 @@ final class Version20191125101339 extends AbstractMigration
         // remplit champ mouvement_traca.datetime avec données champ mouvement_traca.date
 		$this->addSql('ALTER TABLE mouvement_traca ADD `datetime` datetime');
 		$this->addSql('UPDATE mouvement_traca SET datetime = STR_TO_DATE(REPLACE(LEFT(mouvement_traca.date, 19), "T", " "), "%Y-%m-%d %T")');
-    }
+
+		// renomme la table ref_article -> colis
+		$this->addSql('ALTER table mouvement_traca CHANGE `ref_article` `colis` varchar(255)');
+	}
 
     public function down(Schema $schema) : void
     {

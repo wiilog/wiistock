@@ -249,7 +249,7 @@ function initTableRefArticle() {
                     loadSpinnerAR($('#spinner'));
                     initRemove();
                     hideAndShowColumns();
-                    overrideSearch();
+                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle);
                 },
                 length: 10,
                 columns: columns,
@@ -258,19 +258,6 @@ function initTableRefArticle() {
                 },
             });
     });
-}
-
-function overrideSearch() {
-    let $input = $('#tableRefArticle_id_filter input');
-
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter') {
-            tableRefArticle.search(this.value).draw();
-        }
-    });
-
-    $input.attr('placeholder', 'entrée pour valider');
 }
 
 //COLUMN VISIBLE

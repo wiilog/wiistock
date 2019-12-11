@@ -1,10 +1,5 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Acheteurs',
-    }
-});
 $('#carriers').select2({
     placeholder: {
         text: 'Transporteurs',
@@ -16,16 +11,53 @@ $('#providers').select2({
     }
 });
 
+let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_LITIGE_ARR);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field == 'providers') {
+                $('#providers').val(element.value).select2();
+            } else if (element.field == 'carriers') {
+                $('#carriers').val(element.value).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0) $submitSearchLitigesArr.click();
+    }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+});
+
 let pathLitigesArrivage = Routing.generate('litige_arrivage_api', true);
 let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     responsive: true,
+    serverSide: true,
+    processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    scrollX: true,
+    order: [[4, 'desc']],
     ajax: {
         "url": pathLitigesArrivage,
         "type": "POST",
+    },
+    'drawCallback': function() {
+        overrideSearch($('#tableLitigesArrivages_filter input'), tableLitigesArrivage);
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
@@ -36,16 +68,25 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
-        {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur', 'target': 8},
-        {"data": 'carrier', 'name': 'carrier', 'title': 'Transporteur', 'target': 9},
     ],
     columnDefs: [
         {
-            'targets': [8,9],
-            'visible': false
+            orderable: false,
+            targets: [0]
         }
     ],
-    order: [[4, 'desc']]
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    buttons: [
+        {
+            extend: 'colvis',
+            columns: ':not(.noVis)',
+            className: 'dt-btn'
+        },
+        // {
+        //     extend: 'csv',
+        //     className: 'dt-btn'
+        // }
+    ]
 });
 
 let modalNewLitiges = $('#modalNewLitiges');
@@ -131,53 +172,19 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-$('#submitSearchLitigesArrivages').on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let statut = $('#statut').val();
-    let type = $('#type').val();
+$submitSearchLitigesArr.on('click', function () {
+    let filters = {
+        page: PAGE_LITIGE_ARR,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+        type: $('#type').val(),
+        carriers: $('#carriers').select2('data'),
+        providers: $('#providers').select2('data'),
+        users: $('#utilisateur').select2('data'),
+    }
 
-    let carriers = $('#carriers').val();
-    let carriersString = carriers.toString();
-    let carriersPiped = carriersString.split(',').join('|');
-
-    let providers = $('#providers').val();
-    let providersString = providers.toString();
-    let providersPiped = providersString.split(',').join('|');
-
-    let utilisateur = $('#utilisateur').val();
-    let utilisateurString = utilisateur.toString();
-    let utilisateurPiped = utilisateurString.split(',').join('|');
-
-    saveFilters(PAGE_LITIGE_ARR, dateMin, dateMax, statut, utilisateurPiped, type, null, null, carriersPiped, providersPiped);
-
-    tableLitigesArrivage
-        .columns('status:name')
-        .search(statut ? '^' + statut + '$' : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('buyers:name')
-        .search(utilisateurPiped ? '' + utilisateurPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('type:name')
-        .search(type ? '^' + type + '$' : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('carrier:name')
-        .search(carriersPiped ? '' + carriersPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .columns('provider:name')
-        .search(providersPiped ? '' + providersPiped : '', true, false)
-        .draw();
-
-    tableLitigesArrivage
-        .draw();
+    saveFilters(filters, tableLitigesArrivage);
 });
 
 function generateCSVLitigeArrivage() {

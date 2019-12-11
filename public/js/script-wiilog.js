@@ -9,6 +9,12 @@ const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
+const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_RCPT_TRACA = 'reception_traca';
+const PAGE_ACHEMINEMENTS = 'acheminements';
+
+/** Constants which define a valid barcode */
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9 ]{1,21}$/;
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -73,12 +79,12 @@ function submitAction(modal, path, table, callback, close, clear) {
             $input.removeClass('is-invalid');
         }
 
-        // if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-        //     $input.addClass('is-invalid');
-        //     $input.parent().addClass('is-invalid');
-        //     barcodeIsInvalid = label;
-        // }
-
+        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+            $input.addClass('is-invalid');
+            $input.parent().addClass('is-invalid');
+            label = label.replace(/\*/, '');
+            barcodeIsInvalid = label;
+        }
 
         // validation valeur des inputs de type number
         if ($input.attr('type') === 'number') {
@@ -198,13 +204,22 @@ function submitAction(modal, path, table, callback, close, clear) {
 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
         }
 
         modal.find('.error-msg').html(msg);
     }
 }
 
+/**
+ * Check if value in the given jQuery input is a valid barcode
+ * @param $input
+ * @return {boolean}
+ */
+function isBarcodeValid($input) {
+    const value = $input.val();
+    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {
@@ -559,7 +574,7 @@ function ajaxAutoChauffeurInit(select) {
     });
 }
 
-function ajaxAutoUserInit(select) {
+function ajaxAutoUserInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_user'),
@@ -575,6 +590,31 @@ function ajaxAutoUserInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoDemandCollectInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_demand_collect'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 3 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 3,
+        placeholder: {
+            text: 'Numéro demande'
+        }
     });
 }
 
@@ -671,24 +711,12 @@ function alertSuccessMsg(data) {
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
-
-function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null, carriers = null, providers = null, fournisseur = null, callback = null) {
+//TODO CG
+function saveFilters(params, table = null) {
     let path = Routing.generate('filter_sup_new');
-    let params = {};
-    if (dateMin) params.dateMin = dateMin;
-    if (dateMax) params.dateMax = dateMax;
-    if (statut) params.statut = statut;
-    if (user) params.user = user;
-    if (type) params.type = type;
-    if (location) params.location = location;
-    if (colis) params.colis = colis;
-    if (carriers) params.carriers = carriers;
-    if (providers) params.providers = providers;
-    if (fournisseur) params.fournisseur = fournisseur;
-    params.page = page;
 
     $.post(path, JSON.stringify(params), function() {
-        if (callback) callback();
+        if (table) table.draw();
     }, 'json');
 }
 
@@ -932,3 +960,13 @@ let addArrivalAssociation = function(span) {
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
 };
+
+function overrideSearch($input, table) {
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter'){
+            table.search(this.value).draw();
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}

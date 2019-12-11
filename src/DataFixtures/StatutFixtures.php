@@ -62,7 +62,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			CategorieStatut::DEM_COLLECTE => [
 				Collecte::STATUS_BROUILLON,
 				Collecte::STATUS_A_TRAITER,
-				Collecte::STATUS_COLLECTE
+				Collecte::STATUS_COLLECTE,
+				Collecte::STATUS_INCOMPLETE
 			],
 			CategorieStatut::ORDRE_COLLECTE => [
 				OrdreCollecte::STATUT_A_TRAITER,

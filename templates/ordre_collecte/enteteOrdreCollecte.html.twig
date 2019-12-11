@@ -3,13 +3,13 @@
         <h1>Ordre de collecte n°{{ collecte.numero }}</h1>
     </div>
 
-    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-        <div class="col text-right">
-            <a href="{{path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
-                Aller vers la demande de collecte
-            </a>
-        </div>
-    {% endif %}
+{% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+    <div class="col text-right">
+        <a href="{{path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
+            Aller vers la demande de collecte
+        </a>
+    </div>
+{% endif %}
 </div>
 
 <div class="row">
@@ -31,5 +31,25 @@
         <div class="commentOverflow">
             <p>{{ collecte.demandeCollecte.commentaire|raw }}</p>
         </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col text-right">
+        {% if not finished %}
+            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
+                   data-id='{{collecte.id}}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
+                   class="btn btn-danger btn-action ml-auto">
+                    Supprimer
+                </a>
+                <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
+                <div
+                        class="btn btn-primary"
+                        onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected()">
+                    Finir la collecte
+                </div>
+            {% endif %}
+        {% endif %}
     </div>
 </div>

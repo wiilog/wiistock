@@ -42,13 +42,15 @@ function loadFournisseurFilter() {
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({
-    serverSide: true,
-    processing: true,
-    order: [[0, "desc"]],
+    order: [[1, "desc"]],
     "columnDefs": [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
+        },
+        {
+            "orderable" : false,
+            "targets" : 0
         }
     ],
     language: {
@@ -59,14 +61,14 @@ let table = $('#tableReception_id').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Date', 'title': 'Date de création'},
-        {"data": 'DateFin', 'title': 'Date de fin de réception'},
-        {"data": 'Numéro de commande', 'title': 'Numéro de commande'},
-        {"data": 'Fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Référence', 'title': 'Référence'},
-        {"data": 'Statut', 'title': 'Statut'},
-        {"data": 'Commentaire', 'title': 'Commentaire'},
-        {"data": 'Actions', 'title': 'Actions'}
+        { "data": 'Actions', 'title': 'Actions' },
+        { "data": 'Date', 'title': 'Date de création' },
+        { "data": 'DateFin', 'title': 'Date de fin de réception' },
+        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
+        { "data": 'Fournisseur', 'title': 'Fournisseur' },
+        { "data": 'Référence', 'title': 'Référence' },
+        { "data": 'Statut', 'title': 'Statut' },
+        { "data": 'Commentaire', 'title': 'Commentaire'},
     ],
 });
 
@@ -255,12 +257,12 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            {"data": 'Référence', 'name': 'Référence', 'title': 'Référence'},
-            {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
-            {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
-            {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
-            {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
-            {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
+            { "data": 'Code', 'name': 'Code', 'title': 'Code article' },
+            { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+            { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+            { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+            { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+            { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
         ],
         aoColumnDefs: [{
             'sType': 'natural',
@@ -300,7 +302,7 @@ function initModalCondit(tableFromArticle) {
 }
 
 let modalReceptionNew = $("#modalNewReception");
-let SubmitNewReception = $("#submitReceptionButton");
+let SubmitNewReception = $("#submitReceptionButton"); //TODO CG ou submitreception??
 let urlReceptionIndex = Routing.generate('reception_new', true)
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
 
@@ -327,6 +329,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
+        //TODO CG libellé et fourniss disparus ?
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Commande', 'title': 'Commande'},
         {"data": 'A recevoir', 'title': 'A recevoir'},
@@ -402,7 +405,7 @@ function initNewArticleEditor(modal) {
         initEditorInModal(modal);
         editorNewArticleAlreadyDone = true;
     }
-    clearAddRefModal();
+    clearAddRefModal(); //TODO CG
 };
 
 var editorEditArticleAlreadyDone = false;
@@ -495,7 +498,8 @@ function printSingleBarcode(button) {
                     'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
                     [response.barcodeLabel]
                 );
-            } else {
+            } //TODO CG les cannot generate ont pas disparu ?? 1426
+            else {
                 $('#cannotGenerate').click();
             }
         } else {
@@ -523,7 +527,8 @@ function printSingleArticleBarcode(button) {
                 'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
                 [response.articleRef.barcodeLabel]
             );
-        } else {
+        }
+        else {
             $('#cannotGenerate').click();
         }
     });
@@ -533,7 +538,6 @@ function addArticle() {
     let path = Routing.generate('get_modal_new_ref', true);
     $.post(path, {}, function (modalNewRef) {
         $('#innerNewRef').html(modalNewRef);
-        console.log()
         initNewReferenceArticleEditor();
     });
 }
@@ -575,6 +579,43 @@ function displayErrorRA(data, modal) {
         modal.parent().html('');
     } else {
         modal.find('.error-msg').html(data.msg);
+    }
+}
+
+let editorNewReferenceArticleAlreadyDone = false;
+
+function initNewReferenceArticleEditor() {
+    if (!editorNewReferenceArticleAlreadyDone) {
+        initEditor('.editor-container-new');
+        editorNewReferenceArticleAlreadyDone = true;
+    }
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    let modalRefArticleNew = $("#new-ref-inner-body");
+    let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
+    let urlRefArticleNew = Routing.generate('reference_article_new', true);
+    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
+};
+
+function checkIfQuantityArticle($select){
+    let referenceId = $select.val();
+    let path = Routing.generate('check_if_quantity_article');
+    let params = JSON.stringify(referenceId);
+    let $label = $('#label');
+
+    if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
+        $.post(path, params, function(quantityByArticle){
+            $label.removeClass('is-invalid');
+            if(quantityByArticle) {
+                $label.addClass('needed');
+                $label.closest('div').find('label').html('Libellé*');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', true);
+            } else {
+                $label.removeClass('needed');
+                $label.closest('div').find('label').html('Libellé');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', false);
+            }
+        });
     }
 }
 
@@ -828,3 +869,4 @@ function clearModalRefArticleFromRecep(modal, data) {
         }
     }
 }
+//TODO CG check tout fichier

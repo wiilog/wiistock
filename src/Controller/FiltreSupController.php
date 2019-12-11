@@ -38,7 +38,8 @@ class FiltreSupController extends AbstractController
 
 			$page = $data['page'];
 			$user = $this->getUser();
-			if (isset($data['dateMin'])) {
+
+			if (!empty($data['dateMin'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MIN, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -57,7 +58,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['dateMax'])) {
+			if (!empty($data['dateMax'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MAX, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -76,7 +77,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['statut'])) {
+			if (!empty($data['statut'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -95,47 +96,33 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-            if (isset($data['user'])) {
-                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
-                if (!$filter) {
-                    $filter = new FiltreSup();
-                    $filter
-                        ->setField(FiltreSup::FIELD_USERS)
-                        ->setPage($page)
-                        ->setUser($user);
-                    $em->persist($filter);
-                }
-                $carriers = str_replace('|', ',', $data['user']);
-                $filter->setValue($carriers);
-                $em->flush();
-            } else {
-                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
-                if ($filter) {
-                    $em->remove($filter);
-                    $em->flush();
-                }
-            }
-            if (isset($data['fournisseur'])) {
-                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_FOURNISSEUR, $page, $user);
-                if (!$filter) {
-                    $filter = new FiltreSup();
-                    $filter
-                        ->setField(FiltreSup::FIELD_FOURNISSEUR)
-                        ->setPage($page)
-                        ->setUser($user);
-                    $em->persist($filter);
-                }
-                $fournisseurs = str_replace('|', ',', $data['fournisseur']);
-                $filter->setValue($fournisseurs);
-                $em->flush();
-            } else {
-                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_FOURNISSEUR, $page, $user);
-                if ($filter) {
-                    $em->remove($filter);
-                    $em->flush();
-                }
-            }
-			if (isset($data['type'])) {
+			//TODO CG (user/users ? + fournisseur ?)
+			if (!empty($data['users'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_USERS)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$values = [];
+				foreach ($data['users'] as $oneUser) {
+					$values[] = $oneUser['id'] . ':' . $oneUser['text'];
+				}
+				$users = implode(',', $values);
+				$filter->setValue($users);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (!empty($data['type'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_TYPE, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -154,7 +141,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['location'])) {
+			if (!empty($data['location'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMPLACEMENT, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -173,7 +160,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['colis'])) {
+			if (!empty($data['colis'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -183,7 +170,18 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$filter->setValue($data['colis']);
+
+				if (is_array($data['colis'])) {
+					$values = [];
+					foreach ($data['colis'] as $oneColis) {
+						$values[] = $oneColis['id'] . ':' . $oneColis['text'];
+					}
+					$colis = implode(',', $values);
+				} else {
+					$colis = $data['colis'];
+				}
+
+				$filter->setValue($colis);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
@@ -192,7 +190,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['carriers'])) {
+			if (!empty($data['carriers'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_CARRIERS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -202,7 +200,13 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$carriers = str_replace('|', ',', $data['carriers']);
+
+				$values = [];
+				foreach ($data['carriers'] as $carrier) {
+					$values[] = $carrier['id'];
+				}
+				$carriers = implode(',', $values);
+
 				$filter->setValue($carriers);
 				$em->flush();
 			} else {
@@ -212,7 +216,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
-			if (isset($data['providers'])) {
+			if (!empty($data['providers'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);
 				if (!$filter) {
 					$filter = new FiltreSup();
@@ -222,8 +226,14 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$carriers = str_replace('|', ',', $data['providers']);
-				$filter->setValue($carriers);
+
+				$values = [];
+				foreach ($data['providers'] as $provider) {
+					$values[] = $provider['id'];
+				}
+				$providers = implode(',', $values);
+
+				$filter->setValue($providers);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);
@@ -232,6 +242,86 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+			if (!empty($data['demandCollect'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DEM_COLLECTE, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_DEM_COLLECTE)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$demandCollect = $data['demandCollect'][0];
+				$value = $demandCollect['id'] . ':' . $demandCollect['text'];
+				$filter->setValue($value);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DEM_COLLECTE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (isset($data['urgence']) && $data['urgence']) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMERGENCY, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_EMERGENCY)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['urgence']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMERGENCY, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+            if (!empty($data['arrivage_string'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ARRIVAGE_STRING, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_ARRIVAGE_STRING)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $filter->setValue($data['arrivage_string']);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ARRIVAGE_STRING, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
+            if (!empty($data['reception_string'])) {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_RECEPTION_STRING, $page, $user);
+                if (!$filter) {
+                    $filter = new FiltreSup();
+                    $filter
+                        ->setField(FiltreSup::FIELD_RECEPTION_STRING)
+                        ->setPage($page)
+                        ->setUser($user);
+                    $em->persist($filter);
+                }
+                $filter->setValue($data['reception_string']);
+                $em->flush();
+            } else {
+                $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_RECEPTION_STRING, $page, $user);
+                if ($filter) {
+                    $em->remove($filter);
+                    $em->flush();
+                }
+            }
 
 			$em->flush();
 

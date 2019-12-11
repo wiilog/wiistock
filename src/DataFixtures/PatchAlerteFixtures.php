@@ -26,10 +26,14 @@ class PatchAlerteFixtures extends Fixture implements FixtureGroupInterface
         $refArts = $this->referenceArticleRepository->findAll();
         foreach ($refArts as $refArt)
         {
-            $limit_warning = $refArt->getLimitWarning();
+            $alerts = [
+                $refArt->getLimitWarning(),
+                $refArt->getLimitSecurity()
+            ];
+
             $refArt
-                ->setLimitWarning($refArt->getLimitSecurity())
-                ->setLimitSecurity($limit_warning);
+                ->setLimitWarning(max($alerts))
+                ->setLimitSecurity(min($alerts));
 
         }
         $manager->flush();
@@ -37,6 +41,6 @@ class PatchAlerteFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['alerte', 'fixtures'];
+        return ['patch-alerte'];
     }
 }

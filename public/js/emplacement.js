@@ -5,6 +5,8 @@ let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
+    "lengthMenu": [10, 25, 50, 100, 1000],
+    order: [[1, 'desc']],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -17,21 +19,22 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         }
     },
     'drawCallback': function () {
-        overrideSearch();
+        overrideSearchEmplacement();
     },
     columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
         {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
         {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
     buttons: [
         'copy', 'excel', 'pdf'
     ],
     columnDefs: [
-        { "orderable": false, "targets": 4 }
+        { "orderable": false, "targets": 5 },
+        { "orderable": false, "targets": 0 }
     ]
 });
 
@@ -48,7 +51,7 @@ InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmpla
 let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, displayErrorEditEmplacement, false);
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
@@ -67,13 +70,19 @@ function checkAndDeleteRowEmplacement(icon) {
     });
 }
 
-function displayErrorEmplacement(data) {
+function displayErrorEmplacement(success) {
     let modal = $("#modalNewEmplacement");
     let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
-    displayError(modal, msg, data);
+    displayError(modal, msg, success);
 }
 
-function overrideSearch() {
+function displayErrorEditEmplacement(success) {
+    let modal = $("#modalEditEmplacement");
+    let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
+    displayError(modal, msg, success);
+}
+
+function overrideSearchEmplacement() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
     $input.on('keyup', function (e) {
