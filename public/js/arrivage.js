@@ -117,10 +117,14 @@ function getDataAndPrintLabels(codes) {
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
         if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
+            if (response.codeColis.length === 0) {
+                alertErrorMsg("Il n'y a aucun colis à imprimer.");
+            } else {
+                for (const code of response.codeColis) {
+                    codeColis.push(code.code)
+                }
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
             }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }
@@ -161,15 +165,6 @@ $.fn.dataTable.ext.search.push(
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
-
-function printLabels(data) {
-    if (data.exists) {
-        console.log('print');
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
