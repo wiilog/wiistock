@@ -279,6 +279,10 @@ function newLine(path, button, toHide, buttonAdd)
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     inputs.each(function () {
+        if ($(this).val() == '')
+        {
+            $(this).addClass('is-invalid');
+        }
        params[$(this).attr('name')] = $(this).val();
     });
     $.post(path, JSON.stringify(params), function (resp) {

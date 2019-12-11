@@ -64,14 +64,14 @@
                     </div>
                     <div class="row col-4 formulaire">
                         <div class="form-group col-10" id="chauffeurDisplay">
-                            <label for="newChauffeurName">Nom</label>
-                            <input type="text" id="newChauffeurName" class="form-control newFormulaire" name="nom" maxlength="64">
-                            <label for="newChauffeurFirstName">Prénom chauffeur</label>
-                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire" name="prenom" maxlength="64">
-                            <label for="newChauffeurNumero">N°doc ID</label>
-                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire" name="documentID" maxlength="64">
+                            <label for="newChauffeurName">Nom*</label>
+                            <input type="text" id="newChauffeurName" class="form-control newFormulaire neededNew" name="nom" maxlength="64">
+                            <label for="newChauffeurFirstName">Prénom chauffeur*</label>
+                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire neededNew" name="prenom" maxlength="64">
+                            <label for="newChauffeurNumero">N°doc ID*</label>
+                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire neededNew" name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur">Transporteur*</label>
-                            <select class="form-control newFormulaire" id="newChauffeurTransporteur" name="transporteur">
+                            <select class="form-control newFormulaire neededNew" id="newChauffeurTransporteur" name="transporteur">
                                 <option disabled selected></option>
                                 {% for transporteur in transporteurs %}
                                     <option value="{{ transporteur.id }}">{{ transporteur.label }}</option>
