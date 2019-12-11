@@ -37,12 +37,7 @@ function printBarcode(code) {
 }
 
 function printLabels(data) {
-    if (data.exists) {
-        console.log(data);
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
+    printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
 }
 
 function printBarcode(code) {
@@ -231,10 +226,14 @@ function getDataAndPrintLabels(codes) {
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
         if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
+            if (response.codeColis.length === 0) {
+                alertErrorMsg("Il n'y a aucun colis à imprimer.", true);
+            } else {
+                for (const code of response.codeColis) {
+                    codeColis.push(code.code)
+                }
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
             }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }
