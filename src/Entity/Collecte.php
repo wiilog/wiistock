@@ -13,10 +13,10 @@ class Collecte
 {
     const CATEGORIE = 'collecte';
 
-    const STATUS_COLLECTE = 'collecté';
-    const STATUS_INCOMPLETE = 'partiellement collecté';
-    const STATUS_A_TRAITER = 'à traiter';
-    const STATUS_BROUILLON = 'brouillon';
+    const STATUT_COLLECTE = 'collecté';
+    const STATUT_INCOMPLETE = 'partiellement collecté';
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_BROUILLON = 'brouillon';
 
     /**
      * @ORM\Id()

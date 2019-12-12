@@ -501,16 +501,6 @@ class DemandeController extends AbstractController
             ];
         }
 
-		switch ($filter) {
-			case 'a-traiter':
-				$filter = Demande::STATUT_A_TRAITER;
-				break;
-			case 'prepare':
-				$filter = Demande::STATUT_PREPARE;
-				break;
-		}
-
-        dump($filter);
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
@@ -557,8 +547,10 @@ class DemandeController extends AbstractController
 			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
 				return $this->redirectToRoute('access_denied');
 			}
-            $filterDemandLivraison = $request->request->get('statut');
-			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterDemandLivraison);
+
+			// cas d'un filtre statut depuis page d'accueil
+			$filterStatus = $request->request->get('filterStatus');
+			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {

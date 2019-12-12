@@ -68,12 +68,14 @@ class DemandeLivraisonService
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
-    public function getDataForDatatable($params = null, $filterDemandLivraison = null)
+    public function getDataForDatatable($params = null, $statusFilter = null)
     {
-        if ($filterDemandLivraison) {
+        if ($statusFilter) {
             $filters = [
-                ['field' => 'demandeLivraison',
-                    'value' => $filterDemandLivraison]
+                [
+                	'field' => 'statut',
+					'value' => $statusFilter
+				]
             ];
         } else {
             $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);

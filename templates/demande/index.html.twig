@@ -49,6 +49,9 @@
 {% include "demande/modalNewDemande.html.twig" %}
 {% include "demande/modalShowDemande.html.twig" %}
 
+{% if filterStatus is defined and filterStatus is not null %}
+    <input hidden id="filterStatus" value="{{ filterStatus }}"
+{% endif %}
 {% endblock %}
 
 {% block javascript %}

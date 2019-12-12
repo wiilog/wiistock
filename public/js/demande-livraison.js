@@ -75,6 +75,9 @@ let tableDemande = $('#table_demande').DataTable({
     ajax: {
         "url": pathDemande,
         "type": "POST",
+        'data' : {
+            'filterStatus': $('#filterStatus').val()
+        },
     },
     'drawCallback': function() {
         overrideSearch($('#table_demande_filter input'), tableDemande);
@@ -111,6 +114,11 @@ $submitSearchDemande.on('click', function () {
     };
 
     saveFilters(filters, tableDemande);
+
+    // supprime le filtre de l'url
+    if ($('#filterStatus').val()) {
+        window.location.href = Routing.generate('demande_index');
+    }
 });
 
 $.fn.dataTable.ext.search.push(
@@ -209,10 +217,8 @@ $(function () {
     let val = $('#statut').val();
     if (val) {
         $('#statut').val(val);
-    }
-    else
-    {
-            // filtres enregistrés en base pour chaque utilisateur
+    } else {
+        // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_DEM_LIVRAISON);
         $.post(path, params, function (data) {
