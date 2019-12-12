@@ -1,8 +1,8 @@
 <div class="row">
     <div class="form-group col-6">
-        <label for="NumeroReception">Numéro Réception*</label>
-        <input type="text" class="form-control data needed" name="NumeroReception" id='reference'
-            value="{{reception.numeroReception}}" placeholder="N°Reception">
+        <label for="numeroReception">Numéro Réception{{ fieldsParam.numeroReception.mustToModify ? '*' : ''}}</label>
+        <input type="text" class="form-control data Numéro Réception{{ fieldsParam.numeroReception.mustToModify ? 'needed' : ''}}" name="numeroReception" id='numeroReception'
+            value="{{reception.numeroReception}}">
     </div>
     <div class="form-group col-6">
         <label for="statut">Statut*</label>
@@ -18,24 +18,24 @@
 
 <div class="row">
     <div class="form-group col-6">
-        <label for="date-commande">Date commande</label>
-        <input type="date" class="form-control data" name="date-commande" id="dateCommande"
+        <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToModify ? '*' : ''}}</label>
+        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToModify ? 'needed' : ''}}" name="dateCommande" id="dateCommande"
             value="{{reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d')}}" required="true"
             max="{{ '+25year' | date('Y-m-d') }}">
     </div>
 
     <div class="form-group col-6">
-        <label for="date-attendue">Date attendue</label>
-        <input type="date" class="form-control data" name="date-attendue" id='dateAttendue'
+        <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToModify ? '*' : ''}}</label>
+        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToModify ? 'needed' : ''}}" name="dateAttendue" id='dateAttendue'
             value="{{reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d')}}" required="true"
             max="{{ '+25year' | date('Y-m-d') }}">
     </div>
 </div>
 <div class="row">
     <div class="form-group col-6">
-        <label for="NumeroCommande">Numéro de commande*</label>
-        <input type="text" class="form-control data needed" name="NumeroCommande" id='Ncommande'
-               value="{{reception.reference}}" placeholder="N°Commande">
+        <label for="numeroCommande">Numéro de commande{{ fieldsParam.numCommande.mustToModify ? '*' : ''}}</label>
+        <input type="text" class="form-control data {{ fieldsParam.numCommande.mustToModify ? 'needed' : ''}}" name="numeroCommande" id='numeroCommande'
+               value="{{reception.reference}}">
     </div>
     <div class="form-group w-100 col-6">
         <label for="utilisateur">Utilisateur*</label>
@@ -47,10 +47,10 @@
 </div>
 
 <div class="row">
-    <div class="form-group w-100 col-4">
-        <label for="fournisseurs">Fournisseur*</label>
-        <select class="form-control ajax-autocomplete-fournisseur-edit data" name="fournisseur" id='fournisseur'>
-            <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
+    <div class="form-group w-100 col-6">
+        <label for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToModify ? '*' : ''}}</label>
+        <select class="form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam.fournisseur.mustToModify ? 'needed' : ''}}" name="fournisseur" id='fournisseur'>
+            <option value="{{reception.fournisseur ? reception.fournisseur.id : ''}}">{{ reception.fournisseur ? reception.fournisseur.nom : ''}}</option>
 
         </select>
     </div>
@@ -61,9 +61,15 @@
         <label for="transporteur">Transporteur</label>
         <select class="form-control data ajax-autocomplete-transporteur-edit" name="transporteur" id="transporteur">
             <option value="{{reception.transporteur.id}}">{{ reception.transporteur.label }}</option>
-
         </select>
     </div>
+{#    TODO CG#}
+{#    <div class="form-group w-100 col-6">#}
+{#        <label for="utilisateur">Utilisateur{{ fieldsParam.utilisateur.mustToModify ? '*' : ''}}</label>#}
+{#        <select class="form-control ajax-autocomplete-user-edit data {{ fieldsParam.utilisateur.mustToModify ? 'needed' : ''}}" name="utilisateur">#}
+{#            <option value="{{reception.utilisateur ? reception.utilisateur.id : ''}}">{{ reception.utilisateur ? reception.utilisateur.username : ' '}}</option>#}
+{#        </select>#}
+{#    </div>#}
     <div class="form-group col-1">
         <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i class="fa fa-plus"></i></span>
     </div>
@@ -93,8 +99,8 @@
     </div>
 </div>
 <div class="form-group">
-    <label for="Reception">Commentaire</label>
-    <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
+    <label for="Reception">Commentaire{{ fieldsParam.commentaire.mustToModify ? '*' : ''}}</label>
+    <input id='commentaire' class="form-control data {{ fieldsParam.commentaire.mustToModify ? 'needed' : ''}}" name="commentaire" type="hidden"
         value="{{reception.commentaire}}">
     <div class="editor-container-edit" id="editor-container" value="{{reception.commentaire}}"> {{reception.commentaire|raw}}
     </div>

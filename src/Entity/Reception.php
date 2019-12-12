@@ -27,6 +27,7 @@ class Reception
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptions")
+	 * @ORM\JoinColumn(nullable=true)
      */
     private $fournisseur;
 
@@ -47,6 +48,7 @@ class Reception
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receptions")
+	 * @ORM\JoinColumn(nullable=true)
      */
     private $utilisateur;
 

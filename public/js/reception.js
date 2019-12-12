@@ -273,7 +273,6 @@ let submitModifyReception = $('#submitEditReception');
 let urlModifyReception = Routing.generate('reception_edit', true);
 InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception, tableReception);
 
-
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('reception_article_api', {'id': id}, true);
 let tableArticle = $('#tableArticle_id').DataTable({

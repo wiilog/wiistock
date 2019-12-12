@@ -467,7 +467,7 @@ function ajaxAutoCompleteEmplacementInit(select) {
 function ajaxAutoCompleteTransporteurInit(select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_Transporteur'),
+            url: Routing.generate('get_transporteurs'),
             dataType: 'json',
             delay: 250,
         },

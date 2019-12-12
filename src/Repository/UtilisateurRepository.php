@@ -82,19 +82,6 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->execute();
 	}
 
-	public function getNoOne($id)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			"SELECT u
-            FROM App\Entity\Utilisateur u
-            WHERE u.id <> :id"
-		)->setParameter('id', $id);
-
-		return $query->execute();
-	}
-
 	public function getIdAndLibelleBySearch($search)
 	{
 		$em = $this->getEntityManager();

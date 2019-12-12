@@ -10,13 +10,10 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-
                 <div class='row'>
-                    <div class="form-group w-100 col-4">
-                        <label for="fournisseurs">Fournisseur*</label>
-                        <select class="form-control ajax-autocomplete-fournisseur data needed" name="fournisseur"
-                            required>
-                        </select>
+                    <div class="form-group w-100 col-6">
+                        <label for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : ''}}</label>
+                        <select class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : ''}}" name="fournisseur"
                     </div>
                     <div class="form-group col-2">
                         <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
@@ -57,24 +54,24 @@
 
                 <div class='row'>
                     <div class="form-group col-6">
-                        <label>Numéro de commande</label>
-                        <input type="text" class="form-control data" name="reference">
+                        <label>Numéro de commande{{ fieldsParam.numCommande.mustToCreate ? '*' : ''}}</label>
+                        <input type="text" class="form-control data {{ fieldsParam.numCommande.mustToCreate ? 'needed' : ''}}" name="reference">
                     </div>
                     <div class="form-group col-6">
-                        <label for="date-attendue">Date attendue</label>
-                        <input type="date" class="form-control data" name="date-attendue" value="" required="true"
-                            id="date-attendue">
+                        <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : ''}}</label>
+                        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToCreate ? 'needed' : ''}}" name="dateAttendue" value="" required="true"
+                            id="dateAttendue">
                     </div>
 
                     <div class="form-group col-6">
-                        <label for="date-commande">Date commande</label>
-                        <input type="date" class="form-control data" name="date-commande" value="" required="true"
-                            max="{{ '+25year' | date('Y-m-d') }}">
+                        <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : ''}}</label>
+                        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : ''}}" name="dateCommande" value="" required="true"
+                            id="dateCommande" max="{{ '+25year' | date('Y-m-d') }}">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="NumeroReception">Commentaire</label>
-                    <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
+                    <label for="NumeroReception">Commentaire{{ fieldsParam.commentaire.mustToCreate ? '*' : ''}}</label>
+                    <input id='commentaire' class="form-control data {{ fieldsParam.commentaire.mustToCreate ? 'needed' : ''}}" name="commentaire" type="hidden">
                     <div class="editor-container" id='editor-container'></div>
                 </div>
 

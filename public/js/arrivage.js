@@ -181,7 +181,6 @@ function initNewArrivageEditor(modal) {
     }
     ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
-    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
