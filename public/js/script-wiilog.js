@@ -62,6 +62,7 @@ function submitAction(modal, path, table, callback, close, clear) {
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
+        val = val && val.trim();
         name = $input.attr("name");
         Data[name] = val;
         let label = $input.closest('.form-group').find('label').text();

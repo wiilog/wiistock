@@ -1024,7 +1024,14 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('ra.reference, ra.libelle, ra.typeQuantite, ra.id, ra.quantiteStock, ra.limitSecurity, ra.limitWarning')
+            ->select('
+                ra.reference,
+                ra.libelle,
+                ra.typeQuantite,
+                ra.id,
+                ra.quantiteStock,
+                ra.limitSecurity,
+                ra.limitWarning')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.typeQuantite = :qte_reference AND (ra.quantiteStock <= ra.limitSecurity OR ra.quantiteStock <= ra.limitWarning)')
             ->orWhere('ra.typeQuantite = :qte_article AND (

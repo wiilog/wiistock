@@ -23,6 +23,9 @@ let tableManutention = $('#tableManutention_id').DataTable({
     ajax: {
         "url": pathManut,
         "type": "POST",
+        'data' : {
+            'filterStatus': $('#statut').val()
+        },
     },
     'drawCallback': function() {
         overrideSearch($('#tableManutention_id_filter input'), tableManutention);
@@ -48,6 +51,12 @@ $submitSearchManut.on('click', function () {
     };
 
     saveFilters(filters, tableManutention);
+
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('manutention_index');
+    }
 });
 
 $.fn.dataTable.ext.search.push(
@@ -105,26 +114,23 @@ if (demandeur !== undefined) {
 
 // applique les filtres si pré-remplis
 $(function() {
-    let val = $('#statut').val();
-    if (val != null && val != '') {
-        $submitSearchManut.click();
-    }
-
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MANUT);
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
-        if (data.length > 0) $submitSearchManut.click();
-    }, 'json');
-
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+
+    let val = $('#statut').val();
+    if (!val) {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_MANUT);
+        $.post(path, params, function (data) {
+            data.forEach(function (element) {
+                if (element.field == 'utilisateurs') {
+                    $('#utilisateur').val(element.value.split(',')).select2();
+                } else {
+                    $('#' + element.field).val(element.value);
+                }
+            });
+        }, 'json');
+    }
 });
 
 // filtres de recheches

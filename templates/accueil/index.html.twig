@@ -11,22 +11,22 @@ class='accueil-back'
         <div class="col-4 ">
             <div class="row justify-content-end">
                 <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('collecte', 'a-traiter')">
+                    <a href="#" onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
                         <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('livraison', 'a-traiter')">
+                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
                         <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('livraison', 'prepare')">
+                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
                         <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('manutention', 'a-traiter')">
+                    <a href="#" onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
                         <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>

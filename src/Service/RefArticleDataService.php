@@ -173,7 +173,7 @@ class RefArticleDataService
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
-       
+
         $refs = $queryResult['data'];
 
         $rows = [];
@@ -531,8 +531,8 @@ class RefArticleDataService
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
             'QuantiteStock' => $quantity,
-            'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
-            'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),
+            'SeuilSecurite' => (($referenceArticle['limitSecurity'] || $referenceArticle['limitSecurity'] == '0') ? $referenceArticle['limitSecurity'] : 'Non défini'),
+            'SeuilAlerte' => (($referenceArticle['limitWarning'] || $referenceArticle['limitWarning'] == '0') ? $referenceArticle['limitWarning'] : 'Non défini'),
             'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
                 'quantite' => $quantity,
                 'seuilSecu' => $referenceArticle['limitSecurity'],

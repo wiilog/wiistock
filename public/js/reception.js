@@ -225,7 +225,13 @@ function initDatatableConditionnement() {
             'sType': 'natural',
             'bSortable': true,
             'aTargets': [0]
-        }]
+        }],
+        columnDefs:  [
+            {
+                orderable: false,
+                targets: 5
+            }
+        ]
     });
 
     let statutVisible = $("#statutVisible").val();
