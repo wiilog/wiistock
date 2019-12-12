@@ -76,7 +76,7 @@ let tableDemande = $('#table_demande').DataTable({
         "url": pathDemande,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#filterStatus').val()
+            'filterStatus': $('#statut').val()
         },
     },
     'drawCallback': function() {
@@ -116,7 +116,8 @@ $submitSearchDemande.on('click', function () {
     saveFilters(filters, tableDemande);
 
     // supprime le filtre de l'url
-    if ($('#filterStatus').val()) {
+    let str = window.location.href.split('/');
+    if (str[5]) {
         window.location.href = Routing.generate('demande_index');
     }
 });
@@ -214,10 +215,9 @@ function setMaxQuantity(select) {
 $(function () {
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
+
     let val = $('#statut').val();
-    if (val) {
-        $('#statut').val(val);
-    } else {
+    if (!val) {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_DEM_LIVRAISON);
@@ -237,7 +237,6 @@ $(function () {
                     $('#' + element.field).val(element.value);
                 }
             });
-            if (data.length > 0) $submitSearchDemandeLivraison.click();
         }, 'json');
     }
 });

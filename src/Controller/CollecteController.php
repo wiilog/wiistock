@@ -179,12 +179,6 @@ class CollecteController extends AbstractController
 			];
 		}
 
-		switch ($filter) {
-			case 'a-traiter':
-				$filter = Collecte::STATUT_A_TRAITER;
-				break;
-		}
-
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
@@ -225,7 +219,9 @@ class CollecteController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$data = $this->collecteService->getDataForDatatable($request->request);
+			// cas d'un filtre statut depuis page d'accueil
+			$filterStatus = $request->request->get('filterStatus');
+			$data = $this->collecteService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {
