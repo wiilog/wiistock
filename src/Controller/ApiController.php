@@ -328,9 +328,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         // création de l'emplacement s'il n'existe pas
                         if (!$location) {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($mvt['ref_emplacement']);
-                            $em->persist($emplacement);
+                            $location = new Emplacement();
+                            $location->setLabel($mvt['ref_emplacement']);
+                            $em->persist($location);
                             $em->flush();
                         }
                         $operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
