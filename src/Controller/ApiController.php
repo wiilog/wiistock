@@ -372,7 +372,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $em->flush();
 //						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
-                            $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
+                            $isDepose = $mvt['type'] === MouvementTraca::TYPE_DEPOSE;
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
                             if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
