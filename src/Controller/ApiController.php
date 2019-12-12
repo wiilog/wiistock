@@ -387,10 +387,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             [
                                                 'title' => 'Votre colis a été livré.',
                                                 'colis' => $colis->getCode(),
-                                                'emplacement' => $location->getLabel(),
+                                                'emplacement' => $location,
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $operator,
+                                                'operateur' => $operator->getUsername(),
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
