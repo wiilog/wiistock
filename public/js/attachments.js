@@ -27,7 +27,15 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachement($elem) {
+    let deleted = false;
+    let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();
+    droppedFiles.forEach(file => {
+        if (file.name === fileName && !deleted) {
+            deleted = true;
+            droppedFiles.splice(droppedFiles.indexOf(file), 1);
+        }
+    });
 }
 
 function checkFilesFormat(files, div) {
@@ -86,9 +94,11 @@ function openFE(span) {
 
 function uploadFE(span) {
     let files = span[0].files;
+    droppedFiles = [...droppedFiles, ...files];
     let dropFrame = span.closest('.dropFrame');
 
     displayAttachements(files, dropFrame);
+    span[0].value = "";
 }
 
 function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
@@ -123,12 +133,13 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         name = $(this).attr("name");
         Data.append(name, val);
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {
@@ -151,20 +162,12 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append([$(this).attr("name")], $(this).attr('value'));
     });
     modal.find(".elem").remove();
-
-    // ... puis on récupère les fichiers (issus du clic)...
-    let files = modal.find('.fileInput')[0].files;
-    // ... (issus du drag & drop)
-    files = [...files, ...droppedFiles];
-
-    $.each(files, function(index, file) {
+    $.each(droppedFiles, function(index, file) {
         Data.append('file' + index, file);
     });
-
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
-
         $.ajax({
             url: path,
             data: Data,
@@ -202,8 +205,10 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     $('.zone-entete').html(data.entete)
                 }
 
-                if (clear) clearModal(modal);
-
+                if (clear) {
+                    clearModal(modal);
+                }
+                droppedFiles = [];
                 if (callback !== null) callback(data);
             }
         });

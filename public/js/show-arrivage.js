@@ -37,12 +37,7 @@ function printBarcode(code) {
 }
 
 function printLabels(data) {
-    if (data.exists) {
-        console.log(data);
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
+    printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
 }
 
 function printBarcode(code) {
@@ -93,10 +88,31 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
+        "columnDefs": [
+            {
+                "type": "customDate",
+                "targets": 1
+            },
+        ],
         dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
 
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+});
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
@@ -210,10 +226,14 @@ function getDataAndPrintLabels(codes) {
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
         if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
+            if (response.codeColis.length === 0) {
+                alertErrorMsg("Il n'y a aucun colis à imprimer.");
+            } else {
+                for (const code of response.codeColis) {
+                    codeColis.push(code.code)
+                }
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
             }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }

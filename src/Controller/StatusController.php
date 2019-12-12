@@ -87,9 +87,10 @@ class StatusController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			$listStatusLitigeArr = $this->statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
+            $listStatusLitigeArr = $this->statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
+            $listStatusLitigeRecep = $this->statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
             $rows = [];
-            foreach ($listStatusLitigeArr as $status) {
+            foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep) as $status) {
                 $url['edit'] = $this->generateUrl('status_api_edit', ['id' => $status->getId()]);
 
                 $rows[] =

@@ -21,7 +21,10 @@ class AcheminementsRepository extends ServiceEntityRepository
     private const DtToDbLabels = [
         'Date demande' => 'date',
         'Demandeur' => 'requester',
-        'Colis' => 'colis',
+        'Destinataire' => 'receiver',
+        'Emplacement prise' => 'locationTake',
+        'Emplacement de dépose' => 'locationDrop',
+        'Nb Colis' => 'colis',
         'Statut' => 'statut',
     ];
 
@@ -76,11 +79,11 @@ class AcheminementsRepository extends ServiceEntityRepository
                     break;
                 case 'dateMin':
                     $qb->andWhere('a.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value']);
+                        ->setParameter('dateMin', $filter['value'] . '00.00.00');
                     break;
                 case 'dateMax':
                     $qb->andWhere('a.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value']);
+                        ->setParameter('dateMax', $filter['value'] . '23:59:59');
                     break;
             }
         }
@@ -106,6 +109,10 @@ class AcheminementsRepository extends ServiceEntityRepository
                 } else if ($column === 'requester') {
                     $qb
                         ->leftJoin('a.requester', 'u2')
+                        ->orderBy('u2.username', $order);
+                } else if ($column === 'receiver') {
+                    $qb
+                        ->leftJoin('a.receiver', 'u2')
                         ->orderBy('u2.username', $order);
                 } else {
                     $qb

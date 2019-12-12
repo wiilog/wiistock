@@ -402,4 +402,33 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 
 		return $prepare->fetchAll();
 	}
+
+    /**
+     * @param ReferenceArticle $ref
+     * @return array
+     * @throws DBALException
+     */
+    public function getLabelCLAndValueByArticle(Article $article)
+    {
+        $em = $this->getEntityManager()->getConnection();
+        $sql =
+            /** @lang SQL */
+            "SELECT cl.label, temp.valeur
+		FROM champ_libre cl
+			LEFT JOIN (
+				SELECT vcl.champ_libre_id clid ,vcl.valeur as valeur
+				FROM valeur_champ_libre vcl
+					INNER JOIN valeur_champ_libre_article vclra ON vclra.valeur_champ_libre_id = vcl.id
+					WHERE vclra.article_id = :artId
+			) temp ON temp.clid = cl.id
+			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id 
+			WHERE ccl.label = :categoryCL
+		";
+        $prepare = $em->prepare($sql);
+        $prepare->bindValue('artId', $article->getId());
+        $prepare->bindValue('categoryCL', CategorieCL::ARTICLE);
+        $prepare->execute();
+
+        return $prepare->fetchAll();
+    }
 }

@@ -1,14 +1,41 @@
 $('.select2').select2();
 
-$('#utilisateur').select2({
-    placeholder: {
-        text: 'Utilisateur',
-    }
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_RCPT_TRACA);
+    $.post(path, params, function (data) {
+        console.log(data);
+        data.forEach(function (element) {
+            if (element.field == 'utilisateurs') {
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else {
+                $('#' + element.field).val(element.value);
+            }
+        });
+        if (data.length > 0) $submitSearchMvt.click();
+    }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
 });
 
 let $submitSearchMvt = $('#submitSearchRecep');
 let pathRecep = Routing.generate('reception_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
+    serverSide: true,
+    "processing": true,
+    "order": [[1, "desc"]],
+    'drawCallback': function() {
+        overrideSearch($('#tableRecepts_filter input'), tableRecep);
+    },
     buttons: [
         {
             extend: 'csv',
@@ -20,8 +47,6 @@ let tableRecep = $('#tableRecepts').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "processing": true,
-    "order": [[0, "desc"]],
     ajax: {
         "url": pathRecep,
         "type": "POST"
@@ -29,15 +54,19 @@ let tableRecep = $('#tableRecepts').DataTable({
     "columnDefs": [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
+        },
+        {
+            orderable: false,
+            targets: 0
         }
     ],
     columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "Arrivage", 'name': 'Arrivage', 'title': "Arrivage"},
         {"data": 'Réception', 'name': 'Réception', 'title': 'Réception'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
 });
 
@@ -91,29 +120,16 @@ let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
 InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
 
 $submitSearchMvt.on('click', function () {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let arrivage = $('#arrivage').val();
-    let reception = $('#reception').val();
-    let demandeur = $('#utilisateur').val();
-    let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|');
+    let filters = {
+        page: PAGE_RCPT_TRACA,
+        dateMin: $('#dateMin').val(),
+        dateMax:  $('#dateMax').val(),
+        arrivage_string:  $('#arrivage_string').val(),
+        reception_string: $('#reception_string').val(),
+        users: $('#utilisateur').select2('data'),
+    };
 
-    tableRecep
-        .columns('Arrivage:name')
-        .search(arrivage ? '^' + arrivage + '$' : '', true, false)
-        .draw();
-
-    tableRecep
-        .columns('Utilisateur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    tableRecep
-        .columns('Réception:name')
-        .search(reception ? '^' + reception + '$' : '', true, false)
-        .draw();
-
-    tableRecep.draw();
+    saveFilters(filters, tableRecep);
 });
 
 let customExport = function() {

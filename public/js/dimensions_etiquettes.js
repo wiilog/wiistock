@@ -2,7 +2,7 @@ let ajaxDims = function () {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            $('#buttonModalDimSet').click();
+            alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.', true);
         }
     }
     let data = $('#dimsForm').find('.data');

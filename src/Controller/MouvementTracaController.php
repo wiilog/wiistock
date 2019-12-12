@@ -3,21 +3,22 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
-
 use App\Entity\PieceJointe;
+
 use App\Repository\ColisRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+
 use App\Service\AttachmentService;
+use App\Service\MouvementTracaService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -73,7 +74,14 @@ class MouvementTracaController extends AbstractController
     private $typeRepository;
 
 	/**
+	 * @var MouvementTracaService
+	 */
+    private $mouvementTracaService;
+
+	/**
 	 * ArrivageController constructor.
+	 * @param MouvementTracaService $mouvementTracaService
+	 * @param AttachmentService $attachmentService
 	 * @param TypeRepository $typeRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 * @param UtilisateurRepository $utilisateurRepository
@@ -82,7 +90,7 @@ class MouvementTracaController extends AbstractController
 	 * @param MouvementTracaRepository $mouvementTracaRepository
 	 */
 
-    public function __construct(ColisRepository $colisRepository, AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->colisRepository = $colisRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -92,6 +100,7 @@ class MouvementTracaController extends AbstractController
         $this->mouvementRepository = $mouvementTracaRepository;
         $this->typeRepository = $typeRepository;
         $this->attachmentService = $attachmentService;
+        $this->mouvementTracaService = $mouvementTracaService;
     }
 
     /**
@@ -105,7 +114,6 @@ class MouvementTracaController extends AbstractController
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
             'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
@@ -160,24 +168,7 @@ class MouvementTracaController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $mvts = $this->mouvementRepository->findAll();
-
-            $rows = [];
-            foreach ($mvts as $mvt) {
-                $rows[] = [
-                    'id' => $mvt->getId(),
-                    'date' => $mvt->getDatetime() ? $mvt->getDatetime()->format('d/m/Y H:i') : '',
-                    'colis' => $mvt->getColis(),
-                    'location' => $mvt->getEmplacement() ? $mvt->getEmplacement()->getLabel() : '',
-                    'type' => $mvt->getType() ? $mvt->getType()->getNom() : '',
-                    'operateur' => $mvt->getOperateur() ? $mvt->getOperateur()->getUsername() : '',
-                    'Actions' => $this->renderView('mouvement_traca/datatableMvtTracaRow.html.twig', [
-                        'mvt' => $mvt,
-                    ])
-                ];
-            }
-
-            $data['data'] = $rows;
+            $data = $this->mouvementTracaService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

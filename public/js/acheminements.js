@@ -2,15 +2,11 @@ let pathacheminements = Routing.generate('acheminements_api', true);
 let tableAcheminements = $('#tableAcheminement').DataTable({
     serverSide: true,
     processing: true,
-    order: [[0, 'desc']],
+    order: [[1, "desc"]],
     columnDefs: [
         {
-            "type": "customDate",
-            "targets": 0
-        },
-        {
             "orderable" : false,
-            "targets" : 5
+            "targets" : [0]
         }
     ],
     language: {
@@ -21,13 +17,13 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
         "type": "POST",
     },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
         { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': 'Emplacement prise' },
         { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': 'Emplacement de dépose' },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 
@@ -45,6 +41,49 @@ let modalDeleteAcheminements = $('#modalDeleteAcheminements');
 let submitDeleteAcheminements = $('#submitDeleteAcheminements');
 let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
 InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
+
+function printAcheminement(id) {
+    let params = {
+        id: id
+    };
+    let json = JSON.stringify(params);
+    $.post(Routing.generate('get_info_to_print', true), json, function(data) {
+        printColis(data);
+    });
+}
+
+let $submitSearchAcheminements = $('#submitSearchAcheminements');
+$submitSearchAcheminements.on('click', function () {
+    let filters = {
+      page: PAGE_ACHEMINEMENTS,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        statut: $('#statut').val(),
+    };
+
+    saveFilters(filters, tableAcheminements);
+});
+
+$(function() {
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchAcheminements.click();
+    }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ACHEMINEMENTS);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchAcheminements.click();
+    }, 'json');
+});
 
 function printColis(data) {
     let a4 = [3508, 2480];
@@ -91,7 +130,7 @@ function printColis(data) {
 
         });
     } else {
-        $('#cannotGenerate').click();
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
     }
 }
 

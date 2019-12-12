@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+let tableRefArticle;
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
@@ -233,8 +233,6 @@ function initTableRefArticle() {
             .DataTable({
                 processing: true,
                 serverSide: true,
-                sortable: false,
-                ordering: false,
                 paging: true,
                 scrollX: true,
                 order: [[1, 'asc']],
@@ -249,28 +247,25 @@ function initTableRefArticle() {
                     loadSpinnerAR($('#spinner'));
                     initRemove();
                     hideAndShowColumns();
-                    overrideSearch();
+                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle);
                 },
                 length: 10,
                 columns: columns,
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },
+                "drawCallback": function(settings) {
+                    resizeTable();
+                },
             });
     });
 }
 
-function overrideSearch() {
-    let $input = $('#tableRefArticle_id_filter input');
 
-    $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter') {
-            tableRefArticle.search(this.value).draw();
-        }
-    });
-
-    $input.attr('placeholder', 'entrée pour valider');
+function resizeTable() {
+    tableRefArticle
+        .columns.adjust()
+        .responsive.recalc();
 }
 
 //COLUMN VISIBLE
@@ -344,6 +339,9 @@ function displayNewFilter(data) {
 function initRemove() {
     // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
     $('.filter').on('click', removeFilter);
+    tableRefArticle.on('responsive-resize', function (e, datatable) {
+        resizeTable();
+    });
 }
 
 function removeFilter() {
@@ -606,27 +604,6 @@ function redirectToDemande() {
     }
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
-}
-
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function() {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function() {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop( "checked", true );
-                }
-            }
-        });
-    }
 }
 
 function saveRapidSearch() {

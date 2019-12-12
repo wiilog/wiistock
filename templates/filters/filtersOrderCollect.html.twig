@@ -1,0 +1,12 @@
+{% extends 'filters/filtersWithoutLocation.html.twig' %}
+
+{% block moreFilters %}
+    <div class="input-group maxw-250px">
+        <select class="ajax-autocomplete-dem-collecte data form-control" id="demandCollect" name="demandCollect" {{ disabled }}>
+        </select>
+    </div>
+{% endblock %}
+{% block emplacementFilter %}
+{% endblock %}
+{% block providerFilter %}
+{% endblock %}

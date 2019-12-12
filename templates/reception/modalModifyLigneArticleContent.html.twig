@@ -7,29 +7,14 @@
                 Référence*
             {% endif %}
         </label>
-        <select class="ajax-autocomplete-edit data form-control needed" onchange="getArticleFournisseur()" id="reference"
+        <select class="ajax-autocomplete-edit data form-control needed" id="reference"
             name="referenceArticle">
             <option value="{{ligneArticle.referenceArticle.id}}">{{ligneArticle.referenceArticle.reference}}</option>
         </select>
     </div>
-{#    <div class="form-group w-100 col-6">#}
-{#        <label for="fournisseur">Fournisseur*</label>#}
-{#        <select class="form-control data ajax-autocomplete-fournisseur-edit needed" onchange="getArticleFournisseur()"#}
-{#            name="fournisseur" id="fournisseurAddArticle">#}
-{#            <option value="{{ligneArticle.fournisseur.id}}">{{ligneArticle.fournisseur.nom}}</option>#}
-{#        </select>#}
-{#    </div>#}
-    <div class="form-group {{ligneArticle.articleFournisseur != "" ? "d-block" :"d-none"}} w-100 col-6">
-        <label for="fournisseur">Référence fournisseur</label>
-        <select class="form-control data" name="articleFournisseur" id="articleFournisseur">
-            {% if ligneArticle.articleFournisseur != "" %}
-            <option value="{{ligneArticle.articleFournisseur.id}}">{{ligneArticle.articleFournisseur.label}}</option>
-            {% endif %}
-        </select>
-    </div>
     <div class="form-group col-6">
-        <label for="libelle">Libellé</label>
-        <input class="form-control data" type="text" name="libelle" id="libelle" value="{{ligneArticle.label}}">
+        <label for="libelle">Numéro de commande d'achat</label>
+        <input class="form-control data" type="text" name="commande" id="commande" value="{{ligneArticle.commande}}">
     </div>
     <div class="form-group col-6">
         <label for="">Quantité à recevoir*</label>

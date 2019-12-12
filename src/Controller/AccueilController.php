@@ -9,7 +9,7 @@ use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\DashboardService;
-use http\Env\Request;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

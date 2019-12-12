@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -15,6 +16,14 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class PreparationRepository extends ServiceEntityRepository
 {
+	const DtToDbLabels = [
+		'Numéro' => 'numero',
+		'Statut' => 'status',
+		'Date' => 'date',
+		'Opérateur' => 'user',
+		'Type' => 'type'
+	];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Preparation::class);
@@ -91,4 +100,122 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param array|null $params
+	 * @param array|null $filters
+	 * @return array
+	 * @throws Exception
+	 */
+	public function findByParamsAndFilters($params, $filters)
+	{
+		$em = $this->getEntityManager();
+		$qb = $em->createQueryBuilder();
+
+		$qb
+			->select('p')
+			->from('App\Entity\Preparation', 'p');
+
+		$countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch($filter['field']) {
+				case 'type':
+					$qb
+						->leftJoin('p.demandes', 'd')
+						->leftJoin('d.type', 't')
+						->andWhere('t.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
+				case 'statut':
+					$qb
+						->join('p.statut', 's')
+						->andWhere('s.nom = :status')
+						->setParameter('status', $filter['value']);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('p.utilisateur', 'u')
+						->andWhere("u.id in (:userId)")
+						->setParameter('userId', $value);
+					break;
+				case 'dateMin':
+					$qb
+						->andWhere('p.date >= :dateMin')
+						->setParameter('dateMin', $filter['value']. " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb
+						->andWhere('p.date <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+			}
+		}
+
+		//Filter search
+		if (!empty($params)) {
+			if (!empty($params->get('search'))) {
+				$search = $params->get('search')['value'];
+				if (!empty($search)) {
+					dump($search);
+					$qb
+						->leftJoin('p.demandes', 'd2')
+						->leftJoin('d2.type', 't2')
+						->leftJoin('p.utilisateur', 'p2')
+						->leftJoin('p.statut', 's2')
+						->andWhere('
+						p.numero LIKE :value OR
+						t2.label LIKE :value OR
+						p2.username LIKE :value OR
+						s2.nom LIKE :value						
+						')
+						->setParameter('value', '%' . $search . '%');
+				}
+			}
+
+			if (!empty($params->get('order')))
+			{
+				$order = $params->get('order')[0]['dir'];
+				if (!empty($order))
+				{
+					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+
+					if ($column === 'status') {
+						$qb
+							->leftJoin('p.statut', 's3')
+							->orderBy('s3.nom', $order);
+					} else if ($column === 'type') {
+						$qb
+							->leftJoin('p.demandes', 'd3')
+							->leftJoin('d3.type', 't3')
+							->orderBy('t3.label', $order);
+					} else if ($column === 'user') {
+						$qb
+							->leftJoin('p.utilisateur', 'u3')
+							->orderBy('u3.username', $order);
+					} else {
+						$qb
+							->orderBy('p.' . $column, $order);
+					}
+				}
+			}
+		}
+
+		// compte éléments filtrés
+		$countFiltered = count($qb->getQuery()->getResult());
+
+		if ($params) {
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+
+		$query = $qb->getQuery();
+
+		return [
+			'data' => $query ? $query->getResult() : null ,
+			'count' => $countFiltered,
+			'total' => $countTotal
+		];
+	}
 }

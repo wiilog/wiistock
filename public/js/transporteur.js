@@ -1,6 +1,7 @@
 let pathTransporteur = Routing.generate('transporteur_api', true);
 let tableTransporteur = $('#tableTransporteur_id').DataTable({
 
+    order: [[1, 'desc']],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -9,10 +10,16 @@ let tableTransporteur = $('#tableTransporteur_id').DataTable({
         "type": "POST"
     },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": 'Label', 'name': 'Label', 'title': 'Nom' },
         { "data": 'Code', 'name': 'Code', 'title': 'Code' },
         { "data": 'Nombre_chauffeurs', 'name': 'Nombre_chauffeurs', 'title': 'Nombre de chauffeurs' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+    ],
+    columnDefs: [
+        {
+            "orderable" : false,
+            "targets" : 0
+        },
     ],
 });
 
