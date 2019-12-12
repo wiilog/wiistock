@@ -11,7 +11,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <div>
                 <div class="btn btn-col-action"
-                     onclick="deleteRow($(this), $('#modalDeleteLigneArticle'), $('#submitDeleteLigneArticle'))"
+                     onclick="checkAndDeleteRow($(this), '#modalDeleteLigneArticle', 'ligne_recep_check_delete', '#submitDeleteLigneArticle')"
                      data-id='{{ligneId}}' data-target='#modalDeleteLigneArticle' data-toggle='modal'>
                     <i class='fas fa-trash'></i>
                 </div>

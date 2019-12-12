@@ -5,12 +5,12 @@
             <div class="modal-header">
                 <h5 class="modal-title">Ajouter une ligne</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true" onclick="clearAddRefModal()">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="form-group col-12  w-100 mb-3">
+                    <div class="form-group col-11  w-100 mb-3">
                         <label for="reference">
                             {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
                                 Référence CEA*
@@ -18,41 +18,44 @@
                                 Référence*
                             {% endif %}
                         </label>
-                        <select class="ajax-autocomplete data form-control needed" onchange="checkIfQuantityArticle($(this))"
+                        <select class="ajax-autocomplete data form-control needed" onchange="articleChanged($(this))"
                                 id="reference" name="referenceArticle">
                         </select>
                     </div>
-                    <div id='articleFournisseurAddArticle' class="form-group d-none w-100 col-6">
-                        <label for="fournisseur">Référence fournisseur</label>
-                        <select class="form-control data" name="articleFournisseur" id="articleFournisseur">
-                        </select>
+                    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" onclick="addArticle()"><i class="fa fa-plus"></i></span>
                     </div>
+                    {% endif %}
+                    <div id='innerNewRef' class="form-group w-100 col-12">
 
-                    <div class="form-group col-12">
-                        <label for="label">Libellé</label>
-                        <input class="form-control data" type="text" name="libelle" id="label">
                     </div>
-                    <div class="form-group col-6">
-                        <label for="">Quantité à recevoir*</label>
-                        <input type="number" class="form-control data needed" name="quantiteAR" id="stock" min=0>
+                    <div class="body-add-ref row p-3">
+                        <div class="form-group col-6">
+                            <label for="label">Numéro de commande d'achat</label>
+                            <input class="form-control data needed" type="text" name="commande" id="commande">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="">Quantité à recevoir*</label>
+                            <input type="number" class="form-control data needed" name="quantiteAR" id="stock" min=0>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="">Quantité reçue</label>
+                            <input type="number" class="form-control data" name="quantite" id="quantite" min=0 disabled value="0">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Anomalie</label>
+                            <label class="switch">
+                                <input class="checkbox" type="checkbox" name="anomalie">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="form-group col-12">
+                            <label>Commentaire</label>
+                            <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
+                            <div class="editor-container"></div>
+                        </div>
                     </div>
-                    <div class="form-group col-6">
-                        <label for="">Quantité reçue</label>
-                        <input type="number" class="form-control data" name="quantite" id="quantite" min=0>
-                    </div>
-                    <div class="form-group col-6">
-                        <label>Anomalie</label>
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" name="anomalie">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                </div>
-                <div class="form-group col-12">
-                    <label>Commentaire</label>
-                    <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container"></div>
                 </div>
             </div>
 

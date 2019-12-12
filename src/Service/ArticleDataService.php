@@ -18,6 +18,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 
@@ -35,6 +36,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -517,9 +519,9 @@ class ArticleDataService
         return true;
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $user)
     {
-        $data = $this->getArticleDataByParams($params);
+        $data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
 
@@ -528,7 +530,7 @@ class ArticleDataService
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams();
+            $data = $this->getArticleDataByParams(null, $user);
         }
         return $data;
     }
@@ -558,14 +560,16 @@ class ArticleDataService
         return ['data' => $rows];
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    public function getArticleDataByParams($params = null)
+	/**
+	 * @param null $params
+	 * @param Utilisateur $user
+	 * @return array
+	 * @throws DBALException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
+    public function getArticleDataByParams($params = null, $user)
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $statutLabel = null;
@@ -573,19 +577,18 @@ class ArticleDataService
             $statutLabel = Article::STATUT_ACTIF;
         }
 
-        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
+        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
-
         $articlesString = [];
         foreach ($listId as $id) {
-            $articlesString[] = $id->getId();
+            $articlesString[] = is_array($id) ? $id[0]->getId() : $id->getId();
         }
 
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowRefArticle($article);
+            $rows[] = $this->dataRowRefArticle(is_array($article) ? $article[0] : $article);
         }
         return [
             'data' => $rows,
@@ -601,9 +604,15 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws DBALException
      */
     public function dataRowRefArticle($article)
     {
+        $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByArticle($article);
+        $rowCL = [];
+        foreach ($rows as $row) {
+            $rowCL[$row['label']] = $row['valeur'];
+        }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $criteriaFactory = Criteria::create();
@@ -627,6 +636,10 @@ class ArticleDataService
                 'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
                 'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                 'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Type' => $article->getType()->getLabel(),
+                'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+                'Commentaire' => $article->getCommentaire(),
+                'Prix unitaire' => $article->getPrixUnitaire(),
                 'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                     'url' => $url,
                     'articleId' => $article->getId(),
@@ -641,14 +654,18 @@ class ArticleDataService
                     'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                     'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                    'Type' => $article->getType()->getLabel(),
+                    'Emplacement' => $article->getEmplacement()->getLabel(),
+                    'Commentaire' => $article->getCommentaire(),
+                    'Prix unitaire' => $article->getPrixUnitaire(),
                     'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                         'url' => $url,
                         'articleId' => $article->getId(),
                     ]),
                 ];
         }
-
-        return $row;
+        $rows = array_merge($rowCL, $row);
+        return $rows;
     }
 
 	/**

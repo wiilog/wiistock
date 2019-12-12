@@ -81,6 +81,15 @@
     {% block urgence %}
     {% endblock %}
 
+    {% block providerFilter %}
+        <div class="minw-150px">
+            <div class="input-group w-100">
+                <select id="providers" name="providers" class="form-control data ajax-autocomplete-fournisseur min-150px" multiple="multiple" {{ disabled }}>
+                </select>
+            </div>
+        </div>
+    {% endblock %}
+
     <div>
         <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
             <i class="fas fa-filter mr-2"></i>

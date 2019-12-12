@@ -51,7 +51,7 @@ InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmpla
 let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, displayErrorEditEmplacement, false);
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
@@ -70,10 +70,16 @@ function checkAndDeleteRowEmplacement(icon) {
     });
 }
 
-function displayErrorEmplacement(data) {
+function displayErrorEmplacement(success) {
     let modal = $("#modalNewEmplacement");
     let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
-    displayError(modal, msg, data);
+    displayError(modal, msg, success);
+}
+
+function displayErrorEditEmplacement(success) {
+    let modal = $("#modalEditEmplacement");
+    let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
+    displayError(modal, msg, success);
 }
 
 function overrideSearchEmplacement() {
@@ -116,16 +122,11 @@ function getDataAndPrintLabels() {
 function printSingleArticleBarcode(button) {
     const params = {'emplacement': button.data('id')};
     $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            printBarcodes(
-                [response.emplacementLabel],
-                response,
-                'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
-            );
-        }
-        else {
-            $('#cannotGenerate').click();
-        }
+        printBarcodes(
+            [response.emplacementLabel],
+            response,
+            'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
+        );
     });
 }
 

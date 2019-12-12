@@ -215,6 +215,7 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+
 			if (!empty($data['providers'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_PROVIDERS, $page, $user);
 				if (!$filter) {
@@ -228,8 +229,9 @@ class FiltreSupController extends AbstractController
 
 				$values = [];
 				foreach ($data['providers'] as $provider) {
-					$values[] = $provider['id'];
+					$values[] = $provider['id'] . ':' . $provider['text'];
 				}
+
 				$providers = implode(',', $values);
 
 				$filter->setValue($providers);

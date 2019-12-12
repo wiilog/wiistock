@@ -17,6 +17,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Utilisateur implements UserInterface, EquatableInterface
 {
+	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
+	const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+	const SEARCH_DEFAULT = ["Libellé", "Référence"];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -181,6 +185,21 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $receptionsTraca;
 
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $rechercheForArticle;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $columnsVisibleForArticle;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
+     */
+    private $litiges;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -203,6 +222,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->acheminementsReceive = new ArrayCollection();
         $this->acheminementsRequester = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId()
@@ -1004,6 +1024,58 @@ class Utilisateur implements UserInterface, EquatableInterface
             if ($receptionsTraca->getUser() === $this) {
                 $receptionsTraca->setUser(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getRechercheForArticle()
+    {
+        return $this->rechercheForArticle;
+    }
+
+    public function setRechercheForArticle($rechercheForArticle): self
+    {
+        $this->rechercheForArticle = $rechercheForArticle;
+
+        return $this;
+    }
+
+    public function getColumnsVisibleForArticle()
+    {
+        return $this->columnsVisibleForArticle;
+    }
+
+    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
+    {
+        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->addBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            $litige->removeBuyer($this);
         }
 
         return $this;

@@ -23,6 +23,7 @@ class Action
     const INVENTORY_MANAGER = "gestionnaire d'inventaire";
     const REFERENCE = 'fiabilité par réference';
     const MONETAIRE = 'fiabilité par monétaire';
+    const CREATE_REF_FROM_RECEP = 'création réf depuis réception';
 
     /**
      * @ORM\Id()
