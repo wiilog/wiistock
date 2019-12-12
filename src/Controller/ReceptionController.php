@@ -164,7 +164,7 @@ class ReceptionController extends AbstractController
      */
     private $inventoryCategoryRepository;
 
-    public function __construct(InventoryCategoryRepository $inventoryCategoryRepository, ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(InventoryCategoryRepository $inventoryCategoryRepository, ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, FieldsParamRepository $fieldsParamRepository)
     {
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
@@ -481,6 +481,7 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
 			'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'fieldsParam' => $fields,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
     }
