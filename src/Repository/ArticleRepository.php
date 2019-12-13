@@ -376,9 +376,7 @@ class ArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
-        $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a');
+        $qb->from('App\Entity\Article', 'a');
 
         if ($statutLabel) {
             $qb

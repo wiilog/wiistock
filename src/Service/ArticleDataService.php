@@ -595,8 +595,8 @@ class ArticleDataService
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
-            'listId' => $articlesString,
+            'recordsTotal' => $this->articleRepository->countAll(),
+            'listId' => $listId,
         ];
     }
 
