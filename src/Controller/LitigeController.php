@@ -192,7 +192,7 @@ class LitigeController extends AbstractController
 					$strColis = implode(', ', $arrColis);
 					$litigesData[] = $strColis;
 
-					$litigesData[] = $colis[0]->getArrivage() ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+					$litigesData[] = ($colis && $colis[0]->getArrivage()) ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
 
 					$litigesData[] = '';
 					$litigesData[] = '';
