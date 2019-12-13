@@ -18,6 +18,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 
@@ -36,6 +37,8 @@ use App\Repository\CategorieCLRepository;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -523,7 +526,7 @@ class ArticleDataService
         return $data;
     }
 
-    public function getDataForDatatableByReceptionLigne($ligne)
+    public function getDataForDatatableByReceptionLigne($ligne, $user)
     {
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
@@ -533,13 +536,14 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @param ReceptionReferenceArticle $ligne
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param ReceptionReferenceArticle $ligne
+	 * @return array
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 * @throws DBALException
+	 */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
@@ -560,12 +564,13 @@ class ArticleDataService
 
     /**
      * @param null $params
+     * @param Utilisateur $user
      * @return array
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-    public function getArticleDataByParams($params = null)
+    public function getArticleDataByParams($params = null, $user)
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $statutLabel = null;
@@ -620,13 +625,17 @@ class ArticleDataService
             $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
 
             $row = [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Code' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'id' => $article->getId() ?? 'Non défini',
+                'Référence' => $article->getReference() ?? 'Non défini',
+                'Statut' => $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini',
+                'Libellé' => $article->getLabel() ?? 'Non défini',
                 'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
                 'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                 'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Type' => $article->getType()->getLabel(),
+                'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+                'Commentaire' => $article->getCommentaire(),
+                'Prix unitaire' => $article->getPrixUnitaire(),
                 'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                     'url' => $url,
                     'articleId' => $article->getId(),
