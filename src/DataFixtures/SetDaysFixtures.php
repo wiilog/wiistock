@@ -26,12 +26,16 @@ class SetDaysFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         foreach (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $index => $dayString) {
-            $day = new DaysWorked();
-            $day
-                ->setDisplayOrder($index + 1)
-                ->setDay($dayString)
-                ->setWorked(1);
-            $manager->persist($day);
+        	$day = $this->daysWorkedRepository->findOneBy(['day' => $dayString]);
+
+        	if (!$day) {
+				$day = new DaysWorked();
+				$day
+					->setDisplayOrder($index + 1)
+					->setDay($dayString)
+					->setWorked(1);
+				$manager->persist($day);
+			}
         }
 
         $manager->flush();
@@ -40,6 +44,6 @@ class SetDaysFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['setDays'];
+        return ['fixtures'];
     }
 }

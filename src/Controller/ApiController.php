@@ -259,8 +259,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            dump($request->request->all());
-
             $user = $this->utilisateurRepository->findOneBy(['username' => $request->request->get('login')]);
 
             if ($user !== null) {
@@ -289,6 +287,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Get("/api/ping")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
      */
     public function ping(Request $request)
     {
@@ -338,9 +338,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         // création de l'emplacement s'il n'existe pas
                         if (!$location) {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($mvt['ref_emplacement']);
-                            $entityManager->persist($emplacement);
+                            $location = new Emplacement();
+                            $location->setLabel($mvt['ref_emplacement']);
+                            $entityManager->persist($location);
                             $entityManager->flush();
                         }
 
@@ -421,7 +421,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
-                            $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
+                            $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
                             if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
@@ -436,10 +436,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             [
                                                 'title' => 'Votre colis a été livré.',
                                                 'colis' => $colis->getCode(),
-                                                'emplacement' => $location->getLabel(),
+                                                'emplacement' => $location,
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $nomadUser,
+                                                'operateur' => $nomadUser->getUsername(),
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),

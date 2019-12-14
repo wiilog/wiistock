@@ -89,7 +89,9 @@ class ManutentionController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$data = $this->manutentionService->getDataForDatatable($request->request);
+			// cas d'un filtre statut depuis page d'accueil
+			$filterStatus = $request->request->get('filterStatus');
+			$data = $this->manutentionService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {
@@ -107,12 +109,6 @@ class ManutentionController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
-		switch ($filter) {
-			case 'a-traiter':
-				$filter = Manutention::STATUT_A_TRAITER;
-				break;
-		}
 
         return $this->render('manutention/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),

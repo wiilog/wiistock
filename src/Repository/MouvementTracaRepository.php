@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
@@ -282,9 +283,12 @@ class MouvementTracaRepository extends ServiceEntityRepository
             JOIN m.emplacement e
             LEFT JOIN m.mouvementStock mouvementStock
             WHERE o = :op
-              AND t.nom LIKE 'prise'
-              AND m.finished = 0") . $typeCondition
-        )->setParameter('op', $operator);
+              AND t.nom LIKE :priseType
+              AND m.finished = :finished") . $typeCondition
+        )
+            ->setParameter('op', $operator)
+            ->setParameter('priseType', MouvementTraca::TYPE_PRISE)
+            ->setParameter('finished', false);
         return $query->execute();
     }
 }

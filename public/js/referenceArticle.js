@@ -270,11 +270,11 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
-    
+
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
-    
+
     column.visible(!column.visible());
 
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
@@ -357,11 +357,11 @@ function displayFilterValue(elem) {
             'value': val
         };
         $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
-            modalBody.find('.input').html(data);
+            modalBody.find('.input-group').html(data);
         }, 'json');
     } else {
         if (type == 'booleen') type = 'checkbox';
-        modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
+        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
     }
 
 

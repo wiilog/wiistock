@@ -234,14 +234,14 @@ class OrdreCollecteService
 				}
 			}
 
-			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_COLLECTE, Collecte::STATUS_INCOMPLETE));
+			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
 
 			$em->flush();
 		}
 		else {
 		// cas de collecte totale
 			$demandeCollecte
-				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE))
+				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
 				->setValidationDate($dateNow);
 		}
 
