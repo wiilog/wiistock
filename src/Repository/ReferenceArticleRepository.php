@@ -1072,14 +1072,14 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         $query = $em
             ->createQuery(
-                "SELECT article.reference as reference,
-                             article.quantite as quantity,
+                "SELECT referenceArticle.reference as reference,
+                             referenceArticle.quantiteDisponible as quantity,
                              1 as is_ref
                 FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
+                JOIN referenceArticle.emplacement emplacement
+                JOIN referenceArticle.statut status
                 WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
+                  AND referenceArticle.barCode = :barCode
                   AND status.nom = :status
                   AND referenceArticle.typeQuantite = :typeQuantite"
             )
