@@ -621,7 +621,7 @@ class ArticleDataService
 
             $row = [
                 'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Code' => ($article->getReference() ? $article->getReference() : 'Non défini'),
                 'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
                 'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                 'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
