@@ -194,6 +194,13 @@ class ArrivageRepository extends ServiceEntityRepository
 						->andWhere("dest.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
+				case 'providers':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.fournisseur', 'f2')
+						->andWhere("f2.id in (:fournisseurId)")
+						->setParameter('fournisseurId', $value);
+					break;
 				case 'dateMin':
 					$qb->andWhere('a.date >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
@@ -206,6 +213,8 @@ class ArrivageRepository extends ServiceEntityRepository
 					$qb
 						->andWhere('a.isUrgent = :isUrgent')
 						->setParameter('isUrgent', $filter['value']);
+					break;
+
 			}
 		}
 

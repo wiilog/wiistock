@@ -530,7 +530,7 @@ let ajaxAutoArticlesInit = function (select) {
     });
 }
 
-function ajaxAutoFournisseurInit(select) {
+function ajaxAutoFournisseurInit(select,placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
@@ -549,6 +549,9 @@ function ajaxAutoFournisseurInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
     });
 }
 

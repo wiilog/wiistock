@@ -375,7 +375,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
-
+        $qb->select('a');
         $qb->from('App\Entity\Article', 'a');
 
         if ($statutLabel) {
@@ -384,7 +384,6 @@ class ArticleRepository extends ServiceEntityRepository
                 ->where('s.nom = :statutLabel')
                 ->setParameter('statutLabel', $statutLabel);
         }
-
 		$countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allArticleDataTable = null;

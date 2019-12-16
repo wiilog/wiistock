@@ -160,7 +160,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $index = 0;
-
+        $needCLOrder = null;
         $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
