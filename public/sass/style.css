@@ -468,6 +468,10 @@ a:hover {
   height: 70%;
 }
 
+.filterContainer .select2-selection {
+  overflow: auto;
+}
+
 .sidemenu-bg {
   position: fixed;
   top: 0;

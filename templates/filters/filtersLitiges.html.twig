@@ -3,16 +3,7 @@
 {% block moreFilters %}
 
     <div>
-        <div class="input-group">
-            <select class="form-control data minw-150px" name="providers" id="providers" multiple="multiple" >
-                {% for provider in providers %}
-                    <option value="{{ provider.id }}">{{ provider.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <div>
-        <div class="input-group">
+        <div class="input-group filterContainer">
             <select class="form-control data minw-150px" name="carriers" id="carriers" multiple="multiple" >
                 {% for carrier in carriers %}
                     <option value="{{ carrier.id }}">{{ carrier.label }}</option>
@@ -25,3 +16,4 @@
 
 {% block emplacementFilter %}
 {% endblock %}
+
