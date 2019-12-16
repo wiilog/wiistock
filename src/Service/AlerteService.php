@@ -4,12 +4,7 @@ namespace App\Service;
 
 use App\Entity\AlerteExpiry;
 
-use App\Entity\AlerteStock;
-use App\Entity\Article;
-use App\Entity\CategorieStatut;
-use App\Entity\ReferenceArticle;
 use App\Repository\AlerteExpiryRepository;
-
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -77,47 +72,6 @@ class AlerteService
 			$countRef = $this->referenceArticleRepository->countWithExpiryDateUpTo($nbPeriod, $typePeriod);
 
 			return $countRef > 0;
-		}
-	}
-
-	/**
-	 * @param AlerteStock $alerte
-	 * @param bool $onlySecurityAlert
-	 * @return bool
-	 * @throws NonUniqueResultException
-	 */
-	public function isAlerteStockActive($alerte, $onlySecurityAlert)
-	{
-		$refArticle = $alerte->getRefArticle();
-		$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-
-		if ($refArticle) {
-			// gestion par article
-			if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-				$articlesFournisseurs = $refArticle->getArticlesFournisseur();
-
-				$stockRef = 0;
-				foreach ($articlesFournisseurs as $articleFournisseur) {
-					$quantityByAF = 0;
-					foreach ($articleFournisseur->getArticles() as $article) {
-						if ($article->getStatut() == $statut) $quantityByAF += $article->getQuantite();
-					}
-					$stockRef += $quantityByAF;
-				}
-
-			// gestion par référence
-			} else {
-				$stockRef = $refArticle->getQuantiteStock();
-			}
-
-			if ($onlySecurityAlert) {
-				return $stockRef <= $alerte->getLimitSecurity();
-			} else {
-				return $stockRef <= $alerte->getLimitSecurity() || $stockRef <= $alerte->getLimitWarning();
-			}
-
-		} else {
-			return false;
 		}
 	}
 
