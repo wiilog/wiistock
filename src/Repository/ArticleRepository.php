@@ -196,7 +196,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a
+            "SELECT a.id as id, a.barCode as text
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
