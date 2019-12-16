@@ -762,47 +762,6 @@ a:hover {
   color: white !important;
 }
 
-.filter {
-  border-radius: 10px;
-  width: 100%;
-  background-color: white;
-  color: #424242;
-  border-color: #424242;
-}
-.filter:hover {
-  color: #cc0000;
-  border-color: #cc0000;
-}
-.filter span {
-  overflow-wrap: break-word;
-}
-
-.filters {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-left: 6px;
-}
-.filters > div {
-  margin: auto 12px;
-}
-.filters > div .select2-selection {
-  padding-top: 2px;
-  padding-bottom: 4px;
-  margin-bottom: 2px;
-  margin-top: 2px;
-  height: 38px;
-}
-.filters > div .select2-selection__placeholder {
-  vertical-align: middle;
-}
-.filters .minw-150px .select2-container {
-  min-width: 150px !important;
-}
-.filters .select2-overflow .select2-selection {
-  overflow: auto;
-}
-
 .filterService {
   background-color: #8e8e8e;
 }
@@ -988,5 +947,48 @@ button:focus {
 .btn-check.active i {
   color: white;
 }
+
+.filter {
+  border-radius: 10px !important;
+  width: 100%;
+  background-color: white !important;
+  color: #424242 !important;
+  border-color: #424242 !important;
+}
+.filter:hover {
+  color: #cc0000 !important;
+  border-color: #cc0000 !important;
+}
+.filter span {
+  overflow-wrap: break-word;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 6px;
+}
+.filters > div {
+  margin: auto 12px;
+}
+.filters > div .select2-selection {
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  height: 38px;
+}
+.filters > div .select2-selection__placeholder {
+  vertical-align: middle;
+}
+.filters .minw-150px .select2-container {
+  min-width: 150px !important;
+}
+.filters .select2-overflow .select2-selection {
+  overflow: auto;
+}
+
+/* filters à garder après buttons */
 
 /*# sourceMappingURL=style.css.map */
