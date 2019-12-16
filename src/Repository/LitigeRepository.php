@@ -62,6 +62,33 @@ class LitigeRepository extends ServiceEntityRepository
         }, $query->execute());
     }
 
+	public function getAllWithArrivageData()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT DISTINCT(l.id) as id,
+                         l.creationDate,
+                         l.updateDate,
+                         tr.label as carrier,
+                         f.nom as provider,
+                         a.numeroArrivage,
+                         t.label as type,
+                         a.id as arrivageId,
+                         s.nom status
+			FROM App\Entity\Litige l
+			LEFT JOIN l.colis c
+			JOIN l.type t
+			LEFT JOIN c.arrivage a
+			LEFT JOIN a.fournisseur f
+			LEFT JOIN a.chauffeur ch
+			LEFT JOIN a.transporteur tr
+			LEFT JOIN l.status s
+			");
+
+		return $query->execute();
+	}
+
 	/**
 	 * @param int $litigeId
 	 * @return LitigeHistoric
@@ -114,6 +141,21 @@ class LitigeRepository extends ServiceEntityRepository
             INNER JOIN c.arrivage a
             WHERE a.id = :arrivage'
         )->setParameter('arrivage', $arrivage);
+
+        return $query->execute();
+    }
+
+    public function findByReception($reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT DISTINCT l
+            FROM App\Entity\Litige l
+            INNER JOIN l.articles a
+            INNER JOIN a.reception r
+            WHERE r.id = :reception'
+        )->setParameter('reception', $reception);
 
         return $query->execute();
     }

@@ -21,13 +21,19 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
-	private const DtToDbLabels = [
-		'Label' => 'libelle',
-		'Référence' => 'reference',
-		'QuantiteStock' => 'quantiteStock',
-		'SeuilAlerte' => 'limitWarning',
-		'SeuilSecurite' => 'limitSecurity',
-	];
+    private const DtToDbLabels = [
+        'Label' => 'libelle',
+        'Libellé' => 'libelle',
+        'Référence' => 'reference',
+        'Quantité' => 'quantiteStock',
+        'SeuilAlerte' => 'limitWarning',
+        'SeuilSecurite' => 'limitSecurity',
+        'Type' => 'Type',
+        'Emplacement' => 'Emplacement',
+        'Actions' => 'Actions',
+        'Fournisseur' => 'Fournisseur',
+        'Statut' => 'status'
+    ];
 
     public function __construct(RegistryInterface $registry)
     {

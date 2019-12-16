@@ -429,7 +429,7 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
-			$listAttachmentIdToKeep = $post->get('files');
+			$listAttachmentIdToKeep = $post->get('files') ?? [];
 
             $attachments = $arrivage->getAttachements()->toArray();
             foreach ($attachments as $attachment) {

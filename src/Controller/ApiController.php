@@ -413,8 +413,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
 
-                        if (!empty($mvt['commentaire'])) {
-                            $mouvementTraca->setCommentaire($mvt['commentaire']);
+                        if (!empty($mvt['comment'])) {
+                            $mouvementTraca->setCommentaire($mvt['comment']);
                         }
                         $entityManager->persist($mouvementTraca);
                         $numberOfRowsInserted++;
@@ -1046,6 +1046,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/getData", name= "api-get-data")
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
      */
     public function getData(Request $request)
     {
