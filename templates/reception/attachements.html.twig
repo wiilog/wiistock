@@ -1,0 +1,18 @@
+<label for="dropfile">Pièces jointes</label>
+<div id="dropfile" class="dropFrame justify-content-md-center" data-litige-id="{{ litige is defined ? litige.id : '' }}"
+     ondragenter="dragEnterDiv(event, $(this))"
+     ondragover="dragOverDiv(event, $(this))"
+     ondragleave="dragLeaveDiv(event, $(this))"
+     ondrop="dropOnDiv(event, $(this))">
+    <p>Faites glisser vos pièces jointes ou <span onclick="openFE($(this))" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
+        <input type="file" name="files[]" multiple class="d-none fileInput" onchange="uploadFE($(this))">
+    </p>
+</div>
+
+{% if isNew != true %}
+    {% for pj in attachements %}
+        {% set pjName = pj.fileName %}
+        {% set originalName = pj.originalName %}
+        {% include 'reception/attachementLine.html.twig' %}
+    {% endfor %}
+{% endif %}
