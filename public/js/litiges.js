@@ -5,11 +5,6 @@ $('#carriers').select2({
         text: 'Transporteurs',
     }
 });
-$('#providers').select2({
-    placeholder: {
-        text: 'Fournisseurs',
-    }
-});
 
 let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
@@ -30,7 +25,15 @@ $(function() {
                     $utilisateur.append(option).trigger('change');
                 });
             } else if (element.field == 'providers') {
-                $('#providers').val(element.value).select2();
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $providers.append(option).trigger('change');
+                });
             } else if (element.field == 'carriers') {
                 $('#carriers').val(element.value).select2();
             } else {
@@ -41,6 +44,8 @@ $(function() {
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+
 });
 
 let pathLitigesArrivage = Routing.generate('litige_arrivage_api', true);

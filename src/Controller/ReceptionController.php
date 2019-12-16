@@ -1299,7 +1299,7 @@ class ReceptionController extends AbstractController
             }
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
-            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
+            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
 
             return new JsonResponse($data);
         }

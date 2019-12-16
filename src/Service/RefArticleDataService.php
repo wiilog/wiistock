@@ -403,8 +403,8 @@ class RefArticleDataService
             "Quantité" => $quantityInStock - $reservedQuantity,
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
-            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
