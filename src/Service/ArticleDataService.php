@@ -522,7 +522,7 @@ class ArticleDataService
 
     public function getDataForDatatable($params = null)
     {
-        $data = $this->getArticleDataByParams($params);
+        $data = $this->getArticleDataByParams($params, $this->user);
         return $data;
     }
 
@@ -578,7 +578,7 @@ class ArticleDataService
             $statutLabel = Article::STATUT_ACTIF;
         }
 
-        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
+        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $this->user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
