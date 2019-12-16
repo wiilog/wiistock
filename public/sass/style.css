@@ -261,7 +261,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -470,10 +472,6 @@ a:hover {
 
 #chart-arrival {
   height: 70%;
-}
-
-.filterContainer .select2-selection {
-  overflow: auto;
 }
 
 .sidemenu-bg {
@@ -802,6 +800,9 @@ a:hover {
 }
 .filters .minw-150px .select2-container {
   min-width: 150px !important;
+}
+.filters .select2-overflow .select2-selection {
+  overflow: auto;
 }
 
 .filterService {
