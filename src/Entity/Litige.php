@@ -60,11 +60,23 @@ class Litige
      */
     private $litigeHistorics;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="litiges")
+     */
+    private $articles;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="litiges")
+     */
+    private $buyers;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
         $this->colis = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->buyers = new ArrayCollection();
     }
 
 
@@ -247,6 +259,58 @@ class Litige
     {
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getBuyers(): Collection
+    {
+        return $this->buyers;
+    }
+
+    public function addBuyer(Utilisateur $buyer): self
+    {
+        if (!$this->buyers->contains($buyer)) {
+            $this->buyers[] = $buyer;
+        }
+
+        return $this;
+    }
+
+    public function removeBuyer(Utilisateur $buyer): self
+    {
+        if ($this->buyers->contains($buyer)) {
+            $this->buyers->removeElement($buyer);
         }
 
         return $this;

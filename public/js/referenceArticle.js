@@ -228,8 +228,9 @@ $(function () {
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         tableRefArticle = $('#tableRefArticle_id')
-            .on('error.dt', function(e, settings, technote, message) {
-        })
+            .on('error.dt', (a,b,c,d) => {
+                console.log(a,b,c,d)
+            })
             .DataTable({
                 processing: true,
                 serverSide: true,
@@ -248,11 +249,14 @@ function initTableRefArticle() {
                 initComplete: function() {
                     loadSpinnerAR($('#spinner'));
                     initRemove();
-                    hideAndShowColumns();
+                    hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle);
                 },
                 length: 10,
-                columns: columns,
+                columns: columns.map((column) => ({
+                    ...column,
+                    class: undefined
+                })),
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },
@@ -283,9 +287,10 @@ function showOrHideColumn(check) {
     check.toggleClass('data');
 }
 
-function hideAndShowColumns() {
-    tableRefArticle.columns('.hide').visible(false);
-    tableRefArticle.columns('.display').visible(true);
+function hideAndShowColumns(columns) {
+    tableRefArticle.columns().every(function(index) {
+        this.visible(columns[index].class !== 'hide');
+    });
 }
 
 function showDemande(bloc) {
@@ -530,11 +535,11 @@ function addFournisseurEdit(button) {
             $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
         }
-    }
+    };
     let path = Routing.generate('ajax_render_add_fournisseur', true);
     xhttp.open("POST", path, true);
     xhttp.send();
-};
+}
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
@@ -640,7 +645,7 @@ function getDataAndPrintLabels() {
                 response.tags,
                 'Etiquettes-references.pdf',
                 response.barcodeLabels
-                );
+            );
         }
     });
 }

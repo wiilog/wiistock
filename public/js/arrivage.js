@@ -17,6 +17,16 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            } else if (element.field == 'providers') {
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $providers.append(option).trigger('change');
+                });
             } else if (element.field = 'emergency') {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
@@ -26,10 +36,11 @@ $(function() {
             }
         });
 
-        initFilterDateToday();
+        // initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initFilterDateToday() {
@@ -194,7 +205,8 @@ $submitSearchArrivage.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked')
+        urgence: $('#urgence-filter').is(':checked'),
+        providers: $('#providers').select2('data'),
     }
     saveFilters(filters, tableArrivage);
 });

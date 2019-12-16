@@ -256,8 +256,14 @@ a:hover {
   padding: 25px;
 }
 
+#modalShowRefArticle #input-group-nomenclature {
+  height: 150px;
+}
+
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -794,6 +800,9 @@ a:hover {
 }
 .filters .minw-150px .select2-container {
   min-width: 150px !important;
+}
+.filters .select2-overflow .select2-selection {
+  overflow: auto;
 }
 
 .filterService {
