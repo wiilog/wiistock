@@ -1,0 +1,72 @@
+<form method="" class="modal fade" id="modalNewLitige" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau litige</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group col-3">
+                        <label for="statutLitige">Statut*</label>
+                        <select class="form-control data needed" id="statutLitige" name="statutLitige">
+                            <option placeholder="" disabled value="" selected></option>
+                            {% for statut in statusLitige %}
+                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-3">
+                        <label for="statutLitige">Type*</label>
+                        <select class="form-control data needed" id="typeLitige" name="typeLitige">
+                            <option placeholder="" disabled value="" selected></option>
+                            {% for type in typesLitige %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="colisLitige">Articles*</label>
+                        <select class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige" multiple="multiple">
+                            {% for article in allArticles %}
+                                <option value="{{ article.id }}">{{ article.barcode }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group w-100 col-5">
+                        <label for="acheteursLitige">Acheteur(s)</label>
+                        <select class="form-control data select2" name="acheteursLitige" id="acheteursLitige" multiple="multiple">
+                            {% for acheteur in acheteurs %}
+                                <option value="{{ acheteur.id }}">{{ acheteur.text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="form-group col-5 fit-content">
+                        <label for="litige-commentaire">Commentaire</label>
+                        <input type="text" id="litige-commentaire" class="commentaire form-control data" name="commentaire">
+                    </div>
+
+                    <div class="form-group col-4">
+                        <div>
+                            {% include 'reception/attachements.html.twig' with {'isNew' : true} %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewLitige" type="button" class="btn btn-success">Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
