@@ -2,7 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieStatut;
+use App\Entity\Litige;
+use App\Entity\LitigeHistoric;
 use App\Entity\MouvementStock;
+use App\Entity\PieceJointe;
+use App\Repository\LitigeRepository;
+use App\Repository\PieceJointeRepository;
+use App\Service\AttachmentService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
@@ -123,9 +130,27 @@ class ReceptionController extends AbstractController
      */
     private $articleDataService;
 
+    /**
+     * @var AttachmentService
+     */
+    private $attachmentService;
 
-    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    /**
+     * @var LitigeRepository
+     */
+    private $litigeRepository;
+
+    /**
+     * @var PieceJointeRepository
+     */
+    private $pieceJointeRepository;
+
+
+    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
+        $this->pieceJointeRepository = $pieceJointeRepository;
+        $this->litigeRepository = $litigeRepository;
+        $this->attachmentService = $attachmentService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -335,9 +360,6 @@ class ReceptionController extends AbstractController
             $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $url = $this->generateUrl('reception_show', [
-                    'id' => $reception->getId(),
-                ]);
                 $rows[] =
                     [
                         'id' => ($reception->getId()),
@@ -350,7 +372,7 @@ class ReceptionController extends AbstractController
                         "Numéro de commande" => ($reception->getReference() ? $reception->getReference() : ''),
                         'Actions' => $this->renderView(
                             'reception/datatableReceptionRow.html.twig',
-                            ['url' => $url, 'reception' => $reception]
+                            ['reception' => $reception]
                         ),
                     ];
             }
@@ -641,7 +663,10 @@ class ReceptionController extends AbstractController
         } else {
             $valeurChampLibreTab = [];
         }
-
+        $allArticles = [];
+        foreach ($reception->getArticles() as $article) {
+            $allArticles[] = $article;
+        }
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
@@ -669,7 +694,292 @@ class ReceptionController extends AbstractController
             //            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
+            'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'allArticles' => $allArticles,
+            'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
         ]);
+    }
+
+    /**
+     * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function editLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $post = $request->request;
+            $em = $this->getDoctrine()->getManager();
+
+            $litige = $this->litigeRepository->find($post->get('id'));
+            $typeBefore = $litige->getType()->getId();
+            $typeBeforeName = $litige->getType()->getLabel();
+            $typeAfter = (int)$post->get('typeLitige');
+            $statutBefore = $litige->getStatus()->getId();
+            $statutBeforeName = $litige->getStatus()->getNom();
+            $statutAfter = (int)$post->get('statutLitige');
+            $litige
+                ->setUpdateDate(new \DateTime('now'))
+                ->setType($this->typeRepository->find($post->get('typeLitige')))
+                ->setStatus($this->statutRepository->find($post->get('statutLitige')));
+
+            if (!empty($colis = $post->get('colis'))) {
+                // on détache les colis existants...
+                $existingColis = $litige->getArticles();
+                foreach ($existingColis as $coli) {
+                    $litige->removeArticle($coli);
+                }
+                // ... et on ajoute ceux sélectionnés
+                $listColis = explode(',', $colis);
+                foreach ($listColis as $colisId) {
+                    $litige->addArticle($this->articleRepository->find($colisId));
+                }
+            }
+            if (!empty($buyers = $post->get('acheteursLitige'))) {
+                // on détache les colis existants...
+                $existingBuyers = $litige->getBuyers();
+                foreach ($existingBuyers as $buyer) {
+                    $litige->removeBuyer($buyer);
+                }
+                // ... et on ajoute ceux sélectionnés
+                $listBuyer = explode(',', $buyers);
+                foreach ($listBuyer as $buyerId) {
+                    $litige->addBuyer($this->utilisateurRepository->find($buyerId));
+                }
+            }
+            $em->flush();
+
+            $comment = '';
+            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
+            $commentStatut = $statutinstance->getComment();
+            if ($typeBefore !== $typeAfter) {
+                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
+            }
+            if ($statutBefore !== $statutAfter) {
+                if (!empty($comment)) {
+                    $comment .= "\n";
+                }
+                $comment .= "Changement du statut : " .
+                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
+                    (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
+            }
+            if ($post->get('commentaire')) {
+                if (!empty($comment)) {
+                    $comment .= "\n";
+                }
+                $comment .= trim($post->get('commentaire'));
+            }
+
+            if (!empty($comment)) {
+                $histoLitige = new LitigeHistoric();
+                $histoLitige
+                    ->setLitige($litige)
+                    ->setDate(new \DateTime('now'))
+                    ->setUser($this->getUser())
+                    ->setComment($comment);
+                $em->persist($histoLitige);
+                $em->flush();
+            }
+
+            $listAttachmentIdToKeep = $post->get('files') ?? [];
+            $attachments = $litige->getAttachements()->toArray();
+            foreach ($attachments as $attachment) {
+                /** @var PieceJointe $attachment */
+                if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
+                }
+            }
+
+            $this->attachmentService->addAttachements($request, null, $litige);
+
+            $response = [];
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"})
+     */
+    public function newLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $post = $request->request;
+            $em = $this->getDoctrine()->getManager();
+
+            $litige = new Litige();
+            $litige
+                ->setStatus($this->statutRepository->find($post->get('statutLitige')))
+                ->setType($this->typeRepository->find($post->get('typeLitige')))
+                ->setCreationDate(new \DateTime('now'));
+
+            if (!empty($colis = $post->get('colisLitige'))) {
+                $listColisId = explode(',', $colis);
+                foreach ($listColisId as $colisId) {
+                    $litige->addArticle($this->articleRepository->find($colisId));
+                }
+            }
+            if (!empty($buyers = $post->get('acheteursLitige'))) {
+                $listBuyers = explode(',', $buyers);
+                foreach ($listBuyers as $buyer) {
+                    $litige->addBuyer($this->utilisateurRepository->find($buyer));
+                }
+            }
+            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
+            $commentStatut = $statutinstance->getComment();
+
+            $trimCommentStatut = trim($commentStatut);
+            $userComment = trim($post->get('commentaire'));
+            $nl = !empty($userComment) ? "\n" : '';
+            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
+            if (!empty($commentaire)) {
+                $histo = new LitigeHistoric();
+                $histo
+                    ->setDate(new \DateTime('now'))
+                    ->setComment($commentaire)
+                    ->setLitige($litige)
+                    ->setUser($this->getUser());
+                $em->persist($histo);
+            }
+
+            $em->persist($litige);
+            $em->flush();
+
+            $this->attachmentService->addAttachements($request, null, $litige);
+
+            $this->sendMailToAcheteurs($litige);
+            $response = [];
+
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiEditLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $litige = $this->litigeRepository->find($data['litigeId']);
+            $colisCode = [];
+            $acheteursCode = [];
+            $reception = $this->receptionRepository->find($data['reception']);
+            foreach ($litige->getArticles() as $colis) {
+                $colisCode[] = $colis->getId();
+            }
+            foreach ($litige->getBuyers() as $buyer) {
+                $acheteursCode[] = $buyer->getId();
+            }
+            $allArticles = [];
+            foreach ($reception->getArticles() as $article) {
+                $allArticles[] = $article;
+            }
+            $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
+                'litige' => $litige,
+                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
+                'articles' => $allArticles,
+                'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+            ]);
+
+            return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    private function sendMailToAcheteurs(Litige $litige)
+    {
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        foreach ($acheteursEmail as $email) {
+            $title = 'Un litige a été déclaré sur une réception vous concernant :';
+
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Litige sur réception',
+                $this->renderView('mails/mailLitigesReception.html.twig', [
+                    'litiges' => [$litige],
+                    'title' => $title,
+                    'urlSuffix' => 'reception'
+                ]),
+                $email
+            );
+        }
+    }
+
+    /**
+     * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteLitige(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litige = $this->litigeRepository->find($data['litige']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($litige);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiReceptionLitiges(Request $request, Reception $reception): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+
+            /** @var Litige[] $litiges */
+            $litiges = $this->litigeRepository->findByReception($reception);
+
+            $rows = [];
+
+            foreach ($litiges as $litige) {
+                $buyers = [];
+                $articles = [];
+                foreach ($litige->getBuyers() as $buyer) {
+                    $buyers[] = $buyer->getUsername();
+                }
+                foreach ($litige->getArticles() as $article) {
+                    $articles[] = $article->getBarCode();
+                }
+                $lastHistoric = count($litige->getLitigeHistorics()) > 0
+                    ?
+                    $litige->getLitigeHistorics()[count($litige->getLitigeHistorics()) - 1]->getComment()
+                    :
+                    '';
+                $rows[] = [
+                    'type' => $litige->getType()->getLabel(),
+                    'status' => $litige->getStatus()->getNom(),
+                    'lastHistoric' => $lastHistoric,
+                    'date' => $litige->getCreationDate()->format('d/m/Y H:i'),
+                    'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
+                        'receptionId' => $reception->getId(),
+                        'url' => [
+                            'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
+                        ],
+                        'litigeId' => $litige->getId(),
+                    ]),
+                ];
+            }
+
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -989,7 +1299,7 @@ class ReceptionController extends AbstractController
             }
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
-            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
+            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
 
             return new JsonResponse($data);
         }

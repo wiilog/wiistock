@@ -71,11 +71,7 @@
                             <label for="newChauffeurNumero">N°doc ID</label>
                             <input type="text" id="newChauffeurNumero" class="form-control newFormulaire" name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur">Transporteur*</label>
-                            <select class="form-control newFormulaire" id="newChauffeurTransporteur" name="transporteur">
-                                <option disabled selected></option>
-                                {% for transporteur in transporteurs %}
-                                    <option value="{{ transporteur.id }}">{{ transporteur.label }}</option>
-                                {% endfor %}
+                            <select class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100" name="transporteur" id="newChauffeurTransporteur">
                             </select>
                         </div>
                         <div class="form-group col-2" id="addChauffeur">

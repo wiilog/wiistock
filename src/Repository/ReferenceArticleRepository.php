@@ -21,13 +21,19 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
-	private const DtToDbLabels = [
-		'Label' => 'libelle',
-		'Référence' => 'reference',
-		'QuantiteStock' => 'quantiteStock',
-		'SeuilAlerte' => 'limitWarning',
-		'SeuilSecurite' => 'limitSecurity',
-	];
+    private const DtToDbLabels = [
+        'Label' => 'libelle',
+        'Libellé' => 'libelle',
+        'Référence' => 'reference',
+        'Quantité' => 'quantiteStock',
+        'SeuilAlerte' => 'limitWarning',
+        'SeuilSecurite' => 'limitSecurity',
+        'Type' => 'Type',
+        'Emplacement' => 'Emplacement',
+        'Actions' => 'Actions',
+        'Fournisseur' => 'Fournisseur',
+        'Statut' => 'status'
+    ];
 
     public function __construct(RegistryInterface $registry)
     {
@@ -352,29 +358,80 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 					$qb->andWhere(implode(' OR ', $query));
 				}
             }
-		}
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column =
+                        isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
+                            ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
+                            : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    switch ($column) {
+                        case 'Actions':
+                            break;
+                        case 'Fournisseur':
+                            $qb
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->leftJoin('afra.fournisseur', 'fra')
+                                ->orderBy('fra.nom', $order);
+                            break;
+                        case 'Type':
+                            $qb
+                                ->leftJoin('ra.type', 't')
+                                ->orderBy('t.label', $order);
+                            break;
+                        case 'Emplacement':
+                            $qb
+                                ->leftJoin('ra.emplacement', 'e')
+                                ->orderBy('e.label', $order);
+                            break;
+                        case 'status':
+                            $qb
+                                ->leftJoin('ra.statut', 's')
+                                ->orderBy('s.nom', $order);
+                            break;
+                        default:
+                            if (property_exists(ReferenceArticle::class, $column)) {
+                                $qb
+                                    ->orderBy('ra.' . $column, $order);
+                            } else {
+                                $needCLOrder = [$order, $column];
+                            }
+                            break;
+                    }
+                }
+            }
+        }
 
-		// compte éléments filtrés
-		if (empty($filters) && empty($searchValue)) {
-			$qb->select('count(ra)');
-		}
-		else {
-			$qb
-				->select('count(distinct(ra))')
-				->leftJoin('ra.valeurChampsLibres', 'vcl');
-		}
+        // compte éléments filtrés
+        if (empty($filters) && empty($searchValue)) {
+            $qb->select('count(ra)');
+        } else {
+            $qb
+                ->select('count(distinct(ra))')
+                ->leftJoin('ra.valeurChampsLibres', 'vcl');
+        }
+        $countQuery = $qb->getQuery()->getSingleScalarResult();
 
-		$countQuery = $qb->getQuery()->getSingleScalarResult();
-
-		if (!empty($params)) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
-
-		$qb->select('ra')
-			->distinct();
-
-        return ['data' => $qb->getQuery()->getResult(), 'count' => $countQuery];
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+        $qb->select('ra')
+            ->distinct();
+        if ($needCLOrder) {
+            $paramsQuery = $qb->getParameters();
+            $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
+            $qb
+                ->addSelect('(CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END) as vsort')
+                ->leftJoin('ra.valeurChampsLibres', 'vclra')
+                ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
+                ->orderBy('vsort', $needCLOrder[0])
+                ->setParameters($paramsQuery);
+        }
+        return [
+        	'data' => $qb->getQuery()->getResult(),
+			'count' => $countQuery
+		];
     }
 
     public function countByType($typeId)
