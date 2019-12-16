@@ -347,8 +347,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             ->setDatetime($date)
                             ->setFinished($mvt['finished'])
                             ->setType($type);
-                        if (!empty($mvt['commentaire'])) {
-                            $mouvementTraca->setCommentaire($mvt['commentaire']);
+                        if (!empty($mvt['comment'])) {
+                            $mouvementTraca->setCommentaire($mvt['comment']);
                         }
                         $em->persist($mouvementTraca);
                         $numberOfRowsInserted++;
