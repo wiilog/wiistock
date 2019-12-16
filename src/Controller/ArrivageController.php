@@ -263,7 +263,6 @@ class ArrivageController extends AbstractController
 			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			//TODO CG tester si pas username
 			if (!empty($post->get('acheteurs'))) {
 			    $acheteursId = explode(',', $post->get('acheteurs'));
                 foreach ($acheteursId as $acheteurId) {

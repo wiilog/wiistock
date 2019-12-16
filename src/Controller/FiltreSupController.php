@@ -228,7 +228,7 @@ class FiltreSupController extends AbstractController
 
 				$values = [];
 				foreach ($data['providers'] as $provider) {
-					$values[] = $provider['id'];
+					$values[] = $provider['id'] . ':' . $provider['text'];
 				}
 				$providers = implode(',', $values);
 
