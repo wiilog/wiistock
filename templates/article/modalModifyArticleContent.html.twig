@@ -52,18 +52,24 @@
                 {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
                 {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
                 {% set isStatusEditable = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) %}
-                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
-                      {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
-                    {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
-                </span>
-                <span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
-                      {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
-                    {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
-                </span>
-                <span class="btn {{ transit }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
-                        {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
-                    {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
-                </span>
+                {% if isStatusEditable or actif == 'active' %}
+                    <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                          {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                        {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
+                    </span>
+                {% endif %}
+                {% if isStatusEditable or inactif == 'active' %}
+                    <span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                          {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                        {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
+                    </span>
+                {% endif %}
+                {% if isStatusEditable or transit == 'active' %}
+                    <span class="btn {{ transit }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
+                            {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                        {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
+                    </span>
+                {% endif %}
             </div>
             <input id="statut-edit" type="hidden" value="{{ statut }}" name="statut" class="data">
         {% endif %}
