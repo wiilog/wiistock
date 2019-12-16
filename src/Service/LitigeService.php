@@ -103,8 +103,8 @@ class LitigeService
 			'carrier' => $litige['carrier'] ?? '',
 			'lastHistoric' => $lastHistoricStr,
 			'status' => $litige['status'] ?? '',
-			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y') : '',
-			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y') : '',
+			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
+			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
 			'actions' => $this->templating->render('litige/datatableLitigesArrivageRow.html.twig', [
 				'litigeId' => $litige['id'],
 				'arrivageId' => $litige['arrivageId']

@@ -2,40 +2,34 @@
 
 namespace App\Controller;
 
+use App\Entity\Collecte;
+use App\Entity\Demande;
+use App\Entity\Manutention;
 use App\Entity\MouvementStock;
+
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Service\DashboardService;
-use http\Env\Request;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-
 use App\Repository\EmplacementRepository;
-use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
 
-use App\Entity\Collecte;
-use App\Entity\Demande;
-use App\Entity\Manutention;
+use App\Service\DashboardService;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/accueil")
  */
 class AccueilController extends AbstractController
 {
-    /**
-     * @var AlerteStockRepository
-     */
-    private $alerteStockRepository;
-
     /**
      * @var CollecteRepository
      */

@@ -932,10 +932,10 @@ class ArrivageController extends AbstractController
             $rows = [];
             foreach ($litiges as $litige) {
                 $rows[] = [
-                    'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
+                    'firstDate' => $litige->getCreationDate()->format('d/m/Y H:i'),
                     'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
                     'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
-                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
+                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y H:i') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                         'arrivageId' => $arrivage->getId(),
                         'url' => [
