@@ -1307,6 +1307,22 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getArticles(Request $request, Reception $reception)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $articles = $this->articleRepository->getArticleByReception($reception->getId());
+            dump(count($articles));
+            return new JsonResponse(['results' => $articles]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/verification", name="reception_check_delete", options={"expose"=true})
      */
     public function checkReceptionCanBeDeleted(Request $request): Response
