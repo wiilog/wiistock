@@ -12,6 +12,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Query\Parameter;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -360,14 +363,20 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndStatut($params = null, $statutLabel = null)
+    /**
+     * @param array|null $params
+     * @param string|null $statutLabel
+     * @param Utilisateur $user
+     * @return array
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a');
+        $qb->select('a');
+        $qb->from('App\Entity\Article', 'a');
 
         if ($statutLabel) {
             $qb
@@ -375,7 +384,6 @@ class ArticleRepository extends ServiceEntityRepository
                 ->where('s.nom = :statutLabel')
                 ->setParameter('statutLabel', $statutLabel);
         }
-
 		$countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allArticleDataTable = null;

@@ -154,9 +154,10 @@ class MouvementStockController extends AbstractController
 
             foreach ($mouvements as $mouvement) {
                 $mouvementData = [];
-
+                $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : null;
+                $reference = $reference ? $reference : $mouvement->getArticle()->getReference();
                 $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
-                $mouvementData[] = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : '';
+                $mouvementData[] = $reference;
 				$mouvementData[] = $mouvement->getQuantity();
 				$mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
 				$mouvementData[] = $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '';

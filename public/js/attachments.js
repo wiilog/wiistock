@@ -1,24 +1,41 @@
+const FILE_MAX_SIZE = 2000000;
+
 function displayAttachements(files, dropFrame) {
 
-    let valid = checkFilesFormat(files, dropFrame);
-    if (valid) {
-        $.each(files, function(index, file) {
+    let errorMsg = [];
+    $.each(files, function(index, file) {
+        let formatValid = checkFileFormat(file, dropFrame);
+        let sizeValid = checkSizeFormat(file, dropFrame);
+
+        if (!formatValid) {
+            errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+        } else if (!sizeValid) {
+            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 2 Mo.');
+        } else {
             let fileName = file.name;
 
             let reader = new FileReader();
-            reader.addEventListener('load', function() {
+            reader.addEventListener('load', function () {
                 dropFrame.after(`
-                    <p class="attachement" value="` + withoutExtension(fileName)+ `">
-                        <a target="_blank" href="`+ reader.result + `">
+                    <p class="attachement" value="` + withoutExtension(fileName) + `">
+                        <a target="_blank" href="` + reader.result + `">
                             <i class="fa fa-file mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachement($(this))"></i>
                     </p>`);
             });
             reader.readAsDataURL(file);
-        });
+        }
+    });
+
+    if (errorMsg.length === 0) {
+        displayRight(dropFrame);
         clearErrorMsg(dropFrame);
+    } else {
+        displayWrong(dropFrame);
+        dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
     }
+
 }
 
 function withoutExtension(fileName) {
@@ -27,21 +44,23 @@ function withoutExtension(fileName) {
 }
 
 function removeAttachement($elem) {
+    let deleted = false;
+    let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();
-}
-
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            displayWrong(div);
-            valid = false;
-        } else {
-            displayRight(div);
+    droppedFiles.forEach(file => {
+        if (file.name === fileName && !deleted) {
+            deleted = true;
+            droppedFiles.splice(droppedFiles.indexOf(file), 1);
         }
     });
-    return valid;
+}
+
+function checkFileFormat(file) {
+    return file.name.includes('.') !== false;
+}
+
+function checkSizeFormat(file) {
+    return file.size < FILE_MAX_SIZE;
 }
 
 function dragEnterDiv(event, div) {
@@ -70,8 +89,13 @@ function dropOnDiv(event, div) {
             event.preventDefault();
             event.stopPropagation();
             let array = Array.from(event.dataTransfer.files);
-            droppedFiles = [...droppedFiles, ...array];
-            displayRight(div);
+
+            array.forEach(file => {
+                if (checkSizeFormat(file) && checkFileFormat(file)) {
+                    droppedFiles.push(file);
+                }
+            });
+
             displayAttachements(event.dataTransfer.files, div);
         }
     } else {
@@ -86,9 +110,17 @@ function openFE(span) {
 
 function uploadFE(span) {
     let files = span[0].files;
+
+    Array.from(files).forEach(file => {
+       if (checkSizeFormat(file) && checkFileFormat(file)) {
+           droppedFiles.push(file);
+       }
+    });
+
     let dropFrame = span.closest('.dropFrame');
 
     displayAttachements(files, dropFrame);
+    span[0].value = "";
 }
 
 function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
@@ -152,12 +184,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append([$(this).attr("name")], $(this).attr('value'));
     });
     modal.find(".elem").remove();
-
-    // ... puis on récupère les fichiers (issus du clic)...
-    let files = modal.find('.fileInput')[0].files;
-    // ... (issus du drag & drop)
-    files = [...files, ...droppedFiles];
-    $.each(files, function(index, file) {
+    $.each(droppedFiles, function(index, file) {
         Data.append('file' + index, file);
     });
     // si tout va bien on envoie la requête ajax...
@@ -204,7 +231,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     clearModal(modal);
                 }
                 droppedFiles = [];
-                modal.find('.fileInput')[0].value = "";
                 if (callback !== null) callback(data);
             }
         });
