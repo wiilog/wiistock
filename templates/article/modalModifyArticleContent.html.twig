@@ -45,7 +45,7 @@
 </div>
 <div class="row">
     <div class="form-group col-4">
-        {% if editable and not isADemand %}
+        {% if editable and not isADemand and statut == constant('App\\Entity\\Article::STATUT_ACTIF') %}
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Statut</label>
 
