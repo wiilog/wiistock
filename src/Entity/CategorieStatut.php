@@ -24,6 +24,7 @@ class CategorieStatut
     const MVT_TRACA = 'mouvement_traca';
     const MVT_STOCK = 'mouvement_stock';
     const LITIGE_ARR = 'litige arrivage';
+    const LITIGE_RECEPT = 'litige reception';
     const ACHEMINEMENT = 'acheminement';
 
     /**
