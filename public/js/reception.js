@@ -1,5 +1,20 @@
 $('.select2').select2();
 
+$('.select2-autocomplete-articles').select2({
+    ajax: {
+        url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        searching: function () {
+            return 'Recherche en cours...';
+        },
+        noResults: function () {
+            return 'Aucun résultat.';
+        }
+    },
+});
 //RECEPTION
 let path = Routing.generate('reception_api', true);
 let table = $('#tableReception_id').DataTable({

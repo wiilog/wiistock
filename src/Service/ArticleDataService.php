@@ -636,6 +636,7 @@ class ArticleDataService
                 'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
                 'Commentaire' => $article->getCommentaire(),
                 'Prix unitaire' => $article->getPrixUnitaire(),
+                'Code' => $article->getBarCode(),
                 'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                     'url' => $url,
                     'articleId' => $article->getId(),
