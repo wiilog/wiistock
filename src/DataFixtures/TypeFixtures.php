@@ -62,19 +62,24 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 			}
 			$this->addReference('type-' . $categoryName, $categorie);
 
+			$categoryHasType = count($this->typeRepository->findByCategoryLabel($categoryName)) > 0;
 
 			// création des types
     		foreach ($typesNames as $typeName) {
-				$type = $this->typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
-
-				if (empty($type)) {
-					$type = new Type();
-					$type
-						->setCategory($this->getReference('type-' . $categoryName))
-						->setLabel($typeName);
-					$manager->persist($type);
-					dump("création du type " . $typeName);
-				}
+				if (!$categoryHasType || ($typeName !== Type::LABEL_STANDARD && $typeName !== Type::LABEL_RECEPTION)) {
+                    $type = $this->typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
+                    if (empty($type)) {
+                        $type = new Type();
+                        $type
+                            ->setCategory($this->getReference('type-' . $categoryName))
+                            ->setLabel($typeName);
+                        $manager->persist($type);
+                        dump("création du type " . $typeName);
+                    }
+                }
+				else {
+				    dump("Type $typeName non créé pour $categoryName");
+                }
 			}
 		}
     	$manager->flush();
