@@ -38,11 +38,14 @@ use App\Repository\CategorieCLRepository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Twig_Error_Loader;
 use Twig_Error_Runtime;
 use Twig_Error_Syntax;
@@ -525,7 +528,7 @@ class ArticleDataService
         return $data;
     }
 
-    public function getDataForDatatableByReceptionLigne($ligne)
+    public function getDataForDatatableByReceptionLigne($ligne, $user)
     {
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
@@ -535,13 +538,14 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @param ReceptionReferenceArticle $ligne
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param ReceptionReferenceArticle $ligne
+	 * @return array
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 * @throws DBALException
+	 */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
@@ -565,6 +569,8 @@ class ArticleDataService
 	 * @param Utilisateur $user
 	 * @return array
 	 * @throws DBALException
+	 * @throws ORMException
+	 * @throws OptimisticLockException
 	 * @throws Twig_Error_Loader
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
@@ -590,11 +596,12 @@ class ArticleDataService
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle(is_array($article) ? $article[0] : $article);
         }
+
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
-            'listId' => $articlesString,
+            'recordsTotal' => $this->articleRepository->countAll(),
+            'listId' => $listId,
         ];
     }
 
@@ -629,10 +636,10 @@ class ArticleDataService
             $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
 
             $row = [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Code' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'id' => $article->getId() ?? 'Non défini',
+                'Référence' => $article->getReference() ?? 'Non défini',
+                'Statut' => $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini',
+                'Libellé' => $article->getLabel() ?? 'Non défini',
                 'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
                 'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                 'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
@@ -640,6 +647,7 @@ class ArticleDataService
                 'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
                 'Commentaire' => $article->getCommentaire(),
                 'Prix unitaire' => $article->getPrixUnitaire(),
+				'Code' => $article->getBarCode(),
                 'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                     'url' => $url,
                     'articleId' => $article->getId(),

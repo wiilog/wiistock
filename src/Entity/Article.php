@@ -153,6 +153,7 @@ class Article
         $this->valeurChampsLibres = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->litiges = new ArrayCollection();
     }
@@ -530,32 +531,6 @@ class Article
     }
 
     /**
-     * @return Collection|OrdreCollecte[]
-     */
-    public function getOrdreCollecte(): Collection
-    {
-        return $this->ordreCollecte;
-    }
-
-    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if (!$this->ordreCollecte->contains($ordreCollecte)) {
-            $this->ordreCollecte[] = $ordreCollecte;
-        }
-
-        return $this;
-    }
-
-    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
-    {
-        if ($this->ordreCollecte->contains($ordreCollecte)) {
-            $this->ordreCollecte->removeElement($ordreCollecte);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Litige[]
      */
     public function getLitiges(): Collection
@@ -578,6 +553,32 @@ class Article
         if ($this->litiges->contains($litige)) {
             $this->litiges->removeElement($litige);
             $litige->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getOrdreCollecte(): Collection
+    {
+        return $this->ordreCollecte;
+    }
+
+    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if (!$this->ordreCollecte->contains($ordreCollecte)) {
+            $this->ordreCollecte[] = $ordreCollecte;
+        }
+
+        return $this;
+    }
+
+    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if ($this->ordreCollecte->contains($ordreCollecte)) {
+            $this->ordreCollecte->removeElement($ordreCollecte);
         }
 
         return $this;

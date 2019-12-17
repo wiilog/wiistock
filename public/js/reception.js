@@ -1,21 +1,7 @@
 $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
-$('.select2-autocomplete-articles').select2({
-    ajax: {
-        url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
-        dataType: 'json',
-        delay: 250,
-    },
-    language: {
-        searching: function () {
-            return 'Recherche en cours...';
-        },
-        noResults: function () {
-            return 'Aucun résultat.';
-        }
-    },
-});
 
+//RECEPTION
 function generateCSVReception () {
     loadSpinner($('#spinnerReception'));
     let data = {};
@@ -131,6 +117,10 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
             "type": "customDate",
             "targets": 4,
             "visible": false
+        },
+        {
+            orderable: false,
+            targets: 0
         }
     ],
     order: [
@@ -138,8 +128,7 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     ],
 });
 
-function editRowLitige(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -152,21 +141,8 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('#colisEditLitige').select2({
-            ajax: {
-                url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
-                dataType: 'json',
-                delay: 250,
-            },
-            language: {
-                searching: function () {
-                    return 'Recherche en cours...';
-                },
-                noResults: function () {
-                    return 'Aucun résultat.';
-                }
-            },
-        });
+        ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'));
+
         let values = [];
         data.colis.forEach(val => {
             values.push({
@@ -344,12 +320,16 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "url": pathAddArticle,
         "type": "POST"
     },
+    order: [[1, "desc"]],
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Commande', 'title': 'Commande'},
         {"data": 'A recevoir', 'title': 'A recevoir'},
         {"data": 'Reçu', 'title': 'Reçu'},
-        {"data": 'Actions', 'title': 'Actions'}
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 0 }
     ],
 });
 
@@ -475,16 +455,12 @@ function createArticleAndBarcodes(button, receptionId) {
         date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
-        if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
-            tableArticle.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-        } else {
-            $('#cannotGenerateStock').click();
-        }
+        printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
+        tableArticle.ajax.reload(function (json) {
+            if (this.responseText !== undefined) {
+                $('#myInput').val(json.lastInput);
+            }
+        });
     });
 }
 
@@ -494,14 +470,12 @@ function printSingleBarcode(button) {
     }
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
-            if (response.exists) {
-                printBarcodes(
-                    [response.ligneRef],
-                    response,
-                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
-                    [response.barcodeLabel]
-                );
-            }
+            printBarcodes(
+                [response.ligneRef],
+                response,
+                'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                [response.barcodeLabel]
+            );
         } else {
             $('#ligneSelected').val(button.data('id'));
             $('#chooseConditionnement').click();
@@ -520,25 +494,12 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            printBarcodes(
-                [response.articleRef.barcode],
-                response,
-                'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
-                [response.articleRef.barcodeLabel]
-            );
-        }
-        else {
-            $('#cannotGenerate').click();
-        }
-    });
-}
-
-function addArticle() {
-    let path = Routing.generate('get_modal_new_ref', true);
-    $.post(path, {}, function (modalNewRef) {
-        $('#innerNewRef').html(modalNewRef);
-        initNewReferenceArticleEditor();
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
+            [response.articleRef.barcodeLabel]
+        );
     });
 }
 
@@ -597,6 +558,14 @@ function initNewReferenceArticleEditor() {
     InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
 };
 
+function addArticle() {
+    let path = Routing.generate('get_modal_new_ref', true);
+    $.post(path, {}, function (modalNewRef) {
+        $('#innerNewRef').html(modalNewRef);
+        initNewReferenceArticleEditor();
+    });
+}
+
 function checkIfQuantityArticle($select){
     let referenceId = $select.val();
     let path = Routing.generate('check_if_quantity_article');
@@ -654,6 +623,8 @@ function clearAddRefModal() {
 }
 
 $(function () {
+    ajaxAutoArticlesReceptionInit($('.select2-autocomplete-articles'));
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_RECEPTION);

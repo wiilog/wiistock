@@ -520,18 +520,18 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $demande = $this->demandeRepository->find($data['demandeId']);
-            foreach ($demande->getArticles() as $article) {
-                $article->setDemande(null);
+            if (!$demande->getPreparation()) {
+                foreach ($demande->getArticles() as $article) {
+                    $article->setDemande(null);
+                }
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($demande);
+                $entityManager->flush();
+                $data = [
+                    'redirect' => $this->generateUrl('demande_index'),
+                ];
             }
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($demande);
-            $entityManager->flush();
-            $data = [
-                'redirect' => $this->generateUrl('demande_index'),
-            ];
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
