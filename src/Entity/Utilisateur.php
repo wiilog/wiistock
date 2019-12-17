@@ -1081,32 +1081,4 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    /**
-     * @return Collection|Litige[]
-     */
-    public function getLitiges(): Collection
-    {
-        return $this->litiges;
-    }
-
-    public function addLitige(Litige $litige): self
-    {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addBuyer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitige(Litige $litige): self
-    {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removeBuyer($this);
-        }
-
-        return $this;
-    }
-
 }

@@ -521,13 +521,13 @@ class ArticleDataService
 
         return true;
     }
-//TODO CG vérifier appel user
+
     public function getDataForDatatable($params = null, $user)
     {
         $data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
-//TODO CG vérifier appel user
+
     public function getDataForDatatableByReceptionLigne($ligne, $user)
     {
         if ($ligne) {
@@ -563,12 +563,14 @@ class ArticleDataService
         }
         return ['data' => $rows];
     }
-	//TODO CG vérifier appel user
+
 	/**
 	 * @param null $params
 	 * @param Utilisateur $user
 	 * @return array
 	 * @throws DBALException
+	 * @throws ORMException
+	 * @throws OptimisticLockException
 	 * @throws Twig_Error_Loader
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
@@ -594,7 +596,7 @@ class ArticleDataService
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle(is_array($article) ? $article[0] : $article);
         }
-        //TODO CG vérifier que pas ['total']
+
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
@@ -633,7 +635,7 @@ class ArticleDataService
             /** @var MouvementStock $mouvementEntree */
             $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
 
-            $row = [ //TODO CG code-barre ou réf ?
+            $row = [
                 'id' => $article->getId() ?? 'Non défini',
                 'Référence' => $article->getReference() ?? 'Non défini',
                 'Statut' => $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini',

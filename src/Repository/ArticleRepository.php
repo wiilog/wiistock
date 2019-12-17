@@ -18,7 +18,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
-use Doctrine\ORM\Query\Parameter;
 
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -388,6 +387,8 @@ class ArticleRepository extends ServiceEntityRepository
 	 * @param string|null $statutLabel
 	 * @param Utilisateur $user
 	 * @return array
+	 * @throws ORMException
+	 * @throws OptimisticLockException
 	 */
     public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
     {
@@ -524,7 +525,8 @@ class ArticleRepository extends ServiceEntityRepository
                     }
                     $qb->andWhere(implode(' OR ', $query));
                 }
-            }
+				$countQuery = count($qb->getQuery()->getResult());
+			}
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {

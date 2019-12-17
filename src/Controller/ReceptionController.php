@@ -7,9 +7,6 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
-use App\Entity\CategorieStatut;
-use App\Entity\Litige;
-use App\Entity\LitigeHistoric;
 use App\Entity\MouvementStock;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
@@ -25,13 +22,8 @@ use App\Entity\ArticleFournisseur;
 
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
-use App\Service\AttachmentService;
 use App\Repository\FieldsParamRepository;
 use App\Repository\InventoryCategoryRepository;
-use App\Service\ReceptionService;
-use App\Entity\PieceJointe;
-use App\Repository\LitigeRepository;
-use App\Repository\PieceJointeRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
@@ -46,6 +38,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 
+use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
@@ -172,7 +165,6 @@ class ReceptionController extends AbstractController
 	 */
 	private $inventoryCategoryRepository;
 
-//TODO CG finir construct
 	public function __construct(
 		ArticleDataService $articleDataService,
 		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
@@ -194,6 +186,7 @@ class ReceptionController extends AbstractController
 		ReceptionService $receptionService,
 		LitigeRepository $litigeRepository,
 		AttachmentService $attachmentService,
+		FieldsParamRepository $fieldsParamRepository
 	)
     {
 		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
@@ -975,7 +968,6 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-//    	TODO CG litigeId ?
         $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
@@ -1418,26 +1410,10 @@ class ReceptionController extends AbstractController
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
             $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
-//TODO CG $user ?
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST")
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getArticles(Request $request, Reception $reception)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $articles = $this->articleRepository->getArticleByReception($reception->getId());
-            dump(count($articles));
-            return new JsonResponse(['results' => $articles]);
-        }
-        throw new NotFoundHttpException("404");
     }
 
     /**

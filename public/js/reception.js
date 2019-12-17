@@ -77,6 +77,10 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
             "type": "customDate",
             "targets": 4,
             "visible": false
+        },
+        {
+            orderable: false,
+            targets: 0
         }
     ],
     order: [
@@ -289,12 +293,16 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "url": pathAddArticle,
         "type": "POST"
     },
+    order: [[1, "desc"]],
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Commande', 'title': 'Commande'},
         {"data": 'A recevoir', 'title': 'A recevoir'},
         {"data": 'Reçu', 'title': 'Reçu'},
-        {"data": 'Actions', 'title': 'Actions'}
+    ],
+    columnDefs: [
+        { "orderable": false, "targets": 0 }
     ],
 });
 
@@ -393,7 +401,7 @@ let getArticleFournisseur = function () {
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
-    clearAddRefModal(); //TODO CG
+    clearAddRefModal();
 }
 
 function addLot(button) {

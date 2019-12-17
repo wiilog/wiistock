@@ -584,32 +584,4 @@ class Article
         return $this;
     }
 
-    /**
-     * @return Collection|Litige[]
-     */
-    public function getLitiges(): Collection
-    {
-        return $this->litiges;
-    }
-
-    public function addLitige(Litige $litige): self
-    {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitige(Litige $litige): self
-    {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removeArticle($this);
-        }
-
-        return $this;
-    }
-
 }
