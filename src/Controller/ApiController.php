@@ -766,7 +766,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $apiKey = $request->request->get('apiKey');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
-                $livraisons = json_encode($request->request->get('livraisons'), true);
+                $livraisons = json_decode($request->request->get('livraisons'), true);
                 $resData = ['success' => [], 'errors' => []];
 
                 // on termine les livraisons
@@ -849,7 +849,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $resData = ['success' => [], 'errors' => []];
 
-                $collectes = json_encode($request->request->get('collectes'), true);
+                $collectes = json_decode($request->request->get('collectes'), true);
 
                 // on termine les collectes
                 foreach ($collectes as $collecteArray) {
@@ -937,7 +937,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
 
-                $entries = json_encode($request->request->get('entries'), true);
+                $entries = json_decode($request->request->get('entries'), true);
 
                 foreach ($entries as $entry) {
                     $newEntry = new InventoryEntry();
@@ -982,8 +982,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
-                $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-                    "Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+                $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
+                    ? "Aucune saisie d'inventaire à synchroniser."
+                    : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
             } else {
                 $this->successDataMsg['success'] = false;
                 $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -1102,7 +1103,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $numberOfRowsInserted = 0;
 
-                $anomalies = json_encode($request->request->get('anomalies'), true);
+                $anomalies = json_decode($request->request->get('anomalies'), true);
                 foreach ($anomalies as $anomaly) {
                     $this->inventoryService->doTreatAnomaly(
                         $anomaly['id'],
