@@ -44,6 +44,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 
 /**
@@ -188,7 +189,6 @@ class ArrivageController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
         return $this->render('arrivage/index.html.twig', [
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
@@ -197,7 +197,7 @@ class ArrivageController extends AbstractController
             'statuts' => [
                 ['nom' => Arrivage::STATUS_CONFORME],
                 ['nom' => Arrivage::STATUS_LITIGE]
-            ]
+            ],
         ]);
     }
 

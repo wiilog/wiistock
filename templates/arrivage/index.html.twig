@@ -1,6 +1,5 @@
 {% extends 'layout.html.twig' %}
-
-{% block title %}Arrivages{% endblock %}
+{% block title %}{{ 'arrivage.title'|trans({}, 'arrivage') }}{% endblock %}
 
 {% block page_content %}
     {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
@@ -15,7 +14,7 @@
 
     <div class="container-fluid">
 
-        <h1>Arrivages</h1>
+        <h1>{{ 'arrivage.title'|trans({}, 'arrivage') }}</h1>
 
         <div class="row">
             {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -23,7 +22,7 @@
                    data-backdrop="static" data-keyboard="false"
                    onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
 
-                    <span class="fa fa-plus mr-2"></span>Nouvel arrivage
+                    <span class="fa fa-plus mr-2"></span>{{ 'arrivage.new'|trans({}, 'arrivage') }}
                 </a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
