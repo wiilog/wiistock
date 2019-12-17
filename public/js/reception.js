@@ -429,7 +429,7 @@ function printSingleBarcode(button) {
             $submit.attr('data-id', button.data('id'))
             initDatatableConditionnement();
             $submit.addClass('d-none');
-            $('#reference-list').html(response.article); //TODO CG nécessaire ?
+            $('#reference-list').html(response.article);
         }
     });
 }
