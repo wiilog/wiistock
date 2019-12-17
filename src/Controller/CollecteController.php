@@ -179,12 +179,6 @@ class CollecteController extends AbstractController
 			];
 		}
 
-		switch ($filter) {
-			case 'a-traiter':
-				$filter = Collecte::STATUS_A_TRAITER;
-				break;
-		}
-
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
@@ -210,7 +204,7 @@ class CollecteController extends AbstractController
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
-            'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
+            'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
 			'champsLibres' => $valeursChampLibre
 		]);
     }
@@ -225,7 +219,9 @@ class CollecteController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$data = $this->collecteService->getDataForDatatable($request->request);
+			// cas d'un filtre statut depuis page d'accueil
+			$filterStatus = $request->request->get('filterStatus');
+			$data = $this->collecteService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {
@@ -259,7 +255,7 @@ class CollecteController extends AbstractController
                         'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                         'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
+                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
                     ]),
                 ];
             }
@@ -275,7 +271,7 @@ class CollecteController extends AbstractController
                         'type' => 'article',
                         'id' => $article->getId(),
                         'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
+                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON ? true : false),
                     ]),
                 ];
             }
@@ -297,7 +293,7 @@ class CollecteController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
+            $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $destination = ($data['destination'] == 0) ? false : true;
@@ -612,7 +608,7 @@ class CollecteController extends AbstractController
 				$response = [
 					'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
 						'collecte' => $collecte,
-						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
+						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
 						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeCollecte($collecte)
 					]),
 				];

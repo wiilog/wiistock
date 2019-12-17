@@ -501,15 +501,6 @@ class DemandeController extends AbstractController
             ];
         }
 
-		switch ($filter) {
-			case 'a-traiter':
-				$filter = Demande::STATUT_A_TRAITER;
-				break;
-			case 'prepare':
-				$filter = Demande::STATUT_PREPARE;
-				break;
-		}
-
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
@@ -529,18 +520,18 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $demande = $this->demandeRepository->find($data['demandeId']);
-            foreach ($demande->getArticles() as $article) {
-                $article->setDemande(null);
+            if (!$demande->getPreparation()) {
+                foreach ($demande->getArticles() as $article) {
+                    $article->setDemande(null);
+                }
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($demande);
+                $entityManager->flush();
+                $data = [
+                    'redirect' => $this->generateUrl('demande_index'),
+                ];
             }
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($demande);
-            $entityManager->flush();
-            $data = [
-                'redirect' => $this->generateUrl('demande_index'),
-            ];
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -557,7 +548,9 @@ class DemandeController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$data = $this->demandeLivraisonService->getDataForDatatable($request->request);
+			// cas d'un filtre statut depuis page d'accueil
+			$filterStatus = $request->request->get('filterStatus');
+			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {

@@ -24,7 +24,8 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
     private const DtToDbLabels = [
-        'Libellé' => 'libelle',
+		'Label' => 'libelle',
+		'Libellé' => 'libelle',
         'Référence' => 'reference',
         'Quantité' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
@@ -161,7 +162,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $index = 0;
-
         $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
@@ -172,12 +172,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
-            'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
+			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
         $qb->from('App\Entity\ReferenceArticle', 'ra');
 
-        foreach ($filters as $filter) {
+		foreach ($filters as $filter) {
             $index++;
 
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
@@ -427,9 +427,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
                 ->orderBy('vsort', $needCLOrder[0])
                 ->setParameters($paramsQuery);
-            dump($qb->getDQL());
         }
-        return ['data' => $qb->getQuery()->getResult(), 'count' => $countQuery];
+        return [
+        	'data' => $qb->getQuery()->getResult(),
+			'count' => $countQuery
+		];
     }
 
     public function countByType($typeId)
@@ -1024,26 +1026,46 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('ra.reference, ra.libelle, ra.typeQuantite, ra.id, ra.quantiteStock, ra.limitSecurity, ra.limitWarning')
+            ->select('
+                ra.reference,
+                ra.libelle,
+                ra.typeQuantite,
+                ra.id,
+                ra.quantiteStock,
+                ra.limitSecurity,
+                ra.limitWarning')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND (ra.quantiteStock <= ra.limitSecurity OR ra.quantiteStock <= ra.limitWarning)')
+            ->where('ra.typeQuantite = :qte_reference AND 
+            (
+				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
+            	 OR
+			 	(ra.limitWarning IS NOT NULL AND ra.limitWarning > 0 AND ra.quantiteStock <= ra.limitWarning)
+		  	)')
             ->orWhere('ra.typeQuantite = :qte_article AND (
-				(SELECT SUM(art1.quantite)
+				(
+					(SELECT SUM(art1.quantite)
 							FROM App\Entity\Article art1
 							JOIN art1.articleFournisseur af1
 							JOIN af1.referenceArticle refart1
 							JOIN art1.statut s1
 							WHERE s1.nom =:active AND refart1 = ra)
 							<= ra.limitWarning
+					AND ra.limitWarning IS NOT NULL
+					AND ra.limitWarning > 0
+				)
 				OR
-				(SELECT SUM(art2.quantite)
+				(
+					(SELECT SUM(art2.quantite)
 							FROM App\Entity\Article art2
 							JOIN art2.articleFournisseur af2
 							JOIN af2.referenceArticle refart2
 							JOIN art2.statut s2
 							WHERE s2.nom =:active AND refart2 = ra)
 							<= ra.limitSecurity
-				)')
+					AND ra.limitSecurity IS NOT NULL 
+					AND ra.limitSecurity > 0
+				)
+			)')
             ->setParameters([
                 'qte_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                 'qte_article' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,

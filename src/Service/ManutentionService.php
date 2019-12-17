@@ -66,9 +66,18 @@ class ManutentionService
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $statusFilter = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
+		if ($statusFilter) {
+			$filters = [
+				[
+					'field' => 'statut',
+					'value' => $statusFilter
+				]
+			];
+		} else {
+        	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
+		}
         $queryResult = $this->manutentionRepository->findByParamAndFilters($params, $filters);
 
         $manutArray = $queryResult['data'];

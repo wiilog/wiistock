@@ -45,11 +45,11 @@ class AttachmentService
 					->setOriginalName($file->getClientOriginalName())
 					->setFileName($filename);
 				if ($arrivage) {
-					$pj->setArrivage($arrivage);
+					$arrivage->addAttachement($pj);
 				} elseif ($litige) {
-					$pj->setLitige($litige);
+					$litige->addPiecesJointe($pj);
 				} elseif ($mvtTraca) {
-					$pj->setMouvementTraca($mvtTraca);
+					$mvtTraca->addAttachement($pj);
 				}
 				$this->em->persist($pj);
 			}

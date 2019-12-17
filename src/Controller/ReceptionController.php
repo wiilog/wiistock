@@ -2,15 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\FieldsParam;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
+use App\Entity\FieldsParam;
+use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
-use App\Repository\FieldsParamRepository;
-use App\Repository\InventoryCategoryRepository;
-use App\Service\ReceptionService;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
 use App\Entity\DimensionsEtiquettes;
@@ -23,15 +20,10 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Entity\ArticleFournisseur;
 
-use App\Service\ReceptionService;
-use App\Service\AttachmentService;
-use App\Service\ArticleDataService;
-use App\Service\UserService;
-
 use App\Repository\LitigeRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\TransporteurRepository;
+use App\Repository\FieldsParamRepository;
+use App\Repository\InventoryCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
@@ -45,6 +37,13 @@ use App\Repository\StatutRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
+use App\Repository\InventoryCategoryRepository;
+use App\Repository\TransporteurRepository;
+
+use App\Service\ReceptionService;
+use App\Service\AttachmentService;
+use App\Service\ArticleDataService;
+use App\Service\UserService;
 
 use DateTime;
 use DateTimeZone;
@@ -157,29 +156,52 @@ class ReceptionController extends AbstractController
      * @var LitigeRepository
      */
     private $litigeRepository;
-    /**
-     * @var ReceptionService
-     */
-    private $receptionService;
 
-    /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
+	/**
+	 * @var ReceptionService
+	 */
+	private $receptionService;
 
-    /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
+	/**
+	 * @var PieceJointeRepository
+	 */
+	private $pieceJointeRepository;
 
-    public function __construct(FieldsParamRepository $fieldsParamRepository, TransporteurRepository  $transporteurRepository, InventoryCategoryRepository $inventoryCategoryRepository, ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+	/**
+	 * @var InventoryCategoryRepository
+	 */
+	private $inventoryCategoryRepository;
+
+	public function __construct(
+		ArticleDataService $articleDataService,
+		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+		TypeRepository $typeRepository,
+		ChampLibreRepository $champLibreRepository,
+		ValeurChampLibreRepository $valeurChampsLibreRepository,
+		FournisseurRepository $fournisseurRepository,
+		StatutRepository $statutRepository,
+		ReferenceArticleRepository $referenceArticleRepository,
+		ReceptionRepository $receptionRepository,
+		UtilisateurRepository $utilisateurRepository,
+		EmplacementRepository $emplacementRepository,
+		ArticleRepository $articleRepository,
+		ArticleFournisseurRepository $articleFournisseurRepository,
+		UserService $userService,
+		ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+		InventoryCategoryRepository $inventoryCategoryRepository,
+		PieceJointeRepository $pieceJointeRepository,
+		ReceptionService $receptionService,
+		LitigeRepository $litigeRepository,
+		AttachmentService $attachmentService,
+		FieldsParamRepository $fieldsParamRepository
+	)
     {
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
-        $this->pieceJointeRepository = $pieceJointeRepository;
+		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
+		$this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
-        $this->receptionService = $receptionService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+		$this->receptionService = $receptionService;
+		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
@@ -209,8 +231,6 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-            $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
 
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
@@ -238,7 +258,7 @@ class ReceptionController extends AbstractController
                 $reception
                     ->setTransporteur($transporteur);
             }
-
+//TODO CG dateAttendue ou date-attendue ??
             $reception
 				->setReference($data['reference'])
 				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
@@ -507,6 +527,7 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
 			'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'fieldsParam' => $fields,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
     }
@@ -724,6 +745,7 @@ class ReceptionController extends AbstractController
         } else {
             $valeurChampLibreTab = [];
         }
+
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
@@ -748,7 +770,6 @@ class ReceptionController extends AbstractController
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
             'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-            //            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
@@ -968,7 +989,7 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
 
@@ -1409,7 +1430,7 @@ class ReceptionController extends AbstractController
             }
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
-            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
+            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
 
             return new JsonResponse($data);
         }

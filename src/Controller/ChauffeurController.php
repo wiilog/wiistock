@@ -249,9 +249,6 @@ class ChauffeurController extends AbstractController
     public function getTransporteurs(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-                return new JsonResponse(['results' => []]);
-            }
 
             $search = $request->query->get('term');
 
@@ -267,9 +264,6 @@ class ChauffeurController extends AbstractController
     public function getChauffeur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-                return new JsonResponse(['results' => null]);
-            }
             $search = $request->query->get('term');
             $chauffeur = $this->chauffeurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $chauffeur]);

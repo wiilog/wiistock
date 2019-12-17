@@ -17,6 +17,16 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            } else if (element.field == 'providers') {
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $providers.append(option).trigger('change');
+                });
             } else if (element.field = 'emergency') {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
@@ -26,10 +36,11 @@ $(function() {
             }
         });
 
-        initFilterDateToday();
+        // initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initFilterDateToday() {
@@ -193,7 +204,8 @@ $submitSearchArrivage.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked')
+        urgence: $('#urgence-filter').is(':checked'),
+        providers: $('#providers').select2('data'),
     }
     saveFilters(filters, tableArrivage);
 });
@@ -277,18 +289,30 @@ function newLine(path, button, toHide, buttonAdd)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
+    let formIsValid = true;
+
     inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
+        {
+            $(this).addClass('is-invalid');
+            formIsValid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+        }
        params[$(this).attr('name')] = $(this).val();
     });
-    $.post(path, JSON.stringify(params), function (resp) {
-        let $toShow = $('#' + toHide);
-        let $toAdd = $('#' + buttonAdd);
-        $toShow.css('visibility', "hidden");
-        $toAdd.css('visibility', "hidden");
-        numberOfDataOpened--;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        console.log()
-    });
+
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function (resp) {
+            let $toShow = $('#' + toHide);
+            let $toAdd = $('#' + buttonAdd);
+            $toShow.css('visibility', "hidden");
+            $toAdd.css('visibility', "hidden");
+            numberOfDataOpened--;
+            if (numberOfDataOpened === 0) {
+                $toShow.parent().parent().css("display", "none");
+            }
+        });
+    }
+
 }

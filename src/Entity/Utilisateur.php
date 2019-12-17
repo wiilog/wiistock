@@ -186,6 +186,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $receptionsTraca;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
+     */
+    private $litiges;
+
+    /**
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $rechercheForArticle;
@@ -194,11 +199,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $columnsVisibleForArticle;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
-     */
-    private $litiges;
 
     public function __construct()
     {
@@ -1029,30 +1029,6 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getRechercheForArticle()
-    {
-        return $this->rechercheForArticle;
-    }
-
-    public function setRechercheForArticle($rechercheForArticle): self
-    {
-        $this->rechercheForArticle = $rechercheForArticle;
-
-        return $this;
-    }
-
-    public function getColumnsVisibleForArticle()
-    {
-        return $this->columnsVisibleForArticle;
-    }
-
-    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
-    {
-        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
-
-        return $this;
-    }
-
     /**
      * @return Collection|Litige[]
      */
@@ -1077,6 +1053,30 @@ class Utilisateur implements UserInterface, EquatableInterface
             $this->litiges->removeElement($litige);
             $litige->removeBuyer($this);
         }
+
+        return $this;
+    }
+
+    public function getRechercheForArticle()
+    {
+        return $this->rechercheForArticle;
+    }
+
+    public function setRechercheForArticle($rechercheForArticle): self
+    {
+        $this->rechercheForArticle = $rechercheForArticle;
+
+        return $this;
+    }
+
+    public function getColumnsVisibleForArticle()
+    {
+        return $this->columnsVisibleForArticle;
+    }
+
+    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
+    {
+        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
 
         return $this;
     }

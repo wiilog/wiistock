@@ -57,8 +57,8 @@
         </select>
     </div>
     <div class="form-group w-100 col-4">
-        <label for="acheteursEdit">Acheteur(s)</label>
-        <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
+        <label for="acheteursEdit">Acheteur(s)*</label>
+        <select type="text" class="form-control data select2 needed" name="acheteurs" multiple="multiple"
                 id="acheteursEdit">
             {% for utilisateur in utilisateurs %}
                 <option value="{{ utilisateur.username }}">

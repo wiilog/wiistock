@@ -11,9 +11,14 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -344,7 +349,6 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
 			WHERE a.statut =:statut AND ra = :refArticle
-			AND a.demande is null
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
@@ -383,6 +387,8 @@ class ArticleRepository extends ServiceEntityRepository
 	 * @param string|null $statutLabel
 	 * @param Utilisateur $user
 	 * @return array
+	 * @throws ORMException
+	 * @throws OptimisticLockException
 	 */
     public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
     {
@@ -403,7 +409,7 @@ class ArticleRepository extends ServiceEntityRepository
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allArticleDataTable = null;
-        // prise en compte des paramètres issus du datatable
+		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $searchValue = $params->get('search')['value'];
@@ -519,7 +525,8 @@ class ArticleRepository extends ServiceEntityRepository
                     }
                     $qb->andWhere(implode(' OR ', $query));
                 }
-            }
+				$countQuery = count($qb->getQuery()->getResult());
+			}
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
@@ -743,8 +750,8 @@ class ArticleRepository extends ServiceEntityRepository
             'user' => $user
         ]);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
 	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
 	{

@@ -2,12 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Collecte;
+use App\Entity\Demande;
+use App\Entity\Manutention;
 use App\Entity\MouvementStock;
-use App\Repository\AlerteExpiryRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\FiabilityByReferenceRepository;
-use App\Repository\MouvementStockRepository;
-use App\Repository\ReferenceArticleRepository;
+
 use App\Service\DashboardService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,26 +15,21 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
-use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
-
-use App\Entity\Collecte;
-use App\Entity\Demande;
-use App\Entity\Manutention;
+use App\Repository\AlerteExpiryRepository;
+use App\Repository\ArticleRepository;
+use App\Repository\FiabilityByReferenceRepository;
+use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
 
 /**
  * @Route("/accueil")
  */
 class AccueilController extends AbstractController
 {
-    /**
-     * @var AlerteStockRepository
-     */
-    private $alerteStockRepository;
-
     /**
      * @var CollecteRepository
      */
@@ -147,7 +141,7 @@ class AccueilController extends AbstractController
         $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
 
 
-        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
+        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
 
         $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
