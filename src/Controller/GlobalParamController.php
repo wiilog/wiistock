@@ -23,6 +23,16 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class GlobalParamController extends AbstractController
 {
+    private $engDayToFr = [
+        'monday' => 'Lundi',
+        'tuesday' => 'Mardi',
+        'wednesday' => 'Mercredi',
+        'thursday' => 'Jeudi',
+        'friday' => 'Vendredi',
+        'saturday' => 'Samedi',
+        'sunday' => 'Dimanche',
+    ];
+
     /**
      * @var MailerServerRepository
      */
@@ -37,6 +47,11 @@ class GlobalParamController extends AbstractController
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
+
+    /**
+     * @var DaysWorkedRepository
+     */
+    private $daysWorkedRepository;
 
     /**
      * @var UserService
