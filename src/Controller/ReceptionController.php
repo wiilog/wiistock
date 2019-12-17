@@ -1316,7 +1316,6 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $articles = $this->articleRepository->getArticleByReception($reception->getId());
-            dump(count($articles));
             return new JsonResponse(['results' => $articles]);
         }
         throw new NotFoundHttpException("404");
