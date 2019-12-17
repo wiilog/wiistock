@@ -46,7 +46,7 @@ class PreparationRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT p.id, 
+            "SELECT p.id,
                          p.numero as number,
                          dest.label as destination,
                          t.label as type
@@ -69,7 +69,7 @@ class PreparationRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT p.id, 
+            "SELECT p.id,
                          p.numero as number,
                          dest.label as destination
 			FROM App\Entity\Preparation p
@@ -158,7 +158,6 @@ class PreparationRepository extends ServiceEntityRepository
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
-					dump($search);
 					$qb
 						->leftJoin('p.demandes', 'd2')
 						->leftJoin('d2.type', 't2')
@@ -168,7 +167,7 @@ class PreparationRepository extends ServiceEntityRepository
 						p.numero LIKE :value OR
 						t2.label LIKE :value OR
 						p2.username LIKE :value OR
-						s2.nom LIKE :value						
+						s2.nom LIKE :value
 						')
 						->setParameter('value', '%' . $search . '%');
 				}
