@@ -16,7 +16,7 @@ $('.select2-autocomplete-articles').select2({
     },
 });
 
-// RECEPTION
+//RECEPTION
 let path = Routing.generate('reception_api', true);
 let tableReception = $('#tableReception_id').DataTable({
     serverSide: true,
@@ -84,8 +84,7 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     ],
 });
 
-function editRowLitige(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -394,7 +393,7 @@ let getArticleFournisseur = function () {
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
-    clearAddRefModal();
+    clearAddRefModal(); //TODO CG
 }
 
 function addLot(button) {
@@ -421,16 +420,12 @@ function createArticleAndBarcodes(button, receptionId) {
         date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
-        if (response.exists) {
-            printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
-            tableArticle.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-        } else {
-            $('#cannotGenerateStock').click();
-        }
+        printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
+        tableArticle.ajax.reload(function (json) {
+            if (this.responseText !== undefined) {
+                $('#myInput').val(json.lastInput);
+            }
+        });
     });
 }
 
@@ -440,14 +435,12 @@ function printSingleBarcode(button) {
     }
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
-            if (response.exists) {
-                printBarcodes(
-                    [response.ligneRef],
-                    response,
-                    'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
-                    [response.barcodeLabel]
-                );
-            }
+            printBarcodes(
+                [response.ligneRef],
+                response,
+                'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                [response.barcodeLabel]
+            );
         } else {
             $('#ligneSelected').val(button.data('id'));
             $('#chooseConditionnement').click();
@@ -456,7 +449,7 @@ function printSingleBarcode(button) {
             $submit.attr('data-id', button.data('id'))
             initDatatableConditionnement();
             $submit.addClass('d-none');
-            $('#reference-list').html(response.article);
+            $('#reference-list').html(response.article); //TODO CG nécessaire ?
         }
     });
 }
@@ -466,25 +459,12 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            printBarcodes(
-                [response.articleRef.barcode],
-                response,
-                'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
-                [response.articleRef.barcodeLabel]
-            );
-        }
-        else {
-            $('#cannotGenerate').click();
-        }
-    });
-}
-
-function addArticle() {
-    let path = Routing.generate('get_modal_new_ref', true);
-    $.post(path, {}, function (modalNewRef) {
-        $('#innerNewRef').html(modalNewRef);
-        initNewReferenceArticleEditor();
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette concernant l\'article ' + response.articleRef.barcode + '.pdf',
+            [response.articleRef.barcodeLabel]
+        );
     });
 }
 
@@ -542,6 +522,14 @@ function initNewReferenceArticleEditor() {
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
     InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
 };
+
+function addArticle() {
+    let path = Routing.generate('get_modal_new_ref', true);
+    $.post(path, {}, function (modalNewRef) {
+        $('#innerNewRef').html(modalNewRef);
+        initNewReferenceArticleEditor();
+    });
+}
 
 function checkIfQuantityArticle($select){
     let referenceId = $select.val();

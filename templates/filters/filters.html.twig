@@ -22,7 +22,7 @@
         <div>
             <div class="input-group maxw-250px">
                 <select class="form-control data select2" name="emplacement" id="emplacement" {{ disabled }}>
-                    <option></option>
+                    <option value="">&nbsp;</option>
                     {% for emplacement in emplacements %}
                         <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
                     {% endfor %}
@@ -51,7 +51,7 @@
     {% endblock %}
 
     {% block userFilter %}
-    <div class="minw-150px">
+    <div class="minw-150px select2-overflow">
         <div class="input-group w-100">
             <select id="utilisateur" name="utilisateur" class="form-control data ajax-autocomplete-user min-150px" multiple="multiple" {{ disabled }}>
             </select>
@@ -82,7 +82,7 @@
     {% endblock %}
 
     {% block providerFilter %}
-        <div class="minw-150px">
+        <div class="minw-150px select2-overflow">
             <div class="input-group w-100">
                 <select id="providers" name="providers" class="form-control data ajax-autocomplete-fournisseur min-150px" multiple="multiple" {{ disabled }}>
                 </select>

@@ -26,12 +26,12 @@ class Litige
 
 
 	/**
-	 * @ORM\Column(type="date", nullable=true)
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
 	private $creationDate;
 
 	/**
-	 * @ORM\Column(type="date", nullable=true)
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
 	private $updateDate;
 

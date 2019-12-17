@@ -1,24 +1,41 @@
+const FILE_MAX_SIZE = 2000000;
+
 function displayAttachements(files, dropFrame) {
 
-    let valid = checkFilesFormat(files, dropFrame);
-    if (valid) {
-        $.each(files, function(index, file) {
+    let errorMsg = [];
+    $.each(files, function(index, file) {
+        let formatValid = checkFileFormat(file, dropFrame);
+        let sizeValid = checkSizeFormat(file, dropFrame);
+
+        if (!formatValid) {
+            errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+        } else if (!sizeValid) {
+            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 2 Mo.');
+        } else {
             let fileName = file.name;
 
             let reader = new FileReader();
-            reader.addEventListener('load', function() {
+            reader.addEventListener('load', function () {
                 dropFrame.after(`
-                    <p class="attachement" value="` + withoutExtension(fileName)+ `">
-                        <a target="_blank" href="`+ reader.result + `">
+                    <p class="attachement" value="` + withoutExtension(fileName) + `">
+                        <a target="_blank" href="` + reader.result + `">
                             <i class="fa fa-file mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachement($(this))"></i>
                     </p>`);
             });
             reader.readAsDataURL(file);
-        });
+        }
+    });
+
+    if (errorMsg.length === 0) {
+        displayRight(dropFrame);
         clearErrorMsg(dropFrame);
+    } else {
+        displayWrong(dropFrame);
+        dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
     }
+
 }
 
 function withoutExtension(fileName) {
@@ -38,18 +55,12 @@ function removeAttachement($elem) {
     });
 }
 
-function checkFilesFormat(files, div) {
-    let valid = true;
-    $.each(files, function (index, file) {
-        if (file.name.includes('.') === false) {
-            div.closest('.modal-body').next('.error-msg').html("Le format de votre pièce jointe n'est pas supporté. Le fichier doit avoir une extension.");
-            displayWrong(div);
-            valid = false;
-        } else {
-            displayRight(div);
-        }
-    });
-    return valid;
+function checkFileFormat(file) {
+    return file.name.includes('.') !== false;
+}
+
+function checkSizeFormat(file) {
+    return file.size < FILE_MAX_SIZE;
 }
 
 function dragEnterDiv(event, div) {
@@ -78,8 +89,13 @@ function dropOnDiv(event, div) {
             event.preventDefault();
             event.stopPropagation();
             let array = Array.from(event.dataTransfer.files);
-            droppedFiles = [...droppedFiles, ...array];
-            displayRight(div);
+
+            array.forEach(file => {
+                if (checkSizeFormat(file) && checkFileFormat(file)) {
+                    droppedFiles.push(file);
+                }
+            });
+
             displayAttachements(event.dataTransfer.files, div);
         }
     } else {
@@ -94,7 +110,13 @@ function openFE(span) {
 
 function uploadFE(span) {
     let files = span[0].files;
-    droppedFiles = [...droppedFiles, ...files];
+
+    Array.from(files).forEach(file => {
+       if (checkSizeFormat(file) && checkFileFormat(file)) {
+           droppedFiles.push(file);
+       }
+    });
+
     let dropFrame = span.closest('.dropFrame');
 
     displayAttachements(files, dropFrame);

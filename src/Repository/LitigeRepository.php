@@ -198,9 +198,9 @@ class LitigeRepository extends ServiceEntityRepository
 				case 'providers':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('a.fournisseur', 'f')
-						->andWhere("f.id in (:fournisseur)")
-						->setParameter('fournisseur', $value);
+						->join('a.fournisseur', 'f2')
+						->andWhere("f2.id in (:fournisseurId)")
+						->setParameter('fournisseurId', $value);
 					break;
 				case 'carriers':
 					$qb

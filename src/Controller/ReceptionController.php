@@ -2,30 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieStatut;
+use App\Entity\Litige;
+use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\MouvementStock;
-use App\Repository\FieldsParamRepository;
-use App\Repository\InventoryCategoryRepository;
-use App\Service\ReceptionService;
 use App\Entity\PieceJointe;
-use App\Repository\LitigeRepository;
-use App\Repository\PieceJointeRepository;
-use App\Service\AttachmentService;
-use DateTime;
-use DateTimeZone;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use App\Entity\ValeurChampLibre;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Article;
@@ -37,6 +23,15 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Entity\ArticleFournisseur;
 
+use App\Repository\LitigeRepository;
+use App\Repository\PieceJointeRepository;
+use App\Service\AttachmentService;
+use App\Repository\FieldsParamRepository;
+use App\Repository\InventoryCategoryRepository;
+use App\Service\ReceptionService;
+use App\Entity\PieceJointe;
+use App\Repository\LitigeRepository;
+use App\Repository\PieceJointeRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
@@ -51,9 +46,21 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 
+use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
+use DateTime;
+use DateTimeZone;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @Route("/reception")
@@ -149,29 +156,52 @@ class ReceptionController extends AbstractController
      * @var LitigeRepository
      */
     private $litigeRepository;
-    /**
-     * @var ReceptionService
-     */
-    private $receptionService;
 
-    /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
+	/**
+	 * @var ReceptionService
+	 */
+	private $receptionService;
 
-    /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
+	/**
+	 * @var PieceJointeRepository
+	 */
+	private $pieceJointeRepository;
 
-    public function __construct(InventoryCategoryRepository $inventoryCategoryRepository, ReceptionService $receptionService, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, AttachmentService $attachmentService, ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, FieldsParamRepository $fieldsParamRepository)
+	/**
+	 * @var InventoryCategoryRepository
+	 */
+	private $inventoryCategoryRepository;
+
+//TODO CG finir construct
+	public function __construct(
+		ArticleDataService $articleDataService,
+		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+		TypeRepository $typeRepository,
+		ChampLibreRepository $champLibreRepository,
+		ValeurChampLibreRepository $valeurChampsLibreRepository,
+		FournisseurRepository $fournisseurRepository,
+		StatutRepository $statutRepository,
+		ReferenceArticleRepository $referenceArticleRepository,
+		ReceptionRepository $receptionRepository,
+		UtilisateurRepository $utilisateurRepository,
+		EmplacementRepository $emplacementRepository,
+		ArticleRepository $articleRepository,
+		ArticleFournisseurRepository $articleFournisseurRepository,
+		UserService $userService,
+		ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+		InventoryCategoryRepository $inventoryCategoryRepository,
+		PieceJointeRepository $pieceJointeRepository,
+		ReceptionService $receptionService,
+		LitigeRepository $litigeRepository,
+		AttachmentService $attachmentService,
+	)
     {
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
-        $this->pieceJointeRepository = $pieceJointeRepository;
+		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
+		$this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
-        $this->receptionService = $receptionService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+		$this->receptionService = $receptionService;
+		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
@@ -223,15 +253,17 @@ class ReceptionController extends AbstractController
             }
 
             $reception
-				->setReference($data['reference'])
-				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
-				->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
+                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
+                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
+                ->setFournisseur($fournisseur)
+                ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
-                ->setType($type);
+                ->setType($type)
+                ->setCommentaire($data['commentaire']);
+
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -699,6 +731,7 @@ class ReceptionController extends AbstractController
         } else {
             $valeurChampLibreTab = [];
         }
+
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
@@ -723,7 +756,6 @@ class ReceptionController extends AbstractController
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
             'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-            //            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
@@ -943,7 +975,8 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitige($litige->getId());
+//    	TODO CG litigeId ?
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
 
@@ -1384,11 +1417,27 @@ class ReceptionController extends AbstractController
             }
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
-            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
-
+            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
+//TODO CG $user ?
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getArticles(Request $request, Reception $reception)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $articles = $this->articleRepository->getArticleByReception($reception->getId());
+            dump(count($articles));
+            return new JsonResponse(['results' => $articles]);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**

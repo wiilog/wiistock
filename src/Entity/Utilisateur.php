@@ -186,6 +186,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $receptionsTraca;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
+     */
+    private $litiges;
+
+    /**
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $rechercheForArticle;
@@ -194,11 +199,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $columnsVisibleForArticle;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
-     */
-    private $litiges;
 
     public function __construct()
     {
@@ -1024,6 +1024,34 @@ class Utilisateur implements UserInterface, EquatableInterface
             if ($receptionsTraca->getUser() === $this) {
                 $receptionsTraca->setUser(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->addBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            $litige->removeBuyer($this);
         }
 
         return $this;

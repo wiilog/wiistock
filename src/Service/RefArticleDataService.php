@@ -35,6 +35,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -403,8 +404,8 @@ class RefArticleDataService
             "Quantité" => $quantityInStock - $reservedQuantity,
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
-            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
@@ -475,7 +476,7 @@ class RefArticleDataService
 
 	/**
 	 * @return string
-	 * @throws NonUniqueResultException
+	 * @throws Exception
 	 */
 	public function generateBarCode()
 	{
