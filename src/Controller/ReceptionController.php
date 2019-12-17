@@ -1414,4 +1414,41 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @Route("/receptions-infos", name="get_receptions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getReceptionIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $receptions = $this->receptionRepository->findByDates($dateMin, $dateMax);
+
+            $headers = [];
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date',
+                'type']);
+
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($receptions as $reception) {
+                $receptionData = [];
+
+                $receptionData[] = $reception->getNumeroReception();
+                $receptionData[] = $reception->getReference();
+                $receptionData[] = $reception->getFournisseur()->getNom();
+                $receptionData[] = $reception->getUtilisateur()->getUsername();
+                $receptionData[] = $reception->getStatut()->getNom();
+                $receptionData[] = $reception->getDate()->format('d/m/Y h:i');
+                $receptionData[] = $reception->getType()->getLabel();
+
+                $data[] = $receptionData;
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 }
