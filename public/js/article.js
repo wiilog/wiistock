@@ -233,13 +233,11 @@ function getDataAndPrintLabels() {
         length: tableArticle.page.info().length
     });
     $.post(path, params, function (response) {
-        if (response.tags.exists) {
             printBarcodes(
                 response.barcodes,
                 response.tags,
                 'Etiquettes-articles.pdf',
                 response.barcodesLabels);
-        }
     });
 }
 
