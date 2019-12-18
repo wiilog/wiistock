@@ -37,7 +37,6 @@ use App\Repository\StatutRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\ReceptionService;
@@ -193,7 +192,8 @@ class ReceptionController extends AbstractController
 		ReceptionService $receptionService,
 		LitigeRepository $litigeRepository,
 		AttachmentService $attachmentService,
-		FieldsParamRepository $fieldsParamRepository
+		FieldsParamRepository $fieldsParamRepository,
+		TransporteurRepository $transporteurRepository
 	)
     {
 		$this->inventoryCategoryRepository = $inventoryCategoryRepository;

@@ -1,3 +1,4 @@
+let numberOfDataOpened = 0;
 $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
@@ -322,18 +323,6 @@ function initNewReceptionEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
-};
-
-var editorEditReceptionAlreadyDone = false;
-
-function initEditReceptionEditor(modal) {
-    if (!editorEditReceptionAlreadyDone) {
-        initEditorInModal(modal);
-        editorEditReceptionAlreadyDone = true;
-    }
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur-edit'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 };
 
 var editorNewArticleAlreadyDone = false;
@@ -782,24 +771,4 @@ function toggleInput(id, button) {
         }
         // $div.style.visibility = "hidden";
     }
-}
-
-function newLine(path, button, toHide, buttonAdd)
-{
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
-    let params = {};
-    inputs.each(function () {
-        params[$(this).attr('name')] = $(this).val();
-    });
-    $.post(path, JSON.stringify(params), function (resp) {
-        let $toShow = $('#' + toHide);
-        let $toAdd = $('#' + buttonAdd);
-        $toShow.css('visibility', "hidden");
-        $toAdd.css('visibility', "hidden");
-        numberOfDataOpened--;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        console.log()
-    });
 }

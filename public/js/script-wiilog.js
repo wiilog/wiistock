@@ -278,7 +278,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+
         if ($('#typageModif').val() !== undefined) {   //TODO Moche
             defaultValueForTypage($('#typageModif'), '-edit');
         }
@@ -1029,6 +1031,37 @@ function addToRapidSearch(checkbox) {
                 } else {
                     checkbox.prop( "checked", true );
                 }
+            }
+        });
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
+        {
+            $(this).addClass('is-invalid');
+            formIsValid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function () {
+            let $toShow = $('#' + toHide);
+            let $toAdd = $('#' + buttonAdd);
+            $toShow.css('visibility', "hidden");
+            $toAdd.css('visibility', "hidden");
+            numberOfDataOpened--;
+            if (numberOfDataOpened === 0) {
+                $toShow.parent().parent().css("display", "none");
             }
         });
     }

@@ -204,9 +204,4 @@ class MouvementTraca
         return $this;
     }
 
-    public function getFinished(): ?bool
-    {
-        return $this->finished;
-    }
-
 }

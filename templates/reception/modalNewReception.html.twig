@@ -1,24 +1,47 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="modalNewReception" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewReception" role="dialog"
     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Nouvelle réception</h5>
+                <h5 class="modal-title">Nouvelle réception</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+
                 <div class='row'>
-                    <div class="form-group w-100 col-6">
-                        <label for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : ''}}</label>
-                        <select class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : ''}}" name="fournisseur"
+                    <div class="form-group col-6">
+                        <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : ''}}</label>
+                        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : ''}}" name="dateCommande" value="" required="true"
+                               id="dateCommande" max="{{ '+25year' | date('Y-m-d') }}">
                     </div>
-                    <div class="form-group col-2">
+
+                    <div class="form-group col-6">
+                        <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : ''}}</label>
+                        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToCreate ? 'needed' : ''}}" name="dateAttendue" value="" required="true"
+                               id="dateAttendue">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label>Numéro de commande{{ fieldsParam.numCommande.mustToCreate ? '*' : ''}}</label>
+                        <input type="text" class="form-control data {{ fieldsParam.numCommande.mustToCreate ? 'needed' : ''}}" name="reference">
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class="form-group w-100 col-5">
+                        <label for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : ''}}</label>
+                        <select class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : ''}}" name="fournisseur">
+                        </select>
+                    </div>
+                    <div class="form-group col-1">
                         <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
                     </div>
-                    <div class="form-group w-100 col-4">
+                    <div class="form-group w-100 col-5">
                         <label for="transporteur">Transporteur</label>
                         <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete" name="transporteur" id="transporteur">
                         </select>
@@ -30,10 +53,10 @@
                 <div class="row line-arrivage-new-data">
                     <div class="row col-6 formulaire">
                         <div class="form-group col-10" id="fournisseurDisplay">
-                            <label for="newFournisseur">Nom fournisseur</label>
-                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire" name="Nom" maxlength="64">
-                            <label for="newFournisseurCode">Code référence</label>
-                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire" name="Code" maxlength="64">
+                            <label for="newFournisseur">Nom*</label>
+                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew" name="Nom" maxlength="64">
+                            <label for="newFournisseurCode" class="mt-2">Code*</label>
+                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew" name="Code" maxlength="64">
                         </div>
                         <div class="form-group col-2" id="addFournisseur">
                             <span class="btn btn-success" onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur')"><i class="fas fa-check-circle"></i></span>
@@ -41,10 +64,10 @@
                     </div>
                     <div class="row col-6 formulaire">
                         <div class="form-group col-10" id="transporteurDisplay">
-                            <label for="newTransporteur">Nom transporteur</label>
-                            <input type="text" id="newTransporteur" class="form-control newFormulaire" name="label" maxlength="64">
-                            <label for="newTransporteurCode">Nom transporteur</label>
-                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire" name="code" maxlength="64">
+                            <label for="newTransporteur">Nom*</label>
+                            <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew" name="label" maxlength="64">
+                            <label for="newTransporteurCode" class="mt-2">Code*</label>
+                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew" name="code" maxlength="64">
                         </div>
                         <div class="form-group col-2" id="addTransporteur">
                             <span class="btn btn-success" onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur')"><i class="fas fa-check-circle"></i></span>
@@ -52,35 +75,10 @@
                     </div>
                 </div>
 
-                <div class='row'>
-                    <div class="form-group col-6">
-                        <label>Numéro de commande{{ fieldsParam.numCommande.mustToCreate ? '*' : ''}}</label>
-                        <input type="text" class="form-control data {{ fieldsParam.numCommande.mustToCreate ? 'needed' : ''}}" name="reference">
-                    </div>
-                    <div class="form-group col-6">
-                        <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : ''}}</label>
-                        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToCreate ? 'needed' : ''}}" name="dateAttendue" value="" required="true"
-                            id="dateAttendue">
-                    </div>
-
-                    <div class="form-group col-6">
-                        <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : ''}}</label>
-                        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : ''}}" name="dateCommande" value="" required="true"
-                            id="dateCommande" max="{{ '+25year' | date('Y-m-d') }}">
-                    </div>
-                </div>
                 <div class="form-group">
                     <label for="NumeroReception">Commentaire{{ fieldsParam.commentaire.mustToCreate ? '*' : ''}}</label>
                     <input id='commentaire' class="form-control data {{ fieldsParam.commentaire.mustToCreate ? 'needed' : ''}}" name="commentaire" type="hidden">
                     <div class="editor-container" id='editor-container'></div>
-                </div>
-
-                <div class="form-group">
-                    <label>Anomalie</label>
-                    <label class="switch">
-                        <input class="checkbox" type="checkbox" name="anomalie">
-                        <span class="slider round"></span>
-                    </label>
                 </div>
 
                 <select name="type" class="d-none data">
@@ -149,6 +147,16 @@
                             </div>
                             {% endfor %}
                         </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-6 pt-4">
+                        <label>Anomalie</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="anomalie">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
             </div>
