@@ -261,7 +261,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -690,30 +692,6 @@ a:hover {
 }
 .switch .slider.round:before {
   border-radius: 50%;
-}
-
-#fournisseurDisplay {
-  visibility: hidden;
-}
-
-#transporteurDisplay {
-  visibility: hidden;
-}
-
-#chauffeurDisplay {
-  visibility: hidden;
-}
-
-#addChauffeur {
-  visibility: hidden;
-}
-
-#addFournisseur {
-  visibility: hidden;
-}
-
-#addTransporteur {
-  visibility: hidden;
 }
 
 .radio-btn .btn {
