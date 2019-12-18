@@ -912,7 +912,8 @@ class ArticleController extends Controller
             }
             $barcodes = array_slice($barcodes, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
+            {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
                 $tags['exists'] = true;
