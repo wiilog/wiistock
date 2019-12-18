@@ -747,10 +747,12 @@ class ReceptionController extends AbstractController
         $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibre = [];
         foreach ($listTypes as $type) {
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 
             $typeChampLibre[] = [
                 'typeLabel' => $type->getLabel(),
                 'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
             ];
         }
         return $this->render("reception/show.html.twig", [

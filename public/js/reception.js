@@ -788,6 +788,8 @@ function initNewLivraisonEditor(modal) {
     let modalNewDemande = $("#modalReceptionWithDL");
     let submitNewDemande = $("#submitNewReceptionButton");
     InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
+    $('#typeContentNew').children().addClass('d-none');
+    $('#typeContentNew').children().removeClass('d-block');
 };
 
 function initWithPH(select, ph, ajax = true, route = null) {

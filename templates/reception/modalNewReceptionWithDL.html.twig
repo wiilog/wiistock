@@ -22,7 +22,8 @@
                         </div>
                         <div class="col-3 form-group">
                             <label for="type">Type*</label>
-                            <select type="text" class="select2-type data w-100 needed" name="type">
+                            <select type="text" class="select2-type data w-100 needed" name="type"
+                                    onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
                                 <option></option>
                                 {% for type in typeChampsLibres %}
                                     <option value="{{type.typeId}}">{{type.typeLabel}}</option>
@@ -35,6 +36,65 @@
                                 <option></option>
                             </select>
                         </div>
+                    </div>
+                    <!-- CHAMPS LIBRES -->
+                    <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                        {% for type in typeChampsLibres %}
+                            <div class="d-none" id="{{type.typeId}}-new">
+                                <div class="row mt-2">
+                                    {% if type.champsLibres|length > 0 %}
+                                        <p class="col-12 pl-0">Champs Libres :</p>
+                                    {% endif %}
+                                    {% for champ in type.champsLibres %}
+                                        <div class="form-group col-6 pl-0">
+                                            <label>
+                                                {{champ.label|capitalize}}
+                                            </label>
+
+                                            {% if champ.typage == 'booleen' %}
+                                                {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
+                                                <label class="switch">
+                                                    <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
+                                                    <span class="slider round"></span>
+                                                </label>
+
+                                            {% elseif champ.typage == 'number' %}
+                                                <input type="number" id="{{champ.id ~ 'create'}}" class="form-control data"
+                                                       value="{{champ.defaultValue}}" name="{{champ.id}}">
+
+                                            {% elseif champ.typage == 'list' %}
+                                                <select id="{{champ.id ~ 'create'}}" class="form-control data" name="{{champ.id}}"
+                                                        id="input">
+                                                    <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
+                                                    </option>
+                                                    {% for elem in champ.elements %}
+                                                        {% if champ.defaultValue != elem %}
+                                                            <option value="{{elem}}">{{elem}}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    {% if champ.defaultValue != "" %}
+                                                        <option value=""></option>
+                                                    {% endif %}
+                                                </select>
+
+                                            {% elseif champ.typage == 'text'  %}
+                                                <input id="{{champ.id ~ 'create'}}" class="form-control data" type="text"
+                                                       value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+
+                                            {% elseif champ.typage == 'date' %}
+                                                <input type="date" name="{{ champ.id }}" id="{{champ.id ~ 'create'}}"
+                                                       class="form-control data" value="{{champ.defaultValue}}">
+
+                                            {% else %}
+                                                <input disabled>
+
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+                        {% endfor %}
                     </div>
                     <label for="commentaire-dl" class="m-3">Commentaire</label>
                     <input id='commentaire' class="commentaire data" name="commentaire"

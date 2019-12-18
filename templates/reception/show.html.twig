@@ -22,7 +22,7 @@
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" data-target='#modalReceptionWithDL' data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalReceptionWithDL")'>
+                       class="btn btn-primary btn-action ml-auto" onclick='clearModal("#modalReceptionWithDL"), initNewLivraisonEditor("#modalReceptionWithDL")'>
                         Nouvelle réception</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
