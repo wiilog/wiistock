@@ -93,6 +93,11 @@ class Reception
     private $valeurChampLibre;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="reception")
+     */
+    private $transporteur;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateFinReception;
@@ -364,6 +369,18 @@ class Reception
                 $demande->setReception(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getTransporteur(): ?Transporteur
+    {
+        return $this->transporteur;
+    }
+
+    public function setTransporteur(?Transporteur $transporteur): self
+    {
+        $this->transporteur = $transporteur;
 
         return $this;
     }

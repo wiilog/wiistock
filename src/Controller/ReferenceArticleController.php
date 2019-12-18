@@ -1218,7 +1218,7 @@ class ReferenceArticleController extends Controller
 
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
                 $tags['exists'] = true;
@@ -1226,6 +1226,7 @@ class ReferenceArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
+
             $data  = [
             	'tags' => $tags,
 				'barcodes' => $barcodes,
