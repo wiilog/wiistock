@@ -1,3 +1,4 @@
+let numberOfDataOpened = 0;
 $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
@@ -321,17 +322,7 @@ function initNewReceptionEditor(modal) {
         editorNewReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
-};
-
-var editorEditReceptionAlreadyDone = false;
-
-function initEditReceptionEditor(modal) {
-    if (!editorEditReceptionAlreadyDone) {
-        initEditorInModal(modal);
-        editorEditReceptionAlreadyDone = true;
-    }
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
 };
 
 var editorNewArticleAlreadyDone = false;
@@ -760,6 +751,28 @@ function clearModalRefArticleFromRecep(modal, data) {
         }
     }
 }
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
 
 function validateNewRecep() {
     /**
