@@ -14,13 +14,13 @@
                 <div class="demande-livraison">
                     <h5 class="modal-title">Demande de livraison<span id="reference-list"></span></h5>
                     <div class="row mt-3">
-                        <div class="col-3 form-group">
+                        <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
                             <select type="text" class="select2-user data w-100 needed" name="demandeur">
                                 <option></option>
                             </select>
                         </div>
-                        <div class="col-3 form-group">
+                        <div class="col-4 form-group">
                             <label for="type">Type*</label>
                             <select type="text" class="select2-type data w-100 needed" name="type"
                                     onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
@@ -30,7 +30,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-3 form-group">
+                        <div class="col-4 form-group">
                             <label for="destination">Destination*</label>
                             <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed">
                                 <option></option>
@@ -108,7 +108,7 @@
                 -->
                 <div class="bloc-packing">
                     <h2>Réception d'articles</h2>
-                    <div class="form-group w-100">
+                    <div class="form-group w-50">
                         <label>Référence</label>
                         <select class="form-control select2-autocomplete-ref-articles" name="refArticle" class="selectReceptionRef"></select>
                     </div>
