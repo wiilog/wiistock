@@ -387,6 +387,7 @@ function setCommentaire(div, quill = null) {
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
         $(div).closest('.modal').find('#commentaire').val(com);
+        console.log($(div).closest('.modal').find('#commentaire').attr('id'));
     } else if (quill) {
         $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
     }
