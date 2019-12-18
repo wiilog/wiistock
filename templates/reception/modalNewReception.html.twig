@@ -42,8 +42,8 @@
                         <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
                     </div>
                     <div class="form-group w-100 col-5">
-                        <label for="transporteur">Transporteur</label>
-                        <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete" name="transporteur" id="transporteur">
+                        <label for="transporteur">Transporteur{{ fieldsParam.transporteur.mustToCreate ? '*' : ''}}</label>
+                        <select class="form-control data ajax-autocomplete-transporteur {{ fieldsParam.transporteur.mustToCreate ? 'needed' : ''}}" name="transporteur" id="transporteur">
                         </select>
                     </div>
                     <div class="form-group col-1">

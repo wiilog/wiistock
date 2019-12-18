@@ -32,6 +32,7 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
 			[FieldsParam::FIELD_CODE_DATE_COMMANDE, FieldsParam::FIELD_LABEL_DATE_COMMANDE],
 			[FieldsParam::FIELD_CODE_UTILISATEUR, FieldsParam::FIELD_LABEL_UTILISATEUR],
 			[FieldsParam::FIELD_CODE_NUM_RECEPTION, FieldsParam::FIELD_LABEL_NUM_RECEPTION],
+			[FieldsParam::FIELD_CODE_TRANSPORTEUR, FieldsParam::FIELD_LABEL_TRANSPORTEUR],
 			];
 
     	foreach ($listFieldCodes as $fieldCode) {

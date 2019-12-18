@@ -77,9 +77,6 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                         dump("création du type " . $typeName);
                     }
                 }
-				else {
-				    dump("Type $typeName non créé pour $categoryName");
-                }
 			}
 		}
     	$manager->flush();
