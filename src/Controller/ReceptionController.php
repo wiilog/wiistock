@@ -37,6 +37,7 @@ use App\Repository\StatutRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
+use App\Repository\TransporteurRepository;
 
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -79,6 +80,11 @@ class ReceptionController extends AbstractController
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
+
+    /**
+     * @var TransporteurRepository
+     */
+    private $transporteurRepository;
 
     /**
      * @var ReceptionRepository
@@ -186,7 +192,8 @@ class ReceptionController extends AbstractController
 		ReceptionService $receptionService,
 		LitigeRepository $litigeRepository,
 		AttachmentService $attachmentService,
-		FieldsParamRepository $fieldsParamRepository
+		FieldsParamRepository $fieldsParamRepository,
+		TransporteurRepository $transporteurRepository
 	)
     {
 		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
@@ -209,6 +216,7 @@ class ReceptionController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->transporteurRepository = $transporteurRepository;
         $this->fieldsParamRepository = $fieldsParamRepository;
     }
 
@@ -245,13 +253,20 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
+            if ($data['transporteur'] != null) {
+				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+                $reception
+                    ->setTransporteur($transporteur);
+            }
+//TODO CG dateAttendue ou date-attendue ??
             $reception
+				->setReference($data['reference'])
+				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+				->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
-                ->setFournisseur($fournisseur)
                 ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
@@ -311,6 +326,12 @@ class ReceptionController extends AbstractController
 				$utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 				$reception
 					->setUtilisateur($utilisateur);
+			}
+
+			if ($data['transporteur'] != null) {
+				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+				$reception
+					->setTransporteur($transporteur);
 			}
 
             $reception

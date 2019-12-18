@@ -8,10 +8,14 @@ let tableFields = $('#tableFieldsParam').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'entityCode', 'title' : '' },
-        { "data": 'fieldCode', 'title' : 'Champs fixe' },
-        { "data": 'Actions', 'title' : 'Actions' }
+        { "data": 'Actions', 'title' : 'Actions' },
+        { "data": 'entityCode', 'title' : 'Catégorie' },
+        { "data": 'fieldCode', 'title' : 'Champ fixe' },
     ],
+    order: [[1, "desc"]],
+    columnDefs: [
+        {orderable:false, targets:0}
+    ]
 });
 
 let modalEditFields = $('#modalEditFields');

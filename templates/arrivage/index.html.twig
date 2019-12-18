@@ -47,11 +47,13 @@
     </div>
 
     <div hidden id="barcodes"></div>
+    <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 
     {% include "arrivage/modalNewArrivage.html.twig" %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
+    {% include "parametrage_global/modalNoParamsEtiquettes.html.twig" %}
 {% endblock %}
 
 {% block javascript %}
