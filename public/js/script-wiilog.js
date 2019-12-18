@@ -10,7 +10,7 @@ const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
-const PAGE_ACHEMINEMENTS = 'acheminements';
+const PAGE_ACHEMINEMENTS = 'acheminement';
 
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
