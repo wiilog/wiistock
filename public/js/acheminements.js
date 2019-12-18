@@ -18,6 +18,7 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
     },
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
         { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': 'Emplacement prise' },
@@ -55,12 +56,11 @@ function printAcheminement(id) {
 let $submitSearchAcheminements = $('#submitSearchAcheminements');
 $submitSearchAcheminements.on('click', function () {
     let filters = {
-      page: PAGE_ACHEMINEMENTS,
+        page: PAGE_ACHEMINEMENTS,
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
     };
-
     saveFilters(filters, tableAcheminements);
 });
 
