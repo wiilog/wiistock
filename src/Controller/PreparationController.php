@@ -192,7 +192,6 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $preparation->setUtilisateur($this->getUser());
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statut);
 
