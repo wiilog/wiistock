@@ -762,11 +762,11 @@ function clearModalRefArticleFromRecep(modal, data) {
 }
 
 function validateNewRecep() {
-    <!--
-    BLOCK DL
-    -->
+    /**
+     * BLOCK DL
+     */
 
-    <!--
-    BLOCK CONDITIONNEMENT
-    -->
+    /**
+     * BLOCK CONDITIONNEMENT
+     */
 }
