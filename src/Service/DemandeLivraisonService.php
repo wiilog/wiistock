@@ -68,7 +68,7 @@ class DemandeLivraisonService
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
-    public function getDataForDatatable($params = null, $statusFilter = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
     {
         if ($statusFilter) {
             $filters = [
@@ -80,7 +80,7 @@ class DemandeLivraisonService
         } else {
             $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
         }
-        $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
 
         $demandeArray = $queryResult['data'];
 

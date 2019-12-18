@@ -423,12 +423,12 @@ function visibleBlockModal(bloc) {
 }
 
 function typeChoice(bloc, text, content) {
-    let cible = bloc.val()
+    let cible = bloc.val();
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
-    $('#' + cible + text).removeClass('d-none')
-    $('#' + cible + text).addClass('d-block')
+    $('#' + cible + text).removeClass('d-none');
+    $('#' + cible + text).addClass('d-block');
 }
 
 function updateQuantityDisplay(elem) {

@@ -10,6 +10,7 @@ use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 use App\Entity\Article;
@@ -20,6 +21,7 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
+use App\Repository\ReceptionRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
@@ -134,6 +136,11 @@ class DemandeController extends AbstractController
     private $parametreRepository;
 
     /**
+     * @var ReceptionRepository
+     */
+    private $receptionRepository;
+
+    /**
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
@@ -143,8 +150,9 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
+        $this->receptionRepository = $receptionRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -467,22 +475,26 @@ class DemandeController extends AbstractController
             }
 
             $em->flush();
-
-            $data = [
-                'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
-            ];
-
+            if (isset($data['reception'])) {
+                $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
+                $em->flush();
+            } else {
+                $data = [
+                    'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
+                ];
+            }
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
     }
 
     /**
-     * @Route("/liste/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
-	 * @param string|null $filter
-	 * @return Response
+     * @Route("/liste/{reception}-{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @param string|null $reception
+     * @param string|null $filter
+     * @return Response
      */
-    public function index($filter = null): Response
+    public function index($reception = null, $filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -507,8 +519,9 @@ class DemandeController extends AbstractController
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-			'filterStatus' => $filter
-		]);
+            'filterStatus' => $filter,
+            'receptionFilter' => $reception
+        ]);
     }
 
     /**
@@ -542,20 +555,22 @@ class DemandeController extends AbstractController
      */
     public function api(Request $request): Response
     {
-		if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest()) {
 
-			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-				return $this->redirectToRoute('access_denied');
-			}
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-			// cas d'un filtre statut depuis page d'accueil
-			$filterStatus = $request->request->get('filterStatus');
-			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus);
+            // cas d'un filtre statut depuis page d'accueil
+            $filterStatus = $request->request->get('filterStatus');
+            $filterReception = $request->request->get('filterReception');
+            dump($filterStatus);
+            $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
 
-			return new JsonResponse($data);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**

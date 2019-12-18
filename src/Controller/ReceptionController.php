@@ -765,6 +765,17 @@ class ReceptionController extends AbstractController
             }
         }
 
+        $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $typeChampLibre = [];
+        foreach ($listTypes as $type) {
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+            $typeChampLibre[] = [
+                'typeLabel' => $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+        }
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
@@ -775,6 +786,7 @@ class ReceptionController extends AbstractController
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+            'typeChampsLibres' => $typeChampLibre
         ]);
     }
 

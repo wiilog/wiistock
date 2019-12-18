@@ -779,6 +779,9 @@ function validateNewRecep() {
      * BLOCK DL
      */
 
+
+
+
     /**
      * BLOCK CONDITIONNEMENT
      */
@@ -801,4 +804,50 @@ let ajaxAutoRefArticlesReceptionInit = function(select) {
             }
         },
     });
+}
+let editorNewLivraisonAlreadyDoneForDL = false;
+
+function initNewLivraisonEditor(modal) {
+    if (!editorNewLivraisonAlreadyDoneForDL) {
+        initEditorInModal(modal);
+        editorNewLivraisonAlreadyDoneForDL = true;
+    }
+    initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
+    initWithPH($('.select2-type'), 'Type...', false);
+    initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
+    let urlNewDemande = Routing.generate('demande_new', true);
+    let modalNewDemande = $("#modalReceptionWithDL");
+    let submitNewDemande = $("#submitNewReceptionButton");
+    InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
+    $('#typeContentNew').children().addClass('d-none');
+    $('#typeContentNew').children().removeClass('d-block');
+};
+
+function initWithPH(select, ph, ajax = true, route = null) {
+    if (ajax) {
+        select.select2({
+            ajax: {
+                url: route,
+                dataType: 'json',
+                delay: 250,
+            },
+            language: {
+                inputTooShort: function () {
+                    return 'Veuillez entrer au moins 1 caractère.';
+                },
+                searching: function () {
+                    return 'Recherche en cours...';
+                },
+                noResults: function () {
+                    return 'Aucun résultat.';
+                }
+            },
+            minimumInputLength: 1,
+            placeholder: ph
+        });
+    } else {
+        select.select2({
+            placeholder: ph
+        });
+    }
 }
