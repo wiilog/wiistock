@@ -16,8 +16,9 @@
                        onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
                         Supprimer</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-target='#modalReceptionWithDL' data-toggle='modal'
+                       onclick="ajaxAutoRefArticlesReceptionInit($('.select2-autocomplete-ref-articles'))"
                        class="btn btn-primary btn-action ml-auto">
                         Nouvelle réception</a>
                 {% endif %}

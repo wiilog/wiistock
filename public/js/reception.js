@@ -783,3 +783,22 @@ function validateNewRecep() {
      * BLOCK CONDITIONNEMENT
      */
 }
+
+
+let ajaxAutoRefArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_ref_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}

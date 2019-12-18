@@ -551,8 +551,6 @@ let ajaxAutoArticlesReceptionInit = function(select) {
     });
 }
 
-
-
 function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {

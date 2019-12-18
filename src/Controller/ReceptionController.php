@@ -795,6 +795,22 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @Route("/autocomplete-ref-art{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getRefTypeQtyArticle(Request $request, Reception $reception)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $ref = $this->referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId());
+
+            return new JsonResponse(['results' => $ref]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response

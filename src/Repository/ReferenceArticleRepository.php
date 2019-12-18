@@ -1141,4 +1141,22 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+	public function getRefTypeQtyArticleByReception($id)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT ra.id as id, ra.reference as text
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.receptionReferenceArticles rra
+            JOIN rra.reception r
+            WHERE r.id = :id
+            AND ra.typeQuantite = :typeQty"
+		)->setParameters([
+			'id' => $id,
+			'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+		]);
+		return $query->execute();
+	}
 }
