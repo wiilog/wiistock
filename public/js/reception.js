@@ -760,3 +760,13 @@ function clearModalRefArticleFromRecep(modal, data) {
         }
     }
 }
+
+function validateNewRecep() {
+    <!--
+    BLOCK DL
+    -->
+
+    <!--
+    BLOCK CONDITIONNEMENT
+    -->
+}
