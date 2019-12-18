@@ -413,77 +413,9 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            // protection champs libres obligatoires
-            $requiredCreate = true;
-            $type = $this->typeRepository->find($data['type']);
-
-            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
-            $msgMissingCL = '';
-            foreach ($CLRequired as $CL) {
-                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                    $requiredCreate = false;
-                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-                    $msgMissingCL .= $CL['label'];
-                }
-            }
-            if (!$requiredCreate) {
-                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
-            }
-
-            $em = $this->getDoctrine()->getManager();
-            $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $destination = $this->emplacementRepository->find($data['destination']);
-            $type = $this->typeRepository->find($data['type']);
-
-            // génère le numéro
-            $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
-            $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
-
-            $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
-            $lastCpt = (int)substr($lastNumero, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $numero = $prefixe . $date->format('ym') . $cpt;
-
-            $demande = new Demande();
-            $demande
-                ->setStatut($statut)
-                ->setUtilisateur($utilisateur)
-                ->setdate($date)
-                ->setType($type)
-                ->setDestination($destination)
-                ->setNumero($numero)
-                ->setCommentaire($data['commentaire']);
-            $em->persist($demande);
-
-            // enregistrement des champs libres
-            $champsLibresKey = array_keys($data);
-
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->setValeur($data[$champs])
-                        ->addDemandesLivraison($demande)
-                        ->setChampLibre($this->champLibreRepository->find($champs));
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
-                }
-            }
-
-            $em->flush();
-            if (isset($data['reception'])) {
-                $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
-                $em->flush();
-            } else {
-                $data = [
-                    'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
-                ];
-            }
-            return new JsonResponse($data);
+            return $this->demandeLivraisonService->newDemande($data, $this->getDoctrine()->getManager(), function($route, $params) {
+                return $this->generateUrl($route, $params);
+            });
         }
         throw new NotFoundHttpException('404');
     }
