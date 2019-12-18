@@ -396,7 +396,6 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
-
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
@@ -404,6 +403,7 @@ class ReferenceArticleController extends Controller
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
+                ->setIsUrgent($data['urgence'])
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
