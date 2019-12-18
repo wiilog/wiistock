@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+let tableRefArticle;
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
@@ -228,13 +228,12 @@ $(function () {
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         tableRefArticle = $('#tableRefArticle_id')
-            .on('error.dt', function(e, settings, technote, message) {
-        })
+            .on('error.dt', (a,b,c,d) => {
+                console.log(a,b,c,d)
+            })
             .DataTable({
                 processing: true,
                 serverSide: true,
-                sortable: false,
-                ordering: false,
                 paging: true,
                 scrollX: true,
                 order: [[1, 'asc']],
@@ -248,16 +247,29 @@ function initTableRefArticle() {
                 initComplete: function() {
                     loadSpinnerAR($('#spinner'));
                     initRemove();
-                    hideAndShowColumns();
+                    hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle);
                 },
                 length: 10,
-                columns: columns,
+                columns: columns.map((column) => ({
+                    ...column,
+                    class: undefined
+                })),
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },
+                "drawCallback": function(settings) {
+                    resizeTable();
+                },
             });
     });
+}
+
+
+function resizeTable() {
+    tableRefArticle
+        .columns.adjust()
+        .responsive.recalc();
 }
 
 //COLUMN VISIBLE
@@ -270,11 +282,11 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
-    
+
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
-    
+
     column.visible(!column.visible());
 
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
@@ -283,9 +295,10 @@ function showOrHideColumn(check) {
     check.toggleClass('data');
 }
 
-function hideAndShowColumns() {
-    tableRefArticle.columns('.hide').visible(false);
-    tableRefArticle.columns('.display').visible(true);
+function hideAndShowColumns(columns) {
+    tableRefArticle.columns().every(function(index) {
+        this.visible(columns[index].class !== 'hide');
+    });
 }
 
 function showDemande(bloc) {
@@ -331,6 +344,9 @@ function displayNewFilter(data) {
 function initRemove() {
     // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
     $('.filter').on('click', removeFilter);
+    tableRefArticle.on('responsive-resize', function (e, datatable) {
+        resizeTable();
+    });
 }
 
 function removeFilter() {
@@ -357,11 +373,11 @@ function displayFilterValue(elem) {
             'value': val
         };
         $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
-            modalBody.find('.input').html(data);
+            modalBody.find('.input-group').html(data);
         }, 'json');
     } else {
         if (type == 'booleen') type = 'checkbox';
-        modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
+        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
     }
 
 
@@ -530,11 +546,11 @@ function addFournisseurEdit(button) {
             $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
         }
-    }
+    };
     let path = Routing.generate('ajax_render_add_fournisseur', true);
     xhttp.open("POST", path, true);
     xhttp.send();
-};
+}
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
@@ -595,27 +611,6 @@ function redirectToDemande() {
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
 
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function() {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function() {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop( "checked", true );
-                }
-            }
-        });
-    }
-}
-
 function saveRapidSearch() {
     let searchesWanted = [];
     $('#rapidSearch tbody td').each(function() {
@@ -640,7 +635,7 @@ function getDataAndPrintLabels() {
                 response.tags,
                 'Etiquettes-references.pdf',
                 response.barcodeLabels
-                );
+            );
         }
     });
 }

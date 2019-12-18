@@ -35,6 +35,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -173,12 +174,12 @@ class RefArticleDataService
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
-       
+
         $refs = $queryResult['data'];
 
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle($refArticle);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
         }
         return [
         	'data' => $rows,
@@ -403,8 +404,8 @@ class RefArticleDataService
             "Quantité" => $quantityInStock - $reservedQuantity,
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
-            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
-            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
+            "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
+            "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
@@ -475,7 +476,7 @@ class RefArticleDataService
 
 	/**
 	 * @return string
-	 * @throws NonUniqueResultException
+	 * @throws Exception
 	 */
 	public function generateBarCode()
 	{
@@ -531,8 +532,8 @@ class RefArticleDataService
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
             'QuantiteStock' => $quantity,
-            'SeuilSecurite' => ($referenceArticle['limitSecurity'] ? $referenceArticle['limitSecurity'] : 'Non défini'),
-            'SeuilAlerte' => ($referenceArticle['limitWarning'] ? $referenceArticle['limitWarning'] : 'Non défini'),
+            'SeuilSecurite' => (($referenceArticle['limitSecurity'] || $referenceArticle['limitSecurity'] == '0') ? $referenceArticle['limitSecurity'] : 'Non défini'),
+            'SeuilAlerte' => (($referenceArticle['limitWarning'] || $referenceArticle['limitWarning'] == '0') ? $referenceArticle['limitWarning'] : 'Non défini'),
             'Actions' => $this->templating->render('alerte_reference/datatableAlerteRow.html.twig', [
                 'quantite' => $quantity,
                 'seuilSecu' => $referenceArticle['limitSecurity'],

@@ -226,6 +226,9 @@ a:hover {
   background-position: center right calc(2.25rem / 4);
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
 }
+.is-invalid .select2-selection {
+  border: 1px solid red !important;
+}
 
 .label {
   color: #b2b2b2;
@@ -254,6 +257,10 @@ a:hover {
 
 .logo-wrapper {
   padding: 25px;
+}
+
+#modalShowRefArticle #input-group-nomenclature {
+  height: 150px;
 }
 
 /* Login    
@@ -332,7 +339,7 @@ a:hover {
   font-weight: 400 !important;
   line-height: 1.5 !important;
   color: #495057 !important;
-  border: 1px solid #ced4da !important;
+  border: 1px solid #ced4da;
   border-radius: 0.25rem !important;
 }
 
@@ -362,6 +369,10 @@ a:hover {
 
 .formulaire {
   margin-right: 15px;
+}
+
+#new-ref-inner-body {
+  border: 1px solid black;
 }
 
 .accueil-back {
@@ -466,6 +477,10 @@ a:hover {
 
 #chart-arrival {
   height: 70%;
+}
+
+.fournisseurFilterContainer .select2-selection {
+  overflow: auto;
 }
 
 .sidemenu-bg {
@@ -758,44 +773,6 @@ a:hover {
   color: white !important;
 }
 
-.filter {
-  border-radius: 10px;
-  width: 100%;
-  background-color: white;
-  color: #424242;
-  border-color: #424242;
-}
-.filter:hover {
-  color: #cc0000;
-  border-color: #cc0000;
-}
-.filter span {
-  overflow-wrap: break-word;
-}
-
-.filters {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-left: 6px;
-}
-.filters > div {
-  margin: auto 12px;
-}
-.filters > div .select2-selection {
-  padding-top: 2px;
-  padding-bottom: 4px;
-  margin-bottom: 2px;
-  margin-top: 2px;
-  height: 38px;
-}
-.filters > div .select2-selection__placeholder {
-  vertical-align: middle;
-}
-.filters .minw-150px .select2-container {
-  min-width: 150px !important;
-}
-
 .filterService {
   background-color: #8e8e8e;
 }
@@ -981,5 +958,48 @@ button:focus {
 .btn-check.active i {
   color: white;
 }
+
+.filter {
+  border-radius: 10px !important;
+  width: 100%;
+  background-color: white !important;
+  color: #424242 !important;
+  border-color: #424242 !important;
+}
+.filter:hover {
+  color: #cc0000 !important;
+  border-color: #cc0000 !important;
+}
+.filter span {
+  overflow-wrap: break-word;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 6px;
+}
+.filters > div {
+  margin: auto 12px;
+}
+.filters > div .select2-selection {
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  height: 38px;
+}
+.filters > div .select2-selection__placeholder {
+  vertical-align: middle;
+}
+.filters .minw-150px .select2-container {
+  min-width: 150px !important;
+}
+.filters .select2-overflow .select2-selection {
+  overflow: auto;
+}
+
+/* filters à garder après buttons */
 
 /*# sourceMappingURL=style.css.map */

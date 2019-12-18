@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 
@@ -261,20 +262,26 @@ class MouvementTracaRepository extends ServiceEntityRepository
 	 */
 	public function findPrisesByOperatorAndNotDeposed(Utilisateur $operator) {
 		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT m.colis as ref_article,
-                     t.nom as type,
-                     o.username as operateur,
-                     e.label as ref_emplacement,
-                     m.uniqueIdForMobile as date,
-                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished
-            FROM App\Entity\MouvementTraca m
-            JOIN m.type t
-            JOIN m.operateur o
-            JOIN m.emplacement e
-            WHERE o = :op AND t.nom LIKE 'prise' AND m.finished = 0"
-		)->setParameter('op', $operator);
+		$query = $em
+            ->createQuery(
+                /** @lang DQL */
+                "SELECT m.colis as ref_article,
+                         t.nom as type,
+                         o.username as operateur,
+                         e.label as ref_emplacement,
+                         m.uniqueIdForMobile as date,
+                         (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished
+                FROM App\Entity\MouvementTraca m
+                JOIN m.type t
+                JOIN m.operateur o
+                JOIN m.emplacement e
+                WHERE o = :op
+                  AND t.nom LIKE :priseType
+                  AND m.finished = :finished"
+            )
+            ->setParameter('op', $operator)
+            ->setParameter('priseType', MouvementTraca::TYPE_PRISE)
+            ->setParameter('finished', false);
 		return $query->execute();
 	}
 }

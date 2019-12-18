@@ -21,7 +21,12 @@ let table = $('#tableCollecte_id').DataTable({
     ajax: {
         "url": pathCollecte,
         "type": "POST",
-
+        'data' : {
+            'filterStatus': $('#statut').val()
+        },
+    },
+    drawCallback: function() {
+        overrideSearch($('#tableCollecte_id_filter input'), table);
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
@@ -46,6 +51,12 @@ $submitSearchCollecte.on('click', function () {
     };
 
     saveFilters(filters, table);
+
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('collecte_index');
+    }
 });
 
 let modalNewCollecte = $("#modalNewCollecte");
@@ -140,34 +151,31 @@ InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tabl
 
 // applique les filtres si pré-remplis
 $(function() {
-    let val = $('#statut').val();
-    if (val != null && val != '') {
-        $submitSearchCollecte.click();
-    }
-
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_DEM_COLLECTE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                let values = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
-        if (data.length > 0)$submitSearchCollecte.click();
-    }, 'json');
-
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+
+    let val = $('#statut').val();
+    if (!val) {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_DEM_COLLECTE);
+        $.post(path, params, function (data) {
+            data.forEach(function (element) {
+                if (element.field == 'utilisateurs') {
+                    let values = element.value.split(',');
+                    let $utilisateur = $('#utilisateur');
+                    values.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let username = valueArray[1];
+                        let option = new Option(username, id, true, true);
+                        $utilisateur.append(option).trigger('change');
+                    });
+                } else {
+                    $('#' + element.field).val(element.value);
+                }
+            });
+        }, 'json');
+    }
 });
 
 function ajaxGetCollecteArticle(select) {

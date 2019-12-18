@@ -76,9 +76,18 @@ class CollecteService
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, $statusFilter = null)
     {
-    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
+		if ($statusFilter) {
+			$filters = [
+				[
+					'field' => 'statut',
+					'value' => $statusFilter
+				]
+			];
+		} else {
+    		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
+		}
         $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
 
         $collecteArray = $queryResult['data'];
@@ -107,13 +116,13 @@ class CollecteService
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);
         $row =
             [
-                'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : null,
-                'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
-                'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
-                'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                'Type' => ($collecte->getType() ? $collecte->getType()->getLabel() : ''),
+                'id' => $collecte->getId() ?? '',
+                'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
+                'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
+                'Demandeur' => $collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : '',
+                'Objet' => $collecte->getObjet() ?? '',
+                'Statut' => $collecte->getStatut()->getNom() ?? '',
+                'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
                 'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
                     'url' => $url,
                 ]),

@@ -4,6 +4,11 @@
 
 {% block page_content %}
 
+    </div>
+
+{% include 'filters/filtersReception.html.twig' with {'btnName' : 'submitSearchReception'} %}
+
+<div class="container-fluid">
 <h1>Ordres de réception</h1>
 
 <div class='col-12 mb-5'>
@@ -19,7 +24,7 @@
     <table id="tableReception_id" class="table table-striped table-bordered w-100">
     </table>
 </div>
-
+</div>
 {% include "reception/modalNewReception.html.twig" %}
 
 {% endblock %}
@@ -28,5 +33,6 @@
 <script>
     let id;
 </script>
+<script src = "{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
 <script src="{{ asset('js/reception.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

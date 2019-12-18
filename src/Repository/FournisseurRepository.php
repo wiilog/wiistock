@@ -27,17 +27,6 @@ class FournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, Fournisseur::class);
     }
 
-    public function getNoOne($fournisseur)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT f
-            FROM App\Entity\Fournisseur f
-            WHERE f.id <> :fournisseur"
-        )->setParameter('fournisseur', $fournisseur);;
-        return $query->execute();
-    }
-
     public function findOneByCodeReference($code)
     {
         $entityManager = $this->getEntityManager();
@@ -68,6 +57,18 @@ class FournisseurRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT f.id, f.nom as text
+          FROM App\Entity\Fournisseur f
+          WHERE f.nom LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+    public function getIdAndLibelleBySearchForFilter($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f.nom as id, f.nom as text
           FROM App\Entity\Fournisseur f
           WHERE f.nom LIKE :search"
         )->setParameter('search', '%' . $search . '%');

@@ -136,7 +136,6 @@ class LitigeController extends AbstractController
 
         return $this->render('litige/index_arrivages.html.twig',[
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
-            'providers' => $this->fournisseurRepository->findAllSorted(),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 		]);
@@ -192,7 +191,7 @@ class LitigeController extends AbstractController
 					$strColis = implode(', ', $arrColis);
 					$litigesData[] = $strColis;
 
-					$litigesData[] = $colis[0]->getArrivage() ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+					$litigesData[] = ($colis && $colis[0]->getArrivage()) ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
 
 					$litigesData[] = '';
 					$litigesData[] = '';
@@ -216,7 +215,7 @@ class LitigeController extends AbstractController
 						$strColis = implode(', ', $arrColis);
 						$litigesData[] = $strColis;
 
-						$litigesData[] = $colis[0]->getArrivage() ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+						$litigesData[] = ($colis && $colis[0]->getArrivage()) ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
 
 						$litigesData[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
 						$litigesData[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';

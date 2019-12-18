@@ -5,12 +5,16 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminements';
+
+/** Constants which define a valid barcode */
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
 $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -58,6 +62,7 @@ function submitAction(modal, path, table, callback, close, clear) {
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
+        val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
         Data[name] = val;
         let label = $input.closest('.form-group').find('label').text();
@@ -75,12 +80,12 @@ function submitAction(modal, path, table, callback, close, clear) {
             $input.removeClass('is-invalid');
         }
 
-        // if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-        //     $input.addClass('is-invalid');
-        //     $input.parent().addClass('is-invalid');
-        //     barcodeIsInvalid = label;
-        // }
-
+        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
+            $input.addClass('is-invalid');
+            $input.parent().addClass('is-invalid');
+            label = label.replace(/\*/, '');
+            barcodeIsInvalid = label;
+        }
 
         // validation valeur des inputs de type number
         if ($input.attr('type') === 'number') {
@@ -200,13 +205,22 @@ function submitAction(modal, path, table, callback, close, clear) {
 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " ne doit pas contenir d'accent et être composé de maximum 21 caractères.<br>";
+            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
         }
 
         modal.find('.error-msg').html(msg);
     }
 }
 
+/**
+ * Check if value in the given jQuery input is a valid barcode
+ * @param $input
+ * @return {boolean}
+ */
+function isBarcodeValid($input) {
+    const value = $input.val();
+    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+}
 
 //DELETE
 function deleteRow(button, modal, submit) {
@@ -264,7 +278,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+
         if ($('#typageModif').val() !== undefined) {   //TODO Moche
             defaultValueForTypage($('#typageModif'), '-edit');
         }
@@ -454,7 +470,7 @@ function ajaxAutoCompleteEmplacementInit(select) {
 function ajaxAutoCompleteTransporteurInit(select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_Transporteur'),
+            url: Routing.generate('get_transporteurs'),
             dataType: 'json',
             delay: 250,
         },
@@ -517,7 +533,27 @@ let ajaxAutoArticlesInit = function (select) {
     });
 }
 
-function ajaxAutoFournisseurInit(select) {
+let ajaxAutoArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}
+
+
+
+function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
@@ -536,6 +572,9 @@ function ajaxAutoFournisseurInit(select) {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
     });
 }
 
@@ -686,7 +725,13 @@ function alertErrorMsg(data, remove = false) {
     if (data !== true) {
         let $alertDanger = $('#alerts').find('.alert-danger');
         $alertDanger.removeClass('d-none');
-        if (remove == true) $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger
+            .css('display', 'block')
+            .css('opacity', '1');
+
+        if (remove == true) {
+            $alertDanger.delay(2000).fadeOut(2000);
+        }
         $alertDanger.find('.error-msg').html(data);
     }
 }
@@ -694,7 +739,9 @@ function alertErrorMsg(data, remove = false) {
 function alertSuccessMsg(data) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
-    $alertSuccess.css('display', 'block');
+    $alertSuccess
+        .css('display', 'block')
+        .css('opacity', '1');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
 }
@@ -786,7 +833,19 @@ function createJsPDFBarcode(apiResponse) {
  * @param {string} fileName
  */
 function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
-    if (barcodes && barcodes.length) {
+    // on vérifie la validité des code-barres
+    barcodes.forEach(element => {
+        if (!BARCODE_VALID_REGEX.test(element)) {
+            alertErrorMsg('Le code-barre ' + element + ' ne peut pas être imprimé : il ne doit pas contenir de caractères spéciaux ni d\'accents.', true);
+            return;
+        }
+    });
+
+    if (!barcodes || barcodes.length === 0) {
+        alertErrorMsg("Il n'y a rien à imprimer.", true);
+    } else if (apiResponse.exists === false) {
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
+    } else {
         const doc = createJsPDFBarcode(apiResponse);
         const docSize = doc.internal.pageSize;
         let docWidth = docSize.getWidth();
@@ -842,8 +901,6 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 format: "CODE128",
             });
         });
-    } else {
-        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner dans le menu Paramétrage.');
     }
 }
 
@@ -956,4 +1013,56 @@ function overrideSearch($input, table) {
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
+}
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
+        });
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
+        {
+            $(this).addClass('is-invalid');
+            formIsValid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function () {
+            let $toShow = $('#' + toHide);
+            let $toAdd = $('#' + buttonAdd);
+            $toShow.css('visibility', "hidden");
+            $toAdd.css('visibility', "hidden");
+            numberOfDataOpened--;
+            if (numberOfDataOpened === 0) {
+                $toShow.parent().parent().css("display", "none");
+            }
+        });
+    }
 }

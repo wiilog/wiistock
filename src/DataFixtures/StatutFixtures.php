@@ -60,10 +60,10 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Article::STATUT_EN_TRANSIT
 			],
 			CategorieStatut::DEM_COLLECTE => [
-				Collecte::STATUS_BROUILLON,
-				Collecte::STATUS_A_TRAITER,
-				Collecte::STATUS_COLLECTE,
-				Collecte::STATUS_INCOMPLETE
+				Collecte::STATUT_BROUILLON,
+				Collecte::STATUT_A_TRAITER,
+				Collecte::STATUT_COLLECTE,
+				Collecte::STATUT_INCOMPLETE
 			],
 			CategorieStatut::ORDRE_COLLECTE => [
 				OrdreCollecte::STATUT_A_TRAITER,
@@ -109,7 +109,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Arrivage::STATUS_CONFORME,
 				Arrivage::STATUS_LITIGE,
 			],
-			CategorieStatut::LITIGE_ARR => [],
+            CategorieStatut::LITIGE_ARR => [],
+            CategorieStatut::LITIGE_RECEPT => [],
             CategorieStatut::ACHEMINEMENT => [
                 Acheminements::STATUT_A_TRAITER,
                 Acheminements::STATUT_TRAITE,

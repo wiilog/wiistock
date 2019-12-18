@@ -264,10 +264,6 @@ class FournisseurController extends AbstractController
     public function getFournisseur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-                return new JsonResponse(['results' => null]);
-            }
-
             $search = $request->query->get('term');
 
             $fournisseur = $this->fournisseurRepository->getIdAndLibelleBySearch($search);
@@ -276,4 +272,5 @@ class FournisseurController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
 }

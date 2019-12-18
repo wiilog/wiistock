@@ -7,9 +7,11 @@ Colis : {{ colis }}<br>
 Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}<br>
 Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}<br>
 Opérateur : {{ operateur }}<br>
-Pièces jointes :<br>
-{% for pj in pjs %}
-    <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
-{% endfor %}
+{% if pjs is not empty %}
+    Pièces jointes :<br>
+    {% for pj in pjs %}
+        <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
+    {% endfor %}
+{% endif %}
 
 {% endblock %}

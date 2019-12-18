@@ -328,9 +328,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         // création de l'emplacement s'il n'existe pas
                         if (!$location) {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($mvt['ref_emplacement']);
-                            $em->persist($emplacement);
+                            $location = new Emplacement();
+                            $location->setLabel($mvt['ref_emplacement']);
+                            $em->persist($location);
                             $em->flush();
                         }
                         $operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
@@ -347,8 +347,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             ->setDatetime($date)
                             ->setFinished($mvt['finished'])
                             ->setType($type);
-                        if (!empty($mvt['commentaire'])) {
-                            $mouvementTraca->setCommentaire($mvt['commentaire']);
+                        if (!empty($mvt['comment'])) {
+                            $mouvementTraca->setCommentaire($mvt['comment']);
                         }
                         $em->persist($mouvementTraca);
                         $numberOfRowsInserted++;
@@ -372,7 +372,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $em->flush();
 //						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
-                            $isDepose = $type === MouvementTraca::TYPE_DEPOSE;
+                            $isDepose = $mvt['type'] === MouvementTraca::TYPE_DEPOSE;
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
                             if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
@@ -387,10 +387,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             [
                                                 'title' => 'Votre colis a été livré.',
                                                 'colis' => $colis->getCode(),
-                                                'emplacement' => $location->getLabel(),
+                                                'emplacement' => $location,
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $operator,
+                                                'operateur' => $operator->getUsername(),
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),

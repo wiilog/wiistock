@@ -263,7 +263,6 @@ class ArrivageController extends AbstractController
 			if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			//TODO CG tester si pas username
 			if (!empty($post->get('acheteurs'))) {
 			    $acheteursId = explode(',', $post->get('acheteurs'));
                 foreach ($acheteursId as $acheteurId) {
@@ -429,7 +428,7 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
-			$listAttachmentIdToKeep = $post->get('files');
+			$listAttachmentIdToKeep = $post->get('files') ?? [];
 
             $attachments = $arrivage->getAttachements()->toArray();
             foreach ($attachments as $attachment) {
@@ -801,11 +800,14 @@ class ArrivageController extends AbstractController
             }
 
             $typeDescription = $litige->getType()->getDescription();
+            $typeLabel = $litige->getType()->getLabel();
+            $statutNom = $litige->getStatus()->getNom();
 
             $trimmedTypeDescription = trim($typeDescription);
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
-            $commentaire = $userComment . (!empty($trimmedTypeDescription) ? ($nl . $trimmedTypeDescription) : '');
+            $trimmedTypeDescription = !empty($trimmedTypeDescription) ? "\n" . $trimmedTypeDescription : '';
+            $commentaire = $userComment . $nl . 'Type à la création -> '. $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -930,10 +932,10 @@ class ArrivageController extends AbstractController
             $rows = [];
             foreach ($litiges as $litige) {
                 $rows[] = [
-                    'firstDate' => $litige->getCreationDate()->format('d/m/Y'),
+                    'firstDate' => $litige->getCreationDate()->format('d/m/Y H:i'),
                     'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
                     'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
-                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '',
+                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y H:i') : '',
                     'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
                         'arrivageId' => $arrivage->getId(),
                         'url' => [

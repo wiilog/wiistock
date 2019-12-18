@@ -14,7 +14,7 @@ final class Version20191204144325 extends AbstractMigration
 {
     public function getDescription() : string
     {
-        return '';
+        return 'fill validationDate field';
     }
 
     public function up(Schema $schema) : void

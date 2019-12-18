@@ -17,6 +17,16 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            } else if (element.field == 'providers') {
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $providers.append(option).trigger('change');
+                });
             } else if (element.field = 'emergency') {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
@@ -26,10 +36,11 @@ $(function() {
             }
         });
 
-        initFilterDateToday();
+        // initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function initFilterDateToday() {
@@ -117,10 +128,14 @@ function getDataAndPrintLabels(codes) {
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
         if (response.response.exists) {
-            for(const code of response.codeColis) {
-                codeColis.push(code.code)
+            if (response.codeColis.length === 0) {
+                alertErrorMsg("Il n'y a aucun colis à imprimer.");
+            } else {
+                for (const code of response.codeColis) {
+                    codeColis.push(code.code)
+                }
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
             }
-            printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
         }
     });
 }
@@ -162,15 +177,6 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
-function printLabels(data) {
-    if (data.exists) {
-        console.log('print');
-        printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-    } else {
-        $('#cannotGenerate').click();
-    }
-}
-
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
@@ -186,7 +192,6 @@ function initNewArrivageEditor(modal) {
     }
     ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
-    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
@@ -199,7 +204,8 @@ $submitSearchArrivage.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked')
+        urgence: $('#urgence-filter').is(':checked'),
+        providers: $('#providers').select2('data'),
     }
     saveFilters(filters, tableArrivage);
 });
@@ -277,24 +283,4 @@ function toggleInput(id, button) {
         }
         // $div.style.visibility = "hidden";
     }
-}
-
-function newLine(path, button, toHide, buttonAdd)
-{
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
-    let params = {};
-    inputs.each(function () {
-       params[$(this).attr('name')] = $(this).val();
-    });
-    $.post(path, JSON.stringify(params), function (resp) {
-        let $toShow = $('#' + toHide);
-        let $toAdd = $('#' + buttonAdd);
-        $toShow.css('visibility', "hidden");
-        $toAdd.css('visibility', "hidden");
-        numberOfDataOpened--;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        console.log()
-    });
 }

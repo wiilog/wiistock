@@ -308,7 +308,7 @@ class OrdreCollecteController extends AbstractController
         $entityManager->persist($ordreCollecte);
 
         // on modifie le statut de la demande de collecte liée
-        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
+        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER));
 
         $entityManager->flush();
 
@@ -376,7 +376,7 @@ class OrdreCollecteController extends AbstractController
             $collecte = $ordreCollecte->getDemandeCollecte();
 
             $collecte
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON));
             $entityManager = $this->getDoctrine()->getManager();
             foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
                 $entityManager->remove($cr);
