@@ -64,7 +64,19 @@ function submitAction(modal, path, table, callback, close, clear) {
         let val = $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
-        Data[name] = val;
+
+        const multipleKey = $input.data('multiple-key');
+
+        if (multipleKey) {
+            const objectIndex = $input.data('multiple-object-index');
+            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
+            Data[multipleKey][objectIndex][name] = val;
+        }
+        else {
+            Data[name] = val;
+        }
+
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
         if ($input.hasClass('needed')
@@ -620,6 +632,28 @@ function ajaxAutoUserInit(select, placeholder = '') {
     });
 }
 
+function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 2 caractères.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 2,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
 function ajaxAutoDemandCollectInit(select) {
     select.select2({
         ajax: {
@@ -694,7 +728,7 @@ function clearModal(modal) {
         //TODO protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });

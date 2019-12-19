@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -78,7 +79,7 @@ class ArticleFournisseurController extends AbstractController
                 $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
 
-            
+
             $data['data'] = $rows;
             $data['recordsTotal'] = (int)$this->articleFournisseurRepository->countAll();
             $data['recordsFiltered'] = (int)$this->articleFournisseurRepository->countAll();
@@ -202,5 +203,22 @@ class ArticleFournisseurController extends AbstractController
         ];
 
         return $row;
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getArticleFournisseur(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearch($search);
+
+            return new JsonResponse(['results' => $articleFournisseur]);
+        }
+        throw new NotFoundHttpException("404");
     }
 }

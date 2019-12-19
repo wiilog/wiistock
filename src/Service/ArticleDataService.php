@@ -359,7 +359,8 @@ class ArticleDataService
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-    public function getViewEditArticle($article, $isADemand = false)
+    public function getViewEditArticle($article,
+                                       $isADemand = false)
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType();
@@ -398,7 +399,7 @@ class ArticleDataService
 
         $statut = $article->getStatut()->getNom();
 
-        $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
+        return $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampsLibres,
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
@@ -406,7 +407,6 @@ class ArticleDataService
             'statut' => $statut,
             'isADemand' => $isADemand
         ]);
-        return $view;
     }
 
     public function editArticle($data)

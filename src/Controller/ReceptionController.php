@@ -841,6 +841,8 @@ class ReceptionController extends AbstractController
                 function($item) {
                     return [
                         'id' => "{$item['reference']}_{$item['commande']}",
+                        'reference' => $item['reference'],
+                        'commande' => $item['commande'],
                         'text' => "{$item['reference']} – {$item['commande']}"
                     ];
                 },
@@ -848,6 +850,45 @@ class ReceptionController extends AbstractController
             );
 
             return new JsonResponse(['results' => $ref]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/ligne-article-conditionnement", name="get_ligne_article_conditionnement", options={"expose"=true}, methods="GET")
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function getLigneArticleCondtionnement(Request $request) {
+        if ($request->isXmlHttpRequest()) {
+            $reference = $request->query->get('reference');
+            $commande = $request->query->get('commande');
+            $quantity = $request->query->get('quantity');
+
+            // TODO verif null
+
+            /** @var ReferenceArticle $refArticle */
+            $refArticle = $this->referenceArticleRepository->findOneByReference($reference);
+
+            $typeArticle = $refArticle->getType();
+
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $response = new Response();
+            $response->setContent($this->renderView(
+                'reception/condtionnementArticleTemplate.html.twig',
+                [
+                    'reception' => [
+                        'reference' => $reference,
+                        'referenceLabel' => $refArticle->getLibelle(),
+                        'commande' => $commande,
+                        'quantity' => $quantity,
+                    ],
+                    'typeArticle' => $typeArticle->getLabel(),
+                    'champsLibres' => $champsLibres
+                ]
+            ));
+            return $response;
         }
         throw new NotFoundHttpException("404");
     }

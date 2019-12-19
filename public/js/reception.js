@@ -297,12 +297,12 @@ function initModalCondit(tableFromArticle) {
 
 let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitReceptionButton");
-let urlReceptionIndex = Routing.generate('reception_new', true)
+let urlReceptionIndex = Routing.generate('reception_new', true);
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, tableReception);
 
 let ModalDelete = $("#modalDeleteReception");
 let SubmitDelete = $("#submitDeleteReception");
-let urlDeleteReception = Routing.generate('reception_delete', true)
+let urlDeleteReception = Routing.generate('reception_delete', true);
 InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception, tableReception);
 
 let modalModifyReception = $('#modalEditReception');
@@ -828,19 +828,6 @@ function toggleInput(id, button) {
     }
 }
 
-function validateNewRecep() {
-    /**
-     * BLOCK DL
-     */
-
-
-
-
-    /**
-     * BLOCK CONDITIONNEMENT
-     */
-}
-
 
 let ajaxAutoRefArticlesReceptionInit = function(select) {
     select.select2({
@@ -860,6 +847,56 @@ let ajaxAutoRefArticlesReceptionInit = function(select) {
     });
 };
 
+function validatePacking($button) {
+    const $packingContainer = $button.closest('.bloc-packing');
+    const $selectRefArticle = $packingContainer.find('[name="refArticleCommande"]');
+    const packageNumber = Number($packingContainer
+        .find('[name="packageNumber"]')
+        .val());
+    const numberInPackage = Number($packingContainer
+        .find('[name="numberInPackage"]')
+        .val());
+    const selectedOptionArray = $selectRefArticle.select2('data');
+    console.log(selectedOptionArray, packageNumber, numberInPackage)
+    if ((selectedOptionArray && selectedOptionArray.length > 0) &&
+        (packageNumber && packageNumber > 0) &&
+        (numberInPackage && numberInPackage > 0)) {
+        const selectedOption = selectedOptionArray[0];
+
+        $.get(
+            Routing.generate('get_ligne_article_conditionnement', true),
+            {
+                quantity: numberInPackage,
+                reference: selectedOption.reference,
+                commande: selectedOption.commande
+            },
+            'text/html'
+        ).done(
+            function(html) {
+                const $html = $(html);
+                for(let index = 0; index < packageNumber; index++) {
+                    const $clonedHtml = $html.clone();
+                    const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
+                    console.log($articleFournisseur);
+                    ajaxAutoArticleFournisseurInit($articleFournisseur);
+
+                    const $containerArticle = $('<div/>', {
+                        class: 'conditionnement-article',
+                        'data-multiple-key': 'conditionnement',
+                        'data-multiple-object-index': index,
+                        html: $clonedHtml
+                    });
+
+                    $packingContainer
+                        .find('.articles-conditionnement-container')
+                        .append($containerArticle);
+                }
+            }
+        )
+    }
+
+}
+
 let editorNewLivraisonAlreadyDoneForDL = false;
 
 function initNewLivraisonEditor(modal) {
@@ -870,7 +907,7 @@ function initNewLivraisonEditor(modal) {
     initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
     initWithPH($('.select2-type'), 'Type...', false);
     initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
-    let urlNewDemande = Routing.generate('demande_new', true);
+    let urlNewDemande = Routing.generate('reception_new_with_packing', true);
     let modalNewDemande = $("#modalNewLigneReception");
     let submitNewDemande = $("#submitNewReceptionButton");
     InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);

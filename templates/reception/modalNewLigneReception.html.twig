@@ -101,20 +101,55 @@
                         {% endfor %}
                     </div>
                     <label for="commentaire-dl" class="m-3">Commentaire</label>
-                    <input id='commentaire' class="commentaire data" name="commentaire"
+                    <input id='commentaire-dl'
+                           class="commentaire data"
+                           name="commentaire"
                            type="hidden">
                     <div class="editor-container" id="editor-container-new-demande">
                     </div>
                     <input class="data" name="reception" type="hidden" value="{{ reception.id }}">
                 </div>
+
+
                 <!--
                 BLOCK CONDITIONNEMENT
                 -->
                 <div class="bloc-packing">
                     <h2>Réception d'articles</h2>
-                    <div class="form-group w-50">
-                        <label>Référence</label>
-                        <select class="form-control select2-autocomplete-ref-articles" name="refArticle" class="selectReceptionRef"></select>
+                    <div class="row align-items-center">
+                        <div class="form-group col-4">
+                            <label>Référence</label>
+                            <select class="form-control select2-autocomplete-ref-articles w-100" name="refArticleCommande"></select>
+                        </div>
+                        <div class="col">
+                            <div class="row justify-content-start align-items-center">
+                                <div class="col-2">
+                                    <label for="packing-package-number" class="sr-only">Nombre de colis</label>
+                                    <input id="packing-package-number"
+                                           type="number"
+                                           class="form-control"
+                                           name="packageNumber"/>
+                                </div>
+                                <div class="col-auto">conditionnement de quantité</div>
+                                <div class="col-2">
+                                    <label for="packing-number-in-package" class="sr-only">Nombre d'article dans le colis</label>
+                                    <input id="packing-number-in-package"
+                                           type="number"
+                                           class="form-control"
+                                           name="numberInPackage"/>
+                                </div>
+                                <div class="col-2 text-center">
+                                    <button class="btn btn-success"
+                                            type="button"
+                                            onclick="validatePacking($(this))">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row articles-conditionnement-container">
+
                     </div>
                 </div>
 
@@ -123,7 +158,7 @@
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
                 <button id="submitNewReceptionButton" type="button" class="btn btn-success"
-                        onclick="setCommentaire('#editor-container-new-demande'), validateNewRecep()">Enregistrer
+                        onclick="setCommentaire('#editor-container-new-demande')">Enregistrer
                 </button>
             </div>
         </div>
