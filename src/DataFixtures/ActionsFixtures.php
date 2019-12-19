@@ -31,7 +31,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     {
     	$menus = [
 			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE],
-			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP],
+			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP, Action::EXPORT],
 			Menu::DEM_LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
 			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
 			Menu::STOCK => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],

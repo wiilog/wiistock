@@ -3,6 +3,61 @@ $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
 //RECEPTION
+function generateCSVReception () {
+    loadSpinner($('#spinnerReception'));
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_receptions_for_csv', true);
+
+        $.post(path, params, function(response) {
+            if (response) {
+                $('.error-msg').empty();
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                aFile(csv);
+                hideSpinner($('#spinnerReception'));
+            }
+        }, 'json');
+
+    } else {
+        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerReception'))
+    }
+}
+
+let aFile = function (csv) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = 'export-reception-' + date + '.csv';
+    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        let link = document.createElement("a");
+        if (link.download !== undefined) {
+            let url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+// RECEPTION
 let path = Routing.generate('reception_api', true);
 let tableReception = $('#tableReception_id').DataTable({
     serverSide: true,
@@ -770,5 +825,83 @@ function toggleInput(id, button) {
             $toShow.parent().parent().css("display", "none");
         }
         // $div.style.visibility = "hidden";
+    }
+}
+
+function validateNewRecep() {
+    /**
+     * BLOCK DL
+     */
+
+
+
+
+    /**
+     * BLOCK CONDITIONNEMENT
+     */
+}
+
+
+let ajaxAutoRefArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_ref_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}
+let editorNewLivraisonAlreadyDoneForDL = false;
+
+function initNewLivraisonEditor(modal) {
+    if (!editorNewLivraisonAlreadyDoneForDL) {
+        initEditorInModal(modal);
+        editorNewLivraisonAlreadyDoneForDL = true;
+    }
+    initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
+    initWithPH($('.select2-type'), 'Type...', false);
+    initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
+    let urlNewDemande = Routing.generate('demande_new', true);
+    let modalNewDemande = $("#modalReceptionWithDL");
+    let submitNewDemande = $("#submitNewReceptionButton");
+    InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
+    $('#typeContentNew').children().addClass('d-none');
+    $('#typeContentNew').children().removeClass('d-block');
+};
+
+function initWithPH(select, ph, ajax = true, route = null) {
+    if (ajax) {
+        select.select2({
+            ajax: {
+                url: route,
+                dataType: 'json',
+                delay: 250,
+            },
+            language: {
+                inputTooShort: function () {
+                    return 'Veuillez entrer au moins 1 caractère.';
+                },
+                searching: function () {
+                    return 'Recherche en cours...';
+                },
+                noResults: function () {
+                    return 'Aucun résultat.';
+                }
+            },
+            minimumInputLength: 1,
+            placeholder: ph
+        });
+    } else {
+        select.select2({
+            placeholder: ph
+        });
     }
 }
