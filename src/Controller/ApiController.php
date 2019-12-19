@@ -330,6 +330,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $numberOfRowsInserted = 0;
                 $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+                $finishMouvementTraca = [];
                 foreach ($mouvementsNomade as $index => $mvt) {
                     $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                     if (!isset($mouvementTraca)) {
@@ -371,7 +372,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
 
                                 if (isset($article)) {
-                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $article->getQuantite(), $article, MouvementStock::TYPE_ENTREE);
+                                    $newMouvement = $mouvementStockService->createMouvementStock(
+                                        $nomadUser,
+                                        $location,
+                                        $article->getQuantite(),
+                                        $article,
+                                        MouvementStock::TYPE_TRANSFERT
+                                    );
                                     $mouvementTraca->setMouvementStock($newMouvement);
                                     $entityManager->persist($newMouvement);
 
@@ -416,13 +423,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         if (!empty($mvt['comment'])) {
                             $mouvementTraca->setCommentaire($mvt['comment']);
                         }
-                        $entityManager->persist($mouvementTraca);
-                        $numberOfRowsInserted++;
 
                         $signatureFile = $request->files->get("signature_$index");
                         if (!empty($signatureFile)) {
                             $attachmentService->addAttachements([$signatureFile], null, null, $mouvementTraca);
                         }
+
+                        $entityManager->persist($mouvementTraca);
+                        $numberOfRowsInserted++;
 
                         // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
@@ -457,8 +465,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     }
                     else if ($mouvementTraca->getType()->getNom() === MouvementTraca::TYPE_PRISE) {
-                        $mouvementTraca->setFinished($mvt['finished']);
+                        $finishMouvementTraca[] = $mouvementTraca;
                     }
+
+                    $entityManager->flush();
+                }
+
+                // On fini le mouvement après la dépose
+                foreach ($finishMouvementTraca as $mouvementTraca) {
+                    $mouvementTraca->setFinished($mvt['finished']);
                 }
                 $entityManager->flush();
 
