@@ -1581,7 +1581,8 @@ class ReceptionController extends AbstractController
 				if ($totalQuantity > $rra->getQuantite()) return new JsonResponse(false);
 			}
 
-			$needCreatePrepa = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL)->getParametre();
+			$paramGlobal = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL);
+			$needCreatePrepa = $paramGlobal ? $paramGlobal->getParametre() : false;
 			$data['needPrepa'] = $needCreatePrepa;
 
 			// crée la demande de livraison
