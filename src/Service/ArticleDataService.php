@@ -32,6 +32,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
+use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
@@ -149,11 +150,16 @@ class ArticleDataService
     private $em;
 
 	/**
+	 * @var ReceptionReferenceArticleRepository
+	 */
+    private $receptionReferenceArticleRepository;
+
+	/**
 	 * @var MailerService
 	 */
     private $mailerService;
 
-    public function __construct(MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -175,6 +181,7 @@ class ArticleDataService
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->mailerService = $mailerService;
+        $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
     }
 
 	/**
@@ -486,7 +493,7 @@ class ArticleDataService
 	 * @return bool
 	 * @throws NonUniqueResultException
 	 */
-    public function newArticle($data, $reception = null, $demande = null)
+    public function newArticle($data, $demande = null, $reception = null)
     {
         $entityManager = $this->em;
         $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
@@ -558,7 +565,10 @@ class ArticleDataService
 
 		// optionnel : ajout dans une réception
 		if ($reception) {
-			$reception->addArticle($toInsert);
+			$noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
+			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle);
+			$toInsert->setReceptionReferenceArticle($rra);
+			$entityManager->flush();
 		}
 
 		// gestion des urgences

@@ -1580,19 +1580,19 @@ class ReceptionController extends AbstractController
             $data['needPrepa'] = $needCreatePrepa;
             $demande = $demandeLivraisonService->newDemande($data);
 
-            // crée les articles et les ajoute à la demande
-            //(urgent)
-            foreach ($articles as $article) {
-                //quantity
-                //refArticle
-                //articleFournisseur
-                //champs libre [idCL => vCL]
-                //noCommande
-                $this->articleDataService->newArticle($article, $reception, $demande);
-            }
-            $em->flush();
-        }
-        throw new NotFoundHttpException('404');
-    }
+			// crée les articles et les ajoute à la demande, à la réception, crée les urgences
+			foreach ($articles as $article) {
+				// à recevoir :
+				//quantity
+				//refArticle
+				//articleFournisseur
+				//champs libre [idCL => vCL]
+				//noCommande
+				$this->articleDataService->newArticle($article, $demande, $reception);
+			}
+			$em->flush();
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 }
