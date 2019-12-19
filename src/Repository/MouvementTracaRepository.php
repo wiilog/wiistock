@@ -130,9 +130,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
             "SELECT m
             FROM App\Entity\MouvementTraca m
             JOIN m.type t
-            WHERE m.emplacement = :emp AND t.nom LIKE 'depose'
-            GROUP BY m.colis
-            ORDER BY m.datetime ASC"
+            WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
         )->setParameter('emp', $emplacement);
         return $query->execute();
     }
