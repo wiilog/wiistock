@@ -765,14 +765,14 @@ class ReceptionController extends AbstractController
         }
 
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-        $champsLibres = [];
+        $champsLibresReception = [];
         foreach ($listTypes as $type) {
             $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
                 $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
-                $champsLibres[] = [
+                $champsLibresReception[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
                     'typage' => $champLibre->getTypage(),
@@ -782,6 +782,18 @@ class ReceptionController extends AbstractController
                 ];
             }
         }
+
+		$listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+		$typeChampLibreDL = [];
+		foreach ($listTypesDL as $typeDL) {
+			$champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
+
+			$typeChampLibreDL[] = [
+				'typeLabel' => $typeDL->getLabel(),
+				'typeId' => $typeDL->getId(),
+				'champsLibres' => $champsLibresDL,
+			];
+		}
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
@@ -793,7 +805,8 @@ class ReceptionController extends AbstractController
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
-            'typeChampsLibres' => $champsLibres
+            'typeChampsLibres' => $champsLibresReception,
+			'typeChampsLibresDL' => $typeChampLibreDL
         ]);
     }
 
