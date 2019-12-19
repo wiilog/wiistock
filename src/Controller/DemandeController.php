@@ -774,6 +774,7 @@ class DemandeController extends AbstractController
             $need = false;
             $preparation = $demande->getPreparation();
             $preparation->setUtilisateur($this->getUser());
+            $this->getDoctrine()->getManager()->flush();
             foreach ($demande->getLigneArticle() as $ligneArticle) {
                 if ($ligneArticle->getToSplit()) {
                     $need = true;
