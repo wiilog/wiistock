@@ -1057,7 +1057,8 @@ class ReceptionController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $response = [];
             return new JsonResponse($response);
@@ -1116,7 +1117,8 @@ class ReceptionController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $this->sendMailToAcheteurs($litige);
             $response = [];

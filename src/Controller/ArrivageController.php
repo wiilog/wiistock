@@ -439,6 +439,7 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
+            $em->flush();
 
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -823,6 +824,7 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1065,6 +1067,7 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 
