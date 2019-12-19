@@ -610,11 +610,31 @@ class ReceptionController extends AbstractController
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
+			$champsLibres = [];
+			$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+			foreach ($listTypes as $type) {
+				$listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+
+				foreach ($listChampLibreReception as $champLibre) {
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+					$champsLibres[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampLibre,
+					];
+				}
+			}
+
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                ])
+					'typeChampsLibres' => $champsLibres
+				])
             ];
             $entityManager->flush();
             return new JsonResponse($json);
@@ -665,11 +685,31 @@ class ReceptionController extends AbstractController
             $type = $reception->getType();
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
+			$champsLibres = [];
+			$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+			foreach ($listTypes as $oneType) {
+				$listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+
+				foreach ($listChampLibreReception as $champLibre) {
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+					$champsLibres[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampLibre,
+					];
+				}
+			}
+
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab
-                ])
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
+					'typeChampsLibres' => $champsLibres
+				])
             ];
             return new JsonResponse($json);
         }
@@ -747,11 +787,31 @@ class ReceptionController extends AbstractController
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
+			$champsLibres = [];
+			$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+			foreach ($listTypes as $oneType) {
+				$listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+
+				foreach ($listChampLibreReception as $champLibre) {
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+					$champsLibres[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampLibre,
+					];
+				}
+			}
+
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab
-                ])
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
+					'typeChampsLibres' => $champsLibres
+				])
             ];
             return new JsonResponse($json);
         }
@@ -1622,7 +1682,7 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-
+dump($data);
 			$articles = $data['conditionnement'];
 
 			// protection quantité réceptionnée < quantité attendue
