@@ -566,7 +566,7 @@ class ArticleDataService
 		// optionnel : ajout dans une réception
 		if ($reception) {
 			$noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle);
+			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
 		}
