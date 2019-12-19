@@ -1602,7 +1602,7 @@ class ReceptionController extends AbstractController
 				//articleFournisseur
 				//champs libre [idCL => vCL]
 				//noCommande
-				$this->articleDataService->newArticle($article, $demande, $reception);
+				$this->articleDataService->newArticle($article, $demande ?? null, $reception);
 			}
 			$em->flush();
 		}
