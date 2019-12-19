@@ -82,7 +82,17 @@ class EnCoursController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $emplacementInfo = [];
             $emplacement = $this->emplacementRepository->find($data['id']);
-            foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
+            $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
+            $mvtGrouped = [];
+            foreach ($mvtArray as $mvt) {
+                if (isset($mvtGrouped[$mvt->getColis()])
+                    && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
+                    $mvtGrouped[$mvt->getColis()] = $mvt;
+                } else if (!isset($mvtGrouped[$mvt->getColis()])) {
+                    $mvtGrouped[$mvt->getColis()] = $mvt;
+                }
+            }
+            foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                     //VERIFCECILE
                     $dateMvt = $mvt->getDatetime();

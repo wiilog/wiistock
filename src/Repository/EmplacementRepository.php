@@ -201,7 +201,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 JOIN m_other.emplacement e_other_other
                 JOIN m_other.type t_other
                 WHERE e_other_other.label = e.label AND t_other.nom LIKE 'depose'
-            ) > 0 AND e.dateMaxTime IS NOT NULL
+            ) > 0 AND e.dateMaxTime IS NOT NULL AND e.dateMaxTime != ''
             ORDER BY nb DESC"
         );
         return $query->execute();
