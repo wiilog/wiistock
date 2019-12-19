@@ -1595,6 +1595,7 @@ class ReceptionController extends AbstractController
 			}
 
 			// crée les articles et les ajoute à la demande, à la réception, crée les urgences
+			$response['barcodes'] = $response['barcodesLabel'] = [];
 			foreach ($articles as $article) {
 				// à recevoir :
 				//quantity
@@ -1602,9 +1603,21 @@ class ReceptionController extends AbstractController
 				//articleFournisseur
 				//champs libre [idCL => vCL]
 				//noCommande
-				$this->articleDataService->newArticle($article, $demande ?? null, $reception);
+				$createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
+
+				$refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
+
+				$response['barcodes'][] = $createdArticle->getBarCode();
+				$response['barcodesLabel'][] = $this->renderView('article/barcodeLabel.html.twig', [
+					'refRef' => $refArticle ? $refArticle->getReference() : '',
+					'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
+					'artLabel' => $createdArticle->getLabel(),
+					]);
 			}
+
 			$em->flush();
+
+			return new JsonResponse($response);
 		}
 		throw new NotFoundHttpException('404');
 	}

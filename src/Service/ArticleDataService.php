@@ -490,7 +490,7 @@ class ArticleDataService
 	 * @param array $data
 	 * @param Reception $reception
 	 * @param Demande $demande
-	 * @return bool
+	 * @return Article
 	 * @throws NonUniqueResultException
 	 */
     public function newArticle($data, $demande = null, $reception = null)
@@ -589,7 +589,7 @@ class ArticleDataService
 
         $entityManager->flush();
 
-        return true;
+        return $toInsert;
     }
 
     public function getDataForDatatable($params = null, $user)
