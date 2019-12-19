@@ -413,7 +413,7 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            return $this->demandeLivraisonService->newDemande($data);
+            return new JsonResponse($this->demandeLivraisonService->newDemande($data));
         }
         throw new NotFoundHttpException('404');
     }

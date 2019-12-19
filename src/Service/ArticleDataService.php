@@ -501,7 +501,7 @@ class ArticleDataService
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
-        $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+        $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
@@ -566,7 +566,7 @@ class ArticleDataService
 		// optionnel : ajout dans une réception
 		if ($reception) {
 			$noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle);
+			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
 		}
@@ -618,15 +618,7 @@ class ArticleDataService
 	 */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
-        $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
-
-        $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
-        $articles = [];
-        foreach ($listArticleFournisseur as $articleFournisseur) {
-            foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
-            }
-        }
+        $articles = $ligne->getArticles();
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
