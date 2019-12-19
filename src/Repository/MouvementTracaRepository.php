@@ -291,4 +291,18 @@ class MouvementTracaRepository extends ServiceEntityRepository
             ->setParameter('finished', false);
         return $query->execute();
     }
+
+
+	public function countByEmplacement($emplacementId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(m)
+            FROM App\Entity\MouvementTraca m
+            JOIN m.emplacement e
+            WHERE e.id = :emplacementId"
+		)->setParameter('emplacementId', $emplacementId);
+		return $query->getSingleScalarResult();
+	}
 }
