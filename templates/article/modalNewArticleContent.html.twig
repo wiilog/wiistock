@@ -1,7 +1,7 @@
 {% set easyForm = (easyForm is not defined) or easyForm %}
 <div class="row">
     <div class="form-group w-100 col-12">
-        <label>Référence fournisseur
+        <label>Référence fournisseur*
             <select class="form-control data needed select2" name="articleFournisseur">
                 {% if references is defined and references %}
                     {% for ref in references %}
