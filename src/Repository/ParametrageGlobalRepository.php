@@ -48,6 +48,11 @@ class ParametrageGlobalRepository extends ServiceEntityRepository
     }
     */
 
+    /**
+     * @param $label
+     * @return ParametrageGlobal
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

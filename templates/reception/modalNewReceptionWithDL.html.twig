@@ -11,6 +11,7 @@
                 <!--
                 BLOCK DL
                 -->
+                {% if createDL %}
                 <div class="demande-livraison">
                     <h5 class="modal-title">Demande de livraison<span id="reference-list"></span></h5>
                     <div class="row mt-3">
@@ -103,6 +104,7 @@
                     </div>
                     <input class="data" name="reception" type="hidden" value="{{ reception.id }}">
                 </div>
+                {% endif %}
                 <!--
                 BLOCK CONDITIONNEMENT
                 -->

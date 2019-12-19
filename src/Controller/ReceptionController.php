@@ -21,6 +21,7 @@ use App\Entity\CategoryType;
 use App\Entity\ArticleFournisseur;
 
 use App\Repository\LitigeRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\InventoryCategoryRepository;
@@ -157,52 +158,59 @@ class ReceptionController extends AbstractController
      */
     private $litigeRepository;
 
-	/**
-	 * @var ReceptionService
-	 */
-	private $receptionService;
+    /**
+     * @var ReceptionService
+     */
+    private $receptionService;
 
-	/**
-	 * @var PieceJointeRepository
-	 */
-	private $pieceJointeRepository;
+    /**
+     * @var PieceJointeRepository
+     */
+    private $pieceJointeRepository;
 
-	/**
-	 * @var InventoryCategoryRepository
-	 */
-	private $inventoryCategoryRepository;
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
 
-	public function __construct(
-		ArticleDataService $articleDataService,
-		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
-		TypeRepository $typeRepository,
-		ChampLibreRepository $champLibreRepository,
-		ValeurChampLibreRepository $valeurChampsLibreRepository,
-		FournisseurRepository $fournisseurRepository,
-		StatutRepository $statutRepository,
-		ReferenceArticleRepository $referenceArticleRepository,
-		ReceptionRepository $receptionRepository,
-		UtilisateurRepository $utilisateurRepository,
-		EmplacementRepository $emplacementRepository,
-		ArticleRepository $articleRepository,
-		ArticleFournisseurRepository $articleFournisseurRepository,
-		UserService $userService,
-		ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
-		InventoryCategoryRepository $inventoryCategoryRepository,
-		PieceJointeRepository $pieceJointeRepository,
-		ReceptionService $receptionService,
-		LitigeRepository $litigeRepository,
-		AttachmentService $attachmentService,
-		FieldsParamRepository $fieldsParamRepository,
-		TransporteurRepository $transporteurRepository
-	)
+    /**
+     * @var ParametrageGlobalRepository
+     */
+    private $paramGlobalRepository;
+
+    public function __construct(
+        ArticleDataService $articleDataService,
+        DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+        TypeRepository $typeRepository,
+        ChampLibreRepository $champLibreRepository,
+        ValeurChampLibreRepository $valeurChampsLibreRepository,
+        FournisseurRepository $fournisseurRepository,
+        StatutRepository $statutRepository,
+        ReferenceArticleRepository $referenceArticleRepository,
+        ReceptionRepository $receptionRepository,
+        UtilisateurRepository $utilisateurRepository,
+        EmplacementRepository $emplacementRepository,
+        ArticleRepository $articleRepository,
+        ArticleFournisseurRepository $articleFournisseurRepository,
+        UserService $userService,
+        ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+        InventoryCategoryRepository $inventoryCategoryRepository,
+        PieceJointeRepository $pieceJointeRepository,
+        ReceptionService $receptionService,
+        LitigeRepository $litigeRepository,
+        AttachmentService $attachmentService,
+        FieldsParamRepository $fieldsParamRepository,
+        TransporteurRepository $transporteurRepository,
+        ParametrageGlobalRepository $parametrageGlobalRepository
+    )
     {
-		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
-		$this->pieceJointeRepository = $pieceJointeRepository;
+        $this->paramGlobalRepository = $parametrageGlobalRepository;
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
+        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
-		$this->receptionService = $receptionService;
-		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->receptionService = $receptionService;
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
@@ -255,16 +263,16 @@ class ReceptionController extends AbstractController
             }
 
             if ($data['transporteur'] != null) {
-				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
                 $reception
                     ->setTransporteur($transporteur);
             }
 //TODO CG dateAttendue ou date-attendue ??
             $reception
-				->setReference($data['reference'])
-				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
-				->setCommentaire($data['commentaire'])
+                ->setReference($data['reference'])
+                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
@@ -323,25 +331,25 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
-			if ($data['utilisateur'] != null) {
-				$utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-				$reception
-					->setUtilisateur($utilisateur);
-			}
+            if ($data['utilisateur'] != null) {
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $reception
+                    ->setUtilisateur($utilisateur);
+            }
 
-			if ($data['transporteur'] != null) {
-				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-				$reception
-					->setTransporteur($transporteur);
-			}
+            if ($data['transporteur'] != null) {
+                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+                $reception
+                    ->setTransporteur($transporteur);
+            }
 
             $reception
-				->setReference($data['numeroCommande'])
-            	->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
-				->setNumeroReception($data['numeroReception'])
-				->setStatut($statut)
-            	->setCommentaire($data['commentaire']);
+                ->setReference($data['numeroCommande'])
+                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setNumeroReception($data['numeroReception'])
+                ->setStatut($statut)
+                ->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -544,7 +552,7 @@ class ReceptionController extends AbstractController
         }
 
         return $this->render('reception/index.html.twig', [
-			'typeChampsLibres' => $typeChampLibre,
+            'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'fieldsParam' => $fields,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
@@ -784,17 +792,17 @@ class ReceptionController extends AbstractController
             }
         }
 
-		$listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-		$typeChampLibreDL = [];
-		foreach ($listTypesDL as $typeDL) {
-			$champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
+        $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $typeChampLibreDL = [];
+        foreach ($listTypesDL as $typeDL) {
+            $champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
 
-			$typeChampLibreDL[] = [
-				'typeLabel' => $typeDL->getLabel(),
-				'typeId' => $typeDL->getId(),
-				'champsLibres' => $champsLibresDL,
-			];
-		}
+            $typeChampLibreDL[] = [
+                'typeLabel' => $typeDL->getLabel(),
+                'typeId' => $typeDL->getId(),
+                'champsLibres' => $champsLibresDL,
+            ];
+        }
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
@@ -807,7 +815,8 @@ class ReceptionController extends AbstractController
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
-			'typeChampsLibresDL' => $typeChampLibreDL
+            'typeChampsLibresDL' => $typeChampLibreDL,
+            'createDL' => $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_DL_AFTER_RECEPTION)->getParametre()
         ]);
     }
 
@@ -1227,11 +1236,11 @@ class ReceptionController extends AbstractController
             }
             $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $inventoryCategories = $this->inventoryCategoryRepository->findAll();
-            $typeChampLibre =  [];
+            $typeChampLibre = [];
             foreach ($types as $type) {
                 $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
                 $typeChampLibre[] = [
-                    'typeLabel' =>  $type->getLabel(),
+                    'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
                     'champsLibres' => $champsLibres,
                 ];
@@ -1248,7 +1257,8 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function checkBeforeLigneDelete(Request $request) {
+    public function checkBeforeLigneDelete(Request $request)
+    {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             $ligne = $this->receptionReferenceArticleRepository->find($id);
             $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
@@ -1546,42 +1556,43 @@ class ReceptionController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
-	 */
-	public function newWithPacking(Request $request,
-								   DemandeLivraisonService $demandeLivraisonService,
-								   Reception $reception): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$em = $this->getDoctrine()->getManager();
+    /**
+     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+     */
+    public function newWithPacking(Request $request,
+                                   DemandeLivraisonService $demandeLivraisonService,
+                                   Reception $reception): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
 
-			// protection quantité réceptionnée < quantité attendue
-			$articles = $data['articles'];
-			$totalQuantity = 0;
-			foreach ($articles as $article) {
-				$totalQuantity += $article['quantity'];
-			}
-			if ($totalQuantity > $data['']) {
-				return new JsonResponse(false);
-			}
+            // protection quantité réceptionnée < quantité attendue
+            $articles = $data['articles'];
+            $totalQuantity = 0;
+            foreach ($articles as $article) {
+                $totalQuantity += $article['quantity'];
+            }
+            if ($totalQuantity > $data['']) {
+                return new JsonResponse(false);
+            }
+            $needCreatePrepa = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL)->getParametre();
+                // crée la demande de livraison
+            $data['needPrepa'] = $needCreatePrepa;
+            $demande = $demandeLivraisonService->newDemande($data);
 
-			// crée la demande de livraison
-			$demande = $demandeLivraisonService->newDemande($data);
-
-			// crée les articles et les ajoute à la demande
-			//(urgent)
-			foreach ($articles as $article) {
-				//quantity
-				//refArticle
-				//articleFournisseur
-				//champs libre [idCL => vCL]
-				//noCommande
-				$this->articleDataService->newArticle($article, $reception, $demande);
-			}
-			$em->flush();
-		}
-		throw new NotFoundHttpException('404');
-	}
+            // crée les articles et les ajoute à la demande
+            //(urgent)
+            foreach ($articles as $article) {
+                //quantity
+                //refArticle
+                //articleFournisseur
+                //champs libre [idCL => vCL]
+                //noCommande
+                $this->articleDataService->newArticle($article, $reception, $demande);
+            }
+            $em->flush();
+        }
+        throw new NotFoundHttpException('404');
+    }
 
 }

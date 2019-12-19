@@ -20,7 +20,12 @@
             <div class="row mt-2">
                 <p><strong>{{ typeChampLibre.label }}
                         : </strong>
-                    {{ typeChampLibre.typage == 'boolean' ? (typeChampLibre.valeurChampLibre.valeur ? 'oui' : 'non') : typeChampLibre.valeurChampLibre.valeur }}
+                    {{ typeChampLibre.typage == 'boolean' ?
+                    (typeChampLibre.valeurChampLibre is not null ?
+                    typeChampLibre.valeurChampLibre ? 'oui' : 'non')
+                    :
+                    typeChampLibre.valeurChampLibre is not null ?
+                    typeChampLibre.valeurChampLibre.valeur : ''}}
                 </p>
             </div>
         </div>

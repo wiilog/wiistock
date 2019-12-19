@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Preparation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -229,13 +230,21 @@ class DemandeLivraisonService
 				$this->em->flush();
             }
         }
-
-		$this->em->flush();
-
+        $this->em->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
             $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
+            if (isset($data['needPrepa']) && $data['needPrepa']) {
+                $preparation = new Preparation();
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $preparation
+                    ->setNumero('P-' . $date->format('YmdHis'))
+                    ->setDate($date);
+                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $preparation->setStatut($statutP);
+                $demande->setPreparation($preparation);
+            }
 			$this->em->flush();
             $data = $demande;
         } else {
