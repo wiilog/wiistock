@@ -26,8 +26,16 @@
     {% endif %}
     <div>
         <div class="btn btn-col-action" data-id='{{articleId}}'
-            onclick='printSingleArticleBarcode($(this))'>
+             onclick='printSingleArticleBarcode($(this))'>
             <i class="fas fa-print"></i>
         </div>
     </div>
+    {% if demandeId is not null %}
+    <div>
+        <div class="btn btn-col-action" data-id='{{articleId}}'
+             onclick='redirectToDemandeLivraison({{ demandeId }})'>
+            <i class="fas fa-external-link-alt"></i>
+        </div>
+    </div>
+    {% endif %}
 </div>

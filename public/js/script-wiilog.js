@@ -1099,3 +1099,7 @@ function newLine(path, button, toHide, buttonAdd)
         });
     }
 }
+
+function redirectToDemandeLivraison(demandeId) {
+    window.open(Routing.generate('demande_show', {id: demandeId}));
+}
