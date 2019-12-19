@@ -25,7 +25,7 @@
                             <select type="text" class="select2-type data w-100 needed" name="type"
                                     onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
                                 <option></option>
-                                {% for type in typeChampsLibres %}
+                                {% for type in typeChampsLibresDL %}
                                     <option value="{{type.typeId}}">{{type.typeLabel}}</option>
                                 {% endfor %}
                             </select>
@@ -39,7 +39,7 @@
                     </div>
                     <!-- CHAMPS LIBRES -->
                     <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-                        {% for type in typeChampsLibres %}
+                        {% for type in typeChampsLibresDL %}
                             <div class="d-none" id="{{type.typeId}}-new">
                                 <div class="row mt-2">
                                     {% if type.champsLibres|length > 0 %}

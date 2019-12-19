@@ -88,6 +88,8 @@ class ChampLibreController extends AbstractController
                     $typageCLFr = 'Liste';
                 } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATE) {
                     $typageCLFr = 'Date';
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATETIME) {
+                    $typageCLFr = 'Date et heure';
                 } else {
                     $typageCLFr = '';
                 }

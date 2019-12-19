@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\InventoryEntry;
@@ -12,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
-use App\Entity\PieceJointe;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
@@ -30,9 +30,11 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
+use App\Service\AttachmentService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
@@ -243,23 +245,24 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/connect", name= "api-connect")
-     * @Rest\Get("/api/connect")
+     * @Rest\Post("/api/connect", name="api-connect")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
      */
     public function connection(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
 
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+            $user = $this->utilisateurRepository->findOneBy(['username' => $request->request->get('login')]);
 
             if ($user !== null) {
-                if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
+                if ($this->passwordEncoder->isPasswordValid($user, $request->request->get('password'))) {
                     $apiKey = $this->apiKeyGenerator();
 
                     $user->setApiKey($apiKey);
@@ -282,9 +285,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/ping", name= "api-ping")
      * @Rest\Get("/api/ping")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
      */
     public function ping(Request $request)
     {
@@ -302,27 +306,33 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvement-traca")
+     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvements-traca")
      * @Rest\View()
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
+     * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function postMouvementTraca(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function postMouvementsTraca(Request $request,
+                                        MouvementStockService $mouvementStockService,
+                                        AttachmentService $attachmentService,
+                                        EntityManagerInterface $entityManager) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
 
-                $em = $this->getDoctrine()->getManager();
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $numberOfRowsInserted = 0;
-                $mouvementsNomade = json_decode($data['mouvements'], true);
-                foreach ($mouvementsNomade as $mvt) {
-                    if (!$this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date'])) {
+                $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+                foreach ($mouvementsNomade as $index => $mvt) {
+                    $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                    if (!isset($mouvementTraca)) {
                         $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                         $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
 
@@ -330,10 +340,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         if (!$location) {
                             $location = new Emplacement();
                             $location->setLabel($mvt['ref_emplacement']);
-                            $em->persist($location);
-                            $em->flush();
+                            $entityManager->persist($location);
+                            $entityManager->flush();
                         }
-                        $operator = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+
                         $dateArray = explode('_', $mvt['date']);
 
                         $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
@@ -342,37 +352,81 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $mouvementTraca
                             ->setColis($mvt['ref_article'])
                             ->setEmplacement($location)
-                            ->setOperateur($operator)
+                            ->setOperateur($nomadUser)
                             ->setUniqueIdForMobile($mvt['date'])
                             ->setDatetime($date)
                             ->setFinished($mvt['finished'])
                             ->setType($type);
+
+                        // set mouvement de stock
+                        if (isset($mvt['fromStock']) && $mvt['fromStock']) {
+                            if ($type->getNom() === MouvementTraca::TYPE_PRISE) {
+                                $articles = $this->articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                /** @var Article|null $article */
+                                $article = count($articles) > 0 ? $articles[0] : null;
+                                if (!isset($article)) {
+                                    $references = $this->referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                    /** @var ReferenceArticle|null $article */
+                                    $article = count($references) > 0 ? $references[0] : null;
+                                }
+
+                                if (isset($article)) {
+                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $article->getQuantite(), $article, MouvementStock::TYPE_ENTREE);
+                                    $mouvementTraca->setMouvementStock($newMouvement);
+                                    $entityManager->persist($newMouvement);
+
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $article->setStatut($status);
+                                }
+                            }
+                            else { // MouvementTraca::TYPE_DEPOSE
+                                $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
+                                    [
+                                        'colis' => $mouvementTraca->getColis(),
+                                        'type' => $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
+                                        'finished' => false
+                                    ],
+                                    [ 'datetime' => 'DESC' ]
+                                );
+                                $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
+                                if (isset($mouvementTracaPrise)) {
+                                    $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
+                                    $mouvementTraca->setMouvementStock($mouvementStockPrise);
+                                    $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
+
+                                    $article = $mouvementStockPrise->getArticle()
+                                        ? $mouvementStockPrise->getArticle()
+                                        : $mouvementStockPrise->getRefArticle();
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_ACTIF]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $article
+                                        ->setStatut($status)
+                                        ->setEmplacement($location);
+                                }
+                            }
+                        }
+
                         if (!empty($mvt['comment'])) {
                             $mouvementTraca->setCommentaire($mvt['comment']);
                         }
-                        $em->persist($mouvementTraca);
+                        $entityManager->persist($mouvementTraca);
                         $numberOfRowsInserted++;
-                        if (!empty($mvt['signature'])) {
-                            $path = "../public/uploads/attachements/";
-                            if (!file_exists($path)) {
-                                mkdir($path, 0777);
-                            }
-                            $fileName = 'signature' . str_replace(':', '', $mouvementTraca->getUniqueIdForMobile()) . '.jpeg';
-                            file_put_contents(
-                                $path . $fileName,
-                                file_get_contents($mvt['signature'])
-                            );
-                            $pj = new PieceJointe();
-                            $pj
-                                ->setOriginalName($fileName)
-                                ->setFileName($fileName)
-                                ->setMouvementTraca($mouvementTraca);
-                            $em->persist($pj);
+
+                        $signatureFile = $request->files->get("signature_$index");
+                        if (!empty($signatureFile)) {
+                            $attachmentService->addAttachements([$signatureFile], null, null, $mouvementTraca);
                         }
-                        $em->flush();
-//						 envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+
+                        // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                         if ($location) {
-                            $isDepose = $mvt['type'] === MouvementTraca::TYPE_DEPOSE;
+                            $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
                             $colis = $this->colisRepository->findOneByCode($mvt['ref_article']);
 
                             if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
@@ -390,7 +444,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                 'emplacement' => $location,
                                                 'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                 'date' => $date,
-                                                'operateur' => $operator->getUsername(),
+                                                'operateur' => $nomadUser->getUsername(),
                                                 'pjs' => $arrivage->getAttachements()
                                             ]
                                         ),
@@ -401,12 +455,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                             }
                         }
-                    } else {
-                        $toEdit = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
-                        if ($toEdit->getType()->getNom() === MouvementTraca::TYPE_PRISE) $toEdit->setFinished($mvt['finished']);
+                    }
+                    else if ($mouvementTraca->getType()->getNom() === MouvementTraca::TYPE_PRISE) {
+                        $mouvementTraca->setFinished($mvt['finished']);
                     }
                 }
-                $em->flush();
+                $entityManager->flush();
 
                 $s = $numberOfRowsInserted > 0 ? 's' : '';
                 $this->successDataMsg['success'] = true;
@@ -425,33 +479,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
-     * @Rest\View()
-     */
-    public function setMouvement(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $mouvementsR = $data['mouvement'];
-                foreach ($mouvementsR as $mouvementR) {
-                    $mouvement = new MouvementStock;
-                    $mouvement
-                        ->setType($mouvementR['type'])
-                        ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
-                        ->setEmplacementFrom($this->emplacemnt->$mouvementR[''])
-                        ->setUser($mouvementR['']);
-                }
-                $this->successDataMsg['success'] = true;
-            } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-            }
-
-            return new JsonResponse($this->successDataMsg);
-        }
-    }
-
-    /**
      * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
      * @Rest\View()
      * @param Request $request
@@ -462,9 +489,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function beginPrepa(Request $request,
                                PreparationsManagerService $preparationsManager)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
-                $preparation = $this->preparationRepository->find($data['id']);
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
+                $id = $request->request->get('id');
+                $preparation = $this->preparationRepository->find($id);
 
                 if (($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) ||
                     ($preparation->getUtilisateur() === $nomadUser)) {
@@ -508,12 +537,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 EntityManagerInterface $entityManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $resData = ['success' => [], 'errors' => []];
 
-                $preparations = $data['preparations'];
+                $preparations = json_decode($request->request->get('preparations'), true);
 
                 // on termine les préparations
                 // même comportement que LivraisonController.new()
@@ -603,12 +633,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function beginLivraison(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            $id = $request->request->get('id');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $livraison = $this->livraisonRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $livraison = $this->livraisonRepository->find($id);
 
                 if (
                     ($livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) &&
@@ -638,12 +671,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function beginCollecte(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $ordreCollecte = $this->ordreCollecteRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $ordreCollecte = $this->ordreCollecteRepository->find($id);
 
                 if (
                     $ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
@@ -673,16 +708,19 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function validateManut(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
 
-                $manut = $this->manutentionRepository->find($data['id']);
+                $id = $request->request->get('id');
+                $manut = $this->manutentionRepository->find($id);
 
                 if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
-                    if ($data['commentaire'] !== "") {
-                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $data['commentaire']);
+                    $commentaire = $request->request->get('commentaire');
+                    if (!empty($commentaire)) {
+                        $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                     }
                     $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
@@ -724,10 +762,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     LivraisonsManagerService $livraisonsManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
-                $livraisons = $data['livraisons'];
+                $livraisons = json_decode($request->request->get('livraisons'), true);
                 $resData = ['success' => [], 'errors' => []];
 
                 // on termine les livraisons
@@ -805,11 +844,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $resData = ['success' => [], 'errors' => []];
 
-                $collectes = $data['collectes'];
+                $collectes = json_decode($request->request->get('collectes'), true);
 
                 // on termine les collectes
                 foreach ($collectes as $collecteArray) {
@@ -878,21 +918,28 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/addInventoryEntries", name= "api-add-inventory-entry")
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function addInventoryEntries(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
                 $numberOfRowsInserted = 0;
 
-                foreach ($data['entries'] as $entry) {
+                $entries = json_decode($request->request->get('entries'), true);
+
+                foreach ($entries as $entry) {
                     $newEntry = new InventoryEntry();
 
                     $mission = $this->inventoryMissionRepository->find($entry['id_mission']);
@@ -935,8 +982,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
-                $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-                    "Aucune saisie d'inventaire à synchroniser." : $numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s;
+                $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
+                    ? "Aucune saisie d'inventaire à synchroniser."
+                    : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
             } else {
                 $this->successDataMsg['success'] = false;
                 $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -978,7 +1026,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
-        $data = [
+        return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
@@ -991,19 +1039,23 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
-            'prises' => $this->mouvementTracaRepository->findPrisesByOperatorAndNotDeposed($user)
-        ];
 
-        return $data;
+            'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
+            'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK)
+        ];
     }
 
     /**
      * @Rest\Post("/api/getData", name= "api-get-data")
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
      */
     public function getData(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+        if (!$request->isXmlHttpRequest()) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
                 $httpCode = Response::HTTP_OK;
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = $this->getDataArray($nomadUser);
@@ -1034,21 +1086,33 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv")
      * @Rest\Get("/api/treatAnomalies")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function treatAnomalies(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+            $apiKey = $request->request->get('apiKey');
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $numberOfRowsInserted = 0;
 
-                foreach ($data['anomalies'] as $anomaly) {
-                    $this->inventoryService->doTreatAnomaly($anomaly['id'], $anomaly['reference'], $anomaly['is_ref'], $anomaly['quantity'], $anomaly['comment'], $nomadUser);
+                $anomalies = json_decode($request->request->get('anomalies'), true);
+                foreach ($anomalies as $anomaly) {
+                    $this->inventoryService->doTreatAnomaly(
+                        $anomaly['id'],
+                        $anomaly['reference'],
+                        $anomaly['is_ref'],
+                        $anomaly['quantity'],
+                        $anomaly['comment'],
+                        $nomadUser
+                    );
                     $numberOfRowsInserted++;
                 }
 
@@ -1099,6 +1163,42 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
             return new JsonResponse($resData, $statusCode);
         }
+    }
+
+    /**
+     * @Rest\Get("/api/articles", name= "api-get-articles")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function getArticles(Request $request): Response {
+        $resData = [];
+        $statusCode = Response::HTTP_OK;
+        if (!$request->isXmlHttpRequest()) {
+            if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
+                $barCode = $request->query->get('barCode');
+                $location = $request->query->get('location');
+
+                if (!empty($barCode) && !empty($location)) {
+                    $statusCode = Response::HTTP_OK;
+                    $resData['success'] = true;
+                    $resData['articles'] = array_merge(
+                        $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
+                        $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
+                    );
+                }
+                else {
+                    $statusCode = Response::HTTP_BAD_REQUEST;
+                    $resData['success'] = false;
+                    $resData['articles'] = [];
+                }
+            } else {
+                $statusCode = Response::HTTP_UNAUTHORIZED;
+                $resData['success'] = false;
+                $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            }
+        }
+        return new JsonResponse($resData, $statusCode);
     }
 
 }

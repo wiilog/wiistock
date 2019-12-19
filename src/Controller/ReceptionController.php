@@ -27,7 +27,6 @@ use App\Repository\InventoryCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\ChampLibreRepository;
@@ -367,11 +366,29 @@ class ReceptionController extends AbstractController
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $champsLibres = [];
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            foreach ($listTypes as $type) {
+                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
 
+                foreach ($listChampLibreReception as $champLibre) {
+                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+                    $champsLibres[] = [
+                        'id' => $champLibre->getId(),
+                        'label' => $champLibre->getLabel(),
+                        'typage' => $champLibre->getTypage(),
+                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+                        'defaultValue' => $champLibre->getDefaultValue(),
+                        'valeurChampLibre' => $valeurChampLibre,
+                    ];
+                }
+            }
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
+                    'typeChampsLibres' => $champsLibres
                 ])
             ];
             return new JsonResponse($json);
@@ -749,14 +766,14 @@ class ReceptionController extends AbstractController
         }
 
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-        $champsLibres = [];
+        $champsLibresReception = [];
         foreach ($listTypes as $type) {
             $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
                 $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
-                $champsLibres[] = [
+                $champsLibresReception[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
                     'typage' => $champLibre->getTypage(),
@@ -767,17 +784,18 @@ class ReceptionController extends AbstractController
             }
         }
 
-        $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-        $typeChampLibre = [];
-        foreach ($listTypes as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+		$listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+		$typeChampLibreDL = [];
+		foreach ($listTypesDL as $typeDL) {
+			$champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
 
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-        }
+			$typeChampLibreDL[] = [
+				'typeLabel' => $typeDL->getLabel(),
+				'typeId' => $typeDL->getId(),
+				'champsLibres' => $champsLibresDL,
+			];
+		}
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
@@ -788,7 +806,8 @@ class ReceptionController extends AbstractController
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
-            'typeChampsLibres' => $typeChampLibre
+            'typeChampsLibres' => $champsLibresReception,
+			'typeChampsLibresDL' => $typeChampLibreDL
         ]);
     }
 
@@ -1490,12 +1509,49 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @Route("/receptions-infos", name="get_receptions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getReceptionIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $receptions = $this->receptionRepository->findByDates($dateMin, $dateMax);
+
+            $headers = [];
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date',
+                'type']);
+
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($receptions as $reception) {
+                $receptionData = [];
+
+                $receptionData[] = $reception->getNumeroReception();
+                $receptionData[] = $reception->getReference();
+                $receptionData[] = $reception->getFournisseur()->getNom();
+                $receptionData[] = $reception->getUtilisateur()->getUsername();
+                $receptionData[] = $reception->getStatut()->getNom();
+                $receptionData[] = $reception->getDate()->format('d/m/Y h:i');
+                $receptionData[] = $reception->getType()->getLabel();
+
+                $data[] = $receptionData;
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 	/**
 	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
 	 */
-    public function newWithPacking(Request $request,
-								   		DemandeLivraisonService $demandeLivraisonService,
-										Reception $reception): Response
+	public function newWithPacking(Request $request,
+								   DemandeLivraisonService $demandeLivraisonService,
+								   Reception $reception): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$em = $this->getDoctrine()->getManager();
