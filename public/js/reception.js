@@ -3,6 +3,61 @@ $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
 //RECEPTION
+function generateCSVReception () {
+    loadSpinner($('#spinnerReception'));
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_receptions_for_csv', true);
+
+        $.post(path, params, function(response) {
+            if (response) {
+                $('.error-msg').empty();
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                aFile(csv);
+                hideSpinner($('#spinnerReception'));
+            }
+        }, 'json');
+
+    } else {
+        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        hideSpinner($('#spinnerReception'))
+    }
+}
+
+let aFile = function (csv) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = 'export-reception-' + date + '.csv';
+    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        let link = document.createElement("a");
+        if (link.download !== undefined) {
+            let url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+// RECEPTION
 let path = Routing.generate('reception_api', true);
 let tableReception = $('#tableReception_id').DataTable({
     serverSide: true,
@@ -772,7 +827,6 @@ function toggleInput(id, button) {
         // $div.style.visibility = "hidden";
     }
 }
-
 
 function validateNewRecep() {
     /**

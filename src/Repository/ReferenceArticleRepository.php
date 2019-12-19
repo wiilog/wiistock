@@ -1143,6 +1143,52 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle.reference as reference,
+                             referenceArticle.quantiteDisponible as quantity,
+                             1 as is_ref
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN referenceArticle.emplacement emplacement
+                JOIN referenceArticle.statut status
+                WHERE emplacement.label = :location
+                  AND referenceArticle.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
+    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
 	public function getRefTypeQtyArticleByReception($id)
 	{
 	    /** @var EntityManagerInterface $entityManager */

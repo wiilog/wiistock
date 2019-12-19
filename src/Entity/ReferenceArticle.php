@@ -163,6 +163,11 @@ class ReferenceArticle
      */
     private $limitWarning;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isUrgent;
+
 
     public function __construct()
     {
@@ -731,6 +736,18 @@ class ReferenceArticle
                 $ordreCollecteReference->setReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIsUrgent(): ?bool
+    {
+        return $this->isUrgent;
+    }
+
+    public function setIsUrgent(?bool $isUrgent): self
+    {
+        $this->isUrgent = $isUrgent;
 
         return $this;
     }

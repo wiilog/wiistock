@@ -654,6 +654,7 @@ let toggleRequiredChampsLibres = function (select, require) {
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
+                    console.log('#' + element + require);
                     bloc.find('#' + element + require).addClass('needed');
                 });
             }
