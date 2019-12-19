@@ -1609,6 +1609,11 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+     * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param Reception $reception
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,

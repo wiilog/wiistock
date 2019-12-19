@@ -65,10 +65,11 @@ function submitAction(modal, path, table, callback, close, clear) {
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
 
-        const multipleKey = $input.data('multiple-key');
+        const $parent = $input.closest('[data-multiple-key]');
 
-        if (multipleKey) {
-            const objectIndex = $input.data('multiple-object-index');
+        if ($parent && $parent.length > 0) {
+            const multipleKey = $parent.data('multiple-key');
+            const objectIndex = $parent.data('multiple-object-index');
             Data[multipleKey] = (Data[multipleKey] || []);
             Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
             Data[multipleKey][objectIndex][name] = val;
@@ -641,13 +642,13 @@ function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
         },
         language: {
             inputTooShort: function () {
-                return 'Veuillez entrer au moins 2 caractères.';
+                return 'Veuillez entrer au moins 1 caractère.';
             },
             searching: function () {
                 return 'Recherche en cours...';
             }
         },
-        minimumInputLength: 2,
+        minimumInputLength: 1,
         placeholder: {
             text: placeholder,
         }

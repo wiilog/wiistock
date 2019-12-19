@@ -857,7 +857,7 @@ function validatePacking($button) {
         .find('[name="numberInPackage"]')
         .val());
     const selectedOptionArray = $selectRefArticle.select2('data');
-    console.log(selectedOptionArray, packageNumber, numberInPackage)
+
     if ((selectedOptionArray && selectedOptionArray.length > 0) &&
         (packageNumber && packageNumber > 0) &&
         (numberInPackage && numberInPackage > 0)) {
@@ -877,7 +877,6 @@ function validatePacking($button) {
                 for(let index = 0; index < packageNumber; index++) {
                     const $clonedHtml = $html.clone();
                     const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
-                    console.log($articleFournisseur);
                     ajaxAutoArticleFournisseurInit($articleFournisseur);
 
                     const $containerArticle = $('<div/>', {
@@ -899,7 +898,7 @@ function validatePacking($button) {
 
 let editorNewLivraisonAlreadyDoneForDL = false;
 
-function initNewLivraisonEditor(modal) {
+function initNewLigneReception(modal) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDoneForDL = true;
@@ -907,10 +906,14 @@ function initNewLivraisonEditor(modal) {
     initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
     initWithPH($('.select2-type'), 'Type...', false);
     initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
-    let urlNewReceptionWithDL = Routing.generate('reception_new_with_packing', true);
-    let modalReceptionWithDL = $("#modalNewLigneReception");
+    let urlNewLigneReception = Routing.generate(
+        'reception_new_with_packing',
+        {reception: $(modal).find('input[type="hidden"][name="reception"]').val()},
+        true
+    );
+    let modalNewLigneReception = $("#modalNewLigneReception");
     let submitNewReceptionButton = $("#submitNewReceptionButton");
-    InitialiserModal(modalReceptionWithDL, submitNewReceptionButton, urlNewReceptionWithDL);
+    InitialiserModal(modalNewLigneReception, submitNewReceptionButton, urlNewLigneReception);
 
     let $typeContentNewChildren = $('#typeContentNew').children();
     $typeContentNewChildren.addClass('d-none');

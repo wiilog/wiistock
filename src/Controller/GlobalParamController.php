@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/global_param")
+ * @Route("/parametrage-global")
  */
 class GlobalParamController extends AbstractController
 {
