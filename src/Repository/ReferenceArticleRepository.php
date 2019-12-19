@@ -29,6 +29,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		'Libellé' => 'libelle',
         'Référence' => 'reference',
         'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
