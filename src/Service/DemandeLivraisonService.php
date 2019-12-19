@@ -172,7 +172,7 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function newDemande($data): JsonResponse {
+    public function newDemande($data) {
 
         $requiredCreate = true;
         $type = $this->typeRepository->find($data['type']);
@@ -243,6 +243,7 @@ class DemandeLivraisonService
                     ->setDate($date);
                 $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
+                $this->em->persist($preparation);
                 $demande->setPreparation($preparation);
             }
 			$this->em->flush();
@@ -252,6 +253,6 @@ class DemandeLivraisonService
                 'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
 			];
         }
-        return new JsonResponse($data);
+        return $data;
     }
 }

@@ -1691,11 +1691,12 @@ class ReceptionController extends AbstractController
 				$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $article['noCommande'], $article['refArticle']);
 
 				if (!isset($totalQuantities[$rra->getId()])) $totalQuantities[$rra->getId()] = 0;
-				$totalQuantities[$rra->getId()] += $article['quantity'];
+				$totalQuantities[$rra->getId()] += $article['quantite'];
 			}
 			foreach ($totalQuantities as $rraId => $totalQuantity) {
 				$rra = $this->receptionReferenceArticleRepository->find($rraId);
-				if ($totalQuantity > $rra->getQuantite()) return new JsonResponse(false);
+
+				if ($totalQuantity > $rra->getQuantiteAR()) return new JsonResponse(false);
 			}
 
 			// optionnel : crée la demande de livraison
@@ -1704,7 +1705,7 @@ class ReceptionController extends AbstractController
 
 			if ($needCreateLivraison) {
 				// optionnel : crée l'ordre de prépa
-				$paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL);
+				$paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
 				$needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getParametre() : false;
 				$data['needPrepa'] = $needCreatePrepa;
 
@@ -1714,12 +1715,6 @@ class ReceptionController extends AbstractController
 			// crée les articles et les ajoute à la demande, à la réception, crée les urgences
 			$response['barcodes'] = $response['barcodesLabel'] = [];
 			foreach ($articles as $article) {
-				// à recevoir :
-				//quantity
-				//refArticle
-				//articleFournisseur
-				//champs libre [idCL => vCL]
-				//noCommande
 				$createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
 
 				$refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
@@ -1733,7 +1728,7 @@ class ReceptionController extends AbstractController
 			}
 
 			$em->flush();
-dump($response);
+
 			return new JsonResponse($response);
 		}
 		throw new NotFoundHttpException('404');

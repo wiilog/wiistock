@@ -501,7 +501,7 @@ class ArticleDataService
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
-        $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+        $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
