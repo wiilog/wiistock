@@ -618,15 +618,7 @@ class ArticleDataService
 	 */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
-        $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
-
-        $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
-        $articles = [];
-        foreach ($listArticleFournisseur as $articleFournisseur) {
-            foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
-            }
-        }
+        $articles = $ligne->getArticles();
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
