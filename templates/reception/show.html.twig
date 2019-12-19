@@ -22,7 +22,7 @@
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
-                       onclick='clearModal("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception"), ajaxAutoRefArticlesReceptionInit($(".select2-autocomplete-ref-articles"))'
+                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception"), ajaxAutoRefArticlesReceptionInit($(".select2-autocomplete-ref-articles"))'
                        class="btn btn-primary btn-action ml-auto">
                         Nouvelle réception</a>
                 {% endif %}

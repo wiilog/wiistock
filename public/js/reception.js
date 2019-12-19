@@ -603,7 +603,7 @@ $submitSearchReception.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         providers: $('#providers').select2('data'),
-    }
+    };
 
     saveFilters(filters, tableReception);
 });
@@ -911,14 +911,113 @@ function initNewLigneReception(modal) {
         {reception: $(modal).find('input[type="hidden"][name="reception"]').val()},
         true
     );
-    let modalNewLigneReception = $("#modalNewLigneReception");
-    let submitNewReceptionButton = $("#submitNewReceptionButton");
-    InitialiserModal(modalNewLigneReception, submitNewReceptionButton, urlNewLigneReception);
+    let $modalNewLigneReception = $("#modalNewLigneReception");
+    let $submitNewReceptionButton = $("#submitNewReceptionButton");
+
+    $submitNewReceptionButton.click(function () {
+        const error = getErrorModalNewLigneReception();
+        const $errorContainer = $modalNewLigneReception.find('.error-msg');
+        if (error) {
+            $errorContainer.text(error);
+        }
+        else {
+            $errorContainer.text('');
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle);
+        }
+    });
 
     let $typeContentNewChildren = $('#typeContentNew').children();
     $typeContentNewChildren.addClass('d-none');
     $typeContentNewChildren.removeClass('d-block');
-};
+}
+
+function getErrorModalNewLigneReception() {
+    let $modalNewLigneReception = $("#modalNewLigneReception");
+    // On check si au moins un conditionnement a été fait
+    const articlesCondtionnement = $modalNewLigneReception
+        .find('.articles-conditionnement-container')
+        .children();
+
+    const quantityError = getQuantityErrorModalNewLigneReception();
+
+    return (articlesCondtionnement.length === 0)
+        ? 'Veuillez effectuer un conditionnement'
+        : (quantityError && quantityError)
+            ? `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article(s) pour cette référence ${quantityError.reference} – ${quantityError.commande}`
+            : undefined;
+}
+
+function getQuantityErrorModalNewLigneReception() {
+    let $modalNewLigneReception = $("#modalNewLigneReception");
+    const conditionnementArticleArray$ = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
+    const quantityByConditionnementArray = [];
+
+    conditionnementArticleArray$.each(function() {
+        const $conditionnement = $(this);
+
+        const referenceConditionnement = $conditionnement.find('input[name="refArticle"]').val();
+        const noCommandeConditionnement = $conditionnement.find('input[name="noCommande"]').val();
+        const quantityConditionnement = Number($conditionnement.find('input[name="quantite"]').val());
+        const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
+            (reference === referenceConditionnement) &&
+            (noCommande === noCommandeConditionnement)
+        ));
+        if (!quantityByConditionnement) {
+            quantityByConditionnementArray.push({
+                reference: referenceConditionnement,
+                noCommande: noCommandeConditionnement,
+                quantity: quantityConditionnement
+            })
+        }
+        else {
+            quantityByConditionnement.quantity += quantityConditionnement;
+        }
+    });
+
+    console.log(quantityByConditionnementArray);
+
+    const dataDatatable = tableArticle.rows().data();
+    let indexDatatable = 0;
+    let quantityError;
+    while((indexDatatable < dataDatatable.length) && !quantityError) {
+        const currentLineReference = dataDatatable[indexDatatable]['Référence'];
+        const currentLineCommande = dataDatatable[indexDatatable]['Commande'];
+        const currentLineQuantity = dataDatatable[indexDatatable]['A recevoir'] - Number(dataDatatable[indexDatatable]['Reçu'] || 0);
+        const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
+            (reference === currentLineReference) &&
+            (noCommande === currentLineCommande)
+        ));
+
+        if (quantityByConditionnement && quantityByConditionnement.quantity > currentLineQuantity) {
+            quantityError = {
+                reference: currentLineReference,
+                commande: currentLineCommande,
+                quantity: Number(currentLineQuantity)
+            };
+        }
+        else {
+            indexDatatable++;
+        }
+    }
+    return quantityError;
+}
+
+function clearModalLigneReception(modal) {
+    const $modal = $(modal);
+    $modal
+        .find('.articles-conditionnement-container')
+        .html('');
+
+    $modal
+        .find('#packing-package-number, #packing-number-in-package')
+        .val('');
+
+    $modal
+        .find('select[name="refArticleCommande"]')
+        .val(null)
+        .trigger('change');
+    clearModal(modal);
+}
 
 function initWithPH(select, ph, ajax = true, route = null) {
     if (ajax) {

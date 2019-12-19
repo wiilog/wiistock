@@ -41,7 +41,7 @@ function InitialiserModal(modal, submit, path, table = null, callback = null, cl
     });
 }
 
-function submitAction(modal, path, table, callback, close, clear) {
+function submitAction(modal, path, table = null, callback = null, close = true, clear = true) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
