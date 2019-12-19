@@ -92,7 +92,30 @@
             {% include 'parametrage_global/modalEditDays.html.twig' %}
         </div>
     </div>
+    <div class="row">
+        <div class="col-6">
+            <h1>Paramétrage crée Demande de Livraison</h1>
+                <label class="" for="param-create-demande-livraison">Créer une demande de livraison aprés réception</label>
+            {% set checked = ((parametrageG.parametre is defined ? parametrageG.parametre : 0) == 1) ? 'checked' : '' %}
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison" onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
+                    <span class="slider round"></span>
+                </label>
+        </div>
 
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <h1>Paramétrage crée préparation</h1>
+            <label class="" for="param-create-prepa">Créer une préparation aprés demande de livraison</label>
+            {% set checked = ((parametrageGPrepa.parametre is defined ? parametrageGPrepa.parametre : 0) == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }}  name="param-create-prepa" onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_prepa') }}')">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+    </div>
 
 {% endblock %}
 {% block javascript %}
@@ -100,4 +123,5 @@
 <script src="{{ asset('js/dimensions_etiquettes.js') }}?{{ date().timestamp }}"></script>
 <script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
 <script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/parametrage-global.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
