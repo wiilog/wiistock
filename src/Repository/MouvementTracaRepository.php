@@ -127,7 +127,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT m.colis, m as mvt
+            "SELECT m
             FROM App\Entity\MouvementTraca m
             JOIN m.type t
             WHERE m.emplacement = :emp AND t.nom LIKE 'depose'
