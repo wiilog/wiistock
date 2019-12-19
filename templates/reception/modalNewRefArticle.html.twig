@@ -181,6 +181,9 @@
                                 {% elseif champ.typage == 'text' %}
                                     <input id="{{ champ.id ~ 'create' }}" class="form-control data" type="text"
                                            value="{{ champ.defaultValue }}" name='{{ champ.id }}'>
+                                {% elseif champ.typage == 'datetime' %}
+                                    <input type="datetime-local" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                           class="form-control data" value="{{ champ.defaultValue }}">
 
                                 {% elseif champ.typage == 'date' %}
                                     <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"

@@ -109,10 +109,13 @@
                     <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
                         class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
+                    {% elseif champLibre.typage == 'datetime' %}
+                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
+                               class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
                     {% else %}
                     <input disabled>
-                    
+
                     {% endif %}
                 </div>
                 {% endfor %}
