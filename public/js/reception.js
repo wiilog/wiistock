@@ -907,13 +907,15 @@ function initNewLivraisonEditor(modal) {
     initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
     initWithPH($('.select2-type'), 'Type...', false);
     initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
-    let urlNewDemande = Routing.generate('reception_new_with_packing', true);
-    let modalNewDemande = $("#modalNewLigneReception");
-    let submitNewDemande = $("#submitNewReceptionButton");
-    InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
-    $('#typeContentNew').children().addClass('d-none');
-    $('#typeContentNew').children().removeClass('d-block');
-}
+    let urlNewReceptionWithDL = Routing.generate('reception_new_with_packing', true);
+    let modalReceptionWithDL = $("#modalNewLigneReception");
+    let submitNewReceptionButton = $("#submitNewReceptionButton");
+    InitialiserModal(modalReceptionWithDL, submitNewReceptionButton, urlNewReceptionWithDL);
+
+    let $typeContentNewChildren = $('#typeContentNew').children();
+    $typeContentNewChildren.addClass('d-none');
+    $typeContentNewChildren.removeClass('d-block');
+};
 
 function initWithPH(select, ph, ajax = true, route = null) {
     if (ajax) {

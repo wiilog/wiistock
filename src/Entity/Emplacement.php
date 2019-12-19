@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Emplacement
 {
+	const LABEL_A_DETERMINER = 'A DETERMINER';
 
     /**
      * @ORM\Id()

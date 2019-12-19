@@ -77,6 +77,7 @@ class Reception
      */
     private $receptionReferenceArticles;
 
+    //TODO à supprimer + tard
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
      */

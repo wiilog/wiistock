@@ -4,7 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Urgence;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -28,11 +31,11 @@ class UrgenceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param Arrivage $arrivage the arrivage to analyse
-     * @return int the number of emergencies
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @param Arrivage $arrivage
+     * @return int
+     * @throws NonUniqueResultException
      */
-    public function findByArrivageData(Arrivage $arrivage)
+    public function countByArrivageData(Arrivage $arrivage)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

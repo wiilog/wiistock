@@ -9,6 +9,9 @@ use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
+use App\Entity\ParametrageGlobal;
+
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,6 +36,8 @@ class GlobalParamController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
+    const CREATE_DL_AFTER_RECEPTION = 'Creer demande de livraison apres une reception';
+    const CREATE_PREPA_AFTER_DL = 'Creer une prepa apres une demande de livraison';
     /**
      * @var MailerServerRepository
      */
@@ -54,21 +59,27 @@ class GlobalParamController extends AbstractController
     private $daysWorkedRepository;
 
     /**
+     * @var ParametrageGlobalRepository
+     */
+    private $parametrageGlobalRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
-    public function __construct(MailerServerRepository $mailerServerRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, UserService $userService, DaysWorkedRepository $daysWorkedRepository)
+    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository, MailerServerRepository $mailerServerRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, UserService $userService, DaysWorkedRepository $daysWorkedRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->daysWorkedRepository = $daysWorkedRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->userService = $userService;
+        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
     }
 
     /**
-     * @Route("/param_global", name="parametre_global")
+     * @Route("/", name="global_param_index")
      */
     public function index(): response
     {
@@ -78,10 +89,14 @@ class GlobalParamController extends AbstractController
 
         $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
+        $paramGlo = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_DL_AFTER_RECEPTION);
+        $paramGloPrepa = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_PREPA_AFTER_DL);
 
         return $this->render('parametrage_global/index.html.twig',
             [
             'dimensions_etiquettes' => $dimensions,
+                'parametrageG' => $paramGlo,
+                'parametrageGPrepa' => $paramGloPrepa,
                 'mailerServer' => $mailerServer
         ]);
     }
@@ -276,6 +291,62 @@ class GlobalParamController extends AbstractController
             $em->flush();
 
             return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/demlivr", name="active_desactive_create_demande_livraison", options={"expose"=true}, methods="GET|POST")
+     */
+    public function actifDesactifCreateDemandeLivraison(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_DL_AFTER_RECEPTION);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(self::CREATE_DL_AFTER_RECEPTION)
+                    ->setParametre($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/prepa", name="active_desactive_create_prepa", options={"expose"=true}, methods="GET|POST")
+     */
+    public function actifDesactifCreateprepa(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_PREPA_AFTER_DL);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(self::CREATE_PREPA_AFTER_DL)
+                    ->setParametre($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }

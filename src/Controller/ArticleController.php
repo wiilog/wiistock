@@ -481,7 +481,7 @@ class ArticleController extends Controller
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = $this->articleDataService->newArticle($data);
 
-            return new JsonResponse($response);
+            return new JsonResponse(!empty($response));
         }
         throw new NotFoundHttpException('404');
     }

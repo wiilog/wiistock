@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Preparation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -171,7 +172,7 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function newDemande($data, $em, $generateUrl): JsonResponse {
+    public function newDemande($data): JsonResponse {
 
         $requiredCreate = true;
         $type = $this->typeRepository->find($data['type']);
@@ -213,7 +214,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        $em->persist($demande);
+        $this->em->persist($demande);
 
         // enregistrement des champs libres
         $champsLibresKey = array_keys($data);
@@ -225,23 +226,32 @@ class DemandeLivraisonService
                     ->setValeur($data[$champs])
                     ->addDemandesLivraison($demande)
                     ->setChampLibre($this->champLibreRepository->find($champs));
-                $em->persist($valeurChampLibre);
-                $em->flush();
+				$this->em->persist($valeurChampLibre);
+				$this->em->flush();
             }
         }
-
-        $em->flush();
+        $this->em->flush();
+        // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
             $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
-            $em->flush();
-            $data= [
-                'demande' => $demande
-            ];
+            if (isset($data['needPrepa']) && $data['needPrepa']) {
+                $preparation = new Preparation();
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $preparation
+                    ->setNumero('P-' . $date->format('YmdHis'))
+                    ->setDate($date);
+                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $preparation->setStatut($statutP);
+                $demande->setPreparation($preparation);
+            }
+			$this->em->flush();
+            $data = $demande;
         } else {
             $data = [
-                'redirect' => $generateUrl('demande_show', ['id' => $demande->getId()]),
-            ];
+                'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
+
+			];
         }
         return new JsonResponse($data);
     }
