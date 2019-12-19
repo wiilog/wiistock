@@ -250,7 +250,6 @@ class DemandeLivraisonService
         } else {
             $data = [
                 'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
-
 			];
         }
         return new JsonResponse($data);

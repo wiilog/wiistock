@@ -78,7 +78,7 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param Reception $reception
 	 * @param string $noCommande
-	 * @param ReferenceArticle $refArticle
+	 * @param string $refArticle
 	 * @return ReceptionReferenceArticle|null
 	 * @throws NonUniqueResultException
 	 */
@@ -89,8 +89,9 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 		/** @lang DQL */
 			'SELECT rra
             FROM App\Entity\ReceptionReferenceArticle rra
+            JOIN rra.referenceArticle ra
             WHERE rra.reception = :reception
-            AND rra.referenceArticle = :refArticle
+            AND ra.reference = :refArticle
             AND rra.commande = :noCommande
             '
 		)->setParameters([
