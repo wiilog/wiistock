@@ -10,6 +10,7 @@ use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 use App\Entity\Article;
@@ -20,6 +21,7 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
+use App\Repository\ReceptionRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
@@ -134,6 +136,11 @@ class DemandeController extends AbstractController
     private $parametreRepository;
 
     /**
+     * @var ReceptionRepository
+     */
+    private $receptionRepository;
+
+    /**
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
@@ -143,8 +150,9 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
+        $this->receptionRepository = $receptionRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -405,84 +413,20 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            // protection champs libres obligatoires
-            $requiredCreate = true;
-            $type = $this->typeRepository->find($data['type']);
-
-            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
-            $msgMissingCL = '';
-            foreach ($CLRequired as $CL) {
-                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                    $requiredCreate = false;
-                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-                    $msgMissingCL .= $CL['label'];
-                }
-            }
-            if (!$requiredCreate) {
-                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
-            }
-
-            $em = $this->getDoctrine()->getManager();
-            $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $destination = $this->emplacementRepository->find($data['destination']);
-            $type = $this->typeRepository->find($data['type']);
-
-            // génère le numéro
-            $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
-            $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
-
-            $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
-            $lastCpt = (int)substr($lastNumero, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $numero = $prefixe . $date->format('ym') . $cpt;
-
-            $demande = new Demande();
-            $demande
-                ->setStatut($statut)
-                ->setUtilisateur($utilisateur)
-                ->setdate($date)
-                ->setType($type)
-                ->setDestination($destination)
-                ->setNumero($numero)
-                ->setCommentaire($data['commentaire']);
-            $em->persist($demande);
-
-            // enregistrement des champs libres
-            $champsLibresKey = array_keys($data);
-
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->setValeur($data[$champs])
-                        ->addDemandesLivraison($demande)
-                        ->setChampLibre($this->champLibreRepository->find($champs));
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
-                }
-            }
-
-            $em->flush();
-
-            $data = [
-                'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
-            ];
-
-            return new JsonResponse($data);
+            return $this->demandeLivraisonService->newDemande($data, $this->getDoctrine()->getManager(), function($route, $params) {
+                return $this->generateUrl($route, $params);
+            });
         }
         throw new NotFoundHttpException('404');
     }
 
     /**
-     * @Route("/liste/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
-	 * @param string|null $filter
-	 * @return Response
+     * @Route("/liste/{reception}-{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @param string|null $reception
+     * @param string|null $filter
+     * @return Response
      */
-    public function index($filter = null): Response
+    public function index($reception = null, $filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -507,8 +451,9 @@ class DemandeController extends AbstractController
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-			'filterStatus' => $filter
-		]);
+            'filterStatus' => $filter,
+            'receptionFilter' => $reception
+        ]);
     }
 
     /**
@@ -542,20 +487,22 @@ class DemandeController extends AbstractController
      */
     public function api(Request $request): Response
     {
-		if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest()) {
 
-			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-				return $this->redirectToRoute('access_denied');
-			}
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-			// cas d'un filtre statut depuis page d'accueil
-			$filterStatus = $request->request->get('filterStatus');
-			$data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus);
+            // cas d'un filtre statut depuis page d'accueil
+            $filterStatus = $request->request->get('filterStatus');
+            $filterReception = $request->request->get('filterReception');
+            dump($filterStatus);
+            $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
 
-			return new JsonResponse($data);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**

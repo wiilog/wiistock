@@ -16,7 +16,16 @@
                        onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
                         Supprimer</a>
                 {% endif %}
-
+                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) and reception.demandes|length > 0 %}
+                    <a href="{{path('demande_index', {'reception': reception.id }) }}"class="btn btn-primary btn-action ml-auto">
+                        Voir les demandes</a>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    <a href="" data-target='#modalReceptionWithDL' data-toggle='modal'
+                       onclick='clearModal("#modalReceptionWithDL"), initNewLivraisonEditor("#modalReceptionWithDL"), ajaxAutoRefArticlesReceptionInit($(".select2-autocomplete-ref-articles"))'
+                       class="btn btn-primary btn-action ml-auto">
+                        Nouvelle réception</a>
+                {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto"
@@ -92,6 +101,7 @@
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
+    {% include 'reception/modalNewReceptionWithDL.html.twig' %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
     {% include 'reception/modalFinishReception.html.twig' %}
 

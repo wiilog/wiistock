@@ -18,6 +18,7 @@ class FieldsParam
     const FIELD_CODE_COMMENTAIRE = 'commentaire';
     const FIELD_CODE_UTILISATEUR = 'utilisateur';
     const FIELD_CODE_NUM_RECEPTION = 'numeroReception';
+    const FIELD_CODE_TRANSPORTEUR = 'transporteur';
 
     const FIELD_LABEL_FOURNISSEUR = 'fournisseur';
     const FIELD_LABEL_NUM_COMMANDE = 'numéro de commande';
@@ -26,8 +27,9 @@ class FieldsParam
     const FIELD_LABEL_COMMENTAIRE = 'commentaire';
     const FIELD_LABEL_UTILISATEUR = 'utilisateur';
     const FIELD_LABEL_NUM_RECEPTION = 'numéro de réception';
+	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 
-    /**
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

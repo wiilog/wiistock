@@ -37,6 +37,7 @@ use App\Repository\StatutRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
+use App\Repository\TransporteurRepository;
 
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -79,6 +80,11 @@ class ReceptionController extends AbstractController
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
+
+    /**
+     * @var TransporteurRepository
+     */
+    private $transporteurRepository;
 
     /**
      * @var ReceptionRepository
@@ -186,7 +192,8 @@ class ReceptionController extends AbstractController
 		ReceptionService $receptionService,
 		LitigeRepository $litigeRepository,
 		AttachmentService $attachmentService,
-		FieldsParamRepository $fieldsParamRepository
+		FieldsParamRepository $fieldsParamRepository,
+		TransporteurRepository $transporteurRepository
 	)
     {
 		$this->inventoryCategoryRepository = $inventoryCategoryRepository;
@@ -209,6 +216,7 @@ class ReceptionController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->transporteurRepository = $transporteurRepository;
         $this->fieldsParamRepository = $fieldsParamRepository;
     }
 
@@ -245,13 +253,20 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
+            if ($data['transporteur'] != null) {
+				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+                $reception
+                    ->setTransporteur($transporteur);
+            }
+//TODO CG dateAttendue ou date-attendue ??
             $reception
+				->setReference($data['reference'])
+				->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
+				->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+				->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setDateAttendue($data['date-attendue'] ? new DateTime($data['date-attendue']) : null)
-                ->setDateCommande($data['date-commande'] ? new DateTime($data['date-commande']) : null)
-                ->setFournisseur($fournisseur)
                 ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
@@ -311,6 +326,12 @@ class ReceptionController extends AbstractController
 				$utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 				$reception
 					->setUtilisateur($utilisateur);
+			}
+
+			if ($data['transporteur'] != null) {
+				$transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
+				$reception
+					->setTransporteur($transporteur);
 			}
 
             $reception
@@ -744,6 +765,17 @@ class ReceptionController extends AbstractController
             }
         }
 
+        $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $typeChampLibre = [];
+        foreach ($listTypes as $type) {
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+            $typeChampLibre[] = [
+                'typeLabel' => $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+        }
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
@@ -754,6 +786,7 @@ class ReceptionController extends AbstractController
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+            'typeChampsLibres' => $typeChampLibre
         ]);
     }
 
@@ -769,6 +802,22 @@ class ReceptionController extends AbstractController
             $articles = $this->articleRepository->getArticleByReception($reception->getId());
 
             return new JsonResponse(['results' => $articles]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autocomplete-ref-art{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getRefTypeQtyArticle(Request $request, Reception $reception)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $ref = $this->referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId());
+
+            return new JsonResponse(['results' => $ref]);
         }
         throw new NotFoundHttpException("404");
     }

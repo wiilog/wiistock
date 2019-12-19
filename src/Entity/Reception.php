@@ -82,7 +82,7 @@ class Reception
      */
     private $articles;
 
-    /** 
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
      */
     private $type;
@@ -93,15 +93,26 @@ class Reception
     private $valeurChampLibre;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="reception")
+     */
+    private $transporteur;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateFinReception;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="reception")
+     */
+    private $demandes;
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -327,6 +338,49 @@ class Reception
     public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandes(): Collection
+    {
+        return $this->demandes;
+    }
+
+    public function addDemande(Demande $demande): self
+    {
+        if (!$this->demandes->contains($demande)) {
+            $this->demandes[] = $demande;
+            $demande->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemande(Demande $demande): self
+    {
+        if ($this->demandes->contains($demande)) {
+            $this->demandes->removeElement($demande);
+            // set the owning side to null (unless already changed)
+            if ($demande->getReception() === $this) {
+                $demande->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getTransporteur(): ?Transporteur
+    {
+        return $this->transporteur;
+    }
+
+    public function setTransporteur(?Transporteur $transporteur): self
+    {
+        $this->transporteur = $transporteur;
 
         return $this;
     }

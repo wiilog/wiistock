@@ -1,3 +1,4 @@
+let numberOfDataOpened = 0;
 $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
@@ -321,17 +322,7 @@ function initNewReceptionEditor(modal) {
         editorNewReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
-};
-
-var editorEditReceptionAlreadyDone = false;
-
-function initEditReceptionEditor(modal) {
-    if (!editorEditReceptionAlreadyDone) {
-        initEditorInModal(modal);
-        editorEditReceptionAlreadyDone = true;
-    }
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
 };
 
 var editorNewArticleAlreadyDone = false;
@@ -758,5 +749,105 @@ function clearModalRefArticleFromRecep(modal, data) {
                     break;
             }
         }
+    }
+}
+
+function toggleInput(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    // let $div = document.getElementById(div);
+    if ($toShow.css('visibility') === "hidden"){
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.css('visibility', "visible");
+        $toAdd.css('visibility', "visible");
+        numberOfDataOpened ++;
+        // $div.style.visibility = "visible";
+    } else {
+        $toShow.css('visibility', "hidden");
+        $toAdd.css('visibility', "hidden");
+        numberOfDataOpened --;
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("display", "none");
+        }
+        // $div.style.visibility = "hidden";
+    }
+}
+
+
+function validateNewRecep() {
+    /**
+     * BLOCK DL
+     */
+
+
+
+
+    /**
+     * BLOCK CONDITIONNEMENT
+     */
+}
+
+
+let ajaxAutoRefArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_ref_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}
+let editorNewLivraisonAlreadyDoneForDL = false;
+
+function initNewLivraisonEditor(modal) {
+    if (!editorNewLivraisonAlreadyDoneForDL) {
+        initEditorInModal(modal);
+        editorNewLivraisonAlreadyDoneForDL = true;
+    }
+    initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
+    initWithPH($('.select2-type'), 'Type...', false);
+    initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
+    let urlNewDemande = Routing.generate('demande_new', true);
+    let modalNewDemande = $("#modalReceptionWithDL");
+    let submitNewDemande = $("#submitNewReceptionButton");
+    InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
+    $('#typeContentNew').children().addClass('d-none');
+    $('#typeContentNew').children().removeClass('d-block');
+};
+
+function initWithPH(select, ph, ajax = true, route = null) {
+    if (ajax) {
+        select.select2({
+            ajax: {
+                url: route,
+                dataType: 'json',
+                delay: 250,
+            },
+            language: {
+                inputTooShort: function () {
+                    return 'Veuillez entrer au moins 1 caractère.';
+                },
+                searching: function () {
+                    return 'Recherche en cours...';
+                },
+                noResults: function () {
+                    return 'Aucun résultat.';
+                }
+            },
+            minimumInputLength: 1,
+            placeholder: ph
+        });
+    } else {
+        select.select2({
+            placeholder: ph
+        });
     }
 }
