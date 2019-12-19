@@ -610,7 +610,8 @@ class ArrivageController extends AbstractController
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
+            {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
                 $response['exists'] = true;
@@ -633,7 +634,7 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
                 $response['exists'] = true;

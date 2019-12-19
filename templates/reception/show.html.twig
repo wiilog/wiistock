@@ -22,7 +22,7 @@
                        class="btn btn-primary btn-action ml-auto"
                        onclick="editRow($(this), Routing.generate('api_reception_edit', true), $('#modalEditReception'), $('#submitEditReception'), true)">
                         Modifier</a>
-                    <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }})">
+                    <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }}, false)">
                         Fin réception
                     </div>
                 {% endif %}
@@ -34,7 +34,8 @@
             {% include "reception/enteteReception.html.twig" %}
         </div>
     </div>
-    <div class="row mt-5">
+
+    <div class="row mt-2">
         <div class="col-6">
             <div class="col text-right">
                 {% if modifiable %}
@@ -69,13 +70,15 @@
             </div>
         </div>
     </div>
-    <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal' hidden></button>
+    <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
+            hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
+    <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
     <input type="number" id="ligneSelected" value="-1" hidden></button>
     <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
 
-<div class="d-none" id="barcodes">
-</div>
+    <div class="d-none" id="barcodes">
+    </div>
 
 
     {% include "reception/modalDeleteReception.html.twig" %}
@@ -90,6 +93,7 @@
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
+    {% include 'reception/modalFinishReception.html.twig' %}
 
 {% endblock %}
 {% block javascript %}

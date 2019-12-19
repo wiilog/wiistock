@@ -5,12 +5,13 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
-const PAGE_ACHEMINEMENTS = 'acheminements';
+const PAGE_ACHEMINEMENTS = 'acheminement';
 
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
@@ -277,7 +278,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+
         if ($('#typageModif').val() !== undefined) {   //TODO Moche
             defaultValueForTypage($('#typageModif'), '-edit');
         }
@@ -467,7 +470,7 @@ function ajaxAutoCompleteEmplacementInit(select) {
 function ajaxAutoCompleteTransporteurInit(select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_Transporteur'),
+            url: Routing.generate('get_transporteurs'),
             dataType: 'json',
             delay: 250,
         },
@@ -530,7 +533,27 @@ let ajaxAutoArticlesInit = function (select) {
     });
 }
 
-function ajaxAutoFournisseurInit(select,placeholder = '') {
+let ajaxAutoArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}
+
+
+
+function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
@@ -633,6 +656,7 @@ let toggleRequiredChampsLibres = function (select, require) {
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
+                    console.log('#' + element + require);
                     bloc.find('#' + element + require).addClass('needed');
                 });
             }
@@ -990,4 +1014,56 @@ function overrideSearch($input, table) {
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
+}
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
+        });
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
+        {
+            $(this).addClass('is-invalid');
+            formIsValid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function () {
+            let $toShow = $('#' + toHide);
+            let $toAdd = $('#' + buttonAdd);
+            $toShow.css('visibility', "hidden");
+            $toAdd.css('visibility', "hidden");
+            numberOfDataOpened--;
+            if (numberOfDataOpened === 0) {
+                $toShow.parent().parent().css("display", "none");
+            }
+        });
+    }
 }

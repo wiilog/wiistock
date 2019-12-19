@@ -7,23 +7,23 @@ use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 
-use App\Repository\AlerteExpiryRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\FiabilityByReferenceRepository;
-use App\Repository\MouvementStockRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\CollecteRepository;
-use App\Repository\StatutRepository;
-use App\Repository\DemandeRepository;
-use App\Repository\ManutentionRepository;
-
 use App\Service\DashboardService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
+use App\Repository\EmplacementRepository;
+use App\Repository\CollecteRepository;
+use App\Repository\StatutRepository;
+use App\Repository\DemandeRepository;
+use App\Repository\ManutentionRepository;
+use App\Repository\AlerteExpiryRepository;
+use App\Repository\ArticleRepository;
+use App\Repository\FiabilityByReferenceRepository;
+use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
 
 /**
  * @Route("/accueil")

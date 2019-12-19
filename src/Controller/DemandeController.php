@@ -772,6 +772,9 @@ class DemandeController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data['demande']);
             $need = false;
+            $preparation = $demande->getPreparation();
+            $preparation->setUtilisateur($this->getUser());
+            $this->getDoctrine()->getManager()->flush();
             foreach ($demande->getLigneArticle() as $ligneArticle) {
                 if ($ligneArticle->getToSplit()) {
                     $need = true;

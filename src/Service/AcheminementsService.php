@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\Acheminements;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 
@@ -11,6 +12,9 @@ use App\Repository\FiltreSupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 Class AcheminementsService
 {
@@ -59,8 +63,8 @@ Class AcheminementsService
         $acheminementsArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($acheminementsArray as $acheminements) {
-            $rows[] = $this->dataRowAcheminements($acheminements);
+        foreach ($acheminementsArray as $acheminement) {
+            $rows[] = $this->dataRowAcheminement($acheminement);
         }
 
         return [
@@ -69,20 +73,29 @@ Class AcheminementsService
             'recordsFiltered' => $queryResult['count'],
         ];
     }
-    public function dataRowAcheminements($acheminements)
+
+	/**
+	 * @param Acheminements $acheminement
+	 * @return array
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
+    public function dataRowAcheminement($acheminement)
     {
-        $nbColis = count($acheminements->getColis());
+        $nbColis = count($acheminement->getColis());
         $row =
             [
-                'id' => ($acheminements->getId() ? $acheminements->getId() : 'Non défini'),
-                'Demandeur' => ($acheminements->getRequester() ? $acheminements->getRequester()->getUserName() : null),
-                'Destinataire' => ($acheminements->getReceiver() ? $acheminements->getReceiver()->getUserName() : null),
-                'Emplacement prise' => ($acheminements->getLocationTake() ? $acheminements->getLocationTake() : null),
-                'Emplacement de dépose' => ($acheminements->getLocationDrop() ? $acheminements->getLocationDrop() : null),
-                'Nb Colis' => ($nbColis ? $nbColis : 0),
-                'Statut' => ($acheminements->getStatut()->getNom() ? $acheminements->getStatut()->getNom() : null),
+                'id' => $acheminement->getId() ?? 'Non défini',
+                'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
+                'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
+                'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
+                'Emplacement prise' => $acheminement->getLocationTake() ?? '',
+                'Emplacement de dépose' => $acheminement->getLocationDrop() ?? '',
+                'Nb Colis' => $nbColis ?? 0,
+                'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
                 'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
-                    'acheminement' => $acheminements
+                    'acheminement' => $acheminement
                 ]),
             ];
         return $row;

@@ -27,6 +27,7 @@ class Reception
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptions")
+	 * @ORM\JoinColumn(nullable=true)
      */
     private $fournisseur;
 
@@ -47,6 +48,7 @@ class Reception
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receptions")
+	 * @ORM\JoinColumn(nullable=true)
      */
     private $utilisateur;
 
@@ -80,7 +82,7 @@ class Reception
      */
     private $articles;
 
-    /** 
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
      */
     private $type;
@@ -89,6 +91,11 @@ class Reception
      * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="receptions")
      */
     private $valeurChampLibre;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="reception")
+     */
+    private $transporteur;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -325,6 +332,18 @@ class Reception
     public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    public function getTransporteur(): ?Transporteur
+    {
+        return $this->transporteur;
+    }
+
+    public function setTransporteur(?Transporteur $transporteur): self
+    {
+        $this->transporteur = $transporteur;
 
         return $this;
     }

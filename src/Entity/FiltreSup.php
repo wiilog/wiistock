@@ -25,14 +25,15 @@ class FiltreSup
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
-	const PAGE_MANUT = 'manutention';
+    const PAGE_MANUT = 'manutention';
+    const PAGE_RECEPTION = 'reception';
 	const PAGE_ORDRE_COLLECTE = 'ocollecte';
 	const PAGE_ORDRE_LIVRAISON = 'olivraison';
 	const PAGE_PREPA = 'prépa';
 	const PAGE_ARRIVAGE = 'arrivage';
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
-	const PAGE_ACHEMINEMENTS = 'acheminements';
+	const PAGE_ACHEMINEMENTS = 'acheminement';
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
 	const PAGE_RCPT_TRACA = 'reception_traca';

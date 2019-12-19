@@ -4,21 +4,32 @@
 
 {% block page_content %}
 
-<h1>Articles</h1>
-<div class='d-flex justify-content-end'>
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
-        onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
-        <i class="fa fa-plus mr-2"></i>Nouvel article
-    </div>
-    {% endif %}
+    <h1>Articles</h1>
+    <div class='d-flex justify-content-end'>
+        <div class="dropleft">
+            <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                 aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier
+                    colonnes</a>
+                <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
+            </div>
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
+                 onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
+                <i class="fa fa-plus mr-2"></i>Nouvel article
+            </div>
+        {% endif %}
         <div data-toggle="modal" id="printTag" class="btn btn-disabled printButton"
              onclick="getDataAndPrintLabels()">
             <i class="fas fa-print"></i> Imprimer les étiquettes
         </div>
-</div>
+    </div>
 
-<input type="hidden" id="listArticleIdToPrint">
+    <input type="hidden" id="listArticleIdToPrint">
 
     <div id="alerts">
         <div class="alert alert-danger text-center d-none">
@@ -26,18 +37,24 @@
             <span class="error-msg"></span>
         </div>
     </div>
+    <div class="d-flex justify-content-center" id="spinner">
+        <div class="spinner-border sizeLoader" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <table id="tableArticle_id" class="table table-striped table-bordered w-100">
+    </table>
 
-<table id="tableArticle_id" class="table table-striped table-bordered w-100">
-</table>
-
-{% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-<input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
-
-{% include "article/modalModifyArticle.html.twig" %}
-{% include "article/modalShowArticle.html.twig" %}
-{% include "article/modalNewArticle.html.twig" %}
-{% include "article/modalDeleteArticle.html.twig" %}
-<div class="d-none" id="barcodes"></div>
+    {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
+{#TODO#}
+    {% include "article/modalModifyArticle.html.twig" %}
+    {% include "article/modalShowArticle.html.twig" %}
+    {% include "article/modalNewArticle.html.twig" %}
+    {% include "article/modalDeleteArticle.html.twig" %}
+    {% include "article/modalRapidSearch.html.twig" %}
+    {% include "article/modalColumnVisible.html.twig" %}
+    <div class="d-none" id="barcodes"></div>
 
 {% endblock %}
 

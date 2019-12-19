@@ -192,7 +192,6 @@ function initNewArrivageEditor(modal) {
     }
     ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
-    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
@@ -284,36 +283,4 @@ function toggleInput(id, button) {
         }
         // $div.style.visibility = "hidden";
     }
-}
-
-function newLine(path, button, toHide, buttonAdd)
-{
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
-    let params = {};
-    let formIsValid = true;
-
-    inputs.each(function () {
-        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
-        {
-            $(this).addClass('is-invalid');
-            formIsValid = false;
-        } else {
-            $(this).removeClass('is-invalid');
-        }
-       params[$(this).attr('name')] = $(this).val();
-    });
-
-    if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (resp) {
-            let $toShow = $('#' + toHide);
-            let $toAdd = $('#' + buttonAdd);
-            $toShow.css('visibility', "hidden");
-            $toAdd.css('visibility', "hidden");
-            numberOfDataOpened--;
-            if (numberOfDataOpened === 0) {
-                $toShow.parent().parent().css("display", "none");
-            }
-        });
-    }
-
 }

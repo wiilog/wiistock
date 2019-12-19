@@ -226,6 +226,9 @@ a:hover {
   background-position: center right calc(2.25rem / 4);
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
 }
+.is-invalid .select2-selection {
+  border: 1px solid red !important;
+}
 
 .label {
   color: #b2b2b2;
@@ -338,7 +341,7 @@ a:hover {
   font-weight: 400 !important;
   line-height: 1.5 !important;
   color: #495057 !important;
-  border: 1px solid #ced4da !important;
+  border: 1px solid #ced4da;
   border-radius: 0.25rem !important;
 }
 
@@ -368,6 +371,10 @@ a:hover {
 
 .formulaire {
   margin-right: 15px;
+}
+
+#new-ref-inner-body {
+  border: 1px solid black;
 }
 
 .accueil-back {
@@ -472,6 +479,10 @@ a:hover {
 
 #chart-arrival {
   height: 70%;
+}
+
+.fournisseurFilterContainer .select2-selection {
+  overflow: auto;
 }
 
 .sidemenu-bg {
