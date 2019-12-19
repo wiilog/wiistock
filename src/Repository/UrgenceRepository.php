@@ -51,29 +51,6 @@ class UrgenceRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param string $noCommande
-     * @return int
-     * @throws NonUniqueResultException
-     */
-    public function countByNoCommandeAndDateNow(string $noCommande)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u) 
-                FROM App\Entity\Urgence u
-                WHERE u.dateStart <= :date 
-                AND u.dateEnd >= :date 
-                AND u.commande = :noCommande"
-        )->setParameters([
-            'date' => new DateTime('now', new \DateTimeZone('Europe/Paris')),
-			'noCommande' => $noCommande
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
     public function findByParams($params)
     {
         $em = $this->getEntityManager();

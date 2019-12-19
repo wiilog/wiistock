@@ -18,6 +18,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -147,7 +148,12 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+	/**
+	 * @var MailerService
+	 */
+    private $mailerService;
+
+    public function __construct(MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -168,18 +174,20 @@ class ArticleDataService
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->mailerService = $mailerService;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param string $demande
-     * @param bool $modifieRefArticle
-     * @param bool $byRef
-     * @return bool|string
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param string $demande
+	 * @param bool $modifieRefArticle
+	 * @param bool $byRef
+	 * @return bool|string
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
         if ($demande === 'livraison') {
@@ -473,12 +481,12 @@ class ArticleDataService
 
 	/**
 	 * @param array $data
+	 * @param Reception $reception
 	 * @param Demande $demande
-	 * @param bool $urgent
 	 * @return bool
 	 * @throws NonUniqueResultException
 	 */
-    public function newArticle($data, $demande = null, $urgent = false)
+    public function newArticle($data, $reception = null, $demande = null)
     {
         $entityManager = $this->em;
         $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
@@ -547,6 +555,28 @@ class ArticleDataService
 		if ($demande) {
 			$demande->addArticle($toInsert);
 		}
+
+		// optionnel : ajout dans une réception
+		if ($reception) {
+			$reception->addArticle($toInsert);
+		}
+
+		// gestion des urgences
+		if ($refArticle->getIsUrgent()) {
+			// on envoie un mail aux demandeurs
+			//TODO CG
+			$this->mailerService->sendMail(
+				'FOLLOW GT // Article urgent réceptionné',
+				$this->renderView('mails/mailArticleUrgentReceived.html.twig', [
+					'article' => $toInsert,
+					'title' => 'Votre article urgent a bien été réceptionné.',
+				]),
+				$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+			);
+			// on retire l'urgence
+			$refArticle->setIsUrgent(false);
+		}
+
         $entityManager->flush();
 
         return true;

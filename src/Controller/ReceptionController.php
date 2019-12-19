@@ -1491,11 +1491,11 @@ class ReceptionController extends AbstractController
     }
 
 	/**
-	 * @Route("/avec-conditionnement", name="reception_new_with_packing", options={"expose"=true})
+	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
 	 */
-    public function receptionNewWithDl(Request $request,
-									   DemandeLivraisonService $demandeLivraisonService,
-									   UrgenceRepository $urgenceRepository): Response
+    public function newWithPacking(Request $request,
+								   		DemandeLivraisonService $demandeLivraisonService,
+										Reception $reception): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$em = $this->getDoctrine()->getManager();
@@ -1521,10 +1521,7 @@ class ReceptionController extends AbstractController
 				//articleFournisseur
 				//champs libre [idCL => vCL]
 				//noCommande
-				$nbUrgences = $urgenceRepository->countByNoCommandeAndDateNow($article['noCommande']);
-
-				$this->articleDataService->newArticle($article, $demande, $nbUrgences > 0);
-
+				$this->articleDataService->newArticle($article, $reception, $demande);
 			}
 			$em->flush();
 		}
