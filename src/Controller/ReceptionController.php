@@ -1566,7 +1566,7 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
-			$articles = $data['articles'];
+			$articles = $data['conditionnement'];
 
 			// protection quantité réceptionnée < quantité attendue
 			$totalQuantities = [];
@@ -1581,12 +1581,18 @@ class ReceptionController extends AbstractController
 				if ($totalQuantity > $rra->getQuantite()) return new JsonResponse(false);
 			}
 
-			$paramGlobal = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL);
-			$needCreatePrepa = $paramGlobal ? $paramGlobal->getParametre() : false;
-			$data['needPrepa'] = $needCreatePrepa;
+			// optionnel : crée la demande de livraison
+			$paramCreateDL = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_DL_AFTER_RECEPTION);
+			$needCreateLivraison = $paramCreateDL ? $paramCreateDL->getParametre() : false;
 
-			// crée la demande de livraison
-			$demande = $demandeLivraisonService->newDemande($data);
+			if ($needCreateLivraison) {
+				// optionnel : crée l'ordre de prépa
+				$paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_PREPA_AFTER_DL);
+				$needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getParametre() : false;
+				$data['needPrepa'] = $needCreatePrepa;
+
+				$demande = $demandeLivraisonService->newDemande($data);
+			}
 
 			// crée les articles et les ajoute à la demande, à la réception, crée les urgences
 			foreach ($articles as $article) {
