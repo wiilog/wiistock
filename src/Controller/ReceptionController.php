@@ -503,6 +503,7 @@ class ReceptionController extends AbstractController
                         "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
                         "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                         "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                        "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
                         'Actions' => $this->renderView(
                             'reception/datatableLigneRefArticleRow.html.twig',
                             [
@@ -1695,10 +1696,13 @@ class ReceptionController extends AbstractController
 			}
 			foreach ($totalQuantities as $rraId => $totalQuantity) {
 				$rra = $this->receptionReferenceArticleRepository->find($rraId);
-
-				if ($totalQuantity > $rra->getQuantiteAR()) return new JsonResponse(false);
+				if ($totalQuantity > $rra->getQuantiteAR()) {
+				    return new JsonResponse(false);
+                } else {
+                    $rra->setQuantite($totalQuantity);
+                    $em->flush();
+                }
 			}
-
 			// optionnel : crée la demande de livraison
 			$paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
 			$needCreateLivraison = $paramCreateDL ? $paramCreateDL->getParametre() : false;

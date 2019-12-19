@@ -328,10 +328,15 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Commande', 'title': 'Commande'},
         {"data": 'A recevoir', 'title': 'A recevoir'},
         {"data": 'Reçu', 'title': 'Reçu'},
+        {"data": 'Urgence', 'title': 'Urgence'},
     ],
     columnDefs: [
-        { "orderable": false, "targets": 0 }
+        { "orderable": false, "targets": 0 },
+        { "visible": false, "targets": 5 }
     ],
+    rowCallback: function (row, data) {
+        $(row).addClass(data.Urgence ? 'table-danger' : '');
+    },
 });
 
 let modal = $("#modalAddLigneArticle");
