@@ -36,8 +36,6 @@ class GlobalParamController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
-    const CREATE_DL_AFTER_RECEPTION = 'Creer demande de livraison apres une reception';
-    const CREATE_PREPA_AFTER_DL = 'Creer une prepa apres une demande de livraison';
     /**
      * @var MailerServerRepository
      */
@@ -89,8 +87,8 @@ class GlobalParamController extends AbstractController
 
         $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
-        $paramGlo = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_DL_AFTER_RECEPTION);
-        $paramGloPrepa = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_PREPA_AFTER_DL);
+        $paramGlo = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $paramGloPrepa = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -302,7 +300,7 @@ class GlobalParamController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_DL_AFTER_RECEPTION);
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
@@ -313,7 +311,7 @@ class GlobalParamController extends AbstractController
             {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
-                    ->setLabel(self::CREATE_DL_AFTER_RECEPTION)
+                    ->setLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)
                     ->setParametre($data['val']);
                 $em->persist($parametrage);
                 $em->flush();

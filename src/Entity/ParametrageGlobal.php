@@ -9,6 +9,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ParametrageGlobal
 {
+	const CREATE_DL_AFTER_RECEPTION = 'CREATION DL APRES RECEPTION';
+	const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

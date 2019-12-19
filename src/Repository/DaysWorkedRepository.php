@@ -19,6 +19,9 @@ class DaysWorkedRepository extends ServiceEntityRepository
         parent::__construct($registry, DaysWorked::class);
     }
 
+	/**
+	 * @return DaysWorked[]
+	 */
     public function findAllOrdered()
     {
         $entityManager = $this->getEntityManager();

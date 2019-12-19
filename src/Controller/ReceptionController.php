@@ -8,6 +8,7 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
 use App\Entity\DimensionsEtiquettes;
@@ -816,7 +817,7 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_DL_AFTER_RECEPTION)->getParametre()
+            'createDL' => $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)->getParametre()
         ]);
     }
 
@@ -1582,7 +1583,7 @@ class ReceptionController extends AbstractController
 			}
 
 			// optionnel : crée la demande de livraison
-			$paramCreateDL = $this->paramGlobalRepository->findOneByLabel(GlobalParamController::CREATE_DL_AFTER_RECEPTION);
+			$paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
 			$needCreateLivraison = $paramCreateDL ? $paramCreateDL->getParametre() : false;
 
 			if ($needCreateLivraison) {
