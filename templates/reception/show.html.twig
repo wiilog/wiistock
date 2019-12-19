@@ -21,8 +21,8 @@
                         Voir les demandes</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                    <a href="" data-target='#modalReceptionWithDL' data-toggle='modal'
-                       onclick='clearModal("#modalReceptionWithDL"), initNewLivraisonEditor("#modalReceptionWithDL"), ajaxAutoRefArticlesReceptionInit($(".select2-autocomplete-ref-articles"))'
+                    <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
+                       onclick='clearModal("#modalNewLigneReception"), initNewLivraisonEditor("#modalNewLigneReception"), ajaxAutoRefArticlesReceptionInit($(".select2-autocomplete-ref-articles"))'
                        class="btn btn-primary btn-action ml-auto">
                         Nouvelle réception</a>
                 {% endif %}
@@ -101,7 +101,7 @@
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
-    {% include 'reception/modalNewReceptionWithDL.html.twig' %}
+    {% include 'reception/modalNewLigneReception.html.twig' %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
     {% include 'reception/modalFinishReception.html.twig' %}
 

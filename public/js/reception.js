@@ -804,7 +804,8 @@ let ajaxAutoRefArticlesReceptionInit = function(select) {
             }
         },
     });
-}
+};
+
 let editorNewLivraisonAlreadyDoneForDL = false;
 
 function initNewLivraisonEditor(modal) {
@@ -816,12 +817,12 @@ function initNewLivraisonEditor(modal) {
     initWithPH($('.select2-type'), 'Type...', false);
     initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
     let urlNewDemande = Routing.generate('demande_new', true);
-    let modalNewDemande = $("#modalReceptionWithDL");
+    let modalNewDemande = $("#modalNewLigneReception");
     let submitNewDemande = $("#submitNewReceptionButton");
     InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande);
     $('#typeContentNew').children().addClass('d-none');
     $('#typeContentNew').children().removeClass('d-block');
-};
+}
 
 function initWithPH(select, ph, ajax = true, route = null) {
     if (ajax) {
