@@ -365,11 +365,29 @@ class ReceptionController extends AbstractController
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $champsLibres = [];
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            foreach ($listTypes as $type) {
+                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
 
+                foreach ($listChampLibreReception as $champLibre) {
+                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+                    $champsLibres[] = [
+                        'id' => $champLibre->getId(),
+                        'label' => $champLibre->getLabel(),
+                        'typage' => $champLibre->getTypage(),
+                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+                        'defaultValue' => $champLibre->getDefaultValue(),
+                        'valeurChampLibre' => $valeurChampLibre,
+                    ];
+                }
+            }
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
+                    'typeChampsLibres' => $champsLibres
                 ])
             ];
             return new JsonResponse($json);
@@ -775,6 +793,7 @@ class ReceptionController extends AbstractController
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+            'typeChampsLibres' => $champsLibres
         ]);
     }
 
