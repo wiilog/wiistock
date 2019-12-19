@@ -19,7 +19,7 @@ class AcheminementsRepository extends ServiceEntityRepository
         parent::__construct($registry, Acheminements::class);
     }
     private const DtToDbLabels = [
-        'Date demande' => 'date',
+        'Date' => 'date',
         'Demandeur' => 'requester',
         'Destinataire' => 'receiver',
         'Emplacement prise' => 'locationTake',
@@ -79,11 +79,11 @@ class AcheminementsRepository extends ServiceEntityRepository
                     break;
                 case 'dateMin':
                     $qb->andWhere('a.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . '00.00.00');
+                        ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
                     $qb->andWhere('a.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . '23:59:59');
+                        ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
             }
         }
