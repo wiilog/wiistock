@@ -171,7 +171,7 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function newDemande($data, $em, $generateUrl): JsonResponse {
+    public function newDemande($data): JsonResponse {
 
         $requiredCreate = true;
         $type = $this->typeRepository->find($data['type']);
@@ -213,7 +213,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        $em->persist($demande);
+        $this->em->persist($demande);
 
         // enregistrement des champs libres
         $champsLibresKey = array_keys($data);
@@ -225,23 +225,24 @@ class DemandeLivraisonService
                     ->setValeur($data[$champs])
                     ->addDemandesLivraison($demande)
                     ->setChampLibre($this->champLibreRepository->find($champs));
-                $em->persist($valeurChampLibre);
-                $em->flush();
+				$this->em->persist($valeurChampLibre);
+				$this->em->flush();
             }
         }
 
-        $em->flush();
+		$this->em->flush();
+
+        // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
             $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
-            $em->flush();
-            $data= [
-                'demande' => $demande
-            ];
+			$this->em->flush();
+            $data = $demande;
         } else {
             $data = [
-                'redirect' => $generateUrl('demande_show', ['id' => $demande->getId()]),
-            ];
+                'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
+
+			];
         }
         return new JsonResponse($data);
     }

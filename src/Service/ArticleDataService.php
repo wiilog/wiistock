@@ -12,10 +12,13 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -145,7 +148,12 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+	/**
+	 * @var MailerService
+	 */
+    private $mailerService;
+
+    public function __construct(MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -166,18 +174,20 @@ class ArticleDataService
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->mailerService = $mailerService;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param string $demande
-     * @param bool $modifieRefArticle
-     * @param bool $byRef
-     * @return bool|string
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param string $demande
+	 * @param bool $modifieRefArticle
+	 * @param bool $byRef
+	 * @return bool|string
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 * @throws NonUniqueResultException
+	 */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
         if ($demande === 'livraison') {
@@ -469,15 +479,24 @@ class ArticleDataService
         }
     }
 
-    public function newArticle($data)
+	/**
+	 * @param array $data
+	 * @param Reception $reception
+	 * @param Demande $demande
+	 * @return bool
+	 * @throws NonUniqueResultException
+	 */
+    public function newArticle($data, $reception = null, $demande = null)
     {
         $entityManager = $this->em;
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
-        $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
-        $references = $this->articleRepository->getReferencesByRefAndDate($referenceArticle, $formattedDate);
+        $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+        $refReferenceArticle = $refArticle->getReference();
+        $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
         $highestCpt = 0;
         foreach ($references as $reference) {
@@ -489,17 +508,31 @@ class ArticleDataService
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
-        $price = max(0, $data['prix']);
+        $price = isset($data['prix']) ? max(0, $data['prix']) : null;
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
+        if (isset($data['emplacement'])) {
+			$location = $this->emplacementRepository->find($data['emplacement']);
+		} else {
+        	$location = $this->emplacementRepository->findOneByLabel(Emplacement::LABEL_A_DETERMINER);
+        	if (!$location) {
+        		$location = new Emplacement();
+        		$location
+					->setLabel(Emplacement::LABEL_A_DETERMINER);
+        		$entityManager->persist($location);
+			}
+        	$location->setIsActive(true);
+        	$entityManager->flush();
+		}
+
         $toInsert
-            ->setLabel($data['libelle'])
-            ->setConform(!$data['conform'])
+            ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
+            ->setConform(isset($data['conform']) ? !$data['conform'] : true)
             ->setStatut($statut)
-            ->setCommentaire($data['commentaire'])
+            ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
-            ->setReference($referenceArticle . $formattedDate . $cpt)
+            ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
-            ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
+            ->setEmplacement($location)
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
 			->setBarCode($this->generateBarCode());
@@ -517,6 +550,33 @@ class ArticleDataService
                 $entityManager->flush();
             }
         }
+
+        // optionnel : ajout dans une demande
+		if ($demande) {
+			$demande->addArticle($toInsert);
+		}
+
+		// optionnel : ajout dans une réception
+		if ($reception) {
+			$reception->addArticle($toInsert);
+		}
+
+		// gestion des urgences
+		if ($refArticle->getIsUrgent()) {
+			// on envoie un mail aux demandeurs
+			//TODO CG
+			$this->mailerService->sendMail(
+				'FOLLOW GT // Article urgent réceptionné',
+				$this->renderView('mails/mailArticleUrgentReceived.html.twig', [
+					'article' => $toInsert,
+					'title' => 'Votre article urgent a bien été réceptionné.',
+				]),
+				$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+			);
+			// on retire l'urgence
+			$refArticle->setIsUrgent(false);
+		}
+
         $entityManager->flush();
 
         return true;

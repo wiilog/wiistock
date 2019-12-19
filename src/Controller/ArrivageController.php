@@ -275,7 +275,7 @@ class ArrivageController extends AbstractController
 
 			$this->attachmentService->addAttachements($request->files, $arrivage);
 			if ($arrivage->getNumeroBL()) {
-                $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
+                $urgences = $this->urgenceRepository->countByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
                     $arrivage->setIsUrgent(true);
                 }

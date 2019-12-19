@@ -39,6 +39,7 @@ use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\TransporteurRepository;
 
+use App\Service\DemandeLivraisonService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
@@ -1544,5 +1545,43 @@ class ReceptionController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+	 */
+	public function newWithPacking(Request $request,
+								   DemandeLivraisonService $demandeLivraisonService,
+								   Reception $reception): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
+
+			// protection quantité réceptionnée < quantité attendue
+			$articles = $data['articles'];
+			$totalQuantity = 0;
+			foreach ($articles as $article) {
+				$totalQuantity += $article['quantity'];
+			}
+			if ($totalQuantity > $data['']) {
+				return new JsonResponse(false);
+			}
+
+			// crée la demande de livraison
+			$demande = $demandeLivraisonService->newDemande($data);
+
+			// crée les articles et les ajoute à la demande
+			//(urgent)
+			foreach ($articles as $article) {
+				//quantity
+				//refArticle
+				//articleFournisseur
+				//champs libre [idCL => vCL]
+				//noCommande
+				$this->articleDataService->newArticle($article, $reception, $demande);
+			}
+			$em->flush();
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 }
