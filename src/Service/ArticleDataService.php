@@ -721,6 +721,7 @@ class ArticleDataService
                 'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                     'url' => $url,
                     'articleId' => $article->getId(),
+                    'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
                 ]),
             ];
         } else {
@@ -739,6 +740,7 @@ class ArticleDataService
                     'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                         'url' => $url,
                         'articleId' => $article->getId(),
+                        'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
                     ]),
                 ];
         }
