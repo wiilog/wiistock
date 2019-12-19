@@ -1030,6 +1030,8 @@ function clearModalLigneReception(modal) {
     ajaxAutoRefArticlesReceptionInit($select2);
 
     clearModal(modal);
+
+
 }
 
 function initWithPH(select, ph, ajax = true, route = null) {

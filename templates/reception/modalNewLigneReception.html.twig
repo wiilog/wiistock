@@ -8,6 +8,7 @@
                 </button>
             </div>
             <div class="modal-body">
+                <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
                 <!--
                 BLOCK DL
                 -->
@@ -108,7 +109,6 @@
                            type="hidden">
                         <div class="editor-container" id="editor-container-new-demande">
                         </div>
-                        <input class="data" name="reception" type="hidden" value="{{ reception.id }}">
                     </div>
                 {% endif %}
                 <!--

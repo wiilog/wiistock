@@ -1689,9 +1689,15 @@ class ReceptionController extends AbstractController
 			// protection quantité réceptionnée < quantité attendue
 			$totalQuantities = [];
 			foreach ($articles as $article) {
-				$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $article['noCommande'], $article['refArticle']);
+				$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle(
+				    $reception,
+                    $article['noCommande'],
+                    $article['refArticle']
+                );
 
-				if (!isset($totalQuantities[$rra->getId()])) $totalQuantities[$rra->getId()] = 0;
+				if (!isset($totalQuantities[$rra->getId()])) {
+				    $totalQuantities[$rra->getId()] = ($rra->getQuantite() ?? 0);
+                }
 				$totalQuantities[$rra->getId()] += $article['quantite'];
 			}
 			foreach ($totalQuantities as $rraId => $totalQuantity) {
