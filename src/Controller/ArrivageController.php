@@ -273,7 +273,7 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-			$this->attachmentService->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request->files, $arrivage);
 			if ($arrivage->getNumeroBL()) {
                 $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
@@ -438,7 +438,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, $arrivage);
+            $this->attachmentService->addAttachements($request->files, $arrivage);
 
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -822,7 +822,7 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1064,7 +1064,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 

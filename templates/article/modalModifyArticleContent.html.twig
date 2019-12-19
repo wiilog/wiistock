@@ -166,7 +166,10 @@
                     <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
                         class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
+                    {% elseif champLibre.typage == 'datetime' %}
+                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
+                               class="form-control data {{ needed }}"
+                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
                     {% else %}
                     <input disabled>
                     {% endif %}
