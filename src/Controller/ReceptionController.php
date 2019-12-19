@@ -1569,15 +1569,15 @@ class ReceptionController extends AbstractController
 			// crée la demande de livraison
 			$demande = $demandeLivraisonService->newDemande($data);
 
-			// crée les articles et les ajoute à la demande
-			//(urgent)
+			// crée les articles et les ajoute à la demande, à la réception, crée les urgences
 			foreach ($articles as $article) {
+				// à recevoir :
 				//quantity
 				//refArticle
 				//articleFournisseur
 				//champs libre [idCL => vCL]
 				//noCommande
-				$this->articleDataService->newArticle($article, $reception, $demande);
+				$this->articleDataService->newArticle($article, $demande, $reception);
 			}
 			$em->flush();
 		}
