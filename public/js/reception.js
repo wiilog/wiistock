@@ -463,7 +463,7 @@ function createArticleAndBarcodes(button, receptionId) {
 function printSingleBarcode(button) {
     let params = {
         'ligne': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
             printBarcodes(
@@ -867,6 +867,7 @@ function validatePacking($button) {
         (packageNumber && packageNumber > 0) &&
         (numberInPackage && numberInPackage > 0)) {
         const selectedOption = selectedOptionArray[0];
+        console.log(selectedOption);
 
         $.get(
             Routing.generate('get_ligne_article_conditionnement', true),
@@ -1017,10 +1018,17 @@ function clearModalLigneReception(modal) {
         .find('#packing-package-number, #packing-number-in-package')
         .val('');
 
-    $modal
-        .find('select[name="refArticleCommande"]')
-        .val(null)
-        .trigger('change');
+    const $select2 = $modal.find('select[name="refArticleCommande"]');
+
+    if ($select2.hasClass("select2-hidden-accessible")) {
+        $select2
+            .val(null)
+            .html('');
+        $select2.select2('data', null);
+        $select2.select2('destroy');
+    }
+    ajaxAutoRefArticlesReceptionInit($select2);
+
     clearModal(modal);
 }
 
