@@ -12,6 +12,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
@@ -469,15 +471,24 @@ class ArticleDataService
         }
     }
 
-    public function newArticle($data)
+	/**
+	 * @param array $data
+	 * @param Demande $demande
+	 * @param bool $urgent
+	 * @return bool
+	 * @throws NonUniqueResultException
+	 */
+    public function newArticle($data, $demande = null, $urgent = false)
     {
         $entityManager = $this->em;
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
-        $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
-        $references = $this->articleRepository->getReferencesByRefAndDate($referenceArticle, $formattedDate);
+        $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+        $refReferenceArticle = $refArticle->getReference();
+        $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
         $highestCpt = 0;
         foreach ($references as $reference) {
@@ -489,17 +500,31 @@ class ArticleDataService
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
-        $price = max(0, $data['prix']);
+        $price = isset($data['prix']) ? max(0, $data['prix']) : null;
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
+        if (isset($data['emplacement'])) {
+			$location = $this->emplacementRepository->find($data['emplacement']);
+		} else {
+        	$location = $this->emplacementRepository->findOneByLabel(Emplacement::LABEL_A_DETERMINER);
+        	if (!$location) {
+        		$location = new Emplacement();
+        		$location
+					->setLabel(Emplacement::LABEL_A_DETERMINER);
+        		$entityManager->persist($location);
+			}
+        	$location->setIsActive(true);
+        	$entityManager->flush();
+		}
+
         $toInsert
-            ->setLabel($data['libelle'])
-            ->setConform(!$data['conform'])
+            ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
+            ->setConform(isset($data['conform']) ? !$data['conform'] : true)
             ->setStatut($statut)
-            ->setCommentaire($data['commentaire'])
+            ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
-            ->setReference($referenceArticle . $formattedDate . $cpt)
+            ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
-            ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
+            ->setEmplacement($location)
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
 			->setBarCode($this->generateBarCode());
@@ -517,6 +542,11 @@ class ArticleDataService
                 $entityManager->flush();
             }
         }
+
+        // optionnel : ajout dans une demande
+		if ($demande) {
+			$demande->addArticle($toInsert);
+		}
         $entityManager->flush();
 
         return true;

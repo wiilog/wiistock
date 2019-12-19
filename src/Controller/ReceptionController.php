@@ -27,6 +27,7 @@ use App\Repository\InventoryCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\ChampLibreRepository;
@@ -39,6 +40,7 @@ use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\TransporteurRepository;
 
+use App\Service\DemandeLivraisonService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
@@ -1487,5 +1489,46 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+	/**
+	 * @Route("/avec-conditionnement", name="reception_new_with_packing", options={"expose"=true})
+	 */
+    public function receptionNewWithDl(Request $request,
+									   DemandeLivraisonService $demandeLivraisonService,
+									   UrgenceRepository $urgenceRepository): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
+
+			// protection quantité réceptionnée < quantité attendue
+			$articles = $data['articles'];
+			$totalQuantity = 0;
+			foreach ($articles as $article) {
+				$totalQuantity += $article['quantity'];
+			}
+			if ($totalQuantity > $data['']) {
+				return new JsonResponse(false);
+			}
+
+			// crée la demande de livraison
+			$demande = $demandeLivraisonService->newDemande($data);
+
+			// crée les articles et les ajoute à la demande
+			//(urgent)
+			foreach ($articles as $article) {
+				//quantity
+				//refArticle
+				//articleFournisseur
+				//champs libre [idCL => vCL]
+				//noCommande
+				$nbUrgences = $urgenceRepository->countByNoCommandeAndDateNow($article['noCommande']);
+
+				$this->articleDataService->newArticle($article, $demande, $nbUrgences > 0);
+
+			}
+			$em->flush();
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 }

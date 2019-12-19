@@ -4,7 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Urgence;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -28,11 +31,11 @@ class UrgenceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param Arrivage $arrivage the arrivage to analyse
-     * @return int the number of emergencies
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @param Arrivage $arrivage
+     * @return int
+     * @throws NonUniqueResultException
      */
-    public function findByArrivageData(Arrivage $arrivage)
+    public function countByArrivageData(Arrivage $arrivage)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -43,6 +46,29 @@ class UrgenceRepository extends ServiceEntityRepository
         )->setParameters([
             'date' => $arrivage->getDate(),
             'commande' => $arrivage->getNumeroBL()
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param string $noCommande
+     * @return int
+     * @throws NonUniqueResultException
+     */
+    public function countByNoCommandeAndDateNow(string $noCommande)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(u) 
+                FROM App\Entity\Urgence u
+                WHERE u.dateStart <= :date 
+                AND u.dateEnd >= :date 
+                AND u.commande = :noCommande"
+        )->setParameters([
+            'date' => new DateTime('now', new \DateTimeZone('Europe/Paris')),
+			'noCommande' => $noCommande
         ]);
 
         return $query->getSingleScalarResult();
