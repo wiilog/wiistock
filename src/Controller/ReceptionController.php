@@ -503,6 +503,7 @@ class ReceptionController extends AbstractController
                         "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
                         "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                         "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                        "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
                         'Actions' => $this->renderView(
                             'reception/datatableLigneRefArticleRow.html.twig',
                             [
