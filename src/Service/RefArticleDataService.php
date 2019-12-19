@@ -179,7 +179,7 @@ class RefArticleDataService
 
         $rows = [];
         foreach ($refs as $refArticle) {
-            $rows[] = $this->dataRowRefArticle($refArticle);
+            $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
         }
         return [
         	'data' => $rows,

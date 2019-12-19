@@ -16,6 +16,7 @@ class ChampLibre
     const TYPE_NUMBER = 'number';
     const TYPE_LIST = 'list';
     const TYPE_DATE = 'date';
+    const TYPE_DATETIME = 'datetime';
     const TYPAGE = [
         [
             'value' => ChampLibre::TYPE_BOOL,
@@ -24,6 +25,11 @@ class ChampLibre
         [
             'value' => ChampLibre::TYPE_DATE,
             'label' => 'Date',
+        ],
+        [
+
+            'value' => ChampLibre::TYPE_DATETIME,
+            'label' => 'Date et heure',
         ],
         [
             'value' => ChampLibre::TYPE_LIST,

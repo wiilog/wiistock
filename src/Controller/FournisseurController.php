@@ -272,4 +272,5 @@ class FournisseurController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
 }

@@ -17,6 +17,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Utilisateur implements UserInterface, EquatableInterface
 {
+	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
+	const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+	const SEARCH_DEFAULT = ["Libellé", "Référence"];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -185,6 +189,16 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
      */
     private $litiges;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $rechercheForArticle;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $columnsVisibleForArticle;
 
     public function __construct()
     {
@@ -1039,6 +1053,30 @@ class Utilisateur implements UserInterface, EquatableInterface
             $this->litiges->removeElement($litige);
             $litige->removeBuyer($this);
         }
+
+        return $this;
+    }
+
+    public function getRechercheForArticle()
+    {
+        return $this->rechercheForArticle;
+    }
+
+    public function setRechercheForArticle($rechercheForArticle): self
+    {
+        $this->rechercheForArticle = $rechercheForArticle;
+
+        return $this;
+    }
+
+    public function getColumnsVisibleForArticle()
+    {
+        return $this->columnsVisibleForArticle;
+    }
+
+    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
+    {
+        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
 
         return $this;
     }
