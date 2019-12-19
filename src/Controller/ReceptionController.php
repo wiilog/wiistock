@@ -807,15 +807,25 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref-art{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET")
      *
      * @param Request $request
+     * @param Reception $reception
+     *
      * @return JsonResponse
      */
     public function getRefTypeQtyArticle(Request $request, Reception $reception)
     {
         if ($request->isXmlHttpRequest()) {
-            $ref = $this->referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId());
+            $ref = array_map(
+                function($item) {
+                    return [
+                        'id' => "{$item['reference']}_{$item['commande']}",
+                        'text' => "{$item['reference']} – {$item['commande']}"
+                    ];
+                },
+                $this->referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId())
+            );
 
             return new JsonResponse(['results' => $ref]);
         }

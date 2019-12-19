@@ -11,6 +11,7 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -1035,7 +1036,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitSecurity,
                 ra.limitWarning')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND 
+            ->where('ra.typeQuantite = :qte_reference AND
             (
 				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
             	 OR
@@ -1062,7 +1063,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 							JOIN art2.statut s2
 							WHERE s2.nom =:active AND refart2 = ra)
 							<= ra.limitSecurity
-					AND ra.limitSecurity IS NOT NULL 
+					AND ra.limitSecurity IS NOT NULL
 					AND ra.limitSecurity > 0
 				)
 			)')
@@ -1144,15 +1145,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 	public function getRefTypeQtyArticleByReception($id)
 	{
+	    /** @var EntityManagerInterface $entityManager */
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT ra.id as id, ra.reference as text
+			"SELECT ra.reference as reference,
+                         rra.commande as commande
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.receptionReferenceArticles rra
             JOIN rra.reception r
             WHERE r.id = :id
-            AND ra.typeQuantite = :typeQty"
+              AND ra.typeQuantite = :typeQty"
 		)->setParameters([
 			'id' => $id,
 			'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
