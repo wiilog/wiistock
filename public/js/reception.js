@@ -869,7 +869,6 @@ function validatePacking($button) {
         (packageNumber && packageNumber > 0) &&
         (numberInPackage && numberInPackage > 0)) {
         const selectedOption = selectedOptionArray[0];
-        console.log(selectedOption);
 
         $.get(
             Routing.generate('get_ligne_article_conditionnement', true),
@@ -897,6 +896,8 @@ function validatePacking($button) {
                     $packingContainer
                         .find('.articles-conditionnement-container')
                         .append($containerArticle);
+
+                    $packingContainer.find('.packing-title').removeClass('d-none');
                 }
             }
         )
@@ -949,9 +950,9 @@ function getErrorModalNewLigneReception() {
     const quantityError = getQuantityErrorModalNewLigneReception();
 
     return (articlesCondtionnement.length === 0)
-        ? 'Veuillez effectuer un conditionnement'
+        ? 'Veuillez effectuer un conditionnement.'
         : (quantityError && quantityError)
-            ? `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article(s) pour cette référence ${quantityError.reference} – ${quantityError.commande}`
+            ? `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article(s) pour cette référence ${quantityError.reference} – ${quantityError.commande}.`
             : undefined;
 }
 
@@ -1061,4 +1062,8 @@ function initWithPH(select, ph, ajax = true, route = null) {
             placeholder: ph
         });
     }
+}
+
+function removePackingItem($button) {
+    $button.closest('.conditionnement-article').remove();
 }

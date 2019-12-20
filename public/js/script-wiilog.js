@@ -663,14 +663,10 @@ function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
             delay: 250,
         },
         language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
             searching: function () {
                 return 'Recherche en cours...';
             }
         },
-        minimumInputLength: 1,
         placeholder: {
             text: placeholder,
         }
