@@ -845,6 +845,15 @@ em {
   background-image: none !important;
 }
 
+.dataTables_filter {
+  position: relative;
+}
+.dataTables_filter > label {
+  position: absolute;
+  right: 0;
+  padding-right: 8px;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
