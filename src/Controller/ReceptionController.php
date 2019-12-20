@@ -497,6 +497,7 @@ class ReceptionController extends AbstractController
 
             $rows = [];
             foreach ($ligneArticles as $ligneArticle) {
+                dump($ligneArticle->getReferenceArticle()->getIsUrgent());
                 $rows[] =
                     [
                         "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
@@ -957,7 +958,7 @@ class ReceptionController extends AbstractController
             $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $response = new Response();
             $response->setContent($this->renderView(
-                'reception/condtionnementArticleTemplate.html.twig',
+                'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
                         'reference' => $reference,
@@ -1127,7 +1128,6 @@ class ReceptionController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
             $em->flush();
-
             $this->sendMailToAcheteurs($litige);
             $response = [];
 
@@ -1435,22 +1435,15 @@ class ReceptionController extends AbstractController
                         'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
                     ]));
                 } else {
-                    $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
-                    //                    foreach ($listArticleFournisseur as $af) {
-                    $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
-
-                    foreach ($listArticle as $article) {
-                        if ($article->getReception() && $article->getReception() === $reception) {
-                            array_push($data['refs'], $article->getBarCode());
-                            array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
-                                'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
-                                'artLabel' => $article->getLabel(),
-                            ])
-                            );
-                        }
+                    foreach ($recepRef->getArticles() as $article) {
+                        array_push($data['refs'], $article->getBarCode());
+                        array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                            'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
+                            'artLabel' => $article->getLabel(),
+                        ])
+                        );
                     }
-                    //                    }
                 }
             }
 
@@ -1736,7 +1729,6 @@ class ReceptionController extends AbstractController
 			$response['barcodes'] = $response['barcodesLabel'] = [];
 			foreach ($articles as $article) {
 				$createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
-
 				$refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
 
 				$response['barcodes'][] = $createdArticle->getBarCode();

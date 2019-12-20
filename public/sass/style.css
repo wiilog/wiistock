@@ -264,7 +264,9 @@ a:hover {
 }
 
 /* Login    
+ *
  * *================= 
+ *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -373,6 +375,12 @@ a:hover {
 
 #new-ref-inner-body {
   border: 1px solid black;
+}
+
+.frame {
+  border: 1px solid #b2b2b2;
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .accueil-back {
@@ -835,6 +843,15 @@ em {
 .dt-btn:hover {
   background: #424242;
   background-image: none !important;
+}
+
+.dataTables_filter {
+  position: relative;
+}
+.dataTables_filter > label {
+  position: absolute;
+  right: 0;
+  padding-right: 8px;
 }
 
 .btn {

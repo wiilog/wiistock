@@ -154,7 +154,7 @@ class RefArticleDataService
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->user = $tokenStorage->getToken()->getUser();
+        $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->em = $em;
         $this->userService = $userService;
         $this->router = $router;
@@ -476,19 +476,22 @@ class RefArticleDataService
     }
 
     /**
+     * @param null $counter
      * @return string
      * @throws Exception
      */
-    public function generateBarCode()
+    public function generateBarCode($counter = null)
     {
         $now = new \DateTime('now');
         $dateCode = $now->format('ym');
 
-        $highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
-        $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+        if (!isset($counter)) {
+            $highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
+            $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+            $counter = sprintf('%08u', $highestCounter + 1);
+        }
 
-        $newCounter = sprintf('%08u', $highestCounter + 1);
-        $newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $newCounter;
+        $newBarcode = ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
 
         return $newBarcode;
     }

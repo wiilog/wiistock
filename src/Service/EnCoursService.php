@@ -60,6 +60,9 @@ class EnCoursService
     public function getTimeArrayForDayWorked(DaysWorked $daysWorked): array
     {
         $daysPeriod = explode(';', $daysWorked->getTimes());
+
+        if (empty($daysPeriod[1])) return [];
+
         $afternoon = $daysPeriod[1];
         $morning = $daysPeriod[0];
 
@@ -90,10 +93,10 @@ class EnCoursService
      */
     public function getTotalTimeInDay(DaysWorked $daysWorked): int {
         $timeArray = $this->getTimeArrayForDayWorked($daysWorked);
-        return (
+        return (empty($timeArray) ? 0 : (
                 ($timeArray[self::AFTERNOON_LAST_HOUR_INDEX] * 60) + $timeArray[self::AFTERNOON_LAST_MINUTE_INDEX])
             -
-            (($timeArray[self::MORNING_FIRST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_FIRST_MINUTE_INDEX]);
+            (($timeArray[self::MORNING_FIRST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_FIRST_MINUTE_INDEX]));
     }
 
     /**
@@ -112,10 +115,10 @@ class EnCoursService
     public function getTimeBreakThisDayForDayWorked(DaysWorked $daysWorked): int
     {
         $timeArray = $this->getTimeArrayForDayWorked($daysWorked);
-        return (
+        return (empty($timeArray) ? 0 : (
                 ($timeArray[self::AFTERNOON_FIRST_HOUR_INDEX] * 60) + $timeArray[self::AFTERNOON_FIRST_MINUTE_INDEX])
             -
-            (($timeArray[self::MORNING_LAST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_LAST_MINUTE_INDEX]);
+            (($timeArray[self::MORNING_LAST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_LAST_MINUTE_INDEX]));
     }
 
     /**
@@ -157,6 +160,9 @@ class EnCoursService
              * @var $dayWorkedEndOfBreakInMinutes (ex : 14:00 -> 840)
              **/
             $timeArray = $this->getTimeArrayForDayWorked($dayWorked);
+
+            if (empty($timeArray)) return 0;
+
             $dayWorkedBeginOfDayInMinutes = (($timeArray[self::MORNING_FIRST_HOUR_INDEX]) * 60) + $timeArray[self::MORNING_FIRST_MINUTE_INDEX];
             $dayWorkedEndOfDayInMinutes = (($timeArray[self::AFTERNOON_LAST_HOUR_INDEX]) * 60) + $timeArray[self::AFTERNOON_LAST_MINUTE_INDEX];
             $dayWorkedBeginOfBreakInMinutes = (($timeArray[self::MORNING_LAST_HOUR_INDEX] * 60) + $timeArray[self::MORNING_LAST_MINUTE_INDEX]);

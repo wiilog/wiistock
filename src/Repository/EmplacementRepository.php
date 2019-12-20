@@ -194,14 +194,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 WHERE e_other.label = e.label AND t.nom LIKE 'depose'
             ) AS nb
             FROM App\Entity\Emplacement AS e
-            WHERE
-            (
-                SELECT COUNT(m_other)
-                FROM App\Entity\MouvementTraca AS m_other
-                JOIN m_other.emplacement e_other_other
-                JOIN m_other.type t_other
-                WHERE e_other_other.label = e.label AND t_other.nom LIKE 'depose'
-            ) > 0 AND e.dateMaxTime IS NOT NULL AND e.dateMaxTime != ''
+            WHERE e.dateMaxTime IS NOT NULL AND e.dateMaxTime != ''
             ORDER BY nb DESC"
         );
         return $query->execute();

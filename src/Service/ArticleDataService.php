@@ -500,7 +500,6 @@ class ArticleDataService
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
-
         $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -569,25 +568,22 @@ class ArticleDataService
 			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
-
+			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                'article' => $toInsert,
+                'title' => 'Votre article urgent a bien été réceptionné.',
+            ]);
 			// gestion des urgences
 			if ($refArticle->getIsUrgent()) {
 				// on envoie un mail aux demandeurs
 				$this->mailerService->sendMail(
-					'FOLLOW GT // Article urgent réceptionné',
-					$this->renderView('mails/mailArticleUrgentReceived.html.twig', [
-						'article' => $toInsert,
-						'title' => 'Votre article urgent a bien été réceptionné.',
-					]),
-					$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+					'FOLLOW GT // Article urgent réceptionné', $mailContent,
+					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
 			}
 		}
-
         $entityManager->flush();
-
         return $toInsert;
     }
 
@@ -683,58 +679,44 @@ class ArticleDataService
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $criteriaFactory = Criteria::create();
-            $exprFactory = Criteria::expr();
-            $mouvementsFiltered = $article
-                ->getMouvements()
-                ->matching(
-                    $criteriaFactory
-                        ->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
-                        ->orderBy(['date' => Criteria::DESC])
-                );
+			$status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+		} else {
+        	$status = '';
+		}
 
-            /** @var MouvementStock $mouvementEntree */
-            $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+		$criteriaFactory = Criteria::create();
+		$exprFactory = Criteria::expr();
+		$mouvementsFiltered = $article
+			->getMouvements()
+			->matching(
+				$criteriaFactory
+					->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
+					->orderBy(['date' => Criteria::DESC])
+			);
 
-            $row = [
-                'id' => $article->getId() ?? 'Non défini',
-                'Référence' => $article->getReference() ?? 'Non défini',
-                'Statut' => $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini',
-                'Libellé' => $article->getLabel() ?? 'Non défini',
-                'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Type' => $article->getType()->getLabel(),
-                'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
-                'Commentaire' => $article->getCommentaire(),
-                'Prix unitaire' => $article->getPrixUnitaire(),
-				'Code' => $article->getBarCode(),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                    'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
-                ]),
-            ];
-        } else {
-            $row =
-                [
-                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                    'Statut' => '',
-                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                    'Type' => $article->getType()->getLabel(),
-                    'Emplacement' => $article->getEmplacement()->getLabel(),
-                    'Commentaire' => $article->getCommentaire(),
-                    'Prix unitaire' => $article->getPrixUnitaire(),
-                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                        'url' => $url,
-                        'articleId' => $article->getId(),
-                        'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
-                    ]),
-                ];
-        }
+		/** @var MouvementStock $mouvementEntree */
+		$mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+
+		$row = [
+			'id' => $article->getId() ?? 'Non défini',
+			'Référence' => $article->getReference() ?? 'Non défini',
+			'Statut' => $status,
+			'Libellé' => $article->getLabel() ?? 'Non défini',
+			'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
+			'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+			'Quantité' => $article->getQuantite() ?? 0,
+			'Type' => $article->getType() ? $article->getType()->getLabel() : '',
+			'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+			'Commentaire' => $article->getCommentaire(),
+			'Prix unitaire' => $article->getPrixUnitaire(),
+			'Code' => $article->getBarCode(),
+			'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+				'url' => $url,
+				'articleId' => $article->getId(),
+				'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
+			]),
+		];
+
         $rows = array_merge($rowCL, $row);
         return $rows;
     }

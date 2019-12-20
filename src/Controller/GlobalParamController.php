@@ -237,7 +237,7 @@ class GlobalParamController extends AbstractController
             if (isset($data['times'])) {
                 $arrayTimes = explode(';', $data['times']);
 
-                if (count($arrayTimes) % 2 != 0) {
+                if ($day->getWorked() && count($arrayTimes) % 2 != 0) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Le format des horaires est incorrect.'

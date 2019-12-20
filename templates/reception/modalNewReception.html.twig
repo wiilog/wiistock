@@ -46,7 +46,7 @@
                             for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : '' }}</label>
                         <select
                             class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : '' }}"
-                            name="fournisseur">
+                            name="fournisseur" id="fournisseur">
                         </select>
                     </div>
                     <div class="form-group col-1">
@@ -78,7 +78,9 @@
                         </div>
                         <div class="form-group col-2 invisible" id="addFournisseur">
                             <span class="btn btn-success"
-                                  onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur')"><i
+                                  onclick="
+                                  newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
+                                  ,toggleInput('fournisseurDisplay', 'addFournisseur')"><i
                                     class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
@@ -93,7 +95,8 @@
                         </div>
                         <div class="form-group col-2 invisible" id="addTransporteur">
                             <span class="btn btn-success"
-                                  onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur')"><i
+                                  onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))
+                                  ,toggleInput('transporteurDisplay', 'addTransporteur')"><i
                                     class="fas fa-check-circle"></i></span>
                         </div>
                     </div>

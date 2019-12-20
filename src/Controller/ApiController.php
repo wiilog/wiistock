@@ -347,7 +347,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0]);
+                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new \DateTimeZone('Europe/Paris'));
 
                         $mouvementTraca = new MouvementTraca();
                         $mouvementTraca

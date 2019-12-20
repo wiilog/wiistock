@@ -197,7 +197,6 @@ Class AcheminementsController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $acheminement = $this->acheminementsRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Acheminements::STATUT_A_TRAITER : Acheminements::STATUT_TRAITE;
-            dump($statutLabel);
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ACHEMINEMENT, $statutLabel);
             $acheminement->setStatut($statut);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));

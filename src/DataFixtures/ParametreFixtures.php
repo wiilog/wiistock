@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ParametreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -17,9 +18,15 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 	 */
 	private $parametreRepository;
 
-    public function __construct(ParametreRepository $parametreRepository)
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+	private $parametreGlobalRepository;
+
+    public function __construct(ParametreRepository $parametreRepository, ParametrageGlobalRepository $parametrageGlobalRepository)
     {
     	$this->parametreRepository = $parametreRepository;
+    	$this->parametreGlobalRepository = $parametrageGlobalRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -54,7 +61,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel) {
-			$globalParam = $this->parametreRepository->findBy(['label' => $globalParameterLabel]);
+			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
 			if (empty($globalParam)) {
 				$globalParam = new ParametrageGlobal();

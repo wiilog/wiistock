@@ -46,7 +46,7 @@
 
     <div class="row mt-2">
         <div class="col-6">
-            <div class="col text-right">
+            <div class="text-right">
                 {% if modifiable %}
                     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
@@ -62,11 +62,13 @@
                     <span class="fa"></span>Générer les étiquettes
                 </a>
             </div>
-            <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-            </table>
+            <div>
+                <table id="tableArticle_id" class="table table-striped table-bordered w-100">
+                </table>
+            </div>
         </div>
         <div class="col-6">
-            <div class="d-flex h-54px">
+            <div class="text-right">
                 {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalNewLitige' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">

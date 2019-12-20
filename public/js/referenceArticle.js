@@ -532,8 +532,19 @@ function deleteArticleFournisseur(button) {
 }
 
 function passArgsToModal(button) {
-    $("#submitDeleteFournisseur").data('value', $(button).data('value'));
-    $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+    let path = Routing.generate('article_fournisseur_can_delete', true);
+    let params = JSON.stringify({articleFournisseur: $(button).data('value')});
+    $.post(path, params, function(response) {
+        if (response) {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
+            $("#submitDeleteFournisseur").data('value', $(button).data('value'));
+            $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').removeClass('d-none');
+        } else {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').addClass('d-none');
+        }
+    }, 'json');
 }
 
 function addFournisseurEdit(button) {
@@ -572,6 +583,8 @@ function initRequiredChampsFixes(button) {
 }
 
 function toggleRequiredChampsFixes(button) {
+    clearErrorMsg(button);
+    clearInvalidInputs(button);
     displayRequiredChampsFixesByTypeQuantite(button.data('title'));
 }
 

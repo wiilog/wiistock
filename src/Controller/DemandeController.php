@@ -494,7 +494,6 @@ class DemandeController extends AbstractController
             // cas d'un filtre statut depuis page d'accueil
             $filterStatus = $request->request->get('filterStatus');
             $filterReception = $request->request->get('filterReception');
-            dump($filterStatus);
             $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
 
             return new JsonResponse($data);
