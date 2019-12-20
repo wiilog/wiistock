@@ -569,25 +569,22 @@ class ArticleDataService
 			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
-
+			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                'article' => $toInsert,
+                'title' => 'Votre article urgent a bien été réceptionné.',
+            ]);
 			// gestion des urgences
 			if ($refArticle->getIsUrgent()) {
 				// on envoie un mail aux demandeurs
 				$this->mailerService->sendMail(
-					'FOLLOW GT // Article urgent réceptionné',
-					$this->renderView('mails/mailArticleUrgentReceived.html.twig', [
-						'article' => $toInsert,
-						'title' => 'Votre article urgent a bien été réceptionné.',
-					]),
+					'FOLLOW GT // Article urgent réceptionné', $mailContent,
 					$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
 			}
 		}
-
         $entityManager->flush();
-
         return $toInsert;
     }
 

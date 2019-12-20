@@ -655,6 +655,28 @@ function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
     });
 }
 
+function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
 function ajaxAutoDemandCollectInit(select) {
     select.select2({
         ajax: {
