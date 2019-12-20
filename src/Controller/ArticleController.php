@@ -329,7 +329,6 @@ class ArticleController extends Controller
 					"data" => 'Actions',
 					'name' => 'Actions',
 					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-
 				],
 				[
 					"title" => 'Libellé',
