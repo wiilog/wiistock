@@ -201,4 +201,20 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getIdAndLibelleBySearchAndRef($search, $ref)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT articleFournisseur.id,
+                         articleFournisseur.reference as text
+          FROM App\Entity\ArticleFournisseur articleFournisseur
+          WHERE articleFournisseur.reference LIKE :search AND articleFournisseur.referenceArticle = :ref"
+        )->setParameters([
+            'search' => '%' . $search . '%',
+            'ref' => $ref,
+        ]);
+
+        return $query->execute();
+    }
+
 }
