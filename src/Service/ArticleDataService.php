@@ -577,7 +577,7 @@ class ArticleDataService
 				// on envoie un mail aux demandeurs
 				$this->mailerService->sendMail(
 					'FOLLOW GT // Article urgent réceptionné', $mailContent,
-					$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
