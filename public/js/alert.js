@@ -5,6 +5,7 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    order: [[2, "asc"]],
     ajax: {
         "url": pathAlerte,
         "type": "POST",
@@ -18,6 +19,6 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte'},
     ],
     columnDefs: [
-        { "orderable": false, "targets": 5 }
+        { "orderable": false, "targets": 5 },
     ],
 });
