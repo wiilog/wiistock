@@ -704,6 +704,16 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
+function clearInvalidInputs($div) {
+    let $modal = $div.closest('.modal');
+    let $inputs = $modal.find('.modal-body').find(".data");
+    $inputs.each(function () {
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+    });
+}
+
 function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
