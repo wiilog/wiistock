@@ -951,8 +951,6 @@ button:focus {
 }
 
 .filters {
-  display: flex;
-  justify-content: center;
   align-items: center;
   padding-left: 6px;
 }
@@ -974,6 +972,18 @@ button:focus {
 }
 .filters .select2-overflow .select2-selection {
   overflow: auto;
+}
+.filters .minw-300px {
+  min-width: 300px !important;
+}
+.filters .minw-100px {
+  min-width: 100px !important;
+}
+.filters .minw-200px {
+  min-width: 200px !important;
+}
+.filters .minw-450px {
+  min-width: 450px !important;
 }
 
 /* filters à garder après buttons */
