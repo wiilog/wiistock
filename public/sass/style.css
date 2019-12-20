@@ -199,6 +199,22 @@ a:hover {
   max-width: 250px;
 }
 
+.minw-300px {
+  min-width: 300px !important;
+}
+
+.minw-100px {
+  min-width: 100px !important;
+}
+
+.minw-200px {
+  min-width: 200px !important;
+}
+
+.minw-450px {
+  min-width: 450px !important;
+}
+
 .w-120px {
   width: 120px;
 }
@@ -969,7 +985,7 @@ button:focus {
 
 .filters {
   align-items: center;
-  padding-left: 6px;
+  padding: 6px;
 }
 .filters > div {
   margin: auto 12px;
@@ -989,18 +1005,6 @@ button:focus {
 }
 .filters .select2-overflow .select2-selection {
   overflow: auto;
-}
-.filters .minw-300px {
-  min-width: 300px !important;
-}
-.filters .minw-100px {
-  min-width: 100px !important;
-}
-.filters .minw-200px {
-  min-width: 200px !important;
-}
-.filters .minw-450px {
-  min-width: 450px !important;
 }
 
 /* filters à garder après buttons */
