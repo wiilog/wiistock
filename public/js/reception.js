@@ -1020,7 +1020,6 @@ function clearModalLigneReception(modal) {
         .val('');
 
     const $select2 = $modal.find('select[name="refArticleCommande"]');
-
     if ($select2.hasClass("select2-hidden-accessible")) {
         $select2
             .val(null)
@@ -1029,7 +1028,7 @@ function clearModalLigneReception(modal) {
         $select2.select2('destroy');
     }
     ajaxAutoRefArticlesReceptionInit($select2);
-
+    $('.packing-title').addClass('d-none');
     clearModal(modal);
 
 
