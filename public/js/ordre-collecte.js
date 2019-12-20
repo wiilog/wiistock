@@ -96,6 +96,8 @@ $(function() {
                     let label = valueArray[1];
                     let option = new Option(label, id, true, true);
                     $('#demandCollect').append(option).trigger('change');
+                }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 } else {
                     $('#' + element.field).val(element.value);
                 }
@@ -106,6 +108,9 @@ $(function() {
 });
 
 $submitSearchOrdreCollecte.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_ORDRE_COLLECTE,
         dateMin: $('#dateMin').val(),
@@ -115,6 +120,9 @@ $submitSearchOrdreCollecte.on('click', function () {
         users: $('#utilisateur').select2('data'),
         // demandCollect: $('#demandCollect').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableCollecte);
 });

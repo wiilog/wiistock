@@ -31,6 +31,8 @@ $(function() {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
                 }
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -198,6 +200,9 @@ function initNewArrivageEditor(modal) {
 
 let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_ARRIVAGE,
         dateMin: $('#dateMin').val(),
@@ -206,7 +211,11 @@ $submitSearchArrivage.on('click', function () {
         users: $('#utilisateur').select2('data'),
         urgence: $('#urgence-filter').is(':checked'),
         providers: $('#providers').select2('data'),
-    }
+    };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
+
     saveFilters(filters, tableArrivage);
 });
 
@@ -220,6 +229,8 @@ function generateCSVArrivage () {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         let params = JSON.stringify(data);
         let path = Routing.generate('get_arrivages_for_csv', true);
 

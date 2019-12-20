@@ -59,7 +59,11 @@
     <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
 
 <!-- Javascript 'moment.js' -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/locale/fr.js" charset="UTF-8"></script>
+    <script>
+        moment.locale('fr');
+    </script>
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
@@ -67,15 +71,18 @@
 {# line chart google #}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
+{# datetime picker#}
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-datetimepicker.css') }}">
+    <script src={{ asset('js/bootstrap-datetimepicker.min.js') }}></script>
+
 
 <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
 <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
 </head>
 
 
-
 <body {% block classbody %}{% endblock %}>
-    
+
     {% block body %}
     {% endblock %}
 

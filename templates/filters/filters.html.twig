@@ -6,11 +6,12 @@
             <div class="input-group-prepend">
                 <div class="input-group-text">De</div>
             </div>
-            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début" {{ disabled }}>
+            <input type="text" class="form-control" name="dateMin" id="dateMin" placeholder="DD/MM/YYYY" {{ disabled }}>
+
             <div class="input-group-prepend">
                 <div class="input-group-text">Au</div>
             </div>
-            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin" {{ disabled }}>
+            <input type="text" class="form-control" name="dateMax" id="dateMax" placeholder="DD/MM/YYYY" {{ disabled }}>
         </div>
     </div>
     {% endblock %}
@@ -97,3 +98,7 @@
         </div>
     </div>
 </div>
+
+{% block javascript %}
+<script src = "{{ asset('js/init_datepicker.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

@@ -41,7 +41,8 @@ let tableManutention = $('#tableManutention_id').DataTable({
 });
 
 $submitSearchManut.on('click', function () {
-
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
     let filters = {
         page: PAGE_MANUT,
         dateMin: $('#dateMin').val(),
@@ -49,6 +50,9 @@ $submitSearchManut.on('click', function () {
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableManutention);
 
@@ -125,6 +129,8 @@ $(function() {
             data.forEach(function (element) {
                 if (element.field == 'utilisateurs') {
                     $('#utilisateur').val(element.value.split(',')).select2();
+                }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 } else {
                     $('#' + element.field).val(element.value);
                 }

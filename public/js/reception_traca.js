@@ -17,6 +17,8 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#' + element.field).val(element.value);
             }

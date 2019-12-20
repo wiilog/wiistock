@@ -26,6 +26,8 @@ $(function() {
                 });
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -132,6 +134,9 @@ let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
 $submitSearchMvt.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_MVT_TRACA,
         dateMin: $('#dateMin').val(),
@@ -141,6 +146,9 @@ $submitSearchMvt.on('click', function () {
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableMvt);
 });
@@ -155,6 +163,8 @@ function generateCSVMouvement () {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         let params = JSON.stringify(data);
         let path = Routing.generate('get_mouvements_traca_for_csv', true);
 
