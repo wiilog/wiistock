@@ -891,7 +891,15 @@ class ReceptionController extends AbstractController
     public function getArticles(Request $request, Reception $reception)
     {
         if ($request->isXmlHttpRequest()) {
-            $articles = $this->articleRepository->getArticleByReception($reception->getId());
+            $articles = [];
+            foreach ($reception->getReceptionReferenceArticles() as $rra) {
+                foreach($rra->getArticles() as $article) {
+                    $articles[] = [
+                        'id' => $article->getId(),
+                        'text' => $article->getBarCode()
+                    ];
+                }
+            }
 
             return new JsonResponse(['results' => $articles]);
         }
