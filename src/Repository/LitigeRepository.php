@@ -153,7 +153,8 @@ class LitigeRepository extends ServiceEntityRepository
             'SELECT DISTINCT l
             FROM App\Entity\Litige l
             INNER JOIN l.articles a
-            INNER JOIN a.reception r
+            INNER JOIN a.receptionReferenceArticle rra
+            INNER JOIN rra.reception r
             WHERE r.id = :reception'
         )->setParameter('reception', $reception);
 
@@ -248,7 +249,7 @@ class LitigeRepository extends ServiceEntityRepository
 						a.numeroArrivage LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
-						lh.comment LIKE :value	
+						lh.comment LIKE :value
 						')
 						->setParameter('value', '%' . $search . '%');
 				}

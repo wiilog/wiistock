@@ -995,6 +995,21 @@ class ReferenceArticleController extends Controller
     }
 
     /**
+     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
+     */
+    public function isUrgent(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $referenceArticle = $this->referenceArticleRepository->find($id);
+            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      */
     public function show(Request $request): Response

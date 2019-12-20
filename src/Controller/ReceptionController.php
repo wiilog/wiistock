@@ -497,6 +497,7 @@ class ReceptionController extends AbstractController
 
             $rows = [];
             foreach ($ligneArticles as $ligneArticle) {
+                dump($ligneArticle->getReferenceArticle()->getIsUrgent());
                 $rows[] =
                     [
                         "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
@@ -1127,7 +1128,6 @@ class ReceptionController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
             $em->flush();
-
             $this->sendMailToAcheteurs($litige);
             $response = [];
 
