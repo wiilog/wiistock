@@ -1091,12 +1091,11 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd)
+function newLine(path, button, toHide, buttonAdd, select = null)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
-
     inputs.each(function () {
         if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
         {
@@ -1107,16 +1106,11 @@ function newLine(path, button, toHide, buttonAdd)
         }
         params[$(this).attr('name')] = $(this).val();
     });
-
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function () {
-            let $toShow = $('#' + toHide);
-            let $toAdd = $('#' + buttonAdd);
-            $toShow.css('visibility', "hidden");
-            $toAdd.css('visibility', "hidden");
-            numberOfDataOpened--;
-            if (numberOfDataOpened === 0) {
-                $toShow.parent().parent().css("display", "none");
+        $.post(path, JSON.stringify(params), function (response) {
+            if (select) {
+                let option = new Option(response.text, response.id, true, true);
+                select.append(option).trigger('change');
             }
         });
     }
