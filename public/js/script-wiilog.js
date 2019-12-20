@@ -655,6 +655,28 @@ function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
     });
 }
 
+function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
 function ajaxAutoDemandCollectInit(select) {
     select.select2({
         ajax: {
@@ -702,6 +724,16 @@ function clearDiv() {
 
 function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
+}
+
+function clearInvalidInputs($div) {
+    let $modal = $div.closest('.modal');
+    let $inputs = $modal.find('.modal-body').find(".data");
+    $inputs.each(function () {
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+    });
 }
 
 function displayError(modal, msg, success) {
@@ -1069,12 +1101,11 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd)
+function newLine(path, button, toHide, buttonAdd, select = null)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
-
     inputs.each(function () {
         if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
         {
@@ -1085,16 +1116,11 @@ function newLine(path, button, toHide, buttonAdd)
         }
         params[$(this).attr('name')] = $(this).val();
     });
-
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function () {
-            let $toShow = $('#' + toHide);
-            let $toAdd = $('#' + buttonAdd);
-            $toShow.css('visibility', "hidden");
-            $toAdd.css('visibility', "hidden");
-            numberOfDataOpened--;
-            if (numberOfDataOpened === 0) {
-                $toShow.parent().parent().css("display", "none");
+        $.post(path, JSON.stringify(params), function (response) {
+            if (select) {
+                let option = new Option(response.text, response.id, true, true);
+                select.append(option).trigger('change');
             }
         });
     }

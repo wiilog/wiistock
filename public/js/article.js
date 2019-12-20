@@ -4,6 +4,12 @@ $(function () {
     initTableArticle();
 });
 
+function hideAndShowColumns(columns) {
+    tableRefArticle.columns().every(function(index) {
+        this.visible(columns[index].class !== 'hide');
+    });
+}
+
 function initTableArticle() {
     $.post(Routing.generate('article_api_columns'), function (columns) {
         tableArticle = $('#tableArticle_id')
@@ -35,10 +41,13 @@ function initTableArticle() {
                     hideAndShowColumns();
                     overrideSearchArticle();
                 },
+                columns: columns.map((column) => ({
+                    ...column,
+                    class: undefined
+                })),
                 "drawCallback": function (settings) {
                     resizeTable();
                 },
-                columns: columns,
             });
     });
 }

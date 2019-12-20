@@ -572,6 +572,8 @@ function initRequiredChampsFixes(button) {
 }
 
 function toggleRequiredChampsFixes(button) {
+    clearErrorMsg(button);
+    clearInvalidInputs(button);
     displayRequiredChampsFixesByTypeQuantite(button.data('title'));
 }
 

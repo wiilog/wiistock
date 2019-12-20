@@ -97,6 +97,7 @@ let tableReception = $('#tableReception_id').DataTable({
 
 let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
 let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
+    responsive: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -313,6 +314,7 @@ InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('reception_article_api', {'id': id}, true);
 let tableArticle = $('#tableArticle_id').DataTable({
+    responsive: true,
     "lengthMenu": [5, 10, 25],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
@@ -883,7 +885,7 @@ function validatePacking($button) {
                 for(let index = 0; index < packageNumber; index++) {
                     const $clonedHtml = $html.clone();
                     const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
-                    ajaxAutoArticleFournisseurInit($articleFournisseur);
+                    ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
 
                     const $containerArticle = $('<div/>', {
                         class: 'conditionnement-article',
@@ -979,8 +981,6 @@ function getQuantityErrorModalNewLigneReception() {
             quantityByConditionnement.quantity += quantityConditionnement;
         }
     });
-
-    console.log(quantityByConditionnementArray);
 
     const dataDatatable = tableArticle.rows().data();
     let indexDatatable = 0;
