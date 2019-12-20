@@ -328,7 +328,7 @@ class GlobalParamController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(self::CREATE_PREPA_AFTER_DL);
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
@@ -339,7 +339,7 @@ class GlobalParamController extends AbstractController
             {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
-                    ->setLabel(self::CREATE_PREPA_AFTER_DL)
+                    ->setLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL)
                     ->setParametre($data['val']);
                 $em->persist($parametrage);
                 $em->flush();
