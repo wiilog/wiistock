@@ -8,18 +8,18 @@ let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{
+    ajax: {
         "url": pathArticleFournisseur,
         "type": "POST"
     },
-        columns: [
-        { "data": 'Actions' },
-        { "data": 'Fournisseur' },
-        { "data": 'Référence' },
-        { "data": 'Article de référence' },
+    columns: [
+        {"data": 'Actions'},
+        {"data": 'Fournisseur'},
+        {"data": 'Référence'},
+        {"data": 'Article de référence'},
     ],
     columnDefs: [
-        { "orderable": false, "targets": 0 }
+        {"orderable": false, "targets": 0}
     ]
 });
 

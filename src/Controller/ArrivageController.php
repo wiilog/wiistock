@@ -752,7 +752,7 @@ class ArrivageController extends AbstractController
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->redirectToRoute('access_denied');
         }
 

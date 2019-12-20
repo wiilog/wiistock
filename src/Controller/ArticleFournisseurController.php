@@ -183,6 +183,25 @@ class ArticleFournisseurController extends AbstractController
     }
 
     /**
+     * @Route("/supprimer_verif", name="article_fournisseur_can_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function deleteVerif(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['articleFournisseur']));
+            if (count($articleFournisseur->getArticles()) > 0) {
+                return new JsonResponse(false);
+            }
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @param ArticleFournisseur $articleFournisseur
      * @return array
      */
