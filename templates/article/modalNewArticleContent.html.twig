@@ -1,4 +1,4 @@
-{% set easyForm = (easyForm is not defined) or easyForm %}
+{% set easyForm = easyForm is not defined ? false : easyForm %}
 <div class="row">
     <div class="form-group w-100 col-12">
         <label>Référence fournisseur*
