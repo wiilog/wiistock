@@ -3,7 +3,7 @@ $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
 
 //RECEPTION
-function generateCSVReception () {
+function generateCSVReception() {
     loadSpinner($('#spinnerReception'));
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
@@ -16,7 +16,7 @@ function generateCSVReception () {
         let params = JSON.stringify(data);
         let path = Routing.generate('get_receptions_for_csv', true);
 
-        $.post(path, params, function(response) {
+        $.post(path, params, function (response) {
             if (response) {
                 $('.error-msg').empty();
                 let csv = "";
@@ -40,7 +40,7 @@ let aFile = function (csv) {
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     let exportedFilenmae = 'export-reception-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);
     } else {
@@ -69,8 +69,8 @@ let tableReception = $('#tableReception_id').DataTable({
             "targets": 1
         },
         {
-            "orderable" : false,
-            "targets" : 0
+            "orderable": false,
+            "targets": 0
         }
     ],
     language: {
@@ -80,18 +80,18 @@ let tableReception = $('#tableReception_id').DataTable({
         "url": path,
         "type": "POST",
     },
-    'drawCallback': function() {
+    'drawCallback': function () {
         overrideSearch($('#tableReception_id_filter input'), tableReception);
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions' },
-        { "data": 'Date', 'title': 'Date de création' },
-        { "data": 'DateFin', 'title': 'Date de fin de réception' },
-        { "data": 'Numéro de commande', 'title': 'Numéro de commande' },
-        { "data": 'Fournisseur', 'title': 'Fournisseur' },
-        { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Statut', 'title': 'Statut' },
-        { "data": 'Commentaire', 'title': 'Commentaire'},
+        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Date', 'title': 'Date de création'},
+        {"data": 'DateFin', 'title': 'Date de fin de réception'},
+        {"data": 'Numéro de commande', 'title': 'Numéro de commande'},
+        {"data": 'Fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Référence', 'title': 'Référence'},
+        {"data": 'Statut', 'title': 'Statut'},
+        {"data": 'Commentaire', 'title': 'Commentaire'},
     ],
 });
 
@@ -130,7 +130,8 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     ],
 });
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {
+}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -246,19 +247,19 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            { "data": 'Code', 'name': 'Code', 'title': 'Code article' },
-            { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-            { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-            { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-            { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-            { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+            {"data": 'Code', 'name': 'Code', 'title': 'Code article'},
+            {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
+            {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
+            {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
+            {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
         ],
         aoColumnDefs: [{
             'sType': 'natural',
             'bSortable': true,
             'aTargets': [0]
         }],
-        columnDefs:  [
+        columnDefs: [
             {
                 orderable: false,
                 targets: 5
@@ -333,8 +334,8 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Urgence', 'title': 'Urgence'},
     ],
     columnDefs: [
-        { "orderable": false, "targets": 0 },
-        { "visible": false, "targets": 5 }
+        {"orderable": false, "targets": 0},
+        {"visible": false, "targets": 5}
     ],
     rowCallback: function (row, data) {
         $(row).addClass(data.Urgence ? 'table-danger' : '');
@@ -453,7 +454,7 @@ function createArticleAndBarcodes(button, receptionId) {
         date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
 
-        printBarcodes(response.refs, response,'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
+        printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodesLabel);
         tableArticle.ajax.reload(function (json) {
             if (this.responseText !== undefined) {
                 $('#myInput').val(json.lastInput);
@@ -501,9 +502,21 @@ function printSingleArticleBarcode(button) {
     });
 }
 
-function articleChanged() {
-    $('.body-add-ref').css('display', 'flex');
-    $('#innerNewRef').html('');
+function articleChanged(select) {
+    if (select.val() !== null) {
+        let route = Routing.generate('is_urgent', true);
+        let params = JSON.stringify(select.val());
+        $.post(route, params, function (response) {
+            console.log(response);
+            if (response) {
+                $('.emergency').removeClass('d-none');
+            } else {
+                $('.emergency').addClass('d-none');
+            }
+            $('.body-add-ref').css('display', 'flex');
+            $('#innerNewRef').html('');
+        });
+    }
 }
 
 function toggleRequiredChampsFixes(button) {
@@ -564,16 +577,16 @@ function addArticle() {
     });
 }
 
-function checkIfQuantityArticle($select){
+function checkIfQuantityArticle($select) {
     let referenceId = $select.val();
     let path = Routing.generate('check_if_quantity_article');
     let params = JSON.stringify(referenceId);
     let $label = $('#label');
 
     if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
-        $.post(path, params, function(quantityByArticle){
+        $.post(path, params, function (quantityByArticle) {
             $label.removeClass('is-invalid');
-            if(quantityByArticle) {
+            if (quantityByArticle) {
                 $label.addClass('needed');
                 $label.closest('div').find('label').html('Libellé*');
                 $label.closest('.modal-body').find('#quantite').attr('disabled', true);
@@ -818,16 +831,16 @@ function toggleInput(id, button) {
     let $toShow = $('#' + id);
     let $toAdd = $('#' + button);
     // let $div = document.getElementById(div);
-    if ($toShow.hasClass('invisible')){
+    if ($toShow.hasClass('invisible')) {
         $toShow.parent().parent().css("display", "flex");
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
-        numberOfDataOpened ++;
+        numberOfDataOpened++;
         // $div.style.visibility = "visible";
     } else {
         $toShow.addClass('invisible');
         $toAdd.addClass('invisible');
-        numberOfDataOpened --;
+        numberOfDataOpened--;
         if (numberOfDataOpened === 0) {
             $toShow.parent().parent().css("display", "none");
         }
@@ -836,7 +849,7 @@ function toggleInput(id, button) {
 }
 
 
-let ajaxAutoRefArticlesReceptionInit = function(select) {
+let ajaxAutoRefArticlesReceptionInit = function (select) {
     select.select2({
         ajax: {
             url: Routing.generate('get_ref_article_reception', {reception: $('#receptionId').val()}, true),
@@ -879,9 +892,9 @@ function validatePacking($button) {
             },
             'text/html'
         ).done(
-            function(html) {
+            function (html) {
                 const $html = $(html);
-                for(let index = 0; index < packageNumber; index++) {
+                for (let index = 0; index < packageNumber; index++) {
                     const $clonedHtml = $html.clone();
                     const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
                     ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
@@ -928,8 +941,7 @@ function initNewLigneReception(modal) {
         const $errorContainer = $modalNewLigneReception.find('.error-msg');
         if (error) {
             $errorContainer.text(error);
-        }
-        else {
+        } else {
             $errorContainer.text('');
             submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle);
         }
@@ -961,7 +973,7 @@ function getQuantityErrorModalNewLigneReception() {
     const conditionnementArticleArray$ = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
     const quantityByConditionnementArray = [];
 
-    conditionnementArticleArray$.each(function() {
+    conditionnementArticleArray$.each(function () {
         const $conditionnement = $(this);
 
         const referenceConditionnement = $conditionnement.find('input[name="refArticle"]').val();
@@ -977,8 +989,7 @@ function getQuantityErrorModalNewLigneReception() {
                 noCommande: noCommandeConditionnement,
                 quantity: quantityConditionnement
             })
-        }
-        else {
+        } else {
             quantityByConditionnement.quantity += quantityConditionnement;
         }
     });
@@ -986,7 +997,7 @@ function getQuantityErrorModalNewLigneReception() {
     const dataDatatable = tableArticle.rows().data();
     let indexDatatable = 0;
     let quantityError;
-    while((indexDatatable < dataDatatable.length) && !quantityError) {
+    while ((indexDatatable < dataDatatable.length) && !quantityError) {
         const currentLineReference = dataDatatable[indexDatatable]['Référence'];
         const currentLineCommande = dataDatatable[indexDatatable]['Commande'];
         const currentLineQuantity = dataDatatable[indexDatatable]['A recevoir'] - Number(dataDatatable[indexDatatable]['Reçu'] || 0);
@@ -1001,8 +1012,7 @@ function getQuantityErrorModalNewLigneReception() {
                 commande: currentLineCommande,
                 quantity: Number(currentLineQuantity)
             };
-        }
-        else {
+        } else {
             indexDatatable++;
         }
     }

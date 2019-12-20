@@ -95,7 +95,7 @@ class EnCoursController extends AbstractController
             }
             foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                    $dateMvt = $mvt->getDatetime();
+					$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-y H:i'), new \DateTimeZone("Europe/Paris"));
                     $minutesBetween = $this->getMinutesBetween($mvt);
 
                     if (empty($minutesBetween)) {

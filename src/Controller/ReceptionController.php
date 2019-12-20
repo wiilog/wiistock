@@ -497,6 +497,7 @@ class ReceptionController extends AbstractController
 
             $rows = [];
             foreach ($ligneArticles as $ligneArticle) {
+                dump($ligneArticle->getReferenceArticle()->getIsUrgent());
                 $rows[] =
                     [
                         "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
