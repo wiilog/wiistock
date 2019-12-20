@@ -1656,13 +1656,13 @@ class ReceptionController extends AbstractController
             foreach ($receptions as $reception) {
                 $receptionData = [];
 
-                $receptionData[] = $reception->getNumeroReception();
-                $receptionData[] = $reception->getReference();
-                $receptionData[] = $reception->getFournisseur()->getNom();
-                $receptionData[] = $reception->getUtilisateur()->getUsername();
-                $receptionData[] = $reception->getStatut()->getNom();
-                $receptionData[] = $reception->getDate()->format('d/m/Y h:i');
-                $receptionData[] = $reception->getType()->getLabel();
+                $receptionData[] = $reception->getNumeroReception() ?? '';
+                $receptionData[] = $reception->getReference() ?? '';
+                $receptionData[] = $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '';
+                $receptionData[] = $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '';
+                $receptionData[] = $reception->getStatut() ? $reception->getStatut()->getNom() : '';
+                $receptionData[] = $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '';
+                $receptionData[] = $reception->getType() ? $reception->getType()->getLabel() : '';
 
                 $data[] = $receptionData;
             }
