@@ -1107,7 +1107,21 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
+            $data['headers'] = [
+                'reference',
+                'libelle',
+                'quantite',
+                'type',
+                'type_quantite',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'fournisseurs',
+                'articles fournisseurs',
+                'seuil securite',
+                'seuil alerte',
+                'prix unitaire'
+            ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1136,19 +1150,19 @@ class ReferenceArticleController extends Controller
     	$stringArticlesFournisseur = implode(' / ', $arrayAF);
     	$stringFournisseurs = implode(' / ', $arrayF);
 
-        $refData[] = $ref->getReference();
-        $refData[] = $ref->getLibelle();
-        $refData[] = $ref->getQuantiteStock();
+        $refData[] = $ref->getReference() ? $ref->getReference() : '';
+        $refData[] = $ref->getLibelle() ? $ref->getLibelle() : '';
+        $refData[] = $ref->getQuantiteStock() ? $ref->getQuantiteStock() : '';
         $refData[] = $ref->getType()->getLabel();
-        $refData[] = $ref->getTypeQuantite();
+        $refData[] = $ref->getTypeQuantite() ? $ref->getTypeQuantite() : '';
         $refData[] = $ref->getStatut()->getNom();
-        $refData[] = strip_tags($ref->getCommentaire());
+        $refData[] = strip_tags($ref->getCommentaire()) ? strip_tags($ref->getCommentaire()) : '';
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
         $refData[] = $stringFournisseurs;
         $refData[] = $stringArticlesFournisseur;
-        $refData[] = $ref->getLimitSecurity();
-        $refData[] = $ref->getLimitWarning();
-        $refData[] = $ref->getPrixUnitaire();
+        $refData[] = $ref->getLimitSecurity() ? $ref->getLimitSecurity() : '';
+        $refData[] = $ref->getLimitWarning() ? $ref->getLimitWarning() : '';
+        $refData[] = $ref->getPrixUnitaire() ? $ref->getPrixUnitaire() : '';
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
