@@ -409,8 +409,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->select('count(ra)');
         } else {
             $qb
-                ->select('count(distinct(ra))')
-                ->leftJoin('ra.valeurChampsLibres', 'vcl');
+                ->select('count(distinct(ra))');
         }
         $countQuery = $qb->getQuery()->getSingleScalarResult();
 
@@ -418,8 +417,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        $qb->select('ra')
-            ->distinct();
+        $qb->select('ra');
         if ($needCLOrder) {
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
