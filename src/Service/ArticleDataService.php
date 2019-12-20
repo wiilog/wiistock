@@ -500,7 +500,6 @@ class ArticleDataService
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
-
         $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -578,7 +577,7 @@ class ArticleDataService
 				// on envoie un mail aux demandeurs
 				$this->mailerService->sendMail(
 					'FOLLOW GT // Article urgent réceptionné', $mailContent,
-					$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
