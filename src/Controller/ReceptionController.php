@@ -1127,7 +1127,6 @@ class ReceptionController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
             $em->flush();
-            dump($litige);
             $this->sendMailToAcheteurs($litige);
             $response = [];
 
