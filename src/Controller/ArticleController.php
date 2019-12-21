@@ -24,6 +24,7 @@ use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
@@ -126,7 +127,26 @@ class ArticleController extends Controller
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    private $CSVExportService;
+
+    public function __construct(\Twig_Environment $templating,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                ChampLibreRepository $champLibreRepository,
+                                ValeurChampLibreRepository $valeurChampsLibreRepository,
+                                ArticleDataService $articleDataService,
+                                TypeRepository $typeRepository,
+                                RefArticleDataService $refArticleDataService,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ReceptionRepository $receptionRepository,
+                                StatutRepository $statutRepository,
+                                ArticleRepository $articleRepository,
+                                EmplacementRepository $emplacementRepository,
+                                CollecteRepository $collecteRepository,
+                                UserService $userService,
+                                CSVExportService $CSVExportService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -145,6 +165,7 @@ class ArticleController extends Controller
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -623,13 +644,14 @@ class ArticleController extends Controller
 	 */
     public function buildInfos(Article $article, $listTypes, $headers)
     {
-        $refData[] = $article->getReference() ? $article->getReference() : '';
-        $refData[] = $article->getLabel() ? $article->getLabel() : '';
-        $refData[] = $article->getQuantite() ? $article->getQuantite() : '';
-        $refData[] = $article->getType() ? ($article->getType()->getLabel() ? $article->getType()->getLabel() : '') : '';
-        $refData[] = $article->getStatut() ? $article->getStatut()->getNom() : '';
-        $refData[] = strip_tags($article->getCommentaire());
-        $refData[] = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
+
+        $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
+        $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
+        $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
+        $refData[] = $article->getType() ? $this->CSVExportService->escapeCSV($article->getType()->getLabel()) : '';
+        $refData[] = $article->getStatut() ? $this->CSVExportService->escapeCSV($article->getStatut()->getNom()) : '';
+        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
+        $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
         $champsLibres = [];
         foreach ($listTypes as $type) {
 			$typeArticle = $this->typeRepository->find($type['id']);
@@ -641,7 +663,7 @@ class ArticleController extends Controller
         }
         foreach ($headers as $type) {
             if (array_key_exists($type, $champsLibres)) {
-                $refData[] = $champsLibres[$type];
+                $refData[] = $this->CSVExportService->escapeCSV($champsLibres[$type]);
             } else {
                 $refData[] = '';
             }
