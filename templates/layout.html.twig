@@ -1,3 +1,4 @@
+{% set version = '2.1.0' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -23,7 +24,7 @@
                         <div class="logo-wrapper">
                             {% include 'logo.svg.twig' %}
                         </div>
-                        <div class="version"> V2.1.2</div>
+                        <div class="version"> V{{ version }}</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
