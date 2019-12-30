@@ -1,3 +1,5 @@
+import Routing from '../router';
+
 let numberOfDataOpened = 0;
 $('.select2').select2();
 $('.body-add-ref').css('display', 'none');
@@ -55,7 +57,7 @@ let aFile = function (csv) {
             document.body.removeChild(link);
         }
     }
-}
+};
 
 // RECEPTION
 let path = Routing.generate('reception_api', true);
@@ -130,8 +132,7 @@ let tableLitigesReception = $('#tableReceptionLitiges').DataTable({
     ],
 });
 
-function editRowLitige(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -398,36 +399,6 @@ function initNewArticleEditor(modal) {
         editorNewArticleAlreadyDone = true;
     }
     clearAddRefModal();
-};
-
-let getArticleFournisseur = function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            if (data.option) {
-                let $articleFourn = $('#articleFournisseur');
-                $articleFourn.parent('div').removeClass('d-none');
-                $articleFourn.parent('div').addClass('d-block');
-                $articleFourn.html(data.option);
-            }
-        }
-    }
-    path = Routing.generate('get_article_fournisseur', true)
-    let data = {};
-    data['referenceArticle'] = $('#reference').val();
-    data['fournisseur'] = $('#fournisseurAddArticle').val();
-    if (data['referenceArticle'] && data['fournisseur']) {
-        json = JSON.stringify(data);
-        xhttp.open("POST", path, true);
-        xhttp.send(json);
-    }
-}
-
-let resetNewArticle = function (element) {
-    element.removeClass('d-block');
-    element.addClass('d-none');
-    clearAddRefModal();
 }
 
 function addLot(button) {
@@ -577,28 +548,6 @@ function addArticle() {
     });
 }
 
-function checkIfQuantityArticle($select) {
-    let referenceId = $select.val();
-    let path = Routing.generate('check_if_quantity_article');
-    let params = JSON.stringify(referenceId);
-    let $label = $('#label');
-
-    if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
-        $.post(path, params, function (quantityByArticle) {
-            $label.removeClass('is-invalid');
-            if (quantityByArticle) {
-                $label.addClass('needed');
-                $label.closest('div').find('label').html('Libellé*');
-                $label.closest('.modal-body').find('#quantite').attr('disabled', true);
-            } else {
-                $label.removeClass('needed');
-                $label.closest('div').find('label').html('Libellé');
-                $label.closest('.modal-body').find('#quantite').attr('disabled', false);
-            }
-        });
-    }
-}
-
 function finishReception(receptionId, confirmed) {
     $.post(Routing.generate('reception_finish'), JSON.stringify({
         id: receptionId,
@@ -614,7 +563,7 @@ function finishReception(receptionId, confirmed) {
     }, 'json');
 }
 
-$submitSearchReception = $('#submitSearchReception');
+const $submitSearchReception = $('#submitSearchReception');
 
 $submitSearchReception.on('click', function () {
     let filters = {

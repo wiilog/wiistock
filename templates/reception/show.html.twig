@@ -113,5 +113,10 @@
 let id = {{ reception.id }};
 </script>
 <script src = "{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
-<script src="{{asset('js/reception.js')}}?{{ date().timestamp }}"></script>
 {% endblock javascript %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {{ encore_entry_script_tags('reception') }}}}
+{% endblock %}
