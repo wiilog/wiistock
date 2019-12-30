@@ -56,31 +56,34 @@ echo "OK : mise en maintenance de l'instance $instance"
 case "$instance" in
 #TODO CG enlever cl1-rec après tests
   cl2-prod | scs1-prod | col1-rec | cl1-rec)
-    db=awk '{print $1}' ./db-"$instance"
-    dbuser=awk '{print $2}' ./db-"$instance"
-    password=awk '{print $3}' ./db-"$instance";;
+    db=$(awk '{ print $1 }' ./db-cl1-rec)
+    dbuser=$(awk ' {print $2} ' ./db-cl1-rec)
+    password=$(awk ' {print $3} ' ./db-cl1-rec);;
   * ) dbuser='noBackup';;
 esac
 
 if [ "$dbuser" != 'noBackup' ]; then
+  read -p "-> lancer la sauvegarde de la base de données ?"
   date=$(date '+%Y-%m-%d')
   mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
-  echo "OK : sauvegarde de la base de données $db"
+  echo "OK : base de données $db sauvegardée"
 else
-  echo "OK : pas de sauvegarde de base de données nécessaire"
+  echo "-> pas de sauvegarde de base de données nécessaire"
 fi
 
 # git pull
+read -p "-> lancer git pull ?"
 sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
   cd /var/www/"$instance"/WiiStock
   git pull
-  php bin/console cache:clear
-  chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/prod
 EOF
 echo "OK : git pull effectué"
 
 # migrations
+read -p "-> lancer les migrations de bdd ?"
 # mise à jour base données
 # fixtures
 # fin de maintenance
 # cacheclear
+#  php bin/console cache:clear
+#  chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
