@@ -124,7 +124,15 @@ $(function() {
         $.post(path, params, function (data) {
             data.forEach(function (element) {
                 if (element.field == 'utilisateurs') {
-                    $('#utilisateur').val(element.value.split(',')).select2();
+                    let values = element.value.split(',');
+                    let $utilisateur = $('#utilisateur');
+                    values.forEach((value) => {
+                        let valueArray = value.split(':');
+                        let id = valueArray[0];
+                        let username = valueArray[1];
+                        let option = new Option(username, id, true, true);
+                        $utilisateur.append(option).trigger('change');
+                    });
                 } else {
                     $('#' + element.field).val(element.value);
                 }

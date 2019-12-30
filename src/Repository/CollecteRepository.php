@@ -114,10 +114,11 @@ class CollecteRepository extends ServiceEntityRepository
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
+                    dump($value);
                     $qb
                         ->join('c.demandeur', 'd')
-                        ->andWhere("d.username in (:username)")
-                        ->setParameter('username', $value);
+                        ->andWhere("d.id in (:id)")
+                        ->setParameter('id', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('c.date >= :dateMin')
