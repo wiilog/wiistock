@@ -1,4 +1,8 @@
+
+
 ## Installation du Sass Symfony
+
+<https://symfony.com/doc/current/frontend/encore/simple-example.html>
 
 ### Installer yarn pour window :
 <https://yarnpkg.com/lang/en/docs/install/#windows-stable>
@@ -15,3 +19,16 @@ php --ini
 composer install
 yarn
 ```
+
+### Compile assets
+
+* Compiler assets, --watch optionnel
+```bash
+yarn encore dev --watch
+```
+
+* Create a production build
+```bash
+yarn encore production
+```
+

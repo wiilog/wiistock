@@ -2,15 +2,18 @@
     "devDependencies": {
         "@symfony/webpack-encore": "^0.28.2",
         "core-js": "^3.0.0",
+        "node-sass": "^4.13.0",
         "regenerator-runtime": "^0.13.2",
+        "sass-loader": "7.0.1",
         "webpack-notifier": "^1.6.0"
     },
     "license": "UNLICENSED",
     "private": true,
     "scripts": {
-        "dev-server": "encore dev-server",
-        "dev": "encore dev",
-        "watch": "encore dev --watch",
-        "build": "encore production --progress"
+        "dev-server": "yarn generate-jsrouting && encore dev-server",
+        "dev": "yarn generate-jsrouting && encore dev",
+        "watch": "yarn dev --watch",
+        "build": "yarn generate-jsrouting && encore production --progress",
+        "generate-jsrouting": "php bin/console fos:js-routing:dump --format=json --target=assets/bundles/js/fos_js_routes.json"
     }
 }
