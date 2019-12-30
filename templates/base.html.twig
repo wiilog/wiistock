@@ -53,26 +53,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
     <script src={{asset("js/i18n/select2.full.min.js")}}></script>
 
-<!-- Javascript routing Exemple : var url = Routing.generate('modifyLigneArticle', id , true) -->
+    <!-- Javascript routing Exemple : var url = Routing.generate('modifyLigneArticle', id , true) -->
+    <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+    <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+    <!-- Javascript 'moment.js' -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 
-<!-- Javascript 'moment.js' -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
-{# line chart google #}
+    {# line chart google #}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 
-<script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
     {% block stylesheets %}
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
-
-
 
 <body {% block classbody %}{% endblock %}>
 
@@ -80,14 +79,6 @@
     {% endblock %}
 
     {% block javascript %}
-    {% endblock %}
-
-
-    {% block javascripts %}
-        <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
-        <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
-
-        {{ encore_entry_script_tags('app') }}
     {% endblock %}
 
 </body>
