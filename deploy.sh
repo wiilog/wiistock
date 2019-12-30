@@ -28,7 +28,7 @@
 #echo "OK : mise à jour des tâches sur jira"
 
 # choix de l'instance
-echo '-> déployer sur quelle instance ?'
+printf '-> déployer sur quelle instance ?'
 while true; do
   read instance
   case "$instance" in
@@ -50,7 +50,7 @@ sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
   cd /var/www/"$instance"/WiiStock
   sed -i "6s/.*/APP_ENV=maintenance/" .env
 EOF
-echo "OK : mise en maintenance de l'instance $instance"
+printf "//////////\nOK : mise en maintenance de l'instance $instance\n//////////"
 
 # sauvegarde base données
 case "$instance" in
@@ -65,25 +65,30 @@ esac
 if [ "$dbuser" != 'noBackup' ]; then
   read -p "-> lancer la sauvegarde de la base de données ?"
   date=$(date '+%Y-%m-%d')
-  mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
-  echo "OK : base de données $db sauvegardée"
+#  mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
+  printf "//////////\nOK : base de données $db sauvegardée\n//////////"
+
 else
-  echo "-> pas de sauvegarde de base de données nécessaire"
+  printf "//////////\npas de sauvegarde de base de données nécessaire\n//////////"
 fi
 
 # git pull
-read -p "-> lancer git pull ?"
-sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
-  cd /var/www/"$instance"/WiiStock
-  git pull
-EOF
-echo "OK : git pull effectué"
-
-# migrations
-read -p "-> lancer les migrations de bdd ?"
-# mise à jour base données
+# migrations et mise à jour bdd
 # fixtures
 # fin de maintenance
-# cacheclear
-#  php bin/console cache:clear
-#  chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
+read -p "-> lancer git pull + migrations + fixtures + fin de maintenance ?"
+sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
+  cd /var/www/"$instance"/WiiStock
+#  git pull
+  printf "//////////\nOK : git pull effectué\n//////////"
+  php bin/console doctrine:migrations:migrate
+  php bin/console doctrine:schema:update --force
+  printf "//////////\nOK : migrations de la base effectuées\n//////////"
+  php bin/console doctrine:fixtures:load --append --group=fixtures
+  printf "//////////\nOK : fixtures effectuées\n//////////"
+  sed -i "6s/.*/APP_ENV=prod/" .env
+  printf "//////////\nOK : mise en prod de l'instance $instance\n//////////"
+  php bin/console cache:clear
+  chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
+  printf "//////////\nOK : cache nettoyé\n//////////"
+EOF
