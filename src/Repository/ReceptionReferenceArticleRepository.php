@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -71,6 +73,33 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
             WHERE rra.reception = :receptionId'
 		)->setParameter('receptionId', $receptionId);;
 		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param Reception $reception
+	 * @param string $noCommande
+	 * @param string $refArticle
+	 * @return ReceptionReferenceArticle|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			'SELECT rra
+            FROM App\Entity\ReceptionReferenceArticle rra
+            JOIN rra.referenceArticle ra
+            WHERE rra.reception = :reception
+            AND ra.reference = :refArticle
+            AND rra.commande = :noCommande
+            '
+		)->setParameters([
+			'reception' => $reception,
+			'noCommande' => $noCommande,
+			'refArticle' => $refArticle
+		]);
+		return $query->getOneOrNullResult();
 	}
 
 }

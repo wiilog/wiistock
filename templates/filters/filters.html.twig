@@ -1,7 +1,7 @@
 {% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
-<div class="filterService filters">
+<div class="filterService filters form-row justify-content-between">
     {% block dateFilter %}
-    <div>
+    <div class="minw-450px">
         <div class="input-group">
             <div class="input-group-prepend">
                 <div class="input-group-text">De</div>
@@ -20,7 +20,7 @@
 
     {% block emplacementFilter %}
         <div>
-            <div class="input-group maxw-250px">
+            <div class="input-group minw-200px">
                 <select class="form-control data select2" name="emplacement" id="emplacement" {{ disabled }}>
                     <option value="">&nbsp;</option>
                     {% for emplacement in emplacements %}
@@ -33,7 +33,7 @@
 
     {% block statusFilter %}
     <div>
-        <div class="input-group">
+        <div class="input-group minw-100px">
             <select class="form-control data" name="statut" id="statut" {{ disabled }}
                     placeholder='{{ statut is defined  ? statut : 'statut' }}'>
                 <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
@@ -61,7 +61,7 @@
 
     {% block typeFilter %}
     {% if types is defined %}
-    <div>
+    <div class="minw-100px">
         <div class="input-group">
             <select type="text" class="form-control data" name="type" {{ disabled }}
                     id="type">

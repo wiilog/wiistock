@@ -3,13 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\ChampLibre;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 
+use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -24,6 +27,7 @@ use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
@@ -126,7 +130,26 @@ class ArticleController extends Controller
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    private $CSVExportService;
+
+    public function __construct(\Twig_Environment $templating,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                ChampLibreRepository $champLibreRepository,
+                                ValeurChampLibreRepository $valeurChampsLibreRepository,
+                                ArticleDataService $articleDataService,
+                                TypeRepository $typeRepository,
+                                RefArticleDataService $refArticleDataService,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ReceptionRepository $receptionRepository,
+                                StatutRepository $statutRepository,
+                                ArticleRepository $articleRepository,
+                                EmplacementRepository $emplacementRepository,
+                                CollecteRepository $collecteRepository,
+                                UserService $userService,
+                                CSVExportService $CSVExportService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -145,6 +168,7 @@ class ArticleController extends Controller
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -155,10 +179,136 @@ class ArticleController extends Controller
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+        /**
+         * @var Utilisateur $user
+         */
+        $user = $this->getUser();
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $category = CategoryType::ARTICLE;
+        $champL = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champF[] = [
+            'label' => 'Actions',
+            'id' => 0,
+            'typage' => ''
+        ];
+        $champF[] = [
+            'label' => 'Libellé',
+            'id' => 0,
+            'typage' => 'text'
 
+        ];
+        $champF[] = [
+            'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Référence article',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Type',
+            'id' => 0,
+            'typage' => 'list'
+        ];
+        $champF[] = [
+            'label' => 'Statut',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Quantité',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Emplacement',
+            'id' => 0,
+            'typage' => 'list'
+        ];
+        $champF[] = [
+            'label' => 'Date et heure',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Prix unitaire',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champsFText = [];
+
+        $champsFText[] = [
+            'label' => 'Libellé',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Référence article',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Type',
+            'id' => 0,
+            'typage' => 'list'
+        ];
+        $champsFText[] = [
+            'label' => 'Statut',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champsFText[] = [
+            'label' => 'Quantité',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champsFText[] = [
+            'label' => 'Emplacement',
+            'id' => 0,
+            'typage' => 'list'
+        ];
+        $champsFText[] = [
+            'label' => 'Date et heure',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champsFText[] = [
+            'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champsFText[] = [
+            'label' => 'Prix unitaire',
+            'id' => 0,
+            'typage' => 'number'
+        ];
+        $champsLText = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
+        $champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+        $champs = array_merge($champF, $champL);
+        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
         return $this->render('article/index.html.twig', [
             'valeurChampLibre' => null,
-//            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
+            'champsSearch' => $champsSearch,
+            'recherches' => $user->getRechercheForArticle(),
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForArticle()
         ]);
     }
 
@@ -172,10 +322,102 @@ class ArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->articleDataService->getDataForDatatable($request->request);
+            $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiColumns(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+            $columnsVisible = $currentUser->getColumnsVisibleForArticle();
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+            $category = CategoryType::ARTICLE;
+            $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+			$columns = [
+				[
+					"title" => 'Actions',
+					"data" => 'Actions',
+					'name' => 'Actions',
+					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Libellé',
+					"data" => 'Libellé',
+					'name' => 'Libellé',
+					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+
+				],
+				[
+					"title" => 'Référence article',
+					"data" => 'Référence article',
+					'name' => 'Référence article',
+					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Référence',
+					"data" => 'Référence',
+					'name' => 'Référence',
+					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Type',
+					"data" => 'Type',
+					'name' => 'Type',
+					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Statut',
+					"data" => 'Statut',
+					'name' => 'Statut',
+					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Quantité',
+					"data" => 'Quantité',
+					'name' => 'Quantité',
+					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Emplacement',
+					"data" => 'Emplacement',
+					'name' => 'Emplacement',
+					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Commentaire',
+					"data" => 'Commentaire',
+					'name' => 'Commentaire',
+					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Prix unitaire',
+					"data" => 'Prix unitaire',
+					'name' => 'Prix unitaire',
+					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+			];
+			foreach ($champs as $champ) {
+				$columns[] = [
+					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"data" => $champ['label'],
+					'name' => $champ['label'],
+					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+				];
+			}
+            return new JsonResponse($columns);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -232,8 +474,6 @@ class ArticleController extends Controller
     }
 
 
-
-
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
      */
@@ -261,7 +501,7 @@ class ArticleController extends Controller
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = $this->articleDataService->newArticle($data);
 
-            return new JsonResponse($response);
+            return new JsonResponse(!empty($response));
         }
         throw new NotFoundHttpException('404');
     }
@@ -296,12 +536,12 @@ class ArticleController extends Controller
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
 
-			// on vérifie que l'article n'est plus utilisé
-			$articleIsUsed = $this->isArticleUsed($article);
+            // on vérifie que l'article n'est plus utilisé
+            $articleIsUsed = $this->isArticleUsed($article);
 
-			if ($articleIsUsed) {
-				return new JsonResponse(false);
-			}
+            if ($articleIsUsed) {
+                return new JsonResponse(false);
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
@@ -313,43 +553,43 @@ class ArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/verification", name="article_check_delete", options={"expose"=true})
-	 */
-	public function checkArticleCanBeDeleted(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
-				return $this->redirectToRoute('access_denied');
-			}
+    /**
+     * @Route("/verification", name="article_check_delete", options={"expose"=true})
+     */
+    public function checkArticleCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-			$article = $this->articleRepository->find($articleId);
-			$articleIsUsed = $this->isArticleUsed($article);
+            $article = $this->articleRepository->find($articleId);
+            $articleIsUsed = $this->isArticleUsed($article);
 
-			if (!$articleIsUsed) {
-				$delete = true;
-				$html = $this->renderView('article/modalDeleteArticleRight.html.twig');
-			} else {
-				$delete = false;
-				$html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
-			}
+            if (!$articleIsUsed) {
+                $delete = true;
+                $html = $this->renderView('article/modalDeleteArticleRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
+            }
 
-			return new JsonResponse(['delete' => $delete, 'html' => $html]);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
-	/**
-	 * @param Article $article
-	 * @return bool
-	 */
-	private function isArticleUsed($article)
-	{
-		if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
-			return true;
-		}
-		return false;
-	}
+    /**
+     * @param Article $article
+     * @return bool
+     */
+    private function isArticleUsed($article)
+    {
+        if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})
@@ -424,6 +664,27 @@ class ArticleController extends Controller
     }
 
     /**
+     * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST")
+     */
+    public function saveColumnVisible(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $champs = array_keys($data);
+            $user  = $this->getUser();
+            /** @var $user Utilisateur */
+            $user->setColumnsVisibleForArticle($champs);
+            $em  = $this->getDoctrine()->getManager();
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
      */
     public function getRefArticleByFournisseur(Request $request): Response
@@ -456,7 +717,7 @@ class ArticleController extends Controller
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
 
             if (count($articleFournisseur) === 0) {
-                $json =  [
+                $json = [
                     'error' => 'Aucune référence fournisseur trouvée.'
                 ];
             } elseif (count($articleFournisseur) > 0) {
@@ -554,14 +815,14 @@ class ArticleController extends Controller
             $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById(intval($dataContent['article']));
 
             $data['articleRef'] = [
-            	'barcode' => $article['barcode'],
-				'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
-					'refRef' => $article['refRef'],
-					'refLabel' =>$article['refLabel'],
-					'artLabel' => $article['artLabel'],
-				]),
-				'artLabel' => $article['artLabel'],
-			];
+                'barcode' => $article['barcode'],
+                'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
+                    'refRef' => $article['refRef'],
+                    'refLabel' => $article['refLabel'],
+                    'artLabel' => $article['artLabel'],
+                ]),
+                'artLabel' => $article['artLabel'],
+            ];
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $data['height'] = $dimension->getHeight();
@@ -615,24 +876,25 @@ class ArticleController extends Controller
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @param Article $article
-	 * @param array $listTypes
-	 * @param $headers
-	 * @return string
-	 */
+    /**
+     * @param Article $article
+     * @param array $listTypes
+     * @param $headers
+     * @return string
+     */
     public function buildInfos(Article $article, $listTypes, $headers)
     {
-        $refData[] = $article->getReference() ? $article->getReference() : '';
-        $refData[] = $article->getLabel() ? $article->getLabel() : '';
-        $refData[] = $article->getQuantite() ? $article->getQuantite() : '';
-        $refData[] = $article->getType() ? ($article->getType()->getLabel() ? $article->getType()->getLabel() : '') : '';
-        $refData[] = $article->getStatut() ? $article->getStatut()->getNom() : '';
-        $refData[] = strip_tags($article->getCommentaire());
-        $refData[] = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
+
+        $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
+        $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
+        $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
+        $refData[] = $article->getType() ? $this->CSVExportService->escapeCSV($article->getType()->getLabel()) : '';
+        $refData[] = $article->getStatut() ? $this->CSVExportService->escapeCSV($article->getStatut()->getNom()) : '';
+        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
+        $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
         $champsLibres = [];
         foreach ($listTypes as $type) {
-			$typeArticle = $this->typeRepository->find($type['id']);
+            $typeArticle = $this->typeRepository->find($type['id']);
             $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
@@ -641,7 +903,7 @@ class ArticleController extends Controller
         }
         foreach ($headers as $type) {
             if (array_key_exists($type, $champsLibres)) {
-                $refData[] = $champsLibres[$type];
+                $refData[] = $this->CSVExportService->escapeCSV($champsLibres[$type]);
             } else {
                 $refData[] = '';
             }
@@ -652,26 +914,27 @@ class ArticleController extends Controller
     /**
      * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
      */
-    public function getDataToPrintLabels(Request $request) : Response
+    public function getDataToPrintLabels(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $listArticles =  explode(',', $data['listArticles']);
+            $listArticles = explode(',', $data['listArticles']);
 
             $barcodes = $barcodeLabels = [];
-            for ($i = 0 ; $i < count($listArticles); $i++) {
+            for ($i = 0; $i < count($listArticles); $i++) {
                 $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById($listArticles[$i]);
                 $barcodes[] = $article['barcode'];
                 $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
-					'refRef' => $article['refRef'],
-					'refLabel' =>$article['refLabel'],
-					'artLabel' => $article['artLabel'],
-				]);
+                    'refRef' => $article['refRef'],
+                    'refLabel' => $article['refLabel'],
+                    'artLabel' => $article['artLabel'],
+                ]);
 
             }
             $barcodes = array_slice($barcodes, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
+            {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
                 $tags['exists'] = true;
@@ -679,14 +942,13 @@ class ArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
-            $data  = [
-            	'tags' => $tags,
-				'barcodes' => $barcodes,
-				'barcodesLabels' => $barcodeLabels
-			];
+            $data = [
+                'tags' => $tags,
+                'barcodes' => $barcodes,
+                'barcodesLabels' => $barcodeLabels
+            ];
             return new JsonResponse($data);
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('404');
         }
     }

@@ -8,9 +8,12 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\Query\Parameter;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -22,10 +25,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
     private const DtToDbLabels = [
-        'Label' => 'libelle',
-        'Libellé' => 'libelle',
+		'Label' => 'libelle',
+		'Libellé' => 'libelle',
         'Référence' => 'reference',
         'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
@@ -51,7 +55,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getBetweenLimits($min, $step) {
+    public function getBetweenLimits($min, $step)
+    {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT ra
@@ -89,11 +94,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param $reference
-	 * @return ReferenceArticle|null
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param $reference
+     * @return ReferenceArticle|null
+     * @throws NonUniqueResultException
+     */
     public function findOneByReference($reference)
     {
         $entityManager = $this->getEntityManager();
@@ -107,11 +112,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $search
-	 * @param bool $activeOnly
-	 * @return mixed
-	 */
+    /**
+     * @param string $search
+     * @param bool $activeOnly
+     * @return mixed
+     */
     public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null)
     {
         $em = $this->getEntityManager();
@@ -122,19 +127,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
           WHERE r.reference LIKE :search ";
 
         if ($activeOnly) {
-        	$dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
-		}
+            $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
+        }
 
-        if ($typeQuantity)
-        {
+        if ($typeQuantity) {
             $dql .= "  AND r.typeQuantite = :type";
         }
 
         $query = $em
-			->createQuery($dql)
-			->setParameter('search', '%' . $search . '%');
-        if ($typeQuantity)
-        {
+            ->createQuery($dql)
+            ->setParameter('search', '%' . $search . '%');
+        if ($typeQuantity) {
             $query
                 ->setParameter('type', $typeQuantity);
         }
@@ -157,10 +160,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
     public function findByFiltersAndParams($filters, $params, $user)
     {
+        $needCLOrder = null;
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $index = 0;
-        $needCLOrder = null;
         $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
@@ -282,81 +285,81 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     $query = [];
                     foreach ($user->getRecherche() as $key => $searchField) {
 
-                    	switch ($searchField) {
-							case 'Fournisseur':
-								$subqb = $em->createQueryBuilder();
-								$subqb
-									->select('ra.id')
-									->from('App\Entity\ReferenceArticle', 'ra');
-								$subqb
-									->leftJoin('ra.articlesFournisseur', 'afra')
-									->leftJoin('afra.fournisseur', 'fra')
-									->andWhere('fra.nom LIKE :valueSearch')
-									->setParameter('valueSearch', '%' . $searchValue . '%');
+                        switch ($searchField) {
+                            case 'Fournisseur':
+                                $subqb = $em->createQueryBuilder();
+                                $subqb
+                                    ->select('ra.id')
+                                    ->from('App\Entity\ReferenceArticle', 'ra');
+                                $subqb
+                                    ->leftJoin('ra.articlesFournisseur', 'afra')
+                                    ->leftJoin('afra.fournisseur', 'fra')
+                                    ->andWhere('fra.nom LIKE :valueSearch')
+                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
 
-								foreach ($subqb->getQuery()->execute() as $idArray) {
-									$ids[] = $idArray['id'];
-								}
-								break;
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
 
-							case 'Référence article fournisseur':
-								$subqb = $em->createQueryBuilder();
-								$subqb
-									->select('ra.id')
-									->from('App\Entity\ReferenceArticle', 'ra');
-								$subqb
-									->leftJoin('ra.articlesFournisseur', 'afra')
-									->andWhere('afra.reference LIKE :valueSearch')
-									->setParameter('valueSearch', '%' . $searchValue . '%');
+                            case 'Référence article fournisseur':
+                                $subqb = $em->createQueryBuilder();
+                                $subqb
+                                    ->select('ra.id')
+                                    ->from('App\Entity\ReferenceArticle', 'ra');
+                                $subqb
+                                    ->leftJoin('ra.articlesFournisseur', 'afra')
+                                    ->andWhere('afra.reference LIKE :valueSearch')
+                                    ->setParameter('valueSearch', '%' . $searchValue . '%');
 
-								foreach ($subqb->getQuery()->execute() as $idArray) {
-									$ids[] = $idArray['id'];
-								}
-								break;
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
 
-							default:
-								$metadatas = $em->getClassMetadata(ReferenceArticle::class);
-								$field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
+                            default:
+                                $metadatas = $em->getClassMetadata(ReferenceArticle::class);
+                                $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
 
-								// champs fixes
-								if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
-									$query[] = 'ra.' . $field . ' LIKE :valueSearch';
-									$qb->setParameter('valueSearch', '%' . $searchValue . '%');
+                                // champs fixes
+                                if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
+                                    $query[] = 'ra.' . $field . ' LIKE :valueSearch';
+                                    $qb->setParameter('valueSearch', '%' . $searchValue . '%');
 
-								// champs libres
-								} else {
-									$subqb = $em->createQueryBuilder();
-									$subqb
-										->select('ra.id')
-										->from('App\Entity\ReferenceArticle', 'ra');
-									$subqb
-										->leftJoin('ra.valeurChampsLibres', 'vclra')
-										->leftJoin('vclra.champLibre', 'clra')
-										->andWhere('clra.label = :searchField')
-										->andWhere('vclra.valeur LIKE :searchValue')
-										->setParameters([
-											'searchValue' => '%' . $searchValue . '%',
-											'searchField' => $searchField
-										]);
+                                    // champs libres
+                                } else {
+                                    $subqb = $em->createQueryBuilder();
+                                    $subqb
+                                        ->select('ra.id')
+                                        ->from('App\Entity\ReferenceArticle', 'ra');
+                                    $subqb
+                                        ->leftJoin('ra.valeurChampsLibres', 'vclra')
+                                        ->leftJoin('vclra.champLibre', 'clra')
+                                        ->andWhere('clra.label = :searchField')
+                                        ->andWhere('vclra.valeur LIKE :searchValue')
+                                        ->setParameters([
+                                            'searchValue' => '%' . $searchValue . '%',
+                                            'searchField' => $searchField
+                                        ]);
 
-									foreach ($subqb->getQuery()->execute() as $idArray) {
-										$ids[] = $idArray['id'];
-									}
-								}
-								break;
-						}
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
+                        }
                     }
 
-					// si le résultat de la recherche est vide on renvoie []
-					if (empty($ids)) {
-						$ids = [0];
-					}
+                    // si le résultat de la recherche est vide on renvoie []
+                    if (empty($ids)) {
+                        $ids = [0];
+                    }
 
-					foreach ($ids as $id) {
-						$query[] = 'ra.id  = ' . $id;
-					}
-					$qb->andWhere(implode(' OR ', $query));
-				}
+                    foreach ($ids as $id) {
+                        $query[] = 'ra.id  = ' . $id;
+                    }
+                    $qb->andWhere(implode(' OR ', $query));
+                }
             }
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
@@ -401,14 +404,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 }
             }
         }
-
         // compte éléments filtrés
         if (empty($filters) && empty($searchValue)) {
             $qb->select('count(ra)');
         } else {
             $qb
-                ->select('count(distinct(ra))')
-                ->leftJoin('ra.valeurChampsLibres', 'vcl');
+                ->select('count(distinct(ra))');
         }
         $countQuery = $qb->getQuery()->getSingleScalarResult();
 
@@ -416,8 +417,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        $qb->select('ra')
-            ->distinct();
+        $qb->select('ra');
         if ($needCLOrder) {
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
@@ -490,17 +490,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        	/** @lang DQL */
+        /** @lang DQL */
             "SELECT COUNT(ra)
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.statut s
             WHERE s.nom = :active
             AND ra.typeQuantite = :typeQuantite
             "
-		)->setParameters([
-			'active' => ReferenceArticle::STATUT_ACTIF,
-			'typeQuantite' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
-		]);
+        )->setParameters([
+            'active' => ReferenceArticle::STATUT_ACTIF,
+            'typeQuantite' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+        ]);
 
         return $query->getSingleScalarResult();
     }
@@ -524,17 +524,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle ra
             WHERE ra.reference = :reference";
 
-		if ($refId) {
-			$dql .= " AND ra.id != :id";
-		}
+        if ($refId) {
+            $dql .= " AND ra.id != :id";
+        }
 
         $query = $em
-			->createQuery($dql)
-			->setParameter('reference', $reference);
+            ->createQuery($dql)
+            ->setParameter('reference', $reference);
 
-		if ($refId) {
-			$query->setParameter('id', $refId);
-		}
+        if ($refId) {
+            $query->setParameter('id', $refId);
+        }
 
         return $query->getSingleScalarResult();
     }
@@ -543,7 +543,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        	/** @lang DQL */
+        /** @lang DQL */
             "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
             FROM App\Entity\ReferenceArticle ra
             WHERE ra.typeQuantite = :typeQuantite"
@@ -551,7 +551,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getTotalQuantityReservedByRefArticle($refArticle) {
+    public function getTotalQuantityReservedByRefArticle($refArticle)
+    {
         $em = $this->getEntityManager();
         return $em->createQuery(
             'SELECT SUM(l.quantite)
@@ -565,7 +566,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getTotalQuantityReservedWithoutLigne($refArticle, $ligneArticle, $statut) {
+    public function getTotalQuantityReservedWithoutLigne($refArticle, $ligneArticle, $statut)
+    {
         $em = $this->getEntityManager();
         return $em->createQuery(
             'SELECT SUM(l.quantite)
@@ -579,7 +581,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
+    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT
@@ -598,20 +601,21 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN d.preparation p
 			JOIN p.statut s
 			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
+        )->setParameters([
+            'statutLabel' => $statutLabel,
             'enCours' => $enCours,
             'user' => $user
         ]);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
+    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la
@@ -619,15 +623,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN d.livraison l
 			JOIN l.statut s
 			WHERE s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user)"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
+        )->setParameters([
+            'statutLabel' => $statutLabel,
             'user' => $user
         ]);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
-    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user) {
+    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	{
 
 		$em = $this->getEntityManager();
 		$query = $em
@@ -681,86 +686,86 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param int $nbPeriod
-	 * @param string $typePeriod
-	 * @return int|null
-	 * @throws NonUniqueResultException
-	 */
-	public function countWithExpiryDateUpTo($nbPeriod, $typePeriod)
-	{
-		switch($typePeriod) {
-			case AlerteExpiry::TYPE_PERIOD_DAY:
-				$typePeriod = 'day';
-				break;
-			case AlerteExpiry::TYPE_PERIOD_WEEK:
-				$typePeriod = 'week';
-				break;
-			case AlerteExpiry::TYPE_PERIOD_MONTH:
-				$typePeriod = 'month';
-				break;
-			default:
-				return 0;
-		}
+    /**
+     * @param int $nbPeriod
+     * @param string $typePeriod
+     * @return int|null
+     * @throws NonUniqueResultException
+     */
+    public function countWithExpiryDateUpTo($nbPeriod, $typePeriod)
+    {
+        switch ($typePeriod) {
+            case AlerteExpiry::TYPE_PERIOD_DAY:
+                $typePeriod = 'day';
+                break;
+            case AlerteExpiry::TYPE_PERIOD_WEEK:
+                $typePeriod = 'week';
+                break;
+            case AlerteExpiry::TYPE_PERIOD_MONTH:
+                $typePeriod = 'month';
+                break;
+            default:
+                return 0;
+        }
 
-		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-		$now->setTime(0,0);
-		$now = $now->format('Y-m-d H:i:s');
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $now->setTime(0, 0);
+        $now = $now->format('Y-m-d H:i:s');
 
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */"
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */ "
 			SELECT COUNT(ra)
 			FROM App\Entity\ReferenceArticle ra
 			WHERE ra.expiryDate IS NOT NULL
 			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
 		")->setParameters([
-			'nbPeriod' => $nbPeriod,
-		]);
+            'nbPeriod' => $nbPeriod,
+        ]);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	/**
-	 * @param int $nbPeriod
-	 * @param string $typePeriod
-	 * @return int|null
-	 * @throws \Exception
-	 */
-	public function findWithExpiryDateUpTo($nbPeriod, $typePeriod)
-	{
-		switch($typePeriod) {
-			case AlerteExpiry::TYPE_PERIOD_DAY:
-				$typePeriod = 'day';
-				break;
-			case AlerteExpiry::TYPE_PERIOD_WEEK:
-				$typePeriod = 'week';
-				break;
-			case AlerteExpiry::TYPE_PERIOD_MONTH:
-				$typePeriod = 'month';
-				break;
-			default:
-				return 0;
-		}
+    /**
+     * @param int $nbPeriod
+     * @param string $typePeriod
+     * @return int|null
+     * @throws \Exception
+     */
+    public function findWithExpiryDateUpTo($nbPeriod, $typePeriod)
+    {
+        switch ($typePeriod) {
+            case AlerteExpiry::TYPE_PERIOD_DAY:
+                $typePeriod = 'day';
+                break;
+            case AlerteExpiry::TYPE_PERIOD_WEEK:
+                $typePeriod = 'week';
+                break;
+            case AlerteExpiry::TYPE_PERIOD_MONTH:
+                $typePeriod = 'month';
+                break;
+            default:
+                return 0;
+        }
 
-		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-		$now->setTime(0,0);
-		$now = $now->format('Y-m-d H:i:s');
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $now->setTime(0, 0);
+        $now = $now->format('Y-m-d H:i:s');
 
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */"
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */ "
 			SELECT ra
 			FROM App\Entity\ReferenceArticle ra
 			WHERE ra.expiryDate IS NOT NULL
 			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
 			ORDER BY ra.expiryDate")
-			->setParameters([
-			'nbPeriod' => $nbPeriod,
-		]);
+            ->setParameters([
+                'nbPeriod' => $nbPeriod,
+            ]);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
     public function countByCategory($category)
     {
@@ -800,7 +805,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            /** @lang DQL */
+        /** @lang DQL */
             "SELECT COUNT(ra)
             FROM App\Entity\InventoryMission im
             LEFT JOIN im.refArticles ra
@@ -847,23 +852,23 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             JOIN ra.category c
             LEFT JOIN ra.emplacement e
             WHERE c.frequency = :frequency ORDER BY e.label"
-		)
-			->setParameter('frequency', $frequency);
+        )
+            ->setParameter('frequency', $frequency);
 
         return $query->execute();
     }
 
-	/**
-	 * @param InventoryFrequency $frequency
-	 * @return mixed
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param InventoryFrequency $frequency
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
     public function countActiveByFrequencyWithoutDateInventory($frequency)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(ra.id) as nbRa, COUNT(a.id) as nbA
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(ra.id) as nbRa, COUNT(a.id) as nbA
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.category c
             LEFT JOIN ra.articlesFournisseur af
@@ -876,26 +881,26 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             OR
             (ra.typeQuantite = 'article' AND a.dateLastInventory is null AND sa.nom = :artActive)
             )"
-		)->setParameters([
-			'frequency' => $frequency,
-			'refActive' => ReferenceArticle::STATUT_ACTIF,
-			'artActive' => Article::STATUT_ACTIF
-		]);
+        )->setParameters([
+            'frequency' => $frequency,
+            'refActive' => ReferenceArticle::STATUT_ACTIF,
+            'artActive' => Article::STATUT_ACTIF
+        ]);
 
-		return $query->getOneOrNullResult();
-	}
+        return $query->getOneOrNullResult();
+    }
 
-	/**
-	 * @param InventoryFrequency $frequency
-	 * @param int $limit
-	 * @return ReferenceArticle[]|Article[]
-	 */
-	public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT ra
+    /**
+     * @param InventoryFrequency $frequency
+     * @param int $limit
+     * @return ReferenceArticle[]|Article[]
+     */
+    public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT ra
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.category c
             LEFT JOIN ra.statut sra
@@ -905,39 +910,39 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             AND ra.dateLastInventory is null
             AND sra.nom = :refActive
             ORDER BY rae.label"
-		)->setParameters([
-			'frequency' => $frequency,
-			'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-			'refActive' => ReferenceArticle::STATUT_ACTIF,
-		]);
+        )->setParameters([
+            'frequency' => $frequency,
+            'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+            'refActive' => ReferenceArticle::STATUT_ACTIF,
+        ]);
 
-		if ($limit)	$query->setMaxResults($limit);
+        if ($limit) $query->setMaxResults($limit);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
-	/**
-	 * @param string $dateCode
-	 * @return mixed
-	 */
-	public function getHighestBarCodeByDateCode($dateCode)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-		"SELECT ra.barCode
+    /**
+     * @param string $dateCode
+     * @return mixed
+     */
+    public function getHighestBarCodeByDateCode($dateCode)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT ra.barCode
 		FROM App\Entity\ReferenceArticle ra
 		WHERE ra.barCode LIKE :barCode
 		ORDER BY ra.barCode DESC
 		")
-			->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
-			->setMaxResults(1);
+            ->setParameter('barCode', ReferenceArticle::BARCODE_PREFIX . $dateCode . '%')
+            ->setMaxResults(1);
 
-		$result = $query->execute();
-		return $result ? $result[0]['barCode'] : null;
-	}
+        $result = $query->execute();
+        return $result ? $result[0]['barCode'] : null;
+    }
 
-	public function getAlertDataByParams($params)
+    public function getAlertDataByParams($params)
     {
         $qb = $this->getDataAlert();
 
@@ -945,27 +950,27 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-			if (!empty($params->get('search'))) {
-				$search = $params->get('search')['value'];
-				if (!empty($search)) {
-					$qb
-						->andWhere('ra.reference LIKE :value')
-						->setParameter('value', '%' . $search . '%');
-				}
-			}
-			if (!empty($params->get('order'))) {
-				$order = $params->get('order')[0]['dir'];
-				if (!empty($order)) {
-					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('ra.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
-					switch ($column) {
-						default:
-							$qb->orderBy('ra.' . $column, $order);
-							break;
-					}
-				}
-			}
-		}
+                    switch ($column) {
+                        default:
+                            $qb->orderBy('ra.' . $column, $order);
+                            break;
+                    }
+                }
+            }
+        }
         $countFiltered = count($qb->getQuery()->getResult());
 
         if (!empty($params)) {
@@ -976,38 +981,38 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $query = $qb->getQuery();
 
         return [
-        	'data' => $query ? $query->getResult() : null,
+            'data' => $query ? $query->getResult() : null,
             'count' => $countFiltered,
-			'total' => $countTotal
-		];
+            'total' => $countTotal
+        ];
     }
 
-	/**
-	 * @param ReferenceArticle|int $refId
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param ReferenceArticle|int $refId
+     * @return int
+     * @throws NonUniqueResultException
+     */
     public function getTotalQuantityArticlesByRefArticle($refId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT SUM(a.quantite)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT SUM(a.quantite)
 			FROM App\Entity\Article a
 			LEFT JOIN a.articleFournisseur af
 			LEFT JOIN af.referenceArticle ra
 			LEFT JOIN a.statut s
 			WHERE s.nom = :active AND ra.id = :refId
 			")
-		->setParameters([
-			'active' => Article::STATUT_ACTIF,
-			'refId' => $refId
-		]);
+            ->setParameters([
+                'active' => Article::STATUT_ACTIF,
+                'refId' => $refId
+            ]);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	public function countAlert()
+    public function countAlert()
     {
         $qb = $this->getDataAlert();
 
@@ -1015,7 +1020,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $countTotal;
     }
 
-	public function getDataAlert()
+    public function getDataAlert()
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -1030,7 +1035,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitSecurity,
                 ra.limitWarning')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND 
+            ->where('ra.typeQuantite = :qte_reference AND
             (
 				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
             	 OR
@@ -1057,7 +1062,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 							JOIN art2.statut s2
 							WHERE s2.nom =:active AND refart2 = ra)
 							<= ra.limitSecurity
-					AND ra.limitSecurity IS NOT NULL 
+					AND ra.limitSecurity IS NOT NULL
 					AND ra.limitSecurity > 0
 				)
 			)')
@@ -1069,25 +1074,25 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $qb;
     }
 
-	/**
-	 * @param ReferenceArticle $ref
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param ReferenceArticle $ref
+     * @return int
+     * @throws NonUniqueResultException
+     */
     public function countInventoryAnomaliesByRef($ref)
-	{
-		$em = $this->getEntityManager();
+    {
+        $em = $this->getEntityManager();
 
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(ie)
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(ie)
 			FROM App\Entity\InventoryEntry ie
 			JOIN ie.refArticle ra
 			WHERE ie.anomaly = 1 AND ra.id = :refId
 			")->setParameter('refId', $ref->getId());
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
     public function getStockMiniClByRef($ref)
     {
@@ -1136,4 +1141,70 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle.reference as reference,
+                             referenceArticle.quantiteDisponible as quantity,
+                             1 as is_ref
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN referenceArticle.emplacement emplacement
+                JOIN referenceArticle.statut status
+                WHERE emplacement.label = :location
+                  AND referenceArticle.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
+    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
+	public function getRefTypeQtyArticleByReception($id)
+	{
+	    /** @var EntityManagerInterface $entityManager */
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference as reference,
+                         rra.commande as commande
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.receptionReferenceArticles rra
+            JOIN rra.reception r
+            WHERE r.id = :id
+              AND ra.typeQuantite = :typeQty"
+		)->setParameters([
+			'id' => $id,
+			'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+		]);
+		return $query->execute();
+	}
 }

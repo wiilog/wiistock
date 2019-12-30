@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalNewDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -12,7 +12,7 @@
                 <div class="form-group">
                     <label for="demandeur">Demandeur</label>
                     <select type="text" class="demandeur form-control data" name="demandeur" disabled>
-                        <option value = "{{app.user.id}}">{{ app.user.username }}</option>
+                        <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                     </select>
                 </div>
 
@@ -29,7 +29,7 @@
                             onchange="toggleRequiredChampsLibres($(this),'create')">
                         <option value="">Type à choisir...</option>
                         {% for type in typeChampsLibres %}
-                            <option value="{{type.typeId}}">{{type.typeLabel}}</option>
+                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -37,7 +37,7 @@
                 <!-- CHAMPS LIBRES -->
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                     {% for type in typeChampsLibres %}
-                        <div class="d-none" id="{{type.typeId}}-new">
+                        <div class="d-none" id="{{ type.typeId }}-new">
                             <div class="row mt-2">
                                 {% if type.champsLibres|length > 0 %}
                                     <p class="col-12 pl-0">Champs Libres :</p>
@@ -45,28 +45,31 @@
                                 {% for champ in type.champsLibres %}
                                     <div class="form-group col-6 pl-0">
                                         <label>
-                                            {{champ.label|capitalize}}
+                                            {{ champ.label|capitalize }}
                                         </label>
 
                                         {% if champ.typage == 'booleen' %}
                                             {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                             <label class="switch">
-                                                <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
+                                                <input type="checkbox" class="data checkbox" {{ checked }}
+                                                       name="{{ champ.id }}">
                                                 <span class="slider round"></span>
                                             </label>
 
                                         {% elseif champ.typage == 'number' %}
-                                            <input type="number" id="{{champ.id ~ 'create'}}" class="form-control data"
-                                                   value="{{champ.defaultValue}}" name="{{champ.id}}">
+                                            <input type="number" id="{{ champ.id ~ 'create' }}"
+                                                   class="form-control data"
+                                                   value="{{ champ.defaultValue }}" name="{{ champ.id }}">
 
                                         {% elseif champ.typage == 'list' %}
-                                            <select id="{{champ.id ~ 'create'}}" class="form-control data" name="{{champ.id}}"
+                                            <select id="{{ champ.id ~ 'create' }}" class="form-control data"
+                                                    name="{{ champ.id }}"
                                                     id="input">
-                                                <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
+                                                <option value="{{ champ.defaultValue }}">{{ champ.defaultValue }}
                                                 </option>
                                                 {% for elem in champ.elements %}
                                                     {% if champ.defaultValue != elem %}
-                                                        <option value="{{elem}}">{{elem}}</option>
+                                                        <option value="{{ elem }}">{{ elem }}</option>
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if champ.defaultValue != "" %}
@@ -74,16 +77,21 @@
                                                 {% endif %}
                                             </select>
 
-                                        {% elseif champ.typage == 'text'  %}
-                                            <input id="{{champ.id ~ 'create'}}" class="form-control data" type="text"
-                                                   value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+                                        {% elseif champ.typage == 'text' %}
+                                            <input id="{{ champ.id ~ 'create' }}" class="form-control data" type="text"
+                                                   value="{{ champ.defaultValue }}" name='{{ champ.id }}'>
 
                                         {% elseif champ.typage == 'date' %}
-                                            <input type="date" name="{{ champ.id }}" id="{{champ.id ~ 'create'}}"
-                                                   class="form-control data" value="{{champ.defaultValue}}">
-
-                                        {% else %}
-                                            <input disabled>
+                                            <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                                   class="form-control data" value="{{ champ.defaultValue }}">
+                                            {% elseif champ.typage == 'date' %}
+                                                <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                                       class="form-control data" value="{{ champ.defaultValue }}">
+                                            {% elseif champ.typage == 'datetime' %}
+                                                <input type="datetime-local" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                                       class="form-control data" value="{{ champ.defaultValue }}">
+                                            {% else %}
+                                                <input disabled>
 
                                         {% endif %}
                                     </div>
@@ -96,7 +104,7 @@
 
                 <div class="form-group">
                     <label for="commentaire">Commentaire</label>
-                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" >
+                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
                     <div class="editor-container" id="editor-container-new">
                     </div>
                 </div>
@@ -104,8 +112,9 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewDemande" type="button" 
-                    class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
+                <button id="submitNewDemande" type="button"
+                        class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer
+                </button>
             </div>
         </div>
     </div>

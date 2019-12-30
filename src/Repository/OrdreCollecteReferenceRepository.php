@@ -47,7 +47,7 @@ class OrdreCollecteReferenceRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param OrdreCollecteReference|int $ordreCollecte
+	 * @param OrdreCollecte|int $ordreCollecte
 	 * @return OrdreCollecteReference[]|null
 	 */
 	public function findByOrdreCollecte($ordreCollecte)

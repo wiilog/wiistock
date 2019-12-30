@@ -17,6 +17,12 @@
                    class="btn btn-danger btn-action ml-auto">
                     Supprimer</a>
             {% endif %}
+            {% if demande.reception is not empty %}
+                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                        <a href="{{path('reception_show', {'id': demande.reception.id }) }}"
+                           class="btn btn-primary btn-action ml-auto"> Aller vers la réception</a>
+                {% endif %}
+            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                 <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
                    onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"

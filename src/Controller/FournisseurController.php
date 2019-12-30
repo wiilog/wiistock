@@ -127,7 +127,7 @@ class FournisseurController extends AbstractController
             $em->persist($fournisseur);
             $em->flush();
 
-			return new JsonResponse(['success' => true]);
+			return new JsonResponse(['success' => true, 'id' => $fournisseur->getId(), 'text' => $fournisseur->getNom()]);
         }
 
         throw new NotFoundHttpException("404");
@@ -272,4 +272,5 @@ class FournisseurController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
 }

@@ -38,10 +38,16 @@ class Transporteur
      */
     private $arrivages;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="transporteur")
+     */
+    private $reception;
+
     public function __construct()
     {
         $this->chauffeurs = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+        $this->reception = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -129,6 +135,37 @@ class Transporteur
             // set the owning side to null (unless already changed)
             if ($arrivage->getTransporteur() === $this) {
                 $arrivage->setTransporteur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Reception[]
+     */
+    public function getReception(): Collection
+    {
+        return $this->reception;
+    }
+
+    public function addReception(Reception $reception): self
+    {
+        if (!$this->reception->contains($reception)) {
+            $this->reception[] = $reception;
+            $reception->setTransporteur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Reception $reception): self
+    {
+        if ($this->reception->contains($reception)) {
+            $this->reception->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getTransporteur() === $this) {
+                $reception->setTransporteur(null);
             }
         }
 

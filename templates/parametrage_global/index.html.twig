@@ -1,0 +1,126 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage global{% endblock %}
+
+{% block page_content %}
+
+    <div class="row">
+        <div class='row col'>
+            <form action="" class="col-8" id="dimsForm">
+                <h1>Configuration des étiquettes</h1>
+                <div class="form-group">
+                    <label for="">Hauteur (mm)</label>
+                    <input type="text" class="form-control data" name="height"
+                           value="{{dimensions_etiquettes.height is defined ? dimensions_etiquettes.height :'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="">Largeur (mm)</label>
+                    <input type="text" class="form-control data" name="width"
+                           value="{{dimensions_etiquettes.width is defined ? dimensions_etiquettes.width : ''}}">
+                </div>
+                <button type="button" class="btn btn-success" onclick="ajaxDims()">Enregistrer</button>
+            </form>
+        </div>
+
+        <button hidden id="buttonModalDimSet" data-target="#modalDimSet" data-toggle="modal"></button>
+        {% include 'parametrage_global/modalDimsSet.html.twig' %}
+
+        <div class='row col'>
+            <form action="" class="col-8" id="prefixeForm">
+                <h1>Préfixage des noms de demandes</h1>
+                <div class="form-group">
+                    <label for="typeDemande">Type de demande</label>
+                    <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande" onchange="getPrefixDemand($(this))">
+                        <option value="aucunPrefixe">Type demande à choisir...</option>
+                        <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_LIVRAISON') }}">Demande de livraison </option>
+                        <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_COLLECTE') }}" hidden>Demande de collecte</option>
+                        <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_MANUT') }}" hidden>Demande de manutention</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="">Préfixe</label>
+                    <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
+                           value="">
+                </div>
+                <button type="button" class="btn btn-success" onclick="updatePrefixDemand()">Enregistrer</button>
+                <div class="error-msg p-4"></div>
+            </form>
+        </div>
+
+        <button hidden id="buttonModalPrefixageSet"  data-target="#modalPrefixageSet" data-toggle="modal"></button>
+        {% include 'parametrage_global/modalPrefixageDemandeSet.html.twig' %}
+    </div>
+
+    <div class="row">
+        <div class='col'>
+        <h1>Configuration du serveur mail</h1>
+            <form action="" class="col" id="mailerServerForm">
+                <div class="form-group">
+                    <label for="">Serveur SMTP</label>
+                    <input type="text"  class="form-control data"  name="smtp" value="{{mailerServer.smtp is defined ? mailerServer.smtp :'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="">Nom d'utilisateur</label>
+                    <input type="text"  class="form-control data"  name="user" value="{{mailerServer.user is defined ? mailerServer.user : ''}}">
+                </div>
+                <div class="form-group">
+                    <label for="">Mot de passe</label>
+                    <input type="password"  class="form-control data"  name="password" value="{{mailerServer.password is defined ? mailerServer.password : ''}}">
+                </div>
+                <div class="form-group">
+                    <label for="">Port</label>
+                    <input type='number'  class="form-control data"  name="port" value="{{mailerServer.port is defined ? mailerServer.port : ''}}">
+                </div>
+                <div class="form-group">
+                    <label for="">Protocol</label>
+                    <input type="text"  class="form-control data"  name="protocol" value="{{mailerServer.protocol is defined ? mailerServer.protocol : ''}}">
+                </div>
+                <button type="button"  class="btn btn-success" onclick="ajaxMailerServer()">Enregistrer</button>
+            </form>
+        </div>
+
+        <button hidden id="buttonModalMailerSet" data-target="#modalMailerSet" data-toggle="modal"></button>
+        {% include 'parametrage_global/modalMailerSet.html.twig' %}
+
+        <div class="col">
+            <h1>Paramétrage des heures travaillées</h1>
+
+            <table id="tableDays" class="table table-striped table-bordered w-100">
+            </table>
+
+            {% include 'parametrage_global/modalEditDays.html.twig' %}
+        </div>
+    </div>
+    <h1>Paramétrage réceptions</h1>
+    <div class="row">
+        <div class="col-6">
+                <label class="" for="param-create-demande-livraison">Créer une demande de livraison aprés réception</label>
+            {% set checked = ((parametrageG.parametre is defined ? parametrageG.parametre : 0) == 1) ? 'checked' : '' %}
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison" onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
+                    <span class="slider round"></span>
+                </label>
+        </div>
+
+    </div>
+    <div class="row mt-3">
+        <div class="col-6">
+            <label class="" for="param-create-prepa">Créer une préparation aprés demande de livraison</label>
+            {% set checked = ((parametrageGPrepa.parametre is defined ? parametrageGPrepa.parametre : 0) == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }}  name="param-create-prepa" onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_prepa') }}')">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+    </div>
+
+{% endblock %}
+{% block javascript %}
+<script src="{{ asset('js/prefixe_demande.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/dimensions_etiquettes.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/parametrage-global.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

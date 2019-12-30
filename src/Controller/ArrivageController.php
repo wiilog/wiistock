@@ -273,9 +273,9 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-			$this->attachmentService->addAttachements($request, $arrivage);
+			$this->attachmentService->addAttachements($request->files, $arrivage);
 			if ($arrivage->getNumeroBL()) {
-                $urgences = $this->urgenceRepository->findByArrivageData($arrivage);
+                $urgences = $this->urgenceRepository->countByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
                     $arrivage->setIsUrgent(true);
                 }
@@ -438,7 +438,8 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, $arrivage);
+            $this->attachmentService->addAttachements($request->files, $arrivage);
+            $em->flush();
 
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -610,7 +611,8 @@ class ArrivageController extends AbstractController
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
+            {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
                 $response['exists'] = true;
@@ -633,7 +635,7 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
                 $response['exists'] = true;
@@ -750,7 +752,7 @@ class ArrivageController extends AbstractController
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -821,7 +823,8 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1063,7 +1066,8 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 

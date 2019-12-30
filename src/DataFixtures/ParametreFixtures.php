@@ -2,7 +2,9 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ParametreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -16,9 +18,15 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 	 */
 	private $parametreRepository;
 
-    public function __construct(ParametreRepository $parametreRepository)
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+	private $parametreGlobalRepository;
+
+    public function __construct(ParametreRepository $parametreRepository, ParametrageGlobalRepository $parametrageGlobalRepository)
     {
     	$this->parametreRepository = $parametreRepository;
+    	$this->parametreGlobalRepository = $parametrageGlobalRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -43,6 +51,25 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 					->setDefaultValue($parameter['default'])
 					->setElements($parameter['elements']);
 				$manager->persist($param);
+				dump("création du paramètre " . $parameter['label']);
+			}
+		}
+
+		$globalParameterLabels = [
+			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION,
+			ParametrageGlobal::CREATE_PREPA_AFTER_DL,
+		];
+
+		foreach ($globalParameterLabels as $globalParameterLabel) {
+			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
+
+			if (empty($globalParam)) {
+				$globalParam = new ParametrageGlobal();
+				$globalParam
+					->setLabel($globalParameterLabel)
+					->setParametre(true);
+				$manager->persist($globalParam);
+				dump("création du paramètre " . $globalParameterLabel);
 			}
 		}
 

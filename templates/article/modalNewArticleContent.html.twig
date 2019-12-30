@@ -1,69 +1,78 @@
+{% set easyForm = (easyForm is defined) and easyForm %}
+
 <div class="row">
     <div class="form-group w-100 col-12">
-        <label for="Articlefournisseur">Référence fournisseur</label>
-        <select class="form-control data needed select2" name="articleFournisseur" id="articleFournisseurAdd">
-            {% for ref in references %}
-            <option value="{{ ref.id }}">{{ref.reference}}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-group col-6">
-        <label for="libelle">Libellé*</label>
-        <input class="form-control data needed" type="text" name="libelle" id="libelle">
-    </div>
-    <div class="form-group col-6">
-        <label for="libelle">Type</label>
-        <input class="form-control data" type="text" disabled value="{{typeArticle}}" name="type" id="type">
-    </div>
-</div>
-<div class="row">
-    <div class="form-group col-3">
-        <label for="quantité">Quantité*</label>
-        <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité">
-    </div>
-    <div class="form-group col-3">
-        <div class="reference">
-            <label for="prix">Prix Unitaire (€)</label>
-            <input class="form-control data" type="number" name="prix" min="0" step="0.01">
-        </div>
-    </div>
-    <div class="form-group col-6 w-100">
-        <label for="emplacement">Emplacement*</label>
-        <select class="ajax-autocompleteEmplacement data form-control needed" name="emplacement">
-        </select>
-    </div>
-</div>
-<div class="row">
-    <div class="form-group col-4">
-        <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Statut</label>
-            <div>
-                <span class="btn active" data-toggle="statut-new"
-                      data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
-                      onclick="toggleRadioButton($(this))">
-                    {{ constant('App\\Entity\\Article::STATUT_ACTIF') }}
-                </span><span class="btn not-active" data-toggle="statut-new"
-                             data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
-                             onclick="toggleRadioButton($(this))">{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}
-                </span>
-            </div>
-            <input type="hidden" name="statut" id="statut-new" class="data"
-                   value="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}">
-        </div>
-    </div>
-    <div class="form-group col-2">
-        <label>Anomalie</label>
-        <label class="switch">
-            <input class="checkbox" type="checkbox" name="conform">
-            <span class="slider round"></span>
+        <label>Référence fournisseur*
+            <select class="form-control data needed select2" name="articleFournisseur">
+                {% if references is defined and references %}
+                    {% for ref in references %}
+                        <option value="{{ ref.id }}">{{ref.reference}}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
         </label>
     </div>
+    {% if not easyForm %}
+        <div class="form-group col-6">
+            <label for="libelle">Libellé*</label>
+            <input class="form-control data needed" type="text" name="libelle" id="libelle">
+        </div>
+        <div class="form-group col-6">
+            <label for="libelle">Type</label>
+            <input class="form-control data" type="text" disabled value="{{typeArticle}}" name="type" id="type">
+        </div>
+    {% endif %}
 </div>
-<div class="form-group col-12">
-    <label>Commentaire</label>
-    <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
-    <div class="editor-container-new"></div>
-</div>
+{% if not easyForm %}
+    <div class="row">
+        <div class="form-group col-3">
+            <label for="quantité">Quantité*</label>
+            <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité">
+        </div>
+        <div class="form-group col-3">
+            <div class="reference">
+                <label for="prix">Prix Unitaire (€)</label>
+                <input class="form-control data" type="number" name="prix" min="0" step="0.01">
+            </div>
+        </div>
+        <div class="form-group col-6 w-100">
+            <label for="emplacement">Emplacement*</label>
+            <select class="ajax-autocompleteEmplacement data form-control needed" name="emplacement">
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-4">
+            <div class="input-group radio-btn">
+                <label for="statut" class="mtb-auto mr-2">Statut</label>
+                <div>
+                    <span class="btn active" data-toggle="statut-new"
+                          data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                          onclick="toggleRadioButton($(this))">
+                        {{ constant('App\\Entity\\Article::STATUT_ACTIF') }}
+                    </span><span class="btn not-active" data-toggle="statut-new"
+                                 data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                                 onclick="toggleRadioButton($(this))">{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}
+                    </span>
+                </div>
+                <input type="hidden" name="statut" id="statut-new" class="data"
+                       value="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}">
+            </div>
+        </div>
+        <div class="form-group col-2">
+            <label>Anomalie</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="conform">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div class="form-group col-12">
+        <label>Commentaire</label>
+        <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
+        <div class="editor-container-new"></div>
+    </div>
+{% endif %}
 <div class="row mt-4">
     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'>
@@ -109,10 +118,13 @@
                     <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
                         class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
+                    {% elseif champLibre.typage == 'datetime' %}
+                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
+                               class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
                     {% else %}
                     <input disabled>
-                    
+
                     {% endif %}
                 </div>
                 {% endfor %}

@@ -6,7 +6,6 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
@@ -39,6 +38,7 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
@@ -196,7 +196,36 @@ class ReferenceArticleController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, MouvementStockRepository $mouvementStockRepository)
+    private $CSVExportService;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                ParametreRepository $parametreRepository,
+                                SpecificService $specificService,
+                                \Twig_Environment $templating,
+                                EmplacementRepository $emplacementRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                LigneArticleRepository $ligneArticleRepository,
+                                ArticleRepository $articleRepository,
+                                ArticleDataService $articleDataService,
+                                LivraisonRepository $livraisonRepository,
+                                DemandeRepository $demandeRepository,
+                                CollecteRepository $collecteRepository,
+                                StatutRepository $statutRepository,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                TypeRepository  $typeRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                RefArticleDataService $refArticleDataService,
+                                UserService $userService,
+                                InventoryCategoryRepository $inventoryCategoryRepository,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository,
+                                MouvementStockRepository $mouvementStockRepository,
+                                CSVExportService $CSVExportService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -225,6 +254,7 @@ class ReferenceArticleController extends Controller
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -237,92 +267,91 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $columnsVisible = $this->getUser()->getColumnVisible();
+            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+            $columnsVisible = $currentUser->getColumnVisible();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = CategoryType::ARTICLE;
             $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-            $columns = [];
-            if ($columnsVisible) {
-                $columns = [
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions',
-                        'name' => 'Actions',
-                        "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+			$columns = [
+				[
+					"title" => 'Actions',
+					"data" => 'Actions',
+					'name' => 'Actions',
+					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
 
-                    ],
-                    [
-                        "title" => 'Libellé',
-                        "data" => 'Libellé',
-                        'name' => 'Libellé',
-                        "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Libellé',
+					"data" => 'Libellé',
+					'name' => 'Libellé',
+					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
-                    ],
-                    [
-                        "title" => 'Référence',
-                        "data" => 'Référence',
-                        'name' => 'Référence',
-                        "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Type',
-                        "data" => 'Type',
-                        'name' => 'Type',
-                        "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Statut',
-                        "data" => 'Statut',
-                        'name' => 'Statut',
-                        "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Quantité disponible',
-                        "data" => 'Quantité',
-                        'name' => 'Quantité disponible',
-                        "class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Emplacement',
-                        "data" => 'Emplacement',
-                        'name' => 'Emplacement',
-                        "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Commentaire',
-                        "data" => 'Commentaire',
-                        'name' => 'Commentaire',
-                        "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Seuil d\'alerte',
-                        "data" => 'Seuil d\'alerte',
-                        'name' => 'Seuil d\'alerte',
-                        "class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Seuil de sécurité',
-                        "data" => 'Seuil de sécurité',
-                        'name' => 'Seuil de sécurité',
-                        "class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                    [
-                        "title" => 'Prix unitaire',
-                        "data" => 'Prix unitaire',
-                        'name' => 'Prix unitaire',
-                        "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-                    ],
-                ];
-                foreach ($champs as $champ) {
-                    $columns[] = [
-                        "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label'],
-                        'name' => $champ['label'],
-                        "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-                    ];
-                }
-            }
+				],
+				[
+					"title" => 'Référence',
+					"data" => 'Référence',
+					'name' => 'Référence',
+					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Type',
+					"data" => 'Type',
+					'name' => 'Type',
+					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Statut',
+					"data" => 'Statut',
+					'name' => 'Statut',
+					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Quantité disponible',
+					"data" => 'Quantité',
+					'name' => 'Quantité disponible',
+					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Emplacement',
+					"data" => 'Emplacement',
+					'name' => 'Emplacement',
+					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Commentaire',
+					"data" => 'Commentaire',
+					'name' => 'Commentaire',
+					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Seuil d\'alerte',
+					"data" => 'Seuil d\'alerte',
+					'name' => 'Seuil d\'alerte',
+					"class" => (in_array('Seuil d\'alerte', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Seuil de sécurité',
+					"data" => 'Seuil de sécurité',
+					'name' => 'Seuil de sécurité',
+					"class" => (in_array('Seuil de sécurité', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Prix unitaire',
+					"data" => 'Prix unitaire',
+					'name' => 'Prix unitaire',
+					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+			];
+			foreach ($champs as $champ) {
+				$columns[] = [
+					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"data" => $champ['label'],
+					'name' => $champ['label'],
+					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+				];
+			}
+
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -397,7 +426,6 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
-
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
@@ -405,6 +433,7 @@ class ReferenceArticleController extends Controller
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
+                ->setIsUrgent($data['urgence'])
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
@@ -559,12 +588,6 @@ class ReferenceArticleController extends Controller
         ];
         $champF[] = [
             'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-
-        $champF[] = [
-            'label' => FiltreRef::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
             'typage' => 'text'
         ];
@@ -1002,6 +1025,21 @@ class ReferenceArticleController extends Controller
     }
 
     /**
+     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
+     */
+    public function isUrgent(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $referenceArticle = $this->referenceArticleRepository->find($id);
+            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      */
     public function show(Request $request): Response
@@ -1099,7 +1137,21 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
+            $data['headers'] = [
+                'reference',
+                'libelle',
+                'quantite',
+                'type',
+                'type_quantite',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'fournisseurs',
+                'articles fournisseurs',
+                'seuil securite',
+                'seuil alerte',
+                'prix unitaire'
+            ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1128,19 +1180,19 @@ class ReferenceArticleController extends Controller
     	$stringArticlesFournisseur = implode(' / ', $arrayAF);
     	$stringFournisseurs = implode(' / ', $arrayF);
 
-        $refData[] = $ref->getReference();
-        $refData[] = $ref->getLibelle();
-        $refData[] = $ref->getQuantiteStock();
-        $refData[] = $ref->getType()->getLabel();
-        $refData[] = $ref->getTypeQuantite();
-        $refData[] = $ref->getStatut()->getNom();
-        $refData[] = strip_tags($ref->getCommentaire());
-        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $refData[] = $stringFournisseurs;
-        $refData[] = $stringArticlesFournisseur;
-        $refData[] = $ref->getLimitSecurity();
-        $refData[] = $ref->getLimitWarning();
-        $refData[] = $ref->getPrixUnitaire();
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getReference());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLibelle());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getQuantiteStock());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getType() ? $ref->getType()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getTypeQuantite());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getStatut() ? $ref->getStatut()->getNom() : '');
+        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($ref->getCommentaire()));
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($stringFournisseurs);
+        $refData[] = $this->CSVExportService->escapeCSV($stringArticlesFournisseur);
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitSecurity());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1225,7 +1277,7 @@ class ReferenceArticleController extends Controller
 
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
                 $tags['exists'] = true;
@@ -1233,6 +1285,7 @@ class ReferenceArticleController extends Controller
                 $tags['height'] = $tags['width'] = 0;
                 $tags['exists'] = false;
             }
+
             $data  = [
             	'tags' => $tags,
 				'barcodes' => $barcodes,

@@ -9,6 +9,9 @@ $('#carriers').select2({
 let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
 $(function() {
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
@@ -40,7 +43,6 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchLitigesArr.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');

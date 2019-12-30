@@ -175,7 +175,7 @@ class DemandeRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByParamsAndFilters($params, $filters)
+	public function findByParamsAndFilters($params, $filters, $receptionFilter)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -185,6 +185,13 @@ class DemandeRepository extends ServiceEntityRepository
             ->from('App\Entity\Demande', 'd');
 
         $countTotal = count($qb->getQuery()->getResult());
+
+        if ($receptionFilter) {
+            $qb
+                ->join('d.reception', 'r')
+                ->andWhere('r.id = :reception')
+                ->setParameter('reception', $receptionFilter);
+        }
 
 		// filtres sup
 		foreach ($filters as $filter) {
