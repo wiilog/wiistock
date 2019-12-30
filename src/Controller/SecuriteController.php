@@ -81,6 +81,7 @@ class SecuriteController extends Controller
         } else if ($error) {
             $errorToDisplay = 'Identifiants incorrects.';
         }
+
         return $this->render('securite/login.html.twig', [
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
@@ -107,8 +108,9 @@ class SecuriteController extends Controller
                 ->setPassword($password)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setRole($this->roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
-                ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
-                ->setRecherche(["Libellé", "Référence"]);
+                ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
+				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
+				->setRecherche(Utilisateur::SEARCH_DEFAULT);
             $em->persist($user);
             $em->flush();
             $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
@@ -127,6 +129,7 @@ class SecuriteController extends Controller
      */
     public function checkLastLogin(EntityManagerInterface $em)
     {
+    	/** @var Utilisateur $user */
         $user = $this->getUser();
 
         if (!$user) {
@@ -139,9 +142,28 @@ class SecuriteController extends Controller
             );
         }
         $user->setLastLogin(new \Datetime('', new \DateTimeZone('Europe/Paris')));
-        $em->flush();
 
-        return $this->redirectToRoute('accueil');
+        // remplit champ columnVisiblesForArticle si vide
+		if (empty($user->getColumnsVisibleForArticle())) {
+			$user->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT);
+		}
+		// remplit champ columnVisibles si vide
+		if (empty($user->getColumnVisible())) {
+			$user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
+		}
+
+		// remplit champ recherche rapide si vide
+		if (empty($user->getRecherche())) {
+			$user->setRecherche(Utilisateur::SEARCH_DEFAULT);
+		}
+		// remplit champ recherche rapide article si vide
+		if (empty($user->getRechercheForArticle())) {
+			$user->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT);
+		}
+
+		$em->flush();
+
+		return $this->redirectToRoute('accueil');
     }
 
     /**

@@ -197,6 +197,7 @@ function InitialiserCLModal(modal, submit, path, table, callback = null, close =
         let wrongNumberInputs = [];
         let passwordIsValid = true;
         inputs.each(function () {
+            let $input = $(this);
             let val = $(this).val();
             let name = $(this).attr("name");
             Data[name] = val;
@@ -208,12 +209,17 @@ function InitialiserCLModal(modal, submit, path, table, callback = null, close =
             }
             // validation valeur des inputs de type number
             if ($(this).attr('type') === 'number') {
-                let val = parseInt($(this).val());
-                let min = parseInt($(this).attr('min'));
-                let max = parseInt($(this).attr('max'));
-                if (val > max || val < min || isNaN(val)) {
-                    wrongNumberInputs.push($(this));
-                    $(this).addClass('is-invalid');
+                let val = parseInt($input.val());
+                let min = parseInt($input.attr('min'));
+                let max = parseInt($input.attr('max'));
+                if (val > max || val < min) {
+                    wrongNumberInputs.push($input);
+                    $input.addClass('is-invalid');
+                } else if (!isNaN(val)) {
+                    $input.removeClass('is-invalid');
+                }
+                if ($input.is(':disabled') === true) {
+                    $input.removeClass('is-invalid');
                 }
             }
             // validation valeur des inputs de type password

@@ -136,7 +136,6 @@ class LitigeController extends AbstractController
 
         return $this->render('litige/index_arrivages.html.twig',[
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
-            'providers' => $this->fournisseurRepository->findAllSorted(),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 		]);

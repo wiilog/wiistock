@@ -113,9 +113,7 @@ function getDataAndPrintLabels() {
         start: tableEmplacement.page.info().start
     });
     $.post(path, params, function (response) {
-        if (response.tags.exists) {
             printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf');
-        }
     });
 }
 

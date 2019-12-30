@@ -76,7 +76,8 @@ let tableDemande = $('#table_demande').DataTable({
         "url": pathDemande,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#statut').val()
+            'filterStatus': $('#statut').val(),
+            'filterReception': $('#receptionFilter').val()
         },
     },
     'drawCallback': function() {

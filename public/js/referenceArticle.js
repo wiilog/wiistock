@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+let tableRefArticle;
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
@@ -234,8 +234,6 @@ function initTableRefArticle() {
             .DataTable({
                 processing: true,
                 serverSide: true,
-                sortable: false,
-                ordering: false,
                 paging: true,
                 scrollX: true,
                 order: [[1, 'asc']],
@@ -260,8 +258,18 @@ function initTableRefArticle() {
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },
+                "drawCallback": function(settings) {
+                    resizeTable();
+                },
             });
     });
+}
+
+
+function resizeTable() {
+    tableRefArticle
+        .columns.adjust()
+        .responsive.recalc();
 }
 
 //COLUMN VISIBLE
@@ -336,6 +344,9 @@ function displayNewFilter(data) {
 function initRemove() {
     // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
     $('.filter').on('click', removeFilter);
+    tableRefArticle.on('responsive-resize', function (e, datatable) {
+        resizeTable();
+    });
 }
 
 function removeFilter() {
@@ -521,8 +532,19 @@ function deleteArticleFournisseur(button) {
 }
 
 function passArgsToModal(button) {
-    $("#submitDeleteFournisseur").data('value', $(button).data('value'));
-    $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+    let path = Routing.generate('article_fournisseur_can_delete', true);
+    let params = JSON.stringify({articleFournisseur: $(button).data('value')});
+    $.post(path, params, function(response) {
+        if (response) {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
+            $("#submitDeleteFournisseur").data('value', $(button).data('value'));
+            $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').removeClass('d-none');
+        } else {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').addClass('d-none');
+        }
+    }, 'json');
 }
 
 function addFournisseurEdit(button) {
@@ -561,6 +583,8 @@ function initRequiredChampsFixes(button) {
 }
 
 function toggleRequiredChampsFixes(button) {
+    clearErrorMsg(button);
+    clearInvalidInputs(button);
     displayRequiredChampsFixesByTypeQuantite(button.data('title'));
 }
 
@@ -600,27 +624,6 @@ function redirectToDemande() {
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
 
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function() {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function() {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop( "checked", true );
-                }
-            }
-        });
-    }
-}
-
 function saveRapidSearch() {
     let searchesWanted = [];
     $('#rapidSearch tbody td').each(function() {
@@ -639,14 +642,12 @@ function saveRapidSearch() {
 function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
     $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
-        if (response.tags.exists) {
             printBarcodes(
                 response.barcodes,
                 response.tags,
                 'Etiquettes-references.pdf',
                 response.barcodeLabels
             );
-        }
     });
 }
 

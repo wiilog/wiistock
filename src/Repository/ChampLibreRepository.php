@@ -184,6 +184,10 @@ class ChampLibreRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	/**
+	 * @param $typeId
+	 * @return ChampLibre[]
+	 */
     public function findByTypeId($typeId)
     {
         $entityManager = $this->getEntityManager();

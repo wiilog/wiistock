@@ -86,18 +86,6 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getNoOne($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT e.id, e.label
-            FROM App\Entity\Emplacement e
-            WHERE e.id <> :id
-            "
-        )->setParameter('id', $id);;
-        return $query->execute();
-    }
-
     public function getIdAndLabelActiveBySearch($search)
     {
         $em = $this->getEntityManager();
@@ -206,14 +194,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 WHERE e_other.label = e.label AND t.nom LIKE 'depose'
             ) AS nb
             FROM App\Entity\Emplacement AS e
-            WHERE
-            (
-                SELECT COUNT(m_other)
-                FROM App\Entity\MouvementTraca AS m_other
-                JOIN m_other.emplacement e_other_other
-                JOIN m_other.type t_other
-                WHERE e_other_other.label = e.label AND t_other.nom LIKE 'depose'
-            ) > 0 AND e.dateMaxTime IS NOT NULL
+            WHERE e.dateMaxTime IS NOT NULL AND e.dateMaxTime != ''
             ORDER BY nb DESC"
         );
         return $query->execute();

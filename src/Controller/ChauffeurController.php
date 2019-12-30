@@ -107,8 +107,6 @@ class ChauffeurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            dump($data);
             $chauffeur = new Chauffeur();
 
             $chauffeur
@@ -244,9 +242,9 @@ class ChauffeurController extends AbstractController
 	}
 
     /**
-     * @Route("/autocomplete", name="get_Transporteur", options={"expose"=true})
+     * @Route("/autocomplete", name="get_transporteurs", options={"expose"=true})
      */
-    public function getTransporteur(Request $request)
+    public function getTransporteurs(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
 

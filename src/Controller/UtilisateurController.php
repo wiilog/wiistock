@@ -152,8 +152,9 @@ class UtilisateurController extends AbstractController
                 ->setRole($role)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
-                ->setRecherche(["Libellé", "Référence"]);
+                ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
+				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
 
             if ($password !== '') {
 				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
@@ -405,6 +406,23 @@ class UtilisateurController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $this->getUser()->setRecherche($data['recherches']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+        }
+        return new JsonResponse();
+    }
+
+    /**
+     * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateSearchesArticle(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            /**
+             * @var Utilisateur $user
+             */
+            $user = $this->getUser();
+            $user->setRechercheForArticle($data['recherches']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
         }

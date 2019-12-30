@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -54,12 +56,22 @@ class ReceptionReferenceArticle
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private $commande;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="receptionReferenceArticles")
      */
     private $articleFournisseur;
+
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="receptionReferenceArticle")
+	 */
+    private $articles;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -150,14 +162,14 @@ class ReceptionReferenceArticle
         return $this;
     }
 
-    public function getLabel(): ?string
+    public function getCommande(): ?string
     {
-        return $this->label;
+        return $this->commande;
     }
 
-    public function setLabel(?string $label): self
+    public function setCommande(?string $commande): self
     {
-        $this->label = $label;
+        $this->commande = $commande;
 
         return $this;
     }
@@ -170,6 +182,37 @@ class ReceptionReferenceArticle
     public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self
     {
         $this->articleFournisseur = $articleFournisseur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setReceptionReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getReceptionReferenceArticle() === $this) {
+                $article->setReceptionReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

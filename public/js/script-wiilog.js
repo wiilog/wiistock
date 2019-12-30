@@ -5,12 +5,13 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
-const PAGE_ACHEMINEMENTS = 'acheminements';
+const PAGE_ACHEMINEMENTS = 'acheminement';
 
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
@@ -40,7 +41,7 @@ function InitialiserModal(modal, submit, path, table = null, callback = null, cl
     });
 }
 
-function submitAction(modal, path, table, callback, close, clear) {
+function submitAction(modal, path, table = null, callback = null, close = true, clear = true) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -63,7 +64,20 @@ function submitAction(modal, path, table, callback, close, clear) {
         let val = $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
-        Data[name] = val;
+
+        const $parent = $input.closest('[data-multiple-key]');
+
+        if ($parent && $parent.length > 0) {
+            const multipleKey = $parent.data('multiple-key');
+            const objectIndex = $parent.data('multiple-object-index');
+            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
+            Data[multipleKey][objectIndex][name] = val;
+        }
+        else {
+            Data[name] = val;
+        }
+
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
         if ($input.hasClass('needed')
@@ -277,7 +291,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+
         if ($('#typageModif').val() !== undefined) {   //TODO Moche
             defaultValueForTypage($('#typageModif'), '-edit');
         }
@@ -420,12 +436,12 @@ function visibleBlockModal(bloc) {
 }
 
 function typeChoice(bloc, text, content) {
-    let cible = bloc.val()
+    let cible = bloc.val();
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
-    $('#' + cible + text).removeClass('d-none')
-    $('#' + cible + text).addClass('d-block')
+    $('#' + cible + text).removeClass('d-none');
+    $('#' + cible + text).addClass('d-block');
 }
 
 function updateQuantityDisplay(elem) {
@@ -467,7 +483,7 @@ function ajaxAutoCompleteEmplacementInit(select) {
 function ajaxAutoCompleteTransporteurInit(select) {
     select.select2({
         ajax: {
-            url: Routing.generate('get_Transporteur'),
+            url: Routing.generate('get_transporteurs'),
             dataType: 'json',
             delay: 250,
         },
@@ -530,7 +546,25 @@ let ajaxAutoArticlesInit = function (select) {
     });
 }
 
-function ajaxAutoFournisseurInit(select,placeholder = '') {
+let ajaxAutoArticlesReceptionInit = function(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+    });
+}
+
+function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
@@ -599,6 +633,46 @@ function ajaxAutoUserInit(select, placeholder = '') {
     });
 }
 
+function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
 function ajaxAutoDemandCollectInit(select) {
     select.select2({
         ajax: {
@@ -646,6 +720,16 @@ function clearDiv() {
 
 function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
+}
+
+function clearInvalidInputs($div) {
+    let $modal = $div.closest('.modal');
+    let $inputs = $modal.find('.modal-body').find(".data");
+    $inputs.each(function () {
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+    });
 }
 
 function displayError(modal, msg, success) {
@@ -990,4 +1074,54 @@ function overrideSearch($input, table) {
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
+}
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
+        });
+    }
+}
+
+function newLine(path, button, toHide, buttonAdd, select = null)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
+        {
+            $(this).addClass('is-invalid');
+            formIsValid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function (response) {
+            if (select) {
+                let option = new Option(response.text, response.id, true, true);
+                select.append(option).trigger('change');
+            }
+        });
+    }
+}
+
+function redirectToDemandeLivraison(demandeId) {
+    window.open(Routing.generate('demande_show', {id: demandeId}));
 }

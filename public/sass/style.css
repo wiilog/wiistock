@@ -199,6 +199,22 @@ a:hover {
   max-width: 250px;
 }
 
+.minw-300px {
+  min-width: 300px !important;
+}
+
+.minw-100px {
+  min-width: 100px !important;
+}
+
+.minw-200px {
+  min-width: 200px !important;
+}
+
+.minw-450px {
+  min-width: 450px !important;
+}
+
 .w-120px {
   width: 120px;
 }
@@ -225,6 +241,9 @@ a:hover {
   background-repeat: no-repeat;
   background-position: center right calc(2.25rem / 4);
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+}
+.is-invalid .select2-selection {
+  border: 1px solid red !important;
 }
 
 .label {
@@ -336,7 +355,7 @@ a:hover {
   font-weight: 400 !important;
   line-height: 1.5 !important;
   color: #495057 !important;
-  border: 1px solid #ced4da !important;
+  border: 1px solid #ced4da;
   border-radius: 0.25rem !important;
 }
 
@@ -366,6 +385,16 @@ a:hover {
 
 .formulaire {
   margin-right: 15px;
+}
+
+#new-ref-inner-body {
+  border: 1px solid black;
+}
+
+.frame {
+  border: 1px solid #b2b2b2;
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .accueil-back {
@@ -470,6 +499,10 @@ a:hover {
 
 #chart-arrival {
   height: 70%;
+}
+
+.fournisseurFilterContainer .select2-selection {
+  overflow: auto;
 }
 
 .sidemenu-bg {
@@ -692,30 +725,6 @@ a:hover {
   border-radius: 50%;
 }
 
-#fournisseurDisplay {
-  visibility: hidden;
-}
-
-#transporteurDisplay {
-  visibility: hidden;
-}
-
-#chauffeurDisplay {
-  visibility: hidden;
-}
-
-#addChauffeur {
-  visibility: hidden;
-}
-
-#addFournisseur {
-  visibility: hidden;
-}
-
-#addTransporteur {
-  visibility: hidden;
-}
-
 .radio-btn .btn {
   color: white;
   background-color: #130078;
@@ -850,6 +859,15 @@ em {
   background-image: none !important;
 }
 
+.dataTables_filter {
+  position: relative;
+}
+.dataTables_filter > label {
+  position: absolute;
+  right: 0;
+  padding-right: 8px;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
@@ -964,10 +982,8 @@ button:focus {
 }
 
 .filters {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  padding-left: 6px;
+  padding: 6px;
 }
 .filters > div {
   margin: auto 12px;
