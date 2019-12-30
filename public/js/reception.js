@@ -657,6 +657,11 @@ $(function () {
     }, 'json');
 
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function(){
+        if ($(this).val() === '' || $(this).val() < 0) {
+            $(this).val('');
+        }
+    });
 });
 
 function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () {
