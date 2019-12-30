@@ -555,8 +555,8 @@ class ArticleRepository extends ServiceEntityRepository
                             break;
                         case 'status':
                             $qb
-                                ->leftJoin('a.statut', 's')
-                                ->orderBy('s.nom', $order);
+                                ->leftJoin('a.statut', 's_sort')
+                                ->orderBy('s_sort.nom', $order);
                             break;
                         case 'dateFinReception':
                             $expr = $qb->expr();

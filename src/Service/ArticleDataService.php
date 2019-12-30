@@ -14,6 +14,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiltreRef;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
@@ -30,6 +32,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -159,7 +162,12 @@ class ArticleDataService
 	 */
     private $mailerService;
 
-    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    public function __construct(FiltreSupRepository $filtreSupRepository, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -182,6 +190,7 @@ class ArticleDataService
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->mailerService = $mailerService;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
 	/**
@@ -589,16 +598,18 @@ class ArticleDataService
 
     public function getDataForDatatable($params = null, $user)
     {
-        $data = $this->getArticleDataByParams($params, $user);
+        $wantInactif = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser(FiltreSup::FIELD_ARTICLE_STATUT, $user);
+        $data = $this->getArticleDataByParams($params, $user, $wantInactif ? $wantInactif->getValue() : false);
         return $data;
     }
 
     public function getDataForDatatableByReceptionLigne($ligne, $user)
     {
+        $wantInactif = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser(FiltreSup::FIELD_ARTICLE_STATUT, $user);
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams(null, $user);
+            $data = $this->getArticleDataByParams(null, $user, $wantInactif ? $wantInactif->getValue() : false);
         }
         return $data;
     }
@@ -632,14 +643,13 @@ class ArticleDataService
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-    public function getArticleDataByParams($params = null, $user)
+    public function getArticleDataByParams($params = null, $user, $wantInactif)
     {
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) && $wantInactif === Article::STATUT_INACTIF) {
             $statutLabel = null;
         } else {
             $statutLabel = Article::STATUT_ACTIF;
         }
-
         $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $user);
 
         $articles = $queryResult['data'];

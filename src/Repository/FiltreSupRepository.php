@@ -46,6 +46,30 @@ class FiltreSupRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+    /**
+     * @param string $field
+     * @param string $page
+     * @param Utilisateur $user
+     * @return FiltreSup|null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findOnebyFieldAndWithoutPageAndUser($field, $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT fs
+			FROM App\Entity\FiltreSup fs
+			WHERE fs.field = :field
+			AND fs.user = :user"
+        )->setParameters([
+            'field' => $field,
+            'user' => $user
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
 	/**
 	 * @param string $page
 	 * @param Utilisateur $user

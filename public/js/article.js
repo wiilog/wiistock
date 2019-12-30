@@ -278,3 +278,19 @@ function showOrHideColumn(check) {
     tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
+
+function displayActifOrInactif(select){
+    let donnees;
+    if (select.is(':checked')) {
+        donnees = 'disponible';
+    } else {
+        donnees = 'consommé';
+    }
+
+    let params = {donnees: donnees};
+    let path = Routing.generate('article_actif_inactif');
+
+    $.post(path, JSON.stringify(params), function(){
+        tableArticle.ajax.reload();
+    });
+}
