@@ -32,10 +32,9 @@ esac
 
 # mise en maintenance
 echo "$ip"
-ssh root@$ip
 password=AkMHvXP7
-sleep 5 ; echo "$password"
-#sleep 10
+sshpass -p "$password" ssh -o StrictHostKeyChecking=no root@$ip
+ls
 #echo "$instance"
 #sixthLineEnv="APP_ENV=maintenance"
 #sed -i "6s/.*/$sixthLineEnv/" .env
