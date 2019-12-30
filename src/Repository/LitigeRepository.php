@@ -183,14 +183,16 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('lh.date as dateHisto')
 			->addSelect('ach.username as achUsername')
 			->from('App\Entity\Litige', 'l')
-			->leftJoin('l.colis', 'c')
+            ->leftJoin('l.colis', 'c')
+            ->leftJoin('l.articles', 'art')
 			->leftJoin('l.type', 't')
-			->leftJoin('c.arrivage', 'a')
+            ->leftJoin('c.arrivage', 'a')
+            ->leftJoin('art.reception', 'r')
 			->leftJoin('a.chauffeur', 'ch')
 			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
 			->leftJoin('l.status', 's');
-
+		$qb->where('r IS NULL');
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -284,7 +286,6 @@ class LitigeRepository extends ServiceEntityRepository
 				}
 			}
 		}
-
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
 

@@ -114,7 +114,6 @@ class CollecteRepository extends ServiceEntityRepository
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
-                    dump($value);
                     $qb
                         ->join('c.demandeur', 'd')
                         ->andWhere("d.id in (:id)")

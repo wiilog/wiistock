@@ -110,7 +110,6 @@ class LitigeService
 				'arrivageId' => $litige['arrivageId']
 			])
 		];
-
         return $row;
     }
 }
