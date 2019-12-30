@@ -29,14 +29,21 @@
 
 # choix de l'instance
 echo '-> déployer sur quelle instance ?'
-read instance
-
-case "$instance" in
-  dev | test ) ip=51.77.202.108;;
-  cl2-prod | cl1-rec | scs1-prod | scs1-rec ) ip=145.239.76.51;;
-  col1-prod | col1-rec ) ip=51.38.34.237;;
-  * ) echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev';exit;;
-esac
+while true; do
+  read instance
+  case "$instance" in
+    dev | test )
+      ip=51.77.202.108
+      break;;
+    cl2-prod | cl1-rec | scs1-prod | scs1-rec )
+      ip=145.239.76.51
+      break;;
+    col1-prod | col1-rec )
+      ip=51.38.34.237
+      break;;
+    * ) echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev';;
+  esac
+done
 
 # mise en maintenance
 sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
@@ -46,9 +53,32 @@ EOF
 echo "OK : mise en maintenance de l'instance $instance"
 
 # sauvegarde base données
-# cacheclear
+case "$instance" in
+#TODO CG enlever cl1-rec après tests
+  cl2-prod | scs1-prod | col1-rec | cl1-rec)
+    db=awk '{print $1}' ./db-"$instance"
+    dbuser=awk '{print $2}' ./db-"$instance"
+    password=awk '{print $3}' ./db-"$instance";;
+  * ) dbuser='noBackup';;
+esac
+
+if [ "$dbuser" != 'noBackup' ]; then
+  date=$(date '+%Y-%m-%d')
+  mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
+  echo "OK : sauvegarde de la base de données $db"
+else
+  echo "OK : pas de sauvegarde de base de données nécessaire"
+fi
+
 # git pull
-# cacheclear
+sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
+  cd /var/www/"$instance"/WiiStock
+  git pull
+  php bin/console cache:clear
+  chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/prod
+EOF
+echo "OK : git pull effectué"
+
 # migrations
 # mise à jour base données
 # fixtures
