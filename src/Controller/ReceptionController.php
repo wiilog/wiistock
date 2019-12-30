@@ -731,7 +731,7 @@ class ReceptionController extends AbstractController
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
 
             $json = $this->renderView(
-                'reception/modalModifyLigneArticleContent.html.twig',
+                'reception/modalEditLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
                     'canUpdateQuantity' => $canUpdateQuantity

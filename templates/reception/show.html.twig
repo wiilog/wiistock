@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col">
             <h1>Réception</h1>
-            <input id="receptionId" value="{{ reception.id }}" hidden>
+            <input id="receptionId" value="{{ reception.id }}" type="hidden">
         </div>
         <div class="col text-right">
             {% if modifiable %}
@@ -94,7 +94,7 @@
 
     {% include "reception/modalDeleteReception.html.twig" %}
     {% include "reception/modalEditReception.html.twig" %}
-    {% include "reception/modalModifyLigneArticle.html.twig" %}
+    {% include "reception/modalEditLigneArticle.html.twig" %}
     {% include "reception/modalDeleteLigneArticle.html.twig" %}
     {% include "reception/modalAddLigneArticle.html.twig" %}
     {% include "reception/modalNoStock.html.twig" %}
@@ -109,9 +109,6 @@
 
 {% endblock %}
 {% block javascript %}
-<script >
-let id = {{ reception.id }};
-</script>
 <script src = "{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
 {% endblock javascript %}
 
@@ -119,4 +116,5 @@ let id = {{ reception.id }};
     {{ parent() }}
 
     {{ encore_entry_script_tags('reception') }}}}
+    {{ encore_entry_script_tags('reception-show') }}}}
 {% endblock %}

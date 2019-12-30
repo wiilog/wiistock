@@ -101,7 +101,7 @@ function initNewArticleEditor(modal) {
 
 function loadAndDisplayInfos(select) {
     if ($(select).val() !== null) {
-        let path = Routing.generate('demande_reference_by_fournisseur', true)
+        let path = Routing.generate('demande_reference_by_fournisseur', true);
         let fournisseur = $(select).val();
         let params = JSON.stringify(fournisseur);
 
