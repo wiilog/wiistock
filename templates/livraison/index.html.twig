@@ -2,20 +2,21 @@
 
 {% block title %}Ordres de livraison{% endblock %}
 
-{% block page_content %}
-</div>
-{% include 'filters/filtersWithoutLocation.html.twig' with {'btnName' : 'submitSearchLivraison'} %}
+{% block page_filter %}
+    {{ parent() }}
+    {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName': 'submitSearchLivraison'} %}
+{% endblock %}
 
-<div class="container-fluid">
+{% block page_content %}
     <h1>Ordres de livraison</h1>
     <table id="tableLivraison_id" class="table table-striped table-bordered w-100">
     </table>
-</div>
-
 {% endblock %}
-{% block javascript %}
-<script>
-let id = 0;
-</script>
-<script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = 0;
+    </script>
+    <script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

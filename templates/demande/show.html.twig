@@ -97,10 +97,11 @@
 
 {% endblock %}
 
-{% block javascript %}
-<script>
-    const id = {{ demande.id }};
-</script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const id = {{ demande.id }};
+    </script>
 
-<script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

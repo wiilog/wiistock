@@ -1,28 +1,8 @@
-import Routing from '../../router';
-import '../../form-reference-article';
-
 let editorNewArticleAlreadyDone = false;
 let editorNewReferenceArticleAlreadyDone = false;
 let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
-
-// we define functions used in HTML globaly
-window.initNewArticleEditor = initNewArticleEditor;
-window.printSingleBarcode = printSingleBarcode;
-window.articleChanged = articleChanged;
-window.toggleRequiredChampsFixes = toggleRequiredChampsFixes;
-window.addArticle = addArticle;
-window.finishReception = finishReception;
-window.afterLoadingEditModal = afterLoadingEditModal;
-window.clearModalLigneReception = clearModalLigneReception;
-window.validatePacking = validatePacking;
-window.initNewLigneReception = initNewLigneReception;
-window.removePackingItem = removePackingItem;
-window.getCommentAndAddHisto = getCommentAndAddHisto;
-window.editRowLitige = editRowLitige;
-window.openTableHisto = openTableHisto;
-window.printBarcode = printBarcode;
 
 $(function () {
     const dataTableInitRes = InitiliaserPageDataTable();

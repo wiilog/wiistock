@@ -2,14 +2,12 @@
 
 {% block title %}Demandes de manutention{% endblock %}
 
+{% block page_filter %}
+    {{ parent() }}
+    {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName': 'submitSearchManutention'} %}
+{% endblock %}
+
 {% block page_content %}
-{#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-</div>
-
-{% include 'filters/filtersWithoutLocation.html.twig' with {'btnName' : 'submitSearchManutention'} %}
-
-<div class="container-fluid">
-
     <h1>Demandes de manutention</h1>
 
     <div class="row">
@@ -25,15 +23,14 @@
         <table id="tableManutention_id" class="table table-striped table-bordered w-100">
         </table>
     </div>
-</div>
-{% include "manutention/modalDeleteManutention.html.twig" %}
-{% include "manutention/modalEditManutention.html.twig" %}
+    {% include "manutention/modalDeleteManutention.html.twig" %}
+    {% include "manutention/modalEditManutention.html.twig" %}
 
-{% include "manutention/modalNewManutention.html.twig" %}
-{% include "manutention/modalShowManutention.html.twig" %}
-
+    {% include "manutention/modalNewManutention.html.twig" %}
+    {% include "manutention/modalShowManutention.html.twig" %}
 {% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('js/manutention.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/manutention.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

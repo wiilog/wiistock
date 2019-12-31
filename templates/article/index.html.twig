@@ -58,8 +58,7 @@
 
 {% endblock %}
 
-{% block javascript %}
-
-<script src="{{ asset('js/article.js') }}?{{ date().timestamp }}"></script>
-
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/article.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -1,10 +1,3 @@
-
-window.buildErrorMsgReferenceArticle = buildErrorMsgReferenceArticle;
-window.getDataFromModalReferenceArticle = getDataFromModalReferenceArticle;
-window.displayRequiredChampsFixesByTypeQuantiteReferenceArticle = displayRequiredChampsFixesByTypeQuantiteReferenceArticle;
-window.addArticleFournisseurReferenceArticle = addArticleFournisseurReferenceArticle;
-window.loadAndDisplayInfos = loadAndDisplayInfos;
-
 function buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef) {
     let msg = '';
 

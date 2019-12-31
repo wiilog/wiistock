@@ -39,6 +39,7 @@
     {% include 'inventaire_param/modalShowFrequencies.html.twig' %}
 {% endblock %}
 
-{% block javascript %}
+{% block javascripts %}
+    {{ parent() }}
     <script src="{{ asset('js/inventaire-param.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

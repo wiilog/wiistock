@@ -85,8 +85,9 @@
     {% include "reference_article/modalShowMouvements.html.twig" %}
     <div hidden id="barcodes"></div>
 {% endblock %}
-{% block javascript %}
 
-<script src = "{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
-
+{% block javascripts %}
+    {{ parent() }}
+    <script src = "{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
+    <script src = "{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

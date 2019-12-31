@@ -1,16 +1,7 @@
-import Routing from '../../router';
-
 //initialisation editeur de texte une seule fois
 let editorNewReceptionAlreadyDone = false;
 let numberOfDataOpened = 0;
 let tableReception;
-
-
-// we define functions used in HTML globaly
-window.generateCSVReception = generateCSVReception;
-window.toggleInput = toggleInput;
-window.initNewReceptionEditor = initNewReceptionEditor;
-
 
 $(function () {
     $('.select2').select2();
@@ -170,7 +161,6 @@ function aFile(csv) {
     }
 }
 
-
 function initNewReceptionEditor(modal) {
     if (!editorNewReceptionAlreadyDone) {
         initEditorInModal(modal);
@@ -178,25 +168,4 @@ function initNewReceptionEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
-}
-
-function toggleInput(id, button) {
-    let $toShow = $('#' + id);
-    let $toAdd = $('#' + button);
-    // let $div = document.getElementById(div);
-    if ($toShow.hasClass('invisible')) {
-        $toShow.parent().parent().css("display", "flex");
-        $toShow.removeClass('invisible');
-        $toAdd.removeClass('invisible');
-        numberOfDataOpened++;
-        // $div.style.visibility = "visible";
-    } else {
-        $toShow.addClass('invisible');
-        $toAdd.addClass('invisible');
-        numberOfDataOpened--;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        // $div.style.visibility = "hidden";
-    }
 }

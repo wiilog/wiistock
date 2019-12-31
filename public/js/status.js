@@ -1,5 +1,3 @@
-import Routing from '../router';
-
 $(function () {
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatus = $('#tableStatus').DataTable({
