@@ -42,11 +42,14 @@ if [ "$needCommit" = true ]; then
   git add templates/layout.html.twig
   git commit -m "version $version"
   git push
-  printf "////////// OK : commit et push modif version $version //////////"
+  printf "\n////////// OK : commit et push modif version $version //////////\n"
 fi
 
-# mise à jour jira
+# actions manuelles : mise à jour jira
 read -p "-> pense à mettre à jour le numéro de version des tâches sur jira !"
+echo ''
+# mise à jour branches à déployer
+read -p "-> maintenant mets à jour la branche distante à déployer"
 echo ''
 
 # choix de l'instance
@@ -130,10 +133,10 @@ esac
 if [ "$ip" = '51.77.202.108' ]; then
     cd /var/www/"$instance"/WiiStock
     git pull
-    echo "////////// OK : git pull effectué //////////"
+    printf "\n////////// OK : git pull effectué //////////\n"
     php bin/console doctrine:migrations:migrate
     php bin/console doctrine:schema:update --force
-    echo "////////// OK : migrations de la base effectuées //////////"
+    printf "\n////////// OK : migrations de la base effectuées //////////\n"
     php bin/console doctrine:fixtures:load --append $fixturesGroups
     printf "\n$fixturesMsg\n"
     sed -i "s/APP_ENV.*/APP_ENV=$env/" .env
@@ -145,10 +148,10 @@ else
   sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@"$ip" <<EOF
     cd /var/www/"$instance"/WiiStock
     git pull
-    echo "////////// OK : git pull effectué //////////"
+    printf "\n////////// OK : git pull effectué //////////\n"
     php bin/console doctrine:migrations:migrate
     php bin/console doctrine:schema:update --force
-    echo "////////// OK : migrations de la base effectuées //////////"
+    printf "\n////////// OK : migrations de la base effectuées //////////\n"
     php bin/console doctrine:fixtures:load --append $fixturesGroups
     printf "\n$fixturesMsg\n"
     sed -i "s/APP_ENV.*/APP_ENV=$env/" .env
