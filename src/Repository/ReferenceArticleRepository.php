@@ -968,22 +968,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
                     switch ($column) {
 						case 'quantiteStock':
-							//TODO CG
-//							$qb
-//								->leftJoin('ra.articlesFournisseur', 'af')
-//								->leftJoin('af.articles', 'a')
-////								->addSelect('SUM(a.quantite) as quantities')
-//								->addSelect('CASE
-//								WHEN (ra.typeQuantite = :typeQteArt) THEN ra.quantiteDisponible AS quantities
-//								ELSE (ra.typeQuantite = :typeQteRef) THEN ra.quantiteStock AS quantities
-//								END
-//								')
-//								->groupBy('ra.id')
-//								->orderBy('quantities', $order)
-//								->setParameters([
-//									'typeQteRef' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-//									'typeQteArt' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
-//									]);
+							$qb
+								->leftJoin('ra.articlesFournisseur', 'af')
+								->leftJoin('af.articles', 'a')
+								->addSelect('(CASE
+								WHEN ra.typeQuantite = :typeQteArt 
+								THEN (SUM(a.quantite))
+								ELSE ra.quantiteStock 
+								END) as quantity')
+								->groupBy('ra.id')
+								->orderBy('quantity', $order)
+								->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
 							break;
                         default:
                             $qb->orderBy('ra.' . $column, $order);
