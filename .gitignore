@@ -24,4 +24,8 @@
 /.vs-code/
 /.idea/
 .idea
+
 /public/uploads/attachements/
+
+/deployment/db*
+/deployment/pass*
