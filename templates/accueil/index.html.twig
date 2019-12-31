@@ -52,7 +52,9 @@ class='accueil-back'
                         <span class="big-font">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span></p>
                     <div class="curve_chart_line " id="curve_chart"></div>
                 </div>
-
+                <div class="col-12 dashboard-link mt-1" onclick="goToDashBoard()">
+                    <span class="fas fa-chart-line"></span><p>Tableau de bord</p>
+                </div>
                 {#                <div class="col-7 mb-1 mt-1 alerte">#}
 {#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
 {#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}

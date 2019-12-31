@@ -105,3 +105,7 @@ function drawChart_reference() {
         }
     });
 }
+
+function goToDashBoard() {
+    window.location.href = Routing.generate('accueil_dashboard', true);
+}
