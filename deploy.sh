@@ -47,9 +47,10 @@ fi
 
 # mise à jour jira
 read -p "-> pense à mettre à jour le numéro de version des tâches sur jira !"
+echo ''
 
 # choix de l'instance
-echo '-> déployer sur quelle instance ?'
+echo -n '-> déployer sur quelle instance ? '
 while true; do
   read instance
   case "$instance" in
@@ -109,16 +110,15 @@ read fixtures
 read -ra FIXT <<< "$fixtures"
 
 fixturesGroups="--group=fixtures"
-fixturesMsg="////////// OK : fixtures [fixtures"
+fixturesMsg="////////// OK : fixtures"
 if [ "$fixtures" != '' ]
 then
   for i in "${FIXT[@]}"; do
     fixturesGroups="${fixturesGroups} --group=$i"
   done
-  fixturesMsg= "${fixturesMsg}, $fixtures"
+  fixturesMsg= "${fixturesMsg} [$fixtures]"
 fi
-fixturesMsg= "${fixturesMsg}] effectuées //////////"
-
+fixturesMsg= "${fixturesMsg} effectuées //////////"
 
 # préparation environnement à rétablir
 case "$instance" in
