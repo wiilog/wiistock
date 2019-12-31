@@ -10,6 +10,9 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         "url": pathAlerte,
         "type": "POST",
     },
+    'drawCallback': function() {
+        overrideSearch($('#tableAlerte_id_filter input'), tableAlerte);
+    },
     columns: [
         { "data": 'Label', 'title': 'Libellé' },
         { "data": 'Référence', 'title': 'Référence' },
