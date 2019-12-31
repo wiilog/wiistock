@@ -109,36 +109,36 @@ esac
 if [ "$ip" = 'ip=51.77.202.108' ]; then
     cd /var/www/"$instance"/WiiStock
     git pull
-    printf "////////// OK : git pull effectué //////////"
+    echo "////////// OK : git pull effectué //////////"
     php bin/console doctrine:migrations:migrate
     php bin/console doctrine:schema:update --force
-    printf "////////// OK : migrations de la base effectuées //////////"
+    echo "////////// OK : migrations de la base effectuées //////////"
     php bin/console doctrine:fixtures:load --append --group=fixtures
-    printf "////////// OK : fixtures effectuées //////////"
+    echo "////////// OK : fixtures effectuées //////////"
     echo $fixturesCmd
     echo $fixturesMsg
     sed -i "6s/.*/APP_ENV=$env/" .env
-    printf "////////// OK : mise en environnement de $env de l'instance $instance //////////"
+    echo "////////// OK : mise en environnement de $env de l'instance $instance //////////"
     php bin/console cache:clear
     chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
-    printf "////////// OK : cache nettoyé //////////"
+    echo "////////// OK : cache nettoyé //////////"
 else
   sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@"$ip" <<EOF
     cd /var/www/"$instance"/WiiStock
     git pull
-    printf "////////// OK : git pull effectué //////////"
+    echo "////////// OK : git pull effectué //////////"
     php bin/console doctrine:migrations:migrate
     php bin/console doctrine:schema:update --force
-    printf "////////// OK : migrations de la base effectuées //////////"
+    echo "////////// OK : migrations de la base effectuées //////////"
     php bin/console doctrine:fixtures:load --append --group=fixtures
-    printf "////////// OK : fixtures effectuées //////////"
+    echo "////////// OK : fixtures effectuées //////////"
     echo $fixturesCmd
     echo $fixturesMsg
     sed -i "6s/.*/APP_ENV=$env/" .env
-    printf "////////// OK : mise en environnement de $env de l'instance $instance //////////"
+    echo "////////// OK : mise en environnement de $env de l'instance $instance //////////"
     php bin/console cache:clear
     chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
-    printf "////////// OK : cache nettoyé //////////"
+    echo "////////// OK : cache nettoyé //////////"
 EOF
 fi
 
