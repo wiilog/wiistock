@@ -2,33 +2,41 @@
 
 echo '-> numéro de version web ? (entrée si pas de modif)'
 read versionWeb
-echo '-> numéro de version nomade (si différent)'
+echo '-> numéro de version nomade ? (entrée si pas de modif, = si idem version web)'
 read versionNomade
 
 # mise à jour des numéros de version (si demandé)
+needCommit=false
+
 if [ "$versionWeb" != "" ]; then
-
-  if [ "$versionNomade" = "" ]; then
-    versionNomade=$versionWeb
-  fi
-
   # mise à jour numéro de version sur template
   firstLineTwig="{% set version = '"$versionWeb"' %}"
   sed -i "1s/.*/$firstLineTwig/" templates/layout.html.twig
   echo '////////// OK : numéro de version web mis à jour sur le template //////////'
+  needCommit=true
+fi
+
+if [ "$versionNomade" != "" ]; then
+  if [ "$versionNomade" = "=" ]; then
+    versionNomade=$versionWeb
+  fi
 
   # mise à jour numéro de version sur services.yaml
-  formerFourthLineYaml="nomade_versions:"
-  newFourthLineYaml="nomade_versions: '>="$versionNomade"'"
-  sed -i "s/$formerFourthLineYaml.*/$newFourthLineYaml/" config/services.yaml
+  formerNomadeVersionLine="nomade_versions:"
+  newNomadeVersionLine="nomade_versions: '>="$versionNomade"'"
+  sed -i "s/$formerNomadeVersionLine.*/$newNomadeVersionLine/" config/services.yaml
 
+  # mise à jour lien apk sur services.yaml
   versionNomadeFormatted=${versionNomade//\./-}
-  formerFifthLineYaml="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock"
-  newFifthLineYaml="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock\/app-$versionNomadeFormatted.apk'"
-  sed -i "s/$formerFifthLineYaml.*/$newFifthLineYaml/" config/services.yaml
+  formerApkLine="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock"
+  newApkLine="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock\/app-$versionNomadeFormatted.apk'"
+  sed -i "s/$formerApkLine.*/$newApkLine/" config/services.yaml
 
-  echo '////////// OK : numéros de version nomade mis à jour sur le services.yaml //////////'
+  echo '////////// OK : numéro de version nomade + lien apk mis à jour sur le services.yaml //////////'
+  needCommit=true
+fi
 
+if [ "$needCommit" = true ]; then
   # commit et push modifs version
   git add config/services.yaml
   git add templates/layout.html.twig
