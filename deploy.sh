@@ -88,6 +88,25 @@ read -p "-> lancer git pull + migrations + fixtures + fin de maintenance ?"
 echo "-> lancer des fixtures supplémentaires ? (nomFixture1,nomFixture2 / n)"
 read fixtures
 
+# préparation fixtures supplémentaires
+if [ "$fixtures" != 'n' ]; then
+  fixturesCmd='php bin/console doctrine:fixtures:load'
+  for i in "${fixtures[@]}"; do
+    fixturesCmd=${fixturesCmd} "--group=$i"
+    fixturesMsg=${fixturesMsg} ""
+  done
+   fixturesMsg="////////// OK : fixtures [$fixtures] effectuées //////////"
+else
+  fixturesCmd=''
+  fixturesMsg=''
+fi
+
+# préparation environnement à rétablir
+case "$instance" in
+  test | dev ) env=dev;;
+  * ) env=prod;;
+esac
+
 sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@"$ip" <<EOF
   cd /var/www/"$instance"/WiiStock
   git pull
@@ -97,15 +116,10 @@ sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@"$ip" <<EOF
   printf "////////// OK : migrations de la base effectuées //////////"
   php bin/console doctrine:fixtures:load --append --group=fixtures
   printf "////////// OK : fixtures effectuées //////////"
-
-  if [ "$fixtures" != 'n' ]; then
-    for i in "${fixtures[@]}"; do
-      echo "$i"
-    done
-  fi
-
-  sed -i "6s/.*/APP_ENV=prod/" .env
-  printf "////////// OK : mise en prod de l'instance $instance //////////"
+  echo $fixturesCmd
+  printf $fixturesMsg
+  sed -i "6s/.*/APP_ENV=$env/" .env
+  printf "////////// OK : mise en environnement de $env de l'instance $instance //////////"
   php bin/console cache:clear
   chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
   printf "////////// OK : cache nettoyé //////////"
