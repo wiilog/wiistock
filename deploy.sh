@@ -95,19 +95,22 @@ else
 fi
 
 # préparation fixtures supplémentaires
-echo "-> lancer des fixtures supplémentaires ? (nomFixture1 nomFixture2/n)"
+echo "-> lancer des fixtures supplémentaires ? (nomFixture1 nomFixture2)"
 IFS=' '
 read fixtures
 read -ra FIXT <<< "$fixtures"
 
 fixturesGroups="--group=fixtures"
-if [ "$fixtures" != 'n' ] && [ "$fixtures" != '' ]
+fixturesMsg="////////// OK : fixtures [fixtures"
+if [ "$fixtures" != '' ]
 then
   for i in "${FIXT[@]}"; do
     fixturesGroups="${fixturesGroups} --group=$i"
   done
-  fixturesMsg="////////// OK : fixtures [fixtures, $fixtures] effectuées //////////"
+  fixturesMsg= "${fixturesMsg}, $fixtures"
 fi
+fixturesMsg= "${fixturesMsg}] effectuées //////////"
+
 
 # préparation environnement à rétablir
 case "$instance" in
