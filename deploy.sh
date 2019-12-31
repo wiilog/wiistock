@@ -104,7 +104,7 @@ else
 fi
 
 # préparation fixtures supplémentaires
-echo "-> lancer des fixtures supplémentaires ? (nomFixture1 nomFixture2)"
+printf "\n-> lancer des fixtures supplémentaires ? (nomFixture1 nomFixture2)\n"
 IFS=' '
 read fixtures
 read -ra FIXT <<< "$fixtures"
@@ -135,12 +135,12 @@ if [ "$ip" = '51.77.202.108' ]; then
     php bin/console doctrine:schema:update --force
     echo "////////// OK : migrations de la base effectuées //////////"
     php bin/console doctrine:fixtures:load --append $fixturesGroups
-    echo "$fixturesMsg"
+    printf "\n$fixturesMsg\n"
     sed -i "s/APP_ENV.*/APP_ENV=$env/" .env
-    echo "////////// OK : mise en environnement de $env de l'instance $instance //////////"
+    printf "\n////////// OK : mise en environnement de $env de l'instance $instance //////////\n"
     php bin/console cache:clear
     chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
-    echo "////////// OK : cache nettoyé //////////"
+    printf "\n////////// OK : cache nettoyé //////////\n"
 else
   sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@"$ip" <<EOF
     cd /var/www/"$instance"/WiiStock
@@ -150,13 +150,13 @@ else
     php bin/console doctrine:schema:update --force
     echo "////////// OK : migrations de la base effectuées //////////"
     php bin/console doctrine:fixtures:load --append $fixturesGroups
-    echo "$fixturesMsg"
+    printf "\n$fixturesMsg\n"
     sed -i "s/APP_ENV.*/APP_ENV=$env/" .env
-    echo "////////// OK : mise en environnement de $env de l'instance $instance //////////"
+    printf "\n////////// OK : mise en environnement de $env de l'instance $instance //////////\n"
     php bin/console cache:clear
     chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
-    echo "////////// OK : cache nettoyé //////////"
+    printf "\n////////// OK : cache nettoyé //////////\n"
 EOF
 fi
 
-echo "////////// OK : déploiement sur $instance terminé ! //////////"
+printf "\n////////// OK : déploiement sur $instance terminé ! //////////\n"
