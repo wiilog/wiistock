@@ -4,12 +4,6 @@ $(function () {
     initTableArticle();
 });
 
-function hideAndShowColumns(columns) {
-    tableRefArticle.columns().every(function(index) {
-        this.visible(columns[index].class !== 'hide');
-    });
-}
-
 function initTableArticle() {
     $.post(Routing.generate('article_api_columns'), function (columns) {
         tableArticle = $('#tableArticle_id')
@@ -38,8 +32,8 @@ function initTableArticle() {
                 initComplete: function () {
                     loadSpinnerAR($('#spinner'));
                     init();
-                    hideAndShowColumns();
                     overrideSearchArticle();
+                    hideAndShowColumns(columns);
                 },
                 columns: columns.map((column) => ({
                     ...column,
@@ -61,6 +55,12 @@ let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
 };
+
+function hideAndShowColumns(columns) {
+    tableArticle.columns().every(function(index) {
+        this.visible(columns[index].class !== 'hide');
+    });
+}
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
@@ -277,9 +277,4 @@ function showOrHideColumn(check) {
     tableRefArticleColumn.find('th, td').removeClass('hide');
     tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
-}
-
-function hideAndShowColumns() {
-    tableArticle.columns('.hide').visible(false);
-    tableArticle.columns('.display').visible(true);
 }

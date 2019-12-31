@@ -957,7 +957,7 @@ class ReceptionController extends AbstractController
             $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $response = new Response();
             $response->setContent($this->renderView(
-                'reception/condtionnementArticleTemplate.html.twig',
+                'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
                         'reference' => $reference,
@@ -1127,7 +1127,6 @@ class ReceptionController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
             $em->flush();
-
             $this->sendMailToAcheteurs($litige);
             $response = [];
 

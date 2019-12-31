@@ -199,6 +199,22 @@ a:hover {
   max-width: 250px;
 }
 
+.minw-300px {
+  min-width: 300px !important;
+}
+
+.minw-100px {
+  min-width: 100px !important;
+}
+
+.minw-200px {
+  min-width: 200px !important;
+}
+
+.minw-450px {
+  min-width: 450px !important;
+}
+
 .w-120px {
   width: 120px;
 }
@@ -264,9 +280,7 @@ a:hover {
 }
 
 /* Login    
- *
  * *================= 
- *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -845,6 +859,15 @@ em {
   background-image: none !important;
 }
 
+.dataTables_filter {
+  position: relative;
+}
+.dataTables_filter > label {
+  position: absolute;
+  right: 0;
+  padding-right: 8px;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
@@ -959,10 +982,8 @@ button:focus {
 }
 
 .filters {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  padding-left: 6px;
+  padding: 6px;
 }
 .filters > div {
   margin: auto 12px;

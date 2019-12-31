@@ -88,6 +88,7 @@ class CollecteService
 		} else {
     		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
 		}
+		dump($filters);
         $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
 
         $collecteArray = $queryResult['data'];
