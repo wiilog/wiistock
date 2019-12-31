@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo '-> numéro de version web?'
+echo '-> numéro de version web ?'
 read versionWeb
 echo '-> numéro de version nomade (si différent)'
 read versionNomade
@@ -34,11 +34,10 @@ git push
 echo '////////// OK : commit et push modif version //////////'
 
 # mise à jour jira
-read -p "-> mise à jour des tâches sur jira"
-echo "////////// OK : mise à jour des tâches sur jira //////////"
+read -p "-> pense à mettre à jour le numéro de version des tâches sur jira !"
 
 # choix de l'instance
-printf '-> déployer sur quelle instance ?'
+echo '-> déployer sur quelle instance ?'
 while true; do
   read instance
   case "$instance" in
@@ -64,22 +63,21 @@ printf "////////// OK : mise en maintenance de l'instance $instance //////////\n
 
 # sauvegarde base données
 case "$instance" in
-#TODO CG enlever cl1-rec après tests
-  cl2-prod | scs1-prod | col1-rec | cl1-rec)
-    db=$(awk '{ print $1 }' ./db-cl1-rec)
-    dbuser=$(awk ' {print $2} ' ./db-cl1-rec)
-    password=$(awk ' {print $3} ' ./db-cl1-rec);;
+  cl2-prod | scs1-prod | col1-rec)
+    db=$(awk '{ print $1 }' ./db-"$instance")
+    dbuser=$(awk ' {print $2} ' ./db-"$instance")
+    password=$(awk ' {print $3} ' ./db-"$instance");;
   * ) dbuser='noBackup';;
 esac
 
 if [ "$dbuser" != 'noBackup' ]; then
   read -p "-> lancer la sauvegarde de la base de données ?"
   date=$(date '+%Y-%m-%d')
-#  mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
+  mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
   printf "////////// OK : base de données $db sauvegardée //////////\n"
 
 else
-  printf "////////// pas de sauvegarde de base de données nécessaire //////////\n"
+  echo "////////// pas de sauvegarde de base de données nécessaire //////////"
 fi
 
 # git pull
@@ -89,7 +87,7 @@ fi
 read -p "-> lancer git pull + migrations + fixtures + fin de maintenance ?"
 sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
   cd /var/www/"$instance"/WiiStock
-#  git pull
+  git pull
   printf "////////// OK : git pull effectué //////////"
   php bin/console doctrine:migrations:migrate
   php bin/console doctrine:schema:update --force
@@ -102,3 +100,5 @@ sshpass -f pass-"$ip" ssh -o StrictHostKeyChecking=no root@$ip <<EOF
   chmod 777 -R /var/www/"$instance"/WiiStock/var/cache/
   printf "////////// OK : cache nettoyé //////////"
 EOF
+
+echo "////////// OK : déploiement sur $instance terminé ! //////////"
