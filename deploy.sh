@@ -78,7 +78,7 @@ else
 EOF
 fi
 
-printf "////////// OK : mise en maintenance de l'instance $instance //////////\n"
+printf "\n////////// OK : mise en maintenance de l'instance $instance //////////\n"
 
 # sauvegarde base données
 case "$instance" in
@@ -95,12 +95,12 @@ if [ "$dbuser" != 'noBackup' ]; then
   if [ "$backup" != 'n' ]; then
     date=$(date '+%Y-%m-%d')
     mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" > /root/db_backups/svg_"$db"_"$date".sql
-    printf "////////// OK : base de données $db sauvegardée //////////\n"
+    printf "\n////////// OK : base de données $db sauvegardée //////////\n"
   else
-    echo "////////// pas de sauvegarde de base de données //////////"
+    printf "\n////////// pas de sauvegarde de base de données //////////\n"
   fi
 else
-  echo "////////// pas de sauvegarde de base de données nécessaire //////////"
+  printf "\n////////// pas de sauvegarde de base de données nécessaire //////////\n"
 fi
 
 # préparation fixtures supplémentaires
@@ -116,9 +116,9 @@ then
   for i in "${FIXT[@]}"; do
     fixturesGroups="${fixturesGroups} --group=$i"
   done
-  fixturesMsg= "${fixturesMsg} [$fixtures]"
+  fixturesMsg="${fixturesMsg} [$fixtures]"
 fi
-fixturesMsg= "${fixturesMsg} effectuées //////////"
+fixturesMsg="${fixturesMsg} effectuées //////////"
 
 # préparation environnement à rétablir
 case "$instance" in
