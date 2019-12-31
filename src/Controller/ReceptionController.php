@@ -1384,16 +1384,7 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             $ligne = $this->receptionReferenceArticleRepository->find($id);
-            $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
-
-            $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
-            $articles = [];
-            foreach ($listArticleFournisseur as $articleFournisseur) {
-                foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                    if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
-                }
-            }
-            if (count($articles) <= 0) {
+            if (count($ligne->getArticles()) <= 0) {
                 $delete = true;
                 $html = 'Voulez-vous réellement supprimer cette ligne article ?';
             } else {
@@ -1562,7 +1553,7 @@ class ReceptionController extends AbstractController
                             ->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0))// protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
-                            ->setReception($ligne->getReception())
+                            ->setReceptionReferenceArticle($ligne)
                             ->setType($refArticle->getType())
                             ->setBarCode($this->articleDataService->generateBarCode());
 
