@@ -120,7 +120,7 @@ commandsToRun=("git pull § \n////////// OK : git pull effectué //////////\n §
 printf "\n-> lancer composer install ? (entrée/n)\n"
 read doComposerInstall
 if [ "$doComposerInstall" != 'n' ]; then
-    commandsToRun+=("composer install § \n////////// OK : composer install //////////\n")
+    commandsToRun+=("composer install § \n////////// OK : composer install //////////\n § \n////////// KO : composer install //////////\n")
 fi
 
 printf "\n-> lancer yarn install ? (entrée/n)\n"
