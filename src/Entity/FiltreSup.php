@@ -37,6 +37,7 @@ class FiltreSup
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
 	const PAGE_RCPT_TRACA = 'reception_traca';
+	const PAGE_ARTICLE = 'article';
 
     /**
      * @ORM\Id()

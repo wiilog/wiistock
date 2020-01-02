@@ -280,17 +280,10 @@ function showOrHideColumn(check) {
 }
 
 function displayActifOrInactif(select){
-    let donnees;
-    if (select.is(':checked')) {
-        donnees = 'disponible';
-    } else {
-        donnees = 'consommé';
-    }
-
-    let params = {donnees: donnees};
+    let activeOnly = select.is(':checked');
     let path = Routing.generate('article_actif_inactif');
 
-    $.post(path, JSON.stringify(params), function(){
+    $.post(path, JSON.stringify({activeOnly: activeOnly}), function(){
         tableArticle.ajax.reload();
     });
 }

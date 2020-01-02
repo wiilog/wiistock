@@ -14,7 +14,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -598,18 +597,16 @@ class ArticleDataService
 
     public function getDataForDatatable($params = null, $user)
     {
-        $wantInactif = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser(FiltreSup::FIELD_ARTICLE_STATUT, $user);
-        $data = $this->getArticleDataByParams($params, $user, $wantInactif ? $wantInactif->getValue() : false);
+		$data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
 
     public function getDataForDatatableByReceptionLigne($ligne, $user)
     {
-        $wantInactif = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser(FiltreSup::FIELD_ARTICLE_STATUT, $user);
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams(null, $user, $wantInactif ? $wantInactif->getValue() : false);
+			$data = $this->getArticleDataByParams(null, $user);
         }
         return $data;
     }
@@ -643,14 +640,18 @@ class ArticleDataService
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-    public function getArticleDataByParams($params = null, $user, $wantInactif)
+    public function getArticleDataByParams($params = null, $user)
     {
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) && $wantInactif === Article::STATUT_INACTIF) {
-            $statutLabel = null;
-        } else {
-            $statutLabel = Article::STATUT_ACTIF;
-        }
-        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $user);
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
+
+		// l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+			$filters = [[
+				'field' => FiltreSup::FIELD_STATUT,
+				'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+			]];
+		}
+		$queryResult = $this->articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
