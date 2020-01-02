@@ -204,12 +204,12 @@ class ArticleController extends Controller
             'typage' => 'text'
 
         ];
-        $champF[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
+//        $champF[] = [
+//            'label' => 'Référence',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
         $champF[] = [
             'label' => 'Référence article',
             'id' => 0,
@@ -265,12 +265,12 @@ class ArticleController extends Controller
             'typage' => 'text'
 
         ];
-        $champsFText[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
+//        $champsFText[] = [
+//            'label' => 'Référence',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
         $champsFText[] = [
             'label' => 'Code',
             'id' => 0,
