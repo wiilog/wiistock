@@ -61,13 +61,16 @@ function script::getServerName() {
 }
 
 function script::run() {
+    # usage: remote::run "$serverName" "instance" "${commandsToRun[@]}"
+    # commandsToRun should an array of string with format "commandToRun ;; successMessage ;; errorMessage"
     local serverName=$1
     local instance=$2
     local commandsToRun=$3
     local res
     cdProject="cd /var/www/$instance/WiiStock"
-    for command in "${commandsToRun[@]}"
+    for commandStr in "${commandsToRun[@]}"
     do
+        IFS=';;' read -ra command <<< "$commandStr"
         if [ "$serverName" = 'server-dev' ]; then
             res=$("$cdProject && ${command[0]}")
         else
@@ -75,10 +78,10 @@ function script::run() {
         fi
 
         if [ "$res" = 1 ]; then
-            $(${command[2]})
+            printf "${command[2]}"
             exit "$res";
         else
-            $(${command[1]})
+            printf "${command[1]}"
         fi
 
     done

@@ -115,60 +115,33 @@ esac
 
 # git pull / migrations et mise à jour bdd / fixtures
 
-commandsToRun=(\
-    (\
-        "git pull"\
-        "\n////////// OK : git pull effectué //////////\n"\
-    )\
-    (\
-        "php bin/console doctrine:migrations:migrate && php bin/console doctrine:schema:update --force"\
-        "\n////////// OK : migrations de la base effectuées //////////\n"\
-        "\n////////// KO : migrations //////////\n"\
-    )\
-    (\
-        "php bin/console doctrine:fixtures:load --append $fixturesGroups"\
-        "\n$fixturesMsg\n"\
-        "\n////////// KO : fixtures //////////\n"\
-    )\
+commandsToRun=(
+    "git pull ;; \n////////// OK : git pull effectué //////////\n ;; \n////////// KO : git pull //////////\n"
+    "php bin/console doctrine:migrations:migrate && php bin/console doctrine:schema:update --force ;; \n////////// OK : migrations de la base effectuées //////////\n ;; ////////// KO : migrations //////////\n"
+    "php bin/console doctrine:fixtures:load --append $fixturesGroups ;; \n$fixturesMsg\n ;; ////////// KO : fixtures //////////\n"
 )
 
 
 printf "\n-> lancer composer install ? (entrée/n)\n"
 read doComposerInstall
 if [ "$doComposerInstall" != 'n' ]; then
-    commandsToRun+=( (\
-        "composer install"\
-        "printf \"\\n////////// OK : composer install //////////\\n\""\
-        "printf \"\\n////////// KO : composer install //////////\\n\""\
-    ) )
+    commandsToRun+=(
+        "composer install ;; \n////////// OK : composer install //////////\n ;; \n////////// KO : composer install //////////\n"
+    )
 fi
 
 printf "\n-> lancer yarn install ? (entrée/n)\n"
 read doYarnInstall
 if [ "$doYarnInstall" != 'n' ]; then
-    commandsToRun+=( (\
-        "yarn install"\
-        "printf \"\\n////////// OK : yarn install //////////\\n\""\
-        "printf \"\\n////////// KO : yarn install //////////\\n\""\
-    ) )
+    commandsToRun+=(
+        "yarn install ;; \n////////// OK : yarn install //////////\n ;; \n////////// KO : yarn install //////////\n"
+    )
 fi
 
 commandsToRun+=(\
-    (\
-        "yarn build"\
-        "\n////////// OK : yarn encore //////////\n"\
-        "\n////////// KO : yarn encore //////////\n"\
-    )\
-    (\
-        "replaceInFile \"APP_ENV\" \"APP_ENV=$env\" \".env\""\
-        "\n////////// OK : mise en environnement de $env de l'instance $instance //////////\n"\
-        "\n////////// KO : mise en environnement de $env de l'instance $instance //////////\n"\
-    )\
-    (\
-        "php bin/console cache:clear && chmod 777 -R /var/www/$instance/WiiStock/var/cache/"\
-        "\n////////// OK : nettoyage du cache //////////\n"\
-        "\n////////// KO : nettoyage du cache //////////\n"\
-    )\
+    "yarn build ;; \n////////// OK : yarn encore //////////\n ;; \n////////// KO : yarn encore //////////\n"
+    "replaceInFile \"APP_ENV\" \"APP_ENV=$env\" \".env\" ;; \n////////// OK : mise en environnement de $env de l'instance $instance //////////\n ;; \n////////// KO : mise en environnement de $env de l'instance $instance //////////\n"\
+    "php bin/console cache:clear && chmod 777 -R /var/www/$instance/WiiStock/var/cache/ ;; \n////////// OK : nettoyage du cache //////////\n ;; \n////////// KO : nettoyage du cache //////////\n"
 )
 
 script::run "$serverName" "$instance" "${array[@]}"
