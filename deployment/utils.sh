@@ -65,7 +65,7 @@ function script::deploy() {
     # commandsToRun should an array of string with format "commandToRun ;; successMessage ;; errorMessage"
     local serverName=$1
     shift
-    local instance=$2
+    local instance=$1
     shift
     local commandsToRun=("$@")
     local res
