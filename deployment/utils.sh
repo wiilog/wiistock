@@ -74,12 +74,14 @@ function script::deploy() {
     do
         IFS=';;' read -ra command <<< "$commandStr"
         if [[ "$serverName" == "server-dev" ]]; then
-            res=$("$cdProject && ${command[0]}")
+            eval "$cdProject && ${command[0]}"
         else
-            res=remote::run "$serverName" replaceInFile "$cdProject && ${command[0]}"
+            remote::run "$serverName" replaceInFile "$cdProject && ${command[0]}"
         fi
 
-        if [ "$res" = 1 ]; then
+        res=$?
+
+        if [ "$res" != 0 ]; then
             echo "${command[2]}"
             exit "$res";
         else
