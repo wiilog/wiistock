@@ -212,7 +212,6 @@ class ArrivageController extends AbstractController
 
             $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
-
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
 
             return new JsonResponse($data);

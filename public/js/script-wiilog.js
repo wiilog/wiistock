@@ -593,6 +593,16 @@ function ajaxAutoFournisseurInit(select, placeholder = '') {
     });
 }
 
+function initFilterDateToday() {
+    let $todayMinDate = $('#dateMin');
+    let $todayMaxDate = $('#dateMax');
+    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
+        let today = moment().format('YYYY-MM-DD');
+        $todayMinDate.val(today);
+        $todayMaxDate.val(today);
+    }
+}
+
 function ajaxAutoChauffeurInit(select) {
     select.select2({
         ajax: {

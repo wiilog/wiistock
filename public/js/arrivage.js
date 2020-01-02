@@ -1,55 +1,6 @@
 let numberOfDataOpened = 0;
+let clicked = false;
 $('.select2').select2();
-
-$(function() {
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ARRIVAGE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                let values = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-            } else if (element.field == 'providers') {
-                let values = element.value.split(',');
-                let $providers = $('#providers');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    let option = new Option(name, id, true, true);
-                    $providers.append(option).trigger('change');
-                });
-            } else if (element.field = 'emergency') {
-                if (element.value === '1') {
-                    $('#urgence-filter').attr('checked', 'checked');
-                }
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
-
-        // initFilterDateToday();
-    }, 'json');
-
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-});
-
-function initFilterDateToday() {
-    // par défaut filtre date du jour
-    let today = new Date();
-    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
-    $('#dateMin').val(formattedToday);
-    $('#dateMax').val(formattedToday);
-}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
@@ -63,7 +14,12 @@ let tableArrivage = $('#tableArrivages').DataTable({
     scrollX: true,
     ajax: {
         "url": pathArrivage,
-        "type": "POST"
+        "type": "POST",
+        'data': {
+            'clicked' : function() {
+                return clicked;
+            }
+        }
     },
     'drawCallback': function() {
         overrideSearch($('#tableArrivages_filter input'), tableArrivage);
@@ -96,7 +52,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
     },
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
             extend: 'colvis',
@@ -108,6 +64,72 @@ let tableArrivage = $('#tableArrivages').DataTable({
         //     className: 'dt-btn'
         // }
     ]
+});
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableArrivage.column('Date:name').index();
+        if (typeof indexDate === "undefined") return true;
+
+        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ARRIVAGE);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                let values = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+            } else if (element.field == 'providers') {
+                let values = element.value.split(',');
+                let $providers = $('#providers');
+                values.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $providers.append(option).trigger('change');
+                });
+            } else if (element.field = 'emergency') {
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+
+        initFilterDateToday();
+    }, 'json');
+
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
 function listColis(elem) {
@@ -148,31 +170,6 @@ function printBarcode(code) {
     });
 }
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableArrivage.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
@@ -206,7 +203,8 @@ $submitSearchArrivage.on('click', function () {
         users: $('#utilisateur').select2('data'),
         urgence: $('#urgence-filter').is(':checked'),
         providers: $('#providers').select2('data'),
-    }
+    };
+    clicked = true;
     saveFilters(filters, tableArrivage);
 });
 
