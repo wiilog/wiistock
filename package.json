@@ -10,10 +10,9 @@
     "license": "UNLICENSED",
     "private": true,
     "scripts": {
-        "dev-server": "yarn generate-jsrouting && encore dev-server",
-        "dev": "yarn generate-jsrouting && encore dev",
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
         "watch": "yarn dev --watch",
-        "build": "yarn generate-jsrouting && encore production --progress",
-        "generate-jsrouting": "php bin/console fos:js-routing:dump --format=json --target=assets/bundles/js/fos_js_routes.json"
+        "build": "encore production --progress"
     }
 }
