@@ -40,14 +40,6 @@ function printLabels(data) {
     printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
 }
 
-function printBarcode(code) {
-    let path = Routing.generate('get_print_data', true);
-
-    $.post(path, function (response) {
-        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
-    });
-}
-
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
 let tableColis = $('#tableColis').DataTable({
     responsive: true,

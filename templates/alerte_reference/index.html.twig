@@ -9,8 +9,7 @@
     <table id="tableAlerte_id" class="table table-striped table-bordered w-100">
     </table>
 {% endblock %}
-{% block javascript %}
-
-<script src = "{{ asset('js/alert.js') }}?{{ date().timestamp }}"></script>
-
+{% block javascripts %}
+    {{ parent() }}
+    <script src = "{{ asset('js/alert.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

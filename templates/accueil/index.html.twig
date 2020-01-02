@@ -63,14 +63,16 @@ class='accueil-back'
     </div>
 {% endif %}
 
-{% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+{% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
     {% include "accueil/linkToAddArticleForm.html.twig" %}
 {% endif %}
 
 {% endblock %}
-{% block javascript %}
-<script>
-    const id = 0;
-</script>
-<script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const id = 0;
+    </script>
+    <script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

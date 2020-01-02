@@ -101,7 +101,6 @@ class EnCoursController extends AbstractController
                     if (empty($minutesBetween)) {
                     	$success = false;
 					} else {
-                        dump($dateMvt);
 						$dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
 						$emplacementInfo[] = [
 							'colis' => $mvt->getColis(),
