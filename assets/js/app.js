@@ -10,5 +10,3 @@ import '../sass/app.sass'
 
 // Need jQuery? Install it with "yarn add jquery", then uncomment to require it.
 // const $ = require('jquery');
-
-import './router'

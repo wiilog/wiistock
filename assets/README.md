@@ -12,7 +12,7 @@
 ```bash
 php --ini
 ```
-* modifier le champ memory_limit à 1
+* modifier le champ memory_limit à -1
 
 ### Installer les librairies
 ```bash
