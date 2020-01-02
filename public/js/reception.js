@@ -507,7 +507,6 @@ function articleChanged(select) {
         let route = Routing.generate('is_urgent', true);
         let params = JSON.stringify(select.val());
         $.post(route, params, function (response) {
-            console.log(response);
             if (response) {
                 $('.emergency').removeClass('d-none');
             } else {
