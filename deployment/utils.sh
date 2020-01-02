@@ -83,10 +83,11 @@ function script::deploy() {
 
         res=$?
 
-        if [ "$res" != 0 ]; then
-            echo -e "${command[2]}"
+        local errorMessage="${command[2]}"
+        if [[ "$errorMessage" != "" && "$res" != 0 ]]; then
+            echo -e "$errorMessage"
             exit "$res";
-        else
+        elif [[ "$res" == 0 ]]; then
             echo -e "${command[1]}"
         fi
 
