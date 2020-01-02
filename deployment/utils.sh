@@ -12,7 +12,7 @@ function file::replaceInFile() {
     match=$1
     replace=$2
     file=$3
-    sed -i "s/$match.*/$replace/" $file
+    sed -i "s/$match.*/$replace/" "$file"
 }
 
 function remote::run() {
