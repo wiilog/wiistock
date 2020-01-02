@@ -55,35 +55,14 @@ echo ''
 
 # choix de l'instance
 echo -n '-> déployer sur quelle instance ? '
-while true; do
-    read instance
-    case "$instance" in
-    dev | test)
-        serverName='server-dev'
-        break
-        ;;
-    cl2-prod | cl1-rec | scs1-prod | scs1-rec)
-        serverName='server-prod1'
-        break
-        ;;
-    col1-prod | col1-rec)
-        serverName='server-prod2'
-        break
-        ;;
-    *) echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev' ;;
-    esac
-done
+instance=$(script::readInstance)
+serverName=$(script::getServerName "$instance")
 
 # mise en maintenance
 if [ "$serverName" = 'server-dev' ]; then
-    cd /var/www/"$instance"/WiiStock && \
-    replaceInFile "APP_ENV" "APP_ENV=maintenance" ".env"
+    cd /var/www/"$instance"/WiiStock && replaceInFile "APP_ENV" "APP_ENV=maintenance" ".env"
 else
-    run="
-        cd /var/www/$instance/WiiStock && \\
-        replaceInFile \"APP_ENV\" \"APP_ENV=maintenance\" \".env\"
-    "
-    remote::run serverName replaceInFile "$run"
+    remote::changeEnv
 fi
 
 printf "\n////////// OK : mise en maintenance de l'instance $instance //////////\n"
@@ -134,54 +113,63 @@ test | dev | '') env=dev ;;
 *) env=prod ;;
 esac
 
-# git pull / migrations et mise à jour bdd / fixtures / fin de maintenance
+# git pull / migrations et mise à jour bdd / fixtures
+
+commandsToRun=(\
+    (\
+        "git pull"\
+        "\n////////// OK : git pull effectué //////////\n"\
+    )\
+    (\
+        "php bin/console doctrine:migrations:migrate && php bin/console doctrine:schema:update --force"\
+        "\n////////// OK : migrations de la base effectuées //////////\n"\
+        "\n////////// KO : migrations //////////\n"\
+    )\
+    (\
+        "php bin/console doctrine:fixtures:load --append $fixturesGroups"\
+        "\n$fixturesMsg\n"\
+        "\n////////// KO : fixtures //////////\n"\
+    )\
+)
 
 
 printf "\n-> lancer composer install ? (entrée/n)\n"
-IFS=' '
 read doComposerInstall
 if [ "$doComposerInstall" != 'n' ]; then
-    composerInstall="
-        composer install
-        printf \"\\n////////// OK : composer install //////////\\n\"
-    "
+    commandsToRun+=( (\
+        "composer install"\
+        "printf \"\\n////////// OK : composer install //////////\\n\""\
+        "printf \"\\n////////// KO : composer install //////////\\n\""\
+    ) )
 fi
 
 printf "\n-> lancer yarn install ? (entrée/n)\n"
-IFS=' '
 read doYarnInstall
 if [ "$doYarnInstall" != 'n' ]; then
-    yarnInstall="
-        yarn install
-        printf \"\\n////////// OK : yarn install //////////\\n\"
-    "
+    commandsToRun+=( (\
+        "yarn install"\
+        "printf \"\\n////////// OK : yarn install //////////\\n\""\
+        "printf \"\\n////////// KO : yarn install //////////\\n\""\
+    ) )
 fi
 
+commandsToRun+=(\
+    (\
+        "yarn build"\
+        "\n////////// OK : yarn encore //////////\n"\
+        "\n////////// KO : yarn encore //////////\n"\
+    )\
+    (\
+        "replaceInFile \"APP_ENV\" \"APP_ENV=$env\" \".env\""\
+        "\n////////// OK : mise en environnement de $env de l'instance $instance //////////\n"\
+        "\n////////// KO : mise en environnement de $env de l'instance $instance //////////\n"\
+    )\
+    (\
+        "php bin/console cache:clear && chmod 777 -R /var/www/$instance/WiiStock/var/cache/"\
+        "\n////////// OK : nettoyage du cache //////////\n"\
+        "\n////////// KO : nettoyage du cache //////////\n"\
+    )\
+)
 
-run="
-    cd /var/www/$instance/WiiStock
-    git pull
-    printf \"\\n////////// OK : git pull effectué //////////\\n\"
-    php bin/console doctrine:migrations:migrate
-    php bin/console doctrine:schema:update --force
-    printf \"\\n////////// OK : migrations de la base effectuées //////////\\n\"
-    php bin/console doctrine:fixtures:load --append $fixturesGroups
-    printf \"\\n$fixturesMsg\\n\"
-    $composerInstall
-    $yarnInstall
-    yarn build
-    printf \"\\n////////// OK : yarn encore //////////\\n\"
-    replaceInFile \"APP_ENV\" \"APP_ENV=maintenance\" \".env\"
-    printf \"\\n////////// OK : mise en environnement de $env de l'instance $instance //////////\\n\"
-    php bin/console cache:clear
-    chmod 777 -R /var/www/$instance/WiiStock/var/cache/
-    printf \"\\n////////// OK : cache nettoyé //////////\\n\"
-"
-
-if [ "$serverName" = 'server-dev' ]; then
-    $run
-else
-    remote::run serverName replaceInFile "$run"
-fi
-
+script::run "$serverName" "$instance" "${array[@]}"
 printf "\n////////// OK : déploiement sur $instance terminé ! //////////\n"
