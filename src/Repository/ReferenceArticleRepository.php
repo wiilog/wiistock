@@ -37,7 +37,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
-        'Code' => 'barCode'
+        'Code barre' => 'barCode'
     ];
 
     public function __construct(RegistryInterface $registry)
@@ -176,7 +176,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
-			'Code' => ['field' => 'barCode', 'typage' => 'text']
+			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
         //TODO trouver + dynamique
         $qb->from('App\Entity\ReferenceArticle', 'ra');
@@ -974,9 +974,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 								->leftJoin('ra.articlesFournisseur', 'af')
 								->leftJoin('af.articles', 'a')
 								->addSelect('(CASE
-								WHEN ra.typeQuantite = :typeQteArt 
+								WHEN ra.typeQuantite = :typeQteArt
 								THEN (SUM(a.quantite))
-								ELSE ra.quantiteStock 
+								ELSE ra.quantiteStock
 								END) as quantity')
 								->groupBy('ra.id')
 								->orderBy('quantity', $order)

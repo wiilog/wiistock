@@ -217,7 +217,7 @@ class ArticleController extends Controller
 
         ];
         $champF[] = [
-            'label' => 'Code',
+            'label' => 'Code barre',
             'id' => 0,
             'typage' => 'text'
 
@@ -272,7 +272,7 @@ class ArticleController extends Controller
 //
 //        ];
         $champsFText[] = [
-            'label' => 'Code',
+            'label' => 'Code barre',
             'id' => 0,
             'typage' => 'text'
 
@@ -419,10 +419,10 @@ class ArticleController extends Controller
 
 				],
                 [
-                    "title" => 'Code',
-                    "data" => 'Code',
-                    'name' => 'Code',
-                    "class" => (in_array('Code', $columnsVisible) ? 'display' : 'hide'),
+                    "title" => 'Code barre',
+                    "data" => 'Code barre',
+                    'name' => 'Code barre',
+                    "class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
 
                 ],
 				[
