@@ -74,7 +74,7 @@ class LivraisonRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT l.id, 
+			"SELECT l.id,
                          l.numero as number,
                          dest.label as location
 			FROM App\Entity\Livraison l
@@ -168,7 +168,6 @@ class LivraisonRepository extends ServiceEntityRepository
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
-					dump($search);
 					$qb
 						->leftJoin('l.statut', 's2')
 						->leftJoin('l.utilisateur', 'u2')

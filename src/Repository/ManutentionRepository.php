@@ -108,7 +108,6 @@ class ManutentionRepository extends ServiceEntityRepository
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
-                    dump($value);
                     $qb
                         ->join('m.demandeur', 'd')
                         ->andWhere("d.id in (:username)")

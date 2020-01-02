@@ -210,7 +210,6 @@ class DemandeRepository extends ServiceEntityRepository
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
-					dump($value);
 					$qb
 						->join('d.utilisateur', 'u')
 						->andWhere("u.id in (:id)")
