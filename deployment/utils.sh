@@ -64,17 +64,19 @@ function script::deploy() {
     # usage: remote::run "$serverName" "instance" "${commandsToRun[@]}"
     # commandsToRun should an array of string with format "commandToRun ;; successMessage ;; errorMessage"
     local serverName=$1
+    shift
     local instance=$2
-    local commandsToRun=$3
+    shift
+    local commandsToRun=("$@")
     local res
     cdProject="cd /var/www/$instance/WiiStock"
     for commandStr in "${commandsToRun[@]}"
     do
         IFS=';;' read -ra command <<< "$commandStr"
-        if [ "$serverName" = 'server-dev' ]; then
+        if [[ "$serverName" == "server-dev" ]]; then
             res=$("$cdProject && ${command[0]}")
         else
-            res=remote::run serverName replaceInFile "$cdProject && ${command[0]}"
+            res=remote::run "$serverName" replaceInFile "$cdProject && ${command[0]}"
         fi
 
         if [ "$res" = 1 ]; then
