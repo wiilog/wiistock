@@ -1,5 +1,10 @@
 {% extends 'layout.html.twig' %}
 
+{% block classbody %}
+    style='background-image: url({{asset('img/GTXBackAccueil2red.png')}})'
+    class='accueil-back'
+{% endblock %}
+
 {% block page_content %}
     <div class="row justify-content-center">
         <div id="dashboard-arrival" class="dashboard-box">
