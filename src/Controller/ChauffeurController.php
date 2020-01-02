@@ -107,8 +107,6 @@ class ChauffeurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            dump($data);
             $chauffeur = new Chauffeur();
 
             $chauffeur

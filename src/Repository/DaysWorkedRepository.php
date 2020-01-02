@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\DaysWorked;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -38,7 +39,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
     /**
      * @param $day
      * @return DaysWorked
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findByDayAndWorked($day)
     {
@@ -51,5 +52,21 @@ class DaysWorkedRepository extends ServiceEntityRepository
             "
         )->setParameter('day', $day);
         return $query->getOneOrNullResult();
+    }
+
+	/**
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+    public function countEmptyTimes()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(dw)
+            FROM App\Entity\DaysWorked dw 
+            WHERE dw.times IS NULL AND dw.worked = 1
+            ");
+        return $query->getSingleScalarResult();
     }
 }

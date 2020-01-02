@@ -23,7 +23,7 @@
                         <div class="logo-wrapper">
                             {% include 'logo.svg.twig' %}
                         </div>
-                        <div class="version"> V2.1.1</div>
+                        <div class="version"> V2.1.2</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -139,7 +139,7 @@
                             </li>
                             <li>
                                 <a href="{{ path('reference_article_index') }}" class="sub-item">
-                                    {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                                    {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                                         • Référence CEA
                                     {% else %}
                                         • Référence
@@ -243,6 +243,10 @@
         </nav>
     {% endblock %}
     <div class="wrapper" class="accueil-back">
+        {% block page_filter %}
+
+        {% endblock %}
+
         <div class="container-fluid">
             {% block page_content %}
 

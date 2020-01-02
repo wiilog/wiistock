@@ -80,6 +80,7 @@ class EnCoursController extends AbstractController
      */
     public function apiForEmplacement(Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        	$success = true;
             $emplacementInfo = [];
             $emplacement = $this->emplacementRepository->find($data['id']);
             $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
@@ -94,22 +95,27 @@ class EnCoursController extends AbstractController
             }
             foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                    //VERIFCECILE
-                    $dateMvt = $mvt->getDatetime();
+					$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
                     $minutesBetween = $this->getMinutesBetween($mvt);
-                    $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-                    //VERIFCECILE
-                    $emplacementInfo[] = [
-                        'colis' => $mvt->getColis(),
-                        'time' => $dataForTable['time'],
-                        'date' => $dateMvt->format('d/m/y H:i'),
-                        'max' => $emplacement->getDateMaxTime(),
-                        'late' => $dataForTable['late']
-                    ];
+
+                    if (empty($minutesBetween)) {
+                    	$success = false;
+					} else {
+						$dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
+						$emplacementInfo[] = [
+							'colis' => $mvt->getColis(),
+							'time' => $dataForTable['time'],
+							'date' => $dateMvt->format('d/m/Y H:i:s'),
+							'max' => $emplacement->getDateMaxTime(),
+							'late' => $dataForTable['late']
+						];
+					}
                 }
             }
+
             return new JsonResponse([
-                'data' => $emplacementInfo
+                'data' => $emplacementInfo,
+				'sucess' => $success
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -138,7 +144,7 @@ class EnCoursController extends AbstractController
                             $retards[] = [
                                 'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
-                                'date' => $dateMvt->format('d/m/y H:i'),
+                                'date' => $dateMvt->format('d/m/Y H:i:s'),
                                 'emp' => $emplacement->getLabel(),
                             ];
                         }
@@ -163,7 +169,7 @@ class EnCoursController extends AbstractController
         $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
         $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
             ->add(new \DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
-        //VERIFCECILE
+
         $dateMvt = $mvt->getDatetime();
         $interval = \DateInterval::createFromDateString('1 day');
         $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
@@ -172,8 +178,26 @@ class EnCoursController extends AbstractController
          * @var $day DateTimeAlias
          */
         foreach ($period as $day) {
-            $minutesBetween += $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
+        	if (!$minutes = $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt)) {
+        		return false;
+			} else {
+            	$minutesBetween += $minutes;
+			}
         }
         return $minutesBetween;
     }
+
+	/**
+	 * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function checkTimeWorkedIsDefined(Request $request)
+	{
+		if ($request->isXmlHttpRequest()) {
+			$nbEmptyTimes = $this->daysRepository->countEmptyTimes();
+
+			return new JsonResponse($nbEmptyTimes == 0);
+		}
+		throw new NotFoundHttpException("404");
+
+	}
 }

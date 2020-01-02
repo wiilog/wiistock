@@ -153,7 +153,8 @@ class LitigeRepository extends ServiceEntityRepository
             'SELECT DISTINCT l
             FROM App\Entity\Litige l
             INNER JOIN l.articles a
-            INNER JOIN a.reception r
+            INNER JOIN a.receptionReferenceArticle rra
+            INNER JOIN rra.reception r
             WHERE r.id = :reception'
         )->setParameter('reception', $reception);
 
@@ -182,14 +183,15 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('lh.date as dateHisto')
 			->addSelect('ach.username as achUsername')
 			->from('App\Entity\Litige', 'l')
-			->leftJoin('l.colis', 'c')
+            ->leftJoin('l.colis', 'c')
+            ->leftJoin('l.articles', 'art')
 			->leftJoin('l.type', 't')
-			->leftJoin('c.arrivage', 'a')
+            ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
 			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
 			->leftJoin('l.status', 's');
-
+		$qb->where('art IS NULL');
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -248,7 +250,7 @@ class LitigeRepository extends ServiceEntityRepository
 						a.numeroArrivage LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
-						lh.comment LIKE :value	
+						lh.comment LIKE :value
 						')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -283,7 +285,6 @@ class LitigeRepository extends ServiceEntityRepository
 				}
 			}
 		}
-
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
 

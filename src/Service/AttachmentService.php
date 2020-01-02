@@ -58,7 +58,6 @@ class AttachmentService
 				$this->em->persist($pj);
 			}
 		}
-		$this->em->flush();
 	}
 
 	/**

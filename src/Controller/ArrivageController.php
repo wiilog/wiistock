@@ -10,7 +10,6 @@ use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
 
 use App\Repository\ArrivageRepository;
@@ -439,6 +438,7 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
+            $em->flush();
 
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
@@ -570,7 +570,7 @@ class ArrivageController extends AbstractController
             $response = '';
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
-            $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN);
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();
@@ -751,7 +751,7 @@ class ArrivageController extends AbstractController
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -823,6 +823,7 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1065,6 +1066,7 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));
 

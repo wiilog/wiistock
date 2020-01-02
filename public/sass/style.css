@@ -199,6 +199,22 @@ a:hover {
   max-width: 250px;
 }
 
+.minw-300px {
+  min-width: 300px !important;
+}
+
+.minw-100px {
+  min-width: 100px !important;
+}
+
+.minw-200px {
+  min-width: 200px !important;
+}
+
+.minw-450px {
+  min-width: 450px !important;
+}
+
 .w-120px {
   width: 120px;
 }
@@ -264,9 +280,7 @@ a:hover {
 }
 
 /* Login    
- *
  * *================= 
- *
  * */
 .login-wrapper .btn-right {
   margin-top: 7px;
@@ -377,6 +391,12 @@ a:hover {
   border: 1px solid black;
 }
 
+.frame {
+  border: 1px solid #b2b2b2;
+  border-radius: 8px;
+  padding: 8px;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
@@ -483,6 +503,19 @@ a:hover {
 
 .fournisseurFilterContainer .select2-selection {
   overflow: auto;
+}
+
+.dashboard-link {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  height: 75px;
+  cursor: pointer;
+  padding-top: 20px;
+  text-align: center;
+}
+.dashboard-link p, .dashboard-link span {
+  display: inline-block;
+  font-size: 35px;
 }
 
 .sidemenu-bg {
@@ -839,6 +872,15 @@ em {
   background-image: none !important;
 }
 
+.dataTables_filter {
+  position: relative;
+}
+.dataTables_filter > label {
+  position: absolute;
+  right: 0;
+  padding-right: 8px;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
@@ -953,10 +995,8 @@ button:focus {
 }
 
 .filters {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  padding-left: 6px;
+  padding: 6px;
 }
 .filters > div {
   margin: auto 12px;

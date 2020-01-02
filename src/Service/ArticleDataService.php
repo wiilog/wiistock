@@ -14,6 +14,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
@@ -30,6 +31,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -159,7 +161,12 @@ class ArticleDataService
 	 */
     private $mailerService;
 
-    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    public function __construct(FiltreSupRepository $filtreSupRepository, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -182,6 +189,7 @@ class ArticleDataService
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->mailerService = $mailerService;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
 	/**
@@ -387,15 +395,7 @@ class ArticleDataService
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-//			$labelChampLibre = strtolower($champLibre->getLabel());
-//			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
-//            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
-//			if ($isCEA
-//			&& ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
-//			&& $isADemand) {
-//				$valeurChampArticle = null;
-//			}
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
@@ -428,13 +428,9 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-//		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-//		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
-//		if (!$isCea) {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
-//		}
 
         $entityManager = $this->em;
         $price = max(0, $data['prix']);
@@ -460,12 +456,7 @@ class ArticleDataService
             $champLibresKey = array_keys($data);
             foreach ($champLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
-//                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-//					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
-
                     $champLibre = $this->champLibreRepository->find($champ);
-//					$labelCL = strtolower($champLibre->getLabel());
-//                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
@@ -476,7 +467,6 @@ class ArticleDataService
                     $valeurChampLibre->setValeur($data[$champ]);
                     $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
-//                    }
                 }
             }
             $entityManager->flush();
@@ -500,7 +490,6 @@ class ArticleDataService
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
-
         $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
@@ -569,31 +558,28 @@ class ArticleDataService
 			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
-
+			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                'article' => $toInsert,
+                'title' => 'Votre article urgent a bien été réceptionné.',
+            ]);
 			// gestion des urgences
 			if ($refArticle->getIsUrgent()) {
 				// on envoie un mail aux demandeurs
 				$this->mailerService->sendMail(
-					'FOLLOW GT // Article urgent réceptionné',
-					$this->renderView('mails/mailArticleUrgentReceived.html.twig', [
-						'article' => $toInsert,
-						'title' => 'Votre article urgent a bien été réceptionné.',
-					]),
-					$demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : ''
+					'FOLLOW GT // Article urgent réceptionné', $mailContent,
+					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
 			}
 		}
-
         $entityManager->flush();
-
         return $toInsert;
     }
 
     public function getDataForDatatable($params = null, $user)
     {
-        $data = $this->getArticleDataByParams($params, $user);
+		$data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
 
@@ -602,7 +588,7 @@ class ArticleDataService
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams(null, $user);
+			$data = $this->getArticleDataByParams(null, $user);
         }
         return $data;
     }
@@ -638,13 +624,16 @@ class ArticleDataService
 	 */
     public function getArticleDataByParams($params = null, $user)
     {
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutLabel = null;
-        } else {
-            $statutLabel = Article::STATUT_ACTIF;
-        }
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
 
-        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $user);
+		// l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+			$filters = [[
+				'field' => FiltreSup::FIELD_STATUT,
+				'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+			]];
+		}
+		$queryResult = $this->articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
@@ -683,58 +672,44 @@ class ArticleDataService
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $criteriaFactory = Criteria::create();
-            $exprFactory = Criteria::expr();
-            $mouvementsFiltered = $article
-                ->getMouvements()
-                ->matching(
-                    $criteriaFactory
-                        ->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
-                        ->orderBy(['date' => Criteria::DESC])
-                );
+			$status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+		} else {
+        	$status = '';
+		}
 
-            /** @var MouvementStock $mouvementEntree */
-            $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+		$criteriaFactory = Criteria::create();
+		$exprFactory = Criteria::expr();
+		$mouvementsFiltered = $article
+			->getMouvements()
+			->matching(
+				$criteriaFactory
+					->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
+					->orderBy(['date' => Criteria::DESC])
+			);
 
-            $row = [
-                'id' => $article->getId() ?? 'Non défini',
-                'Référence' => $article->getReference() ?? 'Non défini',
-                'Statut' => $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini',
-                'Libellé' => $article->getLabel() ?? 'Non défini',
-                'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Type' => $article->getType()->getLabel(),
-                'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
-                'Commentaire' => $article->getCommentaire(),
-                'Prix unitaire' => $article->getPrixUnitaire(),
-				'Code' => $article->getBarCode(),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                    'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
-                ]),
-            ];
-        } else {
-            $row =
-                [
-                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                    'Statut' => '',
-                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                    'Type' => $article->getType()->getLabel(),
-                    'Emplacement' => $article->getEmplacement()->getLabel(),
-                    'Commentaire' => $article->getCommentaire(),
-                    'Prix unitaire' => $article->getPrixUnitaire(),
-                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                        'url' => $url,
-                        'articleId' => $article->getId(),
-                        'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
-                    ]),
-                ];
-        }
+		/** @var MouvementStock $mouvementEntree */
+		$mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+
+		$row = [
+			'id' => $article->getId() ?? 'Non défini',
+			'Référence' => $article->getReference() ?? 'Non défini',
+			'Statut' => $status,
+			'Libellé' => $article->getLabel() ?? 'Non défini',
+			'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
+			'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+			'Quantité' => $article->getQuantite() ?? 0,
+			'Type' => $article->getType() ? $article->getType()->getLabel() : '',
+			'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+			'Commentaire' => $article->getCommentaire(),
+			'Prix unitaire' => $article->getPrixUnitaire(),
+			'Code' => $article->getBarCode(),
+			'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+				'url' => $url,
+				'articleId' => $article->getId(),
+				'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
+			]),
+		];
+
         $rows = array_merge($rowCL, $row);
         return $rows;
     }

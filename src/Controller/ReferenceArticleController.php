@@ -6,10 +6,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -39,6 +37,7 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
@@ -196,7 +195,36 @@ class ReferenceArticleController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, MouvementStockRepository $mouvementStockRepository)
+    private $CSVExportService;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                ParametreRepository $parametreRepository,
+                                SpecificService $specificService,
+                                \Twig_Environment $templating,
+                                EmplacementRepository $emplacementRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                LigneArticleRepository $ligneArticleRepository,
+                                ArticleRepository $articleRepository,
+                                ArticleDataService $articleDataService,
+                                LivraisonRepository $livraisonRepository,
+                                DemandeRepository $demandeRepository,
+                                CollecteRepository $collecteRepository,
+                                StatutRepository $statutRepository,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                TypeRepository  $typeRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                RefArticleDataService $refArticleDataService,
+                                UserService $userService,
+                                InventoryCategoryRepository $inventoryCategoryRepository,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository,
+                                MouvementStockRepository $mouvementStockRepository,
+                                CSVExportService $CSVExportService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -225,6 +253,7 @@ class ReferenceArticleController extends Controller
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -935,7 +964,7 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+					$isCea = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
                     if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
@@ -990,6 +1019,21 @@ class ReferenceArticleController extends Controller
             $em->flush();
 
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
+     */
+    public function isUrgent(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $referenceArticle = $this->referenceArticleRepository->find($id);
+            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
         }
         throw new NotFoundHttpException("404");
     }
@@ -1092,7 +1136,21 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
+            $data['headers'] = [
+                'reference',
+                'libelle',
+                'quantite',
+                'type',
+                'type_quantite',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'fournisseurs',
+                'articles fournisseurs',
+                'seuil securite',
+                'seuil alerte',
+                'prix unitaire'
+            ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1121,19 +1179,19 @@ class ReferenceArticleController extends Controller
     	$stringArticlesFournisseur = implode(' / ', $arrayAF);
     	$stringFournisseurs = implode(' / ', $arrayF);
 
-        $refData[] = $ref->getReference();
-        $refData[] = $ref->getLibelle();
-        $refData[] = $ref->getQuantiteStock();
-        $refData[] = $ref->getType()->getLabel();
-        $refData[] = $ref->getTypeQuantite();
-        $refData[] = $ref->getStatut()->getNom();
-        $refData[] = strip_tags($ref->getCommentaire());
-        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $refData[] = $stringFournisseurs;
-        $refData[] = $stringArticlesFournisseur;
-        $refData[] = $ref->getLimitSecurity();
-        $refData[] = $ref->getLimitWarning();
-        $refData[] = $ref->getPrixUnitaire();
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getReference());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLibelle());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getQuantiteStock());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getType() ? $ref->getType()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getTypeQuantite());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getStatut() ? $ref->getStatut()->getNom() : '');
+        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($ref->getCommentaire()));
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($stringFournisseurs);
+        $refData[] = $this->CSVExportService->escapeCSV($stringArticlesFournisseur);
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitSecurity());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {

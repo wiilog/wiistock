@@ -30,11 +30,11 @@
 {% include "champ_libre/modalEditType.html.twig" %}
 
 {% endblock %}
-{% block javascript %}
-<script>
-    let id 
-</script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id;
+    </script>
 
-<script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
-
-{% endblock javascript %}
+    <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
+{% endblock %}

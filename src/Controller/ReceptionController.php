@@ -268,7 +268,7 @@ class ReceptionController extends AbstractController
                 $reception
                     ->setTransporteur($transporteur);
             }
-//TODO CG dateAttendue ou date-attendue ??
+
             $reception
                 ->setReference($data['reference'])
                 ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
@@ -281,7 +281,6 @@ class ReceptionController extends AbstractController
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
                 ->setCommentaire($data['commentaire']);
-
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -731,7 +730,7 @@ class ReceptionController extends AbstractController
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
 
             $json = $this->renderView(
-                'reception/modalModifyLigneArticleContent.html.twig',
+                'reception/modalEditLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
                     'canUpdateQuantity' => $canUpdateQuantity
@@ -891,7 +890,15 @@ class ReceptionController extends AbstractController
     public function getArticles(Request $request, Reception $reception)
     {
         if ($request->isXmlHttpRequest()) {
-            $articles = $this->articleRepository->getArticleByReception($reception->getId());
+            $articles = [];
+            foreach ($reception->getReceptionReferenceArticles() as $rra) {
+                foreach($rra->getArticles() as $article) {
+                    $articles[] = [
+                        'id' => $article->getId(),
+                        'text' => $article->getBarCode()
+                    ];
+                }
+            }
 
             return new JsonResponse(['results' => $articles]);
         }
@@ -949,7 +956,7 @@ class ReceptionController extends AbstractController
             $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $response = new Response();
             $response->setContent($this->renderView(
-                'reception/condtionnementArticleTemplate.html.twig',
+                'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
                         'reference' => $reference,
@@ -1057,7 +1064,8 @@ class ReceptionController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request, null, $litige);
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
 
             $response = [];
             return new JsonResponse($response);
@@ -1116,8 +1124,8 @@ class ReceptionController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request, null, $litige);
-
+            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $em->flush();
             $this->sendMailToAcheteurs($litige);
             $response = [];
 
@@ -1425,22 +1433,15 @@ class ReceptionController extends AbstractController
                         'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
                     ]));
                 } else {
-                    $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
-                    //                    foreach ($listArticleFournisseur as $af) {
-                    $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
-
-                    foreach ($listArticle as $article) {
-                        if ($article->getReception() && $article->getReception() === $reception) {
-                            array_push($data['refs'], $article->getBarCode());
-                            array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
-                                'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                                'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
-                                'artLabel' => $article->getLabel(),
-                            ])
-                            );
-                        }
+                    foreach ($recepRef->getArticles() as $article) {
+                        array_push($data['refs'], $article->getBarCode());
+                        array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
+                            'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
+                            'artLabel' => $article->getLabel(),
+                        ])
+                        );
                     }
-                    //                    }
                 }
             }
 
@@ -1654,13 +1655,13 @@ class ReceptionController extends AbstractController
             foreach ($receptions as $reception) {
                 $receptionData = [];
 
-                $receptionData[] = $reception->getNumeroReception();
-                $receptionData[] = $reception->getReference();
-                $receptionData[] = $reception->getFournisseur()->getNom();
-                $receptionData[] = $reception->getUtilisateur()->getUsername();
-                $receptionData[] = $reception->getStatut()->getNom();
-                $receptionData[] = $reception->getDate()->format('d/m/Y h:i');
-                $receptionData[] = $reception->getType()->getLabel();
+                $receptionData[] = $reception->getNumeroReception() ?? '';
+                $receptionData[] = $reception->getReference() ?? '';
+                $receptionData[] = $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '';
+                $receptionData[] = $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '';
+                $receptionData[] = $reception->getStatut() ? $reception->getStatut()->getNom() : '';
+                $receptionData[] = $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '';
+                $receptionData[] = $reception->getType() ? $reception->getType()->getLabel() : '';
 
                 $data[] = $receptionData;
             }
@@ -1689,9 +1690,15 @@ class ReceptionController extends AbstractController
 			// protection quantité réceptionnée < quantité attendue
 			$totalQuantities = [];
 			foreach ($articles as $article) {
-				$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $article['noCommande'], $article['refArticle']);
+				$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle(
+				    $reception,
+                    $article['noCommande'],
+                    $article['refArticle']
+                );
 
-				if (!isset($totalQuantities[$rra->getId()])) $totalQuantities[$rra->getId()] = 0;
+				if (!isset($totalQuantities[$rra->getId()])) {
+				    $totalQuantities[$rra->getId()] = ($rra->getQuantite() ?? 0);
+                }
 				$totalQuantities[$rra->getId()] += $article['quantite'];
 			}
 			foreach ($totalQuantities as $rraId => $totalQuantity) {
@@ -1720,7 +1727,6 @@ class ReceptionController extends AbstractController
 			$response['barcodes'] = $response['barcodesLabel'] = [];
 			foreach ($articles as $article) {
 				$createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
-
 				$refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
 
 				$response['barcodes'][] = $createdArticle->getBarCode();

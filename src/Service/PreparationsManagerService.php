@@ -333,7 +333,7 @@ class PreparationsManagerService {
                         'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => Article::STATUT_ACTIF,
-                        'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
+                        'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getReference()
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {

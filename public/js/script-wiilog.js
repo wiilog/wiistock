@@ -13,6 +13,10 @@ const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
 
+const STATUT_ACTIF = 'disponible';
+const STATUT_INACTIF = 'consommé';
+const STATUT_EN_TRANSIT = 'en transit';
+
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
@@ -655,6 +659,24 @@ function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
     });
 }
 
+function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
 function ajaxAutoDemandCollectInit(select) {
     select.select2({
         ajax: {
@@ -704,6 +726,16 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
+function clearInvalidInputs($div) {
+    let $modal = $div.closest('.modal');
+    let $inputs = $modal.find('.modal-body').find(".data");
+    $inputs.each(function () {
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+    });
+}
+
 function displayError(modal, msg, success) {
     if (success === false) {
         modal.find('.error-msg').html(msg);
@@ -729,7 +761,7 @@ function clearModal(modal) {
         //TODO protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .ajax-autocompleteTransporteur, .select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
@@ -1069,12 +1101,11 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd)
+function newLine(path, button, toHide, buttonAdd, select = null)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
-
     inputs.each(function () {
         if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
         {
@@ -1085,16 +1116,11 @@ function newLine(path, button, toHide, buttonAdd)
         }
         params[$(this).attr('name')] = $(this).val();
     });
-
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function () {
-            let $toShow = $('#' + toHide);
-            let $toAdd = $('#' + buttonAdd);
-            $toShow.css('visibility', "hidden");
-            $toAdd.css('visibility', "hidden");
-            numberOfDataOpened--;
-            if (numberOfDataOpened === 0) {
-                $toShow.parent().parent().css("display", "none");
+        $.post(path, JSON.stringify(params), function (response) {
+            if (select) {
+                let option = new Option(response.text, response.id, true, true);
+                select.append(option).trigger('change');
             }
         });
     }
@@ -1102,4 +1128,22 @@ function newLine(path, button, toHide, buttonAdd)
 
 function redirectToDemandeLivraison(demandeId) {
     window.open(Routing.generate('demande_show', {id: demandeId}));
+}
+
+function toggleOnTheFlyForm(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    if ($toShow.hasClass('invisible')) {
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.parent().parent().css("height", "auto");
+        $toShow.removeClass('invisible');
+        $toAdd.removeClass('invisible');
+    }
+    else {
+        $toShow.addClass('invisible');
+        $toAdd.addClass('invisible');
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("height", "0");
+        }
+    }
 }

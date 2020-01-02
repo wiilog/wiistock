@@ -274,24 +274,3 @@ let aFile = function (csv) {
         }
     }
 }
-
-function toggleInput(id, button) {
-    let $toShow = $('#' + id);
-    let $toAdd = $('#' + button);
-    // let $div = document.getElementById(div);
-    if ($toShow.hasClass('invisible')){
-        $toShow.parent().parent().css("display", "flex");
-        $toShow.removeClass('invisible');
-        $toAdd.removeClass('invisible');
-        numberOfDataOpened ++;
-        // $div.style.visibility = "visible";
-    } else {
-        $toShow.addClass('invisible');
-        $toAdd.addClass('invisible');
-        numberOfDataOpened --;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        // $div.style.visibility = "hidden";
-    }
-}

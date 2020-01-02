@@ -232,6 +232,6 @@ function initEditMvtTracaEditor(modal) {
 };
 
 function fillDateInNewModal() {
-    let date = new Date();
-    $('#modalNewMvtTraca').find('.datetime').val(date.toISOString().slice(0,16));
+    const date = moment().format();
+    $('#modalNewMvtTraca').find('.datetime').val(date.slice(0,16));
 }

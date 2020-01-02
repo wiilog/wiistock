@@ -29,6 +29,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		'Libellé' => 'libelle',
         'Référence' => 'reference',
         'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
@@ -408,8 +409,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->select('count(ra)');
         } else {
             $qb
-                ->select('count(distinct(ra))')
-                ->leftJoin('ra.valeurChampsLibres', 'vcl');
+                ->select('count(distinct(ra))');
         }
         $countQuery = $qb->getQuery()->getSingleScalarResult();
 
@@ -417,8 +417,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        $qb->select('ra')
-            ->distinct();
+        $qb->select('ra');
         if ($needCLOrder) {
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
@@ -955,16 +954,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.reference LIKE :value')
+                        ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
+
+			$countFiltered = count($qb->getQuery()->getResult());
+
+			if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     switch ($column) {
+						case 'quantiteStock':
+							$qb
+								->leftJoin('ra.articlesFournisseur', 'af')
+								->leftJoin('af.articles', 'a')
+								->addSelect('(CASE
+								WHEN ra.typeQuantite = :typeQteArt 
+								THEN (SUM(a.quantite))
+								ELSE ra.quantiteStock 
+								END) as quantity')
+								->groupBy('ra.id')
+								->orderBy('quantity', $order)
+								->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
+							break;
                         default:
                             $qb->orderBy('ra.' . $column, $order);
                             break;
@@ -972,7 +987,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 }
             }
         }
-        $countFiltered = count($qb->getQuery()->getResult());
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

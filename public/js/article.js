@@ -32,13 +32,16 @@ function initTableArticle() {
                 initComplete: function () {
                     loadSpinnerAR($('#spinner'));
                     init();
-                    hideAndShowColumns();
                     overrideSearchArticle();
+                    hideAndShowColumns(columns);
                 },
+                columns: columns.map((column) => ({
+                    ...column,
+                    class: undefined
+                })),
                 "drawCallback": function (settings) {
                     resizeTable();
                 },
-                columns: columns,
             });
     });
 }
@@ -52,6 +55,12 @@ let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
 };
+
+function hideAndShowColumns(columns) {
+    tableArticle.columns().every(function(index) {
+        this.visible(columns[index].class !== 'hide');
+    });
+}
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
@@ -92,7 +101,7 @@ function initNewArticleEditor(modal) {
 
 function loadAndDisplayInfos(select) {
     if ($(select).val() !== null) {
-        let path = Routing.generate('demande_reference_by_fournisseur', true)
+        let path = Routing.generate('demande_reference_by_fournisseur', true);
         let fournisseur = $(select).val();
         let params = JSON.stringify(fournisseur);
 
@@ -270,7 +279,11 @@ function showOrHideColumn(check) {
     check.toggleClass('data');
 }
 
-function hideAndShowColumns() {
-    tableArticle.columns('.hide').visible(false);
-    tableArticle.columns('.display').visible(true);
+function displayActifOrInactif(select){
+    let activeOnly = select.is(':checked');
+    let path = Routing.generate('article_actif_inactif');
+
+    $.post(path, JSON.stringify({activeOnly: activeOnly}), function(){
+        tableArticle.ajax.reload();
+    });
 }

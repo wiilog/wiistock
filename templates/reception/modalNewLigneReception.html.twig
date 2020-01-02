@@ -8,13 +8,14 @@
                 </button>
             </div>
             <div class="modal-body">
+                <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
                 <!--
                 BLOCK DL
                 -->
                 {% if createDL %}
                     <div class="demande-livraison">
-                        <h5 class="modal-title">Demande de livraison<span id="reference-list"></span></h5>
-                        <div class="row mt-3">
+                        <h5 class="bold mb-3">Demande de livraison<span id="reference-list"></span></h5>
+                        <div class="row">
                             <div class="col-4 form-group">
                                 <label for="demandeur">Demandeur*</label>
                                 <select type="text" class="select2-user data w-100 needed" name="demandeur">
@@ -101,21 +102,20 @@
                                 </div>
                             {% endfor %}
                         </div>
-                        <label for="commentaire-dl" class="m-3">Commentaire</label>
+                        <label for="commentaire-dl" class="mt-3">Commentaire</label>
                     <input id='commentaire-dl'
                            class="commentaire data"
                            name="commentaire"
                            type="hidden">
                         <div class="editor-container" id="editor-container-new-demande">
                         </div>
-                        <input class="data" name="reception" type="hidden" value="{{ reception.id }}">
                     </div>
                 {% endif %}
                 <!--
                 BLOCK CONDITIONNEMENT
                 -->
-                <div class="bloc-packing">
-                    <h2>Réception d'articles</h2>
+                <div class="bloc-packing mt-5">
+                    <h5 class="bold mb-3">Réception d'articles</h5>
                     <div class="row align-items-center">
                         <div class="form-group col-4">
                             <label>Référence</label>
@@ -127,6 +127,7 @@
                                     <label for="packing-package-number" class="sr-only">Nombre de colis</label>
                                     <input id="packing-package-number"
                                            type="number"
+                                           min="0"
                                            class="form-control"
                                            name="packageNumber"/>
                                 </div>
@@ -135,6 +136,7 @@
                                     <label for="packing-number-in-package" class="sr-only">Nombre d'article dans le colis</label>
                                     <input id="packing-number-in-package"
                                            type="number"
+                                           min="0"
                                            class="form-control"
                                            name="numberInPackage"/>
                                 </div>
@@ -148,7 +150,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row articles-conditionnement-container">
+                    <h5 class="bold mt-3 mb-3 d-none packing-title">Conditionnements</h5>
+                    <div class="articles-conditionnement-container">
 
                     </div>
                 </div>

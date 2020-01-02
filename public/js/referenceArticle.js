@@ -1,3 +1,9 @@
+
+// TODO AB
+// import Routing from '../../router';
+// import '../../form-reference-article';
+
+
 $('.select2').select2();
 let tableRefArticle;
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
@@ -16,7 +22,7 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         tableColumnVisible.search('').draw()
     }
 
-    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
+    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModalReferenceArticle(modal);
 
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
@@ -41,115 +47,10 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 
     } else {
         // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
+        let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
 
-}
-
-function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
-    let msg = '';
-
-    if(doublonRef ){
-        msg+= "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
-    }
-
-    // cas où il manque des champs obligatoires
-    if (missingInputs.length > 0) {
-        if (missingInputs.length == 1) {
-            msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-        } else {
-            msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-        }
-    }
-    // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-    if (wrongNumberInputs.length > 0) {
-        wrongNumberInputs.forEach(function (elem) {
-            let label = elem.closest('.form-group').find('label').text();
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-
-            msg += 'La valeur du champ ' + label;
-
-            let min = elem.attr('min');
-            let max = elem.attr('max');
-
-            if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-            } else if (typeof (min) == 'undefined') {
-                msg += ' doit être inférieure à ' + max + ".<br>";
-            } else if (typeof (max) == 'undefined') {
-                msg += ' doit être supérieure à ' + min + ".<br>";
-            }
-        })
-    }
-
-    return msg;
-}
-
-function getDataFromModal(modal) {
-    // On récupère toutes les données qui nous intéressent
-    // dans les inputs...
-    let Data = {};
-    let inputs = modal.find(".data");
-    // Trouver les champs correspondants aux infos fournisseurs...
-    let fournisseursWithRefAndLabel = [];
-    let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
-    let labelFournisseur = modal.find('input[name="labelFournisseur"]');
-    let refsF = [];
-    let missingInputs = [];
-    let wrongNumberInputs = [];
-    let doublonRef = false;
-    modal.find('select[name="fournisseur"]').each(function (index) {
-        if ($(this).val()) {
-            if (fournisseurReferences.eq(index).val()) {
-                fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
-                if (refsF.includes(fournisseurReferences.eq(index).val())) {
-                    doublonRef = true;
-                    fournisseurReferences.eq(index).addClass('is-invalid');
-                } else {
-                    refsF.push(fournisseurReferences.eq(index).val());
-                }
-            }
-        }
-    });
-    Data['frl'] = fournisseursWithRefAndLabel;
-    inputs.each(function () {
-        const $input = $(this);
-        let val = $input.val();
-        let name = $input.attr("name");
-        if (!Data[name] || parseInt(Data[name], 10) === 0) {
-            Data[name] = val;
-        }
-        let label = $input.closest('.form-group').find('label').first().text();
-        // validation données obligatoires
-        if ($input.hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-            $input.addClass('is-invalid');
-            $input.next().find('.select2-selection').addClass('is-invalid');
-        }
-
-        // validation valeur des inputs de type number
-        // protection pour les cas où il y a des champs cachés
-        if ($input.attr('type') === 'number' && $input.hasClass('needed')) {
-            let val = parseInt($input.val());
-            let min = parseInt($input.attr('min'));
-            let max = parseInt($input.attr('max'));
-            if (val > max || val < min || isNaN(val)) {
-                wrongNumberInputs.push($input);
-                $input.addClass('is-invalid');
-            }
-        }
-    });
-    // ... et dans les checkboxes
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
-    });
-    return { Data, missingInputs, wrongNumberInputs, doublonRef };
 }
 
 function clearModalRefArticle(modal, data) {
@@ -488,31 +389,6 @@ function loadSpinnerAR(div) {
     div.addClass('d-none');
 }
 
-function loadAndDisplayInfos(select) {
-    let $modal = select.closest('.modal');
-
-    $modal.find('.newContent').removeClass('d-none');
-    $modal.find('.newContent').addClass('d-block');
-
-    $modal.find('span[role="textbox"]').each(function () {
-        $(this).parent().css('border-color', '');
-    });
-}
-
-$('#addFournisseur').click(function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            $('#addFournisseur').closest('div').before(dataReponse);
-            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-        }
-    }
-    let path = Routing.generate('ajax_render_add_fournisseur', true);
-    xhttp.open("POST", path, true);
-    xhttp.send();
-});
-
 function deleteArticleFournisseur(button) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
@@ -532,8 +408,19 @@ function deleteArticleFournisseur(button) {
 }
 
 function passArgsToModal(button) {
-    $("#submitDeleteFournisseur").data('value', $(button).data('value'));
-    $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+    let path = Routing.generate('article_fournisseur_can_delete', true);
+    let params = JSON.stringify({articleFournisseur: $(button).data('value')});
+    $.post(path, params, function(response) {
+        if (response) {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
+            $("#submitDeleteFournisseur").data('value', $(button).data('value'));
+            $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').removeClass('d-none');
+        } else {
+            $('#modalDeleteFournisseur').find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
+            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').addClass('d-none');
+        }
+    }, 'json');
 }
 
 function addFournisseurEdit(button) {
@@ -567,24 +454,14 @@ function initRequiredChampsFixes(button) {
     let path = Routing.generate('get_quantity_type');
 
     $.post(path, JSON.stringify(params), function(data) {
-        displayRequiredChampsFixesByTypeQuantite(data)
+        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data)
     }, 'json');
 }
 
 function toggleRequiredChampsFixes(button) {
-    displayRequiredChampsFixesByTypeQuantite(button.data('title'));
-}
-
-function displayRequiredChampsFixesByTypeQuantite(typeQuantite) {
-    if (typeQuantite === 'article') {
-        $('#quantite').removeClass('needed');
-        $('#emplacement').removeClass('needed');
-        $('#type_quantite').val('article');
-    } else {
-        $('#quantite').addClass('needed');
-        $('#emplacement').addClass('needed');
-        $('#type_quantite').val('reference');
-    }
+    clearErrorMsg(button);
+    clearInvalidInputs(button);
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'));
 }
 
 function submitPlusAndGoToDemande(button) {

@@ -2,11 +2,11 @@
 
 {% block content %}
 
-    Code article : {{ article.reference }}
-    Article de référence : {{ article.r }}
     {% set rra = article.receptionReferenceArticle %}
-    Numéro de commande : {{ rra ? rra.commande : '' }}
-    Numéro de réception : {{ rra ? (rra.reception ? rra.reception.numeroReception : '') : '' }}
+    Code article : {{ article.reference }}<br>
+    Article de référence : {{ rra.referenceArticle.reference }}<br>
+    Numéro de commande : {{ rra ? rra.commande : '' }}<br>
+    Numéro de réception : {{ rra ? (rra.reception ? rra.reception.numeroReception : '') : '' }}<br>
 <br>
 <br>
 

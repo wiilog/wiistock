@@ -49,7 +49,7 @@
                                         {% set urlSuffix = '' %}
                                     {% endif %}
                                     <td class="content-block aligncenter">
-                                        <a href="{{ getDomainName() }}{{ urlSuffix }}" class="btn-primary">
+                                        <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}" class="btn-primary">
                                             {% if buttonText is defined %}
                                                 {{ buttonText }}
                                             {% else %}
