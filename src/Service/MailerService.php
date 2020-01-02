@@ -11,7 +11,7 @@ namespace App\Service;
 
 use App\Entity\MailerServer;
 use App\Repository\MailerServerRepository;
-use App\Repository\ParamClientRepository;
+use Twig_Environment;
 
 class MailerService
 {
@@ -20,21 +20,15 @@ class MailerService
      */
     private $mailerServerRepository;
 
-	/**
-	 * @var ParamClientRepository
-	 */
-    private $paramClientRepository;
-
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
 
-    public function __construct(ParamClientRepository $paramClientRepository, MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
+    public function __construct(MailerServerRepository $mailerServerRepository, Twig_Environment $templating)
     {
         $this->mailerServerRepository = $mailerServerRepository;
-        $this->paramClientRepository = $paramClientRepository;
         $this->templating = $templating;
     }
 

@@ -16,8 +16,6 @@
 ###< symfony/web-server-bundle ###
 
 
-# /public/sass/style.css
-/public/sass/style.css.map
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 
@@ -25,3 +23,11 @@
 /.idea/
 .idea
 /public/uploads/attachements/
+/assets/bundles
+
+###> symfony/webpack-encore-bundle ###
+/node_modules/
+/public/build/
+npm-debug.log
+yarn-error.log
+###< symfony/webpack-encore-bundle ###

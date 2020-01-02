@@ -13,6 +13,10 @@ const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
 
+const STATUT_ACTIF = 'disponible';
+const STATUT_INACTIF = 'consommé';
+const STATUT_EN_TRANSIT = 'en transit';
+
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
@@ -1124,4 +1128,22 @@ function newLine(path, button, toHide, buttonAdd, select = null)
 
 function redirectToDemandeLivraison(demandeId) {
     window.open(Routing.generate('demande_show', {id: demandeId}));
+}
+
+function toggleOnTheFlyForm(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    if ($toShow.hasClass('invisible')) {
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.parent().parent().css("height", "auto");
+        $toShow.removeClass('invisible');
+        $toAdd.removeClass('invisible');
+    }
+    else {
+        $toShow.addClass('invisible');
+        $toAdd.addClass('invisible');
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("height", "0");
+        }
+    }
 }
