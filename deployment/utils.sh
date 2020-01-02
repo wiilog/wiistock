@@ -62,7 +62,7 @@ function script::getServerName() {
 
 function script::deploy() {
     # usage: remote::run "$serverName" "instance" "${commandsToRun[@]}"
-    # commandsToRun should an array of string with format "commandToRun ;; successMessage ;; errorMessage"
+    # commandsToRun should an array of string with format "commandToRun § successMessage § errorMessage"
     local serverName=$1
     shift
     local instance=$1
@@ -72,7 +72,7 @@ function script::deploy() {
     cdProject="cd /var/www/$instance/WiiStock"
     for commandStr in "${commandsToRun[@]}"
     do
-        IFS=';;' read -ra command <<< "$commandStr"
+        IFS='§' read -ra command <<< "$commandStr"
         commandToRun="$cdProject && ${command[0]}"
         echo -e ">>>>>>>> RUN = $commandToRun"
         if [[ "$serverName" == "server-dev" ]]; then
@@ -84,7 +84,6 @@ function script::deploy() {
         res=$?
 
         if [ "$res" != 0 ]; then
-            echo ">>>>> EXIT"
             echo -e "${command[2]}"
             exit "$res";
         else
