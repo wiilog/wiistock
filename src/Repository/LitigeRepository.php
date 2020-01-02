@@ -187,12 +187,11 @@ class LitigeRepository extends ServiceEntityRepository
             ->leftJoin('l.articles', 'art')
 			->leftJoin('l.type', 't')
             ->leftJoin('c.arrivage', 'a')
-            ->leftJoin('art.reception', 'r')
 			->leftJoin('a.chauffeur', 'ch')
 			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
 			->leftJoin('l.status', 's');
-		$qb->where('r IS NULL');
+		$qb->where('art IS NULL');
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
