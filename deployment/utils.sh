@@ -73,19 +73,22 @@ function script::deploy() {
     for commandStr in "${commandsToRun[@]}"
     do
         IFS=';;' read -ra command <<< "$commandStr"
+        commandToRun="$cdProject && ${command[0]}"
+        echo -e ">>>>>>>> RUN = $commandToRun"
         if [[ "$serverName" == "server-dev" ]]; then
-            eval "$cdProject && ${command[0]}"
+            eval "$commandToRun"
         else
-            remote::run "$serverName" replaceInFile "$cdProject && ${command[0]}"
+            remote::run "$serverName" replaceInFile "$commandToRun"
         fi
 
         res=$?
 
         if [ "$res" != 0 ]; then
-            echo "${command[2]}"
+            echo ">>>>> EXIT"
+            echo -e "${command[2]}"
             exit "$res";
         else
-            echo "${command[1]}"
+            echo -e "${command[1]}"
         fi
 
     done

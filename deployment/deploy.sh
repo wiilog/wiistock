@@ -138,4 +138,4 @@ commandsToRun+=(
 )
 
 script::deploy "$serverName" "$instance" "${commandsToRun[@]}"
-printf "\n////////// OK : déploiement sur $instance terminé ! //////////\n"
+echo -e "\n////////// OK : déploiement sur $instance terminé ! //////////\n"
