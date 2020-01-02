@@ -2,9 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\ParamClient;
 use App\Entity\Role;
-use App\Repository\ParamClientRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -12,16 +10,6 @@ use Doctrine\Common\Persistence\ObjectManager;
 
 class safranFixture extends Fixture implements FixtureGroupInterface
 {
-
-    /**
-     * @var ParamClientRepository
-     */
-    private $paramClientRepository;
-
-    public function __construct(ParamClientRepository $paramClientRepository)
-    {
-        $this->paramClientRepository = $paramClientRepository;
-    }
 
     public function load(ObjectManager $manager)
     {

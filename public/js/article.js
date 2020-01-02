@@ -278,3 +278,12 @@ function showOrHideColumn(check) {
     tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
+
+function displayActifOrInactif(select){
+    let activeOnly = select.is(':checked');
+    let path = Routing.generate('article_actif_inactif');
+
+    $.post(path, JSON.stringify({activeOnly: activeOnly}), function(){
+        tableArticle.ajax.reload();
+    });
+}

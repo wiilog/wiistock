@@ -4,16 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ChampLibre;
-use App\Entity\DimensionsEtiquettes;
-use App\Entity\FiltreRef;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-
 use App\Entity\Utilisateur;
+
 use App\Repository\ArticleRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -132,6 +132,11 @@ class ArticleController extends Controller
 
     private $CSVExportService;
 
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
     public function __construct(\Twig_Environment $templating,
                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                                 CategorieCLRepository $categorieCLRepository,
@@ -149,6 +154,7 @@ class ArticleController extends Controller
                                 EmplacementRepository $emplacementRepository,
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
+                                FiltreSupRepository $filtreSupRepository,
                                 CSVExportService $CSVExportService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -169,6 +175,7 @@ class ArticleController extends Controller
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
     /**
@@ -303,13 +310,53 @@ class ArticleController extends Controller
         $champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
+        $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
         return $this->render('article/index.html.twig', [
             'valeurChampLibre' => null,
             'champsSearch' => $champsSearch,
             'recherches' => $user->getRechercheForArticle(),
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArticle()
+            'columnsVisibles' => $user->getColumnsVisibleForArticle(),
+            'activeOnly' => !empty($filter) && $filter->getValue() === Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
         ]);
+    }
+
+    /**
+     * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true})
+     */
+    public function displayActifOrInactif(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
+
+            $user = $this->getUser();
+
+            $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $user);
+            $em = $this->getDoctrine()->getManager();
+            $activeOnly = $data['activeOnly'];
+
+            if ($activeOnly) {
+            	if (empty($filter)) {
+					$filter = new FiltreSup();
+					$filter
+						->setUser($user)
+						->setField(FiltreSup::FIELD_STATUT)
+						->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT)
+						->setPage(FiltreSup::PAGE_ARTICLE);
+					$em->persist($filter);
+				} else {
+					$filter->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT);
+				}
+			} else {
+            	if (!empty($filter)) {
+            		$em->remove($filter);
+				}
+			}
+
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -338,83 +385,84 @@ class ArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnsVisibleForArticle();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
             $category = CategoryType::ARTICLE;
             $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-			$columns = [
-				[
-					"title" => 'Actions',
-					"data" => 'Actions',
-					'name' => 'Actions',
-					"class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Libellé',
-					"data" => 'Libellé',
-					'name' => 'Libellé',
-					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+            $columns = [
+                [
+                    "title" => 'Actions',
+                    "data" => 'Actions',
+                    'name' => 'Actions',
+                    "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Libellé',
+                    "data" => 'Libellé',
+                    'name' => 'Libellé',
+                    "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
-				],
-				[
-					"title" => 'Référence article',
-					"data" => 'Référence article',
-					'name' => 'Référence article',
-					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Référence',
-					"data" => 'Référence',
-					'name' => 'Référence',
-					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Type',
-					"data" => 'Type',
-					'name' => 'Type',
-					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Statut',
-					"data" => 'Statut',
-					'name' => 'Statut',
-					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Quantité',
-					"data" => 'Quantité',
-					'name' => 'Quantité',
-					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Emplacement',
-					"data" => 'Emplacement',
-					'name' => 'Emplacement',
-					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Commentaire',
-					"data" => 'Commentaire',
-					'name' => 'Commentaire',
-					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-				[
-					"title" => 'Prix unitaire',
-					"data" => 'Prix unitaire',
-					'name' => 'Prix unitaire',
-					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-				],
-			];
-			foreach ($champs as $champ) {
-				$columns[] = [
-					"title" => ucfirst(mb_strtolower($champ['label'])),
-					"data" => $champ['label'],
-					'name' => $champ['label'],
-					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-				];
-			}
+                ],
+                [
+                    "title" => 'Référence article',
+                    "data" => 'Référence article',
+                    'name' => 'Référence article',
+                    "class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Référence',
+                    "data" => 'Référence',
+                    'name' => 'Référence',
+                    "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Type',
+                    "data" => 'Type',
+                    'name' => 'Type',
+                    "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Statut',
+                    "data" => 'Statut',
+                    'name' => 'Statut',
+                    "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Quantité',
+                    "data" => 'Quantité',
+                    'name' => 'Quantité',
+                    "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Emplacement',
+                    "data" => 'Emplacement',
+                    'name' => 'Emplacement',
+                    "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Commentaire',
+                    "data" => 'Commentaire',
+                    'name' => 'Commentaire',
+                    "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+                ],
+                [
+                    "title" => 'Prix unitaire',
+                    "data" => 'Prix unitaire',
+                    'name' => 'Prix unitaire',
+                    "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+                ],
+            ];
+            foreach ($champs as $champ) {
+                $columns[] = [
+                    "title" => ucfirst(mb_strtolower($champ['label'])),
+                    "data" => $champ['label'],
+                    'name' => $champ['label'],
+                    "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+                ];
+            }
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -673,10 +721,10 @@ class ArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $champs = array_keys($data);
-            $user  = $this->getUser();
+            $user = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnsVisibleForArticle($champs);
-            $em  = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
             $em->flush();
 
             return new JsonResponse();
@@ -933,8 +981,7 @@ class ArticleController extends Controller
             }
             $barcodes = array_slice($barcodes, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-            {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
                 $tags['exists'] = true;

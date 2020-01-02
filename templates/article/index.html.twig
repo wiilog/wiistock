@@ -15,6 +15,16 @@
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier
                     colonnes</a>
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
+
+                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    <div class="statut dropdown-item" >
+                        Articles actifs seulement
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" {{ activeOnly ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                {% endif %}
             </div>
         </div>
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}

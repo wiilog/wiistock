@@ -8,7 +8,6 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -965,7 +964,7 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+					$isCea = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
                     if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [

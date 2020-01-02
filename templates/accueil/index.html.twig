@@ -63,7 +63,7 @@ class='accueil-back'
     </div>
 {% endif %}
 
-{% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+{% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
     {% include "accueil/linkToAddArticleForm.html.twig" %}
 {% endif %}
 

@@ -8,37 +8,15 @@
 
 namespace App\Service;
 
-
-
-use App\Entity\Action;
-use App\Entity\ParamClient;
-use App\Entity\Utilisateur;
-
-use App\Repository\ActionRepository;
-use App\Repository\ParamClientRepository;
-use App\Repository\UtilisateurRepository;
-use App\Repository\RoleRepository;
-use Symfony\Component\Security\Core\Security;
-
-
 class SpecificService
 {
-
-	/**
-	 * @var ParamClientRepository
-	 */
-	private $paramClientRepository;
-
-
-	public function __construct(ParamClientRepository $paramClientRepository)
-	{
-		$this->paramClientRepository = $paramClientRepository;
-	}
+	const CLIENT_COLLINS = 'collins';
+	const CLIENT_CEA_LETI = 'cea-leti';
+	const CLIENT_SAFRAN = 'safran';
 
 	public function isCurrentClientNameFunction(string $clientName)
 	{
-		$currentClient = $this->paramClientRepository->findOne();
-		return $currentClient ? ($currentClient->getClient() == $clientName) : false;
+		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}
 
 }

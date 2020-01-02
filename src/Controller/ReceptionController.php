@@ -268,7 +268,7 @@ class ReceptionController extends AbstractController
                 $reception
                     ->setTransporteur($transporteur);
             }
-//TODO CG dateAttendue ou date-attendue ??
+
             $reception
                 ->setReference($data['reference'])
                 ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
@@ -281,7 +281,6 @@ class ReceptionController extends AbstractController
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
                 ->setCommentaire($data['commentaire']);
-
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
