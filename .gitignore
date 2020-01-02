@@ -25,3 +25,4 @@
 /.idea/
 .idea
 /public/uploads/attachements/
+/node_modules/
