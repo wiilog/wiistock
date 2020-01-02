@@ -49,6 +49,7 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
+
 				$filter->setValue($data['dateMin']);
 				$em->flush();
 			} else {
@@ -323,6 +324,26 @@ class FiltreSupController extends AbstractController
                     $em->flush();
                 }
             }
+			if (isset($data['anomaly']) && $data['anomaly']) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ANOMALY, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_ANOMALY)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['anomaly']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_ANOMALY, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
 
 			$em->flush();
 

@@ -1,4 +1,6 @@
 $(function () {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_INV_ENTRIES);
@@ -29,7 +31,6 @@ $(function () {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchEntry.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');

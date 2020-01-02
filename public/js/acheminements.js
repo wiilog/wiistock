@@ -72,10 +72,7 @@ $submitSearchAcheminements.on('click', function () {
 });
 
 $(function() {
-    let val = $('#statut').val();
-    if (val != null && val != '') {
-        $submitSearchAcheminements.click();
-    }
+    initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -90,7 +87,6 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchAcheminements.click();
     }, 'json');
 });
 

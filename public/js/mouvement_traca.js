@@ -9,6 +9,8 @@ $('#emplacement').select2({
 let $submitSearchMvt = $('#submitSearchMvt');
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_TRACA);
@@ -32,7 +34,6 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');

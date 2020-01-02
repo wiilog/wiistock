@@ -4,6 +4,8 @@ let numberOfDataOpened = 0;
 let tableReception;
 
 $(function () {
+    initDateTimePicker();
+
     $('.select2').select2();
     $('.body-add-ref').css('display', 'none');
 

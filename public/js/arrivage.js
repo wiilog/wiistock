@@ -2,9 +2,12 @@ let numberOfDataOpened = 0;
 $('.select2').select2();
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);;
+
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
@@ -27,11 +30,11 @@ $(function() {
                     let option = new Option(name, id, true, true);
                     $providers.append(option).trigger('change');
                 });
-            } else if (element.field = 'emergency') {
+            } else if (element.field == 'emergency') {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
                 }
-            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+            } else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);

@@ -3,6 +3,8 @@ $('.select2').select2();
 let $submitSearchLivraison = $('#submitSearchLivraison');
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);;
@@ -24,7 +26,6 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchLivraison.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');

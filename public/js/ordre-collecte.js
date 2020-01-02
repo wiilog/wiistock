@@ -68,6 +68,7 @@ $.fn.dataTable.ext.search.push(
 );
 
 $(function() {
+    initDateTimePicker();
     ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
@@ -102,7 +103,6 @@ $(function() {
                     $('#' + element.field).val(element.value);
                 }
             });
-            if (data.length > 0) $submitSearchOrdreCollecte.click();
         }, 'json');
     }
 });
@@ -118,7 +118,6 @@ $submitSearchOrdreCollecte.on('click', function () {
         statut: $('#statut').val(),
         type: $('#type').val(),
         users: $('#utilisateur').select2('data'),
-        // demandCollect: $('#demandCollect').select2('data'),
     };
 
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');

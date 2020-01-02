@@ -155,10 +155,12 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-// applique les filtres si pré-remplis
 $(function() {
+    initDateTimePicker();
+
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
+    // applique les filtres si pré-remplis
     let val = $('#statut').val();
     if (!val) {
         // filtres enregistrés en base pour chaque utilisateur

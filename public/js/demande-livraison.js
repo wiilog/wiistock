@@ -154,18 +154,6 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-// recherche par défaut demandeur = utilisateur courant
-// let demandeur = $('.current-username').val();
-// if (demandeur !== undefined) {
-//     let demandeurPiped = demandeur.split(',').join('|')
-//     tableDemande
-//         .columns('Demandeur:name')
-//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-//         .draw();
-//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
-//     $('#utilisateur').val(demandeur).trigger('change');
-// }
-
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
 let submitNewDemande = $("#submitNewDemande");
@@ -220,6 +208,7 @@ function setMaxQuantity(select) {
 
 // applique les filtres si pré-remplis
 $(function () {
+    initDateTimePicker();
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
 

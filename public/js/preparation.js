@@ -3,6 +3,8 @@ $('.select2').select2();
 let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PREPA);;
@@ -24,7 +26,6 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchPrepa.click();
     }, 'json');
 
     ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));

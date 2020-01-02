@@ -9,6 +9,7 @@ $('#carriers').select2({
 let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
 $(function() {
+    initDateTimePicker();
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 
