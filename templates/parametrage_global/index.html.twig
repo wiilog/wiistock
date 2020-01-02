@@ -117,10 +117,11 @@
     </div>
 
 {% endblock %}
-{% block javascript %}
-<script src="{{ asset('js/prefixe_demande.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/dimensions_etiquettes.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/parametrage-global.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/prefixe_demande.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/dimensions_etiquettes.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/parametrage-global.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

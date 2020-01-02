@@ -27,7 +27,7 @@
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier colonnes</a>
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
                 <div class="statut dropdown-item" >
-                    Statut article actif
+                    Références actives seulement
                     <label class="switch">
                         <input class="checkbox" type="checkbox" {{ wantInactif == false ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
                         <span class="slider round"></span>
@@ -85,8 +85,9 @@
     {% include "reference_article/modalShowMouvements.html.twig" %}
     <div hidden id="barcodes"></div>
 {% endblock %}
-{% block javascript %}
 
-<script src = "{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
-
+{% block javascripts %}
+    {{ parent() }}
+    <script src = "{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
+    <script src = "{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -72,11 +72,11 @@
 {% include 'reference_article/modalShowRefArticle.html.twig' %}
 {% include 'article/modalShowArticle.html.twig' %}
 {% endblock %}
-{% block javascript %}
-<script>
-    let id = {{ livraison.id }};
-</script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ livraison.id }};
+    </script>
 
-<script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
-
+    <script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

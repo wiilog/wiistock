@@ -14,6 +14,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Parametre;
@@ -30,6 +31,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -159,7 +161,12 @@ class ArticleDataService
 	 */
     private $mailerService;
 
-    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
+
+    public function __construct(FiltreSupRepository $filtreSupRepository, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -182,6 +189,7 @@ class ArticleDataService
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->mailerService = $mailerService;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
+        $this->filtreSupRepository = $filtreSupRepository;
     }
 
 	/**
@@ -571,7 +579,7 @@ class ArticleDataService
 
     public function getDataForDatatable($params = null, $user)
     {
-        $data = $this->getArticleDataByParams($params, $user);
+		$data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
 
@@ -580,7 +588,7 @@ class ArticleDataService
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams(null, $user);
+			$data = $this->getArticleDataByParams(null, $user);
         }
         return $data;
     }
@@ -616,13 +624,16 @@ class ArticleDataService
 	 */
     public function getArticleDataByParams($params = null, $user)
     {
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutLabel = null;
-        } else {
-            $statutLabel = Article::STATUT_ACTIF;
-        }
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
 
-        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel, $user);
+		// l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+			$filters = [[
+				'field' => FiltreSup::FIELD_STATUT,
+				'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+			]];
+		}
+		$queryResult = $this->articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];

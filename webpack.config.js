@@ -69,21 +69,6 @@ Encore
     // uncomment if you use API Platform Admin (composer req api-admin)
     //.enableReactPreset()
     //.addEntry('admin', './assets/js/admin.js')
-
-    // add FosJsRouting
-    .autoProvideVariables({
-        "Routing": "router"
-    })
-    .addLoader({
-        test: /jsrouting-bundle\/Resources\/public\/js\/router.js$/,
-        loader: "exports-loader?router=window.Routing"
-    })
 ;
 
-const config = Encore.getWebpackConfig();
-config.resolve.alias = {
-    'router': __dirname + '/assets/js/router.js'
-};
-
-// noinspection JSUnusedGlobalSymbols
-module.exports = config;
+module.exports = Encore.getWebpackConfig();

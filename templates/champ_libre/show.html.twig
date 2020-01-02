@@ -10,7 +10,7 @@
             <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
         </a>
     </div>
-   
+
     <table id="tableChamplibre_id" class="table table-striped table-bordered" style="width:100%">
         <thead>
         <tr>
@@ -35,10 +35,11 @@
     {% include "champ_libre/modalDeleteChampLibre.html.twig" %}
     {% include "champ_libre/modalEditChampLibre.html.twig" %}
 
-    {% endblock %}
-    {% block javascript %}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
     <script>
         let id = {{type.id}}
     </script>
     <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
-    {% endblock javascript %}
+{% endblock %}
