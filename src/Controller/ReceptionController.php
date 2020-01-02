@@ -1382,8 +1382,8 @@ class ReceptionController extends AbstractController
     public function checkBeforeLigneDelete(Request $request)
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
-            $ligne = $this->receptionReferenceArticleRepository->find($id);
-            if (count($ligne->getArticles()) <= 0) {
+            $nbArticles = $this->receptionReferenceArticleRepository->countArticlesByRRA($id);
+            if ($nbArticles == 0) {
                 $delete = true;
                 $html = 'Voulez-vous réellement supprimer cette ligne article ?';
             } else {

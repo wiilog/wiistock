@@ -102,4 +102,22 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+	/**
+	 * @param int $receptionReferenceArticleId
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countArticlesByRRA($receptionReferenceArticleId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/* @lang DQL */
+		'SELECT count(a)
+		FROM App\Entity\Article a
+		JOIN a.receptionReferenceArticle rra
+		WHERE rra.id = :rraId'
+		)->setParameter('rraId', $receptionReferenceArticleId);
+
+		return $query->getSingleScalarResult();
+	}
 }
