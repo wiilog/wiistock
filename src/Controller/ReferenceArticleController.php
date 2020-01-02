@@ -1297,8 +1297,8 @@ class ReferenceArticleController extends Controller
     }
 
     /**
- * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
- */
+     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
+     */
     public function displayActifOrInactif(Request $request) : Response
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){

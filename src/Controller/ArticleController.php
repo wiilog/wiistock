@@ -4,18 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ChampLibre;
-use App\Entity\DimensionsEtiquettes;
-use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-
 use App\Entity\Utilisateur;
+
 use App\Repository\ArticleRepository;
-use App\Repository\FiltreRefRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -313,14 +310,14 @@ class ArticleController extends Controller
         $champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-        $filter = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser(FiltreSup::FIELD_ARTICLE_STATUT, $this->getUser());
+        $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
         return $this->render('article/index.html.twig', [
             'valeurChampLibre' => null,
             'champsSearch' => $champsSearch,
             'recherches' => $user->getRechercheForArticle(),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArticle(),
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
+            'activeOnly' => !empty($filter) && $filter->getValue() === Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
         ]);
     }
 
@@ -329,26 +326,32 @@ class ArticleController extends Controller
      */
     public function displayActifOrInactif(Request $request) : Response
     {
-        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
             $user = $this->getUser();
-            $statutArticle = $data['donnees'];
 
-            $filter = $this->filtreSupRepository->findOnebyFieldAndWithoutPageAndUser( FiltreSup::FIELD_ARTICLE_STATUT, $user);
+            $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $user);
             $em = $this->getDoctrine()->getManager();
-            if ($filter === null){
-                $filter = new FiltreSup();
-                $filter
-                    ->setUser($user)
-                    ->setField(FiltreSup::FIELD_ARTICLE_STATUT)
-                    ->setPage('article')
-                    ->setValue(Article::STATUT_ACTIF);
-                $em->persist($filter);
-            }
+            $activeOnly = $data['activeOnly'];
 
-            if ($filter->getValue() != $statutArticle) {
-                $filter->setValue($statutArticle);
-            }
+            if ($activeOnly) {
+            	if (empty($filter)) {
+					$filter = new FiltreSup();
+					$filter
+						->setUser($user)
+						->setField(FiltreSup::FIELD_STATUT)
+						->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT)
+						->setPage(FiltreSup::PAGE_ARTICLE);
+					$em->persist($filter);
+				} else {
+					$filter->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT);
+				}
+			} else {
+            	if (!empty($filter)) {
+            		$em->remove($filter);
+				}
+			}
+
             $em->flush();
 
             return new JsonResponse();
