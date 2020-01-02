@@ -1,19 +1,20 @@
 #!/bin/bash
 
 
-function script::containsElement() {
+function replaceInFile() {
+    match=$1
+    replace=$2
+    file=$3
+    sed -i "s/$match.*/$replace/" "$file"
+}
+
+function containsElement() {
   local e match="$1"
   shift
   for e; do [[ "$e" == "$match" ]] && return 0; done
   return 1
 }
 
-function file::replaceInFile() {
-    match=$1
-    replace=$2
-    file=$3
-    sed -i "s/$match.*/$replace/" "$file"
-}
 
 function remote::run() {
     # usage: remote::run "host" "includes" "commands"
@@ -37,7 +38,7 @@ function script::readInstance() {
     local availableInstances=(dev test cl2-prod cl1-rec scs1-prod scs1-rec col1-prod col1-rec)
     while true; do
         read instance;
-        instanceValid=$(script::containsElement "$instance" "${availableInstances[@]}")
+        instanceValid=$(containsElement "$instance" "${availableInstances[@]}")
         if [[ $instanceValid = 1 ]]; then
             echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev'
         else
