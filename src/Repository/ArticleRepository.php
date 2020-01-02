@@ -39,6 +39,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Type' => 'Type',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
+        'Code' => 'barCode',
     ];
 
     private const linkChampLibreLabelToField = [
@@ -49,6 +50,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Date et heure' => ['field' => 'dateLastInventory', 'typage' => 'list'],
         'Commentaire' => ['field' => 'commentaire', 'typage' => 'list'],
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
+        'Code' => ['field' => 'barCode', 'typage' => 'text'],
     ];
 
     public function __construct(RegistryInterface $registry)

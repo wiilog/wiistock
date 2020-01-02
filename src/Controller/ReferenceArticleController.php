@@ -312,6 +312,13 @@ class ReferenceArticleController extends Controller
 					'name' => 'Quantité disponible',
 					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Code',
+                    "data" => 'Code',
+                    'name' => 'Code',
+                    "class" => (in_array('Code', $columnsVisible) ? 'display' : 'hide'),
+
+                ],
 				[
 					"title" => 'Emplacement',
 					"data" => 'Emplacement',
@@ -561,6 +568,12 @@ class ReferenceArticleController extends Controller
 
         ];
         $champF[] = [
+            'label' => 'Code',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
@@ -624,7 +637,12 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
 
         ];
+        $champsFText[] = [
+            'label' => 'Code',
+            'id' => 0,
+            'typage' => 'text'
 
+        ];
         $champsFText[] = [
             'label' => 'Fournisseur',
             'id' => 0,

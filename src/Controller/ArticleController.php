@@ -210,6 +210,12 @@ class ArticleController extends Controller
 
         ];
         $champF[] = [
+            'label' => 'Code',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
             'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
@@ -254,6 +260,12 @@ class ArticleController extends Controller
         ];
         $champsFText[] = [
             'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Code',
             'id' => 0,
             'typage' => 'text'
 
@@ -358,6 +370,13 @@ class ArticleController extends Controller
 					"class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
 				],
+                [
+                    "title" => 'Code',
+                    "data" => 'Code',
+                    'name' => 'Code',
+                    "class" => (in_array('Code', $columnsVisible) ? 'display' : 'hide'),
+
+                ],
 				[
 					"title" => 'Référence article',
 					"data" => 'Référence article',
