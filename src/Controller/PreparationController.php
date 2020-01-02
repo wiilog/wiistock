@@ -463,13 +463,7 @@ class PreparationController extends AbstractController
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-////                    	spécifique CEA : vider le champ libre code projet
-//						$labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
-//						if (!(
-//							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
-//							&& ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
 						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-//						}
                     }
                     $this->articleDataService->newArticle($newArticle);
 

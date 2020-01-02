@@ -66,7 +66,7 @@
         </select>
     </div>
     <div class="form-group col-1">
-        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                 class="fa fa-plus"></i></span>
     </div>
     <div class="form-group w-100 col-5">
@@ -79,7 +79,7 @@
         </select>
     </div>
     <div class="form-group col-1">
-        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i
+        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                 class="fa fa-plus"></i></span>
     </div>
 </div>
@@ -98,7 +98,7 @@
             <span class="btn btn-success"
                   onclick="
                     newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
-                    ,toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+                    ,toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                     class="fas fa-check-circle"></i></span>
         </div>
     </div>
@@ -114,7 +114,7 @@
         <div class="form-group col-2 invisible" id="addTransporteur">
             <span class="btn btn-success"
                   onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))
-                                  ,toggleInput('transporteurDisplay', 'addTransporteur')"><i
+                                  ,toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                     class="fas fa-check-circle"></i></span>
         </div>
     </div>

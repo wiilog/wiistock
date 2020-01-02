@@ -94,7 +94,7 @@ let routeForLate = Routing.generate('api_retard', true);
 
 $('.retards-table').DataTable({
     responsive: true,
-    dom: 'ftipr',
+    dom: 'tipr',
     pageLength: 5,
     processing: true,
     "language": {

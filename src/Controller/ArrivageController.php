@@ -10,7 +10,6 @@ use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\PieceJointe;
 
 use App\Repository\ArrivageRepository;
@@ -571,7 +570,7 @@ class ArrivageController extends AbstractController
             $response = '';
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
-            $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN);
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();

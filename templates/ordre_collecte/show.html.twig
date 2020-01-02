@@ -20,6 +20,7 @@
     {% include 'ordre_collecte/modalFinishCollecte.html.twig' %}
 
 {% endblock %}
-{% block javascript %}
+{% block javascripts %}
+    {{ parent() }}
     <script src="{{ asset('js/ordre-collecte-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -45,7 +45,7 @@
 {% if modifiable %}
 <div class="col text-right"  id='boutonCollecteInf'>
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
-        {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+        {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
             Chercher une référence CEA
         {% else %}
             Chercher une référence
@@ -58,7 +58,7 @@
         <span class="fa fa-plus mr-2"></span>Ajouter article
     </a>
     {% endif %}
-</div>   
+</div>
 {% endif %}
 
 
@@ -79,10 +79,11 @@
 
 {% endblock %}
 
-{% block javascript %}
-<script>
-    let id = {{ collecte.id }};
-</script>
-<script src="{{asset('js/collecte.js')}}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ collecte.id }};
+    </script>
+    <script src="{{asset('js/collecte.js')}}?{{ date().timestamp }}"></script>
 
 {% endblock %}
