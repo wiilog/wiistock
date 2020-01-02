@@ -387,15 +387,7 @@ class ArticleDataService
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-//			$labelChampLibre = strtolower($champLibre->getLabel());
-//			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
-//            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
-//			if ($isCEA
-//			&& ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
-//			&& $isADemand) {
-//				$valeurChampArticle = null;
-//			}
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
@@ -428,13 +420,9 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-//		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-//		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
-//		if (!$isCea) {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
-//		}
 
         $entityManager = $this->em;
         $price = max(0, $data['prix']);
@@ -460,12 +448,7 @@ class ArticleDataService
             $champLibresKey = array_keys($data);
             foreach ($champLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
-//                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-//					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
-
                     $champLibre = $this->champLibreRepository->find($champ);
-//					$labelCL = strtolower($champLibre->getLabel());
-//                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
@@ -476,7 +459,6 @@ class ArticleDataService
                     $valeurChampLibre->setValeur($data[$champ]);
                     $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
-//                    }
                 }
             }
             $entityManager->flush();
