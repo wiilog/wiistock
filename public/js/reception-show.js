@@ -3,12 +3,16 @@ let editorNewReferenceArticleAlreadyDone = false;
 let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
-
 $(function () {
     const dataTableInitRes = InitiliaserPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     InitiliserPageModals();
+    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function(){
+        if ($(this).val() === '' || $(this).val() < 0) {
+            $(this).val('');
+        }
+    });
 });
 
 function InitiliserPageModals() {
