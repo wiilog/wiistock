@@ -60,7 +60,7 @@ function script::getServerName() {
     echo $serverName;
 }
 
-function script::run() {
+function script::deploy() {
     # usage: remote::run "$serverName" "instance" "${commandsToRun[@]}"
     # commandsToRun should an array of string with format "commandToRun ;; successMessage ;; errorMessage"
     local serverName=$1
@@ -78,10 +78,10 @@ function script::run() {
         fi
 
         if [ "$res" = 1 ]; then
-            printf "${command[2]}"
+            echo "${command[2]}"
             exit "$res";
         else
-            printf "${command[1]}"
+            echo "${command[1]}"
         fi
 
     done
