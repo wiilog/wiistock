@@ -2,51 +2,46 @@
 
 {% block title %}Arrivages{% endblock %}
 
+{% block page_filter %}
+    {{ parent() }}
+    {% include 'filters/filtersArrivage.html.twig' with {'btnName': 'submitSearchArrivage'} %}
+{% endblock %}
+
 {% block page_content %}
-    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-    </div>
-
-    {% include 'filters/filtersArrivage.html.twig' with {'btnName' : 'submitSearchArrivage'} %}
-
     <input type="hidden" id="dateMinFilter">
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
+    <h1>Arrivages</h1>
 
-    <div class="container-fluid">
+    <div class="row">
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
+               data-backdrop="static" data-keyboard="false"
+               onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
 
-        <h1>Arrivages</h1>
-
-        <div class="row">
-            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
-                   data-backdrop="static" data-keyboard="false"
-                   onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
-
-                    <span class="fa fa-plus mr-2"></span>Nouvel arrivage
-                </a>
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
-                <div class="btn btn-primary" onclick='generateCSVArrivage()'>
-                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                </div>
-            {% endif %}
-        </div>
-            <div class="d-none justify-content-center" id="spinnerArrivage">
-                <div class="spinner-border sizeLoader" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
+                <span class="fa fa-plus mr-2"></span>Nouvel arrivage
+            </a>
+        {% endif %}
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
+            <div class="btn btn-primary" onclick='generateCSVArrivage()'>
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
-        <div class="row">
-            <div class="error-msg p-4"></div>
+        {% endif %}
+    </div>
+        <div class="d-none justify-content-center" id="spinnerArrivage">
+            <div class="spinner-border sizeLoader" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
         </div>
-
-        <div>
-            <table id="tableArrivages" class="table table-striped table-bordered w-100">
-            </table>
-        </div>
+    <div class="row">
+        <div class="error-msg p-4"></div>
     </div>
 
+    <div>
+        <table id="tableArrivages" class="table table-striped table-bordered w-100">
+        </table>
+    </div>
     <div hidden id="barcodes"></div>
     <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 
@@ -57,7 +52,8 @@
     {% include "parametrage_global/modalNoParamsEtiquettes.html.twig" %}
 {% endblock %}
 
-{% block javascript %}
-<script src = "{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
-<script src = "{{ asset('js/arrivage.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src = "{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
+    <script src = "{{ asset('js/arrivage.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

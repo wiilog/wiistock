@@ -101,7 +101,7 @@ function initNewArticleEditor(modal) {
 
 function loadAndDisplayInfos(select) {
     if ($(select).val() !== null) {
-        let path = Routing.generate('demande_reference_by_fournisseur', true)
+        let path = Routing.generate('demande_reference_by_fournisseur', true);
         let fournisseur = $(select).val();
         let params = JSON.stringify(fournisseur);
 
@@ -277,4 +277,13 @@ function showOrHideColumn(check) {
     tableRefArticleColumn.find('th, td').removeClass('hide');
     tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
+}
+
+function displayActifOrInactif(select){
+    let activeOnly = select.is(':checked');
+    let path = Routing.generate('article_actif_inactif');
+
+    $.post(path, JSON.stringify({activeOnly: activeOnly}), function(){
+        tableArticle.ajax.reload();
+    });
 }

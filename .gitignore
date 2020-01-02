@@ -16,16 +16,22 @@
 ###< symfony/web-server-bundle ###
 
 
-# /public/sass/style.css
-/public/sass/style.css.map
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
 
+###> symfony/webpack-encore-bundle ###
+/node_modules/
+/public/build/
+npm-debug.log
+yarn-error.log
+###< symfony/webpack-encore-bundle ###
+
+###> wiistock ###
 /.vs-code/
 /.idea/
 .idea
-
 /public/uploads/attachements/
-
 /deployment/db*
 /deployment/pass*
+###< wiistock ###

@@ -2,17 +2,16 @@
 
 {% block title %}Mouvements de stock{% endblock %}
 
+{% block page_filter %}
+    {{ parent() }}
+
+    {% include 'filters/filtersMouvementStock.html.twig' with {
+        'btnName' : 'submitSearchMvt',
+        'statut' : 'Type'
+    } %}
+{% endblock %}
+
 {% block page_content %}
-{#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-</div>
-
-{% include 'filters/filtersMouvementStock.html.twig' with {
-    'btnName' : 'submitSearchMvt',
-    'statut' : 'Type'
-} %}
-
-<div class="container-fluid">
-
     <h1>Mouvements de stock</h1>
     <div class ="row">
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -34,12 +33,10 @@
         <table id="tableMvts" class="table table-striped table-bordered w-100">
         </table>
     </div>
-</div>
-
-{% include "mouvement_stock/modalDeleteMvtStock.html.twig" %}
-
+    {% include "mouvement_stock/modalDeleteMvtStock.html.twig" %}
 {% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('js/mouvement_stock.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/mouvement_stock.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

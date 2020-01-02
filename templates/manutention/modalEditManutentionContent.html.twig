@@ -55,12 +55,13 @@
 
 </div>
 
-{% block javascript %}
+{% block javascripts %}
+    {{ parent() }}
 
-<script>
-    if ({{ statut }} === 0) {
-        $('.input').prop('disabled', true);
-    }
-</script>
+    <script>
+        if ({{ statut }} === 0) {
+            $('.input').prop('disabled', true);
+        }
+    </script>
 
 {% endblock %}

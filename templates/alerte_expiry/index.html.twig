@@ -41,6 +41,7 @@
 
 {% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('js/alerte-expiry.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/alerte-expiry.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
