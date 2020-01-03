@@ -695,7 +695,7 @@ class ArticleDataService
 			'Référence' => $article->getReference() ?? 'Non défini',
 			'Statut' => $status,
 			'Libellé' => $article->getLabel() ?? 'Non défini',
-			'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y:m:d H:i:s') : '',
+			'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y/m/d H:i:s') : '',
 			'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
 			'Quantité' => $article->getQuantite() ?? 0,
 			'Type' => $article->getType() ? $article->getType()->getLabel() : '',
