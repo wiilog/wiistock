@@ -41,7 +41,8 @@ let tableManutention = $('#tableManutention_id').DataTable({
 });
 
 $submitSearchManut.on('click', function () {
-
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
     let filters = {
         page: PAGE_MANUT,
         dateMin: $('#dateMin').val(),
@@ -49,6 +50,9 @@ $submitSearchManut.on('click', function () {
         statut: $('#statut').val(),
         users: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableManutention);
 
@@ -59,61 +63,9 @@ $submitSearchManut.on('click', function () {
     }
 });
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableManutention.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
-
-// recherche par défaut demandeur = utilisateur courant
-let demandeur = $('.current-username').val();
-if (demandeur !== undefined) {
-    let demandeurPiped = demandeur.split(',').join('|')
-    tableManutention
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    // affichage par défaut du filtre select2 demandeur = utilisateur courant
-    $('#utilisateur').val(demandeur).trigger('change');
-}
-
 // applique les filtres si pré-remplis
 $(function() {
+    initDateTimePicker();
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     let val = $('#statut').val();
@@ -133,6 +85,8 @@ $(function() {
                         let option = new Option(username, id, true, true);
                         $utilisateur.append(option).trigger('change');
                     });
+                } else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 } else {
                     $('#' + element.field).val(element.value);
                 }
@@ -196,4 +150,10 @@ $submitSearchManut.on('keypress', function(e) {
         $submitSearchManut.click();
     }
 });
+
+function toggleManutQuill() {
+    let $modal = $('#modalEditManutention');
+    let enable = $modal.find('#statut').val() === '1';
+    toggleQuill($modal, enable);
+}
 

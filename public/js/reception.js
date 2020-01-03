@@ -4,12 +4,16 @@ let numberOfDataOpened = 0;
 let tableReception;
 
 $(function () {
+    initDateTimePicker();
+
     $('.select2').select2();
     $('.body-add-ref').css('display', 'none');
 
     const $submitSearchReception = $('#submitSearchReception');
 
     $submitSearchReception.on('click', function () {
+        $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+        $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
         let filters = {
             page: PAGE_RECEPTION,
             dateMin: $('#dateMin').val(),
@@ -17,6 +21,9 @@ $(function () {
             statut: $('#statut').val(),
             providers: $('#providers').select2('data'),
         };
+
+        $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+        $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
         saveFilters(filters, tableReception);
     });
@@ -97,6 +104,8 @@ $(function () {
                     let option = new Option(username, id, true, true);
                     $providers.append(option).trigger('change');
                 });
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#' + element.field).val(element.value);
             }
@@ -117,6 +126,8 @@ function generateCSVReception() {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         let params = JSON.stringify(data);
         let path = Routing.generate('get_receptions_for_csv', true);
 
@@ -168,4 +179,9 @@ function initNewReceptionEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    initDateTimePicker('#dateCommande, #dateAttendue');
+}
+
+function initDateTimePickerReception() {
+    initDateTimePicker('#dateCommande, #dateAttendue');
 }

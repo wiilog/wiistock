@@ -10,6 +10,8 @@ const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_INV_MISSIONS = 'inv_missions';
+const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
 
@@ -1146,4 +1148,28 @@ function toggleOnTheFlyForm(id, button) {
             $toShow.parent().parent().css("height", "0");
         }
     }
+}
+
+function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
+    $(dateInput).datetimepicker({
+        format: 'DD/MM/YYYY',
+        useCurrent: false,
+        locale: moment.locale(),
+        showTodayButton: true,
+        showClear: true,
+        icons: {
+            clear: 'fas fa-trash',
+        },
+        tooltips: {
+            today: 'Aujourd\'hui',
+            clear: 'Supprimer',
+            selectMonth: 'Choisir le mois',
+            selectYear: 'Choisir l\'année',
+            selectDecade: 'Choisir la décénie',
+        },
+    });
+}
+
+function toggleQuill($modal, enable) {
+    $modal.find('.ql-editor').prop('contenteditable', enable);
 }

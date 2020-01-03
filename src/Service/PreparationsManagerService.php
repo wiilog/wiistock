@@ -390,7 +390,7 @@ class PreparationsManagerService {
 	/**
 	 * @param array|null $params
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function getDataForDatatable($params = null)
 	{

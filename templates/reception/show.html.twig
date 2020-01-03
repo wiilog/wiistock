@@ -29,7 +29,9 @@
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto"
-                       onclick="editRow($(this), Routing.generate('api_reception_edit', true), $('#modalEditReception'), $('#submitEditReception'), true)">
+                       onclick="editRow($(this), Routing.generate('api_reception_edit', true),
+                       $('#modalEditReception'), $('#submitEditReception'), true, '.editor-container-edit', false,
+                       initDateTimePickerReception)">
                         Modifier</a>
                     <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }}, false)">
                         Fin réception
