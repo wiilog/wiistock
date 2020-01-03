@@ -6,6 +6,7 @@ use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Exception;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Livraison|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,6 +23,11 @@ class LivraisonRepository extends ServiceEntityRepository
 		'Opérateur' => 'utilisateur',
 		'Type' => 'type'
 	];
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Livraison::class);
+    }
 
     public function countByEmplacement($emplacementId)
     {

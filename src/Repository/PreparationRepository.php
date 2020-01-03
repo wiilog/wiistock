@@ -6,6 +6,7 @@ use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,6 +23,11 @@ class PreparationRepository extends ServiceEntityRepository
 		'Opérateur' => 'user',
 		'Type' => 'type'
 	];
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Preparation::class);
+    }
 
     public function getByDemande($id)
     {

@@ -6,6 +6,7 @@ use App\Entity\ChampLibre;
 use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\Persistence\ManagerRegistry;
 use Proxies\__CG__\App\Entity\CategorieCL;
 
 /**
@@ -16,6 +17,10 @@ use Proxies\__CG__\App\Entity\CategorieCL;
  */
 class ChampLibreRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ChampLibre::class);
+    }
 
     public function getByType($type)
     {

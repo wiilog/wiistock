@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\InventoryEntry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,6 +23,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		'Operator' => 'operator',
 		'Quantity' => 'quantity',
 	];
+
+	public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, InventoryEntry::class);
+    }
 
     public function countByMission($mission)
     {

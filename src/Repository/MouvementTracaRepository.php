@@ -2,11 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method MouvementTraca|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,6 +29,11 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		'type' => 'status',
 		'operateur' => 'user',
 	];
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, MouvementTraca::class);
+    }
 
     /**
      * @param $uniqueId

@@ -6,6 +6,7 @@ use App\Entity\Demande;
 use App\Entity\LigneArticle;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method LigneArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,6 +16,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class LigneArticleRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, LigneArticle::class);
+    }
 
     public function getQuantity($id)
     {

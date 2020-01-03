@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\CategoryType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method CategoryType|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class CategoryTypeRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, CategoryType::class);
+    }
 
     public function getNoOne($category)
     {

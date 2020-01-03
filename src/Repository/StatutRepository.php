@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,6 +15,10 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class StatutRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Statut::class);
+    }
 
 	/**
 	 * @param string $categorieName

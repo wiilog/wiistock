@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\MailerServer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method MailerServer|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class MailerServerRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, MailerServer::class);
+    }
 
 	/**
 	 * @return MailerServer|null

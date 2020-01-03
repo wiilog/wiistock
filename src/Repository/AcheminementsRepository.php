@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Acheminements;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Acheminements|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class AcheminementsRepository extends ServiceEntityRepository
 {
-
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Acheminements::class);
+    }
     private const DtToDbLabels = [
         'Date' => 'date',
         'Demandeur' => 'requester',

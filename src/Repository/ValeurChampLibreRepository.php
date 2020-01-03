@@ -12,7 +12,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\DBALException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
@@ -23,7 +23,7 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class ValeurChampLibreRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ValeurChampLibre::class);
     }
@@ -50,7 +50,7 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
     public function getValeurAdresse (){
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT DISTINCT vcl.valeur 
+            "SELECT DISTINCT vcl.valeur
             FROM App\Entity\ValeurChampLibre vcl
             JOIN vcl.champLibre cl
             WHERE cl.id IN (
@@ -392,7 +392,7 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 					INNER JOIN valeur_champ_libre_reference_article vclra ON vclra.valeur_champ_libre_id = vcl.id
 					WHERE vclra.reference_article_id = :refId
 			) temp ON temp.clid = cl.id
-			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id 
+			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id
 			WHERE ccl.label = :categoryCL
 		";
 		$prepare = $em->prepare($sql);
@@ -421,7 +421,7 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 					INNER JOIN valeur_champ_libre_article vclra ON vclra.valeur_champ_libre_id = vcl.id
 					WHERE vclra.article_id = :artId
 			) temp ON temp.clid = cl.id
-			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id 
+			INNER JOIN categorie_cl ccl ON ccl.id = cl.categorie_cl_id
 			WHERE ccl.label = :categoryCL
 		";
         $prepare = $em->prepare($sql);

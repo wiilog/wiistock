@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method LitigeHistoric|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,6 +15,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class LitigeHistoricRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, LitigeHistoric::class);
+    }
 
 	/**
 	 * @param Litige|int $litige

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiabilityByReference;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method FiabilityByReference|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class FiabilityByReferenceRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, FiabilityByReference::class);
+    }
 
     // /**
     //  * @return FiabilityByReference[] Returns an array of FiabilityByReference objects

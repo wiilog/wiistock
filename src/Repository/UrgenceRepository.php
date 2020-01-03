@@ -8,6 +8,8 @@ use App\Entity\Urgence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
+use Doctrine\Persistence\ManagerRegistry;
+
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
  * @method Urgence|null findOneBy(array $criteria, array $orderBy = null)
@@ -22,6 +24,11 @@ class UrgenceRepository extends ServiceEntityRepository
         "start" => 'dateEnd',
         "end" => 'dateStart',
     ];
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Urgence::class);
+    }
 
     /**
      * @param Arrivage $arrivage

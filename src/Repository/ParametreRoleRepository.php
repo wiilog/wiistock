@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ParametreRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ParametreRole|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class ParametreRoleRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ParametreRole::class);
+    }
 
     public function findOneByRoleAndParam($role, $param)
 	{

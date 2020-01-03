@@ -4,8 +4,11 @@ namespace App\Repository;
 
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method OrdreCollecteReference|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,6 +18,10 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class OrdreCollecteReferenceRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, OrdreCollecteReference::class);
+    }
 
 	/**
 	 * @param OrdreCollecte $collecte

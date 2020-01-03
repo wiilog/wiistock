@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\DaysWorked;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method DaysWorked|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,6 +15,10 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class DaysWorkedRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, DaysWorked::class);
+    }
 
 	/**
 	 * @return DaysWorked[]

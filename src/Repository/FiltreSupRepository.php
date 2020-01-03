@@ -6,6 +6,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method FiltreSup|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,6 +16,10 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class FiltreSupRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, FiltreSup::class);
+    }
 
 	/**
 	 * @param string $field

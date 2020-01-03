@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReceptionReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,6 +17,10 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ReceptionReferenceArticle::class);
+    }
 
 	/**
 	 * @param Reception $reception

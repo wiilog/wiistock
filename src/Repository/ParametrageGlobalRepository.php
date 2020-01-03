@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ParametrageGlobal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ParametrageGlobal|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +14,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
  */
 class ParametrageGlobalRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ParametrageGlobal::class);
+    }
 
     // /**
     //  * @return ParametrageGlobal[] Returns an array of ParametrageGlobal objects

@@ -19,6 +19,7 @@ use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -49,6 +50,11 @@ class ArticleRepository extends ServiceEntityRepository
         'Commentaire' => ['field' => 'commentaire', 'typage' => 'list'],
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
     ];
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Article::class);
+    }
 
     public function getReferencesByRefAndDate($refPrefix, $date)
 	{

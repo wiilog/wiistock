@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Entity\FieldsParamRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\FieldsParamRepository")
  */
 class FieldsParam
 {
