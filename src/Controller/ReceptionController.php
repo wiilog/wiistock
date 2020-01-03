@@ -271,8 +271,18 @@ class ReceptionController extends AbstractController
 
             $reception
                 ->setReference($data['reference'])
-                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setDateAttendue(
+                    !empty($data['dateAttendue'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
+                ->setDateCommande(
+                    !empty($data['dateCommande'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
                 ->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
@@ -345,8 +355,18 @@ class ReceptionController extends AbstractController
 
             $reception
                 ->setReference($data['numeroCommande'])
-                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setDateAttendue(
+                    !empty($data['dateAttendue'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
+                ->setDateCommande(
+                    !empty($data['dateCommande'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
                 ->setNumeroReception($data['numeroReception'])
                 ->setStatut($statut)
                 ->setCommentaire($data['commentaire']);

@@ -179,4 +179,6 @@ function initNewReceptionEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    initDateTimePicker($('#dateCommande'));
+    initDateTimePicker($('#dateAttendue'));
 }
