@@ -38,7 +38,7 @@ function script::readInstance() {
         read instance;
         instanceValid=$(containsElement "$instance" "${availableInstances[@]}")
         if [[ $instanceValid = 0 ]]; then
-            echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev'
+            printf 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev'
         else
             break
         fi
