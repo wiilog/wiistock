@@ -933,8 +933,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
                 if (barcodesLabel) {
-                    imageWidth *= 0.8;
-                    imageHeight *= 0.8;
+                    imageWidth *= 0.6;
+                    imageHeight *= 0.6;
                 }
 
                 let posX = (upperNaturalScale
@@ -945,11 +945,16 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 0);
 
                 if (barcodesLabel) {
+                    let toPrint = (barcodesLabel[index]
+                        .split('\n')
+                        .map((line) => line.trim())
+                        .filter(Boolean)
+                        .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
-                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
+                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
@@ -967,6 +972,20 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
             });
         });
     }
+}
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    };
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+            [response.articleRef.barcodeLabel],
+        );
+    });
 }
 
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {

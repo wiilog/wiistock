@@ -188,20 +188,6 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     }
 };
 
-function printSingleArticleBarcode(button) {
-    let params = {
-        'article': button.data('id')
-    };
-    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
-            printBarcodes(
-                [response.articleRef.barcode],
-                response,
-                'Etiquette article ' + response.articleRef.artLabel + '.pdf',
-                [response.articleRef.barcodeLabel],
-            );
-    });
-}
-
 function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
@@ -236,6 +222,7 @@ function overrideSearchArticle() {
 function getDataAndPrintLabels() {
     let path = Routing.generate('article_get_data_to_print', true);
     let listArticles = $("#listArticleIdToPrint").val();
+    console.log(listArticles);
     let params = JSON.stringify({
         listArticles: listArticles,
         start: tableArticle.page.info().start,

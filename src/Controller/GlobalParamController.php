@@ -95,7 +95,8 @@ class GlobalParamController extends AbstractController
             'dimensions_etiquettes' => $dimensions,
                 'parametrageG' => $paramGlo,
                 'parametrageGPrepa' => $paramGloPrepa,
-                'mailerServer' => $mailerServer
+                'mailerServer' => $mailerServer,
+                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE)
         ]);
     }
 
@@ -117,6 +118,22 @@ class GlobalParamController extends AbstractController
             $dimensions
                 ->setHeight(intval($data['height']))
                 ->setWidth(intval($data['width']));
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['param-bl-etiquette']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE)
+                    ->setParametre($data['param-bl-etiquette']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
             $em->flush();
 
             return new JsonResponse($data);

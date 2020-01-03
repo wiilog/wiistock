@@ -493,7 +493,9 @@ function initNewLigneReception(modal) {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle);
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
+                $('#button-for-id-ref').click();
+            });
         }
     });
 

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
@@ -959,20 +960,25 @@ class ArticleRepository extends ServiceEntityRepository
         return $result ? $result[0]['barCode'] : null;;
     }
 
-    public function getRefAndLabelRefAndArtAndBarcodeById($id)
+    public function getRefAndLabelRefAndArtAndBarcodeAndBLById($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode
+            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode, vcla.valeur as bl, cla.label as cl
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra
+		LEFT JOIN a.valeurChampsLibres vcla
+		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
-            ->setParameter('id', $id);
+            ->setParameters([
+                'id' => $id,
+                //'bl' => ChampLibre::SPECIFIQUE_COLLINS_BL
+            ]);
 
-        return $query->getOneOrNullResult();
+        return $query->execute();
     }
 
     /**

@@ -8,10 +8,10 @@ let ajaxDims = function () {
     let data = $('#dimsForm').find('.data');
     let json = {};
     data.each(function () {
-        let val = $(this).val();
+        let val = $(this).attr('type') === 'checkbox' ? $(this).is(':checked') : $(this).val();
         let name = $(this).attr("name");
         json[name] = val;
-    })
+    });
     let Json = JSON.stringify(json);
     let path = Routing.generate('ajax_dimensions_etiquettes', true);
     xhttp.open("POST", path, true);
