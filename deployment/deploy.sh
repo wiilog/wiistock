@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./utils.sh
+source $(dirname "$0")/utils.sh
 
 echo '-> numéro de version web ? (entrée si pas de modif)'
 read versionWeb
@@ -24,7 +24,7 @@ if [ "$versionNomade" != "" ]; then
 
     # mise à jour numéro de version sur services.yaml
     formerNomadeVersionLine="nomade_versions:"
-    newNomadeVersionLine="$formerNomadeVersionLine '>=$versionNomade'"
+    newNomadeVersionLine="$formerNomadeVersionLine ' >=$versionNomade'"
     replaceInFile $formerNomadeVersionLine $newNomadeVersionLine 'config/services.yaml'
 
     # mise à jour lien apk sur services.yaml
@@ -60,9 +60,9 @@ serverName=$(script::getServerName "$instance")
 
 # mise en maintenance
 if [ "$serverName" = 'server-dev' ]; then
-    cd /var/www/"$instance"/WiiStock && replaceInFile "APP_ENV" "APP_ENV=maintenance" ".env"
+    cd /var/www/"$instance"/WiiStock && replaceInFile "APP_ENV.*" "APP_ENV=maintenance" ".env"
 else
-    remote::changeEnv
+    remote::changeEnv "$instance" maintenance "$serverName"
 fi
 
 printf "\n////////// OK : mise en maintenance de l'instance $instance //////////\n"

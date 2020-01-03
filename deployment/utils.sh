@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 function replaceInFile() {
     match=$1
     replace=$2
@@ -11,26 +10,25 @@ function replaceInFile() {
 function containsElement() {
   local e match="$1"
   shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
+  for e; do [[ "$e" == "$match" ]] && return 1; done
+  return 0
 }
-
 
 function remote::run() {
     # usage: remote::run "host" "includes" "commands"
     # where "includes" is a list of functions to export to
     # the remote host
-
-    [[ -n "$2" ]] && includes="$(declare -f $2);"
-    ssh -o StrictHostKeyChecking=no "$includes $3"
+    [[ -n "$2" ]] && includes="$(declare -f "$2");"
+    ssh "$1" -o StrictHostKeyChecking=no "$includes $3"
 }
 
 function remote::changeEnv() {
-    # usage: remote::changeEnv "$instance" "maintenance"
+    # usage: remote::changeEnv "$instance" "maintenance" "$serverName"
     instance=$1
     environment=$2
-    changeEnv="cd /var/www/$instance/WiiStock && replaceInFile \"APP_ENV\" \"APP_ENV=$environment\" \".env\""
-    remote::run serverName replaceInFile "$changeEnv"
+    serverName=$3
+    changeEnv="cd /var/www/$instance/WiiStock && replaceInFile \"APP_ENV.*\" \"APP_ENV=$environment\" \".env\""
+    remote::run "$serverName" replaceInFile "$changeEnv"
 }
 
 function script::readInstance() {
@@ -39,7 +37,7 @@ function script::readInstance() {
     while true; do
         read instance;
         instanceValid=$(containsElement "$instance" "${availableInstances[@]}")
-        if [[ $instanceValid = 1 ]]; then
+        if [[ $instanceValid = 0 ]]; then
             echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev'
         else
             break
@@ -49,6 +47,7 @@ function script::readInstance() {
     echo "$instance";
 }
 
+# serverName doit correspondre aux noms d'hosts dans /root/.ssh/config
 function script::getServerName() {
     instance=$1
     case "$instance" in
