@@ -23,15 +23,15 @@ if [ "$versionNomade" != "" ]; then
     fi
 
     # mise à jour numéro de version sur services.yaml
-    formerNomadeVersionLine="nomade_versions:"
-    newNomadeVersionLine="$formerNomadeVersionLine ' >=$versionNomade'"
-    replaceInFile $formerNomadeVersionLine $newNomadeVersionLine 'config/services.yaml'
+    formerNomadeVersionLine="nomade_versions: "
+    newNomadeVersionLine="$formerNomadeVersionLine'>="$versionNomade"'"
+    replaceInFile "$formerNomadeVersionLine" "$newNomadeVersionLine" 'config/services.yaml'
 
     # mise à jour lien apk sur services.yaml
     versionNomadeFormatted=${versionNomade//\./-}
-    formerApkLine="$formerNomadeVersionLine 'http:\/\/wiilog.fr\/dl\/wiistock"
+    formerApkLine="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock"
     newApkLine="$formerApkLine\/app-$versionNomadeFormatted.apk'"
-    replaceInFile $formerApkLine $newApkLine 'config/services.yaml'
+    replaceInFile "$formerApkLine" "$newApkLine" 'config/services.yaml'
 
     echo '////////// OK : numéro de version nomade + lien apk mis à jour sur le services.yaml //////////'
     needCommit=true
@@ -41,9 +41,9 @@ if [ "$needCommit" = true ]; then
     # commit et push modifs version
     git add config/services.yaml
     git add templates/layout.html.twig
-    git commit -m ">>>> VERSION $version"
+    git commit -m ">>>> VERSION $versionWeb"
     git push
-    printf "\n////////// OK : commit et push modif version $version //////////\n"
+    printf "\n////////// OK : commit et push modif version $versionWeb //////////\n"
 fi
 
 # actions manuelles : mise à jour jira
