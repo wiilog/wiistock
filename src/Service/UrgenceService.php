@@ -4,13 +4,11 @@
 namespace App\Service;
 
 
-use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
-use App\Repository\ManutentionRepository;
 use App\Repository\ReferenceArticleRepository;
-
+use Twig\Environment as Twig_Environment;
 use App\Repository\UrgenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -19,7 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class UrgenceService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -55,7 +53,14 @@ class UrgenceService
 
     private $em;
 
-    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, FiltreSupRepository $filtreSupRepository, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, UrgenceRepository $urgenceRepository)
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                RouterInterface $router,
+                                FiltreSupRepository $filtreSupRepository,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                UrgenceRepository $urgenceRepository)
     {
         $this->templating = $templating;
         $this->em = $em;

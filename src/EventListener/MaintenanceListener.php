@@ -1,23 +1,22 @@
 <?php
 
-namespace App\Security;
+namespace App\EventListener;
 
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
-use Twig_Environment;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 /**
  * Class MaintenanceListener
- * @package App\Security
+ * @package App\EventListener
  */
 class MaintenanceListener
 {
     /**
-     * @var EngineInterface
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -31,12 +30,12 @@ class MaintenanceListener
     }
 
 	/**
-	 * @param GetResponseEvent $event
+	 * @param RequestEvent $event
 	 * @throws Twig_Error_Loader
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-    public function onKernelRequest(GetResponseEvent $event) {
+    public function onKernelRequest(RequestEvent $event) {
         $maintenanceView = $this->templating->render('securite/maintenance.html.twig');
         $response = new Response(
             $maintenanceView,

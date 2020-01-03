@@ -23,7 +23,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
-use Twig_Environment;
+use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;

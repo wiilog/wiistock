@@ -13,16 +13,17 @@ use App\Repository\OrdreCollecteRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Routing\RouterInterface;
-
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class CollecteService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -63,7 +64,15 @@ class CollecteService
 
     private $em;
 
-    public function __construct(TokenStorageInterface $tokenStorage, OrdreCollecteRepository $ordreCollecteRepository, FiltreSupRepository $filtreSupRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository)
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                OrdreCollecteRepository $ordreCollecteRepository,
+                                FiltreSupRepository $filtreSupRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                CollecteRepository $collecteRepository)
     {
         $this->templating = $templating;
         $this->em = $em;
@@ -104,13 +113,13 @@ class CollecteService
         ];
     }
 
-	/**
-	 * @param Collecte $collecte
-	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
-	 */
+    /**
+     * @param Collecte $collecte
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function dataRowCollecte($collecte)
     {
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);

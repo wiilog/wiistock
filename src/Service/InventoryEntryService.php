@@ -4,22 +4,19 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\InventoryEntry;
-use App\Entity\MouvementStock;
-
 use App\Repository\InventoryEntryRepository;
-use App\Repository\MouvementStockRepository;
 use App\Repository\FiltreSupRepository;
-
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
+
 
 class InventoryEntryService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -47,9 +44,15 @@ class InventoryEntryService
 
     private $em;
 
-    public function __construct(UserService $userService, InventoryEntryRepository $inventoryEntryRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                InventoryEntryRepository $inventoryEntryRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;

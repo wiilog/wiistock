@@ -13,12 +13,13 @@ use App\Repository\FournisseurRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class FournisseurDataService
 {
-    
+
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -34,7 +35,11 @@ class FournisseurDataService
 
     private $em;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(FournisseurRepository $fournisseurRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                TokenStorageInterface $tokenStorage)
     {
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -43,7 +48,7 @@ class FournisseurDataService
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
-    
+
     public function getDataForDatatable($params = null)
     {
         $data = $this->getFournisseurDataByParams($params);

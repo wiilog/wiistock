@@ -6,14 +6,14 @@ namespace App\Service;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\InventoryMissionRepository;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Twig\Environment as Twig_Environment;
 
 class InvMissionService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -39,7 +39,12 @@ class InvMissionService
 
     private $em;
 
-    public function __construct(RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, InventoryMissionRepository $inventoryMissionRepository)
+    public function __construct(RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                InventoryMissionRepository $inventoryMissionRepository)
     {
         $this->templating = $templating;
         $this->em = $em;

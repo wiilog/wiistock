@@ -55,6 +55,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
+use Twig\Environment as Twig_Environment;
 
 class ArticleDataService
 {
@@ -95,7 +96,7 @@ class ArticleDataService
     private $filtreRefRepository;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -166,7 +167,28 @@ class ArticleDataService
      */
     private $filtreSupRepository;
 
-    public function __construct(FiltreSupRepository $filtreSupRepository, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, MailerService $mailerService, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(FiltreSupRepository $filtreSupRepository,
+                                ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+                                MailerService $mailerService,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                ParametreRepository $parametreRepository,
+                                SpecificService $specificService,
+                                EmplacementRepository $emplacementRepository,
+                                RouterInterface $router,
+                                UserService $userService,
+                                CategorieCLRepository $categorieCLRepository,
+                                RefArticleDataService $refArticleDataService,
+                                ArticleRepository $articleRepository,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                TypeRepository $typeRepository,
+                                StatutRepository $statutRepository,
+                                EntityManagerInterface $em,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ChampLibreRepository $champLibreRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                Twig_Environment $templating,
+                                TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;

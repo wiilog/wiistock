@@ -6,7 +6,6 @@ use App\Entity\Role;
 use App\Repository\RoleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
