@@ -6,7 +6,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 use Proxies\__CG__\App\Entity\CategorieCL;
 
 /**
@@ -17,18 +16,14 @@ use Proxies\__CG__\App\Entity\CategorieCL;
  */
 class ChampLibreRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, ChampLibre::class);
-    }
 
     public function getByType($type)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\ChampLibre c 
-            JOIN c.type t 
+            FROM App\Entity\ChampLibre c
+            JOIN c.type t
             WHERE t.id = :id"
         )->setParameter('id', $type);;
         return $query->execute();
@@ -39,7 +34,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :type AND c.requiredCreate = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -50,7 +45,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :type AND c.requiredEdit = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -61,7 +56,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id, c.typage
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             "
         );
         return $query->getResult();
@@ -73,7 +68,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie
@@ -96,7 +91,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             WHERE cl.label LIKE :label
             "
         )->setParameter('label', $label);
@@ -109,7 +104,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text
@@ -172,7 +167,7 @@ class ChampLibreRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			"SELECT c
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             JOIN c.categorieCL ccl
             WHERE c.type = :type AND ccl.label = :categorieCLLabel"
 		)->setParameters(
@@ -193,7 +188,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :typeId"
         )->setParameter('typeId', $typeId);
 

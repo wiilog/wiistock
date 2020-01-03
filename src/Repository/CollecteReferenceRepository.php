@@ -7,8 +7,6 @@ use App\Entity\CollecteReference;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
-use Symfony\Bridge\Doctrine\RegistryInterface;
-
 /**
  * @method CollecteReference|null find($id, $lockMode = null, $lockVersion = null)
  * @method CollecteReference|null findOneBy(array $criteria, array $orderBy = null)
@@ -17,10 +15,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class CollecteReferenceRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, CollecteReference::class);
-    }
 
 	/**
 	 * @param Collecte|int $collecte

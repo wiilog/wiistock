@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,11 +22,6 @@ class EmplacementRepository extends ServiceEntityRepository
         'Délai maximum' => 'dateMaxTime',
         'Actif / Inactif' => 'isActive',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Emplacement::class);
-    }
 
     public function getIdAndNom()
     {

@@ -16,9 +16,9 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
+use Twig\Error\LoaderError as Twig_Error_Loader;
+use Twig\Error\RuntimeError as Twig_Error_Runtime;
+use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 class LivraisonService
 {
@@ -58,7 +58,7 @@ class LivraisonService
 
     public function __construct(DemandeRepository $demandeRepository, UserService $userService, LivraisonRepository $livraisonRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;

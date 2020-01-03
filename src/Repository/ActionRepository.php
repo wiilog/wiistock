@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Action|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ActionRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Action::class);
-    }
 
     /**
      * @param string $menuCode
@@ -28,7 +23,7 @@ class ActionRepository extends ServiceEntityRepository
     public function findOneByMenuCodeAndLabel($menuCode, $label)
     {
         $em = $this->getEntityManager();
-        
+
         $query = $em->createQuery(
             "SELECT a
             FROM App\Entity\Action a

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
@@ -15,19 +14,12 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  */
 class UtilisateurRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
-
-
     private const DtToDbLabels = [
         'Nom d\'utilisateur' => 'username',
         'Email' => 'email',
         'Dernière connexion' => 'lastLogin',
         'Rôle' => 'role',
     ];
-
-	public function __construct(RegistryInterface $registry)
-	{
-		parent::__construct($registry, Utilisateur::class);
-	}
 
 	public function countByEmail($email)
 	{
@@ -48,7 +40,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT COUNT(u)
-			FROM App\Entity\Utilisateur u 
+			FROM App\Entity\Utilisateur u
 			WHERE u.username = :username"
 		)->setParameter('username', $username);
 

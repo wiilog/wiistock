@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\CategorieCL;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method CategorieCL|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class CategorieCLRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, CategorieCL::class);
-    }
 
     public function findOneByLabel($label)
     {

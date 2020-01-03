@@ -6,7 +6,6 @@ use App\Entity\Manutention;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Manutention|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,11 +23,6 @@ class ManutentionRepository extends ServiceEntityRepository
         'Date souhaitée' => 'dateAttendue',
         'Statut' => 'statut',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Manutention::class);
-    }
 
     public function countByStatut($statut){
         $entityManager = $this->getEntityManager();

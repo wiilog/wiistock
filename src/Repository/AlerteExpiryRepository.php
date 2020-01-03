@@ -3,10 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
-use App\Entity\Article;
-use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method AlerteExpiry|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class AlerteExpiryRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, AlerteExpiry::class);
-    }
 
 	public function countAlertsExpiryActive()
 	{

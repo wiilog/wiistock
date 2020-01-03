@@ -52,9 +52,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
+use Twig\Error\LoaderError as Twig_Error_Loader;
+use Twig\Error\RuntimeError as Twig_Error_Runtime;
+use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 class ArticleDataService
 {

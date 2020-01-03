@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ArrivalHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method ArrivalHistory|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,15 +14,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ArrivalHistoryRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, ArrivalHistory::class);
-    }
 
     /**
      * @param $date
      * @return ArrivalHistory | null
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function getByDate($date)
     {

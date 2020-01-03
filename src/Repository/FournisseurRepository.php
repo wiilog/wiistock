@@ -6,7 +6,6 @@ use App\Entity\Colis;
 use App\Entity\Fournisseur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Fournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,11 +20,6 @@ class FournisseurRepository extends ServiceEntityRepository
         'Nom' => 'nom',
         'Code de référence' => 'codeReference',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Fournisseur::class);
-    }
 
     public function findOneByCodeReference($code)
     {

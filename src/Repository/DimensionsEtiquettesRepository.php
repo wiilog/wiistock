@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\DimensionsEtiquettes;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method DimensionsEtiquettes|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class DimensionsEtiquettesRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, DimensionsEtiquettes::class);
-    }
 
 	/**
 	 * @return DimensionsEtiquettes|null

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\ReceptionTraca;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method ReceptionTraca|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,11 +19,6 @@ class ReceptionTracaRepository extends ServiceEntityRepository
         'Réception' => 'number',
         'Utilisateur' => 'user',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, ReceptionTraca::class);
-    }
 
     /**
      * @param $firstDay

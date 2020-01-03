@@ -6,7 +6,6 @@ use App\Entity\Demande;
 use App\Entity\LigneArticle;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method LigneArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,10 +15,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class LigneArticleRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, LigneArticle::class);
-    }
 
     public function getQuantity($id)
     {
@@ -85,7 +80,7 @@ class LigneArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT l 
+            "SELECT l
             FROM App\Entity\LigneArticle l
             JOIN l.demande d
             WHERE d.id = :demande

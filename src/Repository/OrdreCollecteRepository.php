@@ -7,7 +7,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method OrdreCollecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,11 +23,6 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		'Opérateur' => 'utilisateur',
 		'Type' => 'type'
 	];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, OrdreCollecte::class);
-    }
 
 	/**
 	 * @param Collecte $collecte

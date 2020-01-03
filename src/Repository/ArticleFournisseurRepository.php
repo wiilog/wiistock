@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\ArticleFournisseur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method ArticleFournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,11 +18,6 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         'Référence' => 'reference',
         'Article de référence' => 'art_ref',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, ArticleFournisseur::class);
-    }
 
 
     public function findBySearch($value)

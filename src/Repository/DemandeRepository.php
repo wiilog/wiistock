@@ -6,7 +6,6 @@ use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,11 +22,6 @@ class DemandeRepository extends ServiceEntityRepository
         'Numéro' => 'numero',
         'Type' => 'type',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Demande::class);
-    }
 
 	/**
 	 * @param Livraison $livraison

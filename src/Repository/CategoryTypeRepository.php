@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\CategoryType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method CategoryType|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class CategoryTypeRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, CategoryType::class);
-    }
 
     public function getNoOne($category)
     {
@@ -28,7 +23,7 @@ class CategoryTypeRepository extends ServiceEntityRepository
             WHERE c.id <> :category"
              )->setParameter('category', $category);
         ;
-        return $query->execute(); 
+        return $query->execute();
     }
 
     // /**

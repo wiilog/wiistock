@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\MailerServer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method MailerServer|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class MailerServerRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, MailerServer::class);
-    }
 
 	/**
 	 * @return MailerServer|null

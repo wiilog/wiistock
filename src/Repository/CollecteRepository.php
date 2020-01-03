@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Collecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,11 +22,6 @@ class CollecteRepository extends ServiceEntityRepository
         'Statut' => 'statut',
         'Type' => 'type',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Collecte::class);
-    }
 
     public function findByStatutLabelAndUser($statutLabel, $user)
     {

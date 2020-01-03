@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,11 +23,6 @@ class LitigeRepository extends ServiceEntityRepository
 		'updateDate' => 'updateDate',
 		'status' => 'status',
 	];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Litige::class);
-    }
 
     public function findByStatutSendNotifToBuyer()
 	{

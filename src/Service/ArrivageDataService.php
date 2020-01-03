@@ -3,21 +3,20 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-
 use App\Entity\FiltreSup;
 use App\Repository\ArrivageRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
+
 
 class ArrivageDataService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,9 +44,15 @@ class ArrivageDataService
 
     private $em;
 
-    public function __construct(UserService $userService, ArrivageRepository $arrivageRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                ArrivageRepository $arrivageRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;

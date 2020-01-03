@@ -5,12 +5,10 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -29,11 +27,6 @@ class MouvementStockRepository extends ServiceEntityRepository
 		'type' => 'type',
 		'operateur' => 'user',
 	];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, MouvementStock::class);
-    }
 
     public function countByEmplacement($emplacementId)
     {
@@ -151,8 +144,8 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
         "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m 
-            WHERE m.type 
+            FROM App\Entity\MouvementStock m
+            WHERE m.type
             IN (:types)"
         )->setParameter('types', $types);
         return $query->getSingleScalarResult();

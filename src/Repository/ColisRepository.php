@@ -6,7 +6,6 @@ use App\Entity\Colis;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Colis|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,10 +15,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ColisRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Colis::class);
-    }
 
 	/**
 	 * @param string $code

@@ -2,12 +2,10 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,11 +25,6 @@ class ReceptionRepository extends ServiceEntityRepository
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, Reception::class);
-    }
 
 	public function countByFournisseur($fournisseurId)
 	{

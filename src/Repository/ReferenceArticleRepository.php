@@ -8,13 +8,11 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -38,11 +36,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status'
     ];
-
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, ReferenceArticle::class);
-    }
 
     public function getIdAndLibelle()
     {
@@ -972,9 +965,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 								->leftJoin('ra.articlesFournisseur', 'af')
 								->leftJoin('af.articles', 'a')
 								->addSelect('(CASE
-								WHEN ra.typeQuantite = :typeQteArt 
+								WHEN ra.typeQuantite = :typeQteArt
 								THEN (SUM(a.quantite))
-								ELSE ra.quantiteStock 
+								ELSE ra.quantiteStock
 								END) as quantity')
 								->groupBy('ra.id')
 								->orderBy('quantity', $order)

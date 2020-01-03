@@ -4,7 +4,8 @@ namespace App\Repository;
 
 use App\Entity\InventoryCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method InventoryCategory|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,15 +15,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class InventoryCategoryRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, InventoryCategory::class);
-    }
 
     /**
      * @param string $label
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function countByLabel($label)
     {

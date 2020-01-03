@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\PrefixeNomDemande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method PrefixeNomDemande|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,11 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class PrefixeNomDemandeRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, PrefixeNomDemande::class);
-    }
-
 	/**
 	 * @param string $typeDemande
 	 * @return PrefixeNomDemande|null

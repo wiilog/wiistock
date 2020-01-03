@@ -3,9 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\InventoryMission;
-use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,10 +13,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class InventoryMissionRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, InventoryMission::class);
-    }
 
     public function getCurrentMissionRefNotTreated()
 	{

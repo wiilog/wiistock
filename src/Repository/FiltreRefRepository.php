@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\FiltreRef;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
  * @method FiltreRef|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,10 +14,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class FiltreRefRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, FiltreRef::class);
-    }
 
     public function countByChampAndUser($field, $userId)
     {

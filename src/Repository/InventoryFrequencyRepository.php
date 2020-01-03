@@ -4,7 +4,8 @@ namespace App\Repository;
 
 use App\Entity\InventoryFrequency;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method InventoryFrequency|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,15 +15,12 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class InventoryFrequencyRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
-    {
-        parent::__construct($registry, InventoryFrequency::class);
-    }
 
     /**
      * @param string $label
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function countByLabel($label)
     {

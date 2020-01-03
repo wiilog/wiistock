@@ -6,9 +6,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Twig_Environment;
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
+use Twig\Error\LoaderError as Twig_Error_Loader;
+use Twig\Error\RuntimeError as Twig_Error_Runtime;
+use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 /**
  * Class MaintenanceListener
