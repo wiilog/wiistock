@@ -62,7 +62,7 @@ serverName=$(script::getServerName "$instance")
 if [ "$serverName" = 'server-dev' ]; then
     cd /var/www/"$instance"/WiiStock && replaceInFile "APP_ENV.*" "APP_ENV=maintenance" ".env"
 else
-    remote::changeEnv "$instance" maintenance "$serverName"
+  remote::changeEnv "$instance" maintenance "$serverName"
 fi
 
 printf "\n////////// OK : mise en maintenance de l'instance $instance //////////\n"

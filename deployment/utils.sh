@@ -10,8 +10,8 @@ function replaceInFile() {
 function containsElement() {
   local e match="$1"
   shift
-  for e; do [[ "$e" == "$match" ]] && return 1; done
-  return 0
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
 }
 
 function remote::run() {
@@ -36,9 +36,8 @@ function script::readInstance() {
     local availableInstances=(dev test cl2-prod cl1-rec scs1-prod scs1-rec col1-prod col1-rec)
     while true; do
         read instance;
-        instanceValid=$(containsElement "$instance" "${availableInstances[@]}")
-        if [[ $instanceValid = 0 ]]; then
-            printf 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev'
+        if ! $(containsElement "$instance" "${availableInstances[@]}"); then
+            echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev' >&2
         else
             break
         fi
