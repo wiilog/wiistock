@@ -599,7 +599,7 @@ function initFilterDateToday() {
     let $todayMinDate = $('#dateMin');
     let $todayMaxDate = $('#dateMax');
     if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
-        let today = moment().format('YYYY-MM-DD');
+        let today = moment().format('DD/MM/YYYY');
         $todayMinDate.val(today);
         $todayMaxDate.val(today);
     }

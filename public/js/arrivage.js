@@ -7,10 +7,10 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ARRIVAGE);;
+    let params = JSON.stringify(PAGE_ARRIVAGE);
 
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');
@@ -38,24 +38,15 @@ $(function() {
             } else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
-
         initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
-
-function initFilterDateToday() {
-    // par défaut filtre date du jour
-    let today = new Date();
-    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
-    $('#dateMin').val(formattedToday);
-    $('#dateMax').val(formattedToday);
-}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
@@ -71,9 +62,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "url": pathArrivage,
         "type": "POST",
         'data': {
-            'clicked' : function() {
-                return clicked;
-            }
+            'clicked': () => clicked,
         }
     },
     'drawCallback': function() {

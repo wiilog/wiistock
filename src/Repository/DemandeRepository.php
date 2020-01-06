@@ -6,6 +6,8 @@ use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -32,7 +34,7 @@ class DemandeRepository extends ServiceEntityRepository
 	/**
 	 * @param Livraison $livraison
 	 * @return Demande|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function findOneByLivraison($livraison)
 	{
@@ -160,7 +162,8 @@ class DemandeRepository extends ServiceEntityRepository
 	/**
 	 * @param Utilisateur $user
 	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByUser($user)
 	{

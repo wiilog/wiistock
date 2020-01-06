@@ -219,7 +219,9 @@ class ArrivageRepository extends ServiceEntityRepository
                     break;
             }
         }
-        //Filter search
+
+		$orderStatut = null;
+		//Filter search
         if (!empty($params)) {
             if (!empty($params->get('clicked'))) {
                 if ($params->get('clicked') === 'true' && $needsDefaultDateFilter) $needsDefaultDateFilter = false;
@@ -248,7 +250,6 @@ class ArrivageRepository extends ServiceEntityRepository
                 }
             }
 
-            $orderStatut = null;
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
