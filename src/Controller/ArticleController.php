@@ -7,6 +7,7 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Article;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -14,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -37,12 +39,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Twig\Environment as Twig_Environment;
 
 /**
  * @Route("/article")
  */
-class ArticleController extends Controller
+class ArticleController extends AbstractController
 {
 
     /**
@@ -121,7 +125,7 @@ class ArticleController extends Controller
     private $userService;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -137,7 +141,12 @@ class ArticleController extends Controller
      */
     private $filtreSupRepository;
 
-    public function __construct(\Twig_Environment $templating,
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+	private $paramGlobalRepository;
+
+    public function __construct(Twig_Environment $templating,
                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 FournisseurRepository $fournisseurRepository,
@@ -155,8 +164,10 @@ class ArticleController extends Controller
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
                                 FiltreSupRepository $filtreSupRepository,
+                                ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService)
     {
+        $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
@@ -879,14 +890,23 @@ class ArticleController extends Controller
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
-            $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById(intval($dataContent['article']));
-
+            $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById(intval($dataContent['article']));
+            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $wantedIndex = 0;
+            foreach($articles as $key => $articleWithCL) {
+                if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+                    $wantedIndex = $key;
+                    break;
+                }
+            }
+            $article = $articles[$wantedIndex];
             $data['articleRef'] = [
                 'barcode' => $article['barcode'],
                 'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => $article['refRef'],
-                    'refLabel' => $article['refLabel'],
-                    'artLabel' => $article['artLabel'],
+                    'refRef' => trim($article['refRef']),
+                    'refLabel' => trim($article['refLabel']),
+                    'artLabel' => trim($article['artLabel']),
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]),
                 'artLabel' => $article['artLabel'],
             ];
@@ -989,12 +1009,23 @@ class ArticleController extends Controller
 
             $barcodes = $barcodeLabels = [];
             for ($i = 0; $i < count($listArticles); $i++) {
-                $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById($listArticles[$i]);
+                $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($listArticles[$i]);
+                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $wantedIndex = 0;
+                foreach($articles as $key => $articleWithCL) {
+                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+                        $wantedIndex = $key;
+                        break;
+                    }
+                }
+
+                $article = $articles[$wantedIndex];
                 $barcodes[] = $article['barcode'];
                 $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => $article['refRef'],
-                    'refLabel' => $article['refLabel'],
-                    'artLabel' => $article['artLabel'],
+                    'refRef' => trim($article['refRef']),
+                    'refLabel' => trim($article['refLabel']),
+                    'artLabel' => trim($article['artLabel']),
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]);
 
             }

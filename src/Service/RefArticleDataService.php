@@ -33,7 +33,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
-
+use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -104,7 +104,7 @@ class RefArticleDataService
     private $demandeRepository;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -141,7 +141,26 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
+    public function __construct(DemandeRepository $demandeRepository,
+                                ArticleRepository $articleRepository,
+                                LigneArticleRepository $ligneArticleRepository,
+                                EmplacementRepository $emplacementRepository,
+                                RouterInterface $router,
+                                UserService $userService,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                TypeRepository $typeRepository,
+                                StatutRepository $statutRepository,
+                                EntityManagerInterface $em,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ChampLibreRepository $champLibreRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                Twig_Environment $templating,
+                                TokenStorageInterface $tokenStorage,
+                                InventoryCategoryRepository $inventoryCategoryRepository,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;

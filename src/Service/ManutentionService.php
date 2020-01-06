@@ -10,7 +10,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\ReferenceArticleRepository;
-
+use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class ManutentionService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -54,7 +54,14 @@ class ManutentionService
 
     private $em;
 
-    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, FiltreSupRepository $filtreSupRepository, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, ManutentionRepository $manutentionRepository)
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                RouterInterface $router,
+                                FiltreSupRepository $filtreSupRepository,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                ManutentionRepository $manutentionRepository)
     {
         $this->templating = $templating;
         $this->em = $em;

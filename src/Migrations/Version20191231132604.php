@@ -7,9 +7,6 @@ namespace DoctrineMigrations;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
-/**
- * Auto-generated Migration: Please modify to your needs!
- */
 final class Version20191231132604 extends AbstractMigration
 {
     public function getDescription(): string
@@ -20,16 +17,6 @@ final class Version20191231132604 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
-        $this->addSql("DELETE FROM valeur_champ_libre
-                            WHERE valeur_champ_libre.id IN (
-                                SELECT vcl_second.id
-                                FROM valeur_champ_libre_reference_article
-                                INNER JOIN (SELECT * FROM valeur_champ_libre) AS vcl_second
-                                on valeur_champ_libre_reference_article.valeur_champ_libre_id = vcl_second.id
-                                WHERE valeur_champ_libre_reference_article.reference_article_id = 17763
-                                )"
-        );
-        $this->addSql("DELETE FROM valeur_champ_libre_reference_article WHERE valeur_champ_libre_reference_article.reference_article_id = 17763");
         $this->addSql("ALTER TABLE article ADD reception_reference_article_id int(11)");
         $this->addSql("UPDATE article as a SET a.reception_reference_article_id =
                             (
@@ -45,7 +32,6 @@ final class Version20191231132604 extends AbstractMigration
                             )
                             WHERE a.reception_id IS NOT NULL"
         );
-        $this->addSql("ALTER TABLE article DROP COLUMN reception_id");
     }
 
     public function down(Schema $schema): void

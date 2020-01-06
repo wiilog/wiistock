@@ -15,11 +15,12 @@ use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -53,7 +54,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Article::class);
     }
@@ -961,27 +962,30 @@ class ArticleRepository extends ServiceEntityRepository
         return $result ? $result[0]['barCode'] : null;;
     }
 
-    public function getRefAndLabelRefAndArtAndBarcodeById($id)
+    public function getRefAndLabelRefAndArtAndBarcodeAndBLById($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode
+            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode, vcla.valeur as bl, cla.label as cl
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra
+		LEFT JOIN a.valeurChampsLibres vcla
+		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
             ->setParameter('id', $id);
 
-        return $query->getOneOrNullResult();
+        return $query->execute();
     }
 
-    /**
-     * @param Article $article
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Article $article
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countInventoryAnomaliesByArt($article)
     {
         $em = $this->getEntityManager();

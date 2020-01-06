@@ -92,32 +92,8 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $missions = $this->inventoryMissionRepository->findAll();
+            $data = $this->invMissionService->getDataForMissionsDatatable($request->request);
 
-            $rows = [];
-            foreach ($missions as $mission) {
-                $anomaly = $this->inventoryMissionRepository->countAnomaliesByMission($mission);
-
-                $nbArtInMission = $this->articleRepository->countByMission($mission);
-                $nbRefInMission = $this->referenceArticleRepository->countByMission($mission);
-                $nbEntriesInMission = $this->inventoryEntryRepository->countByMission($mission);
-
-                $rateBar = ($nbArtInMission + $nbRefInMission) != 0 ? $nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission) : 0;
-
-                $rows[] =
-                    [
-                        'StartDate' => $mission->getStartPrevDate()->format('d/m/Y'),
-                        'EndDate' => $mission->getEndPrevDate()->format('d/m/Y'),
-                        'Anomaly' => $anomaly != 0,
-                        'Rate' => $this->renderView('inventaire/datatableMissionsBar.html.twig', [
-                            'rateBar' => $rateBar
-                        ]),
-                        'Actions' => $this->renderView('inventaire/datatableMissionsRow.html.twig', [
-                            'missionId' => $mission->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -224,7 +200,7 @@ class InventoryMissionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $data = $this->invMissionService->getDataForDatatable($mission, $request->request);
+        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request);
         return new JsonResponse($data);
     }
 

@@ -10,6 +10,8 @@ const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_INV_MISSIONS = 'inv_missions';
+const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
 
@@ -593,6 +595,16 @@ function ajaxAutoFournisseurInit(select, placeholder = '') {
     });
 }
 
+function initFilterDateToday() {
+    let $todayMinDate = $('#dateMin');
+    let $todayMaxDate = $('#dateMax');
+    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
+        let today = moment().format('DD/MM/YYYY');
+        $todayMinDate.val(today);
+        $todayMaxDate.val(today);
+    }
+}
+
 function ajaxAutoChauffeurInit(select) {
     select.select2({
         ajax: {
@@ -933,8 +945,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
                 if (barcodesLabel) {
-                    imageWidth *= 0.8;
-                    imageHeight *= 0.8;
+                    imageWidth *= 0.6;
+                    imageHeight *= 0.6;
                 }
 
                 let posX = (upperNaturalScale
@@ -945,11 +957,16 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 0);
 
                 if (barcodesLabel) {
+                    let toPrint = (barcodesLabel[index]
+                        .split('\n')
+                        .map((line) => line.trim())
+                        .filter(Boolean)
+                        .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
-                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
+                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
@@ -967,6 +984,20 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
             });
         });
     }
+}
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    };
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+            [response.articleRef.barcodeLabel],
+        );
+    });
 }
 
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
@@ -1146,4 +1177,28 @@ function toggleOnTheFlyForm(id, button) {
             $toShow.parent().parent().css("height", "0");
         }
     }
+}
+
+function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
+    $(dateInput).datetimepicker({
+        format: 'DD/MM/YYYY',
+        useCurrent: false,
+        locale: moment.locale(),
+        showTodayButton: true,
+        showClear: true,
+        icons: {
+            clear: 'fas fa-trash',
+        },
+        tooltips: {
+            today: 'Aujourd\'hui',
+            clear: 'Supprimer',
+            selectMonth: 'Choisir le mois',
+            selectYear: 'Choisir l\'année',
+            selectDecade: 'Choisir la décénie',
+        },
+    });
+}
+
+function toggleQuill($modal, enable) {
+    $modal.find('.ql-editor').prop('contenteditable', enable);
 }

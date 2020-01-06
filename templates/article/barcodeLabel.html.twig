@@ -1,3 +1,4 @@
-L/R : {{ refLabel }}
-C/R : {{ refRef }}
-L/A : {{ artLabel }}
+L/R : {{ refLabel|trim }}
+C/R : {{ refRef|trim }}
+L/A : {{ artLabel|trim }}
+{{ artBL ? 'BL : ' ~ artBL|trim : ''}}

@@ -9,9 +9,8 @@
 namespace App\Service;
 
 
-use App\Entity\MailerServer;
 use App\Repository\MailerServerRepository;
-use Twig_Environment;
+use Twig\Environment as Twig_Environment;
 
 class MailerService
 {

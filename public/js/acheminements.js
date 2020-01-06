@@ -55,20 +55,24 @@ function printAcheminement(id) {
 
 let $submitSearchAcheminements = $('#submitSearchAcheminements');
 $submitSearchAcheminements.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_ACHEMINEMENTS,
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
-    }
+    };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
+
     saveFilters(filters, tableAcheminements);
 });
 
 $(function() {
-    let val = $('#statut').val();
-    if (val != null && val != '') {
-        $submitSearchAcheminements.click();
-    }
+    initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -77,11 +81,12 @@ $(function() {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
                 $('#utilisateur').val(element.value.split(',')).select2();
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0)$submitSearchAcheminements.click();
     }, 'json');
 });
 
