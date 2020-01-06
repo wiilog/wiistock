@@ -70,9 +70,14 @@ printf "\n////////// OK : mise en maintenance de l'instance $instance //////////
 # sauvegarde base données
 backup=true
 case "$instance" in
-cl2-prod | scs1-prod | col1-rec)
-    db=$(awk '{ print $1 }' $(dirname "$0")/db-"$instance")
-    ;;
+cl2-prod)
+  db=cl1prod;;
+scs1-prod)
+  db=scs1prod;;
+col1-prod)
+  db=col1prod;;
+col1-rec)
+  db=col1rec;;
 *) backup=false ;;
 esac
 
