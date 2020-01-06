@@ -7,14 +7,11 @@ use App\Entity\FiltreSup;
 
 use App\Entity\ReceptionTraca;
 use App\Repository\FiltreSupRepository;
-use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionTracaRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 use Doctrine\ORM\EntityManagerInterface;
-use Twig_Environment;
+use Twig\Environment as Twig_Environment;
 
 class ReceptionTracaService
 {
@@ -47,7 +44,13 @@ class ReceptionTracaService
 
     private $em;
 
-    public function __construct(UserService $userService, RouterInterface $router, EntityManagerInterface $em, Twig_Environment $templating, TokenStorageInterface $tokenStorage, Security $security, ReceptionTracaRepository $receptionTracaRepository, FiltreSupRepository $filtreSupRepository)
+    public function __construct(UserService $userService,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                Security $security,
+                                ReceptionTracaRepository $receptionTracaRepository,
+                                FiltreSupRepository $filtreSupRepository)
     {
         $this->templating = $templating;
         $this->em = $em;

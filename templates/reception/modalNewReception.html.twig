@@ -15,19 +15,25 @@
                     <div class="form-group col-6">
                         <label for="dateCommande">Date
                             commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : '' }}</label>
-                        <input type="date"
-                               class="form-control data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
-                               name="dateCommande" value="" required="true"
-                               id="dateCommande" max="{{ '+25year' | date('Y-m-d') }}">
+                        <input type="text"
+                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               name="dateCommande"
+                               id="dateCommande"
+                               required="true"
+                               value=""
+                               placeholder="jj/mm/aaaa">
                     </div>
 
                     <div class="form-group col-6">
                         <label for="dateAttendue">Date
                             attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : '' }}</label>
-                        <input type="date"
-                               class="form-control data {{ fieldsParam.dateAttendue.mustToCreate ? 'needed' : '' }}"
-                               name="dateAttendue" value="" required="true"
-                               id="dateAttendue">
+                        <input type="text"
+                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               name="dateAttendue"
+                               id="dateAttendue"
+                               required="true"
+                               value=""
+                               placeholder="jj/mm/aaaa">
                     </div>
                 </div>
 

@@ -39,12 +39,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Twig\Environment as Twig_Environment;
 
 /**
  * @Route("/article")
  */
-class ArticleController extends Controller
+class ArticleController extends AbstractController
 {
 
     /**
@@ -123,7 +126,7 @@ class ArticleController extends Controller
     private $userService;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -139,12 +142,12 @@ class ArticleController extends Controller
      */
     private $filtreSupRepository;
 
-    /**
-     * @var ParametrageGlobalRepository
-     */
-    private $paramGlobalRepository;
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+	private $paramGlobalRepository;
 
-    public function __construct(\Twig_Environment $templating,
+    public function __construct(Twig_Environment $templating,
                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 FournisseurRepository $fournisseurRepository,

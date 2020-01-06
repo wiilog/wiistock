@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\DaysWorked;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method DaysWorked|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +15,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class DaysWorkedRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, DaysWorked::class);
     }
@@ -29,7 +29,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT dp
-            FROM App\Entity\DaysWorked dp 
+            FROM App\Entity\DaysWorked dp
             ORDER BY dp.displayOrder ASC
             "
         );
@@ -47,7 +47,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT dp
-            FROM App\Entity\DaysWorked dp 
+            FROM App\Entity\DaysWorked dp
             WHERE dp.day LIKE :day AND dp.worked = 1
             "
         )->setParameter('day', $day);
@@ -64,7 +64,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT COUNT(dw)
-            FROM App\Entity\DaysWorked dw 
+            FROM App\Entity\DaysWorked dw
             WHERE dw.times IS NULL AND dw.worked = 1
             ");
         return $query->getSingleScalarResult();

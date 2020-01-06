@@ -18,6 +18,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
@@ -52,7 +53,7 @@ class MailsLitigesComand extends Command
                                 LoggerInterface $logger,
                                 LitigeRepository $litigeRepository,
                                 MailerService $mailerService,
-                                \Twig_Environment $templating)
+                                Twig_Environment $templating)
     {
         parent::__construct();
         $this->litigeRepository = $litigeRepository;

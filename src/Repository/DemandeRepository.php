@@ -6,7 +6,9 @@ use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +26,7 @@ class DemandeRepository extends ServiceEntityRepository
         'Type' => 'type',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Demande::class);
     }
@@ -32,7 +34,7 @@ class DemandeRepository extends ServiceEntityRepository
 	/**
 	 * @param Livraison $livraison
 	 * @return Demande|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
 	public function findOneByLivraison($livraison)
 	{
@@ -160,7 +162,8 @@ class DemandeRepository extends ServiceEntityRepository
 	/**
 	 * @param Utilisateur $user
 	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByUser($user)
 	{

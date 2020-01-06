@@ -3,21 +3,17 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
-
-use App\Entity\Litige;
 use App\Repository\FiltreSupRepository;
-
 use App\Repository\LitigeRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
+use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 
 class LitigeService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,7 +41,13 @@ class LitigeService
 
     private $em;
 
-    public function __construct(UserService $userService, LitigeRepository $litigeRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                LitigeRepository $litigeRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
         $this->templating = $templating;
         $this->em = $em;

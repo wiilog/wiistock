@@ -6,7 +6,7 @@ use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +24,7 @@ class PreparationRepository extends ServiceEntityRepository
 		'Type' => 'type'
 	];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Preparation::class);
     }

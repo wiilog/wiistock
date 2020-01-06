@@ -182,7 +182,7 @@ class ManutentionController extends AbstractController
                 'manut' => $manutention,
                 'utilisateurs' => $this->utilisateurRepository->findAll(),
                 'emplacements' => $this->emplacementRepository->findAll(),
-                'statut' => (($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 1 : 0),
+                'statusTreated' => ($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 0 : 1,
                 'statuts' => $this->statutRepository->findByCategorieName(Manutention::CATEGORIE),
             ]);
 

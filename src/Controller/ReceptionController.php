@@ -272,8 +272,18 @@ class ReceptionController extends AbstractController
 
             $reception
                 ->setReference($data['reference'])
-                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setDateAttendue(
+                    !empty($data['dateAttendue'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
+                ->setDateCommande(
+                    !empty($data['dateCommande'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
                 ->setCommentaire($data['commentaire'])
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
@@ -346,8 +356,18 @@ class ReceptionController extends AbstractController
 
             $reception
                 ->setReference($data['numeroCommande'])
-                ->setDateAttendue(!empty($data['dateAttendue']) ? new DateTime($data['dateAttendue']) : null)
-                ->setDateCommande(!empty($data['dateCommande']) ? new DateTime($data['dateCommande']) : null)
+                ->setDateAttendue(
+                    !empty($data['dateAttendue'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
+                ->setDateCommande(
+                    !empty($data['dateCommande'])
+                        ?
+                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        :
+                        null)
                 ->setNumeroReception($data['numeroReception'])
                 ->setStatut($statut)
                 ->setCommentaire($data['commentaire']);
@@ -1388,17 +1408,8 @@ class ReceptionController extends AbstractController
     public function checkBeforeLigneDelete(Request $request)
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
-            $ligne = $this->receptionReferenceArticleRepository->find($id);
-            $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
-
-            $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
-            $articles = [];
-            foreach ($listArticleFournisseur as $articleFournisseur) {
-                foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                    if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
-                }
-            }
-            if (count($articles) <= 0) {
+            $nbArticles = $this->receptionReferenceArticleRepository->countArticlesByRRA($id);
+            if ($nbArticles == 0) {
                 $delete = true;
                 $html = 'Voulez-vous réellement supprimer cette ligne article ?';
             } else {
@@ -1578,7 +1589,7 @@ class ReceptionController extends AbstractController
                             ->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
                             ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0))// protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
-                            ->setReception($ligne->getReception())
+                            ->setReceptionReferenceArticle($ligne)
                             ->setType($refArticle->getType())
                             ->setBarCode($this->articleDataService->generateBarCode());
 

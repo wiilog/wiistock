@@ -1,12 +1,11 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Saisie d'inventaire{% endblock %}
-
+{% block page_filter %}
+    {{ parent() }}
+    {% include 'filters/filtersEntryInv.html.twig' with {'btnName' : 'submitSearchEntry'} %}
+{% endblock %}
 {% block page_content %}
-    {% block page_filter %}
-        {{ parent() }}
-        {% include 'filters/filtersEntryInv.html.twig' with {'btnName' : 'submitSearchEntry'} %}
-    {% endblock %}
     <h1>Saisies d'inventaire</h1>
 
     <div class="btn btn-primary" onclick='generateCSVEntries()'>

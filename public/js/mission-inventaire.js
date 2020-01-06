@@ -1,15 +1,33 @@
 $(function () {
-    initSearchDate(tableMission);
+    initDateTimePicker();
     initSearchDate(tableMissions);
-
     $('.select2').select2();
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_INV_MISSIONS);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            } else if (element.field == 'anomaly') {
+                $('#anomalyFilter').val(element.value);
+            } else {
+                $('#'+ element.field).val(element.value);
+            }
+        });
+    }, 'json');
 });
 
 let pathMissions = Routing.generate('inv_missions_api', true);
 let tableMissions = $('#tableMissionsInv').DataTable({
-    "language": {
+    serverSide: true,
+    processing: true,
+    searching: false,
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    order: [[0, 'desc']],
     ajax:{
         "url": pathMissions,
         "type": "POST"
@@ -18,13 +36,11 @@ let tableMissions = $('#tableMissionsInv').DataTable({
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
         { "data": 'Rate', 'title' : 'Taux d\'avancement' },
-        { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
-    "columnDefs": [
-        {"visible" : false, "targets" : 3},
+    columnDefs: [
+        {'orderable': false, 'targets': [2, 3]}
     ],
-    ordering: false,
 });
 
 let modalNewMission = $("#modalNewMission");
@@ -50,96 +66,19 @@ function displayErrorMision(data) {
     }
 }
 
-let mission = $('#missionId').val();
-let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
-let tableMission = $('#tableMissionInv').DataTable({
-    processing: true,
-    serverSide: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax:{
-        "url": pathMission,
-        "type": "POST",
-        "data" : function(d) {
-            d.dateMin = $('#dateMinFilter').val();
-            d.dateMax = $('#dateMaxFilter').val();
-            d.anomaly =  $('#anomalyFilter').val();
-        }
-    },
-    columns:[
-        { "data": 'Ref', 'title' : 'Reférence' },
-        { "data": 'Label', 'title' : 'Libellé' },
-        { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
-        { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
-    ]
-});
+$('#submitSearchMission').on('click', function() {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
 
-let modalAddToMission = $("#modalAddToMission");
-let submitAddToMission = $("#submitAddToMission");
-let urlAddToMission = Routing.generate('add_to_mission', true);
-InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, null);
-
-let $submitSearchMission = $('#submitSearchMission');
-$submitSearchMission.on('click', function () {
-    let anomaly = $('#anomalyFilter').val();
-    tableMissions
-        .columns('anomaly:name')
-        .search(anomaly)
-        .draw();
-});
-
-let $submitSearchMissionRef = $('#submitSearchMissionRef');
-$submitSearchMissionRef.on('click', function() {
-    let dateMin = $('#dateMin').val();
-    let dateMax = $('#dateMax').val();
-    let anomaly = $('#anomalyFilter').val();
-
-    let dateMinFilter = $('#dateMinFilter');
-    let dateMaxFilter = $('#dateMaxFilter');
-    let anomalyFilter = $('#anomalyFilter');
-    dateMinFilter.val(dateMin);
-    dateMaxFilter.val(dateMax);
-    anomalyFilter.val(anomaly);
-
-    tableMission.draw();
-});
-
-function generateCSVMission () {
-    loadSpinner($('#spinnerMission'));
-    let params = {
-        missionId: $('#missionId').val(),
+    let filters = {
+        page: PAGE_INV_MISSIONS,
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val(),
+        anomaly: $('#anomalyFilter').val(),
     };
-    let path = Routing.generate('get_mission_for_csv', true);
 
-    $.post(path, JSON.stringify(params), function(response) {
-        if (response) {
-            let csv = "";
-            $.each(response, function (index, value) {
-                csv += value.join(';');
-                csv += '\n';
-            });
-            mFile(csv);
-            hideSpinner($('#spinnerMission'));
-        }
-    }, 'json');
-}
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
-let mFile = function (csv) {
-    let exportedFilenmae = 'export-mission' + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-};
+    saveFilters(filters, tableMissions);
+});

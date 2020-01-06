@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +25,7 @@ class LitigeRepository extends ServiceEntityRepository
 		'status' => 'status',
 	];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Litige::class);
     }

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\InventoryEntry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
@@ -24,7 +24,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		'Quantity' => 'quantity',
 	];
 
-	public function __construct(RegistryInterface $registry)
+	public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, InventoryEntry::class);
     }

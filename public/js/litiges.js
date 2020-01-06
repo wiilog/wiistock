@@ -9,6 +9,7 @@ $('#carriers').select2({
 let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
 $(function() {
+    initDateTimePicker();
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 
@@ -39,6 +40,8 @@ $(function() {
                 });
             } else if (element.field == 'carriers') {
                 $('#carriers').val(element.value).select2();
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -180,6 +183,9 @@ $.fn.dataTable.ext.search.push(
 );
 
 $submitSearchLitigesArr.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_LITIGE_ARR,
         dateMin: $('#dateMin').val(),
@@ -189,7 +195,10 @@ $submitSearchLitigesArr.on('click', function () {
         carriers: $('#carriers').select2('data'),
         providers: $('#providers').select2('data'),
         users: $('#utilisateur').select2('data'),
-    }
+    };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableLitigesArrivage);
 });
@@ -203,6 +212,8 @@ function generateCSVLitigeArrivage() {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         let $spinner = $('#spinnerLitigesArrivages');
         loadSpinner($spinner);
         let params = JSON.stringify(data);
