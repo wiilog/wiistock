@@ -19,7 +19,7 @@ use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -51,7 +51,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Article::class);
     }
@@ -384,13 +384,13 @@ class ArticleRepository extends ServiceEntityRepository
 
 	/**
 	 * @param array|null $params
-	 * @param string|null $statutLabel
+	 * @param array $filters
 	 * @param Utilisateur $user
 	 * @return array
 	 * @throws ORMException
 	 * @throws OptimisticLockException
 	 */
-    public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
+    public function findByParamsAndFilters($params = null, $filters, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -399,14 +399,20 @@ class ArticleRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Article', 'a');
 
-        if ($statutLabel) {
-            $qb
-                ->join('a.statut', 's')
-                ->where('s.nom = :statutLabel')
-                ->setParameter('statutLabel', $statutLabel);
-        }
-
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch ($filter['field']) {
+				case 'statut':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.statut', 's_filter')
+						->andWhere('s_filter.nom IN (:statut)')
+						->setParameter('statut', $value);
+					break;
+			}
+		}
 
         $allArticleDataTable = null;
 		// prise en compte des paramètres issus du datatable
@@ -555,8 +561,8 @@ class ArticleRepository extends ServiceEntityRepository
                             break;
                         case 'status':
                             $qb
-                                ->leftJoin('a.statut', 's')
-                                ->orderBy('s.nom', $order);
+                                ->leftJoin('a.statut', 's_sort')
+                                ->orderBy('s_sort.nom', $order);
                             break;
                         case 'dateFinReception':
                             $expr = $qb->expr();

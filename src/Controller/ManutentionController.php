@@ -5,15 +5,18 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Manutention;
-use App\Repository\ParamClientRepository;
+
 use App\Repository\UtilisateurRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\StatutRepository;
+
 use App\Service\MailerService;
 use App\Service\UserService;
 use App\Service\ManutentionService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -45,11 +48,6 @@ class ManutentionController extends AbstractController
      */
     private $utilisateurRepository;
 
-	/**
-	 * @var ParamClientRepository
-	 */
-    private $paramClientRepository;
-
     /**
      * @var UserService
      */
@@ -66,7 +64,7 @@ class ManutentionController extends AbstractController
     private $manutentionService;
 
 
-    public function __construct(ParamClientRepository $paramClientRepository, ManutentionRepository $manutentionRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
+    public function __construct(ManutentionRepository $manutentionRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
     {
         $this->manutentionRepository = $manutentionRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -74,7 +72,6 @@ class ManutentionController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
-        $this->paramClientRepository = $paramClientRepository;
         $this->manutentionService = $manutentionService;
     }
 
@@ -185,7 +182,7 @@ class ManutentionController extends AbstractController
                 'manut' => $manutention,
                 'utilisateurs' => $this->utilisateurRepository->findAll(),
                 'emplacements' => $this->emplacementRepository->findAll(),
-                'statut' => (($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 1 : 0),
+                'statusTreated' => ($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 0 : 1,
                 'statuts' => $this->statutRepository->findByCategorieName(Manutention::CATEGORIE),
             ]);
 

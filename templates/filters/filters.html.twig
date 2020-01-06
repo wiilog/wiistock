@@ -1,16 +1,17 @@
 {% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
-<div class="filterService filters form-row justify-content-between">
+<div class="filterService filters form-row justify-content-center">
     {% block dateFilter %}
     <div class="minw-450px">
         <div class="input-group">
             <div class="input-group-prepend">
-                <div class="input-group-text">De</div>
+                <div class="input-group-text">Du</div>
             </div>
-            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début" {{ disabled }}>
+            <input type="text" class="form-control cursor-default" name="dateMin" id="dateMin" placeholder="jj/mm/aaaa" {{ disabled }}>
+
             <div class="input-group-prepend">
                 <div class="input-group-text">Au</div>
             </div>
-            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin" {{ disabled }}>
+            <input type="text" class="form-control cursor-default" name="dateMax" id="dateMax" placeholder="jj/mm/aaaa" {{ disabled }}>
         </div>
     </div>
     {% endblock %}

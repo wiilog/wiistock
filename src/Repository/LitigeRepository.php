@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +25,7 @@ class LitigeRepository extends ServiceEntityRepository
 		'status' => 'status',
 	];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Litige::class);
     }
@@ -183,14 +183,15 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('lh.date as dateHisto')
 			->addSelect('ach.username as achUsername')
 			->from('App\Entity\Litige', 'l')
-			->leftJoin('l.colis', 'c')
+            ->leftJoin('l.colis', 'c')
+            ->leftJoin('l.articles', 'art')
 			->leftJoin('l.type', 't')
-			->leftJoin('c.arrivage', 'a')
+            ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
 			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
 			->leftJoin('l.status', 's');
-
+		$qb->where('art IS NULL');
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -284,7 +285,6 @@ class LitigeRepository extends ServiceEntityRepository
 				}
 			}
 		}
-
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
 

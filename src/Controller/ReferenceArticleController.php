@@ -8,7 +8,6 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -44,6 +43,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,7 +60,7 @@ use App\Repository\FournisseurRepository;
 /**
  * @Route("/reference-article")
  */
-class ReferenceArticleController extends Controller
+class ReferenceArticleController extends AbstractController
 {
     /**
      * @var EmplacementRepository
@@ -965,7 +965,7 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+					$isCea = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
                     if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [

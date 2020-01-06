@@ -2,12 +2,12 @@
 
 {% block title %}Ordres de collecte{% endblock %}
 
+{% block page_filter %}
+    {{ parent() }}
+    {% include 'filters/filtersOrderCollect.html.twig' with {'btnName': 'submitSearchOrdreCollecte'} %}
+{% endblock %}
+
 {% block page_content %}
-    </div>
-{% include 'filters/filtersOrderCollect.html.twig' with {'btnName' : 'submitSearchOrdreCollecte'} %}
-
-
-<div class="container-fluid">
     <div class="d-flex justify-content-between">
         <h1>Ordres de collecte</h1>
         {% if filterDemand is defined and filterDemand is not null %}
@@ -20,11 +20,12 @@
 
     <table id="tableCollecte" class="table table-striped table-bordered w-100">
     </table>
-</div>
     {% if filterDemand is defined and filterDemand is not null %}
         <input hidden id="filterDemand" value="{{ filterDemand }}"
     {% endif %}
 {% endblock %}
-{% block javascript %}
-<script src="{{asset('js/ordre-collecte.js')}}?{{ date().timestamp }}"></script>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{asset('js/ordre-collecte.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

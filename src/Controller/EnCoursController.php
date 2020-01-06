@@ -95,7 +95,7 @@ class EnCoursController extends AbstractController
             }
             foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-					$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-y H:i'), new \DateTimeZone("Europe/Paris"));
+					$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
                     $minutesBetween = $this->getMinutesBetween($mvt);
 
                     if (empty($minutesBetween)) {
@@ -105,7 +105,7 @@ class EnCoursController extends AbstractController
 						$emplacementInfo[] = [
 							'colis' => $mvt->getColis(),
 							'time' => $dataForTable['time'],
-							'date' => $dateMvt->format('d/m/y H:i'),
+							'date' => $dateMvt->format('d/m/Y H:i:s'),
 							'max' => $emplacement->getDateMaxTime(),
 							'late' => $dataForTable['late']
 						];
@@ -144,7 +144,7 @@ class EnCoursController extends AbstractController
                             $retards[] = [
                                 'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
-                                'date' => $dateMvt->format('d/m/y H:i'),
+                                'date' => $dateMvt->format('d/m/Y H:i:s'),
                                 'emp' => $emplacement->getLabel(),
                             ];
                         }

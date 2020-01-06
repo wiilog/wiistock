@@ -1,4 +1,6 @@
 $(function () {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_INV_ENTRIES);
@@ -23,11 +25,12 @@ $(function () {
                 $reference.append(option).trigger('change');
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchEntry.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
@@ -95,6 +98,9 @@ let tableEntries = $('#tableMissionEntries').DataTable({
 
 let $submitSearchEntry = $('#submitSearchEntry');
 $submitSearchEntry.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_INV_ENTRIES,
         dateMin: $('#dateMin').val(),
@@ -103,6 +109,9 @@ $submitSearchEntry.on('click', function () {
         location: $('#emplacement').val(),
         users: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableEntries);
 });

@@ -14,7 +14,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -39,7 +39,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Statut' => 'status'
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ReferenceArticle::class);
     }
@@ -954,16 +954,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.reference LIKE :value')
+                        ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
+
+			$countFiltered = count($qb->getQuery()->getResult());
+
+			if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     switch ($column) {
+						case 'quantiteStock':
+							$qb
+								->leftJoin('ra.articlesFournisseur', 'af')
+								->leftJoin('af.articles', 'a')
+								->addSelect('(CASE
+								WHEN ra.typeQuantite = :typeQteArt
+								THEN (SUM(a.quantite))
+								ELSE ra.quantiteStock
+								END) as quantity')
+								->groupBy('ra.id')
+								->orderBy('quantity', $order)
+								->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
+							break;
                         default:
                             $qb->orderBy('ra.' . $column, $order);
                             break;
@@ -971,7 +987,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 }
             }
         }
-        $countFiltered = count($qb->getQuery()->getResult());
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

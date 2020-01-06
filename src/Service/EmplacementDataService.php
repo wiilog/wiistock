@@ -19,12 +19,13 @@ use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class EmplacementDataService
 {
     const PAGE_EMPLACEMENT = 'emplacement';
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -52,9 +53,15 @@ class EmplacementDataService
 
     private $em;
 
-    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                EmplacementRepository $emplacementRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -63,7 +70,7 @@ class EmplacementDataService
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
-    
+
     public function getDataForDatatable($params = null)
     {
         $data = $this->getEmplacementDataByParams($params);

@@ -20,20 +20,20 @@
 <div class="row">
     <div class="form-group col-6">
         <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToModify ? '*' : '' }}</label>
-        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToModify ? 'needed' : '' }}"
+        <input type="text" class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToModify ? 'needed' : '' }}"
                name="dateCommande" id="dateCommande"
+               placeholder="jj/mm/aaaa"
                value="{{ reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d') }}"
-               required="true"
-               max="{{ '+25year' | date('Y-m-d') }}">
+               required="true">
     </div>
 
     <div class="form-group col-6">
         <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToModify ? '*' : '' }}</label>
-        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToModify ? 'needed' : '' }}"
+        <input type="text" class="form-control data {{ fieldsParam.dateAttendue.mustToModify ? 'needed' : '' }}"
                name="dateAttendue" id='dateAttendue'
                value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d') }}"
-               required="true"
-               max="{{ '+25year' | date('Y-m-d') }}">
+               placeholder="jj/mm/aaaa"
+               required="true">
     </div>
 </div>
 
@@ -66,7 +66,7 @@
         </select>
     </div>
     <div class="form-group col-1">
-        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                 class="fa fa-plus"></i></span>
     </div>
     <div class="form-group w-100 col-5">
@@ -79,7 +79,7 @@
         </select>
     </div>
     <div class="form-group col-1">
-        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i
+        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                 class="fa fa-plus"></i></span>
     </div>
 </div>
@@ -98,7 +98,7 @@
             <span class="btn btn-success"
                   onclick="
                     newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
-                    ,toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+                    ,toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                     class="fas fa-check-circle"></i></span>
         </div>
     </div>
@@ -114,7 +114,7 @@
         <div class="form-group col-2 invisible" id="addTransporteur">
             <span class="btn btn-success"
                   onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))
-                                  ,toggleInput('transporteurDisplay', 'addTransporteur')"><i
+                                  ,toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                     class="fas fa-check-circle"></i></span>
         </div>
     </div>

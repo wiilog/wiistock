@@ -12,14 +12,15 @@ use App\Repository\FiltreSupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
+use Twig\Error\LoaderError as Twig_Error_Loader;
+use Twig\Error\RuntimeError as Twig_Error_Runtime;
+use Twig\Error\SyntaxError as Twig_Error_Syntax;
+use Twig\Environment as Twig_Environment;
 
 Class AcheminementsService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,7 +46,7 @@ Class AcheminementsService
 
     private $em;
 
-    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, AcheminementsRepository $acheminementsRepository, FiltreSupRepository $filtreSupRepository)
+    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, EntityManagerInterface $em, Twig_Environment $templating, AcheminementsRepository $acheminementsRepository, FiltreSupRepository $filtreSupRepository)
     {
         $this->templating = $templating;
         $this->em = $em;

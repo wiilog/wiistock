@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +24,7 @@ class EmplacementRepository extends ServiceEntityRepository
         'Actif / Inactif' => 'isActive',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Emplacement::class);
     }

@@ -77,12 +77,6 @@ class Reception
      */
     private $receptionReferenceArticles;
 
-    //TODO à supprimer + tard
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
-     */
-    private $articles;
-
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
      */
@@ -111,7 +105,6 @@ class Reception
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
-        $this->articles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
         $this->demandes = new ArrayCollection();
     }
@@ -266,22 +259,7 @@ class Reception
         return $this;
     }
 
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setReception($this);
-        }
-        return $this;
-    }
     public function getType(): ?Type
     {
         return $this->type;
@@ -311,17 +289,7 @@ class Reception
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getReception() === $this) {
-                $article->setReception(null);
-            }
-        }
-        return $this;
-    }
+
     public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {

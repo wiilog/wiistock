@@ -15,19 +15,25 @@
                     <div class="form-group col-6">
                         <label for="dateCommande">Date
                             commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : '' }}</label>
-                        <input type="date"
-                               class="form-control data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
-                               name="dateCommande" value="" required="true"
-                               id="dateCommande" max="{{ '+25year' | date('Y-m-d') }}">
+                        <input type="text"
+                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               name="dateCommande"
+                               id="dateCommande"
+                               required="true"
+                               value=""
+                               placeholder="jj/mm/aaaa">
                     </div>
 
                     <div class="form-group col-6">
                         <label for="dateAttendue">Date
                             attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : '' }}</label>
-                        <input type="date"
-                               class="form-control data {{ fieldsParam.dateAttendue.mustToCreate ? 'needed' : '' }}"
-                               name="dateAttendue" value="" required="true"
-                               id="dateAttendue">
+                        <input type="text"
+                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               name="dateAttendue"
+                               id="dateAttendue"
+                               required="true"
+                               value=""
+                               placeholder="jj/mm/aaaa">
                     </div>
                 </div>
 
@@ -50,7 +56,7 @@
                         </select>
                     </div>
                     <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
                     <div class="form-group w-100 col-5">
@@ -62,7 +68,7 @@
                         </select>
                     </div>
                     <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i
+                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
                 </div>
@@ -80,7 +86,7 @@
                             <span class="btn btn-success"
                                   onclick="
                                   newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
-                                  ,toggleInput('fournisseurDisplay', 'addFournisseur')"><i
+                                  ,toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
                                     class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
@@ -96,7 +102,7 @@
                         <div class="form-group col-2 invisible" id="addTransporteur">
                             <span class="btn btn-success"
                                   onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))
-                                  ,toggleInput('transporteurDisplay', 'addTransporteur')"><i
+                                  ,toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
                                     class="fas fa-check-circle"></i></span>
                         </div>
                     </div>

@@ -169,7 +169,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/dashboard", name="accueil_dashboard", methods={"GET"})
+     * @Route("/dashboard", name="accueil_dashboard", options={"expose"=true}, methods="GET|POST")
      */
     public function dashboard(): Response
     {

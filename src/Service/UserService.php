@@ -24,7 +24,7 @@ use App\Repository\ManutentionRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
-
+use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 
@@ -32,7 +32,7 @@ use Symfony\Component\Security\Core\Security;
 class UserService
 {
      /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -100,7 +100,20 @@ class UserService
 	 */
 	private $receptionRepository;
 
-    public function __construct(ReceptionRepository $receptionRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ManutentionRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+    public function __construct(ReceptionRepository $receptionRepository,
+                                DemandeRepository $demandeRepository,
+                                LivraisonRepository $livraisonRepository,
+                                CollecteRepository $collecteRepository,
+                                OrdreCollecteRepository $ordreCollecteRepository,
+                                ManutentionRepository $manutentionRepository,
+                                PreparationRepository $preparationRepository,
+                                ParametreRepository $parametreRepository,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                Twig_Environment $templating,
+                                RoleRepository $roleRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                Security $security,
+                                ActionRepository $actionRepository)
     {
         $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;
@@ -182,9 +195,9 @@ class UserService
     {
         $idUser = $utilisateur->getId();
         $roles = $this->roleRepository->findAll();
-        
+
         $row = [
-            
+
                 'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
                 "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
                 'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
@@ -197,7 +210,7 @@ class UserService
                                 ]
                             ),
                         ];
-           
+
         return $row;
     }
 

@@ -4,7 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Acheminements;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
+
 
 /**
  * @method Acheminements|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,7 +15,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class AcheminementsRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Acheminements::class);
     }
@@ -27,35 +28,6 @@ class AcheminementsRepository extends ServiceEntityRepository
         'Nb Colis' => 'colis',
         'Statut' => 'statut',
     ];
-
-    // /**
-    //  * @return Acheminements[] Returns an array of Acheminements objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Acheminements
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 
     public function findByParamAndFilters($params, $filters)
     {

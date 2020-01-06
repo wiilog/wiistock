@@ -41,6 +41,9 @@ let table = $('#tableCollecte_id').DataTable({
 
 let $submitSearchCollecte = $('#submitSearchCollecte');
 $submitSearchCollecte.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_DEM_COLLECTE,
         dateMin: $('#dateMin').val(),
@@ -49,6 +52,9 @@ $submitSearchCollecte.on('click', function () {
         users: $('#utilisateur').select2('data'),
         type: $('#type').val()
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, table);
 
@@ -149,10 +155,12 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-// applique les filtres si pré-remplis
 $(function() {
+    initDateTimePicker();
+
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
+    // applique les filtres si pré-remplis
     let val = $('#statut').val();
     if (!val) {
         // filtres enregistrés en base pour chaque utilisateur
@@ -170,6 +178,8 @@ $(function() {
                         let option = new Option(username, id, true, true);
                         $utilisateur.append(option).trigger('change');
                     });
+                }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 } else {
                     $('#' + element.field).val(element.value);
                 }

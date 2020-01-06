@@ -13,12 +13,12 @@ use App\Entity\Litige;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\LitigeRepository;
-use App\Repository\ParamClientRepository;
 use App\Service\MailerService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
@@ -42,10 +42,6 @@ class MailsLitigesComand extends Command
      */
     private $logger;
 
-    /**
-     * @var ParamClientRepository
-     */
-    private $paramClientRepository;
 
     /**
      * @var ArrivageRepository
@@ -54,14 +50,12 @@ class MailsLitigesComand extends Command
 
 
     public function __construct(ArrivageRepository $arrivageRepository,
-                                ParamClientRepository $paramClientRepository,
                                 LoggerInterface $logger,
                                 LitigeRepository $litigeRepository,
                                 MailerService $mailerService,
-                                \Twig_Environment $templating)
+                                Twig_Environment $templating)
     {
         parent::__construct();
-        $this->paramClientRepository = $paramClientRepository;
         $this->litigeRepository = $litigeRepository;
         $this->mailerService = $mailerService;
         $this->templating = $templating;

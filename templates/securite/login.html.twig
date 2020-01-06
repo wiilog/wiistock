@@ -65,7 +65,7 @@ class='accueil-back'
 
 {% endblock %}
 
-{% block javascript %}
-<script src="{{asset('js/login.js')}}?{{ date().timestamp }}"></script>
-
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{asset('js/login.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

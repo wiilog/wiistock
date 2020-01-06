@@ -8,7 +8,6 @@ use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleRepository;
@@ -19,21 +18,19 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
-
+use Twig\Environment as Twig_Environment;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
-
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class DemandeLivraisonService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -104,7 +101,21 @@ class DemandeLivraisonService
 
     private $em;
 
-    public function __construct(TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, UtilisateurRepository $utilisateurRepository, ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository)
+    public function __construct(TypeRepository $typeRepository,
+                                ChampLibreRepository $champLibreRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                ReceptionRepository $receptionRepository,
+                                PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
+                                EmplacementRepository $emplacementRepository,
+                                StatutRepository $statutRepository,
+                                TokenStorageInterface $tokenStorage,
+                                FiltreSupRepository $filtreSupRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                DemandeRepository $demandeRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->typeRepository = $typeRepository;

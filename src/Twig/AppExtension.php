@@ -9,11 +9,13 @@
 namespace App\Twig;
 
 use App\Entity\Action;
+
 use App\Repository\ActionRepository;
-use App\Repository\ParamClientRepository;
 use App\Repository\RoleRepository;
+
 use App\Service\SpecificService;
 use App\Service\UserService;
+
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
@@ -36,23 +38,17 @@ class AppExtension extends AbstractExtension
     private $roleRepository;
 
 	/**
-	 * @var ParamClientRepository
-	 */
-    private $paramClientRepository;
-
-	/**
 	 * @var SpecificService
 	 */
     private $specificService;
 
 
-    public function __construct(ParamClientRepository $paramClientRepository, SpecificService $specificService, UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
+    public function __construct(SpecificService $specificService, UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
     {
         $this->userService = $userService;
         $this->actionRepository = $actionRepository;
         $this->roleRepository = $roleRepository;
         $this->specificService = $specificService;
-        $this->paramClientRepository = $paramClientRepository;
     }
 
     public function getFunctions()
@@ -60,7 +56,6 @@ class AppExtension extends AbstractExtension
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
-			new TwigFunction('getDomainName', [$this, 'getDomainNameFunction'])
         ];
     }
 
@@ -79,11 +74,6 @@ class AppExtension extends AbstractExtension
     public function isCurrentClientNameFunction(string $clientName)
 	{
 		return $this->specificService->isCurrentClientNameFunction($clientName);
-	}
-
-	public function getDomainNameFunction()
-	{
-		return $this->paramClientRepository->findOne() ? $this->paramClientRepository->findOne()->getDomainName() : '';
 	}
 
     public function withoutExtensionFilter(string $filename)
