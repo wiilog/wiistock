@@ -1442,7 +1442,7 @@ class ReceptionController extends AbstractController
             }
 
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
-            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             foreach ($listReceptionReferenceArticle as $recepRef) {
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     array_push($data['refs'], $recepRef->getReferenceArticle()->getBarCode());
@@ -1455,7 +1455,7 @@ class ReceptionController extends AbstractController
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
                         $wantedIndex = 0;
                         foreach($articles as $key => $articleWithCL) {
-                            if ($articleWithCL['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL) {
+                            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                                 $wantedIndex = $key;
                                 break;
                             }
@@ -1466,7 +1466,7 @@ class ReceptionController extends AbstractController
                             'refRef' => trim($article->getArticleFournisseur()->getReferenceArticle()->getReference()),
                             'refLabel' => trim($article->getArticleFournisseur()->getReferenceArticle()->getLibelle()),
                             'artLabel' => trim($article->getLabel()),
-                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL ? $articleArray['bl'] : null : null,
+                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
                         ])
                         );
                     }
@@ -1565,7 +1565,7 @@ class ReceptionController extends AbstractController
                     if ($cpt > $highestCpt) $highestCpt = $cpt;
                 }
                 $counter = $highestCpt + 1;
-                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
                     for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
 
@@ -1607,7 +1607,7 @@ class ReceptionController extends AbstractController
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($toInsert->getId());
                         $wantedIndex = 0;
                         foreach($articles as $key => $articleWithCL) {
-                            if ($articleWithCL['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL) {
+                            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                                 $wantedIndex = $key;
                                 break;
                             }
@@ -1618,7 +1618,7 @@ class ReceptionController extends AbstractController
                             'refRef' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                             'artLabel' => $toInsert->getLabel(),
-                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL ? $articleArray['bl'] : null : null,
+                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
                         ])
                         );
                         $counter++;
@@ -1763,14 +1763,14 @@ class ReceptionController extends AbstractController
 
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $response['barcodes'] = $response['barcodesLabel'] = [];
-            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             foreach ($articles as $article) {
                 $createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
                 $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
                 $wantedIndex = 0;
                 foreach($articles as $key => $articleWithCL) {
-                    if ($articleWithCL['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL) {
+                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                         $wantedIndex = $key;
                         break;
                     }
@@ -1781,7 +1781,7 @@ class ReceptionController extends AbstractController
                     'refRef' => $refArticle ? $refArticle->getReference() : '',
                     'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
                     'artLabel' => $createdArticle->getLabel(),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL ? $articleArray['bl'] : null : null,
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
                 ]);
             }
 

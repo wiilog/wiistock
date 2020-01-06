@@ -12,7 +12,6 @@ use Doctrine\ORM\Mapping as ORM;
 class ChampLibre
 {
     const TYPE_BOOL = 'booleen';
-    const SPECIFIQUE_COLLINS_BL = 'BL';
     const TYPE_TEXT = 'text';
     const TYPE_NUMBER = 'number';
     const TYPE_LIST = 'list';
@@ -45,6 +44,7 @@ class ChampLibre
             'label' => 'Texte',
         ],
     ];
+    const SPECIC_COLLINS_BL = 'BL';
 
     /**
      * @ORM\Id()

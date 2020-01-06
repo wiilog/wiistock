@@ -41,7 +41,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Twig\Environment as Twig_Environment;
 
 /**
@@ -873,10 +872,10 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
             $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById(intval($dataContent['article']));
-            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $wantedIndex = 0;
             foreach($articles as $key => $articleWithCL) {
-                if ($articleWithCL['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL) {
+                if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                     $wantedIndex = $key;
                     break;
                 }
@@ -888,7 +887,7 @@ class ArticleController extends AbstractController
                     'refRef' => trim($article['refRef']),
                     'refLabel' => trim($article['refLabel']),
                     'artLabel' => trim($article['artLabel']),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL ? $article['bl'] : null : null,
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]),
                 'artLabel' => $article['artLabel'],
             ];
@@ -992,22 +991,22 @@ class ArticleController extends AbstractController
             $barcodes = $barcodeLabels = [];
             for ($i = 0; $i < count($listArticles); $i++) {
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($listArticles[$i]);
-                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
+                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 $wantedIndex = 0;
                 foreach($articles as $key => $articleWithCL) {
-                    if ($articleWithCL['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL) {
+                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                         $wantedIndex = $key;
                         break;
                     }
                 }
-                dump($articles);
+
                 $article = $articles[$wantedIndex];
                 $barcodes[] = $article['barcode'];
                 $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
                     'refRef' => trim($article['refRef']),
                     'refLabel' => trim($article['refLabel']),
                     'artLabel' => trim($article['artLabel']),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIFIQUE_COLLINS_BL ? $article['bl'] : null : null,
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]);
 
             }

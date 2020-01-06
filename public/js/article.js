@@ -222,7 +222,6 @@ function overrideSearchArticle() {
 function getDataAndPrintLabels() {
     let path = Routing.generate('article_get_data_to_print', true);
     let listArticles = $("#listArticleIdToPrint").val();
-    console.log(listArticles);
     let params = JSON.stringify({
         listArticles: listArticles,
         start: tableArticle.page.info().start,

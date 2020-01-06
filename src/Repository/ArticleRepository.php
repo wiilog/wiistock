@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
@@ -16,6 +15,7 @@ use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -973,19 +973,17 @@ class ArticleRepository extends ServiceEntityRepository
 		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
-            ->setParameters([
-                'id' => $id,
-                //'bl' => ChampLibre::SPECIFIQUE_COLLINS_BL
-            ]);
+            ->setParameter('id', $id);
 
         return $query->execute();
     }
 
-    /**
-     * @param Article $article
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Article $article
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countInventoryAnomaliesByArt($article)
     {
         $em = $this->getEntityManager();

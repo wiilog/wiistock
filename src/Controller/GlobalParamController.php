@@ -96,7 +96,7 @@ class GlobalParamController extends AbstractController
                 'parametrageG' => $paramGlo,
                 'parametrageGPrepa' => $paramGloPrepa,
                 'mailerServer' => $mailerServer,
-                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE)
+                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL)
         ]);
     }
 
@@ -109,7 +109,9 @@ class GlobalParamController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getEntityManager();
+
+            $em = $this->getDoctrine()->getManager();
+
             $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
             if (!$dimensions) {
                 $dimensions = new DimensionsEtiquettes();
@@ -118,22 +120,16 @@ class GlobalParamController extends AbstractController
             $dimensions
                 ->setHeight(intval($data['height']))
                 ->setWidth(intval($data['width']));
-            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist)
-            {
-                $ifExist->setParametre($data['param-bl-etiquette']);
-                $em->flush();
+
+            $parametrageGlobal = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $em->persist($parametrageGlobal);
             }
-            else
-            {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::INCLUDE_BL_IN_ETIQUETTE)
-                    ->setParametre($data['param-bl-etiquette']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
+            $parametrageGlobal->setParametre($data['param-bl-etiquette']);
+
             $em->flush();
 
             return new JsonResponse($data);
