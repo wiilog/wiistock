@@ -179,7 +179,8 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
         url: "/js/i18n/dataTableLanguage.json",
     },
     "paging": false,
-    "info": false
+    "info": false,
+    "searching": false
 });
 
 function showOrHideColumn(check) {
