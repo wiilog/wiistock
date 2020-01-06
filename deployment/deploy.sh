@@ -68,21 +68,19 @@ fi
 printf "\n////////// OK : mise en maintenance de l'instance $instance //////////\n"
 
 # sauvegarde base données
+backup=true
 case "$instance" in
 cl2-prod | scs1-prod | col1-rec)
-    db=$(awk '{ print $1 }' ./db-"$instance")
-    dbuser=$(awk ' {print $2} ' ./db-"$instance")
-    password=$(awk ' {print $3} ' ./db-"$instance")
+    db=$(awk '{ print $1 }' $(dirname "$0")/db-"$instance")
     ;;
-*) dbuser='noBackup' ;;
+*) backup=false ;;
 esac
 
-if [ "$dbuser" != 'noBackup' ]; then
+if [ "$backup" = true ]; then
     echo -n "-> lancer la sauvegarde de la base de données (entrée/n) ? "
     read -r backup
     if [ "$backup" != 'n' ]; then
-        date=$(date '+%Y-%m-%d')
-        mysqldump --host=cb249510-001.dbaas.ovh.net --user="$dbuser" --port=35403 --password="$password" "$db" >/root/db_backups/svg_"$db"_"$date".sql
+        exportDB "$db"
         printf "\n////////// OK : base de données $db sauvegardée //////////\n"
     else
         printf "\n////////// pas de sauvegarde de base de données //////////\n"
