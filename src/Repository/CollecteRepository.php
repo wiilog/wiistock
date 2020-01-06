@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Collecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +24,7 @@ class CollecteRepository extends ServiceEntityRepository
         'Type' => 'type',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Collecte::class);
     }
@@ -116,8 +116,8 @@ class CollecteRepository extends ServiceEntityRepository
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('c.demandeur', 'd')
-                        ->andWhere("d.username in (:username)")
-                        ->setParameter('username', $value);
+                        ->andWhere("d.id in (:id)")
+                        ->setParameter('id', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('c.date >= :dateMin')

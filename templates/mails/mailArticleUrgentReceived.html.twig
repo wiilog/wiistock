@@ -1,0 +1,13 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    {% set rra = article.receptionReferenceArticle %}
+    Code article : {{ article.reference }}<br>
+    Article de référence : {{ rra.referenceArticle.reference }}<br>
+    Numéro de commande : {{ rra ? rra.commande : '' }}<br>
+    Numéro de réception : {{ rra ? (rra.reception ? rra.reception.numeroReception : '') : '' }}<br>
+<br>
+<br>
+
+{% endblock %}

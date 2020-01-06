@@ -6,7 +6,7 @@ use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Exception;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Livraison|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +24,7 @@ class LivraisonRepository extends ServiceEntityRepository
 		'Type' => 'type'
 	];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Livraison::class);
     }
@@ -74,7 +74,7 @@ class LivraisonRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT l.id, 
+			"SELECT l.id,
                          l.numero as number,
                          dest.label as location
 			FROM App\Entity\Livraison l
@@ -168,7 +168,6 @@ class LivraisonRepository extends ServiceEntityRepository
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
-					dump($search);
 					$qb
 						->leftJoin('l.statut', 's2')
 						->leftJoin('l.utilisateur', 'u2')

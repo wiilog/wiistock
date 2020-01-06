@@ -117,7 +117,7 @@ function getDataAndPrintLabels() {
     });
 }
 
-function printSingleArticleBarcode(button) {
+function printSingleEmplacementBarcode(button) {
     const params = {'emplacement': button.data('id')};
     $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
         printBarcodes(

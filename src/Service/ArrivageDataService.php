@@ -3,21 +3,23 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-
 use App\Entity\FiltreSup;
 use App\Repository\ArrivageRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+
 
 class ArrivageDataService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,9 +47,15 @@ class ArrivageDataService
 
     private $em;
 
-    public function __construct(UserService $userService, ArrivageRepository $arrivageRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                ArrivageRepository $arrivageRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -58,17 +66,17 @@ class ArrivageDataService
     }
 
 	/**
-	 * @param array|null $params
+	 * @param array $params
 	 * @param int|null $userId
 	 * @return array
+	 * @throws LoaderError
 	 * @throws NonUniqueResultException
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function getDataForDatatable($params = null, $userId)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
 
 		$queryResult = $this->arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
 
@@ -89,9 +97,9 @@ class ArrivageDataService
 	 * @param Arrivage $arrivage
 	 * @return array
 	 * @throws NonUniqueResultException
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function dataRowArrivage($arrivage)
     {

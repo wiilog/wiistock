@@ -4,8 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use App\Entity\Urgence;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,22 +25,22 @@ class UrgenceRepository extends ServiceEntityRepository
         "end" => 'dateStart',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Urgence::class);
     }
 
     /**
-     * @param Arrivage $arrivage the arrivage to analyse
-     * @return int the number of emergencies
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @param Arrivage $arrivage
+     * @return int
+     * @throws NonUniqueResultException
      */
-    public function findByArrivageData(Arrivage $arrivage)
+    public function countByArrivageData(Arrivage $arrivage)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(u) 
+            "SELECT COUNT(u)
                 FROM App\Entity\Urgence u
                 WHERE u.dateStart <= :date AND u.dateEnd >= :date AND u.commande LIKE :commande"
         )->setParameters([

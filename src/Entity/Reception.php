@@ -78,11 +78,6 @@ class Reception
     private $receptionReferenceArticles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
-     */
-    private $articles;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
      */
     private $type;
@@ -102,11 +97,16 @@ class Reception
      */
     private $dateFinReception;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="reception")
+     */
+    private $demandes;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
-        $this->articles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -259,22 +259,7 @@ class Reception
         return $this;
     }
 
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setReception($this);
-        }
-        return $this;
-    }
     public function getType(): ?Type
     {
         return $this->type;
@@ -304,17 +289,7 @@ class Reception
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getReception() === $this) {
-                $article->setReception(null);
-            }
-        }
-        return $this;
-    }
+
     public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
@@ -332,6 +307,37 @@ class Reception
     public function setDateFinReception(?\DateTimeInterface $dateFinReception): self
     {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandes(): Collection
+    {
+        return $this->demandes;
+    }
+
+    public function addDemande(Demande $demande): self
+    {
+        if (!$this->demandes->contains($demande)) {
+            $this->demandes[] = $demande;
+            $demande->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemande(Demande $demande): self
+    {
+        if ($this->demandes->contains($demande)) {
+            $this->demandes->removeElement($demande);
+            // set the owning side to null (unless already changed)
+            if ($demande->getReception() === $this) {
+                $demande->setReception(null);
+            }
+        }
 
         return $this;
     }

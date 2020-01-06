@@ -10,8 +10,14 @@ const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige_arrivage';
 const PAGE_INV_ENTRIES = 'inv_entries';
+const PAGE_INV_MISSIONS = 'inv_missions';
+const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
+
+const STATUT_ACTIF = 'disponible';
+const STATUT_INACTIF = 'consommé';
+const STATUT_EN_TRANSIT = 'en transit';
 
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
@@ -41,7 +47,7 @@ function InitialiserModal(modal, submit, path, table = null, callback = null, cl
     });
 }
 
-function submitAction(modal, path, table, callback, close, clear) {
+function submitAction(modal, path, table = null, callback = null, close = true, clear = true) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -64,7 +70,20 @@ function submitAction(modal, path, table, callback, close, clear) {
         let val = $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
-        Data[name] = val;
+
+        const $parent = $input.closest('[data-multiple-key]');
+
+        if ($parent && $parent.length > 0) {
+            const multipleKey = $parent.data('multiple-key');
+            const objectIndex = $parent.data('multiple-object-index');
+            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
+            Data[multipleKey][objectIndex][name] = val;
+        }
+        else {
+            Data[name] = val;
+        }
+
         let label = $input.closest('.form-group').find('label').text();
         // validation données obligatoires
         if ($input.hasClass('needed')
@@ -423,12 +442,12 @@ function visibleBlockModal(bloc) {
 }
 
 function typeChoice(bloc, text, content) {
-    let cible = bloc.val()
+    let cible = bloc.val();
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
-    $('#' + cible + text).removeClass('d-none')
-    $('#' + cible + text).addClass('d-block')
+    $('#' + cible + text).removeClass('d-none');
+    $('#' + cible + text).addClass('d-block');
 }
 
 function updateQuantityDisplay(elem) {
@@ -551,8 +570,6 @@ let ajaxAutoArticlesReceptionInit = function(select) {
     });
 }
 
-
-
 function ajaxAutoFournisseurInit(select, placeholder = '') {
     select.select2({
         ajax: {
@@ -576,6 +593,16 @@ function ajaxAutoFournisseurInit(select, placeholder = '') {
             text: placeholder,
         }
     });
+}
+
+function initFilterDateToday() {
+    let $todayMinDate = $('#dateMin');
+    let $todayMaxDate = $('#dateMax');
+    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
+        let today = moment().format('DD/MM/YYYY');
+        $todayMinDate.val(today);
+        $todayMaxDate.val(today);
+    }
 }
 
 function ajaxAutoChauffeurInit(select) {
@@ -616,6 +643,46 @@ function ajaxAutoUserInit(select, placeholder = '') {
             }
         },
         minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+        placeholder: {
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
         placeholder: {
             text: placeholder,
         }
@@ -669,6 +736,16 @@ function clearDiv() {
 
 function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
+}
+
+function clearInvalidInputs($div) {
+    let $modal = $div.closest('.modal');
+    let $inputs = $modal.find('.modal-body').find(".data");
+    $inputs.each(function () {
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+    });
 }
 
 function displayError(modal, msg, success) {
@@ -868,8 +945,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
                 if (barcodesLabel) {
-                    imageWidth *= 0.8;
-                    imageHeight *= 0.8;
+                    imageWidth *= 0.6;
+                    imageHeight *= 0.6;
                 }
 
                 let posX = (upperNaturalScale
@@ -880,11 +957,16 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 0);
 
                 if (barcodesLabel) {
+                    let toPrint = (barcodesLabel[index]
+                        .split('\n')
+                        .map((line) => line.trim())
+                        .filter(Boolean)
+                        .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
-                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
+                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
@@ -902,6 +984,20 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
             });
         });
     }
+}
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    };
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+            [response.articleRef.barcodeLabel],
+        );
+    });
 }
 
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
@@ -1036,12 +1132,11 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd)
+function newLine(path, button, toHide, buttonAdd, select = null)
 {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
-
     inputs.each(function () {
         if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
         {
@@ -1052,17 +1147,58 @@ function newLine(path, button, toHide, buttonAdd)
         }
         params[$(this).attr('name')] = $(this).val();
     });
-
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function () {
-            let $toShow = $('#' + toHide);
-            let $toAdd = $('#' + buttonAdd);
-            $toShow.css('visibility', "hidden");
-            $toAdd.css('visibility', "hidden");
-            numberOfDataOpened--;
-            if (numberOfDataOpened === 0) {
-                $toShow.parent().parent().css("display", "none");
+        $.post(path, JSON.stringify(params), function (response) {
+            if (select) {
+                let option = new Option(response.text, response.id, true, true);
+                select.append(option).trigger('change');
             }
         });
     }
+}
+
+function redirectToDemandeLivraison(demandeId) {
+    window.open(Routing.generate('demande_show', {id: demandeId}));
+}
+
+function toggleOnTheFlyForm(id, button) {
+    let $toShow = $('#' + id);
+    let $toAdd = $('#' + button);
+    if ($toShow.hasClass('invisible')) {
+        $toShow.parent().parent().css("display", "flex");
+        $toShow.parent().parent().css("height", "auto");
+        $toShow.removeClass('invisible');
+        $toAdd.removeClass('invisible');
+    }
+    else {
+        $toShow.addClass('invisible');
+        $toAdd.addClass('invisible');
+        if (numberOfDataOpened === 0) {
+            $toShow.parent().parent().css("height", "0");
+        }
+    }
+}
+
+function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
+    $(dateInput).datetimepicker({
+        format: 'DD/MM/YYYY',
+        useCurrent: false,
+        locale: moment.locale(),
+        showTodayButton: true,
+        showClear: true,
+        icons: {
+            clear: 'fas fa-trash',
+        },
+        tooltips: {
+            today: 'Aujourd\'hui',
+            clear: 'Supprimer',
+            selectMonth: 'Choisir le mois',
+            selectYear: 'Choisir l\'année',
+            selectDecade: 'Choisir la décénie',
+        },
+    });
+}
+
+function toggleQuill($modal, enable) {
+    $modal.find('.ql-editor').prop('contenteditable', enable);
 }

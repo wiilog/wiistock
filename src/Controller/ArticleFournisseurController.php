@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -14,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -78,7 +80,7 @@ class ArticleFournisseurController extends AbstractController
                 $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
 
-            
+
             $data['data'] = $rows;
             $data['recordsTotal'] = (int)$this->articleFournisseurRepository->countAll();
             $data['recordsFiltered'] = (int)$this->articleFournisseurRepository->countAll();
@@ -181,6 +183,25 @@ class ArticleFournisseurController extends AbstractController
     }
 
     /**
+     * @Route("/supprimer_verif", name="article_fournisseur_can_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function deleteVerif(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['articleFournisseur']));
+            if (count($articleFournisseur->getArticles()) > 0) {
+                return new JsonResponse(false);
+            }
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @param ArticleFournisseur $articleFournisseur
      * @return array
      */
@@ -202,5 +223,41 @@ class ArticleFournisseurController extends AbstractController
         ];
 
         return $row;
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getArticleFournisseur(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearch($search);
+
+            return new JsonResponse(['results' => $articleFournisseur]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autocomplete-fournisseur-by-ref/{referenceArticle}", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+     * @param Request $request
+     * @param String $referenceArticle
+     * @return JsonResponse
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getArticleFournisseurByRef(Request $request, String $referenceArticle)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+            $reference = $this->referenceArticleRepository->findOneByReference($referenceArticle);
+            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearchAndRef($search, $reference);
+
+            return new JsonResponse(['results' => $articleFournisseur]);
+        }
+        throw new NotFoundHttpException("404");
     }
 }

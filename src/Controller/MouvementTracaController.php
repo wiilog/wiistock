@@ -151,7 +151,8 @@ class MouvementTracaController extends AbstractController
 			$em->persist($mvtTraca);
 			$em->flush();
 
-			$this->attachmentService->addAttachements($request, null, null, $mvtTraca);
+			$this->attachmentService->addAttachements($request->files, null, null, $mvtTraca);
+            $em->flush();
 
 			return new JsonResponse(true);
 		}
@@ -212,7 +213,7 @@ class MouvementTracaController extends AbstractController
 
 			$post = $request->request;
 
-			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
+			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P', new \DateTimeZone('Europe/Paris'));
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
 			$operator = $this->utilisateurRepository->find($post->get('operator'));
@@ -238,7 +239,8 @@ class MouvementTracaController extends AbstractController
 				}
 			}
 
-			$this->attachmentService->addAttachements($request, null, null, $mvt);
+			$this->attachmentService->addAttachements($request->files, null, null, $mvt);
+            $em->flush();
 
 			return new JsonResponse();
 		}

@@ -2,11 +2,12 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,7 +28,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'Fournisseur' => 'fournisseur',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Reception::class);
     }
@@ -76,6 +77,25 @@ class ReceptionRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    /**
+     * @param string $dateMin
+     * @param string $dateMax
+     * @return Reception[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT r
+            FROM App\Entity\Reception r
+            WHERE r.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
 
     public function findByParamAndFilters($params, $filters)
     {

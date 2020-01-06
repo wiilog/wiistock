@@ -11,9 +11,10 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -28,16 +29,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		'Libellé' => 'libelle',
         'Référence' => 'reference',
         'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
-        'Statut' => 'status'
+        'Statut' => 'status',
+        'Code barre' => 'barCode'
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ReferenceArticle::class);
     }
@@ -172,7 +175,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
-			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
+            'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
+			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
         //TODO trouver + dynamique
         $qb->from('App\Entity\ReferenceArticle', 'ra');
@@ -407,8 +411,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->select('count(ra)');
         } else {
             $qb
-                ->select('count(distinct(ra))')
-                ->leftJoin('ra.valeurChampsLibres', 'vcl');
+                ->select('count(distinct(ra))');
         }
         $countQuery = $qb->getQuery()->getSingleScalarResult();
 
@@ -416,8 +419,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        $qb->select('ra')
-            ->distinct();
+        $qb->select('ra');
         if ($needCLOrder) {
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
@@ -954,16 +956,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.reference LIKE :value')
+                        ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            if (!empty($params->get('order'))) {
+
+			$countFiltered = count($qb->getQuery()->getResult());
+
+			if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     switch ($column) {
+						case 'quantiteStock':
+							$qb
+								->leftJoin('ra.articlesFournisseur', 'af')
+								->leftJoin('af.articles', 'a')
+								->addSelect('(CASE
+								WHEN ra.typeQuantite = :typeQteArt
+								THEN (SUM(a.quantite))
+								ELSE ra.quantiteStock
+								END) as quantity')
+								->groupBy('ra.id')
+								->orderBy('quantity', $order)
+								->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
+							break;
                         default:
                             $qb->orderBy('ra.' . $column, $order);
                             break;
@@ -971,7 +989,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 }
             }
         }
-        $countFiltered = count($qb->getQuery()->getResult());
 
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -1035,7 +1052,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitSecurity,
                 ra.limitWarning')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND 
+            ->where('ra.typeQuantite = :qte_reference AND
             (
 				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
             	 OR
@@ -1062,7 +1079,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 							JOIN art2.statut s2
 							WHERE s2.nom =:active AND refart2 = ra)
 							<= ra.limitSecurity
-					AND ra.limitSecurity IS NOT NULL 
+					AND ra.limitSecurity IS NOT NULL
 					AND ra.limitSecurity > 0
 				)
 			)')
@@ -1141,4 +1158,70 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle.reference as reference,
+                             referenceArticle.quantiteDisponible as quantity,
+                             1 as is_ref
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN referenceArticle.emplacement emplacement
+                JOIN referenceArticle.statut status
+                WHERE emplacement.label = :location
+                  AND referenceArticle.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
+    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT referenceArticle
+                FROM App\Entity\ReferenceArticle referenceArticle
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status
+                  AND referenceArticle.typeQuantite = :typeQuantite"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        return $query->execute();
+    }
+
+	public function getRefTypeQtyArticleByReception($id)
+	{
+	    /** @var EntityManagerInterface $entityManager */
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference as reference,
+                         rra.commande as commande
+            FROM App\Entity\ReferenceArticle ra
+            JOIN ra.receptionReferenceArticles rra
+            JOIN rra.reception r
+            WHERE r.id = :id
+              AND ra.typeQuantite = :typeQty"
+		)->setParameters([
+			'id' => $id,
+			'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+		]);
+		return $query->execute();
+	}
 }

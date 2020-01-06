@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +15,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class StatutRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Statut::class);
     }
@@ -146,7 +146,7 @@ class StatutRepository extends ServiceEntityRepository
             LEFT JOIN s.receptions r
             LEFT JOIN s.referenceArticles ra
             LEFT JOIN s.manutentions m
-            WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id 
+            WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id
             OR l.status = :id OR r.statut = :id OR ra.statut = :id OR m.statut = :id
            "
 		)->setParameter('id', $id);

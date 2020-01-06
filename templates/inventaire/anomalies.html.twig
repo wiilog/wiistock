@@ -15,6 +15,7 @@
     {% include 'inventaire/modalTreatAnomaly.html.twig' %}
 {% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('js/anomalie-inventaire.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/anomalie-inventaire.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

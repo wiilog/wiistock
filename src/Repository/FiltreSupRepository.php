@@ -5,7 +5,8 @@ namespace App\Repository;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method FiltreSup|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +16,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class FiltreSupRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, FiltreSup::class);
     }
@@ -25,7 +26,7 @@ class FiltreSupRepository extends ServiceEntityRepository
 	 * @param string $page
 	 * @param Utilisateur $user
 	 * @return FiltreSup|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOnebyFieldAndPageAndUser($field, $page, $user)
 	{

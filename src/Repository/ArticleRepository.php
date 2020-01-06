@@ -15,11 +15,12 @@ use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -39,6 +40,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Type' => 'Type',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
+        'Code barre' => 'barCode',
     ];
 
     private const linkChampLibreLabelToField = [
@@ -49,9 +51,10 @@ class ArticleRepository extends ServiceEntityRepository
         'Date et heure' => ['field' => 'dateLastInventory', 'typage' => 'list'],
         'Commentaire' => ['field' => 'commentaire', 'typage' => 'list'],
         'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'list'],
+        'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Article::class);
     }
@@ -384,13 +387,13 @@ class ArticleRepository extends ServiceEntityRepository
 
 	/**
 	 * @param array|null $params
-	 * @param string|null $statutLabel
+	 * @param array $filters
 	 * @param Utilisateur $user
 	 * @return array
 	 * @throws ORMException
 	 * @throws OptimisticLockException
 	 */
-    public function findByParamsAndStatut($params = null, $statutLabel = null, $user)
+    public function findByParamsAndFilters($params = null, $filters, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -399,14 +402,20 @@ class ArticleRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Article', 'a');
 
-        if ($statutLabel) {
-            $qb
-                ->join('a.statut', 's')
-                ->where('s.nom = :statutLabel')
-                ->setParameter('statutLabel', $statutLabel);
-        }
-
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch ($filter['field']) {
+				case 'statut':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.statut', 's_filter')
+						->andWhere('s_filter.nom IN (:statut)')
+						->setParameter('statut', $value);
+					break;
+			}
+		}
 
         $allArticleDataTable = null;
 		// prise en compte des paramètres issus du datatable
@@ -555,8 +564,8 @@ class ArticleRepository extends ServiceEntityRepository
                             break;
                         case 'status':
                             $qb
-                                ->leftJoin('a.statut', 's')
-                                ->orderBy('s.nom', $order);
+                                ->leftJoin('a.statut', 's_sort')
+                                ->orderBy('s_sort.nom', $order);
                             break;
                         case 'dateFinReception':
                             $expr = $qb->expr();
@@ -686,12 +695,14 @@ class ArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa, a.barCode
+            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa, a.barCode, ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
 			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
 		)->setParameters([
 		    'statutLabel' => $statutLabel,
@@ -951,27 +962,30 @@ class ArticleRepository extends ServiceEntityRepository
         return $result ? $result[0]['barCode'] : null;;
     }
 
-    public function getRefAndLabelRefAndArtAndBarcodeById($id)
+    public function getRefAndLabelRefAndArtAndBarcodeAndBLById($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode
+            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode, vcla.valeur as bl, cla.label as cl
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra
+		LEFT JOIN a.valeurChampsLibres vcla
+		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
             ->setParameter('id', $id);
 
-        return $query->getOneOrNullResult();
+        return $query->execute();
     }
 
-    /**
-     * @param Article $article
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Article $article
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countInventoryAnomaliesByArt($article)
     {
         $em = $this->getEntityManager();
@@ -987,18 +1001,44 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getStockPriceClByArt($art)
-    {
+	public function findArticleByBarCodeAndLocation(string $barCode, string $location) {
         $em = $this->getEntityManager();
 
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT v.valeur
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.champLibre c
-            JOIN v.article a
-            WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:art"
-        )->setParameter('art', $art);
+        $query = $em
+            ->createQuery(
+                "SELECT article
+                FROM App\Entity\Article article
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', Article::STATUT_ACTIF);
+
+        return $query->execute();
+    }
+
+	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
+        $em = $this->getEntityManager();
+
+        $query = $em
+            ->createQuery(
+                "SELECT article.reference as reference,
+                             article.quantite as quantity,
+                             0 as is_ref
+                FROM App\Entity\Article article
+                JOIN article.emplacement emplacement
+                JOIN article.statut status
+                WHERE emplacement.label = :location
+                  AND article.barCode = :barCode
+                  AND status.nom = :status"
+            )
+            ->setParameter('location', $location)
+            ->setParameter('barCode', $barCode)
+            ->setParameter('status', Article::STATUT_ACTIF);
 
         return $query->execute();
     }

@@ -102,7 +102,8 @@ class TransporteurController extends AbstractController
             $em->persist($transporteur);
 
             $em->flush();
-
+            $data['id'] = $transporteur->getId();
+            $data['text'] = $transporteur->getLabel();
             return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');

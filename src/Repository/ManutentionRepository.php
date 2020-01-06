@@ -6,7 +6,7 @@ use App\Entity\Manutention;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Manutention|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +25,7 @@ class ManutentionRepository extends ServiceEntityRepository
         'Statut' => 'statut',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Manutention::class);
     }
@@ -36,10 +36,10 @@ class ManutentionRepository extends ServiceEntityRepository
         	/** @lang DQL */
             "SELECT COUNT(m)
             FROM App\Entity\Manutention m
-            WHERE m.statut = :statut 
+            WHERE m.statut = :statut
            "
             )->setParameter('statut', $statut);
-        return $query->getSingleScalarResult(); 
+        return $query->getSingleScalarResult();
     }
 
     public function findByStatut($statut) {
@@ -110,7 +110,7 @@ class ManutentionRepository extends ServiceEntityRepository
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('m.demandeur', 'd')
-                        ->andWhere("d.username in (:username)")
+                        ->andWhere("d.id in (:username)")
                         ->setParameter('username', $value);
                     break;
                 case 'dateMin':

@@ -5,10 +5,8 @@ namespace App\Service;
 use App\Repository\UtilisateurRepository;
 use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Swift_SmtpTransport;
-use Swift_Mailer;
 
 class PasswordService
 {
@@ -38,12 +36,17 @@ class PasswordService
     private $mailerService;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, MailerService $mailerService, \Twig_Environment $templating)
+    public function __construct(MailerServerRepository $mailerServerRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserPasswordEncoderInterface $passwordEncoder,
+                                EntityManagerInterface $entityManager,
+                                MailerService $mailerService,
+                                Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;

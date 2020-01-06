@@ -14,68 +14,91 @@
                 <div class="row">
                     <div class="form-group col w-100">
                         <label for="fournisseur">Fournisseur*</label>
-                        <select class="form-control data ajax-autocomplete-fournisseur ajax-autocomplete needed" name="fournisseur" id="fournisseur">
+                        <select class="form-control data ajax-autocomplete-fournisseur ajax-autocomplete needed"
+                                name="fournisseur" id="fournisseur">
                         </select>
                     </div>
                     <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleInput('fournisseurDisplay', 'addFournisseur')"><i class="fa fa-plus"></i></span>
+                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
+                                class="fa fa-plus"></i></span>
                     </div>
 
                     <div class="form-group col w-100">
                         <label for="transporteur">Transporteur*</label>
-                        <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete needed" name="transporteur" id="transporteur">
+                        <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete needed"
+                                name="transporteur" id="transporteur">
                         </select>
                     </div>
                     <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleInput('transporteurDisplay', 'addTransporteur')"><i class="fa fa-plus"></i></span>
+                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
+                                class="fa fa-plus"></i></span>
                     </div>
 
                     <div class="form-group col w-100">
                         <label for="chauffeur">Chauffeur</label>
-                        <select class="form-control data ajax-autocomplete-chauffeur ajax-autocomplete" name="chauffeur" id="chauffeur">
+                        <select class="form-control data ajax-autocomplete-chauffeur ajax-autocomplete" name="chauffeur"
+                                id="chauffeur">
                         </select>
                     </div>
                     <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleInput('chauffeurDisplay', 'addChauffeur')"><i class="fa fa-plus"></i></span>
+                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('chauffeurDisplay', 'addChauffeur')"><i
+                                class="fa fa-plus"></i></span>
                     </div>
                 </div>
                 <div class="row line-arrivage-new-data">
                     <div class="row col-4 formulaire">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
-                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew" name="Nom" maxlength="64">
+                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
+                                   name="Nom" maxlength="64">
                             <label for="newFournisseurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew" name="Code" maxlength="64">
+                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
+                                   name="Code" maxlength="64">
                         </div>
                         <div class="form-group col-2 invisible" id="addFournisseur">
-                            <span class="btn btn-success" onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur')"><i class="fas fa-check-circle"></i></span>
+                            <span class="btn btn-success"
+                                  onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
+                                  , toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
+                                    class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
                     <div class="row col-4 formulaire">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
-                            <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew" name="label" maxlength="64">
+                            <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
+                                   name="label" maxlength="64">
                             <label for="newTransporteurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew" name="code" maxlength="64">
+                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
+                                   name="code" maxlength="64">
                         </div>
                         <div class="form-group col-2 invisible" id="addTransporteur">
-                            <span class="btn btn-success" onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur')"><i class="fas fa-check-circle"></i></span>
+                            <span class="btn btn-success" onclick="
+                            newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur')),
+                            toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
                     <div class="row col-4 formulaire">
                         <div class="form-group col-10 invisible" id="chauffeurDisplay">
                             <label for="newChauffeurName">Nom*</label>
-                            <input type="text" id="newChauffeurName" class="form-control newFormulaire neededNew" name="nom" maxlength="64">
+                            <input type="text" id="newChauffeurName" class="form-control newFormulaire neededNew"
+                                   name="nom" maxlength="64">
                             <label for="newChauffeurFirstName" class="mt-2">Prénom*</label>
-                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire neededNew" name="prenom" maxlength="64">
+                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire neededNew"
+                                   name="prenom" maxlength="64">
                             <label for="newChauffeurNumero" class="mt-2">N°doc ID*</label>
-                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire neededNew" name="documentID" maxlength="64">
+                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire neededNew"
+                                   name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
-                            <select class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100" name="transporteur" id="newChauffeurTransporteur">
+                            <select
+                                class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100"
+                                name="transporteur" id="newChauffeurTransporteur">
                             </select>
                         </div>
                         <div class="form-group col-2 invisible" id="addChauffeur">
-                            <span class="btn btn-success" onclick="newLine(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur')"><i class="fas fa-check-circle"></i></span>
+                            <span class="btn btn-success"
+                                  onclick="newLine(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))
+                                  , toggleOnTheFlyForm('chauffeurDisplay', 'addChauffeur')"><i
+                                    class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
                 </div>
@@ -94,19 +117,22 @@
                 <div class="row">
                     <div class="form-group col-4 w-100">
                         <label for="destinataire">Destinataire*</label>
-                        <select class="form-control data ajax-autocomplete-user needed ajax-autocomplete" name="destinataire" id="destinataire">
+                        <select class="form-control data ajax-autocomplete-user needed ajax-autocomplete"
+                                name="destinataire" id="destinataire">
                         </select>
                     </div>
                     <div class="form-group w-100 col-4">
                         <label for="acheteurs">Acheteur(s)*</label>
                         <select name="acheteurs" id="acheteurs" multiple="multiple"
                                 class="form-control ajax-autocomplete-user data needed ajax-autocomplete">
-                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>>
+                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+                            >
                         </select>
                     </div>
                     <div class="form-group col-4">
                         <label for="Immatriculation">Immatriculation</label>
-                        <input type="text" id="Immatriculation" class="form-control data" name="immatriculation" maxlength="64">
+                        <input type="text" id="Immatriculation" class="form-control data" name="immatriculation"
+                               maxlength="64">
                     </div>
                 </div>
 
@@ -121,7 +147,7 @@
                                     {% for nature in natures %}
                                         <div class="form-group col-2">
                                             <label for="">
-                                                {{nature.label | capitalize}}
+                                                {{ nature.label | capitalize }}
                                             </label>
                                             <input type="number" class="form-control data-array"
                                                    value="" name="nature" data-id="{{ nature.id }}" min="0">
@@ -134,7 +160,7 @@
                 {% else %}
                     <div class="row">
                         <p><i class='fas fa-warning'></i>
-                             Attention ! Aucune nature de colis a été créée</p>
+                            Attention ! Aucune nature de colis a été créée</p>
                         <a href="{{ path('nature_param_index') }}" class="btn btn-primary">
                             <i class='fa fa-directions mr-2'></i> Aller vers la création des natures
                         </a>
@@ -166,7 +192,7 @@
                     <div class="form-group col-8 fit-content">
                         <label for="commentaire">Commentaire</label>
                         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-                        <div class="editor-container-new" ></div>
+                        <div class="editor-container-new"></div>
                     </div>
                     <div class="form-group col-4">
                         <div>
@@ -179,7 +205,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewArrivage" type="button" class="btn btn-success"
-                    onclick="setCommentaire('.editor-container-new', quillNew)">Enregistrer
+                        onclick="setCommentaire('.editor-container-new', quillNew)">Enregistrer
                 </button>
             </div>
         </div>

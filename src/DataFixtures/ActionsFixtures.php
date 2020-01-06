@@ -9,7 +9,6 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use Symfony\Component\DependencyInjection\Tests\A;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
@@ -31,7 +30,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     {
     	$menus = [
 			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE],
-			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP],
+			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP, Action::EXPORT],
 			Menu::DEM_LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
 			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
 			Menu::STOCK => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],

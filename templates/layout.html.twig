@@ -1,3 +1,4 @@
+{% set version = '2.1.3' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -23,7 +24,7 @@
                         <div class="logo-wrapper">
                             {% include 'logo.svg.twig' %}
                         </div>
-                        <div class="version"> V2.1.0</div>
+                        <div class="version"> V{{ version }}</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -139,7 +140,7 @@
                             </li>
                             <li>
                                 <a href="{{ path('reference_article_index') }}" class="sub-item">
-                                    {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                                    {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                                         • Référence CEA
                                     {% else %}
                                         • Référence
@@ -198,7 +199,7 @@
                         </a>
                         <ul class="sidemenu-sub">
                             <li>
-                                <a href="{{ path('parametre_global') }}" class="sub-item">• Paramétrage global</a>
+                                <a href="{{ path('global_param_index') }}" class="sub-item">• Paramétrage global</a>
                             </li>
                             <li>
                                 <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
@@ -243,6 +244,10 @@
         </nav>
     {% endblock %}
     <div class="wrapper" class="accueil-back">
+        {% block page_filter %}
+
+        {% endblock %}
+
         <div class="container-fluid">
             {% block page_content %}
 

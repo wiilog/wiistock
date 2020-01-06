@@ -109,10 +109,11 @@ class Article
      */
 	private $quantiteAPrelever;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
-     */
-    private $reception;
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
+	 * @ORM\JoinColumn(nullable=true)
+	 */
+	private $receptionReferenceArticle;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
@@ -389,18 +390,6 @@ class Article
         return $this;
     }
 
-    public function getReception(): ?Reception
-    {
-        return $this->reception;
-    }
-
-    public function setReception(?Reception $reception): self
-    {
-        $this->reception = $reception;
-
-        return $this;
-    }
-
     /**
      * @return Selectable|Collection|MouvementStock[]
      */
@@ -455,30 +444,31 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-   {
-	   return $this->inventoryEntries;
-   }
+         {
+      	   return $this->inventoryEntries;
+         }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries[] = $inventoryEntry;
-			$inventoryEntry->setArticle($this);
-		}
+      	{
+      		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+      			$this->inventoryEntries[] = $inventoryEntry;
+      			$inventoryEntry->setArticle($this);
+      		}
 
-		return $this;
-	}
+      		return $this;
+      	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-	{
-		if ($this->inventoryEntries->contains($inventoryEntry)) {
-			$this->inventoryEntries->removeElement($inventoryEntry);
-			// set the owning side to null (unless already changed)
-			if ($inventoryEntry->getArticle() === $this) {
-				$inventoryEntry->setArticle(null);
-			}
-		}
-	}
+      	{
+      		if ($this->inventoryEntries->contains($inventoryEntry)) {
+      			$this->inventoryEntries->removeElement($inventoryEntry);
+      			// set the owning side to null (unless already changed)
+      			if ($inventoryEntry->getArticle() === $this) {
+      				$inventoryEntry->setArticle(null);
+      			}
+      		}
+      		return $this;
+      	}
 
     /**
      * @return Collection|InventoryMission[]
@@ -580,6 +570,18 @@ class Article
         if ($this->ordreCollecte->contains($ordreCollecte)) {
             $this->ordreCollecte->removeElement($ordreCollecte);
         }
+
+        return $this;
+    }
+
+    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle
+    {
+        return $this->receptionReferenceArticle;
+    }
+
+    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        $this->receptionReferenceArticle = $receptionReferenceArticle;
 
         return $this;
     }

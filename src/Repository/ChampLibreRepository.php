@@ -6,8 +6,9 @@ use App\Entity\ChampLibre;
 use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
-use Symfony\Bridge\Doctrine\RegistryInterface;
-use Proxies\__CG__\App\Entity\CategorieCL;
+use Doctrine\ORM\NonUniqueResultException;
+
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ChampLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,7 +18,7 @@ use Proxies\__CG__\App\Entity\CategorieCL;
  */
 class ChampLibreRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ChampLibre::class);
     }
@@ -27,8 +28,8 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\ChampLibre c 
-            JOIN c.type t 
+            FROM App\Entity\ChampLibre c
+            JOIN c.type t
             WHERE t.id = :id"
         )->setParameter('id', $type);;
         return $query->execute();
@@ -39,7 +40,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :type AND c.requiredCreate = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -50,7 +51,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :type AND c.requiredEdit = TRUE"
         )->setParameter('type', $type);;
         return $query->getResult();
@@ -61,7 +62,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id, c.typage
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             "
         );
         return $query->getResult();
@@ -73,7 +74,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie
@@ -90,13 +91,13 @@ class ChampLibreRepository extends ServiceEntityRepository
 	/**
 	 * @param string $label
 	 * @return ChampLibre|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             WHERE cl.label LIKE :label
             "
         )->setParameter('label', $label);
@@ -109,7 +110,7 @@ class ChampLibreRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\ChampLibre cl 
+            FROM App\Entity\ChampLibre cl
             JOIN cl.type t
             JOIN t.category cat
             WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text
@@ -172,7 +173,7 @@ class ChampLibreRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			"SELECT c
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             JOIN c.categorieCL ccl
             WHERE c.type = :type AND ccl.label = :categorieCLLabel"
 		)->setParameters(
@@ -184,12 +185,16 @@ class ChampLibreRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	/**
+	 * @param $typeId
+	 * @return ChampLibre[]
+	 */
     public function findByTypeId($typeId)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
-            FROM App\Entity\ChampLibre c 
+            FROM App\Entity\ChampLibre c
             WHERE c.type = :typeId"
         )->setParameter('typeId', $typeId);
 
@@ -212,6 +217,31 @@ class ChampLibreRepository extends ServiceEntityRepository
 		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
+	}
+
+	/**
+	 * @param string $categoryType
+	 * @param string $label
+	 * @return ChampLibre|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByCategoryTypeAndLabel($categoryType, $label)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT c
+            FROM App\Entity\ChampLibre c
+            JOIN c.type t
+            JOIN t.category cat
+            WHERE cat.label = :categoryType
+            AND c.label = :label"
+		)->setParameters([
+			'categoryType' => $categoryType,
+			'label' => $label
+			]);
+
+		return $query->getOneOrNullResult();
 	}
 
 	public function deleteByLabel($label){

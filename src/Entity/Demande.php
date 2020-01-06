@@ -85,13 +85,18 @@ class Demande
 	 */
 	private $valeurChampLibre;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
+     */
+    private $reception;
+
 
 	public function __construct()
-	{
-		$this->ligneArticle = new ArrayCollection();
-		$this->articles = new ArrayCollection();
-		$this->valeurChampLibre = new ArrayCollection();
-	}
+         	{
+         		$this->ligneArticle = new ArrayCollection();
+         		$this->articles = new ArrayCollection();
+         		$this->valeurChampLibre = new ArrayCollection();
+         	}
 
     public function getId(): ?int
     {
@@ -182,7 +187,7 @@ class Demande
         return $this;
     }
 
-   
+
 
 
 //    public function getDateAttendu(): ?\DateTimeInterface
@@ -304,6 +309,18 @@ class Demande
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
+
+        return $this;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
 
         return $this;
     }

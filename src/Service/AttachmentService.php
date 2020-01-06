@@ -7,10 +7,15 @@ use App\Entity\Litige;
 use App\Entity\MouvementTraca;
 use App\Entity\PieceJointe;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\FileBag;
+
 
 class AttachmentService
 {
+
+    private const ATTACHMENT_DIRECTORY = '../public/uploads/attachements/';
+
 	/**
 	 * @var EntityManagerInterface
 	 */
@@ -22,23 +27,22 @@ class AttachmentService
     }
 
 	/**
-	 * @Route("/ajouter-pj", name="add_attachement", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
+	 * @param FileBag|UploadedFile[] $files
 	 * @param Arrivage $arrivage
 	 * @param Litige|null $litige
 	 * @param MouvementTraca|null $mvtTraca
 	 */
-	public function addAttachements(Request $request, $arrivage, $litige = null, $mvtTraca = null)
-	{
-		$path = "../public/uploads/attachements/";
-		if (!file_exists($path)) {
-			mkdir($path, 0777);
+	public function addAttachements($files, $arrivage, $litige = null, $mvtTraca = null) {
+        if ($files instanceof FileBag) {
+            $files = $files->all();
+        }
+		if (!file_exists(self::ATTACHMENT_DIRECTORY)) {
+			mkdir(self::ATTACHMENT_DIRECTORY, 0777);
 		}
-		for ($i = 0; $i < count($request->files); $i++) {
-			$file = $request->files->get('file' . $i);
+		foreach ($files as $file) {
 			if ($file) {
 				$filename = uniqid() . '.' . $file->getClientOriginalExtension() ?? '';
-				$file->move($path, $filename);
+				$file->move(self::ATTACHMENT_DIRECTORY, $filename);
 
 				$pj = new PieceJointe();
 				$pj
@@ -54,7 +58,6 @@ class AttachmentService
 				$this->em->persist($pj);
 			}
 		}
-		$this->em->flush();
 	}
 
 	/**

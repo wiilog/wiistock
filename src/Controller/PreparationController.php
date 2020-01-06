@@ -242,11 +242,10 @@ class PreparationController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest())
         {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
-
             }
 
             $data = $this->preparationsManagerService->getDataForDatatable($request->request);
@@ -463,13 +462,7 @@ class PreparationController extends AbstractController
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-////                    	spécifique CEA : vider le champ libre code projet
-//						$labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
-//						if (!(
-//							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
-//							&& ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
 						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-//						}
                     }
                     $this->articleDataService->newArticle($newArticle);
 

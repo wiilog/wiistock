@@ -2,22 +2,27 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 
+use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Repository\MouvementStockRepository;
 use App\Repository\FiltreSupRepository;
 
+use DateTime;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
 
 class MouvementStockService
 {
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -45,9 +50,15 @@ class MouvementStockService
 
     private $em;
 
-    public function __construct(UserService $userService, MouvementStockRepository $mouvementStockRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, FiltreSupRepository $filtreSupRepository, Security $security)
+    public function __construct(UserService $userService,
+                                MouvementStockRepository $mouvementStockRepository,
+                                RouterInterface $router,
+                                EntityManagerInterface $em,
+                                Twig_Environment $templating,
+                                FiltreSupRepository $filtreSupRepository,
+                                Security $security)
     {
-    
+
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -121,5 +132,44 @@ class MouvementStockService
 		];
 
         return $row;
+    }
+
+    /**
+     * @param Utilisateur $user
+     * @param Emplacement $locationFrom
+     * @param int $quantity
+     * @param Article|ReferenceArticle $article
+     * @param string $type
+     * @return MouvementStock
+     */
+    public function createMouvementStock(Utilisateur $user, Emplacement $locationFrom, int $quantity, $article, string $type): MouvementStock {
+        $newMouvement = new MouvementStock();
+        $newMouvement
+            ->setUser($user)
+            ->setEmplacementFrom($locationFrom)
+            ->setType($type)
+            ->setQuantity($quantity);
+
+        if($article instanceof Article) {
+            $newMouvement->setArticle($article);
+        }
+        else if($article instanceof ReferenceArticle) {
+            $newMouvement->setRefArticle($article);
+        }
+
+        return $newMouvement;
+    }
+
+    /**
+     * @param MouvementStock $mouvementStock
+     * @param DateTime $date
+     * @param Emplacement $locationTo
+     */
+    public function finishMouvementStock(MouvementStock $mouvementStock,
+                                         DateTime $date,
+                                         Emplacement $locationTo): void {
+        $mouvementStock
+            ->setDate($date)
+            ->setEmplacementTo($locationTo);
     }
 }

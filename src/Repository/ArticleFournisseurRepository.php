@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ArticleFournisseur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ArticleFournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,7 +20,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         'Article de référence' => 'art_ref',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ArticleFournisseur::class);
     }
@@ -187,5 +187,34 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT articleFournisseur.id,
+                         articleFournisseur.reference as text
+          FROM App\Entity\ArticleFournisseur articleFournisseur
+          WHERE articleFournisseur.reference LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+    public function getIdAndLibelleBySearchAndRef($search, $ref)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT articleFournisseur.id,
+                         articleFournisseur.reference as text
+          FROM App\Entity\ArticleFournisseur articleFournisseur
+          WHERE articleFournisseur.reference LIKE :search AND articleFournisseur.referenceArticle = :ref"
+        )->setParameters([
+            'search' => '%' . $search . '%',
+            'ref' => $ref,
+        ]);
+
+        return $query->execute();
+    }
 
 }

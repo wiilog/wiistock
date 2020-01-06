@@ -1,12 +1,16 @@
 let numberOfDataOpened = 0;
+let clicked = false;
 $('.select2').select2();
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ARRIVAGE);;
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    let params = JSON.stringify(PAGE_ARRIVAGE);
+
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');
@@ -27,29 +31,22 @@ $(function() {
                     let option = new Option(name, id, true, true);
                     $providers.append(option).trigger('change');
                 });
-            } else if (element.field = 'emergency') {
+            } else if (element.field == 'emergency') {
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
                 }
+            } else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
-
-        // initFilterDateToday();
+        initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
-
-function initFilterDateToday() {
-    // par défaut filtre date du jour
-    let today = new Date();
-    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
-    $('#dateMin').val(formattedToday);
-    $('#dateMax').val(formattedToday);
-}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
@@ -63,7 +60,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
     scrollX: true,
     ajax: {
         "url": pathArrivage,
-        "type": "POST"
+        "type": "POST",
+        'data': {
+            'clicked': () => clicked,
+        }
     },
     'drawCallback': function() {
         overrideSearch($('#tableArrivages_filter input'), tableArrivage);
@@ -96,7 +96,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
     },
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
             extend: 'colvis',
@@ -148,31 +148,6 @@ function printBarcode(code) {
     });
 }
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableArrivage.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
@@ -198,6 +173,9 @@ function initNewArrivageEditor(modal) {
 
 let $submitSearchArrivage = $('#submitSearchArrivage');
 $submitSearchArrivage.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_ARRIVAGE,
         dateMin: $('#dateMin').val(),
@@ -206,7 +184,13 @@ $submitSearchArrivage.on('click', function () {
         users: $('#utilisateur').select2('data'),
         urgence: $('#urgence-filter').is(':checked'),
         providers: $('#providers').select2('data'),
-    }
+    };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
+
+    clicked = true;
+
     saveFilters(filters, tableArrivage);
 });
 
@@ -220,6 +204,8 @@ function generateCSVArrivage () {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         let params = JSON.stringify(data);
         let path = Routing.generate('get_arrivages_for_csv', true);
 
@@ -261,26 +247,5 @@ let aFile = function (csv) {
             link.click();
             document.body.removeChild(link);
         }
-    }
-}
-
-function toggleInput(id, button) {
-    let $toShow = $('#' + id);
-    let $toAdd = $('#' + button);
-    // let $div = document.getElementById(div);
-    if ($toShow.css('visibility') === "hidden"){
-        $toShow.parent().parent().css("display", "flex");
-        $toShow.css('visibility', "visible");
-        $toAdd.css('visibility', "visible");
-        numberOfDataOpened ++;
-        // $div.style.visibility = "visible";
-    } else {
-        $toShow.css('visibility', "hidden");
-        $toAdd.css('visibility', "hidden");
-        numberOfDataOpened --;
-        if (numberOfDataOpened === 0) {
-            $toShow.parent().parent().css("display", "none");
-        }
-        // $div.style.visibility = "hidden";
     }
 }

@@ -9,6 +9,9 @@ use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
+use App\Entity\ParametrageGlobal;
+
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +22,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/global_param")
+ * @Route("/parametrage-global")
  */
 class GlobalParamController extends AbstractController
 {
@@ -54,21 +57,27 @@ class GlobalParamController extends AbstractController
     private $daysWorkedRepository;
 
     /**
+     * @var ParametrageGlobalRepository
+     */
+    private $parametrageGlobalRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
-    public function __construct(MailerServerRepository $mailerServerRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, UserService $userService, DaysWorkedRepository $daysWorkedRepository)
+    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository, MailerServerRepository $mailerServerRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, UserService $userService, DaysWorkedRepository $daysWorkedRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->daysWorkedRepository = $daysWorkedRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->userService = $userService;
+        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
     }
 
     /**
-     * @Route("/param_global", name="parametre_global")
+     * @Route("/", name="global_param_index")
      */
     public function index(): response
     {
@@ -78,11 +87,16 @@ class GlobalParamController extends AbstractController
 
         $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
+        $paramGlo = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $paramGloPrepa = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
 
         return $this->render('parametrage_global/index.html.twig',
             [
             'dimensions_etiquettes' => $dimensions,
-                'mailerServer' => $mailerServer
+                'parametrageG' => $paramGlo,
+                'parametrageGPrepa' => $paramGloPrepa,
+                'mailerServer' => $mailerServer,
+                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL)
         ]);
     }
 
@@ -95,7 +109,9 @@ class GlobalParamController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getEntityManager();
+
+            $em = $this->getDoctrine()->getManager();
+
             $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
             if (!$dimensions) {
                 $dimensions = new DimensionsEtiquettes();
@@ -104,6 +120,16 @@ class GlobalParamController extends AbstractController
             $dimensions
                 ->setHeight(intval($data['height']))
                 ->setWidth(intval($data['width']));
+
+            $parametrageGlobal = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $em->persist($parametrageGlobal);
+            }
+            $parametrageGlobal->setParametre($data['param-bl-etiquette']);
+
             $em->flush();
 
             return new JsonResponse($data);
@@ -224,7 +250,7 @@ class GlobalParamController extends AbstractController
             if (isset($data['times'])) {
                 $arrayTimes = explode(';', $data['times']);
 
-                if (count($arrayTimes) % 2 != 0) {
+                if ($day->getWorked() && count($arrayTimes) % 2 != 0) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Le format des horaires est incorrect.'
@@ -276,6 +302,62 @@ class GlobalParamController extends AbstractController
             $em->flush();
 
             return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/demlivr", name="active_desactive_create_demande_livraison", options={"expose"=true}, methods="GET|POST")
+     */
+    public function actifDesactifCreateDemandeLivraison(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)
+                    ->setParametre($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/prepa", name="active_desactive_create_prepa", options={"expose"=true}, methods="GET|POST")
+     */
+    public function actifDesactifCreateprepa(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL)
+                    ->setParametre($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }

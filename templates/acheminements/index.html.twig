@@ -2,14 +2,12 @@
 
 {% block title %}Acheminements{% endblock %}
 
-{% block page_content %}
-{#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-</div>
-
+{% block page_filter %}
+    {{ parent() }}
     {% include 'filters/filtersAcheminements.html.twig' with {'btnName' : 'submitSearchAcheminements'} %}
+{% endblock %}
 
-<div class="container-fluid">
-
+{% block page_content %}
     <h1>Acheminements</h1>
 
     <div class="row">
@@ -24,15 +22,14 @@
         <table id="tableAcheminement" class="table table-striped table-bordered w-100">
         </table>
     </div>
-</div>
     <div hidden id="barcodes"></div>
     <div id="barcode"></div>
-{% include "acheminements/modalNewAcheminements.html.twig" %}
+    {% include "acheminements/modalNewAcheminements.html.twig" %}
     {% include "acheminements/modalEditAcheminements.html.twig" %}
     {% include "acheminements/modalDeleteAcheminements.html.twig" %}
 {% endblock %}
 
-
-{% block javascript %}
-<script src="{{ asset('js/acheminements.js') }}?{{ date().timestamp }}"></script>
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/acheminements.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

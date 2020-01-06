@@ -116,20 +116,10 @@
 
                     <div class="form-group col-6">
 
-                    {# spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-{#                    {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}#}
-{#                        {% if champLibre.label|lower == 'code projet' or champLibre.label|lower == 'destinataire' %}#}
-{#                            {% set disabled = '' %}#}
-{#                            {% set needed = champLibre.requiredEdit ? 'needed' : '' %}#}
-{#                        {% else %}#}
-{#                            {% set disabled = editable ? '' : 'disabled' %}#}
-{#                        {% endif %}#}
-{#                    {% endif %}#}
-
                     {% if champLibre.label|lower == 'code projet' %}
-                    <label for="input">{{ champLibre.label | capitalize}}*</label>
+                    <label for="input">{{ champLibre.label }}*</label>
                     {% else %}
-                    <label for="input">{{ champLibre.label | capitalize}}</label>
+                    <label for="input">{{ champLibre.label }}</label>
                     {% endif %}
 
                     {% if champLibre.typage == 'booleen' %}
@@ -166,7 +156,10 @@
                     <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
                         class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
+                    {% elseif champLibre.typage == 'datetime' %}
+                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
+                               class="form-control data {{ needed }}"
+                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
                     {% else %}
                     <input disabled>
                     {% endif %}

@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReceptionReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +17,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ReceptionReferenceArticle::class);
     }
@@ -73,4 +75,49 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	/**
+	 * @param Reception $reception
+	 * @param string $noCommande
+	 * @param string $refArticle
+	 * @return ReceptionReferenceArticle|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			'SELECT rra
+            FROM App\Entity\ReceptionReferenceArticle rra
+            JOIN rra.referenceArticle ra
+            WHERE rra.reception = :reception
+            AND ra.reference = :refArticle
+            AND rra.commande = :noCommande
+            '
+		)->setParameters([
+			'reception' => $reception,
+			'noCommande' => $noCommande,
+			'refArticle' => $refArticle
+		]);
+		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param int $receptionReferenceArticleId
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+	public function countArticlesByRRA($receptionReferenceArticleId)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/* @lang DQL */
+		'SELECT count(a)
+		FROM App\Entity\Article a
+		JOIN a.receptionReferenceArticle rra
+		WHERE rra.id = :rraId'
+		)->setParameter('rraId', $receptionReferenceArticleId);
+
+		return $query->getSingleScalarResult();
+	}
 }

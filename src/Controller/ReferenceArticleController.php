@@ -6,10 +6,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -39,11 +37,13 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
+use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,7 +60,7 @@ use App\Repository\FournisseurRepository;
 /**
  * @Route("/reference-article")
  */
-class ReferenceArticleController extends Controller
+class ReferenceArticleController extends AbstractController
 {
     /**
      * @var EmplacementRepository
@@ -196,7 +196,36 @@ class ReferenceArticleController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, MouvementStockRepository $mouvementStockRepository)
+    private $CSVExportService;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                ParametreRepository $parametreRepository,
+                                SpecificService $specificService,
+                                \Twig_Environment $templating,
+                                EmplacementRepository $emplacementRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                LigneArticleRepository $ligneArticleRepository,
+                                ArticleRepository $articleRepository,
+                                ArticleDataService $articleDataService,
+                                LivraisonRepository $livraisonRepository,
+                                DemandeRepository $demandeRepository,
+                                CollecteRepository $collecteRepository,
+                                StatutRepository $statutRepository,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                TypeRepository  $typeRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                ArticleFournisseurRepository $articleFournisseurRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                RefArticleDataService $refArticleDataService,
+                                UserService $userService,
+                                InventoryCategoryRepository $inventoryCategoryRepository,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository,
+                                MouvementStockRepository $mouvementStockRepository,
+                                CSVExportService $CSVExportService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -225,6 +254,7 @@ class ReferenceArticleController extends Controller
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->CSVExportService = $CSVExportService;
     }
 
     /**
@@ -282,6 +312,13 @@ class ReferenceArticleController extends Controller
 					'name' => 'Quantité disponible',
 					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Code barre',
+                    "data" => 'Code barre',
+                    'name' => 'Code barre',
+                    "class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
+
+                ],
 				[
 					"title" => 'Emplacement',
 					"data" => 'Emplacement',
@@ -396,7 +433,6 @@ class ReferenceArticleController extends Controller
                     break;
             }
             $refArticle = new ReferenceArticle();
-
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
@@ -404,6 +440,7 @@ class ReferenceArticleController extends Controller
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
+                ->setIsUrgent($data['urgence'])
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
@@ -531,6 +568,12 @@ class ReferenceArticleController extends Controller
 
         ];
         $champF[] = [
+            'label' => 'Code barre',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
@@ -594,7 +637,12 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
 
         ];
+        $champsFText[] = [
+            'label' => 'Code barre',
+            'id' => 0,
+            'typage' => 'text'
 
+        ];
         $champsFText[] = [
             'label' => 'Fournisseur',
             'id' => 0,
@@ -935,7 +983,7 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+					$isCea = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
                     if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
@@ -990,6 +1038,21 @@ class ReferenceArticleController extends Controller
             $em->flush();
 
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
+     */
+    public function isUrgent(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $referenceArticle = $this->referenceArticleRepository->find($id);
+            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
         }
         throw new NotFoundHttpException("404");
     }
@@ -1092,7 +1155,21 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantite', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement', 'fournisseurs','articles fournisseurs', 'seuil securite', 'seuil alerte', 'prix unitaire'];
+            $data['headers'] = [
+                'reference',
+                'libelle',
+                'quantite',
+                'type',
+                'type_quantite',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'fournisseurs',
+                'articles fournisseurs',
+                'seuil securite',
+                'seuil alerte',
+                'prix unitaire'
+            ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
@@ -1121,19 +1198,19 @@ class ReferenceArticleController extends Controller
     	$stringArticlesFournisseur = implode(' / ', $arrayAF);
     	$stringFournisseurs = implode(' / ', $arrayF);
 
-        $refData[] = $ref->getReference();
-        $refData[] = $ref->getLibelle();
-        $refData[] = $ref->getQuantiteStock();
-        $refData[] = $ref->getType()->getLabel();
-        $refData[] = $ref->getTypeQuantite();
-        $refData[] = $ref->getStatut()->getNom();
-        $refData[] = strip_tags($ref->getCommentaire());
-        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $refData[] = $stringFournisseurs;
-        $refData[] = $stringArticlesFournisseur;
-        $refData[] = $ref->getLimitSecurity();
-        $refData[] = $ref->getLimitWarning();
-        $refData[] = $ref->getPrixUnitaire();
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getReference());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLibelle());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getQuantiteStock());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getType() ? $ref->getType()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getTypeQuantite());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getStatut() ? $ref->getStatut()->getNom() : '');
+        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($ref->getCommentaire()));
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($stringFournisseurs);
+        $refData[] = $this->CSVExportService->escapeCSV($stringArticlesFournisseur);
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitSecurity());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {

@@ -15,6 +15,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use App\Service\UserService;
@@ -69,6 +70,11 @@ class EmplacementController extends AbstractController
     private $mouvementStockRepository;
 
     /**
+     * @var MouvementTracaRepository
+     */
+    private $mouvementTracaRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -88,7 +94,7 @@ class EmplacementController extends AbstractController
      */
     private $filtreSupRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -101,6 +107,7 @@ class EmplacementController extends AbstractController
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->filtreSupRepository = $filtreSupRepository;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -288,6 +295,9 @@ class EmplacementController extends AbstractController
 
         $mouvementsStock = $this->mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
+
+        $mouvementsStock = $this->mouvementTracaRepository->countByEmplacement($emplacementId);
+        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $this->referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';

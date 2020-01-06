@@ -52,7 +52,11 @@ class='accueil-back'
                         <span class="big-font">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span></p>
                     <div class="curve_chart_line " id="curve_chart"></div>
                 </div>
-
+                <div class="col-12 dashboard-link mt-1">
+                    <a href="{{ path('accueil_dashboard') }}">
+                        <span class="fas fa-chart-line"></span><p>Tableau de bord</p>
+                    </a>
+                </div>
                 {#                <div class="col-7 mb-1 mt-1 alerte">#}
 {#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
 {#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}
@@ -63,14 +67,16 @@ class='accueil-back'
     </div>
 {% endif %}
 
-{% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+{% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
     {% include "accueil/linkToAddArticleForm.html.twig" %}
 {% endif %}
 
 {% endblock %}
-{% block javascript %}
-<script>
-    const id = 0;
-</script>
-<script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const id = 0;
+    </script>
+    <script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}
