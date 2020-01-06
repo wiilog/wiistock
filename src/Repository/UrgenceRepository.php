@@ -8,7 +8,7 @@ use App\Entity\Urgence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +25,7 @@ class UrgenceRepository extends ServiceEntityRepository
         "end" => 'dateStart',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Urgence::class);
     }
@@ -40,7 +40,7 @@ class UrgenceRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(u) 
+            "SELECT COUNT(u)
                 FROM App\Entity\Urgence u
                 WHERE u.dateStart <= :date AND u.dateEnd >= :date AND u.commande LIKE :commande"
         )->setParameters([

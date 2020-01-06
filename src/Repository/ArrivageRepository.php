@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -30,7 +30,7 @@ class ArrivageRepository extends ServiceEntityRepository
         'Utilisateur' => 'utilisateur',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Arrivage::class);
     }

@@ -7,7 +7,7 @@ use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
@@ -28,7 +28,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'Fournisseur' => 'fournisseur',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Reception::class);
     }

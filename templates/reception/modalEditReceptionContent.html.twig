@@ -20,20 +20,20 @@
 <div class="row">
     <div class="form-group col-6">
         <label for="dateCommande">Date commande{{ fieldsParam.dateCommande.mustToModify ? '*' : '' }}</label>
-        <input type="date" class="form-control data {{ fieldsParam.dateCommande.mustToModify ? 'needed' : '' }}"
+        <input type="text" class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToModify ? 'needed' : '' }}"
                name="dateCommande" id="dateCommande"
+               placeholder="jj/mm/aaaa"
                value="{{ reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d') }}"
-               required="true"
-               max="{{ '+25year' | date('Y-m-d') }}">
+               required="true">
     </div>
 
     <div class="form-group col-6">
         <label for="dateAttendue">Date attendue{{ fieldsParam.dateAttendue.mustToModify ? '*' : '' }}</label>
-        <input type="date" class="form-control data {{ fieldsParam.dateAttendue.mustToModify ? 'needed' : '' }}"
+        <input type="text" class="form-control data {{ fieldsParam.dateAttendue.mustToModify ? 'needed' : '' }}"
                name="dateAttendue" id='dateAttendue'
                value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d') }}"
-               required="true"
-               max="{{ '+25year' | date('Y-m-d') }}">
+               placeholder="jj/mm/aaaa"
+               required="true">
     </div>
 </div>
 

@@ -1,11 +1,12 @@
 $('.select2').select2();
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_RCPT_TRACA);
     $.post(path, params, function (data) {
-        console.log(data);
         data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
@@ -17,11 +18,12 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#' + element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
@@ -120,6 +122,9 @@ let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
 InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
 
 $submitSearchMvt.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
     let filters = {
         page: PAGE_RCPT_TRACA,
         dateMin: $('#dateMin').val(),
@@ -128,6 +133,9 @@ $submitSearchMvt.on('click', function () {
         reception_string: $('#reception_string').val(),
         users: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableRecep);
 });

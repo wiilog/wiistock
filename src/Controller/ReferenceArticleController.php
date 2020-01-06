@@ -43,6 +43,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,7 +60,7 @@ use App\Repository\FournisseurRepository;
 /**
  * @Route("/reference-article")
  */
-class ReferenceArticleController extends Controller
+class ReferenceArticleController extends AbstractController
 {
     /**
      * @var EmplacementRepository

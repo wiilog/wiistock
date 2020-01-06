@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
@@ -24,7 +24,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
         'Rôle' => 'role',
     ];
 
-	public function __construct(RegistryInterface $registry)
+	public function __construct(ManagerRegistry $registry)
 	{
 		parent::__construct($registry, Utilisateur::class);
 	}
@@ -48,7 +48,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT COUNT(u)
-			FROM App\Entity\Utilisateur u 
+			FROM App\Entity\Utilisateur u
 			WHERE u.username = :username"
 		)->setParameter('username', $username);
 

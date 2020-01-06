@@ -109,12 +109,6 @@ class Article
      */
 	private $quantiteAPrelever;
 
-	//TODO à supprimer + tard
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
-     */
-    private $reception;
-
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
 	 * @ORM\JoinColumn(nullable=true)
@@ -396,18 +390,6 @@ class Article
         return $this;
     }
 
-    public function getReception(): ?Reception
-    {
-        return $this->reception;
-    }
-
-    public function setReception(?Reception $reception): self
-    {
-        $this->reception = $reception;
-
-        return $this;
-    }
-
     /**
      * @return Selectable|Collection|MouvementStock[]
      */
@@ -472,7 +454,7 @@ class Article
       			$this->inventoryEntries[] = $inventoryEntry;
       			$inventoryEntry->setArticle($this);
       		}
-      
+
       		return $this;
       	}
 
@@ -485,6 +467,7 @@ class Article
       				$inventoryEntry->setArticle(null);
       			}
       		}
+      		return $this;
       	}
 
     /**

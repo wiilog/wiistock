@@ -242,11 +242,10 @@ class PreparationController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest())
         {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
-
             }
 
             $data = $this->preparationsManagerService->getDataForDatatable($request->request);

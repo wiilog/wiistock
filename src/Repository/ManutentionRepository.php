@@ -6,7 +6,7 @@ use App\Entity\Manutention;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Manutention|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +25,7 @@ class ManutentionRepository extends ServiceEntityRepository
         'Statut' => 'statut',
     ];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Manutention::class);
     }

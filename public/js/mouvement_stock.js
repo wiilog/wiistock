@@ -8,6 +8,8 @@ $('#emplacement').select2({
 });
 
 $(function() {
+    initDateTimePicker();
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_STOCK);;
@@ -25,11 +27,12 @@ $(function() {
                 });
             } else if (element.field == 'emplacement') {
                 $('#emplacement').val(element.value).select2();
+            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchMvt.click();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
@@ -114,6 +117,10 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 let $submitSearchMvt = $('#submitSearchMvt');
 $submitSearchMvt.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
+
+
     let filters = {
         page: PAGE_MVT_STOCK,
         dateMin: $('#dateMin').val(),
@@ -122,6 +129,9 @@ $submitSearchMvt.on('click', function () {
         emplacement: $('#emplacement').val(),
         demandeur: $('#utilisateur').select2('data'),
     };
+
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableMvt);
 });
@@ -136,6 +146,10 @@ function generateCSVMouvement () {
     });
 
     if (data['dateMin'] && data['dateMax']) {
+        console.log(data['dateMin']);
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        console.log(data['dateMin']);
         let params = JSON.stringify(data);
         let path = Routing.generate('get_mouvements_stock_for_csv', true);
 

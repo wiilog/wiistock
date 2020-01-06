@@ -10,7 +10,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -30,7 +30,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 		'operateur' => 'user',
 	];
 
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, MouvementStock::class);
     }
@@ -151,8 +151,8 @@ class MouvementStockRepository extends ServiceEntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
         "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m 
-            WHERE m.type 
+            FROM App\Entity\MouvementStock m
+            WHERE m.type
             IN (:types)"
         )->setParameter('types', $types);
         return $query->getSingleScalarResult();

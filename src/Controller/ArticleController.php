@@ -11,7 +11,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\StatutRepository;
@@ -26,23 +25,22 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
-
 use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
-
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Twig\Environment as Twig_Environment;
 
 /**
  * @Route("/article")
  */
-class ArticleController extends Controller
+class ArticleController extends AbstractController
 {
 
     /**
@@ -121,7 +119,7 @@ class ArticleController extends Controller
     private $userService;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -137,7 +135,7 @@ class ArticleController extends Controller
      */
     private $filtreSupRepository;
 
-    public function __construct(\Twig_Environment $templating,
+    public function __construct(Twig_Environment $templating,
                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 FournisseurRepository $fournisseurRepository,
