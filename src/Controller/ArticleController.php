@@ -282,14 +282,14 @@ class ArticleController extends AbstractController
 //            'typage' => 'text'
 //
 //        ];
-        $champsFText[] = [
-            'label' => 'Code barre',
-            'id' => 0,
-            'typage' => 'text'
+		$champsFText[] = [
+			'label' => 'Référence article',
+			'id' => 0,
+			'typage' => 'text'
 
-        ];
-        $champsFText[] = [
-            'label' => 'Référence article',
+		];
+		$champsFText[] = [
+            'label' => 'Code barre',
             'id' => 0,
             'typage' => 'text'
 
@@ -429,13 +429,12 @@ class ArticleController extends AbstractController
                     "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
 				],
-                [
-                    "title" => 'Code barre',
-                    "data" => 'Code barre',
-                    'name' => 'Code barre',
-                    "class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
-
-                ],
+//				[
+//					"title" => 'Référence',
+//					"data" => 'Référence',
+//					'name' => 'Référence',
+//					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+//				],
 				[
 					"title" => 'Référence article',
 					"data" => 'Référence article',
@@ -443,10 +442,11 @@ class ArticleController extends AbstractController
 					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
 				],
 				[
-					"title" => 'Référence',
-					"data" => 'Référence',
-					'name' => 'Référence',
-					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+					"title" => 'Code barre',
+					"data" => 'Code barre',
+					'name' => 'Code barre',
+					"class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
+
 				],
 				[
 					"title" => 'Type',
