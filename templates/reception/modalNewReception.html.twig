@@ -14,9 +14,9 @@
                 <div class='row'>
                     <div class="form-group col-6">
                         <label for="dateCommande">Date
-                            commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : '' }}</label>
+                            commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
                                name="dateCommande"
                                id="dateCommande"
                                required="true"
@@ -26,9 +26,9 @@
 
                     <div class="form-group col-6">
                         <label for="dateAttendue">Date
-                            attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : '' }}</label>
+                            attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
                                name="dateAttendue"
                                id="dateAttendue"
                                required="true"
@@ -39,9 +39,9 @@
 
                 <div class="row">
                     <div class="form-group col-6">
-                        <label>Numéro de commande{{ fieldsParam.numCommande.mustToCreate ? '*' : '' }}</label>
+                        <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control data {{ fieldsParam.numCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? 'needed' : '' }}"
                                name="reference">
                     </div>
                 </div>
@@ -49,9 +49,9 @@
                 <div class='row'>
                     <div class="form-group w-100 col-5">
                         <label
-                            for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : '' }}</label>
+                            for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                         <select
-                            class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : '' }}"
+                            class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
                             name="fournisseur" id="fournisseur">
                         </select>
                     </div>
@@ -61,9 +61,9 @@
                     </div>
                     <div class="form-group w-100 col-5">
                         <label
-                            for="transporteur">Transporteur{{ fieldsParam.transporteur.mustToCreate ? '*' : '' }}</label>
+                            for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                         <select
-                            class="form-control data ajax-autocomplete-transporteur {{ fieldsParam.transporteur.mustToCreate ? 'needed' : '' }}"
+                            class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                             name="transporteur" id="transporteur">
                         </select>
                     </div>
@@ -110,9 +110,9 @@
 
                 <div class="form-group">
                     <label
-                        for="NumeroReception">Commentaire{{ fieldsParam.commentaire.mustToCreate ? '*' : '' }}</label>
+                        for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
                     <input id='commentaire'
-                           class="form-control data {{ fieldsParam.commentaire.mustToCreate ? 'needed' : '' }}"
+                           class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
                            name="commentaire" type="hidden">
                     <div class="editor-container" id='editor-container'></div>
                 </div>
