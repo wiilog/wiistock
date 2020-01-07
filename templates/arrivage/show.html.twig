@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'arrivage.one'|trans({}, 'arrivage')|capitalize }}{% endblock %}
+{% block title %}{{ 'arrivage.one'|trans|capitalize }}{% endblock %}
 {% block page_content %}
 
     <div class="zone-entete">
@@ -7,7 +7,7 @@
     </div>
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <div class="urgence-row row ml-2">
-            <h1><i class="fa fa-exclamation-triangle mr-2"></i>{{ 'arrivage.this'|trans({}, 'arrivage')|capitalize }} est à traiter en URGENCE.</h1>
+            <h1><i class="fa fa-exclamation-triangle mr-2"></i>{{ 'arrivage.this'|trans|capitalize }} est à traiter en URGENCE.</h1>
         </div>
     {% endif %}
     <div class="row mt-5">
@@ -15,11 +15,11 @@
             <div class="d-flex justify-content-between h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
-                        <span class="fa fa-plus mr-2"></span>Ajouter {{ 'arrivage.colis'|trans({}, 'arrivage') }}
+                        <span class="fa fa-plus mr-2"></span>Ajouter {{ 'arrivage.colis'|trans }}
                     </div>
                 {% endif %}
                 <div class="btn btn-primary" onclick="getDataAndPrintLabels({{ arrivage.id }})">
-                    <span class="fa fa-print mr-2"></span>Imprimer {{ 'arrivage.colis'|trans({}, 'arrivage') }}
+                    <span class="fa fa-print mr-2"></span>Imprimer {{ 'arrivage.colis'|trans }}
                 </div>
             </div>
             <div>

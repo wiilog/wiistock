@@ -1411,10 +1411,10 @@ class ReceptionController extends AbstractController
             $nbArticles = $this->receptionReferenceArticleRepository->countArticlesByRRA($id);
             if ($nbArticles == 0) {
                 $delete = true;
-                $html = 'Voulez-vous réellement supprimer cette ligne article ?';
+				$html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = 'Vous ne pouvez pas supprimer cette ligne <br>En effet, il y a eu réception d\'articles sur cette référence';
+				$html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);

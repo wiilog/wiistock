@@ -58,9 +58,9 @@ $(function () {
         },
         columns: [
             {"data": 'Actions', 'title': 'Actions'},
-            {"data": 'Date', 'title': 'Date de création'},
-            {"data": 'DateFin', 'title': 'Date de fin de réception'},
-            {"data": 'Numéro de commande', 'title': 'Numéro de commande'},
+            {"data": 'Date', 'title': 'Date création'},
+            {"data": 'DateFin', 'title': 'Date fin'},
+            {"data": 'Numéro de commande', 'title': 'Numéro commande'},
             {"data": 'Fournisseur', 'title': 'Fournisseur'},
             {"data": 'Référence', 'title': 'Référence'},
             {"data": 'Statut', 'title': 'Statut'},

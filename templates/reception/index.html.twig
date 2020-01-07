@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordres de réception{% endblock %}
+{% block title %}Ordres {{ 'reception.de-reception'|trans }}{% endblock %}
 
 {% block page_filter %}
     {{ parent() }}
@@ -8,13 +8,13 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Ordres de réception</h1>
+    <h1>Ordres {{ 'reception.de-reception'|trans }}</h1>
 
     <div class='col-12 mb-5'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
                onclick="initNewReceptionEditor('#modalNewReception')">
-                <span class="fa fa-plus mr-2"></span>Nouvelle réception
+                <span class="fa fa-plus mr-2"></span>{{ 'reception.new'|trans|capitalize }}
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::EXPORT')) %}

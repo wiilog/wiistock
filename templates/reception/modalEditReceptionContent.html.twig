@@ -1,6 +1,6 @@
 <div class="row">
     <div class="form-group col-6">
-        <label for="numeroReception">Numéro Réception{{ fieldsParam.numeroReception.mustToModify ? '*' : '' }}</label>
+        <label for="numeroReception">Numéro {{ 'reception.one'|trans }}{{ fieldsParam.numeroReception.mustToModify ? '*' : '' }}</label>
         <input type="text"
                class="form-control data Numéro Réception{{ fieldsParam.numeroReception.mustToModify ? 'needed' : '' }}"
                name="numeroReception" id='numeroReception'
