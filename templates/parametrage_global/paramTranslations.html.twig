@@ -4,6 +4,9 @@
 </a>
 
 <div class="collapse col-12" id="translation">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="saveTranslations()">
+        <i class='fas fa-check'></i>
+    </div>
     {% for menu in menusTranslations %}
         <h2 class="bold">MENU {{ (menu~"."~menu)|trans|upper }}</h2>
         {% for translation in translations %}
@@ -12,7 +15,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="translate-{{ translation.id }}">{{ (translation.menu~"."~translation.label)|trans }}</span>
                     </div>
-                    <input type="text" class="form-control" aria-describedby="translate-{{ translation.id }}">
+                    <input type="text" class="form-control translate" name="{{ translation.id }}" aria-describedby="translate-{{ translation.id }}">
                 </div>
             {% endif %}
         {% endfor %}

@@ -9,7 +9,10 @@
             <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
         <div class="collapse col-12" id="dimsForm">
-            <div class="form-group">
+            <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxDims()">
+                <i class='fas fa-check'></i>
+            </div>
+            <div class="form-group w-fit-content">
                 <label for="">Hauteur (mm)</label>
                 <input type="text" class="form-control data" name="height"
                        value="{{ dimensions_etiquettes.height is defined ? dimensions_etiquettes.height :'' }}">
@@ -27,7 +30,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-            <button type="button" class="btn btn-success" onclick="ajaxDims()">Enregistrer</button>
         </div>
     </div>
 
@@ -36,8 +38,12 @@
            aria-controls="prefixeForm" class="col-12 mb-4">
             <h1 class="btn btn-primary m-0 w-100 border-radius-light">Préfixage des noms de demandes<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
+
         <div class="collapse col-12" id="prefixeForm">
-            <div class="form-group">
+            <div class="float-right btn btn-col-action btn-check-reverse" onclick="updatePrefixDemand()">
+                <i class='fas fa-check'></i>
+            </div>
+            <div class="form-group w-fit-content">
                 <label for="typeDemande">Type de demande</label>
                 <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande"
                         onchange="getPrefixDemand($(this))">
@@ -58,7 +64,6 @@
                 <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
                        value="">
             </div>
-            <button type="button" class="btn btn-success" onclick="updatePrefixDemand()">Enregistrer</button>
             <div class="error-msg p-4"></div>
         </div>
     </div>
@@ -69,7 +74,10 @@
             <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration du serveur mail<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
         <div class="collapse col-12" id="mailerServerForm">
-            <div class="form-group">
+            <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxMailerServer()">
+                <i class='fas fa-check'></i>
+            </div>
+            <div class="form-group w-fit-content">
                 <label for="">Serveur SMTP</label>
                 <input type="text" class="form-control data" name="smtp"
                        value="{{ mailerServer.smtp is defined ? mailerServer.smtp :'' }}">
@@ -94,7 +102,6 @@
                 <input type="text" class="form-control data" name="protocol"
                        value="{{ mailerServer.protocol is defined ? mailerServer.protocol : '' }}">
             </div>
-            <button type="button" class="btn btn-success" onclick="ajaxMailerServer()">Enregistrer</button>
         </div>
     </div>
 
@@ -105,22 +112,22 @@
         </a>
         <div class="collapse col-12" id="paramReceptions">
             <div class="row p-3">
-                <label class="pr-1" for="param-create-demande-livraison">Créer une demande de livraison après réception</label>
                 {% set checked = ((parametrageG.parametre is defined ? parametrageG.parametre : 0) == 1) ? 'checked' : '' %}
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
                     <span class="slider round"></span>
                 </label>
+                <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après réception</label>
             </div>
             <div class="row p-3">
-                <label class="pr-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
                 {% set checked = ((parametrageGPrepa.parametre is defined ? parametrageGPrepa.parametre : 0) == 1) ? 'checked' : '' %}
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_prepa') }}')">
                     <span class="slider round"></span>
                 </label>
+                <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
             </div>
         </div>
     </div>
@@ -145,9 +152,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/prefixe_demande.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/dimensions_etiquettes.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/days.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/parametrage-global.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

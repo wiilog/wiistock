@@ -368,4 +368,33 @@ class GlobalParamController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @param Request $request
+	 * @param TranslationRepository $translationRepository
+	 * @return Response
+	 * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function saveTranslations(Request $request, TranslationRepository $translationRepository): Response
+	{
+		if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true))
+		{
+			foreach ($translations as $translation) {
+				if (!empty($translation['val'])) {
+					$translationObject = $translationRepository->find($translation['id']);
+					if ($translationObject) {
+						$translationObject
+							->setTranslation($translation['val'])
+							->setUpdated(1);
+					} else {
+						return new JsonResponse(false);
+					}
+				}
+			}
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
+		}
+		throw new NotFoundHttpException("404");
+	}
 }
