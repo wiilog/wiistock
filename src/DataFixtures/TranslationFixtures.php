@@ -59,7 +59,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 				foreach ($translation as $label => $translatedLabel) {
 					$translationObject = new Translation();
 					$translationObject
-						->setLabel($menu . '.' . $label)
+						->setMenu($menu)
+						->setLabel($label)
 						->setTranslation($translatedLabel)
 						->setUpdated(true);
 					$manager->persist($translationObject);

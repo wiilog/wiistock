@@ -1,22 +1,22 @@
 arrivage:
     many: arrivages
-    one: arrivage
-    d-arrivage: d'arrivage
-    this: cet arrivage
-    new: nouvel arivage
-    de-colis: d'articles
+    one: arrivages
+    this: 'cet arrivage'
+    d-arrivage: 'd''arrivage'
+    new: 'nouvel arrivage'
+    de-colis: 'de colis'
     colis: articles
 reception:
-    many: arrivages
-    one: arrivage
-    de-reception: d'arrivage
-    this: cet arrivage
-    new: nouvel arrivage
-    le-la: le
-    une-reception: un arrivage
-    la-reception: l'arrivage
-    article: colis
-    articles: colis
-    l-article: le colis
-    d-article: de colis
-    d-articles: de colis
+    many: réceptions
+    one: réception
+    de-reception: 'de réception'
+    this: 'cette réception'
+    new: 'nouvelle réception'
+    le-la: la
+    une-reception: 'une réception'
+    la-reception: 'la réception'
+    article: article
+    articles: articles
+    l-article: 'l''article'
+    d-article: 'd''article'
+    d-articles: 'd''articles'

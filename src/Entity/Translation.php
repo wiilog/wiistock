@@ -15,7 +15,10 @@ class Translation
      * @ORM\Column(type="integer")
      */
     private $id;
-
+	/**
+	 * @ORM\Column(type="string", length=64, nullable=true)
+	 */
+    private $menu;
     /**
      * @ORM\Column(type="string", length=64, nullable=true)
      */
@@ -34,6 +37,18 @@ class Translation
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getMenu(): ?string
+    {
+        return $this->menu;
+    }
+
+    public function setMenu(?string $menu): self
+    {
+        $this->menu = $menu;
+
+        return $this;
     }
 
     public function getLabel(): ?string
