@@ -133,7 +133,6 @@ function generateCSVReception() {
 
         $.post(path, params, function (response) {
             if (response) {
-                $('.error-msg').empty();
                 let csv = "";
                 $.each(response, function (index, value) {
                     csv += value.join(';');
@@ -143,9 +142,8 @@ function generateCSVReception() {
                 hideSpinner($('#spinnerReception'));
             }
         }, 'json');
-
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        warningEmptyDatesForCsv();
         hideSpinner($('#spinnerReception'))
     }
 }

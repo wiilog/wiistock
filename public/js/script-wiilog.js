@@ -1247,3 +1247,11 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
 function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
 }
+
+function warningEmptyDatesForCsv() {
+    alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
+    $('#dateMin, #dateMax').addClass('is-invalid');
+    $('.is-invalid').on('click', function() {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
+}

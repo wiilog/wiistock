@@ -4,12 +4,12 @@
 {% block body %}
 
     <div id="alerts">
-        <div class="alert alert-danger text-center d-none">
+        <div class="alert alert-danger text-center d-none" onclick="this.style.display='none';">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span class="error-msg"></span>
         </div>
 
-        <div class="alert alert-success text-center d-none">
+        <div class="alert alert-success text-center d-none" onclick="this.style.display='none';">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
             <span class="confirm-msg"></span>
         </div>
