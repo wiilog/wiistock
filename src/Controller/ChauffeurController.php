@@ -115,7 +115,7 @@ class ChauffeurController extends AbstractController
                 ->setDocumentID($data['documentID'])
                 ->setTransporteur($this->transporteurRepository->find($data['transporteur']));
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($chauffeur);
 
             $em->flush();

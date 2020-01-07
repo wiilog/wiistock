@@ -91,7 +91,7 @@ class NatureColisParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
                 $nature = new Nature();
                 $nature
@@ -140,7 +140,7 @@ class NatureColisParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $nature = $this->natureRepository->find($data['nature']);
             $natureLabel = $nature->getLabel();
 

@@ -89,7 +89,7 @@ class UrgencesController extends AbstractController
                 ->setDateStart(new \DateTime($data['dateStart'], new \DateTimeZone("Europe/Paris")))
                 ->setDateEnd(new \DateTime($data['dateEnd'], new \DateTimeZone("Europe/Paris")));
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($urgence);
 
             $em->flush();
