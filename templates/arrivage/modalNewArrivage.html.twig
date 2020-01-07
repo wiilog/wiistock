@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'arrivage.new'|trans({}, 'arrivage') }}</h5>
+                <h5 class="modal-title">{{ 'arrivage.new'|trans({}, 'arrivage')|capitalize }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -139,7 +139,7 @@
                 {% if natures != null %}
                     <div class="row mt-4">
                         <div class='col-12 mb-2'>
-                            <h3 class="label">Nb de colis à ajouter :</h3>
+                            <h3 class="label">Nb {{ 'arrivage.de-colis'|trans({}, 'arrivage') }} à ajouter :</h3>
                         </div>
                         <div class="form-group col-12 blocVisible d-block" id=''>
                             <div class="d-block">
@@ -160,7 +160,7 @@
                 {% else %}
                     <div class="row">
                         <p><i class='fas fa-warning'></i>
-                            Attention ! Aucune nature de colis a été créée</p>
+                            Attention ! Aucune nature {{ 'arrivage.de-colis'|trans({}, 'arrivage') }} n'a été créée.</p>
                         <a href="{{ path('nature_param_index') }}" class="btn btn-primary">
                             <i class='fa fa-directions mr-2'></i> Aller vers la création des natures
                         </a>
@@ -170,7 +170,7 @@
                 <div class="row">
                     {% if natures != null %}
                         <div class="form-group col-3">
-                            <label>Imprimer colis</label>
+                            <label>Imprimer {{ 'arrivage.colis'|trans({}, 'arrivage') }}</label>
                             <label class="switch">
                                 <input class="checkbox" type="checkbox" name="printColis">
                                 <span class="slider round"></span>
@@ -179,7 +179,7 @@
                     {% endif %}
 
                     <div class="form-group col-3">
-                        <label>Imprimer arrivage</label>
+                        <label>Imprimer {{ 'arrivage.one'|trans({}, 'arrivage') }}</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="printArrivage">
                             <span class="slider round"></span>

@@ -1,3 +1,8 @@
 arrivage:
-    title: Réceptions
-    new: Nouvelle réception
+    many: arrivages
+    one: arrivage
+    d-arrivage: d'arrivage
+    this: cet arrivage
+    new: nouvel arivage
+    de-colis: d'articles
+    colis: articles

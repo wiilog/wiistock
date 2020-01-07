@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ 'arrivage.title'|trans({}, 'arrivage') }}{% endblock %}
+{% block title %}{{ 'arrivage.many'|trans({}, 'arrivage')|capitalize }}{% endblock %}
 
 {% block page_filter %}
     {{ parent() }}
@@ -12,7 +12,7 @@
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
-    <h1>{{ 'arrivage.title'|trans({}, 'arrivage') }}</h1>
+    <h1>{{ 'arrivage.many'|trans({}, 'arrivage')|capitalize }}</h1>
 
     <div class="row">
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -20,7 +20,7 @@
                data-backdrop="static" data-keyboard="false"
                onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
 
-                <span class="fa fa-plus mr-2"></span>{{ 'arrivage.new'|trans({}, 'arrivage') }}
+                <span class="fa fa-plus mr-2"></span>{{ 'arrivage.new'|trans({}, 'arrivage')|capitalize }}
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}

@@ -1,3 +1,9 @@
 arrivage:
-    title: Arrivages
-    new: Nouvel arrivage
+    many: arrivages
+    one: arrivage
+    d-arrivage: d'arrivage
+    this: cet arrivage
+    new: nouvel arrivage
+    de-colis: de colis
+    colis: articles
+
