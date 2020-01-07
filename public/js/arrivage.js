@@ -1,4 +1,4 @@
-let numberOfDataOpened = 0;
+let onFlyFormOpened = {};
 let clicked = false;
 $('.select2').select2();
 
@@ -161,6 +161,10 @@ let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
 function initNewArrivageEditor(modal) {
+    onFlyFormOpened = {};
+    onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+    onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
+    onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
     if (!editorNewArrivageAlreadyDone) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;

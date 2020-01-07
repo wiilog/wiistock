@@ -565,13 +565,16 @@ class ReceptionController extends AbstractController
             ];
         }
 
-        $fields = [];
-        foreach ($fieldsParam as $field) {
-            $fields[$field['fieldCode']] = [
-                'mustToCreate' => $field['mustToCreate'],
-                'mustToModify' => $field['mustToModify'],
-            ];
-        }
+        $fields = array_reduce(
+            $fieldsParam,
+            function(array $acc, $field) {
+                $acc[$field['fieldCode']] = [
+                    'mustToCreate' => $field['mustToCreate'],
+                    'mustToModify' => $field['mustToModify'],
+                ];
+                return $acc;
+            },
+            []);
 
         return $this->render('reception/index.html.twig', [
             'typeChampsLibres' => $typeChampLibre,

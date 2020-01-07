@@ -13,7 +13,7 @@
     <div class='col-12 mb-5'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
-               onclick="initNewReceptionEditor('#modalNewReception')">
+               onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception')">
                 <span class="fa fa-plus mr-2"></span>Nouvelle réception
             </a>
         {% endif %}

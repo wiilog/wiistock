@@ -120,6 +120,9 @@ class ChauffeurController extends AbstractController
 
             $em->flush();
 
+            $data['id'] = $chauffeur->getId();
+            $data['text'] = $data['nom'];
+
             return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');

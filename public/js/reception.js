@@ -1,6 +1,6 @@
 //initialisation editeur de texte une seule fois
 let editorNewReceptionAlreadyDone = false;
-let numberOfDataOpened = 0;
+let onFlyFormOpened = {};
 let tableReception;
 
 $(function () {
@@ -173,6 +173,9 @@ function aFile(csv) {
 }
 
 function initNewReceptionEditor(modal) {
+    onFlyFormOpened = {};
+    onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+    onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
     if (!editorNewReceptionAlreadyDone) {
         initEditorInModal(modal);
         editorNewReceptionAlreadyDone = true;
