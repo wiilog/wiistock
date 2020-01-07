@@ -13,7 +13,9 @@ use App\Entity\ParametrageGlobal;
 
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
+use App\Repository\TranslationRepository;
 use App\Service\UserService;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,10 +78,13 @@ class GlobalParamController extends AbstractController
         $this->parametrageGlobalRepository = $parametrageGlobalRepository;
     }
 
-    /**
-     * @Route("/", name="global_param_index")
-     */
-    public function index(): response
+	/**
+	 * @Route("/", name="global_param_index")
+	 * @param TranslationRepository $translationRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function index(TranslationRepository $translationRepository): response
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
@@ -92,11 +97,13 @@ class GlobalParamController extends AbstractController
 
         return $this->render('parametrage_global/index.html.twig',
             [
-            'dimensions_etiquettes' => $dimensions,
+            	'dimensions_etiquettes' => $dimensions,
                 'parametrageG' => $paramGlo,
                 'parametrageGPrepa' => $paramGloPrepa,
                 'mailerServer' => $mailerServer,
-                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL)
+                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
+				'translations' => $translationRepository->findAll(),
+				'menusTranslations' => array_column($translationRepository->getMenus(), '1')
         ]);
     }
 

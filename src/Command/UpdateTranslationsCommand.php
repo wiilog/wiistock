@@ -54,6 +54,8 @@ class UpdateTranslationsCommand extends Command
     		$yaml = Yaml::dump($menus);
 
     		file_put_contents('translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml', $yaml);
+
+    		$this->translationRepository->clearUpdate();
 		}
     }
 }

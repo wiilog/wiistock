@@ -38,4 +38,30 @@ class TranslationRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function clearUpdate()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"UPDATE App\Entity\Translation t
+		SET t.updated = 0"
+		);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getMenus()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+		"SELECT DISTINCT (t.menu)
+		FROM App\Entity\Translation t");
+
+		return $query->getScalarResult();
+	}
+
 }

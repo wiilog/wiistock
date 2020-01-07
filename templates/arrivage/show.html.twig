@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'arrivage.one'|trans|capitalize }}{% endblock %}
+{% block title %}{{ 'arrivage.arrivage'|trans|capitalize }}{% endblock %}
 {% block page_content %}
 
     <div class="zone-entete">
@@ -7,7 +7,7 @@
     </div>
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <div class="urgence-row row ml-2">
-            <h1><i class="fa fa-exclamation-triangle mr-2"></i>{{ 'arrivage.this'|trans|capitalize }} est à traiter en URGENCE.</h1>
+            <h1><i class="fa fa-exclamation-triangle mr-2"></i>{{ 'arrivage.cet arrivage'|trans|capitalize }} est à traiter en URGENCE.</h1>
         </div>
     {% endif %}
     <div class="row mt-5">

@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col">
-        <h1>{{ 'arrivage.one'|trans|capitalize }} {{ arrivage.numeroarrivage }}</h1>
+        <h1>{{ 'arrivage.arrivage'|trans|capitalize }} {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
         <input hidden value="{{ arrivage.numeroarrivage  }}" id="numeroArrivage">
         <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
@@ -14,7 +14,7 @@
         </a>
         <div class = "btn btn-success" onclick="printBarcode('{{ arrivage.numeroArrivage }}')">
             <i class='fas fa-print pointer'></i>
-            Imprimer {{ 'arrivage.one'|trans }}
+            Imprimer {{ 'arrivage.arrivage'|trans }}
         </div>
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
             <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
