@@ -10,9 +10,10 @@ function updatePrefixDemand(){
         $('#typeDemandePrefixageDemande').addClass('is-invalid');
         msg += 'Veuillez sélectionner un type de demande.';
     } else {
-        $('#typeDemandePrefixageDemande').removeClass('is-invalid');
-        $('#buttonModalPrefixageSet').click();
-        $.post(path, params);
+        $.post(path, params, () => {
+            $('#typeDemandePrefixageDemande').removeClass('is-invalid');
+            alertSuccessMsg('Le préfixage des noms de demandes a bien été mis à jour.', true);
+        });
     }
     $('.error-msg').html(msg);
 }

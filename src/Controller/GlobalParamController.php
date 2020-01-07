@@ -241,7 +241,7 @@ class GlobalParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $day = $this->daysWorkedRepository->find($data['day']);
             $dayName = $day->getDay();
 
@@ -280,7 +280,7 @@ class GlobalParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
             if ($mailerServer === null) {
                 $mailerServerNew = new MailerServer;
