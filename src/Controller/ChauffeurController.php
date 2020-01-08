@@ -115,10 +115,13 @@ class ChauffeurController extends AbstractController
                 ->setDocumentID($data['documentID'])
                 ->setTransporteur($this->transporteurRepository->find($data['transporteur']));
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($chauffeur);
 
             $em->flush();
+
+            $data['id'] = $chauffeur->getId();
+            $data['text'] = $data['nom'];
 
             return new JsonResponse($data);
         }

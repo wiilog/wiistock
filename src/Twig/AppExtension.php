@@ -43,7 +43,10 @@ class AppExtension extends AbstractExtension
     private $specificService;
 
 
-    public function __construct(SpecificService $specificService, UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
+    public function __construct(SpecificService $specificService,
+                                UserService $userService,
+                                ActionRepository $actionRepository,
+                                RoleRepository $roleRepository)
     {
         $this->userService = $userService;
         $this->actionRepository = $actionRepository;
@@ -55,14 +58,15 @@ class AppExtension extends AbstractExtension
     {
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
-            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
+            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction'])
         ];
     }
 
     public function getFilters()
 	{
 		return [
-			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter'])
+			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
+            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
 		];
 	}
 
@@ -81,4 +85,8 @@ class AppExtension extends AbstractExtension
 		$array = explode('.', $filename);
 		return $array[0];
 	}
+
+	public function isFieldRequiredFunction(array $config, string $fieldName, string $action): bool {
+        return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
+    }
 }

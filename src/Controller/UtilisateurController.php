@@ -84,7 +84,7 @@ class UtilisateurController extends AbstractController
                 $utilisateur = $utilisateurRepository->find($utilisateurId[$i]);
                 $roles = $utilisateur->getRoles(); /* On regarde le rôle de l'utilisateur */
                 if ($roles[0] != $_POST[$utilisateurId[$i]]) /* Si le rôle a changé on le modifie dans la bdd */ {
-                    $em = $this->getDoctrine()->getEntityManager();
+                    $em = $this->getDoctrine()->getManager();
                     $utilisateur->setRoles([$_POST[$utilisateurId[$i]]]);
                     $em->flush();
                 }

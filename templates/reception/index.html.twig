@@ -10,10 +10,10 @@
 {% block page_content %}
     <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
 
-    <div class='col-12 mb-5'>
+    <div class='col-12'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
-               onclick="initNewReceptionEditor('#modalNewReception')">
+               onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception')">
                 <span class="fa fa-plus mr-2"></span>{{ 'réception.nouvelle réception'|trans|capitalize }}
             </a>
         {% endif %}
@@ -28,11 +28,8 @@
             <span class="sr-only">Loading...</span>
         </div>
     </div>
-    <div class="row">
-        <div class="error-msg p-4"></div>
-    </div>
 
-    <div class="col-12">
+    <div class="col-12 mt-5">
         <table id="tableReception_id" class="table table-striped table-bordered w-100">
         </table>
     </div>

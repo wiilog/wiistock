@@ -111,7 +111,7 @@ class ParamTypesController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $this->typeRepository->countByLabelAndCategory($data['label'], $data['category']);
@@ -174,7 +174,7 @@ class ParamTypesController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $type = $this->typeRepository->find($data['type']);
             $typeLabel = $type->getLabel();
 

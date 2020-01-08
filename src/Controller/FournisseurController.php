@@ -119,7 +119,7 @@ class FournisseurController extends AbstractController
 				]);
 			}
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $fournisseur = new Fournisseur();
             $fournisseur
 				->setNom($data["Nom"])

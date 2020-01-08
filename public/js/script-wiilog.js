@@ -773,7 +773,9 @@ function clearModal(modal) {
         //TODO protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
+    let selects = $modal
+        .find('.modal-body')
+        .find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
@@ -1131,50 +1133,93 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd, select = null)
-{
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
-    let params = {};
-    let formIsValid = true;
-    inputs.each(function () {
-        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
-        {
-            $(this).addClass('is-invalid');
-            formIsValid = false;
-        } else {
-            $(this).removeClass('is-invalid');
-        }
-        params[$(this).attr('name')] = $(this).val();
-    });
-    if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
-            if (select) {
-                let option = new Option(response.text, response.id, true, true);
-                select.append(option).trigger('change');
-            }
-        });
-    }
-}
 
 function redirectToDemandeLivraison(demandeId) {
     window.open(Routing.generate('demande_show', {id: demandeId}));
 }
 
-function toggleOnTheFlyForm(id, button) {
+/**
+ * Manage on fly forms
+ * Should instanciate onFlyFormOpened object in the script
+ * @param id
+ * @param button
+ * @param forceHide
+ */
+function onFlyFormToggle(id, button, forceHide = false) {
     let $toShow = $('#' + id);
     let $toAdd = $('#' + button);
-    if ($toShow.hasClass('invisible')) {
+    if (!forceHide && $toShow.hasClass('invisible')) {
         $toShow.parent().parent().css("display", "flex");
         $toShow.parent().parent().css("height", "auto");
+        $toShow.css("height", "auto");
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
+        onFlyFormOpened[id] = true;
     }
     else {
-        $toShow.addClass('invisible');
+        $toShow
+            .addClass('invisible')
+            .css("height", "0");
         $toAdd.addClass('invisible');
-        if (numberOfDataOpened === 0) {
+
+        // we reset all field
+        $toShow
+            .find('.newFormulaire ')
+            .each(function() {
+                const $fieldNext = $(this).next();
+                if ($fieldNext.is('.select2-container')) {
+                    $fieldNext.removeClass('is-invalid');
+                }
+
+                $(this)
+                    .removeClass('is-invalid')
+                    .val('')
+                    .trigger('change');
+            });
+
+        onFlyFormOpened[id] = false;
+
+        const onFlyFormOpenedValues = Object.values(onFlyFormOpened);
+        // si tous les formulaires sont cachés
+        if (onFlyFormOpenedValues.length === 0 ||
+            Object.values(onFlyFormOpened).every((opened) => !opened)) {
             $toShow.parent().parent().css("height", "0");
         }
+    }
+}
+
+
+function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null)) {
+            $(this).addClass('is-invalid');
+            const $fieldNext = $(this).next();
+            if ($fieldNext.is('.select2-container')) {
+                $fieldNext.addClass('is-invalid');
+            }
+            formIsValid = false;
+        }
+        else {
+            $(this).removeClass('is-invalid');
+            const $fieldNext = $(this).next();
+            if ($fieldNext.is('.select2-container')) {
+                $fieldNext.removeClass('is-invalid');
+            }
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function (response) {
+            if ($select) {
+                let option = new Option(response.text, response.id, true, true);
+                $select.append(option).trigger('change');
+            }
+            onFlyFormToggle(toHide, buttonAdd, true)
+        });
     }
 }
 
@@ -1200,4 +1245,12 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
 
 function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
+}
+
+function warningEmptyDatesForCsv() {
+    alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
+    $('#dateMin, #dateMax').addClass('is-invalid');
+    $('.is-invalid').on('click', function() {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
 }

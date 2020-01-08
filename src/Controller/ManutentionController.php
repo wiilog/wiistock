@@ -158,7 +158,7 @@ class ManutentionController extends AbstractController
 				->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
 				->setCommentaire($data['commentaire']);
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($manutention);
 
             $em->flush();

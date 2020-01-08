@@ -13,9 +13,9 @@
                 <div class='row'>
                     <div class="form-group col-6">
                         <label for="dateCommande">Date
-                            commande{{ fieldsParam.dateCommande.mustToCreate ? '*' : '' }}</label>
+                            commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
                                name="dateCommande"
                                id="dateCommande"
                                required="true"
@@ -25,9 +25,9 @@
 
                     <div class="form-group col-6">
                         <label for="dateAttendue">Date
-                            attendue{{ fieldsParam.dateAttendue.mustToCreate ? '*' : '' }}</label>
+                            attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam.dateCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
                                name="dateAttendue"
                                id="dateAttendue"
                                required="true"
@@ -38,41 +38,42 @@
 
                 <div class="row">
                     <div class="form-group col-6">
-                        <label>Numéro de commande{{ fieldsParam.numCommande.mustToCreate ? '*' : '' }}</label>
+                        <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
                         <input type="text"
-                               class="form-control data {{ fieldsParam.numCommande.mustToCreate ? 'needed' : '' }}"
+                               class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? 'needed' : '' }}"
                                name="reference">
                     </div>
                 </div>
 
-                <div class='row'>
+                <div class="row fly-form">
                     <div class="form-group w-100 col-5">
                         <label
-                            for="fournisseurs">Fournisseur{{ fieldsParam.fournisseur.mustToCreate ? '*' : '' }}</label>
+                            for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                         <select
-                            class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam.fournisseur.mustToCreate ? 'needed' : '' }}"
+                            class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
                             name="fournisseur" id="fournisseur">
                         </select>
                     </div>
-                    <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
-                                class="fa fa-plus"></i></span>
+                    <div class="form-group col-1 toggle-button-container">
+                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                            <i class="fa fa-plus"></i>
+                        </span>
                     </div>
                     <div class="form-group w-100 col-5">
                         <label
-                            for="transporteur">Transporteur{{ fieldsParam.transporteur.mustToCreate ? '*' : '' }}</label>
+                            for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                         <select
-                            class="form-control data ajax-autocomplete-transporteur {{ fieldsParam.transporteur.mustToCreate ? 'needed' : '' }}"
+                            class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                             name="transporteur" id="transporteur">
                         </select>
                     </div>
-                    <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
+                    <div class="form-group col-1 toggle-button-container">
+                        <span class="btn btn-primary" onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
                 </div>
-                <div class="row line-arrivage-new-data">
-                    <div class="row col-6 formulaire">
+                <div class="row new-on-fly-form-container">
+                    <div class="row col-6 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
                             <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
@@ -81,15 +82,14 @@
                             <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
                                    name="Code" maxlength="64">
                         </div>
-                        <div class="form-group col-2 invisible" id="addFournisseur">
+                        <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
                             <span class="btn btn-success"
-                                  onclick="
-                                  newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
-                                  ,toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
-                                    class="fas fa-check-circle"></i></span>
+                                  onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
                         </div>
                     </div>
-                    <div class="row col-6 formulaire">
+                    <div class="row col-6 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
                             <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
@@ -98,20 +98,20 @@
                             <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
                                    name="code" maxlength="64">
                         </div>
-                        <div class="form-group col-2 invisible" id="addTransporteur">
+                        <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
                             <span class="btn btn-success"
-                                  onclick="newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))
-                                  ,toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
-                                    class="fas fa-check-circle"></i></span>
+                                  onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label
-                        for="NumeroReception">Commentaire{{ fieldsParam.commentaire.mustToCreate ? '*' : '' }}</label>
+                        for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
                     <input id='commentaire'
-                           class="form-control data {{ fieldsParam.commentaire.mustToCreate ? 'needed' : '' }}"
+                           class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
                            name="commentaire" type="hidden">
                     <div class="editor-container" id='editor-container'></div>
                 </div>

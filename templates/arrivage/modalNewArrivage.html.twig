@@ -11,15 +11,15 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-                <div class="row">
+                <div class="row fly-form">
                     <div class="form-group col w-100">
                         <label for="fournisseur">Fournisseur*</label>
                         <select class="form-control data ajax-autocomplete-fournisseur ajax-autocomplete needed"
                                 name="fournisseur" id="fournisseur">
                         </select>
                     </div>
-                    <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
+                    <div class="form-group col-1 toggle-button-container">
+                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
 
@@ -29,8 +29,8 @@
                                 name="transporteur" id="transporteur">
                         </select>
                     </div>
-                    <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i
+                    <div class="form-group col-1 toggle-button-container">
+                        <span class="btn btn-primary" onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
 
@@ -40,13 +40,13 @@
                                 id="chauffeur">
                         </select>
                     </div>
-                    <div class="form-group col-1">
-                        <span class="btn btn-primary" onclick="toggleOnTheFlyForm('chauffeurDisplay', 'addChauffeur')"><i
+                    <div class="form-group col-1 toggle-button-container">
+                        <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')"><i
                                 class="fa fa-plus"></i></span>
                     </div>
                 </div>
-                <div class="row line-arrivage-new-data">
-                    <div class="row col-4 formulaire">
+                <div class="row new-on-fly-form-container align-items-start">
+                    <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
                             <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
@@ -55,14 +55,13 @@
                             <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
                                    name="Code" maxlength="64">
                         </div>
-                        <div class="form-group col-2 invisible" id="addFournisseur">
+                        <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
                             <span class="btn btn-success"
-                                  onclick="newLine(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))
-                                  , toggleOnTheFlyForm('fournisseurDisplay', 'addFournisseur')"><i
-                                    class="fas fa-check-circle"></i></span>
+                                  onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                <i class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire">
+                    <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
                             <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
@@ -71,13 +70,14 @@
                             <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
                                    name="code" maxlength="64">
                         </div>
-                        <div class="form-group col-2 invisible" id="addTransporteur">
-                            <span class="btn btn-success" onclick="
-                            newLine(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur')),
-                            toggleOnTheFlyForm('transporteurDisplay', 'addTransporteur')"><i class="fas fa-check-circle"></i></span>
+                        <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
+                            <span class="btn btn-success"
+                                  onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire">
+                    <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="chauffeurDisplay">
                             <label for="newChauffeurName">Nom*</label>
                             <input type="text" id="newChauffeurName" class="form-control newFormulaire neededNew"
@@ -90,15 +90,15 @@
                                    name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
                             <select
-                                class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100"
+                                class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
                                 name="transporteur" id="newChauffeurTransporteur">
                             </select>
                         </div>
-                        <div class="form-group col-2 invisible" id="addChauffeur">
+                        <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
                             <span class="btn btn-success"
-                                  onclick="newLine(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))
-                                  , toggleOnTheFlyForm('chauffeurDisplay', 'addChauffeur')"><i
-                                    class="fas fa-check-circle"></i></span>
+                                  onclick="onFlyFormSubmit(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -158,13 +158,12 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="row">
-                        <p><i class='fas fa-warning'></i>
-                            Attention ! Aucune nature {{ 'arrivage.de colis'|trans }} n'a été créée.</p>
-                        <a href="{{ path('nature_param_index') }}" class="btn btn-primary">
-                            <i class='fa fa-directions mr-2'></i> Aller vers la création des natures
-                        </a>
-                    </div>
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: natures,
+                        warningLabel: 'Attention ! Aucune nature {{ 'arrivage.de colis'|trans }} n\'a été créée',
+                        redirectPath: path('nature_param_index'),
+                        redirectLabel: 'Aller vers la création des natures'
+                    } %}
                 {% endif %}
 
                 <div class="row">
