@@ -128,16 +128,12 @@ function saveTranslations() {
 
     let path = Routing.generate('save_translations');
     const $spinner = $('#spinnerSaveTranslations');
-    console.log($('#spinnerSaveTranslations')[0].classList);
+    alertSuccessMsg('Mise à jour de votre personnalisation des libellés : merci de patienter.');
     loadSpinner($spinner);
-    console.log($('#spinnerSaveTranslations')[0].classList);
     $.post(path, JSON.stringify(data), (resp) => {
         $('html,body').animate({scrollTop: 0});
         if (resp) {
-            alertSuccessMsg('Rechargement de la page pour mettre à jour votre personnalisation des libellés.');
-            setTimeout(() => {
-                location.reload();
-            }, 1900);
+            location.reload();
         } else {
             hideSpinner($spinner);
             alertErrorMsg('Une erreur est survenue lors de la personnalisation des libellés.');
