@@ -1021,7 +1021,6 @@ function hideSpinner(div) {
 function loadSpinner(div) {
     div.removeClass('d-none');
     div.addClass('d-flex');
-
 }
 
 function checkZero(data) {

@@ -14,8 +14,10 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,61 +41,29 @@ class GlobalParamController extends AbstractController
     ];
 
     /**
-     * @var MailerServerRepository
+     * @Route("/", name="global_param_index")
+     * @param TranslationRepository $translationRepository
+     * @param UserService $userService
+     * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param MailerServerRepository $mailerServerRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    private $mailerServerRepository;
-
-    /**
-     * @var DimensionsEtiquettesRepository
-     */
-    private $dimensionsEtiquettesRepository;
-
-    /**
-     * @var PrefixeNomDemandeRepository
-     */
-    private $prefixeNomDemandeRepository;
-
-    /**
-     * @var DaysWorkedRepository
-     */
-    private $daysWorkedRepository;
-
-    /**
-     * @var ParametrageGlobalRepository
-     */
-    private $parametrageGlobalRepository;
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository, MailerServerRepository $mailerServerRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, UserService $userService, DaysWorkedRepository $daysWorkedRepository)
+    public function index(TranslationRepository $translationRepository,
+                          UserService $userService,
+                          DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                          ParametrageGlobalRepository $parametrageGlobalRepository,
+                          MailerServerRepository $mailerServerRepository): response
     {
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
-        $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
-        $this->daysWorkedRepository = $daysWorkedRepository;
-        $this->mailerServerRepository = $mailerServerRepository;
-        $this->userService = $userService;
-        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
-    }
-
-	/**
-	 * @Route("/", name="global_param_index")
-	 * @param TranslationRepository $translationRepository
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 */
-    public function index(TranslationRepository $translationRepository): response
-    {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+        if (!$userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
-        $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
-        $paramGlo = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-        $paramGloPrepa = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+        $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
+        $mailerServer =  $mailerServerRepository->findOneMailerServer();
+        $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -101,7 +71,7 @@ class GlobalParamController extends AbstractController
                 'parametrageG' => $paramGlo,
                 'parametrageGPrepa' => $paramGloPrepa,
                 'mailerServer' => $mailerServer,
-                'wantsBL' => $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
+                'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
 				'menusTranslations' => array_column($translationRepository->getMenus(), '1')
         ]);
@@ -109,17 +79,26 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function ajaxDimensionEtiquetteServer(Request $request): response
+    public function ajaxDimensionEtiquetteServer(Request $request,
+                                                 UserService $userService,
+                                                 ParametrageGlobalRepository $parametrageGlobalRepository,
+                                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $em = $this->getDoctrine()->getManager();
 
-            $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
+            $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
             if (!$dimensions) {
                 $dimensions = new DimensionsEtiquettes();
                 $em->persist($dimensions);
@@ -128,7 +107,7 @@ class GlobalParamController extends AbstractController
                 ->setHeight(intval($data['height']))
                 ->setWidth(intval($data['width']));
 
-            $parametrageGlobal = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
             if (empty($parametrageGlobal)) {
                 $parametrageGlobal = new ParametrageGlobal();
@@ -146,11 +125,16 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param PrefixeNomDemandeRepository $prefixeNomDemandeRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function updatePrefixDemand(Request $request): response
+    public function updatePrefixDemand(Request $request,
+                                       PrefixeNomDemandeRepository $prefixeNomDemandeRepository): response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $prefixeDemande =  $this->prefixeNomDemandeRepository->findOneByTypeDemande($data['typeDemande']);
+            $prefixeDemande =  $prefixeNomDemandeRepository->findOneByTypeDemande($data['typeDemande']);
 
             $em = $this->getDoctrine()->getManager();
             if($prefixeDemande == null){
@@ -171,11 +155,16 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/ajax-get-prefix-demand", name="ajax_get_prefix_demand",  options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param PrefixeNomDemandeRepository $prefixeNomDemandeRepository
+     * @return JsonResponse
+     * @throws NonUniqueResultException
      */
-    public function getPrefixDemand(Request $request)
+    public function getPrefixDemand(Request $request,
+                                    PrefixeNomDemandeRepository $prefixeNomDemandeRepository)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $prefixeNomDemande = $this->prefixeNomDemandeRepository->findOneByTypeDemande($data);
+            $prefixeNomDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data);
             $prefix = $prefixeNomDemande ? $prefixeNomDemande->getPrefixe() : '';
 
             return new JsonResponse($prefix);
@@ -185,15 +174,21 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param DaysWorkedRepository $daysWorkedRepository
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        UserService $userService,
+                        DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $days = $this->daysWorkedRepository->findAllOrdered();
+            $days = $daysWorkedRepository->findAllOrdered();
             $rows = [];
             foreach ($days as $day) {
                 $url['edit'] = $this->generateUrl('days_api_edit', ['id' => $day->getId()]);
@@ -218,15 +213,21 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="days_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param DaysWorkedRepository $daysWorkedRepository
+     * @return Response
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            UserService $userService,
+                            DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $day = $this->daysWorkedRepository->find($data['id']);
+            $day = $daysWorkedRepository->find($data['id']);
 
             $json = $this->renderView('parametrage_global/modalEditDaysContent.html.twig', [
                 'day' => $day,
@@ -240,16 +241,22 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/modifier", name="days_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param DaysWorkedRepository $daysWorkedRepository
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         UserService $userService,
+                         DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $em = $this->getDoctrine()->getManager();
-            $day = $this->daysWorkedRepository->find($data['day']);
+            $day = $daysWorkedRepository->find($data['day']);
             $dayName = $day->getDay();
 
             $day->setWorked($data['worked']);
@@ -279,16 +286,23 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/ajax-mail-server", name="ajax_mailer_server",  options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param MailerServerRepository $mailerServerRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function ajaxMailerServer(Request $request): response
+    public function ajaxMailerServer(Request $request,
+                                     UserService $userService,
+                                     MailerServerRepository $mailerServerRepository): response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $em = $this->getDoctrine()->getManager();
-            $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
+            $mailerServer =  $mailerServerRepository->findOneMailerServer();
             if ($mailerServer === null) {
                 $mailerServerNew = new MailerServer;
                 $mailerServerNew
@@ -315,12 +329,17 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/demlivr", name="active_desactive_create_demande_livraison", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function actifDesactifCreateDemandeLivraison(Request $request): Response
+    public function actifDesactifCreateDemandeLivraison(Request $request,
+                                                        ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
@@ -343,12 +362,17 @@ class GlobalParamController extends AbstractController
 
     /**
      * @Route("/prepa", name="active_desactive_create_prepa", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function actifDesactifCreateprepa(Request $request): Response
+    public function actifDesactifCreateprepa(Request $request,
+                                             ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            $ifExist = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
@@ -369,13 +393,18 @@ class GlobalParamController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @param Request $request
-	 * @param TranslationRepository $translationRepository
-	 * @return Response
-	 * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="GET|POST")
-	 */
-    public function saveTranslations(Request $request, TranslationRepository $translationRepository): Response
+    /**
+     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
+     * @param Request $request
+     * @param TranslationRepository $translationRepository
+     * @param TranslationService $translationService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function saveTranslations(Request $request,
+                                     TranslationRepository $translationRepository,
+                                     TranslationService $translationService): Response
 	{
 		if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true))
 		{
@@ -392,6 +421,8 @@ class GlobalParamController extends AbstractController
 				}
 			}
 			$this->getDoctrine()->getManager()->flush();
+
+			$translationService->generateTranslationsFile();
 
 			return new JsonResponse(true);
 		}

@@ -4,11 +4,28 @@
 </a>
 
 <div class="collapse col-12" id="translation">
-    <div class="float-right btn btn-col-action btn-check-reverse" onclick="saveTranslations()">
-        <i class='fas fa-check'></i>
-    </div>
     {% for menu in menusTranslations %}
-        <h2 class="bold">MENU {{ (menu~"."~menu)|trans|upper }}</h2>
+        <div class="row">
+            <div class="col-auto">
+                <h2 class="bold">MENU {{ (menu~"."~menu)|trans|upper }}</h2>
+            </div>
+            {% if loop.first %}
+                <div class="ml-auto col-auto">
+                    <div class="row align-items-center">
+                        <div class="d-none col-auto" id="spinnerSaveTranslations">
+                            <div class="spinner-border sizeLoader mini-loader" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn btn-col-action btn-check-reverse" onclick="saveTranslations()">
+                                <i class='fas fa-check'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
         {% for translation in translations %}
             {% if (translation.menu == menu) %}
                 <div class="input-group mb-3">

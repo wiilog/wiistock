@@ -127,11 +127,19 @@ function saveTranslations() {
     });
 
     let path = Routing.generate('save_translations');
+    const $spinner = $('#spinnerSaveTranslations');
+    console.log($('#spinnerSaveTranslations')[0].classList);
+    loadSpinner($spinner);
+    console.log($('#spinnerSaveTranslations')[0].classList);
     $.post(path, JSON.stringify(data), (resp) => {
         $('html,body').animate({scrollTop: 0});
         if (resp) {
-            alertSuccessMsg('La personnalisation des libellés a bien été mise à jour. Elle prendra effet demain matin.')
+            alertSuccessMsg('Rechargement de la page pour mettre à jour votre personnalisation des libellés.');
+            setTimeout(() => {
+                location.reload();
+            }, 1900);
         } else {
+            hideSpinner($spinner);
             alertErrorMsg('Une erreur est survenue lors de la personnalisation des libellés.');
         }
     });
