@@ -6,6 +6,12 @@ $('#emplacement').select2({
         text: 'Emplacement',
     }
 });
+$('#statut').select2({
+    placeholder: {
+        id: 0,
+        text: 'Type',
+    }
+});
 let $submitSearchMvt = $('#submitSearchMvt');
 
 $(function() {

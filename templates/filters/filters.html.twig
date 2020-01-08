@@ -34,10 +34,9 @@
 
     {% block statusFilter %}
     <div>
-        <div class="input-group minw-100px">
-            <select class="form-control data" name="statut" id="statut" {{ disabled }}
-                    placeholder='{{ statut is defined  ? statut : 'statut' }}'>
-                <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
+        <div class="input-group minw-200px">
+            <select class="form-control data select2" name="statut" id="statut" {{ disabled }}>
+                <option value="">&nbsp;</option>
                 {% for statut in statuts %}
                     {% if filterStatus is defined and statut.nom == filterStatus%}
                         {% set selected = 'selected' %}
