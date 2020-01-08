@@ -130,7 +130,7 @@ Class AcheminementsController extends AbstractController
                 ->setLocationTake($data['prise'])
                 ->setColis($data['colis']);
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($acheminements);
 
             $em->flush();

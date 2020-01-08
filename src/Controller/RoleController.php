@@ -128,7 +128,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $this->roleRepository->countByLabel($data['label']);

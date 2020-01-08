@@ -565,13 +565,16 @@ class ReceptionController extends AbstractController
             ];
         }
 
-        $fields = [];
-        foreach ($fieldsParam as $field) {
-            $fields[$field['fieldCode']] = [
-                'mustToCreate' => $field['mustToCreate'],
-                'mustToModify' => $field['mustToModify'],
-            ];
-        }
+        $fields = array_reduce(
+            $fieldsParam,
+            function(array $acc, $field) {
+                $acc[$field['fieldCode']] = [
+                    'mustToCreate' => $field['mustToCreate'],
+                    'mustToModify' => $field['mustToModify'],
+                ];
+                return $acc;
+            },
+            []);
 
         return $this->render('reception/index.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
@@ -1311,6 +1314,13 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+    /**
+     * @param $em
+     * @param $reception
+     * @param $listReceptionReferenceArticle
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
     public function validateReception($em, $reception, $listReceptionReferenceArticle)
     {
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
@@ -1320,10 +1330,13 @@ class ReceptionController extends AbstractController
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
             }
         }
+
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
         $reception
             ->setStatut($statut)
-            ->setDateFinReception(new DateTime('now'))
-            ->setDateCommande(new DateTime('now'));
+            ->setDateFinReception($now)
+            ->setDateCommande($now);
         $em->flush();
     }
 
