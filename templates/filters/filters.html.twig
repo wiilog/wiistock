@@ -22,7 +22,7 @@
     {% block emplacementFilter %}
         <div>
             <div class="input-group minw-200px">
-                <select class="form-control data select2" name="emplacement" id="emplacement" {{ disabled }}>
+                <select class="form-control data select2 cursor-default" name="emplacement" id="emplacement" {{ disabled }}>
                     <option value="">&nbsp;</option>
                     {% for emplacement in emplacements %}
                         <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
@@ -35,7 +35,7 @@
     {% block statusFilter %}
     <div>
         <div class="input-group minw-200px">
-            <select class="form-control data select2" name="statut" id="statut" {{ disabled }}>
+            <select class="form-control data select2 cursor-default" name="statut" id="statut" {{ disabled }}>
                 <option value="">&nbsp;</option>
                 {% for statut in statuts %}
                     {% if filterStatus is defined and statut.nom == filterStatus%}
@@ -52,7 +52,7 @@
 
     {% block userFilter %}
     <div class="minw-150px select2-overflow">
-        <div class="input-group w-100">
+        <div class="input-group w-100 cursor-default">
             <select id="utilisateur" name="utilisateur" class="form-control data ajax-autocomplete-user min-150px" multiple="multiple" {{ disabled }}>
             </select>
         </div>
@@ -63,7 +63,7 @@
     {% if types is defined %}
     <div class="minw-100px">
         <div class="input-group">
-            <select type="text" class="form-control data" name="type" {{ disabled }}
+            <select type="text" class="form-control data cursor-default" name="type" {{ disabled }}
                     id="type">
                 <option value>Type</option>
                 {% for type in types %}
@@ -83,7 +83,7 @@
 
     {% block providerFilter %}
         <div class="minw-150px select2-overflow">
-            <div class="input-group w-100">
+            <div class="input-group w-100 cursor-default">
                 <select id="providers" name="providers" class="form-control data ajax-autocomplete-fournisseur min-150px" multiple="multiple" {{ disabled }}>
                 </select>
             </div>

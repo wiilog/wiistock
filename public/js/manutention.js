@@ -66,6 +66,7 @@ $submitSearchManut.on('click', function () {
 // applique les filtres si pré-remplis
 $(function() {
     initDateTimePicker();
+    initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     let val = $('#statut').val();

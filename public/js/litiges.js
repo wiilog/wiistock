@@ -1,15 +1,11 @@
 $('.select2').select2();
 
-$('#carriers').select2({
-    placeholder: {
-        text: 'Transporteurs',
-    }
-});
-
 let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
 
 $(function() {
     initDateTimePicker();
+    initSelect2('#carriers', 'Transporteurs');
+    initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 

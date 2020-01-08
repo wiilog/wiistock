@@ -4,10 +4,12 @@
 namespace App\Service;
 
 
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\ReferenceArticleRepository;
+use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use App\Repository\UrgenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,6 +55,11 @@ class UrgenceService
 
     private $em;
 
+	/**
+	 * @var Security
+	 */
+    private $security;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FiltreSupRepository $filtreSupRepository,
@@ -60,7 +67,8 @@ class UrgenceService
                                 Twig_Environment $templating,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
-                                UrgenceRepository $urgenceRepository)
+                                UrgenceRepository $urgenceRepository,
+								Security $security)
     {
         $this->templating = $templating;
         $this->em = $em;
@@ -70,11 +78,14 @@ class UrgenceService
         $this->urgenceRepository = $urgenceRepository;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->security = $security;
     }
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->urgenceRepository->findByParams($params);
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_URGENCES, $this->security->getUser());
+
+		$queryResult = $this->urgenceRepository->findByParamsAndFilters($params, $filters);
 
         $urgenceArray = $queryResult['data'];
 

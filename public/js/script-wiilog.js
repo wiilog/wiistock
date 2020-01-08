@@ -14,6 +14,8 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
+const PAGE_EMPLACEMENT = 'emplacement';
+const PAGE_URGENCES = 'urgences';
 
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
@@ -472,6 +474,15 @@ function initFilterDateToday() {
         $todayMinDate.val(today);
         $todayMaxDate.val(today);
     }
+}
+
+function initSelect2(select, placeholder) {
+    $(select).select2({
+        placeholder: {
+            id: 0,
+            text: placeholder,
+        }
+    });
 }
 
 function ajaxAutoCompleteInit($select, route, lengthMin = 1, params = {}, placeholder = ''){
