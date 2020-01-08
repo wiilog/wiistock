@@ -33,11 +33,11 @@ function remote::changeEnv() {
 
 function script::readInstance() {
     local instance
-    local availableInstances=(dev test cl2-prod cl1-rec scs1-prod scs1-rec col1-prod col1-rec)
+    local availableInstances=(dev test cl2-prod cl1-rec scs1-prod scs1-rec col1-prod col2-prod col1-rec)
     while true; do
         read instance;
         if ! $(containsElement "$instance" "${availableInstances[@]}"); then
-            echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev' >&2
+            echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col2-prod, col1-rec, test, dev' >&2
         else
             break
         fi
@@ -52,8 +52,8 @@ function script::getServerName() {
     case "$instance" in
         dev | test) serverName='server-dev' ;;
         cl2-prod | cl1-rec | scs1-prod | scs1-rec) serverName='server-prod1' ;;
-        col1-prod | col1-rec) serverName='server-prod2' ;;
-        *) echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col1-rec, test, dev' ;;
+        col1-prod | col2-prod | col1-rec) serverName='server-prod2' ;;
+        *) echo 'instances disponibles : cl2-prod, cl1-rec, scs1-prod, scs1-rec, col1-prod, col2-prod, col1-rec, test, dev' ;;
     esac
 
     echo $serverName;

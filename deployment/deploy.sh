@@ -76,6 +76,8 @@ scs1-prod)
   db=scs1prod;;
 col1-prod)
   db=col1prod;;
+col2-prod)
+  db=col2prod;;
 col1-rec)
   db=col1rec;;
 *) backup=false ;;
@@ -117,7 +119,6 @@ test | dev | '') env=dev ;;
 esac
 
 # git pull / migrations et mise à jour bdd / fixtures
-
 commandsToRun=("git pull § \n////////// OK : git pull effectué //////////\n § \n////////// KO : git pull //////////\n")
 
 printf "\n-> lancer composer install ? (entrée/n)\n"
@@ -133,7 +134,8 @@ if [ "$doYarnInstall" != 'n' ]; then
 fi
 
 commandsToRun+=(
-    "php bin/console doctrine:migrations:migrate && php bin/console doctrine:schema:update --force § \n////////// OK : migrations de la base effectuées //////////\n § ////////// KO : migrations //////////\n"
+    "php bin/console doctrine:migrations:migrate § \n////////// OK : migrations de la base effectuées //////////\n § ////////// KO : migrations //////////\n"
+    "php bin/console doctrine:schema:update --dump-sql"
     "php bin/console doctrine:fixtures:load --append $fixturesGroups § \n$fixturesMsg\n § ////////// KO : fixtures //////////\n"
     "yarn build § \n////////// OK : yarn encore //////////\n § \n////////// KO : yarn encore //////////\n"
     "replaceInFile \"APP_ENV\" \"APP_ENV=$env\" \".env\" § \n////////// OK : mise en environnement de $env de l'instance $instance //////////\n § \n////////// KO : mise en environnement de $env de l'instance $instance //////////\n"\
