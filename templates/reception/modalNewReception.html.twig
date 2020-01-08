@@ -136,8 +136,8 @@
                                 <div class="row mt-2">
                                     {% for champLibre in typeChampLibre.champsLibres %}
                                         <div class="form-group col-6">
-                                            <label for="">
-                                                {{ champLibre.label | capitalize }}
+                                            <label>
+                                                {{ champLibre.label }}{{ champLibre.requiredCreate ? '*' : '' }}
                                             </label>
 
                                             {% if champLibre.typage == 'booleen' %}
