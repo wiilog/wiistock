@@ -453,6 +453,7 @@ class ReceptionController extends AbstractController
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
                         'valeurChampLibre' => $valeurChampReception,
+						'requiredEdit' => $champLibre->getRequiredEdit()
                     ];
                 }
 
