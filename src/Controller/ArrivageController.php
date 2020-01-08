@@ -187,7 +187,6 @@ class ArrivageController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
         return $this->render('arrivage/index.html.twig', [
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
@@ -196,7 +195,7 @@ class ArrivageController extends AbstractController
             'statuts' => [
                 ['nom' => Arrivage::STATUS_CONFORME],
                 ['nom' => Arrivage::STATUS_LITIGE]
-            ]
+            ],
         ]);
     }
 
@@ -212,7 +211,6 @@ class ArrivageController extends AbstractController
 
             $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
-
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
 
             return new JsonResponse($data);

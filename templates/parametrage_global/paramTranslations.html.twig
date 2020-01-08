@@ -1,0 +1,40 @@
+<a data-toggle="collapse" href="#translation" role="button" aria-expanded="false"
+   aria-controls="translation" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Personnalisation des libellés<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+
+<div class="collapse col-12" id="translation">
+    {% for menu in menusTranslations %}
+        <div class="row">
+            <div class="col-auto">
+                <h2 class="bold">MENU {{ (menu~"."~menu)|trans|upper }}</h2>
+            </div>
+            {% if loop.first %}
+                <div class="ml-auto col-auto">
+                    <div class="row align-items-center">
+                        <div class="d-none col-auto" id="spinnerSaveTranslations">
+                            <div class="spinner-border sizeLoader mini-loader" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn btn-col-action btn-check-reverse" onclick="saveTranslations()">
+                                <i class='fas fa-check'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% for translation in translations %}
+            {% if (translation.menu == menu) %}
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ (translation.menu~"."~translation.label)|trans }}</span>
+                    </div>
+                    <input type="text" class="form-control translate" name="{{ translation.id }}" aria-describedby="translate-{{ translation.id }}">
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</div>

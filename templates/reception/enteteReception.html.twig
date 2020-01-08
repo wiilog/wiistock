@@ -10,7 +10,7 @@
     <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
     <p><strong>Date de création :</strong>
         {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
-    <p><strong>Date de fin de réception
+    <p><strong>Date de fin {{ 'réception.de réception'|trans }}
             :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
 </div>
 <div class="col-12">

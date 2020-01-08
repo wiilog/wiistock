@@ -312,6 +312,13 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Quantité disponible',
 					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Code barre',
+                    "data" => 'Code barre',
+                    'name' => 'Code barre',
+                    "class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
+
+                ],
 				[
 					"title" => 'Emplacement',
 					"data" => 'Emplacement',
@@ -561,6 +568,12 @@ class ReferenceArticleController extends AbstractController
 
         ];
         $champF[] = [
+            'label' => 'Code barre',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champF[] = [
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
@@ -624,7 +637,12 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'text'
 
         ];
+        $champsFText[] = [
+            'label' => 'Code barre',
+            'id' => 0,
+            'typage' => 'text'
 
+        ];
         $champsFText[] = [
             'label' => 'Fournisseur',
             'id' => 0,

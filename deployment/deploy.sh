@@ -76,6 +76,8 @@ scs1-prod)
   db=scs1prod;;
 col1-prod)
   db=col1prod;;
+col2-prod)
+  db=col2prod;;
 col1-rec)
   db=col1rec;;
 *) backup=false ;;
@@ -117,7 +119,6 @@ test | dev | '') env=dev ;;
 esac
 
 # git pull / migrations et mise à jour bdd / fixtures
-
 commandsToRun=("git pull § \n////////// OK : git pull effectué //////////\n § \n////////// KO : git pull //////////\n")
 
 printf "\n-> lancer composer install ? (entrée/n)\n"

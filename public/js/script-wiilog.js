@@ -595,6 +595,16 @@ function ajaxAutoFournisseurInit(select, placeholder = '') {
     });
 }
 
+function initFilterDateToday() {
+    let $todayMinDate = $('#dateMin');
+    let $todayMaxDate = $('#dateMax');
+    if ($todayMinDate.val() === '' && $todayMaxDate.val() === '') {
+        let today = moment().format('DD/MM/YYYY');
+        $todayMinDate.val(today);
+        $todayMaxDate.val(today);
+    }
+}
+
 function ajaxAutoChauffeurInit(select) {
     select.select2({
         ajax: {
@@ -763,7 +773,9 @@ function clearModal(modal) {
         //TODO protection ?
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
+    let selects = $modal
+        .find('.modal-body')
+        .find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
@@ -935,8 +947,8 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     ? (docWidth * this.naturalHeight / this.naturalWidth)
                     : docHeight);
                 if (barcodesLabel) {
-                    imageWidth *= 0.8;
-                    imageHeight *= 0.8;
+                    imageWidth *= 0.6;
+                    imageHeight *= 0.6;
                 }
 
                 let posX = (upperNaturalScale
@@ -947,11 +959,16 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 0);
 
                 if (barcodesLabel) {
+                    let toPrint = (barcodesLabel[index]
+                        .split('\n')
+                        .map((line) => line.trim())
+                        .filter(Boolean)
+                        .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
                     posY = 0;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.5));
-                    doc.text(barcodesLabel[index], docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
+                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
                 }
                 doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                 doc.addPage();
@@ -969,6 +986,20 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
             });
         });
     }
+}
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    };
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        printBarcodes(
+            [response.articleRef.barcode],
+            response,
+            'Etiquette article ' + response.articleRef.artLabel + '.pdf',
+            [response.articleRef.barcodeLabel],
+        );
+    });
 }
 
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
@@ -992,7 +1023,6 @@ function hideSpinner(div) {
 function loadSpinner(div) {
     div.removeClass('d-none');
     div.addClass('d-flex');
-
 }
 
 function checkZero(data) {
@@ -1103,50 +1133,93 @@ function addToRapidSearch(checkbox) {
     }
 }
 
-function newLine(path, button, toHide, buttonAdd, select = null)
-{
-    let inputs = button.closest('.formulaire').find(".newFormulaire");
-    let params = {};
-    let formIsValid = true;
-    inputs.each(function () {
-        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null))
-        {
-            $(this).addClass('is-invalid');
-            formIsValid = false;
-        } else {
-            $(this).removeClass('is-invalid');
-        }
-        params[$(this).attr('name')] = $(this).val();
-    });
-    if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
-            if (select) {
-                let option = new Option(response.text, response.id, true, true);
-                select.append(option).trigger('change');
-            }
-        });
-    }
-}
 
 function redirectToDemandeLivraison(demandeId) {
     window.open(Routing.generate('demande_show', {id: demandeId}));
 }
 
-function toggleOnTheFlyForm(id, button) {
+/**
+ * Manage on fly forms
+ * Should instanciate onFlyFormOpened object in the script
+ * @param id
+ * @param button
+ * @param forceHide
+ */
+function onFlyFormToggle(id, button, forceHide = false) {
     let $toShow = $('#' + id);
     let $toAdd = $('#' + button);
-    if ($toShow.hasClass('invisible')) {
+    if (!forceHide && $toShow.hasClass('invisible')) {
         $toShow.parent().parent().css("display", "flex");
         $toShow.parent().parent().css("height", "auto");
+        $toShow.css("height", "auto");
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
+        onFlyFormOpened[id] = true;
     }
     else {
-        $toShow.addClass('invisible');
+        $toShow
+            .addClass('invisible')
+            .css("height", "0");
         $toAdd.addClass('invisible');
-        if (numberOfDataOpened === 0) {
+
+        // we reset all field
+        $toShow
+            .find('.newFormulaire ')
+            .each(function() {
+                const $fieldNext = $(this).next();
+                if ($fieldNext.is('.select2-container')) {
+                    $fieldNext.removeClass('is-invalid');
+                }
+
+                $(this)
+                    .removeClass('is-invalid')
+                    .val('')
+                    .trigger('change');
+            });
+
+        onFlyFormOpened[id] = false;
+
+        const onFlyFormOpenedValues = Object.values(onFlyFormOpened);
+        // si tous les formulaires sont cachés
+        if (onFlyFormOpenedValues.length === 0 ||
+            Object.values(onFlyFormOpened).every((opened) => !opened)) {
             $toShow.parent().parent().css("height", "0");
         }
+    }
+}
+
+
+function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
+{
+    let inputs = button.closest('.formulaire').find(".newFormulaire");
+    let params = {};
+    let formIsValid = true;
+    inputs.each(function () {
+        if ($(this).hasClass('neededNew') && ($(this).val() === '' || $(this).val() === null)) {
+            $(this).addClass('is-invalid');
+            const $fieldNext = $(this).next();
+            if ($fieldNext.is('.select2-container')) {
+                $fieldNext.addClass('is-invalid');
+            }
+            formIsValid = false;
+        }
+        else {
+            $(this).removeClass('is-invalid');
+            const $fieldNext = $(this).next();
+            if ($fieldNext.is('.select2-container')) {
+                $fieldNext.removeClass('is-invalid');
+            }
+        }
+        params[$(this).attr('name')] = $(this).val();
+    });
+    if (formIsValid) {
+        $.post(path, JSON.stringify(params), function (response) {
+            if ($select) {
+                let option = new Option(response.text, response.id, true, true);
+                $select.append(option).trigger('change');
+            }
+            onFlyFormToggle(toHide, buttonAdd, true)
+        });
     }
 }
 
@@ -1172,4 +1245,12 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
 
 function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
+}
+
+function warningEmptyDatesForCsv() {
+    alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
+    $('#dateMin, #dateMax').addClass('is-invalid');
+    $('.is-invalid').on('click', function() {
+        $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
 }

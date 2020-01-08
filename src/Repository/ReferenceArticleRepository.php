@@ -36,7 +36,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
-        'Statut' => 'status'
+        'Statut' => 'status',
+        'Code barre' => 'barCode'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -174,7 +175,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
-			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
+            'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
+			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
         //TODO trouver + dynamique
         $qb->from('App\Entity\ReferenceArticle', 'ra');

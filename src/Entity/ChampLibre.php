@@ -44,6 +44,7 @@ class ChampLibre
             'label' => 'Texte',
         ],
     ];
+    const SPECIC_COLLINS_BL = 'BL';
 
     /**
      * @ORM\Id()

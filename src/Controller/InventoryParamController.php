@@ -120,7 +120,7 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $this->inventoryCategoryRepository->countByLabel($data['label']);
@@ -177,7 +177,7 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $category = $this->inventoryCategoryRepository->find($data['category']);
             $categoryLabel = $category->getLabel();
 
@@ -257,7 +257,7 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $this->inventoryFrequencyRepository->countByLabel($data['label']);
@@ -342,7 +342,7 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
             $frequencyLabel = $frequency->getLabel();
 

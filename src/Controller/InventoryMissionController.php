@@ -112,7 +112,7 @@ class InventoryMissionController extends AbstractController
             if ($data['startDate'] > $data['endDate'])
                 return new JsonResponse(false);
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             $mission = new InventoryMission();
             $mission
@@ -214,7 +214,7 @@ class InventoryMissionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 

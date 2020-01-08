@@ -212,7 +212,7 @@ function initDatatableConditionnement() {
             },
         },
         columns: [
-            {"data": 'Code', 'name': 'Code', 'title': 'Code article'},
+            {"data": 'Code barre', 'name': 'Code barre', 'title': 'Code article'},
             {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
             {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
             {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
@@ -475,9 +475,9 @@ function initNewLigneReception(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initWithPH($('.ajax-autocompleteEmplacement'), 'Destination...', true, Routing.generate('get_emplacement'));
-    initWithPH($('.select2-type'), 'Type...', false);
-    initWithPH($('.select2-user'), 'Demandeur...', true, Routing.generate('get_user'));
+    initAutocomplete($('.ajax-autocompleteEmplacement'), Routing.generate('get_emplacement'));
+    initAutocomplete($('.select2-type'));
+    initAutocomplete($('.select2-user'), Routing.generate('get_user'));
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $(modal).find('input[type="hidden"][name="reception"]').val()},
@@ -493,7 +493,9 @@ function initNewLigneReception(modal) {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle);
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function() {
+                $('#button-for-id-ref').click();
+            });
         }
     });
 
@@ -571,8 +573,8 @@ function getQuantityErrorModalNewLigneReception() {
     return quantityError;
 }
 
-function initWithPH(select, ph, ajax = true, route = null) {
-    if (ajax) {
+function initAutocomplete(select, route = null) {
+    if (route) {
         select.select2({
             ajax: {
                 url: route,
@@ -590,13 +592,10 @@ function initWithPH(select, ph, ajax = true, route = null) {
                     return 'Aucun résultat.';
                 }
             },
-            minimumInputLength: 1,
-            placeholder: ph
+            minimumInputLength: 1
         });
     } else {
-        select.select2({
-            placeholder: ph
-        });
+        select.select2();
     }
 }
 

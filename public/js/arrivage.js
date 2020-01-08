@@ -1,4 +1,5 @@
-let numberOfDataOpened = 0;
+let onFlyFormOpened = {};
+let clicked = false;
 $('.select2').select2();
 
 $(function() {
@@ -6,10 +7,10 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ARRIVAGE);;
+    let params = JSON.stringify(PAGE_ARRIVAGE);
 
-    $.post(path, params, function(data) {
-        data.forEach(function(element) {
+    $.post(path, params, function (data) {
+        data.forEach(function (element) {
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');
@@ -37,24 +38,15 @@ $(function() {
             } else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
-                $('#'+element.field).val(element.value);
+                $('#' + element.field).val(element.value);
             }
         });
-
-        // initFilterDateToday();
+        initFilterDateToday();
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
-
-function initFilterDateToday() {
-    // par défaut filtre date du jour
-    let today = new Date();
-    let formattedToday = today.getFullYear() + '-' + (today.getMonth()+1)%12 + '-' + today.getUTCDate().toString();
-    $('#dateMin').val(formattedToday);
-    $('#dateMax').val(formattedToday);
-}
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
@@ -68,7 +60,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
     scrollX: true,
     ajax: {
         "url": pathArrivage,
-        "type": "POST"
+        "type": "POST",
+        'data': {
+            'clicked': () => clicked,
+        }
     },
     'drawCallback': function() {
         overrideSearch($('#tableArrivages_filter input'), tableArrivage);
@@ -101,7 +96,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
     },
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
             extend: 'colvis',
@@ -153,31 +148,6 @@ function printBarcode(code) {
     });
 }
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableArrivage.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
@@ -191,6 +161,10 @@ let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
 function initNewArrivageEditor(modal) {
+    onFlyFormOpened = {};
+    onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
+    onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
+    onFlyFormToggle('chauffeurDisplay', 'addChauffeur', true);
     if (!editorNewArrivageAlreadyDone) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
@@ -219,6 +193,8 @@ $submitSearchArrivage.on('click', function () {
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
     $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
+    clicked = true;
+
     saveFilters(filters, tableArrivage);
 });
 
@@ -239,7 +215,6 @@ function generateCSVArrivage () {
 
         $.post(path, params, function(response) {
             if (response) {
-                $('.error-msg').empty();
                 let csv = "";
                 $.each(response, function (index, value) {
                     csv += value.join(';');
@@ -251,7 +226,7 @@ function generateCSVArrivage () {
         }, 'json');
 
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
+        warningEmptyDatesForCsv();
         hideSpinner($('#spinnerArrivage'))
     }
 }

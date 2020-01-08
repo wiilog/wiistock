@@ -1,11 +1,11 @@
 {% extends "layout.html.twig" %}
-{% block title %}Ajout d'article{% endblock %}
+{% block title %}{{  'réception.réception'|trans|capitalize }}{% endblock %}
 {% block page_content %}
 
 
     <div class="row">
         <div class="col">
-            <h1>Réception</h1>
+            <h1>{{ 'réception.réception'|trans|capitalize }}</h1>
             <input id="receptionId" value="{{ reception.id }}" type="hidden">
         </div>
         <div class="col text-right">
@@ -24,7 +24,7 @@
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception")'
                        class="btn btn-primary btn-action ml-auto">
-                        Nouvelle réception</a>
+                        {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
@@ -34,7 +34,7 @@
                        initDateTimePickerReception)">
                         Modifier</a>
                     <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }}, false)">
-                        Fin réception
+                        Fin {{ 'réception.réception'|trans }}
                     </div>
                 {% endif %}
             {% endif %}
@@ -54,11 +54,11 @@
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
                            class="btn btn-primary btn-action ml-auto"
                            onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
-                            <span class="fa fa-plus mr-2"></span>Ajouter article
+                            <span class="fa fa-plus mr-2"></span>Ajouter {{ 'réception.article'|trans }}
                         </a>
                     {% endif %}
                 {% endif %}
-                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}"
+                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" id="button-for-id-ref"
                    data-ref="{{ reception.numeroReception }}"
                    class="btn btn-primary btn-action ml-auto">
                     <span class="fa"></span>Générer les étiquettes

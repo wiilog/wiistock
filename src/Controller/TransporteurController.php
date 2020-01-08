@@ -98,7 +98,7 @@ class TransporteurController extends AbstractController
                 ->setLabel($data['label'])
                 ->setCode($data['code']);
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
             $em->persist($transporteur);
 
             $em->flush();

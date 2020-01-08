@@ -422,6 +422,7 @@ class RefArticleDataService
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $quantityInStock - $reservedQuantity,
+            "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",

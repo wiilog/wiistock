@@ -39,6 +39,7 @@ p
 
 h1, h2
   color: #000
+  line-height: initial
   margin: 20px 0
 
 h1
@@ -134,8 +135,10 @@ a
 .h-54px
   height: 54px
 
-//// WIDTH ////
+.h-fit-content
+  height: fit-content
 
+//// WIDTH ////
 .minw-105px
   min-width: 105px
 
@@ -163,9 +166,21 @@ a
 .w-22
   width: 22% !important
 
+.w-fit-content
+  width: fit-content
+
 .w-100
   + .select2-container
     width: 100% !important
+  .select2-container
+    width: 100% !important
+    .select2-selection
+      font-size: 1rem !important
+      font-weight: 400 !important
+      line-height: 1.5 !important
+      color: #495057 !important
+      border: 1px solid #ced4da
+      border-radius: 0.25rem !important
 
 .border-radius-light
   border-radius: 10px !important
@@ -173,13 +188,14 @@ a
 //  reprise du form-control.is-invalid de bootstrap
 .is-invalid
   border-color: #dc3545 !important
-  padding-right: 2.25rem
   background-repeat: no-repeat
   background-position: center right calc(2.25rem / 4)
   background-size: calc(2.25rem / 2) calc(2.25rem / 2)
   //background-image: url(data:image/svg+xml,%3csvg' xmlns='http://www.w3.org/2000/svg' fill='%23dc354…%3e%3ccircle cy='3' r='.5'/%3e%3ccircle cx='3' cy='3' r='.5'/%3e%3c/svg%3E)
   .select2-selection
     border: 1px solid red !important
+  &:not(.select2-container)
+    padding-right: 2.25rem
 
 .label
   color: $greyForm
@@ -195,6 +211,9 @@ a
 .sizeLoader
   width: 5rem
   height: 5rem
+  &.mini-loader
+    width: 1.5rem
+    height: 1.5rem
 
 .urgence-filter
   border-radius: 3px

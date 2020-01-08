@@ -13,6 +13,22 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
+
+                {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                    array: typesLitige,
+                    warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
+                    redirectPath: path('types_param_index'),
+                    redirectLabel: 'Aller la page de types'
+                } %}
+                {% if typesLitige is not empty %}
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: statusLitige,
+                        warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+                        redirectPath: path('status_param_index'),
+                        redirectLabel: 'Aller la page de statuts'
+                    } %}
+                {% endif %}
+
                 <div class="row">
                     <div class="form-group col">
                         <label for="fournisseurLitige">Fournisseur</label>
@@ -78,7 +94,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-5 fit-content">
+                    <div class="form-group col-5 h-fit-content">
                         <label for="litige-commentaire">Commentaire</label>
                         <input type="text"id="litige-commentaire" class="commentaire form-control data" name="commentaire">
                     </div>

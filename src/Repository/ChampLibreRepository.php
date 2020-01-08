@@ -6,8 +6,9 @@ use App\Entity\ChampLibre;
 use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\NonUniqueResultException;
+
 use Doctrine\Persistence\ManagerRegistry;
-use Proxies\__CG__\App\Entity\CategorieCL;
 
 /**
  * @method ChampLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -90,7 +91,7 @@ class ChampLibreRepository extends ServiceEntityRepository
 	/**
 	 * @param string $label
 	 * @return ChampLibre|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
@@ -216,6 +217,31 @@ class ChampLibreRepository extends ServiceEntityRepository
 		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
+	}
+
+	/**
+	 * @param string $categoryType
+	 * @param string $label
+	 * @return ChampLibre|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByCategoryTypeAndLabel($categoryType, $label)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT c
+            FROM App\Entity\ChampLibre c
+            JOIN c.type t
+            JOIN t.category cat
+            WHERE cat.label = :categoryType
+            AND c.label = :label"
+		)->setParameters([
+			'categoryType' => $categoryType,
+			'label' => $label
+			]);
+
+		return $query->getOneOrNullResult();
 	}
 
 	public function deleteByLabel($label){

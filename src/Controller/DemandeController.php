@@ -363,7 +363,7 @@ class DemandeController extends AbstractController
                     ->setDestination($emplacement)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
-                $em = $this->getDoctrine()->getEntityManager();
+                $em = $this->getDoctrine()->getManager();
                 $em->flush();
 
                 // modification ou création des champs libres

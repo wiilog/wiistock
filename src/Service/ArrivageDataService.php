@@ -11,6 +11,9 @@ use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 class ArrivageDataService
@@ -63,17 +66,17 @@ class ArrivageDataService
     }
 
 	/**
-	 * @param array|null $params
+	 * @param array $params
 	 * @param int|null $userId
 	 * @return array
+	 * @throws LoaderError
 	 * @throws NonUniqueResultException
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function getDataForDatatable($params = null, $userId)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
 
 		$queryResult = $this->arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
 
@@ -94,9 +97,9 @@ class ArrivageDataService
 	 * @param Arrivage $arrivage
 	 * @return array
 	 * @throws NonUniqueResultException
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function dataRowArrivage($arrivage)
     {

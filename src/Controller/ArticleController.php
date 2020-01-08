@@ -7,12 +7,15 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Article;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Utilisateur;
+
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -25,16 +28,19 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
+
 use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 
 /**
@@ -135,6 +141,11 @@ class ArticleController extends AbstractController
      */
     private $filtreSupRepository;
 
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+	private $paramGlobalRepository;
+
     public function __construct(Twig_Environment $templating,
                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                                 CategorieCLRepository $categorieCLRepository,
@@ -153,8 +164,10 @@ class ArticleController extends AbstractController
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
                                 FiltreSupRepository $filtreSupRepository,
+                                ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService)
     {
+        $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
@@ -202,14 +215,20 @@ class ArticleController extends AbstractController
             'typage' => 'text'
 
         ];
+//        $champF[] = [
+//            'label' => 'Référence',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
         $champF[] = [
-            'label' => 'Référence',
+            'label' => 'Référence article',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champF[] = [
-            'label' => 'Référence article',
+            'label' => 'Code barre',
             'id' => 0,
             'typage' => 'text'
 
@@ -257,14 +276,20 @@ class ArticleController extends AbstractController
             'typage' => 'text'
 
         ];
-        $champsFText[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
+//        $champsFText[] = [
+//            'label' => 'Référence',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
+		$champsFText[] = [
+			'label' => 'Référence article',
+			'id' => 0,
+			'typage' => 'text'
 
-        ];
-        $champsFText[] = [
-            'label' => 'Référence article',
+		];
+		$champsFText[] = [
+            'label' => 'Code barre',
             'id' => 0,
             'typage' => 'text'
 
@@ -403,64 +428,71 @@ class ArticleController extends AbstractController
                     'name' => 'Libellé',
                     "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
-                ],
-                [
-                    "title" => 'Référence article',
-                    "data" => 'Référence article',
-                    'name' => 'Référence article',
-                    "class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Référence',
-                    "data" => 'Référence',
-                    'name' => 'Référence',
-                    "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Type',
-                    "data" => 'Type',
-                    'name' => 'Type',
-                    "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Statut',
-                    "data" => 'Statut',
-                    'name' => 'Statut',
-                    "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Quantité',
-                    "data" => 'Quantité',
-                    'name' => 'Quantité',
-                    "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Emplacement',
-                    "data" => 'Emplacement',
-                    'name' => 'Emplacement',
-                    "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Commentaire',
-                    "data" => 'Commentaire',
-                    'name' => 'Commentaire',
-                    "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Prix unitaire',
-                    "data" => 'Prix unitaire',
-                    'name' => 'Prix unitaire',
-                    "class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
-                ],
-            ];
-            foreach ($champs as $champ) {
-                $columns[] = [
-                    "title" => ucfirst(mb_strtolower($champ['label'])),
-                    "data" => $champ['label'],
-                    'name' => $champ['label'],
-                    "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }
+				],
+//				[
+//					"title" => 'Référence',
+//					"data" => 'Référence',
+//					'name' => 'Référence',
+//					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
+//				],
+				[
+					"title" => 'Référence article',
+					"data" => 'Référence article',
+					'name' => 'Référence article',
+					"class" => (in_array('Référence article', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Code barre',
+					"data" => 'Code barre',
+					'name' => 'Code barre',
+					"class" => (in_array('Code barre', $columnsVisible) ? 'display' : 'hide'),
+
+				],
+				[
+					"title" => 'Type',
+					"data" => 'Type',
+					'name' => 'Type',
+					"class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Statut',
+					"data" => 'Statut',
+					'name' => 'Statut',
+					"class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Quantité',
+					"data" => 'Quantité',
+					'name' => 'Quantité',
+					"class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Emplacement',
+					"data" => 'Emplacement',
+					'name' => 'Emplacement',
+					"class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Commentaire',
+					"data" => 'Commentaire',
+					'name' => 'Commentaire',
+					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Prix unitaire',
+					"data" => 'Prix unitaire',
+					'name' => 'Prix unitaire',
+					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
+				],
+			];
+			foreach ($champs as $champ) {
+				$columns[] = [
+					"title" => ucfirst(mb_strtolower($champ['label'])),
+					"data" => $champ['label'],
+					'name' => $champ['label'],
+					"class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
+				];
+			}
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -858,14 +890,23 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
-            $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById(intval($dataContent['article']));
-
+            $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById(intval($dataContent['article']));
+            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $wantedIndex = 0;
+            foreach($articles as $key => $articleWithCL) {
+                if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+                    $wantedIndex = $key;
+                    break;
+                }
+            }
+            $article = $articles[$wantedIndex];
             $data['articleRef'] = [
                 'barcode' => $article['barcode'],
                 'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => $article['refRef'],
-                    'refLabel' => $article['refLabel'],
-                    'artLabel' => $article['artLabel'],
+                    'refRef' => trim($article['refRef']),
+                    'refLabel' => trim($article['refLabel']),
+                    'artLabel' => trim($article['artLabel']),
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]),
                 'artLabel' => $article['artLabel'],
             ];
@@ -968,12 +1009,23 @@ class ArticleController extends AbstractController
 
             $barcodes = $barcodeLabels = [];
             for ($i = 0; $i < count($listArticles); $i++) {
-                $article = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeById($listArticles[$i]);
+                $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($listArticles[$i]);
+                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $wantedIndex = 0;
+                foreach($articles as $key => $articleWithCL) {
+                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+                        $wantedIndex = $key;
+                        break;
+                    }
+                }
+
+                $article = $articles[$wantedIndex];
                 $barcodes[] = $article['barcode'];
                 $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => $article['refRef'],
-                    'refLabel' => $article['refLabel'],
-                    'artLabel' => $article['artLabel'],
+                    'refRef' => trim($article['refRef']),
+                    'refLabel' => trim($article['refLabel']),
+                    'artLabel' => trim($article['artLabel']),
+                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
                 ]);
 
             }

@@ -1,15 +1,14 @@
-<form method="" class="modal fade" id="modalFinishReception" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+<form method="" class="modal fade" id="modalFinishReception" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Valider la réception</h5>
+                <h5 class="modal-title">Valider {{ 'réception.la réception'|trans }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                Cette réception contient des articles à finir de réceptionner.<br>Êtes-vous sur de vouloir la finir ?
+                {{ 'réception.cette réception'|trans|capitalize }} contient des {{ 'réception.articles'|trans }} à finir de réceptionner.<br>Êtes-vous sur de vouloir {{ 'réception.la'|trans }} finir ?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Fermer</button>

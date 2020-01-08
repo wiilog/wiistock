@@ -33,13 +33,12 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="row">
-                        <p><i class='fas fa-warning'></i>
-                            Attention ! Aucune nature de colis a été créée</p>
-                        <a href="{{ path('nature_param_index') }}" class="btn btn-primary">
-                            <i class='fa fa-directions mr-2'></i> Aller vers la création des natures
-                        </a>
-                    </div>
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: natures,
+                        warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                        redirectPath: path('nature_param_index'),
+                        redirectLabel: 'Aller vers la création des natures'
+                    } %}
                 {% endif %}
 
 
