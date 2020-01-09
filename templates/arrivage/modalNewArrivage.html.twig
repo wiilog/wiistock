@@ -160,7 +160,7 @@
                 {% else %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                         array: natures,
-                        warningLabel: 'Attention ! Aucune nature {{ 'arrivage.de colis'|trans }} n\'a été créée',
+                        warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ 'n\'a été créée',
                         redirectPath: path('nature_param_index'),
                         redirectLabel: 'Aller vers la création des natures'
                     } %}
