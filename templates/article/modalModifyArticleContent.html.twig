@@ -122,7 +122,7 @@
                     <label for="input">{{ champLibre.label }}</label>
                     {% endif %}
 
-                    {% if champLibre.typage == 'booleen' %}
+                    {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                     {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
                     <label class="switch">
                         <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }}

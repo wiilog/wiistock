@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
@@ -237,7 +238,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
 
                     switch ($filter['typage']) {
-                        case 'booleen':
+                        case ChampLibre::TYPE_BOOL:
                             $value = $filter['value'] == 1 ? '1' : '0';
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
