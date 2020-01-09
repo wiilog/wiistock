@@ -12,7 +12,6 @@ use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\FiltreSupRepository;
@@ -21,11 +20,9 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
-
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-
 use DateTime;
 use Exception;
 use Symfony\Component\Routing\Router;
@@ -38,7 +35,8 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
-    public const COLLECTE_ALREADY_BEGUN = 'collecte-already-began';
+    public const COLLECTE_ALREADY_BEGUN = 'collecte-already-begun';
+    public const COLLECTE_MOUVEMENTS_EMPTY = 'collecte-mouvements-empty';
 
 	/**
 	 * @var EntityManagerInterface
@@ -162,6 +160,16 @@ class OrdreCollecteService
 		$listRefRef = $listArtRef = [];
 		$referenceToQuantity = [];
 		$artToQuantity = [];
+
+        $statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+		if ($statutATraiter->getId() !== $ordreCollecte->getStatut()->getId()) {
+            throw new Exception(self::COLLECTE_ALREADY_BEGUN);
+        }
+
+		if (empty($mouvements)) {
+		    throw new Exception(self::COLLECTE_MOUVEMENTS_EMPTY);
+        }
+
 		foreach($mouvements as $mouvement) {
 		    $quantity = $mouvement['quantity'] ?? $mouvement['quantite'];
 			if ($mouvement['is_ref']) {
@@ -213,7 +221,6 @@ class OrdreCollecteService
 		// cas de collecte partielle
 		if (!empty($rowsToRemove)) {
 			$newCollecte = new OrdreCollecte();
-			$statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 			$newCollecte
 				->setDate($ordreCollecte->getDate())
 				->setNumero('C-' . $dateNow->format('YmdHis'))

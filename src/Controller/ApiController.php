@@ -870,36 +870,31 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 foreach ($collectes as $collecteArray) {
                     $collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
                     try {
-                        if ($collecte->getStatut() && $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-                            $entityManager->transactional(function ()
-                                                          use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
-                                $this->ordreCollecteService->setEntityManager($entityManager);
-                                $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
+                        $entityManager->transactional(function ()
+                                                      use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
+                            $this->ordreCollecteService->setEntityManager($entityManager);
+                            $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
 
-                                $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                                $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
-                                $entityManager->flush();
+                            $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
+                            $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
+                            $entityManager->flush();
 
-								if (!empty($newCollecte)) {
-									$newCollecteId = $newCollecte->getId();
-									$newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
+                            if (!empty($newCollecte)) {
+                                $newCollecteId = $newCollecte->getId();
+                                $newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
 
-									$articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
-									$refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
-									$articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
-								}
+                                $articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
+                                $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
+                                $articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
+                            }
 
-								$resData['success'][] = [
-									'numero_collecte' => $collecte->getNumero(),
-									'id_collecte' => $collecte->getId(),
-									'newCollecte' => $newCollecteArray ?? null,
-									'articlesCollecte' => $articlesCollecte ?? []
-								];
-                            });
-                        }
-                        else {
-                            throw new Exception(OrdreCollecteService::COLLECTE_ALREADY_BEGUN);
-                        }
+                            $resData['success'][] = [
+                                'numero_collecte' => $collecte->getNumero(),
+                                'id_collecte' => $collecte->getId(),
+                                'newCollecte' => $newCollecteArray ?? null,
+                                'articlesCollecte' => $articlesCollecte ?? []
+                            ];
+                        });
                     } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
@@ -915,6 +910,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             'message' => (
                                 ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
+                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? "La collecte " . $collecte->getNumero() . " ne contient aucun article." :
                                 'Une erreur est survenue'
                             )
                         ];

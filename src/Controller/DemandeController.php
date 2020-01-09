@@ -659,7 +659,7 @@ class DemandeController extends AbstractController
             }
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
-            $this->getDoctrine()->getEntityManager()->flush();
+            $this->getDoctrine()->getManager()->flush();
 
             return new JsonResponse();
         }
