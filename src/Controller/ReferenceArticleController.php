@@ -517,6 +517,7 @@ class ReferenceArticleController extends AbstractController
                 "Emplacement" => $emplacement,
                 "Statut" => $refArticle->getStatut(),
                 "Commentaire" => $refArticle->getCommentaire(),
+                "Code barre" => $refArticle->getBarCode() ?? '',
                 "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
                 "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
                 "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
