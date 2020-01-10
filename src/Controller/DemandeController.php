@@ -8,11 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
-use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
-use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\LigneArticle;
 use App\Entity\Article;
 
 use App\Entity\ValeurChampLibre;
