@@ -9,17 +9,21 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
-
 use App\Entity\FiltreSup;
+
 use App\Repository\EmplacementRepository;
+use App\Repository\FiltreSupRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Component\Security\Core\Security;
-use App\Repository\FiltreSupRepository;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Routing\RouterInterface;
+
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class EmplacementDataService
 {
@@ -80,10 +84,10 @@ class EmplacementDataService
 	/**
 	 * @param null $params
 	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws LoaderError
 	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function getEmplacementDataByParams($params = null)
     {
@@ -114,13 +118,13 @@ class EmplacementDataService
         ];
     }
 
-    /**
-     * @param Emplacement $emplacement
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param Emplacement $emplacement
+	 * @return array
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function dataRowEmplacement($emplacement)
     {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
