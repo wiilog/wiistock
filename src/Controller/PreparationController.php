@@ -448,7 +448,7 @@ class PreparationController extends AbstractController
             foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 // scission des articles dont la quantité prélevée n'est pas totale
-                if (!$article->getQuantiteAPrelever() &&
+                if ($article->getQuantiteAPrelever() &&
                     ($article->getQuantite() !== $article->getQuantiteAPrelever())) {
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
@@ -459,7 +459,9 @@ class PreparationController extends AbstractController
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => Article::STATUT_ACTIF,
 						'prix' => $article->getPrixUnitaire(),
-						'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+						'refArticle' => isset($data['refArticle'])
+                            ? $data['refArticle']
+                            : $article->getArticleFournisseur()->getReferenceArticle()->getReference()
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
