@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
 use App\Entity\Article;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
@@ -237,26 +238,26 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
 
                     switch ($filter['typage']) {
-                        case 'booleen':
+                        case ChampLibre::TYPE_BOOL:
                             $value = $filter['value'] == 1 ? '1' : '0';
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = ' . $value);
                             break;
-                        case 'text':
+                        case ChampLibre::TYPE_TEXT:
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
-                        case 'number':
-                        case 'list':
+                        case ChampLibre::TYPE_NUMBER:
+                        case ChampLibre::TYPE_LIST:
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = :value' . $index)
                                 ->setParameter('value' . $index, $filter['value']);
                             break;
-                        case 'date':
+                        case ChampLibre::TYPE_DATE:
                             $date = explode('-', $filter['value']);
                             $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
                             $qbSub

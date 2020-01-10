@@ -15,6 +15,9 @@ let tableUrgence = $('#tableUrgences').DataTable({
         { "data": 'commande', 'name' : 'commande', 'title' : 'Numéro de commande' },
         { "data": 'actions', 'title': 'Actions' },
     ],
+    drawCallback: function() {
+        overrideSearch($('#tableUrgences_filter input'), tableUrgence);
+    },
     columnDefs: [
         {
             "orderable" : false,
@@ -44,53 +47,36 @@ let submitModifyUrgence = $('#submitEditUrgence');
 let urlModifyUrgence = Routing.generate('urgence_edit', true);
 InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence);
 
-$submitSearchUrgence.on('click', function () {
-    let commande = $('#commandeFilter').val();
+$(function() {
+    initDateTimePicker();
 
-    tableUrgence
-        .columns('commande:name')
-        .search(commande ? '^' + commande + '$' : '', true, false)
-        .draw();
-
-    tableUrgence.draw();
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_URGENCES);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'dateMin' || element.field == 'dateMax') {
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+    }, 'json');
 });
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableUrgence.column('start:name').index();
+$submitSearchUrgence.on('click', function () {
+    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
+    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
 
-        if (typeof indexDate === "undefined") return true;
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-        if (
-            (dateMin === "" && dateMax === "")
-            ||
-            (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+    let filters = {
+        page: PAGE_URGENCES,
+        commande: $('#commande').val(),
+        dateMin: $('#dateMin').val(),
+        dateMax: $('#dateMax').val()
+    };
 
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
+    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
+    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
+    saveFilters(filters, tableUrgence);
 });

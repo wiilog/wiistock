@@ -322,15 +322,18 @@ class EmplacementController extends AbstractController
 
             if ($emplacementId = (int)$data['emplacement']) {
                 $emplacement = $this->emplacementRepository->find($emplacementId);
-                $usedEmplacement = $this->isEmplacementUsed($emplacementId);
 
-                if (!empty($usedEmplacement)) {
-                	$emplacement->setIsActive(false);
-                } else {
-					$entityManager->remove($emplacement);
-					$response['delete'] = $emplacementId;
+                if ($emplacement) {
+					$usedEmplacement = $this->isEmplacementUsed($emplacementId);
+
+					if (!empty($usedEmplacement)) {
+						$emplacement->setIsActive(false);
+					} else {
+						$entityManager->remove($emplacement);
+						$response['delete'] = $emplacementId;
+					}
+					$entityManager->flush();
 				}
-                $entityManager->flush();
             }
 
             return new JsonResponse($response);

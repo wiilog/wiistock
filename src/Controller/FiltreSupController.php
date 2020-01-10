@@ -344,6 +344,26 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+			if (!empty($data['commande'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COMMANDE, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_COMMANDE)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['commande']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COMMANDE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
 
 			$em->flush();
 

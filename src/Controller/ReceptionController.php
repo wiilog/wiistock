@@ -242,8 +242,7 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-            $type = $this->typeRepository->find(intval($data['type']));
+            $type = $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
             $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
@@ -258,13 +257,13 @@ class ReceptionController extends AbstractController
             $cpt = sprintf('%04u', $i);
             $numero = 'R' . $date->format('ymd') . $cpt;
 
-            if ($data['fournisseur'] != null) {
+            if (!empty($data['fournisseur'])) {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $reception
                     ->setFournisseur($fournisseur);
             }
 
-            if ($data['transporteur'] != null) {
+            if (!empty($data['transporteur'])) {
                 $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
                 $reception
                     ->setTransporteur($transporteur);
@@ -551,19 +550,17 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        //TODO à modifier si plusieurs types possibles pour une réception
+        $type = $this->typeRepository->getOneIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
+        $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
 
-            $typeChampLibre[] = [
-                'typeLabel' => $type['label'],
-                'typeId' => $type['id'],
-                'champsLibres' => $champsLibres,
-            ];
-        }
+        $typeChampLibre = [
+            'typeLabel' => $type['label'],
+            'typeId' => $type['id'],
+            'champsLibres' => $champsLibres,
+        ];
 
         $fields = array_reduce(
             $fieldsParam,
@@ -577,8 +574,7 @@ class ReceptionController extends AbstractController
             []);
 
         return $this->render('reception/index.html.twig', [
-            'typeChampsLibres' => $typeChampLibre,
-            'types' => $types,
+            'typeChampLibre' => $typeChampLibre,
             'fieldsParam' => $fields,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
