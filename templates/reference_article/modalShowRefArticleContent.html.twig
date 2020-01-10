@@ -152,7 +152,7 @@
                 {% for champLibre in typeChampLibre.champsLibres %}
                 <div class="form-group col-6">
                     <label for="input">{{ champLibre.label | capitalize}}</label>
-                    {% if champLibre.typage == 'booleen' %}
+                    {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                     {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
                     <label class="switch">
                         <input type="checkbox" class="data checkbox" { checked } disabled name="{{ champLibre.id}}">

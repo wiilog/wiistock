@@ -4,9 +4,10 @@ let onFlyFormOpened = {};
 let tableReception;
 
 $(function () {
-    initDateTimePicker();
-
     $('.select2').select2();
+    initDateTimePicker();
+    initSelect2('#statut', 'Statut');
+
     $('.body-add-ref').css('display', 'none');
 
     const $submitSearchReception = $('#submitSearchReception');

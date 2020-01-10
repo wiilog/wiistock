@@ -1,5 +1,4 @@
 $('.select2').select2();
-const PAGE_EMPLACEMENT = 'emplacement';
 
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({

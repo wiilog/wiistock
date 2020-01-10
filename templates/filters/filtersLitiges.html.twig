@@ -3,8 +3,9 @@
 {% block moreFilters %}
 
     <div>
-        <div class="input-group select2-overflow">
-            <select class="form-control data minw-150px" name="carriers" id="carriers" multiple="multiple" >
+        <div class="input-group select2-overflow cursor-default">
+            <select class="form-control data minw-150px cursor-default" name="carriers" id="carriers" multiple="multiple" >
+                    <option value>&nbsp;</option>
                 {% for carrier in carriers %}
                     <option value="{{ carrier.id }}">{{ carrier.label }}</option>
                 {% endfor %}
