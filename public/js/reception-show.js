@@ -317,7 +317,7 @@ function initNewReferenceArticleEditor() {
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
+    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false);
 }
 
 function addArticle() {
@@ -348,9 +348,9 @@ function clearAddRefModal() {
     $('.body-add-ref').css('display', 'none');
 }
 
-function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = function () {}, close = true) {
+function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true) {
     submit.click(function () {
-        submitActionRefArticleFromRecep(modal, path, callback, close);
+        submitActionRefArticleFromRecep(modal, path, close);
     });
 }
 
@@ -359,23 +359,24 @@ function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
 }
 
-function submitActionRefArticleFromRecep(modal, path, callback = null, close = true) {
+function submitActionRefArticleFromRecep(modal, path, close) {
     let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
         $.post(path, JSON.stringify(Data), function (data) {
-            if (data.success) $('#innerNewRef').html('');
-            else modal.find('.error-msg').html('');
+            if (data.success) {
+                $('#innerNewRef').html('');
+                modal.find('.error-msg').html('');
+            } else {
+                modal.find('.error-msg').html(data.msg);
+            }
         });
-        modal.find('.error-msg').html('');
-
     } else {
         // ... sinon on construit les messages d'erreur
         let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
-
 }
 
 
@@ -601,15 +602,6 @@ function initAutocomplete(select, route = null) {
 
 function removePackingItem($button) {
     $button.closest('.conditionnement-article').remove();
-}
-
-
-function displayErrorRA(data, modal) {
-    if (data.success === true) {
-        modal.parent().html('');
-    } else {
-        modal.find('.error-msg').html(data.msg);
-    }
 }
 
 function printBarcode(button) {
