@@ -72,6 +72,7 @@ $submitSearchAcheminements.on('click', function () {
 });
 
 $(function() {
+    initSelect2('#statut', 'Statut');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur

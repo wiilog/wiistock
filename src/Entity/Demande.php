@@ -91,12 +91,11 @@ class Demande
     private $reception;
 
 
-	public function __construct()
-         	{
-         		$this->ligneArticle = new ArrayCollection();
-         		$this->articles = new ArrayCollection();
-         		$this->valeurChampLibre = new ArrayCollection();
-         	}
+	public function __construct() {
+        $this->ligneArticle = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

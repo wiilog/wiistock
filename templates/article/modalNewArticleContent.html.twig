@@ -90,7 +90,7 @@
                         {{champLibre.label | capitalize}}
                     </label>
 
-                    {% if champLibre.typage == 'booleen' %}
+                    {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                     <input type="checkbox" class="form-control data checkbox" value="" name="{{ champLibre.id}}" id="">
 
 

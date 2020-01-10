@@ -151,12 +151,12 @@
                         <div class="form-group col-6">
                             <label for="input">{{ champLibre.label }}{{ champLibre.requiredEdit ? '*' : '' }}</label>
 
-                            {% if champLibre.typage == 'booleen' %}
-                                {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
-                                <label class="switch">
-                                    <input type="checkbox" class="data checkbox {{ champLibre.requiredEdit ? 'needed' : '' }}" {{ checked }} name="{{ champLibre.id }}">
-                                    <span class="slider round"></span>
-                                </label>
+                            {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
+                            {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
+                            <label class="switch">
+                                <input type="checkbox" class="data checkbox {{ champLibre.requiredEdit ? 'needed' : '' }}" {{ checked }} name="{{ champLibre.id }}">
+                                <span class="slider round"></span>
+                            </label>
 
                             {% elseif  champLibre.typage == 'number' %}
                                 <input type="number" id="{{ champLibre.id ~ 'edit' }}" class="form-control data {{ champLibre.requiredEdit ? 'needed' : '' }}"

@@ -220,24 +220,23 @@ class ChampLibreRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param string $categoryType
+	 * @param string $categoryCL
 	 * @param string $label
 	 * @return ChampLibre|null
 	 * @throws NonUniqueResultException
 	 */
-	public function findOneByCategoryTypeAndLabel($categoryType, $label)
+	public function findOneByCategoryCLAndLabel($categoryCL, $label)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT c
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label = :categoryType
-            AND c.label = :label"
+			"SELECT cl
+            FROM App\Entity\ChampLibre cl
+            JOIN cl.categorieCL ccl
+            WHERE ccl.label = :categoryCL
+            AND cl.label = :label"
 		)->setParameters([
-			'categoryType' => $categoryType,
+			'categoryCL' => $categoryCL,
 			'label' => $label
 			]);
 

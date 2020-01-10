@@ -321,9 +321,10 @@ class PreparationsManagerService {
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved) {
+                $quantiteAPrelever = $article->getQuantiteAPrelever() ?? $article->getQuantite();
                 $article->setStatut($statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 // scission des articles dont la quantité prélevée n'est pas totale
-                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                if ($article->getQuantite() !== $quantiteAPrelever) {
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -341,7 +342,7 @@ class PreparationsManagerService {
                     }
                     $this->articleDataService->newArticle($newArticle);
 
-                    $article->setQuantite($article->getQuantiteAPrelever());
+                    $article->setQuantite($quantiteAPrelever);
                 }
 
                 // création des mouvements de préparation pour les articles
@@ -349,7 +350,7 @@ class PreparationsManagerService {
                 $mouvement
                     ->setUser($user)
                     ->setArticle($article)
-                    ->setQuantity($article->getQuantiteAPrelever())
+                    ->setQuantity($quantiteAPrelever)
                     ->setEmplacementFrom($article->getEmplacement())
                     ->setType(MouvementStock::TYPE_TRANSFERT)
                     ->setPreparationOrder($preparation);

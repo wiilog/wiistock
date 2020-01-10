@@ -33,7 +33,7 @@ class collinsFixtures extends Fixture implements FixtureGroupInterface
 			$type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
 			$categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
-			$cl = $champLibreRepository->findOneByCategoryTypeAndLabel(CategoryType::ARTICLE, ChampLibre::SPECIC_COLLINS_BL);
+			$cl = $champLibreRepository->findOneByCategoryCLAndLabel(CategorieCL::ARTICLE, ChampLibre::SPECIC_COLLINS_BL);
 			if (empty($cl)) {
 				$cl = new ChampLibre();
 				$cl
