@@ -230,11 +230,11 @@ class ChampLibreRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT c
+			"SELECT cl
             FROM App\Entity\ChampLibre cl
             JOIN cl.categorieCL ccl
             WHERE ccl.label = :categoryCL
-            AND c.label = :label"
+            AND cl.label = :label"
 		)->setParameters([
 			'categoryCL' => $categoryCL,
 			'label' => $label
