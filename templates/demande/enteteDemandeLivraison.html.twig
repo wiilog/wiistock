@@ -16,7 +16,7 @@
 
     {% for champLibre in champsLibres %}
     <div class="col-6">
-        {% if champLibre.typage == 'booleen' %}
+        {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
             {% set value = (champLibre.valeur == 1) ? 'oui' : 'non' %}
         {% else %}
             {% set value = champLibre.valeur %}

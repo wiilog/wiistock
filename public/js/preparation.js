@@ -4,6 +4,7 @@ let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
 
 $(function() {
     initDateTimePicker();
+    initSelect2('#statut', 'Statut');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
