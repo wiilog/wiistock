@@ -10,8 +10,8 @@ use App\Repository\DaysWorkedRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Component\Validator\Constraints\Date;
 
 class EnCoursService
 {
@@ -124,11 +124,11 @@ class EnCoursService
     /**
      * @param DateTime $day the day tested
      * @param DateTime $now now time
-     * @param DateTime $dateMvt mvt's time
+     * @param DateTimeInterface $dateMvt mvt's time
      * @return int the worked hours for the day tested
      * @throws NonUniqueResultException
      */
-    public function getMinutesWorkedDuringThisDay(DateTime $day, DateTime $now, DateTime $dateMvt): int
+    public function getMinutesWorkedDuringThisDay(DateTime $day, DateTime $now, DateTimeInterface $dateMvt): int
     {
         /**
          * @var $dayWorked DaysWorked|null the DaysWorked entity corresponding to the day being tested
@@ -263,8 +263,12 @@ class EnCoursService
         $timeHours = floor($minutesBetween / 60);
         $timeMinutes = $minutesBetween % 60;
         $time =
-            ($timeHours < 10 ? ('0' . $timeHours) : $timeHours)
-            . ':' .
+            (($timeHours > 0)
+                ? (($timeHours < 10 ? '0' : '') . $timeHours . ' h ')
+                : '')
+            . (($timeHours === 0 && $timeMinutes < 0)
+                ? '< 1 min'
+                : ((($timeHours > 0 && $timeMinutes < 10) ? '0' : '') . $timeMinutes . ' min'));
             ($timeMinutes < 10 ? ('0' . $timeMinutes) : ($timeMinutes));
         $maxTime = $emplacement->getDateMaxTime();
         $maxTimeHours = intval(explode(':', $maxTime)[0]);
