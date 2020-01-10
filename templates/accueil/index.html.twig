@@ -10,51 +10,77 @@ class='accueil-back'
     <div class="row justify-content-end">
         <div class="col-4 ">
             <div class="row justify-content-end">
-                <div class="col-12 mb-1 mt-1 alerte">
+                <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#" onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
-                        <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
-                    </a>
-                </div>
-                <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
-                        <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
-                    </a>
-                </div>
-                <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
-                        <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
-                    </a>
-                </div>
-                <div class="col-12 mb-1 mt-1 alerte">
-                    <a href="#" onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
-                        <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
-                    </a>
-                </div>
-                {% set s = nbAlerts > 1 ? 's' : '' %}
-                <div class="col-12 mb-1 mt-1 alerte">
-                    <a href={{path('alerte_index', {'filter': 'active'})}}>
-                        <p><strong> Alertes de seuil : </strong>{{ nbAlerts }}<br>
-                            {% if nbAlerts > 0 %}dont {{ nbAlerts }} seuil{{ s }} de sécurité{% endif %}
+                        <p>
+                            <span class="badge badge-secondary font-size-100">{{nbDemandeCollecte}}</span>
+                            <span class="bold"> demandes de collecte à traiter</span>
                         </p>
                     </a>
                 </div>
-                <div class="col-12 mb-1 mt-1 carreNbrIndicateur">
-                    <p><span class="bold">Fiabilité par référence</span><br><br>
-                        <span class="big-font">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span></p>
-                    <p><span class="bold">Fiabilité par référence du mois courant</span><br><br>
-                        <span class="big-font">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span></p>
+                <div class="col-12 mb-1 mt-1 home-card">
+                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
+                        <p>
+                            <span class="badge badge-secondary font-size-100">{{nbDemandeLivraisonAT}}</span>
+                            <span class="bold"> demandes de livraison à traiter</span>
+                        </p>
+                    </a>
+                </div>
+                <div class="col-12 mb-1 mt-1 home-card">
+                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
+                        <p>
+                            <span class="badge badge-secondary font-size-100">{{nbDemandeLivraisonP}}</span>
+                            <span class="bold"> demandes de livraison préparées</span>
+                        </p>
+                    </a>
+                </div>
+                <div class="col-12 mb-1 mt-1 home-card">
+                    <a href="#" onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
+                        <p>
+                            <span class="badge badge-secondary font-size-100">{{nbDemandeManutentionAT}}</span>
+                            <span class="bold"> demandes de manutention à traiter</span>
+                        </p>
+                    </a>
+                </div>
+                {% set s = nbAlerts > 1 ? 's' : '' %}
+                <div class="col-12 mb-1 mt-1 home-card">
+                    <a href={{path('alerte_index', {'filter': 'active'})}}>
+                        <p>
+                            <span class="badge badge-secondary font-size-100">{{nbAlerts}}</span>
+                            <span class="bold"> alertes de seuil</span>
+                        </p>
+                    </a>
+                </div>
+                <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
+                    <p class="bold col-12">Fiabilité par référence</p>
+                    <p class="col-6">
+                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span>
+                        <span>totale</span><br>
+                    </p>
+                    <p class="col-6">
+                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span>
+                        <span>mois courant</span><br>
+                    </p>
                     <div class="curve_chart_line" id="curve_chart_reference"></div>
                 </div>
-                <div class="col-12 mb-1 mt-1 carreNbrIndicateur">
-                    <p><span class="bold">Fiabilité monétaire</span><br><br>
-                        <span class="big-font">{{ nbrFiabiliteMonetaire|round }}€</span></p>
-                    <p><span class="bold">Fiabilité monétaire du mois courant</span><br><br>
-                        <span class="big-font">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span></p>
+                <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
+                    <p class="bold col-12">Fiabilité monétaire</p>
+                    <p class="col-6">
+                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaire|round }}€</span>
+                        <span>totale</span><br>
+                    </p>
+                    <p class="col-6">
+                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span>
+                        <span>mois courant</span><br>
+                    </p>
                     <div class="curve_chart_line " id="curve_chart"></div>
                 </div>
-                <div class="col-12 dashboard-link mt-1">
+                <div class="col-12 dashboard-link mt-1 home-card">
                     <a href="{{ path('accueil_dashboard') }}">
-                        <span class="fas fa-chart-line"></span><p>Tableau de bord</p>
+                        <p>
+                            <i class="fas fa-chart-line"></i>
+                            <span class="bold">Tableau de bord</span>
+                        </p>
                     </a>
                 </div>
                 {#                <div class="col-7 mb-1 mt-1 alerte">#}
