@@ -1,14 +1,9 @@
 $('.select2').select2();
 
-$('#emplacement').select2({
-    placeholder: {
-        id: 0,
-        text: 'Emplacement',
-    }
-});
-
 $(function() {
     initDateTimePicker();
+    initSelect2('#emplacement', 'Emplacement');
+    initSelect2('#statut', 'Statut');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

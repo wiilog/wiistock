@@ -23,6 +23,7 @@ class FiltreSup
 	const FIELD_ANOMALY = 'anomaly';
 	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
 	const FIELD_RECEPTION_STRING = 'reception_string';
+	const FIELD_COMMANDE = 'commande';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -41,6 +42,7 @@ class FiltreSup
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
 	const PAGE_RCPT_TRACA = 'reception_traca';
 	const PAGE_ARTICLE = 'article';
+	const PAGE_URGENCES = 'urgences';
 
     /**
      * @ORM\Id()

@@ -14,6 +14,8 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
+const PAGE_EMPLACEMENT = 'emplacement';
+const PAGE_URGENCES = 'urgences';
 
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
@@ -463,137 +465,6 @@ function updateQuantityDisplay(elem) {
     }
 }
 
-function ajaxAutoCompleteEmplacementInit(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_emplacement'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-    });
-}
-
-function ajaxAutoCompleteTransporteurInit(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_transporteurs'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-    });
-}
-
-let ajaxAutoRefArticleInit = function (select, typeQuantity = null) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_ref_articles', {activeOnly: 1, typeQuantity}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-    });
-};
-
-let ajaxAutoArticlesInit = function (select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_articles', {activeOnly: 1}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-    });
-}
-
-let ajaxAutoArticlesReceptionInit = function(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_article_reception', {reception: $('#receptionId').val()}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-    });
-}
-
-function ajaxAutoFournisseurInit(select, placeholder = '') {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_fournisseur'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 1,
-        placeholder: {
-            text: placeholder,
-        }
-    });
-}
-
 function initFilterDateToday() {
     let $todayMinDate = $('#dateMin');
     let $todayMaxDate = $('#dateMax');
@@ -604,16 +475,26 @@ function initFilterDateToday() {
     }
 }
 
-function ajaxAutoChauffeurInit(select) {
-    select.select2({
+function initSelect2(select, placeholder) {
+    $(select).select2({
+        placeholder: {
+            id: 0,
+            text: placeholder,
+        }
+    });
+}
+
+function ajaxAutoCompleteInit($select, route, lengthMin = 1, params = {}, placeholder = ''){
+    $select.select2({
         ajax: {
-            url: Routing.generate('get_chauffeur'),
+            url: Routing.generate(route, params, true),
             dataType: 'json',
             delay: 250,
         },
         language: {
             inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
+                let s = lengthMin > 1 ? 's' : '';
+                return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
             },
             searching: function () {
                 return 'Recherche en cours...';
@@ -622,92 +503,51 @@ function ajaxAutoChauffeurInit(select) {
                 return 'Aucun résultat.';
             }
         },
-        minimumInputLength: 1,
+        minimumInputLength: lengthMin,
+        placeholder: {
+            text: placeholder,
+        }
     });
+}
+
+function ajaxAutoCompleteEmplacementInit(select) {
+    ajaxAutoCompleteInit(select, 'get_emplacement');
+}
+
+function ajaxAutoCompleteTransporteurInit(select) {
+    ajaxAutoCompleteInit(select, 'get_transporteurs');
+}
+
+function ajaxAutoRefArticleInit(select, typeQuantity = null) {
+    ajaxAutoCompleteInit(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
+};
+
+function ajaxAutoArticlesInit (select) {
+    ajaxAutoCompleteInit(select, 'get_articles', {activeOnly:1});
+}
+
+function ajaxAutoArticlesReceptionInit(select) {
+    ajaxAutoCompleteInit(select, 'get_article_reception', 0, {reception: $('#receptionId').val()});
+}
+
+function ajaxAutoFournisseurInit(select, placeholder = '') {
+    ajaxAutoCompleteInit(select, 'get_fournisseur', 1, {}, placeholder);
+}
+
+function ajaxAutoChauffeurInit(select) {
+    ajaxAutoCompleteInit(select, 'get_chauffeur')
 }
 
 function ajaxAutoUserInit(select, placeholder = '') {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_user'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        minimumInputLength: 1,
-        placeholder: {
-            text: placeholder,
-        }
-    });
-}
-
-function ajaxAutoArticleFournisseurInit(select, placeholder = '') {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_article_fournisseur_autocomplete'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        minimumInputLength: 1,
-        placeholder: {
-            text: placeholder,
-        }
-    });
+    ajaxAutoCompleteInit(select, 'get_user', 1, {}, placeholder);
 }
 
 function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_article_fournisseur_autocomplete', {referenceArticle: ref}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        placeholder: {
-            text: placeholder,
-        }
-    });
+    ajaxAutoCompleteInit(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
 }
 
 function ajaxAutoDemandCollectInit(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_demand_collect'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 3 caractères.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        minimumInputLength: 3,
-        placeholder: {
-            text: 'Numéro demande'
-        }
-    });
+    ajaxAutoCompleteInit(select, 'get_demand_collect', 3, {}, 'Numéro demande');
 }
 
 let toggleRequiredChampsLibres = function (select, require) {

@@ -8,6 +8,7 @@ use App\Entity\Urgence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -30,11 +31,12 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countByArrivageData(Arrivage $arrivage)
     {
         $em = $this->getEntityManager();
@@ -51,7 +53,7 @@ class UrgenceRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByParams($params)
+    public function findByParamsAndFilters($params, $filters)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -61,13 +63,32 @@ class UrgenceRepository extends ServiceEntityRepository
             ->from('App\Entity\Urgence', 'u');
 
         $countTotal = count($qb->getQuery()->getResult());
+
+		// filtres sup
+		foreach ($filters as $filter) {
+			switch ($filter['field']) {
+				case 'commande':
+					$qb->andWhere('u.commande = :commande')
+						->setParameter('commande', $filter['value']);
+					break;
+				case 'dateMin':
+					$qb->andWhere('u.dateEnd >= :dateMin')
+						->setParameter('dateMin', $filter['value'] . " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb->andWhere('u.dateStart <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+			}
+		}
+
         //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('u.commande LIKE :value OR u.dateStart LIKE :value OR u.dateEnd LIKE :value')
+                        ->andWhere('u.commande LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

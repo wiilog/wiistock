@@ -157,7 +157,7 @@ InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tabl
 
 $(function() {
     initDateTimePicker();
-
+    initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     // applique les filtres si pré-remplis
