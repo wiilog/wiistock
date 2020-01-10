@@ -158,7 +158,6 @@
                             </label>
 
                         {% elseif  champLibre.typage == 'number' %}
-                            {{ dump(champLibre.requiredEdit ? 'needed' : '') }}
                             <input type="number" id="{{ champLibre.id ~ 'edit' }}" class="form-control data {{ champLibre.requiredEdit ? 'needed' : '' }}"
                                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                                    name="{{ champLibre.id }}" id="input">
