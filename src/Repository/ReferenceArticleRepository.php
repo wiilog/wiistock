@@ -244,20 +244,20 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = ' . $value);
                             break;
-                        case 'text':
+                        case ChampLibre::TYPE_TEXT:
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
-                        case 'number':
-                        case 'list':
+                        case ChampLibre::TYPE_NUMBER:
+                        case ChampLibre::TYPE_LIST:
                             $qbSub
                                 ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = :value' . $index)
                                 ->setParameter('value' . $index, $filter['value']);
                             break;
-                        case 'date':
+                        case ChampLibre::TYPE_DATE:
                             $date = explode('-', $filter['value']);
                             $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
                             $qbSub
