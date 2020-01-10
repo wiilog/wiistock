@@ -3,25 +3,26 @@
 
 namespace App\Controller;
 
-use App\Entity\DaysWorked;
 use App\Entity\MouvementTraca;
+
 use App\Repository\DaysWorkedRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\EmplacementRepository;
+
 use App\Service\EnCoursService;
+
+use DateInterval;
 use DateTime as DateTimeAlias;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use phpDocumentor\Reflection\Types\Boolean;
-use phpDocumentor\Reflection\Types\Integer;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\EmplacementRepository;
-use App\Repository\MouvementStockRepository;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Validator\Constraints\Date;
 
 class EnCoursController extends AbstractController
 {
@@ -85,6 +86,7 @@ class EnCoursController extends AbstractController
             $emplacement = $this->emplacementRepository->find($data['id']);
             $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
             $mvtGrouped = [];
+
             foreach ($mvtArray as $mvt) {
                 if (isset($mvtGrouped[$mvt->getColis()])
                     && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
@@ -93,9 +95,10 @@ class EnCoursController extends AbstractController
                     $mvtGrouped[$mvt->getColis()] = $mvt;
                 }
             }
+
             foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-					$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
+                	$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
                     $minutesBetween = $this->getMinutesBetween($mvt);
 
                     if (empty($minutesBetween)) {
@@ -144,7 +147,7 @@ class EnCoursController extends AbstractController
                             $retards[] = [
                                 'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
-                                'date' => $dateMvt->format('d/m/Y H:i:s'),
+                                'date' => $dateMvt->format('d/m/Y H:i'),
                                 'emp' => $emplacement->getLabel(),
                             ];
                         }
@@ -168,22 +171,19 @@ class EnCoursController extends AbstractController
     {
         $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
         $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
-            ->add(new \DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
+            ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
 
         $dateMvt = $mvt->getDatetime();
-        $interval = \DateInterval::createFromDateString('1 day');
+        $interval = DateInterval::createFromDateString('1 day');
         $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;
         /**
          * @var $day DateTimeAlias
          */
         foreach ($period as $day) {
-        	if (!$minutes = $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt)) {
-        		return false;
-			} else {
-            	$minutesBetween += $minutes;
-			}
+        	$minutesBetween += $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
         }
+
         return $minutesBetween;
     }
 

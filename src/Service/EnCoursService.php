@@ -263,8 +263,8 @@ class EnCoursService
         $timeHours = floor($minutesBetween / 60);
         $timeMinutes = $minutesBetween % 60;
         $time =
-            ($timeHours < 10 ? ('0' . $timeHours) : $timeHours)
-            . ':' .
+            ($timeHours < 10 ? ($timeHours) : $timeHours)
+            . ' h ' .
             ($timeMinutes < 10 ? ('0' . $timeMinutes) : ($timeMinutes));
         $maxTime = $emplacement->getDateMaxTime();
         $maxTimeHours = intval(explode(':', $maxTime)[0]);
