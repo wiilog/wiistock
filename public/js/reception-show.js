@@ -355,7 +355,6 @@ function InitialiserModalRefArticleFromRecep(modal, submit, path, callback = fun
 }
 
 function afterLoadingEditModal($button) {
-    toggleRequiredChampsLibres($button, 'edit');
     initRequiredChampsFixes($button);
 }
 

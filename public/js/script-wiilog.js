@@ -713,10 +713,9 @@ function ajaxAutoDemandCollectInit(select) {
 
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
-    bloc.find('.data').removeClass('needed');
-
     let params = {};
     if (select.val()) {
+        bloc.find('.data').removeClass('needed');
         params[require] = select.val();
         let path = Routing.generate('display_required_champs_libres', true);
 
