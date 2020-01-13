@@ -102,7 +102,9 @@ class ChampLibreController extends AbstractController
                         'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
-                        'Valeur par défaut' => $champLibre->getTypage() == ChampLibre::TYPE_BOOL ? ($champLibre->getDefaultValue() ? 'oui' : 'non') : $champLibre->getDefaultValue() ?? 'Non défini',
+                        'Valeur par défaut' => ($champLibre->getTypage() == ChampLibre::TYPE_BOOL
+                            ? ($champLibre->getDefaultValue() ? 'oui' : 'non')
+                            : ($champLibre->getDefaultValue() ?? 'Non défini')),
                         'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
                         'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];

@@ -9,7 +9,6 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -210,7 +209,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
                         case 'number':
-                            $qb->andWhere("ra." . $field . " = " . $filter['value']);
+                            $qb
+                                ->andWhere("ra.$field = value$index")
+                                ->setParameter("value$index", $filter['value']);
                             break;
                         case 'list':
                             switch ($field) {
@@ -231,29 +232,30 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
+                    $champLibreLabelAlias = "champLibreLabel_$index";
                     $qbSub = $em->createQueryBuilder();
                     $qbSub
                         ->select('ra' . $index . '.id')
                         ->from('App\Entity\ReferenceArticle', 'ra' . $index)
-                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
+                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
+
+                        ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
+                        ->setParameter($champLibreLabelAlias, $filter['champLibre']);
 
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
                             $value = $filter['value'] == 1 ? '1' : '0';
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = ' . $value);
                             break;
                         case ChampLibre::TYPE_TEXT:
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
                         case ChampLibre::TYPE_NUMBER:
                         case ChampLibre::TYPE_LIST:
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = :value' . $index)
                                 ->setParameter('value' . $index, $filter['value']);
                             break;
@@ -262,8 +264,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 							$date = explode('/', $filter['value']);
 							$formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
 							$qbSub
-								->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-								->andWhere('vcl' . $index . ".valeur LIKE '" . $formattedDated . "'");
+								->andWhere("vcl$index.valeur LIKE :value$index")
+                                ->setParameter("value$index", $formattedDated);
 							break;
                     }
                     $subQueries[] = $qbSub->getQuery()->getResult();
