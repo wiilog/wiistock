@@ -621,7 +621,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
           FROM App\Entity\Article a
           JOIN a.articleFournisseur af
-          WHERE af IN(:articleFournisseur)"
+          WHERE af IN (:articleFournisseur)"
         )->setParameters([
             'articleFournisseur' => $listAf,
         ]);
@@ -694,8 +694,17 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa, a.barCode, ra.reference as reference_article_reference
+            "SELECT a.reference,
+                         e.label as location,
+                         a.label,
+                         (CASE
+                            WHEN a.quantiteAPrelever IS NULL THEN a.quantite
+                            ELSE a.quantiteAPrelever
+                         END) as quantity,
+                         0 as is_ref,
+                         p.id as id_prepa,
+                         a.barCode,
+                         ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.demande d
