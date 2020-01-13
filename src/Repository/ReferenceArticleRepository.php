@@ -258,12 +258,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->setParameter('value' . $index, $filter['value']);
                             break;
                         case ChampLibre::TYPE_DATE:
-                            $date = explode('-', $filter['value']);
-                            $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                                ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
-                            break;
+						case ChampLibre::TYPE_DATETIME:
+							$date = explode('/', $filter['value']);
+							$formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
+							$qbSub
+								->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+								->andWhere('vcl' . $index . ".valeur LIKE '" . $formattedDated . "'");
+							break;
                     }
                     $subQueries[] = $qbSub->getQuery()->getResult();
                 }

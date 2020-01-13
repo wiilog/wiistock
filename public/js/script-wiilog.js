@@ -301,17 +301,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 
-        if ($('#typageModif').val() !== undefined) {   //TODO Moche
-            defaultValueForTypage($('#typageModif'), '-edit');
-        }
-
         toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
         if (editorToInit) initEditor(editor);
 
-        afterLoadingEditModal()
+        afterLoadingEditModal();
     }, 'json');
 
 }
@@ -1061,9 +1057,9 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY') {
     $(dateInput).datetimepicker({
-        format: 'DD/MM/YYYY',
+        format: format,
         useCurrent: false,
         locale: moment.locale(),
         showTodayButton: true,
@@ -1076,7 +1072,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
             clear: 'Supprimer',
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
-            selectDecade: 'Choisir la décénie',
+            selectDecade: 'Choisir la décennie',
         },
     });
 }

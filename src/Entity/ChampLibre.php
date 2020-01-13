@@ -44,6 +44,14 @@ class ChampLibre
             'label' => 'Texte',
         ],
     ];
+    const TYPAGE_ARR = [
+			ChampLibre::TYPE_BOOL => 'Oui/Non',
+			ChampLibre::TYPE_DATE => 'Date',
+			ChampLibre::TYPE_DATETIME => 'Date et heure',
+			ChampLibre::TYPE_LIST => 'Liste',
+			ChampLibre::TYPE_NUMBER => 'Nombre',
+			ChampLibre::TYPE_TEXT => 'Texte'
+	];
     const SPECIC_COLLINS_BL = 'BL';
 
     /**
