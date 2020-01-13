@@ -551,13 +551,17 @@ let toggleRequiredChampsLibres = function (select, require) {
     let params = {};
     if (select.val()) {
         bloc.find('.data').removeClass('needed');
+        bloc.find('span.is-required-label').remove();
         params[require] = select.val();
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    bloc.find('#' + element + require).addClass('needed');
+                    const $formControl = bloc.find('#' + element + require);
+                    const $label = $formControl.siblings('label');
+                    $label.append($('<span class="is-required-label">&nbsp;*</span>'));
+                    $formControl.addClass('needed');
                 });
             }
         }, 'json');

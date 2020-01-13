@@ -174,6 +174,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Quantité disponible' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
 			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
@@ -210,7 +211,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             break;
                         case 'number':
                             $qb
-                                ->andWhere("ra.$field = value$index")
+                                ->andWhere("ra.$field = :value$index")
                                 ->setParameter("value$index", $filter['value']);
                             break;
                         case 'list':
