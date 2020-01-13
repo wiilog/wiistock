@@ -107,11 +107,11 @@ function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite) 
     if (typeQuantite === 'article') {
         $('#quantite').removeClass('needed');
         $('#emplacement').removeClass('needed');
-        $('#type_quantite').val('article');
+        $('.type_quantite').val('article');
     } else {
         $('#quantite').addClass('needed');
         $('#emplacement').addClass('needed');
-        $('#type_quantite').val('reference');
+        $('.type_quantite').val('reference');
     }
 }
 
