@@ -15,6 +15,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -1161,49 +1162,36 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     }
 
     public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->select('referenceArticle.reference as reference')
+            ->addSelect('referenceArticle.quantiteDisponible as quantity')
+            ->addSelect('1 as is_ref');
 
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle.reference as reference,
-                             referenceArticle.quantiteDisponible as quantity,
-                             1 as is_ref
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN referenceArticle.emplacement emplacement
-                JOIN referenceArticle.statut status
-                WHERE emplacement.label = :location
-                  AND referenceArticle.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
-        return $query->execute();
+        return $queryBuilder->getQuery()->execute();
     }
 
     public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->select('referenceArticle');
 
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
+        return $queryBuilder->getQuery()->execute();
+    }
+
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        return $queryBuilder
+            ->join('referenceArticle.emplacement', 'emplacement')
+            ->join('referenceArticle.statut', 'status')
+            ->andWhere('emplacement.label = :location')
+            ->andWhere('referenceArticle.barCode = :barCode')
+            ->andWhere('status.nom = :statusNom')
+            ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('statusNom', ReferenceArticle::STATUT_ACTIF)
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
-        return $query->execute();
     }
 
 	public function getRefTypeQtyArticleByReception($id)
