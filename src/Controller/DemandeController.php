@@ -416,7 +416,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/liste/{reception}-{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @param string|null $reception
      * @param string|null $filter
      * @return Response
