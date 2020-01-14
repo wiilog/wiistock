@@ -14,6 +14,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -643,7 +644,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
 			->setParameters([
 				'statutLabel' => $statutLabel,
 				'user' => $user,
@@ -656,13 +657,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getRefArticleQuery()
+	private function getRefArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 			"SELECT ra.reference,
@@ -1160,52 +1161,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             JOIN v.articleReference a
             WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:ref"
         )->setParameter('ref', $ref);
-
-        return $query->execute();
-    }
-
-    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
-
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle.reference as reference,
-                             referenceArticle.quantiteDisponible as quantity,
-                             1 as is_ref
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN referenceArticle.emplacement emplacement
-                JOIN referenceArticle.statut status
-                WHERE emplacement.label = :location
-                  AND referenceArticle.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
-        return $query->execute();
-    }
-
-    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
-
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
         return $query->execute();
     }

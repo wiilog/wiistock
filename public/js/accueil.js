@@ -10,6 +10,7 @@ function goToFilteredDemande(type, filter){
     }
 
     let params = {
+        reception: 0,
         filter: filter
     };
     let route = Routing.generate(path, params);

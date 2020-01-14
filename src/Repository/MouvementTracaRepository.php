@@ -59,8 +59,8 @@ class MouvementTracaRepository extends ServiceEntityRepository
 	 */
     public function findByDates($dateMin, $dateMax)
     {
-        $dateMinDate = new \DateTime($dateMin);
-        $dateMaxDate = new \DateTime($dateMax);
+        $dateMinDate = $dateMin;
+        $dateMaxDate = $dateMax;
         $dateMaxDate->modify('+1 day');
         $dateMinDate->modify('-1 day');
         $dateMax = $dateMaxDate->format('Y-m-d H:i:s');
