@@ -12,6 +12,7 @@ use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -614,7 +615,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByLivraisonsIds($livraisonsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -626,11 +627,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user
-        ]);
+			WHERE l.id IN (:livraisonsIds)"
+        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }

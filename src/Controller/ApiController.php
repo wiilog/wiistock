@@ -1002,6 +1002,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
         $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt();
 
+        /// livraisons
+        $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+        $livraisonsIds = array_map(function ($livraisonArray) {
+            return $livraisonArray['id'];
+        }, $livraisons);
+        $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
+        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
+
+
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
@@ -1011,8 +1020,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         // get article linked to a ReferenceArticle where type_quantite === 'article'
         $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
 
-        $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
         $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
         $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
@@ -1028,7 +1035,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
-            'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
+            'livraisons' => $livraisons,
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
