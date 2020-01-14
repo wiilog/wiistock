@@ -38,6 +38,7 @@ use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
+use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -347,7 +348,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new \DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
 
                         $mouvementTraca = new MouvementTraca();
                         $mouvementTraca
@@ -365,26 +366,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $articles = $this->articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
                                 /** @var Article|null $article */
                                 $article = count($articles) > 0 ? $articles[0] : null;
-                                if (!isset($article)) {
-                                    $references = $this->referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
-                                    /** @var ReferenceArticle|null $article */
-                                    $article = count($references) > 0 ? $references[0] : null;
-                                }
 
                                 if (isset($article)) {
-                                    $quantiteMouvement = ($article instanceof Article)
-                                        ? $article->getQuantite()
-                                        : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
-
-                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
+                                    $newMouvement = $mouvementStockService->createMouvementStock(
+                                        $nomadUser,
+                                        $location,
+                                        $article->getQuantite(),
+                                        $article,
+                                        MouvementStock::TYPE_TRANSFERT
+                                    );
                                     $mouvementTraca->setMouvementStock($newMouvement);
                                     $entityManager->persist($newMouvement);
-
-                                    $configStatus = ($article instanceof Article)
-                                        ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
-                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
-
-                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
                                     $article->setStatut($status);
                                 }
                             }
@@ -403,15 +396,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $mouvementTraca->setMouvementStock($mouvementStockPrise);
                                     $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
-                                    $article = $mouvementStockPrise->getArticle()
-                                        ? $mouvementStockPrise->getArticle()
-                                        : $mouvementStockPrise->getRefArticle();
-                                    $configStatus = ($article instanceof Article)
-                                        ? [Article::CATEGORIE, Article::STATUT_ACTIF]
-                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
-
-                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
-                                    $article
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+                                    $mouvementStockPrise
+                                        ->getArticle()
                                         ->setStatut($status)
                                         ->setEmplacement($location);
                                 }
@@ -1191,10 +1178,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (!empty($barCode) && !empty($location)) {
                     $statusCode = Response::HTTP_OK;
                     $resData['success'] = true;
-                    $resData['articles'] = array_merge(
-                        $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
-                        $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
-                    );
+                    $resData['articles'] = $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location);
                 }
                 else {
                     $statusCode = Response::HTTP_BAD_REQUEST;
