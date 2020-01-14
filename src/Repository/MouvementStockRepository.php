@@ -91,8 +91,8 @@ class MouvementStockRepository extends ServiceEntityRepository
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{
-		$dateMinDate = new \DateTime($dateMin);
-		$dateMaxDate = new \DateTime($dateMax);
+		$dateMinDate = $dateMin;
+		$dateMaxDate = $dateMax;
 		$dateMaxDate->modify('+1 day');
 		$dateMinDate->modify('-1 day');
 		$dateMax = $dateMaxDate->format('Y-m-d H:i:s');
@@ -414,7 +414,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 						->leftJoin('m.refArticle', 'ra3')
 						->leftJoin('m.emplacementFrom', 'ef3')
 						->leftJoin('m.emplacementTo', 'et3')
-						->leftJoin('m.utilisateur', 'u3')
+						->leftJoin('m.user', 'u3')
 						->andWhere('
 						ra3.reference LIKE :value OR
 						ef3.label LIKE :value OR
