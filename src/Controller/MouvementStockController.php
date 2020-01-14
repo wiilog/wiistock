@@ -136,13 +136,11 @@ class MouvementStockController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . '00:00:00';
-            $dateMax = $data['dateMax'] . '23:59:59';
-            $newDateMin = new DateTime($dateMin);
-            $newDateMax = new DateTime($dateMax);
+            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
+            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
             $mouvements = $this->mouvementStockRepository->findByDates($dateMin, $dateMax);
             foreach($mouvements as $mouvement) {
-                if ($newDateMin > $mouvement->getDate() || $newDateMax < $mouvement->getDate()) {
+                if ($dateMin > $mouvement->getDate() || $dateMax < $mouvement->getDate()) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }
