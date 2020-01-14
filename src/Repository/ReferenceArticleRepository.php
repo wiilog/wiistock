@@ -639,7 +639,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
 			->setParameters([
 				'statutLabel' => $statutLabel,
 				'user' => $user,
@@ -652,13 +652,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getRefArticleQuery()
+	private function getRefArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 			"SELECT ra.reference,
