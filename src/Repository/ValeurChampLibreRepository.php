@@ -403,11 +403,11 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 		return $prepare->fetchAll();
 	}
 
-    /**
-     * @param ReferenceArticle $ref
-     * @return array
-     * @throws DBALException
-     */
+	/**
+	 * @param Article $article
+	 * @return array
+	 * @throws DBALException
+	 */
     public function getLabelCLAndValueByArticle(Article $article)
     {
         $em = $this->getEntityManager()->getConnection();
