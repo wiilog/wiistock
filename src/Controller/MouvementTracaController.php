@@ -134,7 +134,7 @@ class MouvementTracaController extends AbstractController
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
 
-			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
+			$date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
 			$operator = $this->utilisateurRepository->find($post->get('operator'));
@@ -278,14 +278,12 @@ class MouvementTracaController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . '00:00:00';
-            $dateMax = $data['dateMax'] . '23:59:59';
-            $newDateMin = new DateTime($dateMin);
-            $newDateMax = new DateTime($dateMax);
+            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
+            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
             $mouvements = $this->mouvementRepository->findByDates($dateMin, $dateMax);
             foreach($mouvements as $mouvement) {
                 $date = $mouvement->getDatetime();
-                if ($newDateMin >= $date || $newDateMax <= $date) {
+                if ($dateMin >= $date || $dateMax <= $date) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }
