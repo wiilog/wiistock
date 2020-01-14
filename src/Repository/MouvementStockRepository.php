@@ -5,12 +5,15 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
+
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
+
+use Exception;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -84,19 +87,15 @@ class MouvementStockRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param $dateMin
-	 * @param $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return MouvementStock[]
 	 * @throws Exception
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{
-		$dateMinDate = new \DateTime($dateMin);
-		$dateMaxDate = new \DateTime($dateMax);
-		$dateMaxDate->modify('+1 day');
-		$dateMinDate->modify('-1 day');
-		$dateMax = $dateMaxDate->format('Y-m-d H:i:s');
-		$dateMin = $dateMinDate->format('Y-m-d H:i:s');
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			'SELECT m
@@ -113,6 +112,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 	 * @param string[] $types
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByTypes($types, $dateDebut = '', $dateFin = '')
     {

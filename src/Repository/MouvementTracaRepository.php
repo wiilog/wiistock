@@ -4,10 +4,12 @@ namespace App\Repository;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -292,7 +294,6 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-
 	public function countByEmplacement($emplacementId)
 	{
 		$em = $this->getEntityManager();
@@ -303,6 +304,24 @@ class MouvementTracaRepository extends ServiceEntityRepository
             JOIN m.emplacement e
             WHERE e.id = :emplacementId"
 		)->setParameter('emplacementId', $emplacementId);
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param MouvementStock $mouvementStock
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+	public function countByMouvementStock($mouvementStock)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(m)
+            FROM App\Entity\MouvementTraca m
+            WHERE m.mouvementStock = :mouvementStock"
+		)->setParameter('mouvementStock', $mouvementStock);
 		return $query->getSingleScalarResult();
 	}
 }

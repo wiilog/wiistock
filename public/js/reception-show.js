@@ -378,25 +378,6 @@ function submitActionRefArticleFromRecep(modal, path, close) {
     }
 }
 
-
-function ajaxAutoRefArticlesReceptionInit(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_ref_article_reception', {reception: $('#receptionId').val()}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-    });
-}
-
 function clearModalLigneReception(modal) {
     const $modal = $(modal);
     $modal
@@ -415,7 +396,6 @@ function clearModalLigneReception(modal) {
         $select2.select2('data', null);
         $select2.select2('destroy');
     }
-    ajaxAutoRefArticlesReceptionInit($select2);
     $('.packing-title').addClass('d-none');
     clearModal(modal);
 }
@@ -475,9 +455,11 @@ function initNewLigneReception(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initAutocomplete($('.ajax-autocompleteEmplacement'), Routing.generate('get_emplacement'));
-    initAutocomplete($('.select2-type'));
-    initAutocomplete($('.select2-user'), Routing.generate('get_user'));
+    initSelect2Ajax($('.ajax-autocompleteEmplacement'), 'get_emplacement');
+    initSelect2('.select2-type');
+    initSelect2Ajax($('.select2-user'), 'get_user');
+    initSelect2Ajax($('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $(modal).find('input[type="hidden"][name="reception"]').val()},
@@ -571,32 +553,6 @@ function getQuantityErrorModalNewLigneReception() {
         }
     }
     return quantityError;
-}
-
-function initAutocomplete(select, route = null) {
-    if (route) {
-        select.select2({
-            ajax: {
-                url: route,
-                dataType: 'json',
-                delay: 250,
-            },
-            language: {
-                inputTooShort: function () {
-                    return 'Veuillez entrer au moins 1 caractère.';
-                },
-                searching: function () {
-                    return 'Recherche en cours...';
-                },
-                noResults: function () {
-                    return 'Aucun résultat.';
-                }
-            },
-            minimumInputLength: 1
-        });
-    } else {
-        select.select2();
-    }
 }
 
 function removePackingItem($button) {

@@ -273,7 +273,8 @@ class OrdreCollecteService
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
                     $collecteReference->getQuantite(),
-                    $fromNomade
+                    $fromNomade,
+					$ordreCollecte
                 );
 			}
 
@@ -290,7 +291,8 @@ class OrdreCollecteService
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
                     $article->getQuantite(),
-                    $fromNomade
+                    $fromNomade,
+					$ordreCollecte
                 );
 			}
 		}
@@ -377,23 +379,25 @@ class OrdreCollecteService
 		];
 	}
 
-    /**
-     * @param Utilisateur $user
-     * @param ReferenceArticle|Article $article
-     * @param DateTime $date
-     * @param Emplacement $locationFrom
-     * @param Emplacement $locationTo
-     * @param int $quantity
-     * @param bool $fromNomade
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Utilisateur $user
+	 * @param ReferenceArticle|Article $article
+	 * @param DateTime $date
+	 * @param Emplacement $locationFrom
+	 * @param Emplacement $locationTo
+	 * @param int $quantity
+	 * @param bool $fromNomade
+	 * @param OrdreCollecte $ordreCollecte
+	 * @throws NonUniqueResultException
+	 */
     private function persistMouvements(Utilisateur $user,
                                        $article,
                                        DateTime $date,
                                        Emplacement $locationFrom,
                                        Emplacement $locationTo,
                                        int $quantity,
-                                       bool $fromNomade = false): void {
+                                       bool $fromNomade = false,
+									   OrdreCollecte $ordreCollecte): void {
         $mouvementStock = $this->mouvementStockService->createMouvementStock($user, $locationFrom, $quantity, $article, MouvementStock::TYPE_ENTREE);
 
         if ($fromNomade) {
@@ -417,7 +421,8 @@ class OrdreCollecteService
             $this->mouvementStockService->finishMouvementStock($mouvementStock, $date, $locationTo);
         }
 
-        $this->entityManager->persist($mouvementStock);
+		$mouvementStock->setCollecteOrder($ordreCollecte);
+		$this->entityManager->persist($mouvementStock);
 
         if (isset($mouvementTraca)) {
             $this->entityManager->persist($mouvementTraca);

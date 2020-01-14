@@ -70,7 +70,7 @@ class MouvementStock
     private $livraisonOrder;
 
 	/**
-	 * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="mouvements")
+	 * @ORM\ManyToOne(targetEntity="App\Entity\OrdreCollecte", inversedBy="mouvements")
      * @ORM\JoinColumn(name="collecte_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $collecteOrder;
@@ -80,6 +80,12 @@ class MouvementStock
      * @ORM\JoinColumn(name="preparation_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $preparationOrder;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvements")
+	 * @ORM\JoinColumn(name="reception_order_id", referencedColumnName="id", onDelete="CASCADE")
+	 */
+	private $receptionOrder;
 
 	/**
 	 * @ORM\Column(type="text", nullable=true)
@@ -187,12 +193,12 @@ class MouvementStock
         return $this;
     }
 
-    public function getCollecteOrder(): ?Collecte
+    public function getCollecteOrder(): ?OrdreCollecte
     {
         return $this->collecteOrder;
     }
 
-    public function setCollecteOrder(?Collecte $collecteOrder): self
+    public function setCollecteOrder(?OrdreCollecte $collecteOrder): self
     {
         $this->collecteOrder = $collecteOrder;
 
@@ -231,6 +237,18 @@ class MouvementStock
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getReceptionOrder(): ?Reception
+    {
+        return $this->receptionOrder;
+    }
+
+    public function setReceptionOrder(?Reception $receptionOrder): self
+    {
+        $this->receptionOrder = $receptionOrder;
 
         return $this;
     }
