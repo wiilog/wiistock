@@ -692,7 +692,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -705,12 +705,8 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -763,16 +759,13 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	public function getByOrdreCollectesIds($collectesIds)
 	{
 		$em = $this->getEntityManager();
 		//TODO patch temporaire CEA (sur quantité envoyée)
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -781,13 +774,13 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getArticleQuery()
+	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 		"SELECT a.reference,

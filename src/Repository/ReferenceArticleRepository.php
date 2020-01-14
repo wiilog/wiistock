@@ -586,7 +586,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -605,12 +605,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
@@ -633,16 +629,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByOrdreCollectesIds($collectesIds)
 	{
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getRefArticleQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
