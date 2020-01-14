@@ -334,8 +334,8 @@ class LivraisonController extends AbstractController
     public function getLivraisonIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
+            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
             $livraisons = $this->demandeRepository->findByDates($dateMin, $dateMax);
 
             $headers = [];
