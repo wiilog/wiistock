@@ -170,7 +170,8 @@ let startPreparation = function (value) {
                     "language": {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
-                    dom: 'fltir'
+                    dom: 'fltir',
+                    'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous'] ]
                 });
                 $('#startSplitting').click();
             });
