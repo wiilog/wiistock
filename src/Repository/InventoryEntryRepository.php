@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\InventoryEntry;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
@@ -188,6 +189,31 @@ class InventoryEntryRepository extends ServiceEntityRepository
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
+	}
+
+
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return InventoryEntry[]
+	 * @throws Exception
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT ie
+            FROM App\Entity\InventoryEntry ie
+            WHERE ie.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
 	}
 
 

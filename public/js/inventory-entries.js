@@ -117,18 +117,35 @@ $submitSearchEntry.on('click', function () {
 });
 
 function generateCSVEntries () {
-    let path = Routing.generate('get_entries_for_csv', true);
-
-    $.post(path, function(response) {
-        if (response) {
-            let csv = "";
-            $.each(response, function (index, value) {
-                csv += value.join(';');
-                csv += '\n';
-            });
-            mFile(csv);
+    loadSpinner($('#spinnerMouvementStock'));
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
         }
-    }, 'json');
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_entries_for_csv', true);
+
+        $.post(path, params, function(response) {
+            if (response) {
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                mFile(csv);
+                hideSpinner($('#spinnerMouvementStock'));
+            }
+        }, 'json');
+    } else {
+        warningEmptyDatesForCsv();
+        hideSpinner($('#spinnerMouvementStock'));
+    }
 }
 
 let mFile = function (csv) {

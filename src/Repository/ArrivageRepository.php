@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -36,12 +38,15 @@ class ArrivageRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string $dateMin
-     * @param string $dateMax
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
      * @return Arrivage[]|null
      */
     public function findByDates($dateMin, $dateMax)
     {
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT a
@@ -135,12 +140,12 @@ class ArrivageRepository extends ServiceEntityRepository
      * @param $firstDay
      * @param $lastDay
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function countByDays($firstDay, $lastDay)
     {
-        $from = new \DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
-        $to = new \DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
+        $from = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
+        $to = new DateTime(str_replace("/", "-", $lastDay) . " 23:59:59");
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT(a) as count, a.date as date
@@ -159,7 +164,7 @@ class ArrivageRepository extends ServiceEntityRepository
      * @param array|null $filters
      * @param int|null $userId
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function findByParamsAndFilters($params, $filters, $userId)
     {
@@ -295,7 +300,7 @@ class ArrivageRepository extends ServiceEntityRepository
             }
         }
         if ($needsDefaultDateFilter) {
-            $now = new \DateTime('now', New \DateTimeZone('Europe/Paris'));
+            $now = new DateTime('now', New \DateTimeZone('Europe/Paris'));
             $nowToString = $now->format('Y-m-d');
             $qb->andWhere('a.date >= :dateMin')
                 ->setParameter('dateMin', $nowToString . " 00:00:00");

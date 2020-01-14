@@ -96,6 +96,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 	{
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			'SELECT m

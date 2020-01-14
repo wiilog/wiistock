@@ -2,15 +2,16 @@
 
 namespace App\Repository;
 
-use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method MouvementTraca|null find($id, $lockMode = null, $lockVersion = null)
@@ -54,19 +55,16 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @param $dateMin
-	 * @param $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return MouvementTraca[]
-	 * @throws \Exception
+	 * @throws Exception
 	 */
     public function findByDates($dateMin, $dateMax)
     {
-        $dateMinDate = $dateMin;
-        $dateMaxDate = $dateMax;
-        $dateMaxDate->modify('+1 day');
-        $dateMinDate->modify('-1 day');
-        $dateMax = $dateMaxDate->format('Y-m-d H:i:s');
-        $dateMin = $dateMinDate->format('Y-m-d H:i:s');
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         	/** @lang DQL */
@@ -143,7 +141,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @param array|null $params
      * @param array|null $filters
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function findByParamsAndFilters($params, $filters)
     {
