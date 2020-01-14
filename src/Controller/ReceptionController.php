@@ -1694,24 +1694,20 @@ class ReceptionController extends AbstractController
 
             $headers = [];
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date',
-                'type']);
+            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date']);
 
             $data = [];
             $data[] = $headers;
 
             foreach ($receptions as $reception) {
-                $receptionData = [];
-
-                $receptionData[] = $reception->getNumeroReception() ?? '';
-                $receptionData[] = $reception->getReference() ?? '';
-                $receptionData[] = $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '';
-                $receptionData[] = $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '';
-                $receptionData[] = $reception->getStatut() ? $reception->getStatut()->getNom() : '';
-                $receptionData[] = $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '';
-                $receptionData[] = $reception->getType() ? $reception->getType()->getLabel() : '';
-
-                $data[] = $receptionData;
+                $data[] = [
+                    $reception->getNumeroReception() ?? '',
+                    $reception->getReference() ?? '',
+                    $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
+                    $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
+                    $reception->getStatut() ? $reception->getStatut()->getNom() : '',
+                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : ''
+                ];
             }
             return new JsonResponse($data);
         } else {
