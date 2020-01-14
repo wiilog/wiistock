@@ -463,14 +463,14 @@ function initRequiredChampsFixes(button) {
     let path = Routing.generate('get_quantity_type');
 
     $.post(path, JSON.stringify(params), function(data) {
-        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data)
+        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
     }, 'json');
 }
 
 function toggleRequiredChampsFixes(button) {
     clearErrorMsg(button);
     clearInvalidInputs(button);
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'));
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
 }
 
 function submitPlusAndGoToDemande(button) {

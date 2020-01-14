@@ -304,7 +304,7 @@ function articleChanged(select) {
 }
 
 function toggleRequiredChampsFixes(button) {
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'));
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
 }
 
 function initNewReferenceArticleEditor() {

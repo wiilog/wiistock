@@ -103,15 +103,16 @@ function getDataFromModalReferenceArticle(modal) {
     return { Data, missingInputs, wrongNumberInputs, doublonRef };
 }
 
-function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite) {
+function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, $button) {
+    let $modal = $button.closest('.modal');
     if (typeQuantite === 'article') {
-        $('#quantite').removeClass('needed');
-        $('#emplacement').removeClass('needed');
-        $('.type_quantite').val('article');
+        $modal.find('#quantite').removeClass('needed');
+        $modal.find('#emplacement').removeClass('needed');
+        $modal.find('.type_quantite').val('article');
     } else {
-        $('#quantite').addClass('needed');
-        $('#emplacement').addClass('needed');
-        $('.type_quantite').val('reference');
+        $modal.find('#quantite').addClass('needed');
+        $modal.find('#emplacement').addClass('needed');
+        $modal.find('.type_quantite').val('reference');
     }
 }
 

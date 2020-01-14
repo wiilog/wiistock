@@ -5,10 +5,11 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -113,6 +114,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 	 * @param string[] $types
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByTypes($types, $dateDebut = '', $dateFin = '')
     {
