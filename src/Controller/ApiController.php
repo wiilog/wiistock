@@ -1026,9 +1026,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
         $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
-        $articles = $this->articleRepository->getIdRefLabelAndQuantity();
-        $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
         // get article linked to a ReferenceArticle where type_quantite === 'article'
         $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
 
@@ -1039,7 +1036,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => array_merge($articles, $articlesRef),
             'preparations' => $preparations,
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,

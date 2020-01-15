@@ -9,14 +9,12 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -542,18 +540,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         }
 
         return $query->getSingleScalarResult();
-    }
-
-    public function getIdRefLabelAndQuantityByTypeQuantite($typeQuantite)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.typeQuantite = :typeQuantite"
-        )->setParameter('typeQuantite', $typeQuantite);
-        return $query->execute();
     }
 
     public function getTotalQuantityReservedByRefArticle($refArticle)
