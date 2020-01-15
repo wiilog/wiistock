@@ -550,7 +550,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 foreach ($preparations as $preparationArray) {
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
                     if ($preparation) {
-                        // if it has not been begin
+                        // if it has not been begun
                         $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
                         try {
                             $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
