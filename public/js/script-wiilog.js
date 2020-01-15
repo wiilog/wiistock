@@ -301,17 +301,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 
-        if ($('#typageModif').val() !== undefined) {   //TODO Moche
-            defaultValueForTypage($('#typageModif'), '-edit');
-        }
-
         toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
         if (editorToInit) initEditor(editor);
 
-        afterLoadingEditModal()
+        afterLoadingEditModal();
     }, 'json');
 
 }
@@ -568,13 +564,17 @@ let toggleRequiredChampsLibres = function (select, require) {
     let params = {};
     if (select.val()) {
         bloc.find('.data').removeClass('needed');
+        bloc.find('span.is-required-label').remove();
         params[require] = select.val();
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    bloc.find('#' + element + require).addClass('needed');
+                    const $formControl = bloc.find('#' + element + require);
+                    const $label = $formControl.siblings('label');
+                    $label.append($('<span class="is-required-label">&nbsp;*</span>'));
+                    $formControl.addClass('needed');
                 });
             }
         }, 'json');
@@ -1074,9 +1074,9 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY') {
     $(dateInput).datetimepicker({
-        format: 'DD/MM/YYYY',
+        format: format,
         useCurrent: false,
         locale: moment.locale(),
         showTodayButton: true,
@@ -1089,7 +1089,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax') {
             clear: 'Supprimer',
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
-            selectDecade: 'Choisir la décénie',
+            selectDecade: 'Choisir la décennie',
         },
     });
 }

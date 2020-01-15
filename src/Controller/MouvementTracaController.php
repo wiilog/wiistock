@@ -135,7 +135,7 @@ class MouvementTracaController extends AbstractController
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
 
-			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
+			$date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
 			$operator = $this->utilisateurRepository->find($post->get('operator'));

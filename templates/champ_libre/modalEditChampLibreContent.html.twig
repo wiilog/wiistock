@@ -13,8 +13,9 @@
 </div>
 <div class="form-group">
     <label for="typage">Typage</label>
-    <select class="form-control select2 data" name="typage" id='typageModif' onchange="defaultValueForTypage($(this), '-edit'), changeType(this)" disabled>
-        <option value="{{ champLibre.typage }}">{{ champLibre.typage }}</option>
+    <select class="form-control select2 data typageModif" name="typage" disabled
+            data-value="{{ champLibre.defaultValue }}" data-elem="{{ champLibre.elements|join(';') }}">
+        <option value="{{ champLibre.typage }}">{{ typageCL }}</option>
     </select>
 </div>
 <div class="form-group">
@@ -31,38 +32,5 @@
         <span class="slider round"></span>
     </label>
 </div>
-<div id="valueDefault-edit">
-        <!-- Valeur default Booleen -->
-        <div class="form-group" id="booleen-edit">
-            <label for="">Valeur par défaut</label>
-            <label class="switch">
-                <input type="checkbox" class="data checkbox" value="{{champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') ? champLibre.defaultValue : ''}}" name="valeur"
-                {{ champLibre.defaultValue == 1 ? 'checked' : ''  }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <!-- Valeur default Number -->
-        <div class="form-group d-none" id="number-edit">
-            <label for="">Valeur par défaut</label>
-            <input type="number" class="form-control " name="valeur" value="{{champLibre.typage == 'number' ? champLibre.defaultValue : ''}}" required="true">
-        </div>
-
-        <!-- Valeur default Date -->
-        <div class="form-group d-none" id="date-edit">
-            <labe>Valeur par défaut</labe>
-            <input type="date" class="form-control" name="valeur" value="{{champLibre.typage == 'date' ? champLibre.defaultValue : ''}}" required="true">
-        </div>
-
-        <!-- Valeur default Text -->
-        <div class="form-group d-none" id="text-edit">
-            <label>Valeur par défaut</label>
-            <input type="text" class="form-control" name="valeur" value="{{champLibre.typage == 'text' ? champLibre.defaultValue : ''}}" required="true">
-        </div>
-
-        <!-- Valeur default List -->
-        <div class="form-group d-none" id="list-edit">
-            <label>Éléments (séparés par ';')</label>
-            <input type="text" class="form-control" name="elem" value="{{champLibre.typage == 'list' ? champLibre.elements|join(';') : ''}}" required='true'>
-        </div>
-    </div>
+<div class="valueDefault">
+</div>

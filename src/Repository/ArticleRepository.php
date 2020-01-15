@@ -20,6 +20,7 @@ use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -769,7 +770,7 @@ class ArticleRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		//TODO patch temporaire CEA (sur quantité envoyée)
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
+			->createQuery($this->getArticleCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
 			->setParameters([
 				'statutLabel' => $statutLabel,
 				'user' => $user,
@@ -782,13 +783,13 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getArticleQuery()
+	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 		"SELECT a.reference,
@@ -1002,44 +1003,34 @@ class ArticleRepository extends ServiceEntityRepository
     }
 
 	public function findArticleByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->addSelect('article');
 
-        $query = $em
-            ->createQuery(
-                "SELECT article
-                FROM App\Entity\Article article
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', Article::STATUT_ACTIF);
-
-        return $query->execute();
+        return $queryBuilder->getQuery()->execute();
     }
 
 	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->select('article.reference as reference')
+            ->addSelect('article.quantite as quantity')
+            ->addSelect('0 as is_ref');
 
-        $query = $em
-            ->createQuery(
-                "SELECT article.reference as reference,
-                             article.quantite as quantity,
-                             0 as is_ref
-                FROM App\Entity\Article article
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status"
-            )
+        return $queryBuilder->getQuery()->execute();
+    }
+
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('article');
+        return $queryBuilder
+            ->join('article.emplacement', 'emplacement')
+            ->join('article.statut', 'status')
+            ->andWhere('emplacement.label = :location')
+            ->andWhere('article.barCode = :barCode')
+            ->andWhere('status.nom = :statusNom')
+// TODO AB            ->andWhere('article.quantite IS NOT NULL AND article.quantite > 0')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('status', Article::STATUT_ACTIF);
-
-        return $query->execute();
+            ->setParameter('statusNom', Article::STATUT_ACTIF);
     }
 }
