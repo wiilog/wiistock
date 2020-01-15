@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Litiges arrivage{% endblock %}
+{% block title %}Litiges {{ 'arrivage.arrivages'|trans }}{% endblock %}
 
 {% block page_filter %}
     {{ parent() }}
@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Litiges sur arrivages</h1>
+    <h1>Litiges sur {{ 'arrivage.arrivages'|trans }}</h1>
 
     <div class="row">
         <div class="btn btn-primary" onclick='generateCSVLitigeArrivage()'>
@@ -28,6 +28,7 @@
 
     {% include 'arrivage/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig' %}
+    <input hidden id="trans-arrivage" value="{{ "arrivage.d'arrivage"|trans }}">
 {% endblock %}
 
 {% block javascripts %}
