@@ -14,7 +14,8 @@ final class Version20200114101637 extends AbstractMigration
 {
     public function getDescription() : string
     {
-        return 'Is used to delete the duplicates from the articleFournisseur table. It takes care of the foreign keys in the article table';
+        return 'Is used to delete the duplicates from the articleFournisseur table. It takes care of the foreign keys in the article table,
+        it also deletes empty collect orders.';
     }
 
     public function up(Schema $schema) : void
@@ -38,7 +39,8 @@ final class Version20200114101637 extends AbstractMigration
 
         // Then delete unused duplicates
         $this->addSql("
-            DELETE a FROM article_fournisseur AS a
+            DELETE a
+            FROM article_fournisseur AS a
             LEFT OUTER JOIN
             (
                  SELECT
@@ -52,6 +54,23 @@ final class Version20200114101637 extends AbstractMigration
                  af.label
             ) AS tableToKeep ON tableToKeep.IdToKeep = a.id
             WHERE tableToKeep.IdToKeep IS NULL
+        ");
+
+        $this->addSql("
+            DELETE oc
+            FROM ordre_collecte oc
+            WHERE
+            (
+                SELECT COUNT(*)
+                FROM article_ordre_collecte aoc
+                WHERE aoc.ordre_collecte_id = oc.id
+            ) = 0
+            AND
+            (
+                SELECT COUNT(*)
+                FROM ordre_collecte_reference ocr
+                WHERE ocr.ordre_collecte_id = oc.id
+            ) = 0
         ");
     }
 
