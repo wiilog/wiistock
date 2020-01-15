@@ -447,17 +447,17 @@ function typeChoice(bloc, text, content) {
     $('#' + cible + text).addClass('d-block');
 }
 
-function updateQuantityDisplay(elem) {
-    let typeQuantite = $('#type_quantite').val();
-    let modalBody = elem.closest('.modal-body');
+function updateQuantityDisplay($elem) {
+    let $modalBody = $elem.closest('.modal-body');
+    let typeQuantite = $modalBody.find('.type_quantite').val();
 
     if (typeQuantite == 'reference') {
-        modalBody.find('.article').addClass('d-none');
-        modalBody.find('.reference').removeClass('d-none');
+        $modalBody.find('.article').addClass('d-none');
+        $modalBody.find('.reference').removeClass('d-none');
 
     } else if (typeQuantite == 'article') {
-        modalBody.find('.reference').addClass('d-none');
-        modalBody.find('.article').removeClass('d-none');
+        $modalBody.find('.reference').addClass('d-none');
+        $modalBody.find('.article').removeClass('d-none');
     }
 }
 
