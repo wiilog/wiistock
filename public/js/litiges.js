@@ -68,7 +68,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° d'arrivage"},
+        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° " + $('#trans-arrivage').val()},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
