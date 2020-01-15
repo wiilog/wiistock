@@ -60,10 +60,16 @@ class OrdreCollecte
      */
     private $ordreCollecteReferences;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
+	 */
+	private $mouvements;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
 
@@ -185,6 +191,37 @@ class OrdreCollecte
             // set the owning side to null (unless already changed)
             if ($ordreCollecteReference->getOrdreCollecte() === $this) {
                 $ordreCollecteReference->setOrdreCollecte(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setCollecteOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getCollecteOrder() === $this) {
+                $mouvement->setCollecteOrder(null);
             }
         }
 

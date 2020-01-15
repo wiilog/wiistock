@@ -281,37 +281,6 @@ class Collecte
     }
 
     /**
-     * @return Collection|MouvementStock[]
-     */
-    public function getMouvements(): Collection
-    {
-        return $this->mouvements;
-    }
-
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
-            $this->mouvements[] = $mouvement;
-            $mouvement->setCollecteOrder($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
-            $this->mouvements->removeElement($mouvement);
-            // set the owning side to null (unless already changed)
-            if ($mouvement->getCollecteOrder() === $this) {
-                $mouvement->setCollecteOrder(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampLibre(): Collection
@@ -378,6 +347,37 @@ class Collecte
             // set the owning side to null (unless already changed)
             if ($ordreCollecte->getDemandeCollecte() === $this) {
                 $ordreCollecte->setDemandeCollecte(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setCollecteOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getCollecteOrder() === $this) {
+                $mouvement->setCollecteOrder(null);
             }
         }
 

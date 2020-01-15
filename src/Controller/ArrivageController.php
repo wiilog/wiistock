@@ -35,6 +35,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 
+use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -231,7 +232,7 @@ class ArrivageController extends AbstractController
             $post = $request->request;
             $em = $this->getDoctrine()->getManager();
 
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
             $arrivage = new Arrivage();
@@ -697,14 +698,18 @@ class ArrivageController extends AbstractController
     public function getArrivageIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
-            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
-            $arrivages = $this->arrivageRepository->findByDates($dateMin, $dateMax);
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $arrivages = $this->arrivageRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
             // en-têtes champs fixes
             $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'commentaire', 'date', 'utilisateur']);
+                'n° commande/BL', 'acheteurs', 'statut', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
@@ -789,7 +794,7 @@ class ArrivageController extends AbstractController
             $litige
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
-                ->setCreationDate(new \DateTime('now'));
+                ->setCreationDate(new DateTime('now'));
 
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
@@ -810,7 +815,7 @@ class ArrivageController extends AbstractController
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
-                    ->setDate(new \DateTime('now'))
+                    ->setDate(new DateTime('now'))
                     ->setComment($commentaire)
                     ->setLitige($litige)
                     ->setUser($this->getUser());
@@ -1002,7 +1007,7 @@ class ArrivageController extends AbstractController
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
             $litige
-                ->setUpdateDate(new \DateTime('now'))
+                ->setUpdateDate(new DateTime('now'))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')));
 
@@ -1046,7 +1051,7 @@ class ArrivageController extends AbstractController
                 $histoLitige = new LitigeHistoric();
                 $histoLitige
                     ->setLitige($litige)
-                    ->setDate(new \DateTime('now'))
+                    ->setDate(new DateTime('now'))
                     ->setUser($this->getUser())
                     ->setComment($comment);
                 $em->persist($histoLitige);
