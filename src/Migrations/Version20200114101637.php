@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Service\SpecificService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20200114101637 extends AbstractMigration
+final class Version20200114101637 extends AbstractMigration implements ContainerAwareInterface
 {
+    use ContainerAwareTrait;
+
     public function getDescription() : string
     {
-        return 'Is used to delete the duplicates from the articleFournisseur table. It takes care of the foreign keys in the article table,
-        it also deletes empty collect orders.';
+        return 'Is used to delete the duplicates from the articleFournisseur table. It takes care of the foreign keys in the article table.
+        it also deletes empty collect orders and copies the mail field into the username field for the utilisateur table.';
     }
 
     public function up(Schema $schema) : void
@@ -72,6 +77,13 @@ final class Version20200114101637 extends AbstractMigration
                 WHERE ocr.ordre_collecte_id = oc.id
             ) = 0
         ");
+        $specificService = $this->container->get('wiistock.specific_service');
+        $isCea = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
+        if ($isCea) {
+            $this->addSql(
+                "UPDATE utilisateur u SET u.username = u.email"
+            );
+        }
     }
 
     public function down(Schema $schema) : void

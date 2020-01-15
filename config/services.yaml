@@ -31,6 +31,10 @@ services:
         arguments:
             $targetDirectory: '%cards_directory%'
 
+    wiistock.specific_service:
+        class: App\Service\SpecificService
+        public: true
+
     App\EventListener\CardUploadListener:
         tags:
             - { name: doctrine.event_listener, event: prePersist }
