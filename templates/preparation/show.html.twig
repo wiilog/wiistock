@@ -3,6 +3,7 @@
 {% block title %}Préparation{% endblock %}
 
 {% block page_content %}
+
     <div class="row">
         <div class="col">
             <h1>Préparation</h1>
@@ -43,27 +44,14 @@
 
     <div class="row">
         <div class="col text-right">
-            <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
-                Ajouter un article</a> -->
-            {% if finished %}
+            {% if isPrepaEditable %}
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
                        data-toggle='modal'>Supprimer</a>
-
-                    {% if statut %}
-                        {% if demande %}
-                            <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
-                                    class="btn btn-primary btn-action ml-auto">Commencer la préparation
-                            </button>
-                        {% endif %}
-                        <button id="finishPreparation" data-toggle="modal" data-target="#modalSubmitPreparation"
-                           onclick="clearEmplacementModal()"
-                           class="btn btn-primary btn-action ml-auto d-none">Valider</button>
-                    {% else %}
                         <button id="finishPreparation" data-toggle="modal" data-target="#modalSubmitPreparation"
                                 onclick="clearEmplacementModal()"
-                           class="btn btn-primary btn-action ml-auto">Valider</button>
-                    {% endif %}
+                           class="btn btn-primary btn-action ml-auto">Finir la préparation
+                        </button>
                 {% endif %}
             {% endif %}
         </div>
@@ -76,16 +64,19 @@
 
     <a href="{{ path('preparation_index') }}" class="btn">Retour à la liste</a>
     <button class="btn" id="startSplitting" data-target='#modalSplitting' data-toggle='modal' hidden></button>
+    <input hidden id="prepa-id" value="{{ preparation.id }}">
 
     {% include 'preparation/modalDeleteArticle.html.twig' %}
     {% include 'preparation/modalNewArticle.html.twig' %}
     {% include 'preparation/modalDeletePreparation.html.twig' %}
     {% include 'preparation/modalSubmitPreparation.html.twig' %}
+    {% include 'preparation/modalEditLigneArticle.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}
-<div id="splittingContent">
-    {% include 'preparation/modalSplitting.html.twig' with {'index' : 0, 'reference' : '', 'articles' : [], 'quantite' : 0, 'referenceId' : ''} %}
-</div>
+
+    <div id="splittingContent">
+        {% include 'preparation/modalSplitting.html.twig' with {'index' : 0, 'reference' : '', 'articles' : [], 'quantite' : 0, 'referenceId' : ''} %}
+    </div>
 
 
 {% endblock %}

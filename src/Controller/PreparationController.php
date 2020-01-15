@@ -256,52 +256,83 @@ class PreparationController extends AbstractController
     }
 
 
-    /**
-     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function lignePreparationApi(Request $request, $id): Response
+	/**
+	 * @Route("/api_article/{id}/{prepaId}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param Request $request
+	 * @param $id
+	 * @param $prepaId
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function apiLignePreparation(Request $request, $id, $prepaId): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest())
         {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $demande = $this->demandeRepository->find($id);
+            $preparation = $this->preparationRepository->find($prepaId);
+            $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+            $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+
             if ($demande) {
                 $rows = [];
 
                 $lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
                 foreach ($lignesArticles as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
+                    $isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-                    $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                    $qtt = $isRefByRef ?
                         $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
 
+
                     $rows[] = [
-                        "Référence" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
-                        "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
-                        "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
+                        "Référence" => $articleRef ? $articleRef->getReference() : ' ',
+                        "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
+                        "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
                         "Quantité" => $qtt,
-                        "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
+                        "Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
+                        "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'refArticleId' => $ligneArticle->getReference()->getId(),
-                        ])
+                            'barcode' => $articleRef->getBarCode(),
+							'demandeId' => $id,
+							'isRef' => true,
+							'isRefByRef' => $isRefByRef,
+							'quantity' => $qtt,
+							'id' => $ligneArticle->getId(),
+							'isPrepaEditable' => $isPrepaEditable,
+							'active' => !empty($ligneArticle->getQuantitePrelevee())
+						])
                     ];
                 }
 
                 $articles = $this->articleRepository->findByDemande($demande);
-                foreach ($articles as $ligneArticle) {
+                foreach ($articles as $article) {
+                	if (empty($article->getQuantiteAPrelever())) {
+                		$article->setQuantiteAPrelever($article->getQuantite());
+                		$this->getDoctrine()->getManager()->flush();
+					}
                     $rows[] = [
-                        "Référence" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
-                        "Emplacement" => $ligneArticle->getEmplacement() ? $ligneArticle->getEmplacement()->getLabel() : '',
-                        "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
-                        "Quantité à prélever" => $ligneArticle->getQuantiteAPrelever() ? $ligneArticle->getQuantiteAPrelever() : '',
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'id' => $ligneArticle->getId()
-                        ])
+                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                        "Quantité" => $article->getQuantite() ?? '',
+                        "Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
+						"Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
+						"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'barcode' => $article->getBarCode(),
+							'demandeId' => $id,
+							'isRef' => false,
+							'isRefByRef' => false,
+							'quantity' => $article->getQuantiteAPrelever(),
+							'id' => $article->getId(),
+							'isPrepaEditable' => $isPrepaEditable,
+							'active' => !empty($article->getQuantitePrelevee())
+						])
                     ];
                 }
 
@@ -323,12 +354,13 @@ class PreparationController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+
         return $this->render('preparation/show.html.twig', [
             'demande' => $this->demandeRepository->findOneByPreparation($preparation),
             'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
-            'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
-            'finished' => $preparation->getStatut() ? ($preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE) : false,
+			'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
         ]);
     }
@@ -368,27 +400,24 @@ class PreparationController extends AbstractController
      */
     public function startSplitting(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeRepository->find($data['demande']);
-            $response = [];
-            $key = 0;
-            foreach ($demande->getLigneArticle() as $ligneArticle) {
-                $refArticle = $ligneArticle->getReference();
-                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-                if ($ligneArticle->getToSplit()) {
-                    $response['prepas'][] = $this->renderView('preparation/modalSplitting.html.twig', [
-                        'reference' => $refArticle->getReference(),
-                        'referenceId' => $refArticle->getId(),
-                        'articles' => $articles,
-                        'index' => $key,
-                        'quantite' => $ligneArticle->getQuantite(),
-                        'preparation' => $ligneArticle->getDemande()->getPreparation(),
-                        'demande' => $ligneArticle->getDemande()
-                    ]);
-                    $key++;
-                }
-            }
+        if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
+
+        	$ligneArticle = $this->ligneArticleRepository->find($ligneArticleId);
+
+			$refArticle = $ligneArticle->getReference();
+			$statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+			$articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+			$demande = $ligneArticle->getDemande();
+
+			$response = $this->renderView('preparation/modalSplitting.html.twig', [
+				'reference' => $refArticle->getReference(),
+				'referenceId' => $refArticle->getId(),
+				'articles' => $articles,
+				'quantite' => $ligneArticle->getQuantite(),
+				'preparation' => $demande ? $demande->getPreparation() : null,
+				'demande' => $demande
+			]);
+
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
@@ -405,7 +434,7 @@ class PreparationController extends AbstractController
 				$totalQuantity += $quantity;
 			}
 
-			if ($totalQuantity == $data['quantite']) {
+			if ($totalQuantity <= $data['quantite']) {
 				$em = $this->getDoctrine()->getManager();
 				$demande = $this->demandeRepository->find($data['demande']);
 				$i = 0;
@@ -413,6 +442,7 @@ class PreparationController extends AbstractController
 					$article = $this->articleRepository->find($idArticle);
 					if ($quantite !== '' && $quantite > 0) {
 						$article->setQuantiteAPrelever($quantite);
+						$article->setQuantitePrelevee($quantite);
 						$article->setDemande($demande);
 					}
 					$i++;
@@ -483,4 +513,63 @@ class PreparationController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+
+	/**
+	 * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"})
+	 */
+	public function editLigneArticle(Request $request): Response
+	{
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+			return $this->redirectToRoute('access_denied');
+		}
+
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($data['isRef']) {
+				$ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
+			} else {
+				$ligneArticle = $this->articleRepository->find($data['ligneArticle']);
+			}
+
+			if (isset($data['quantite'])) $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0)); // protection contre quantités négatives
+
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse();
+		}
+		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"} )
+	 */
+	public function apiEditLigneArticle(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			if ($data['ref']) {
+				$ligneArticle = $this->ligneArticleRepository->find($data['id']);
+			} else {
+				$ligneArticle = $this->articleRepository->find($data['id']);
+			}
+
+			if ($ligneArticle) {
+				$json = $this->renderView(
+					'preparation/modalEditLigneArticleContent.html.twig',
+					[
+						'ligneArticle' => $ligneArticle,
+						'isRef' => $data['ref']
+					]
+				);
+			} else {
+				$json = false;
+			}
+
+			return new JsonResponse($json);
+		}
+		throw new NotFoundHttpException("404");
+	}
 }

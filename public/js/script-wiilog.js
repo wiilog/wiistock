@@ -280,12 +280,11 @@ function showRow(button, path, modal) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}) {
-
     let id = button.data('id');
     let ref = button.data('ref');
 
     let json = {id: id, isADemand: 0};
-    if (ref != false) {
+    if (ref !== false) {
         json.ref = ref;
     }
 
