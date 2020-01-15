@@ -14,6 +14,7 @@ use App\Entity\Utilisateur;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -691,7 +692,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -704,12 +705,8 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -745,7 +742,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByLivraisonsIds($livraisonsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -756,25 +753,19 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user
-        ]);
+			WHERE l.id IN (:livraisonsIds)"
+        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
 
-	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	public function getByOrdreCollectesIds($collectesIds)
 	{
 		$em = $this->getEntityManager();
 		//TODO patch temporaire CEA (sur quantité envoyée)
 		$query = $em
-			->createQuery($this->getArticleCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}

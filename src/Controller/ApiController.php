@@ -550,7 +550,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 foreach ($preparations as $preparationArray) {
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
                     if ($preparation) {
-                        // if it has not been begin
+                        // if it has not been begun
                         $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
                         try {
                             $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
@@ -1002,20 +1002,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
         $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt();
 
-        $articles = $this->articleRepository->getIdRefLabelAndQuantity();
-        $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+        /// livraisons
+        $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+        $livraisonsIds = array_map(function ($livraisonArray) {
+            return $livraisonArray['id'];
+        }, $livraisons);
+        $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
+        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
-        $articlesPrepa = $this->articleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
-        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
+        /// preparations
+        $preparations = $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes);
+        $preparationsIds = array_map(function ($preparationArray) {
+            return $preparationArray['id'];
+        }, $preparations);
+        $articlesPrepa = $this->articleRepository->getByPreparationsIds($preparationsIds);
+        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationsIds($preparationsIds);
+
+        /// collecte
+        $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $collectesIds = array_map(function ($collecteArray) {
+            return $collecteArray['id'];
+        }, $collectes);
+        $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
         // get article linked to a ReferenceArticle where type_quantite === 'article'
         $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
-
-        $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-
-        $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -1024,13 +1036,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => array_merge($articles, $articlesRef),
-            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
+            'preparations' => $preparations,
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
-            'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
+            'livraisons' => $livraisons,
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-            'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
+            'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
