@@ -1169,7 +1169,8 @@ class ReferenceArticleController extends AbstractController
                 'articles fournisseurs',
                 'seuil securite',
                 'seuil alerte',
-                'prix unitaire'
+                'prix unitaire',
+                'code barre'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1212,6 +1213,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitSecurity());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {

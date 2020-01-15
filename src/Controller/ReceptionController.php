@@ -452,7 +452,7 @@ class ReceptionController extends AbstractController
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
                         'valeurChampLibre' => $valeurChampReception,
-						'requiredEdit' => $champLibre->getRequiredEdit()
+                        'requiredEdit' => $champLibre->getRequiredEdit()
                     ];
                 }
 
@@ -565,7 +565,7 @@ class ReceptionController extends AbstractController
 
         $fields = array_reduce(
             $fieldsParam,
-            function(array $acc, $field) {
+            function (array $acc, $field) {
                 $acc[$field['fieldCode']] = [
                     'mustToCreate' => $field['mustToCreate'],
                     'mustToModify' => $field['mustToModify'],
@@ -596,8 +596,8 @@ class ReceptionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
                 $entityManager->remove($receptionArticle);
+                $this->articleRepository->setNullByReception($receptionArticle);
             }
-            $this->articleRepository->setNullByReception($reception);
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
@@ -1421,10 +1421,10 @@ class ReceptionController extends AbstractController
             $nbArticles = $this->receptionReferenceArticleRepository->countArticlesByRRA($id);
             if ($nbArticles == 0) {
                 $delete = true;
-				$html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
+                $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-				$html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -1464,7 +1464,7 @@ class ReceptionController extends AbstractController
                     foreach ($recepRef->getArticles() as $article) {
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
                         $wantedIndex = 0;
-                        foreach($articles as $key => $articleWithCL) {
+                        foreach ($articles as $key => $articleWithCL) {
                             if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                                 $wantedIndex = $key;
                                 break;
@@ -1616,7 +1616,7 @@ class ReceptionController extends AbstractController
                         $em->flush();
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($toInsert->getId());
                         $wantedIndex = 0;
-                        foreach($articles as $key => $articleWithCL) {
+                        foreach ($articles as $key => $articleWithCL) {
                             if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                                 $wantedIndex = $key;
                                 break;
@@ -1694,24 +1694,75 @@ class ReceptionController extends AbstractController
 
             $headers = [];
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date']);
+            $headers = array_merge($headers,
+                [
+                    'n° réception',
+                    'n° de commande',
+                    'fournisseur',
+                    'utilisateur',
+                    'statut',
+                    'date',
+
+
+                    'Quantité à recevoir',
+                    'Quantité reçu',
+                    'reference',
+                    'libelle',
+                    'quantité',
+                    'type',
+                    'code barre'
+                ]);
 
             $data = [];
             $data[] = $headers;
 
             foreach ($receptions as $reception) {
+                $this->buildInfos($reception, $data);
+            }
+            dump($data);
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    private function buildInfos(Reception $reception, &$data)
+    {
+        foreach ($reception->getReceptionReferenceArticles() as $receptionReferenceArticle) {
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+            $data[] = [
+                $reception->getNumeroReception() ?? '',
+                $reception->getReference() ?? '',
+                $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
+                $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
+                $reception->getStatut() ? $reception->getStatut()->getNom() : '',
+                $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                $receptionReferenceArticle->getQuantiteAR(),
+                $receptionReferenceArticle->getQuantite(),
+                $referenceArticle->getReference(),
+                $referenceArticle->getLibelle(),
+                $referenceArticle->getQuantiteStock(),
+                $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
+                $referenceArticle->getBarCode(),
+            ];
+            $articles = $receptionReferenceArticle->getArticles();
+            foreach ($articles as $article) {
                 $data[] = [
                     $reception->getNumeroReception() ?? '',
                     $reception->getReference() ?? '',
                     $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
                     $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                     $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : ''
+                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                    $receptionReferenceArticle->getQuantiteAR(),
+                    $receptionReferenceArticle->getQuantite(),
+                    $article->getReference(),
+                    $article->getLabel(),
+                    $article->getQuantite(),
+                    $article->getType() ? $article->getType()->getLabel() : '',
+                    $article->getBarCode(),
                 ];
             }
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
         }
     }
 
@@ -1775,7 +1826,7 @@ class ReceptionController extends AbstractController
                 $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
                 $wantedIndex = 0;
-                foreach($articles as $key => $articleWithCL) {
+                foreach ($articles as $key => $articleWithCL) {
                     if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                         $wantedIndex = $key;
                         break;

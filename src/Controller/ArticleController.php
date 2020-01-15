@@ -954,7 +954,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
@@ -979,6 +979,7 @@ class ArticleController extends AbstractController
         $refData[] = $article->getStatut() ? $this->CSVExportService->escapeCSV($article->getStatut()->getNom()) : '';
         $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
         $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
+        $refData[] = $this->CSVExportService->escapeCSV($article->getBarCode());
         $champsLibres = [];
         foreach ($listTypes as $type) {
             $typeArticle = $this->typeRepository->find($type['id']);
