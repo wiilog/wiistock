@@ -100,6 +100,8 @@ $(function() {
                     $('#demandCollect').append(option).trigger('change');
                 }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
                     $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                } else if (element.field == 'statut') {
+                    $('#' + element.field).val(element.value).select2();
                 } else {
                     $('#' + element.field).val(element.value);
                 }

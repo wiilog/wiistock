@@ -92,9 +92,10 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'UPDATE App\Entity\Article a
-            SET a.reception = null
-            WHERE a.reception = :id'
+            '
+            UPDATE App\Entity\Article a
+            SET a.receptionReferenceArticle = null
+            WHERE a.receptionReferenceArticle = :id'
         )->setParameter('id', $id);
         return $query->execute();
     }

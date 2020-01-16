@@ -10,6 +10,8 @@ $(function() {
     let params = JSON.stringify(PAGE_MVT_STOCK);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
+            console.log(element);
+
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');

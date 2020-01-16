@@ -23,8 +23,8 @@ $(function () {
                 let username = valueArray[1];
                 let option = new Option(username, id, true, true);
                 $reference.append(option).trigger('change');
-            } else if (element.field == 'emplacement') {
-                $('#emplacement').val(element.value).select2();
+            } else if (element.field == 'statut' || element.field == 'emplacement') {
+                $('#' + element.field).val(element.value).select2();
             }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
