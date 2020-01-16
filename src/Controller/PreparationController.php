@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -580,7 +581,10 @@ class PreparationController extends AbstractController
 			$preparation = $this->preparationRepository->find($prepaId);
 
 			if ($preparation) {
-				$preparation->setUtilisateur($this->getUser());
+				$statusInProgress = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+				$preparation
+					->setStatut($statusInProgress)
+					->setUtilisateur($this->getUser());
 				$this->getDoctrine()->getManager()->flush();
 			}
 
