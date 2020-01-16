@@ -312,28 +312,30 @@ class PreparationController extends AbstractController
 
 				$articles = $this->articleRepository->findByDemande($demande);
 				foreach ($articles as $article) {
-					if (empty($article->getQuantiteAPrelever())) {
-						$article->setQuantiteAPrelever($article->getQuantite());
-						$this->getDoctrine()->getManager()->flush();
-					}
-					$rows[] = [
-						"Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-						"Libellé" => $article->getLabel() ? $article->getLabel() : '',
-						"Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-						"Quantité" => $article->getQuantite() ?? '',
-						"Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
-						"Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
-						"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-							'barcode' => $article->getBarCode(),
-							'demandeId' => $id,
-							'isRef' => false,
-							'isRefByRef' => false,
-							'quantity' => $article->getQuantiteAPrelever(),
-							'id' => $article->getId(),
-							'isPrepaEditable' => $isPrepaEditable,
-							'active' => !empty($article->getQuantitePrelevee())
-						])
-					];
+				    if (!($article->getQuantite() === 0 && $preparationStatut === Preparation::STATUT_PREPARE)) {
+                        if (empty($article->getQuantiteAPrelever())) {
+                            $article->setQuantiteAPrelever($article->getQuantite());
+                            $this->getDoctrine()->getManager()->flush();
+                        }
+                        $rows[] = [
+                            "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                            "Quantité" => $article->getQuantite() ?? '',
+                            "Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
+                            "Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
+                            "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                'barcode' => $article->getBarCode(),
+                                'demandeId' => $id,
+                                'isRef' => false,
+                                'isRefByRef' => false,
+                                'quantity' => $article->getQuantiteAPrelever(),
+                                'id' => $article->getId(),
+                                'isPrepaEditable' => $isPrepaEditable,
+                                'active' => !empty($article->getQuantitePrelevee())
+                            ])
+                        ];
+                    }
 				}
 
 				$data['data'] = $rows;

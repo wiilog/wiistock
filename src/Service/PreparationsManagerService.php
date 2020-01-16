@@ -323,7 +323,11 @@ class PreparationsManagerService {
             if (!$mouvementAlreadySaved) {
 //                $quantiteAPrelever = $article->getQuantiteAPrelever() ?? $article->getQuantite();
                 $quantitePrelevee = $article->getQuantitePrelevee();
-                $article->setStatut($statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $selected = !(!$quantitePrelevee || $quantitePrelevee === 0);
+                $article->setStatut(
+                    $statutRepository->findOneByCategorieNameAndStatutName(
+                        Article::CATEGORIE,
+                        $selected ? Article::STATUT_EN_TRANSIT : Article::STATUT_ACTIF));
                 // scission des articles dont la quantité prélevée n'est pas totale
                 if ($article->getQuantite() !== $quantitePrelevee) {
                     $newArticle = [
@@ -332,30 +336,36 @@ class PreparationsManagerService {
                         'prix' => $article->getPrixUnitaire(),
                         'conform' => !$article->getConform(),
                         'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getQuantitePrelevee(),
+                        'quantite' => $selected ? $article->getQuantite() - $article->getQuantitePrelevee() : 0,
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => Article::STATUT_ACTIF,
+                        'statut' => $selected ? Article::STATUT_ACTIF : Article::STATUT_INACTIF,
                         'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getReference()
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
                         $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
                     }
-                    $this->articleDataService->newArticle($newArticle);
-
-                    $article->setQuantite($quantitePrelevee);
+                    $insertedArticle = $this->articleDataService->newArticle($newArticle);
+                    if ($selected) {
+                        $article->setQuantite($quantitePrelevee);
+                    } else {
+                        $demande->addArticle($insertedArticle);
+                        $demande->removeArticle($article);
+                    }
                 }
 
-                // création des mouvements de préparation pour les articles
-                $mouvement = new MouvementStock();
-                $mouvement
-                    ->setUser($user)
-                    ->setArticle($article)
-                    ->setQuantity($quantitePrelevee)
-                    ->setEmplacementFrom($article->getEmplacement())
-                    ->setType(MouvementStock::TYPE_TRANSFERT)
-                    ->setPreparationOrder($preparation);
-                $this->entityManager->persist($mouvement);
+                if ($selected) {
+                    // création des mouvements de préparation pour les articles
+                    $mouvement = new MouvementStock();
+                    $mouvement
+                        ->setUser($user)
+                        ->setArticle($article)
+                        ->setQuantity($quantitePrelevee)
+                        ->setEmplacementFrom($article->getEmplacement())
+                        ->setType(MouvementStock::TYPE_TRANSFERT)
+                        ->setPreparationOrder($preparation);
+                    $this->entityManager->persist($mouvement);
+                }
                 $this->entityManager->flush();
             }
         }

@@ -704,7 +704,7 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
+			WHERE (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)) AND a.quantite > 0"
 		)->setParameters([
 		    'statutLabel' => $statutLabel,
             'enCours' => $enCours,
@@ -756,7 +756,7 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
+			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user) AND a.quantite > 0"
         )->setParameters([
             'statutLabel' => $statutLabel,
             'user' => $user
