@@ -180,9 +180,7 @@ class PreparationsManagerService {
 											 bool $isRef,
 											 $article,
 											 Preparation $preparation,
-											 bool $isSelectedByArticle
-)
-	{
+											 bool $isSelectedByArticle) {
 		$referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 		$articleRepository = $this->entityManager->getRepository(Article::class);
 		$mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -241,29 +239,7 @@ class PreparationsManagerService {
 		$articleRepository = $this->entityManager->getRepository(Article::class);
 		$statutRepository = $this->entityManager->getRepository(Statut::class);
 
-
 		if ($mouvement['is_ref']) {
-			$isSelectedByArticle = isset($mouvement['selected_by_article']) && $mouvement['selected_by_article'];
-
-			// cas ref par article
-			if ($isSelectedByArticle) {
-				$article = $articleRepository->findOneByReference($mouvement['reference']);
-
-				if ($article->getDemande()) {
-					throw new Exception(self::ARTICLE_ALREADY_SELECTED);
-				} else {
-					$demande = $preparation->getDemandes()[0];
-					$article->setDemande($demande);
-
-					// et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
-					$refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-					$ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-					if (!empty($ligneArticle)) {
-						$this->entityManager->remove($ligneArticle);
-					}
-				}
-			}
-
 			// cas ref par ref
 			$refArticle = $referenceArticleRepository->findOneByReference($mouvement['reference']);
 			if ($refArticle) {
@@ -274,12 +250,33 @@ class PreparationsManagerService {
 		else {
 			// cas article
 			$article = $articleRepository->findOneByReference($mouvement['reference']);
+
 			if ($article) {
+
+                // cas ref par article
+                if (isset($mouvement['selected_by_article']) && $mouvement['selected_by_article']) {
+                    if ($article->getDemande()) {
+                        throw new Exception(self::ARTICLE_ALREADY_SELECTED);
+                    } else {
+                        $demande = $preparation->getDemandes()[0];
+                        $article->setDemande($demande);
+
+                        // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
+                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+                        if (!empty($ligneArticle)) {
+                            $this->entityManager->remove($ligneArticle);
+                        }
+                    }
+                }
+
 				$article
 					->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
 					->setQuantitePrelevee($mouvement['quantity']);
 			}
 		}
+
+		$this->entityManager->flush();
 	}
 
     /**
