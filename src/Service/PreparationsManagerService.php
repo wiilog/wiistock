@@ -118,12 +118,12 @@ class PreparationsManagerService {
         }
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param Livraison $livraison
-     * @param $userNomade
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Preparation $preparation
+	 * @param Livraison $livraison
+	 * @param $userNomade
+	 * @throws NonUniqueResultException
+	 */
     public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE);
@@ -142,11 +142,11 @@ class PreparationsManagerService {
         $demande->setStatut($statutPrepareDemande);
     }
 
-    /**
-     * @param DateTime $dateEnd
-     * @return Livraison
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param DateTime $dateEnd
+	 * @return Livraison
+	 * @throws NonUniqueResultException
+	 */
     public function persistLivraison(DateTime $dateEnd) {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
@@ -162,34 +162,32 @@ class PreparationsManagerService {
         return $livraison;
     }
 
-    /**
-     * @param int $quantity
-     * @param Preparation $preparation
-     * @param Utilisateur $userNomade
-     * @param Livraison $livraison
-     * @param bool $isRef
-     * @param $article
-     * @param Emplacement|null $emplacementFrom
-     * @param bool $isSelectedByArticle
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    public function treatMouvement(int $quantity,
-                                   Preparation $preparation,
-                                   Utilisateur $userNomade,
-                                   Livraison $livraison,
-                                   bool $isRef,
-                                   $article,
-                                   Emplacement $emplacementFrom = null,
-                                   bool $isSelectedByArticle = false) {
-        //repositories
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
-        $ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
+	/**
+	 * @param int $quantity
+	 * @param Utilisateur $userNomade
+	 * @param Livraison $livraison
+	 * @param Emplacement|null $emplacementFrom
+	 * @param bool $isRef
+	 * @param string $article
+	 * @param Preparation $preparation
+	 * @param bool $isSelectedByArticle
+	 * @throws NonUniqueResultException
+	 */
+    public function createMouvementLivraison(int $quantity,
+											 Utilisateur $userNomade,
+											 Livraison $livraison,
+											 Emplacement $emplacementFrom = null,
+											 bool $isRef,
+											 $article,
+											 Preparation $preparation,
+											 bool $isSelectedByArticle
+)
+	{
+		$referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+		$articleRepository = $this->entityManager->getRepository(Article::class);
+		$mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-        $mouvement = new MouvementStock();
+		$mouvement = new MouvementStock();
         $mouvement
             ->setUser($userNomade)
             ->setQuantity($quantity)
@@ -201,97 +199,88 @@ class PreparationsManagerService {
         }
 
         $this->entityManager->persist($mouvement);
-        if ($isRef) {
-            $refArticle = ($article instanceof ReferenceArticle)
-                ? $article
-                : $referenceArticleRepository->findOneByReference($article);
-            if ($refArticle) {
-                $mouvement
-                    ->setRefArticle($refArticle)
-                    ->setQuantity($mouvementRepository->findByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
 
-                $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
-                $ligneArticle->setQuantite($mouvement->getQuantity());
-            }
-        }
-        else {
-            $article = ($article instanceof Article)
-                ? $article
-                : $articleRepository->findOneByReference($article);
-            if ($article) {
-                // si c'est un article sélectionné par l'utilisateur :
-                // on prend la quantité donnée dans le mouvement
-                // sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
-                $mouvementQuantity = ($isSelectedByArticle
-                    ? $quantity
-                    : $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
+		if ($isRef) {
+			$refArticle = ($article instanceof ReferenceArticle)
+				? $article
+				: $referenceArticleRepository->findOneByReference($article);
+			if ($refArticle) {
+				$mouvement
+					->setRefArticle($refArticle)
+					->setQuantity($mouvementRepository->findOneByRefAndPrepa($refArticle->getId(), $preparation->getId())->getQuantity());
+			}
+		}
+		else {
+			$article = ($article instanceof Article)
+				? $article
+				: $articleRepository->findOneByReference($article);
+			if ($article) {
+				// si c'est un article sélectionné par l'utilisateur :
+				// on prend la quantité donnée dans le mouvement
+				// sinon on prend la quantité spécifiée dans le mouvement de transfert (créé dans beginPrepa)
+				$mouvementQuantity = ($isSelectedByArticle
+					? $quantity
+					: $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId())->getQuantity());
 
-                $mouvement
-                    ->setArticle($article)
-                    ->setQuantity($mouvementQuantity);
-
-                $article
-                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
-                    ->setQuantiteAPrelever($mouvement->getQuantity());
-
-                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                    $newArticle = [
-                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                        'libelle' => $article->getLabel(),
-                        'conform' => !$article->getConform(),
-                        'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => Article::STATUT_ACTIF,
-                        'prix' => $article->getPrixUnitaire(),
-                        'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
-                    ];
-
-                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                    }
-                    $this->articleDataService->newArticle($newArticle);
-
-                    $article->setQuantite($article->getQuantiteAPrelever());
-                }
-
-                if ($isSelectedByArticle) {
-                    if ($article->getDemande()) {
-                        throw new Exception(self::ARTICLE_ALREADY_SELECTED);
-                    } else {
-                        // TODO AB gérer le fait qu'une livraison soit liée à plusieurs demande
-                        // on crée le lien entre l'article et la demande
-                        $demande = $livraison->getDemande()->getValues()[0];
-                        $article->setDemande($demande);
-
-                        // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
-                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-                        if (!empty($ligneArticle)) {
-                            $this->entityManager->remove($ligneArticle);
-                        }
-
-                        // on crée le mouvement de transfert de l'article
-                        $mouvementRef = $mouvementRepository->findByRefAndPrepa($refArticle, $preparation);
-                        $newMouvement = new MouvementStock();
-                        $newMouvement
-                            ->setUser($userNomade)
-                            ->setArticle($article)
-                            ->setQuantity($article->getQuantiteAPrelever())
-                            ->setEmplacementFrom($article->getEmplacement())
-                            ->setEmplacementTo($mouvementRef ? $mouvementRef->getEmplacementTo() : '')
-                            ->setType(MouvementStock::TYPE_TRANSFERT)
-                            ->setPreparationOrder($preparation)
-                            ->setDate($mouvementRef ? $mouvementRef->getDate() : '');
-                        $this->entityManager->persist($newMouvement);
-                        if ($mouvementRef) {
-                            $this->refMouvementsToRemove[] = $mouvementRef;
-                        }
-                    }
-                }
-            }
-        }
+				$mouvement
+					->setArticle($article)
+					->setQuantity($mouvementQuantity);
+			}
+		}
     }
+
+	/**
+	 * @param array $mouvement
+	 * @param Preparation $preparation
+	 * @throws Exception
+	 */
+    public function treatMouvementQuantities($mouvement, Preparation $preparation)
+	{
+		$referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+		$ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
+		$articleRepository = $this->entityManager->getRepository(Article::class);
+		$statutRepository = $this->entityManager->getRepository(Statut::class);
+
+
+		if ($mouvement['is_ref']) {
+			$isSelectedByArticle = isset($mouvement['selected_by_article']) && $mouvement['selected_by_article'];
+
+			// cas ref par article
+			if ($isSelectedByArticle) {
+				$article = $articleRepository->findOneByReference($mouvement['reference']);
+
+				if ($article->getDemande()) {
+					throw new Exception(self::ARTICLE_ALREADY_SELECTED);
+				} else {
+					$demande = $preparation->getDemandes()[0];
+					$article->setDemande($demande);
+
+					// et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
+					$refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+					$ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+					if (!empty($ligneArticle)) {
+						$this->entityManager->remove($ligneArticle);
+					}
+				}
+			}
+
+			// cas ref par ref
+			$refArticle = $referenceArticleRepository->findOneByReference($mouvement['reference']);
+			if ($refArticle) {
+				$ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);
+				$ligneArticle->setQuantitePrelevee($mouvement['quantity']);
+			}
+		}
+		else {
+			// cas article
+			$article = $articleRepository->findOneByReference($mouvement['reference']);
+			if ($article) {
+				$article
+					->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
+					->setQuantitePrelevee($mouvement['quantity']);
+			}
+		}
+	}
 
     /**
      * On supprime les mouvements de transfert créés pour les réf gérées à l'articles
@@ -309,7 +298,7 @@ class PreparationsManagerService {
      * @param Utilisateur $user
      * @throws NonUniqueResultException
      */
-    public function createMouvementAndScission(Preparation $preparation, Utilisateur $user) {
+    public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user) {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -373,13 +362,13 @@ class PreparationsManagerService {
         foreach ($demande->getLigneArticle() as $ligneArticle) {
             $articleRef = $ligneArticle->getReference();
 
-            $mouvementAlreadySaved = $mouvementRepository->findByRefAndPrepa($articleRef->getId(), $preparation->getId());
+            $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved) {
                 $mouvement = new MouvementStock();
                 $mouvement
                     ->setUser($user)
                     ->setRefArticle($articleRef)
-                    ->setQuantity($ligneArticle->getQuantite())
+                    ->setQuantity($ligneArticle->getQuantitePrelevee())
                     ->setEmplacementFrom($articleRef->getEmplacement())
                     ->setType(MouvementStock::TYPE_TRANSFERT)
                     ->setPreparationOrder($preparation);

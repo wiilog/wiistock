@@ -316,7 +316,7 @@ class MouvementStockRepository extends ServiceEntityRepository
      * @return MouvementStock | null
      * @throws NonUniqueResultException
      */
-    public function findByRefAndPrepa($idRef, $idPrep)
+    public function findOneByRefAndPrepa($idRef, $idPrep)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

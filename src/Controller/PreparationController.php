@@ -145,29 +145,28 @@ class PreparationController extends AbstractController
 		}
 
 		$preparation = $this->preparationRepository->find($idPrepa);
-		$emplacementTo = $emplacementRepository->find($request->request->get('emplacement'));
+		$locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
-		$preparationsManager->createMouvementAndScission($preparation, $this->getUser());
+		$preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
 
 		$dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 		$livraison = $preparationsManager->persistLivraison($dateEnd);
 		$preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
-		$preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementTo);
+		$preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
 		$mouvementRepository = $entityManager->getRepository(MouvementStock::class);
 		$mouvements = $mouvementRepository->findByPreparation($preparation);
 
 		foreach ($mouvements as $mouvement) {
-			$article = $mouvement->getArticle();
-			$refArticle = $mouvement->getRefArticle();
-			$preparationsManager->treatMouvement(
+			$preparationsManager->createMouvementLivraison(
 				$mouvement->getQuantity(),
-				$preparation,
 				$this->getUser(),
 				$livraison,
-				isset($refArticle),
-				isset($refArticle) ? $refArticle : $article,
-				$emplacementTo
+				$locationEndPrepa,
+				!empty($mouvement->getRefArticle()),
+				$mouvement->getRefArticle() ?? $mouvement->getArticle(),
+				$preparation,
+				false
 			);
 		}
 
@@ -290,24 +289,26 @@ class PreparationController extends AbstractController
 						$articleRef->getQuantiteStock();
 
 
-					$rows[] = [
-						"Référence" => $articleRef ? $articleRef->getReference() : ' ',
-						"Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
-						"Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
-						"Quantité" => $qtt,
-						"Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
-						"Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
-						"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-							'barcode' => $articleRef->getBarCode(),
-							'demandeId' => $id,
-							'isRef' => true,
-							'isRefByRef' => $isRefByRef,
-							'quantity' => $qtt,
-							'id' => $ligneArticle->getId(),
-							'isPrepaEditable' => $isPrepaEditable,
-							'active' => !empty($ligneArticle->getQuantitePrelevee())
-						])
-					];
+					if ($ligneArticle->getQuantitePrelevee() > 0 && $preparationStatut === Preparation::STATUT_PREPARE) {
+						$rows[] = [
+							"Référence" => $articleRef ? $articleRef->getReference() : ' ',
+							"Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
+							"Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
+							"Quantité" => $qtt,
+							"Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
+							"Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
+							"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+								'barcode' => $articleRef->getBarCode(),
+								'demandeId' => $id,
+								'isRef' => true,
+								'isRefByRef' => $isRefByRef,
+								'quantity' => $qtt,
+								'id' => $ligneArticle->getId(),
+								'isPrepaEditable' => $isPrepaEditable,
+								'active' => !empty($ligneArticle->getQuantitePrelevee())
+							])
+						];
+					}
 				}
 
 				$articles = $this->articleRepository->findByDemande($demande);

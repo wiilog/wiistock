@@ -482,12 +482,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
      * @Rest\View()
      * @param Request $request
-     * @param PreparationsManagerService $preparationsManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function beginPrepa(Request $request,
-                               PreparationsManagerService $preparationsManager)
+    public function beginPrepa(Request $request)
     {
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
@@ -497,20 +495,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 if (($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) ||
                     ($preparation->getUtilisateur() === $nomadUser)) {
-                    $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
-                    $preparationDone = true;
+					$this->successDataMsg['success'] = true;
                 }
                 else {
-                    $preparationDone = false;
-                }
-
-                if ($preparationDone) {
-                    $this->successDataMsg['success'] = true;
-                }
-                else {
-                    $this->successDataMsg['success'] = false;
-                    $this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
-                    $this->successDataMsg['data'] = [];
+					$this->successDataMsg['success'] = false;
+					$this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
+					$this->successDataMsg['data'] = [];
                 }
             } else {
                 $this->successDataMsg['success'] = false;
@@ -551,41 +541,47 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
                     if ($preparation) {
                         // if it has not been begun
-                        $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
-                        try {
+						try {
                             $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
                             // flush auto at the end
                             $entityManager->transactional(function()
                                                                use ($preparationsManager, $preparationArray, $preparation, $nomadUser, $dateEnd, $emplacementRepository, $entityManager) {
                                 $preparationsManager->setEntityManager($entityManager);
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
-
-                                $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
-
-                                $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                if ($emplacementPrepa) {
-                                    $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
-                                }
-                                else {
-                                    throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
-                                }
 
                                 $mouvementsNomade = $preparationArray['mouvements'];
-                                // on crée les mouvements de livraison
+
                                 foreach ($mouvementsNomade as $mouvementNomade) {
+
+									$preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
+
+									$preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+
+									$livraison = $preparationsManager->persistLivraison($dateEnd);
+
+									$preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
+
+									$emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
+									if ($emplacementPrepa) {
+										$preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
+									} else {
+										throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
+									}
+
+									// on crée les mouvements de livraison
                                     $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
-                                    $preparationsManager->treatMouvement(
+                                    $preparationsManager->createMouvementLivraison(
                                         $mouvementNomade['quantity'],
-                                        $preparation,
                                         $nomadUser,
                                         $livraison,
-                                        (bool) $mouvementNomade['is_ref'],
-                                        $mouvementNomade['reference'],
                                         $emplacement,
-                                        (bool) (isset($mouvementNomade['selected_by_article']) && $mouvementNomade['selected_by_article'])
+										$mouvementNomade['is_ref'],
+										$mouvementNomade['reference'],
+										$preparation,
+										$mouvementNomade['selected_by_article']
                                     );
                                 }
-                                $entityManager->flush();
+
+								$entityManager->flush();
                             });
 
                             $resData['success'][] = [
@@ -635,7 +631,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
-            $id = $request->request->get('id');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();

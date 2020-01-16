@@ -6,6 +6,7 @@ use App\Entity\Demande;
 use App\Entity\LigneArticle;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -37,7 +38,7 @@ class LigneArticleRepository extends ServiceEntityRepository
      * @param $referenceArticle
      * @param $demande
      * @return LigneArticle
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneByRefArticleAndDemande($referenceArticle, $demande)
     {
@@ -59,7 +60,7 @@ class LigneArticleRepository extends ServiceEntityRepository
 	 * @param ReferenceArticle $referenceArticle
 	 * @param Demande $demande
 	 * @return LigneArticle|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande)
     {
