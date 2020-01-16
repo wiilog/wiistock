@@ -764,7 +764,10 @@ class ReferenceArticleController extends AbstractController
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
             $rows = $refArticle->getId();
             $entityManager = $this->getDoctrine()->getManager();
-            if (count($refArticle->getCollecteReferences()) > 0 || count($refArticle->getLigneArticles()) > 0) {
+            if (count($refArticle->getCollecteReferences()) > 0
+                || count($refArticle->getLigneArticles()) > 0
+                || count($refArticle->getReceptionReferenceArticles()) > 0
+                || count($refArticle->getArticlesFournisseur()) > 0) {
                 return new JsonResponse(false, 250);
             }
             $entityManager->remove($refArticle);

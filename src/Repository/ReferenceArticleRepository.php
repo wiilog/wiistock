@@ -625,7 +625,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE oc.id IN (:collectesIds)")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
             ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
@@ -941,7 +941,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
                 }
             }
 
