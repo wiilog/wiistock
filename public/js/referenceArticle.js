@@ -28,7 +28,9 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
         $.post(path, JSON.stringify(Data), function(data) {
-
+            if (!data) {
+                $('#cannotDelete').click();
+            }
             if (data.new) {
                 tableRefArticle.row.add(data.new).draw(false);
             } else if (data.delete) {
