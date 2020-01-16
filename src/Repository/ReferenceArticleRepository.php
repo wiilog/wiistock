@@ -941,7 +941,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('ra.reference LIKE :value OR ra.libelle LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
                 }
             }
 
