@@ -12,10 +12,17 @@ let tableType = $('#tableType_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Label' },
-        { "data": 'S\'applique' },
-        { "data": 'Actions' },
+        { "data": 'Actions', 'title': 'Actions' },
+        { "data": 'Label', 'title': 'Libellé' },
+        { "data": "S'applique", 'title': "S'applique à" },
     ],
+    columnDefs: [
+        {
+            orderable: false,
+            targets: 0
+        }
+    ],
+    order: [[2, "asc"]],
 });
 
 let dataModalTypeNew = $("#modalNewType");
@@ -46,21 +53,21 @@ let tableChampLibre = $('#tableChamplibre_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Label' },
-        { "data": 'S\'applique' },
-        { "data": 'Typage' },
-        { "data": 'Valeur par défaut' },
-        { "data": 'Elements' },
-        { "data": 'Obligatoire à la création' },
-        { "data": 'Obligatoire à la modification' },
-        { "data": 'Actions' },
+        { "data": 'Actions', 'title': 'Actions' },
+        { "data": 'Label', 'title': 'Libellé' },
+        { "data": "S'applique à", 'title': "S'applique à" },
+        { "data": 'Typage', 'title': 'Typage' },
+        { "data": 'Valeur par défaut', 'title': 'Valeur par défaut' },
+        { "data": 'Elements', 'title': 'Éléments' },
+        { "data": 'Obligatoire à la création', 'title': 'Obligatoire à la création' },
+        { "data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification' },
     ],
 });
 
 let dataModalChampLibreNew = $("#modalNewChampLibre");
-let ButtonSubmitChampLibreNew = $("#submitChampLibreNew");
+let buttonSubmitChampLibreNew = $("#submitChampLibreNew");
 let urlChampLibreNew = Routing.generate('champ_libre_new', true);
-InitialiserCLModal(dataModalChampLibreNew, ButtonSubmitChampLibreNew, urlChampLibreNew, tableChampLibre, displayErrorCL, false);
+InitialiserCLModal(dataModalChampLibreNew, buttonSubmitChampLibreNew, urlChampLibreNew, tableChampLibre, displayErrorCL, false);
 
 let dataModalChampLibreDelete = $("#modalDeleteChampLibre");
 let submitChampLibreDelete = $("#submitChampLibreDelete");
@@ -92,39 +99,48 @@ function askForDeleteConfirmation(data) {
     }
 }
 
-let defaultValueForTypage = function (select, cible) {
-    let valueDefault =  $('#valueDefault'+cible);
-    valueDefault.find('.form-group').addClass('d-none');
-    valueDefault.find('input').removeClass('data');
+function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif')) {
+    let $modal = $select.closest('.modal');
+    let valueDefault =  $modal.find('.valueDefault');
+    let typage = $select.val();
+    let inputDefaultBlock;
+    let name = 'valeur';
+    let label = "Valeur par défaut&nbsp;";
+    let typeInput = typage;
 
-    let typage = select.val();
-    let defaultBloc = $('#'+typage+cible);
-    defaultBloc.removeClass('d-none');
-    defaultBloc.find('input').addClass('data');
-}
+    // cas modification
+    let existingValue = $select.data('value');
+    let existingElem = $select.data('elem');
 
-$(document).ready(function () {
-    $('#typage').change(function () {
-        if ($(this).val() === 'list') {
-            $("#list").show();
-            $("#noList").hide();
-        } else {
-            $("#list").hide();
-            $("#noList").show();
-            $("div").remove(".elem");
-            $("#ajouterElem").remove();
-        }
-    });
-});
-
-function changeType(select) {
-    if ($(select).val() === 'list') {
-        $('#defaultValue').hide();
-        $('#isList').show();
+    if (typage === 'booleen') {
+        let checked = existingValue == 1 ? "checked" : "";
+        inputDefaultBlock =
+            `<label class="switch">
+                <input type="checkbox" class="data checkbox" 
+                name="valeur" value="` + existingValue + `" ` + checked + `>
+                <span class="slider round"></span>
+            </label>`;
     } else {
-        $('#isList').hide();
-        $('#defaultValue').show();
+        if (typage === 'date' || typage === 'datetime') {
+            typeInput = 'text';
+        } else if (typage === 'list') {
+            label = "Éléments (séparés par ';')";
+            name = 'elem';
+            existingValue = existingElem ? existingElem : '';
+        }
+
+        inputDefaultBlock =
+            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
     }
+
+    let defaultBlock =
+        `<div class="form-group">
+            <label>` + label + `</label><br/>
+            ` + inputDefaultBlock +
+        `</div>`;
+
+    valueDefault.html(defaultBlock);
+    if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
 }
 
 function displayErrorCL(data) {

@@ -42,7 +42,6 @@ function initDatatables() {
                 },
             ],
             rowCallback: function (row, data) {
-                console.log(data);
                 if (data.success === false) {
                     console.log('false');
                 } else {

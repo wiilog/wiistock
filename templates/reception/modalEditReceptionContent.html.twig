@@ -184,9 +184,12 @@
                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
 
                             {% elseif champLibre.typage == 'date' %}
-                                <input type="date" name="{{ champLibre.id }}" id="{{ champLibre.id ~ 'edit' }}"
-                                       class="form-control data {{ champLibre.requiredEdit ? 'needed' : '' }}"
-                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+                                <input
+                                    type="text"
+                                    class="form-control data date-cl {{ champLibre.requiredEdit ? 'needed' : '' }}"
+                                    name="{{ champLibre.id }}"
+                                    id="{{ champLibre.label ~ 'edit' }}"
+                                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
                             {% endif %}
                         </div>
                     {% endfor %}

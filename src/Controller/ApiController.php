@@ -38,7 +38,6 @@ use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
-use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -348,7 +347,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTime::ATOM, $dateArray[0], new \DateTimeZone('Europe/Paris'));
 
                         $mouvementTraca = new MouvementTraca();
                         $mouvementTraca
@@ -366,18 +365,26 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $articles = $this->articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
                                 /** @var Article|null $article */
                                 $article = count($articles) > 0 ? $articles[0] : null;
+                                if (!isset($article)) {
+                                    $references = $this->referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                    /** @var ReferenceArticle|null $article */
+                                    $article = count($references) > 0 ? $references[0] : null;
+                                }
 
                                 if (isset($article)) {
-                                    $newMouvement = $mouvementStockService->createMouvementStock(
-                                        $nomadUser,
-                                        $location,
-                                        $article->getQuantite(),
-                                        $article,
-                                        MouvementStock::TYPE_TRANSFERT
-                                    );
+                                    $quantiteMouvement = ($article instanceof Article)
+                                        ? $article->getQuantite()
+                                        : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
+
+                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
                                     $mouvementTraca->setMouvementStock($newMouvement);
                                     $entityManager->persist($newMouvement);
-                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
                                     $article->setStatut($status);
                                 }
                             }
@@ -396,9 +403,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $mouvementTraca->setMouvementStock($mouvementStockPrise);
                                     $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
-                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-                                    $mouvementStockPrise
-                                        ->getArticle()
+                                    $article = $mouvementStockPrise->getArticle()
+                                        ? $mouvementStockPrise->getArticle()
+                                        : $mouvementStockPrise->getRefArticle();
+                                    $configStatus = ($article instanceof Article)
+                                        ? [Article::CATEGORIE, Article::STATUT_ACTIF]
+                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
+
+                                    $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                    $article
                                         ->setStatut($status)
                                         ->setEmplacement($location);
                                 }
@@ -550,7 +563,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 foreach ($preparations as $preparationArray) {
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
                     if ($preparation) {
-                        // if it has not been begin
+                        // if it has not been begun
                         $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
                         try {
                             $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
@@ -603,7 +616,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $resData['errors'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId(),
-
+//TODO  CG msg prépa vide
                                 'message' => (
                                     ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                     (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
@@ -858,7 +871,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->transactional(function ()
                                                       use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
                             $this->ordreCollecteService->setEntityManager($entityManager);
-                            $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end']);
+                            $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new \DateTimeZone('Europe/Paris'));
 
                             $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
                             $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
@@ -1002,20 +1015,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
         $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt();
 
-        $articles = $this->articleRepository->getIdRefLabelAndQuantity();
-        $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+        /// livraisons
+        $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+        $livraisonsIds = array_map(function ($livraisonArray) {
+            return $livraisonArray['id'];
+        }, $livraisons);
+        $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
+        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
-        $articlesPrepa = $this->articleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
-        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
+        /// preparations
+        $preparations = $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes);
+        $preparationsIds = array_map(function ($preparationArray) {
+            return $preparationArray['id'];
+        }, $preparations);
+        $articlesPrepa = $this->articleRepository->getByPreparationsIds($preparationsIds);
+        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationsIds($preparationsIds);
+
+        /// collecte
+        $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+        $collectesIds = array_map(function ($collecteArray) {
+            return $collecteArray['id'];
+        }, $collectes);
+        $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
+        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
         // get article linked to a ReferenceArticle where type_quantite === 'article'
         $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
-
-        $articlesLivraison = $this->articleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonStatutLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-
-        $articlesCollecte = $this->articleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteStatutLabelAndWithoutOtherUser(OrdreCollecte::STATUT_A_TRAITER, $user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -1024,13 +1049,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => array_merge($articles, $articlesRef),
-            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user, $userTypes),
+            'preparations' => $preparations,
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
-            'livraisons' => $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user),
+            'livraisons' => $livraisons,
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
-            'collectes' => $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user),
+            'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
@@ -1178,7 +1202,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (!empty($barCode) && !empty($location)) {
                     $statusCode = Response::HTTP_OK;
                     $resData['success'] = true;
-                    $resData['articles'] = $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location);
+                    $resData['articles'] = array_merge(
+                        $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
+                        $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
+                    );
                 }
                 else {
                     $statusCode = Response::HTTP_BAD_REQUEST;

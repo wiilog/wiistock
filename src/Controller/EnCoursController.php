@@ -88,7 +88,7 @@ class EnCoursController extends AbstractController
             $mvtGrouped = [];
 
             foreach ($mvtArray as $mvt) {
-                if (isset($mvtGrouped[$mvt->getColis()])
+				if (isset($mvtGrouped[$mvt->getColis()])
                     && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
                     $mvtGrouped[$mvt->getColis()] = $mvt;
                 } else if (!isset($mvtGrouped[$mvt->getColis()])) {
@@ -98,8 +98,8 @@ class EnCoursController extends AbstractController
 
             foreach ($mvtGrouped as $mvt) {
                 if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                	$dateMvt = new \DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
-                    $minutesBetween = $this->getMinutesBetween($mvt);
+                	$dateMvt = new DateTimeAlias($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
+                    $minutesBetween = $this->getMinutesBetween($dateMvt);
 
                     if (empty($minutesBetween)) {
                     	$success = false;
@@ -162,18 +162,17 @@ class EnCoursController extends AbstractController
     }
 
     /**
-     * @param $mvt MouvementTraca
+     * @param $dateMvt DateTimeAlias
      * @return int
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function getMinutesBetween($mvt): int
+    private function getMinutesBetween($dateMvt): int
     {
         $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
         $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
             ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
 
-        $dateMvt = $mvt->getDatetime();
         $interval = DateInterval::createFromDateString('1 day');
         $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;

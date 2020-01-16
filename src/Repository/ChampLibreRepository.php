@@ -23,6 +23,10 @@ class ChampLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ChampLibre::class);
     }
 
+	/**
+	 * @param int $type
+	 * @return ChampLibre[]
+	 */
     public function getByType($type)
     {
         $entityManager = $this->getEntityManager();

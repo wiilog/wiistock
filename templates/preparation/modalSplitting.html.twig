@@ -16,7 +16,7 @@
                         <th>Code Article</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
-                        <th>Actions</th>
+                        <th>Quantité prélevée</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -57,7 +57,7 @@
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
                 <div class="btn btn-primary submit" data-ref="{{ referenceId }}" data-qtt="{{ quantite }}"
-                     data-demande="{{ demande ? demande.id : '' }}" data-index="{{ index }}" data-prep="{{ preparation.id }}"
+                     data-demande="{{ demande ? demande.id : '' }}" data-prep="{{ preparation.id }}"
                      onclick="submitSplitting($(this))">Enregistrer
                 </div>
             </div>
