@@ -1,80 +1,91 @@
 {% extends 'layout.html.twig' %}
 
 {% block classbody %}
-style='background-image: url({{asset('img/GTXBackAccueil2red.png')}})'
-class='accueil-back'
+    style='background-image: url({{ asset('img/GTXBackAccueil2red.png') }})'
+    class='accueil-back'
 {% endblock %}
 
 {% block page_content %}
-{% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL')) %}
+
     <div class="row justify-content-end">
         <div class="col-4 ">
             <div class="row justify-content-end">
                 <div class="col-12 mb-1 mt-1 home-card">
-                    <a href="#" onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
+                    <a href="#"
+                       onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
                         <p>
-                            <span class="badge badge-secondary font-size-100">{{nbDemandeCollecte}}</span>
+                            <span class="badge badge-secondary font-size-100">{{ nbDemandeCollecte }}</span>
                             <span class="bold"> demandes de collecte à traiter</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
-                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
+                    <a href="#"
+                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
                         <p>
-                            <span class="badge badge-secondary font-size-100">{{nbDemandeLivraisonAT}}</span>
+                            <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonAT }}</span>
                             <span class="bold"> demandes de livraison à traiter</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
-                    <a href="#" onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
+                    <a href="#"
+                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
                         <p>
-                            <span class="badge badge-secondary font-size-100">{{nbDemandeLivraisonP}}</span>
+                            <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonP }}</span>
                             <span class="bold"> demandes de livraison préparées</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
-                    <a href="#" onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
+                    <a href="#"
+                       onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
                         <p>
-                            <span class="badge badge-secondary font-size-100">{{nbDemandeManutentionAT}}</span>
+                            <span class="badge badge-secondary font-size-100">{{ nbDemandeManutentionAT }}</span>
                             <span class="bold"> demandes de manutention à traiter</span>
                         </p>
                     </a>
                 </div>
                 {% set s = nbAlerts > 1 ? 's' : '' %}
                 <div class="col-12 mb-1 mt-1 home-card">
-                    <a href={{path('alerte_index', {'filter': 'active'})}}>
+                    <a href={{ path('alerte_index', {'filter': 'active'}) }}>
                         <p>
-                            <span class="badge badge-secondary font-size-100">{{nbAlerts}}</span>
+                            <span class="badge badge-secondary font-size-100">{{ nbAlerts }}</span>
                             <span class="bold"> alertes de seuil</span>
                         </p>
                     </a>
                 </div>
-                <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
-                    <p class="bold col-12">Fiabilité par référence</p>
-                    <p class="col-6">
-                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span>
-                        <span>totale</span><br>
-                    </p>
-                    <p class="col-6">
-                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span>
-                        <span>mois courant</span><br>
-                    </p>
-                    <div class="curve_chart_line" id="curve_chart_reference"></div>
-                </div>
-                <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
-                    <p class="bold col-12">Fiabilité monétaire</p>
-                    <p class="col-6">
-                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaire|round }}€</span>
-                        <span>totale</span><br>
-                    </p>
-                    <p class="col-6">
-                        <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaireOfThisMonth|round}}€</span>
-                        <span>mois courant</span><br>
-                    </p>
-                    <div class="curve_chart_line " id="curve_chart"></div>
-                </div>
+                {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::REFERENCE')) %}
+                    <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
+                        <p class="bold col-12">Fiabilité par référence</p>
+                        <p class="col-6">
+                            <span
+                                class="badge badge-secondary font-size-100">{{ nbrFiabiliteReference|number_format(2, ',') }}%</span>
+                            <span>totale</span><br>
+                        </p>
+                        <p class="col-6">
+                            <span
+                                class="badge badge-secondary font-size-100">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span>
+                            <span>mois courant</span><br>
+                        </p>
+                        <div class="curve_chart_line" id="curve_chart_reference"></div>
+                    </div>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::MONETAIRE')) %}
+                    <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
+                        <p class="bold col-12">Fiabilité monétaire</p>
+                        <p class="col-6">
+                            <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaire|round }}€</span>
+                            <span>totale</span><br>
+                        </p>
+                        <p class="col-6">
+                        <span
+                            class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaireOfThisMonth|round }}€</span>
+                            <span>mois courant</span><br>
+                        </p>
+                        <div class="curve_chart_line " id="curve_chart"></div>
+                    </div>
+                {% endif %}
                 <div class="col-12 dashboard-link mt-1 home-card">
                     <a href="{{ path('accueil_dashboard') }}">
                         <p>
@@ -84,18 +95,16 @@ class='accueil-back'
                     </a>
                 </div>
                 {#                <div class="col-7 mb-1 mt-1 alerte">#}
-{#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
-{#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}
-{#                    </a>#}
-{#                </div>#}
+                {#                    <a href="{{path('alerte_expiry_index', {'filter': 'active'})}}">#}
+                {#                        <p><strong> Alertes de péremption : </strong>{{ nbAlertsExpiry }}<br></p>#}
+                {#                    </a>#}
+                {#                </div>#}
             </div>
         </div>
     </div>
-{% endif %}
-
-{% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-    {% include "accueil/linkToAddArticleForm.html.twig" %}
-{% endif %}
+    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+        {% include "accueil/linkToAddArticleForm.html.twig" %}
+    {% endif %}
 
 {% endblock %}
 
@@ -104,5 +113,5 @@ class='accueil-back'
     <script>
         const id = 0;
     </script>
-    <script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/accueil.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

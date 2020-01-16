@@ -11,10 +11,10 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -547,18 +547,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getIdRefLabelAndQuantityByTypeQuantite($typeQuantite)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.typeQuantite = :typeQuantite"
-        )->setParameter('typeQuantite', $typeQuantite);
-        return $query->execute();
-    }
-
     public function getTotalQuantityReservedByRefArticle($refArticle)
     {
         $em = $this->getEntityManager();
@@ -589,7 +577,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -608,17 +596,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByLivraisonsIds($livraisonsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -630,25 +614,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user
-        ]);
+			WHERE l.id IN (:livraisonsIds)"
+        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
 
-    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByOrdreCollectesIds($collectesIds)
 	{
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getRefArticleQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
