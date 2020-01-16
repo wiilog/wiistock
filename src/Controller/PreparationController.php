@@ -123,15 +123,16 @@ class PreparationController extends AbstractController
     }
 
 
-    /**
-     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"})
-     * @param $idPrepa
-     * @param EntityManagerInterface $entityManager
-     * @param PreparationsManagerService $preparationsManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
+	/**
+	 * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"})
+	 * @param $idPrepa
+	 * @param Request $request
+	 * @param EntityManagerInterface $entityManager
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param PreparationsManagerService $preparationsManager
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
@@ -144,7 +145,6 @@ class PreparationController extends AbstractController
         $preparation = $this->preparationRepository->find($idPrepa);
         $emplacementTo = $emplacementRepository->find($request->request->get('emplacement'));
 
-        // we create mouvements
         $preparationsManager->createMouvementAndScission($preparation, $this->getUser());
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -552,21 +552,19 @@ class PreparationController extends AbstractController
 
 			if ($data['ref']) {
 				$ligneArticle = $this->ligneArticleRepository->find($data['id']);
+				$quantity = $ligneArticle->getQuantite();
 			} else {
-				$ligneArticle = $this->articleRepository->find($data['id']);
+				$article = $this->articleRepository->find($data['id']);
+				$quantity = $article->getQuantiteAPrelever();
 			}
 
-			if ($ligneArticle) {
-				$json = $this->renderView(
+			$json = $this->renderView(
 					'preparation/modalEditLigneArticleContent.html.twig',
 					[
-						'ligneArticle' => $ligneArticle,
-						'isRef' => $data['ref']
+						'isRef' => $data['ref'],
+						'quantity' => $quantity,
 					]
-				);
-			} else {
-				$json = false;
-			}
+			);
 
 			return new JsonResponse($json);
 		}
