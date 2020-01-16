@@ -115,7 +115,7 @@ class TypeController extends AbstractController
                     [
                         'id' => ($type->getId() ? $type->getId() : "Non défini"),
                         'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                        'S\'applique' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
+                        "S'applique" => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
                         'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
                             'urlChampLibre' => $url,
                             'idType' => $type->getId()

@@ -1,0 +1,9 @@
+<div class="d-flex">
+    {% if orderPath is not null %}
+        <a href="{{ path(orderPath, {'id': orderId}) }}" target="_blank">
+            <i class='fas fa-share-square mr-2'></i>{{ from }}
+        </a>
+    {% elseif from is not null %}
+        {{ from }}
+    {% endif %}
+</div>

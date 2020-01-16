@@ -240,16 +240,17 @@ class LivraisonController extends AbstractController
                 $rows = [];
                 $articles = $this->articleRepository->findByDemande($demande);
                 foreach ($articles as $article) {
-                    $rows[] = [
-                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                        "Quantité" => $article->getQuantite(),
-                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                            'id' => $article->getId(),
-                        ])
-
-                    ];
+                    if ($article->getQuantite() !== 0) {
+                        $rows[] = [
+                            "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                            "Quantité" => $article->getQuantitePrelevee(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'id' => $article->getId(),
+                            ])
+                        ];
+                    }
                 }
                 $lignes = $demande->getLigneArticle();
 
@@ -258,7 +259,7 @@ class LivraisonController extends AbstractController
                         "Référence" => $ligne->getReference()->getReference(),
                         "Libellé" => $ligne->getReference()->getLibelle(),
                         "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
-                        "Quantité" => $ligne->getQuantite(),
+                        "Quantité" => $ligne->getQuantitePrelevee(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'refArticleId' => $ligne->getReference()->getId(),
                         ])
@@ -336,32 +337,36 @@ class LivraisonController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
             $dateMax = $data['dateMax'] . ' 23:59:59';
-            $livraisons = $this->demandeRepository->findByDates($dateMin, $dateMax);
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+			$livraisons = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
+			// en-têtes champs fixes
+			$headers = array_merge($headers, [
+				'demandeur',
+				'statut',
+				'destination',
+				'commentaire',
+				'date demande',
+				'date validation',
+				'numéro',
+				'type demande',
+				'code préparation',
+				'code livraison',
+				'référence article',
+				'libellé article',
+				'quantité disponible',
+				'quantité à prélever'
+			]);
+
             // en-têtes champs libres DL
             $clDL = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
 			foreach ($clDL as $champLibre) {
 				$headers[] = $champLibre->getLabel();
 			}
-
-            // en-têtes champs fixes
-            $headers = array_merge($headers, [
-                'demandeur',
-                'statut',
-                'destination',
-                'commentaire',
-                'dateDemande',
-                'dateValidation',
-                'reference',
-                'type demande',
-                'code prépa',
-                'code livraison',
-                'referenceArticle',
-                'libelleArticle',
-                'quantité disponible',
-                'quantité à prélever'
-            ]);
 
 			// en-têtes champs libres articles
             $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
@@ -373,7 +378,6 @@ class LivraisonController extends AbstractController
             $data[] = $headers;
             $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
 
             $listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
@@ -392,9 +396,6 @@ class LivraisonController extends AbstractController
 
                     $availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
-					// champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
-
                     $livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
@@ -403,12 +404,15 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : '';
-                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : '';
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : 'ND';
+                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : 'ND';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $availableQuantity;
                     $livraisonData[] = $ligneArticle->getQuantite();
+
+					// champs libres de la demande
+					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
 
                     // champs libres de l'article de référence
                     $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
@@ -436,9 +440,6 @@ class LivraisonController extends AbstractController
                 foreach ($this->articleRepository->findByDemande($livraison) as $article) {
                     $livraisonData = [];
 
-                    // champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
-
 					$livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
@@ -450,6 +451,9 @@ class LivraisonController extends AbstractController
 					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
                     $livraisonData[] = $article->getLabel();
                     $livraisonData[] = $article->getQuantite();
+
+					// champs libres de la demande
+					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
 
                     // champs libres de l'article
                     $champsLibresArt = [];

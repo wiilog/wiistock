@@ -102,11 +102,17 @@ class Reception
      */
     private $demandes;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="receptionOrder")
+	 */
+	private $mouvements;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
         $this->demandes = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -350,6 +356,37 @@ class Reception
     public function setTransporteur(?Transporteur $transporteur): self
     {
         $this->transporteur = $transporteur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setReceptionOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getReceptionOrder() === $this) {
+                $mouvement->setReceptionOrder(null);
+            }
+        }
 
         return $this;
     }

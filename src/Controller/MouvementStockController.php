@@ -8,6 +8,7 @@ use App\Entity\Menu;
 
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementStockRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 
@@ -58,6 +59,11 @@ class MouvementStockController extends AbstractController
     private $mouvementStockService;
 
 	/**
+	 * @var MouvementTracaRepository
+	 */
+    private $mouvementTracaRepository;
+
+	/**
 	 * ArrivageController constructor.
 	 * @param MouvementStockService $mouvementStockService
 	 * @param EmplacementRepository $emplacementRepository
@@ -65,9 +71,17 @@ class MouvementStockController extends AbstractController
 	 * @param StatutRepository $statutRepository
 	 * @param UserService $userService
 	 * @param MouvementStockRepository $mouvementStockRepository
+	 * @param MouvementTracaRepository $mouvementTracaRepository
 	 */
 
-    public function __construct(MouvementStockService $mouvementStockService, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementStockRepository $mouvementStockRepository)
+    public function __construct(
+    	MouvementStockService $mouvementStockService,
+		EmplacementRepository $emplacementRepository,
+		UtilisateurRepository $utilisateurRepository,
+		StatutRepository $statutRepository,
+		UserService $userService,
+		MouvementStockRepository $mouvementStockRepository,
+		MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -75,6 +89,7 @@ class MouvementStockController extends AbstractController
         $this->userService = $userService;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->mouvementStockService = $mouvementStockService;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -136,27 +151,49 @@ class MouvementStockController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . '00:00:00';
-            $dateMax = $data['dateMax'] . '23:59:59';
-            $newDateMin = new DateTime($dateMin);
-            $newDateMax = new DateTime($dateMax);
-            $mouvements = $this->mouvementStockRepository->findByDates($dateMin, $dateMax);
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $mouvements = $this->mouvementStockRepository->findByDates($dateTimeMin, $dateTimeMax);
             foreach($mouvements as $mouvement) {
-                if ($newDateMin > $mouvement->getDate() || $newDateMax < $mouvement->getDate()) {
+                if ($dateTimeMin > $mouvement->getDate() || $dateTimeMax < $mouvement->getDate()) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }
 
             $headers = [];
-            $headers = array_merge($headers, ['date', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
+            $headers = array_merge($headers, ['date', 'issu de', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
             $data = [];
             $data[] = $headers;
 
             foreach ($mouvements as $mouvement) {
                 $mouvementData = [];
                 $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : null;
+                // TODO code-barre au lieu de référence ??
                 $reference = $reference ? $reference : $mouvement->getArticle()->getReference();
+
+                $from = $orderNo = null;
+				if ($mouvement->getPreparationOrder()) {
+					$from = 'préparation';
+					$orderNo = $mouvement->getPreparationOrder()->getNumero();
+				} else if ($mouvement->getLivraisonOrder()) {
+					$from = 'livraison';
+					$orderNo = $mouvement->getLivraisonOrder()->getNumero();
+				} else if ($mouvement->getCollecteOrder()) {
+					$from = 'collecte';
+					$orderNo = $mouvement->getCollecteOrder()->getNumero();
+				} else if ($mouvement->getReceptionOrder()) {
+					$from = 'réception';
+					$orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
+				} else if ($this->mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+					$from = 'transfert de stock';
+				}
+
                 $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
+                $mouvementData[] = $from ? $from . ($orderNo ? ' ' . $orderNo : '') : '';
                 $mouvementData[] = $reference;
 				$mouvementData[] = $mouvement->getQuantity();
 				$mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';

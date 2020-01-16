@@ -82,7 +82,6 @@ class LivraisonsManagerService {
                 ->setDateFin($dateEnd);
 
             $demande = $demandeRepository->findOneByLivraison($livraison);
-
             $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
@@ -98,9 +97,11 @@ class LivraisonsManagerService {
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
-                $article
-                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
-                    ->setEmplacement($demande->getDestination());
+                if ($article->getQuantite() !== 0) {
+                    $article
+                        ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+                        ->setEmplacement($demande->getDestination());
+                }
             }
 
             // on termine les mouvements de livraison
