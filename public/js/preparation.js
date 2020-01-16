@@ -1,6 +1,7 @@
 $('.select2').select2();
 
 let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
+let prepaHasBegun = false;
 
 $(function() {
     initDateTimePicker();
@@ -129,55 +130,52 @@ $.extend($.fn.dataTableExt.oSort, {
     }
 });
 
-let pathArticle = Routing.generate('preparation_article_api', {'id': id});
+let pathArticle = Routing.generate('preparation_article_api', {'id': id, 'prepaId': $('#prepa-id').val()});
 let tableArticle = $('#tableArticle_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: pathArticle,
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
+    order: [[1, "asc"]],
+    columnDefs: [
+        {'orderable': false, 'targets': [0]}
+    ]
+
 });
 
-let prepasToSplit = [];
-let actualIndex = 0;
-let startPreparation = function (value) {
-    let path1 = Routing.generate('need_splitting', true);
-    let params = {'demande': value.val()};
+function startPicking($button) {
+    let ligneArticleId = $button.attr('value');
 
-    $.post(path1, JSON.stringify(params), function (needSplitting) {
-        if (!needSplitting) {
-            let path2 = Routing.generate('preparation_take_articles', true);
-
-            $.post(path2, JSON.stringify(params), function (data) {
-                $('#startPreparation').addClass('d-none');
-                $('#finishPreparation').removeClass('d-none');
-                tableArticle.ajax.reload();
-                $('#statutPreparation').html(data);
-            })
-        } else {
-            let path3 = Routing.generate('start_splitting', true);
-            $.post(path3, JSON.stringify(params), function (data) {
-                prepasToSplit = data.prepas;
-                $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable({
-                    "language": {
-                        url: "/js/i18n/dataTableLanguage.json",
-                    },
-                    dom: 'fltir',
-                    'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous'] ]
-                });
-                $('#startSplitting').click();
-            });
-        }
+    let path = Routing.generate('start_splitting', true);
+    $.post(path, JSON.stringify(ligneArticleId), function (html) {
+        $('#splittingContent').html(html);
+        $('#tableSplittingArticles').DataTable({
+            "language": {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            dom: 'fltir',
+            'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
+            'columnDefs' : [
+                {'orderable': false, 'targets': [3]}
+            ]
+        });
+        $('#startSplitting').click();
     });
 };
+
+let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
+let modalEditLigneArticle = $("#modalEditLigneArticle");
+let submitEditLigneArticle = $("#submitEditLigneArticle");
+InitialiserModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, tableArticle);
 
 function submitSplitting(submit) {
     let $inputs = $('#tableSplittingArticles').find('.input');
@@ -190,44 +188,21 @@ function submitSplitting(submit) {
         }
     });
 
-    if (parseFloat($('#quantiteRestante').html()) === 0) {
-        let path = Routing.generate('submit_splitting', true);
-        let params = {
-            'articles': articlesChosen,
-            'quantite': submit.data('qtt'),
-            'demande': submit.data('demande'),
-            'refArticle': submit.data('ref')
-        };
-        $.post(path, JSON.stringify(params), function (resp) {
-            if (resp == true) {
-                $('#modalSplitting').find('.close').click();
-                if (actualIndex + 1 < prepasToSplit.length) {
-                    articlesChosen = [];
-                    actualIndex++;
-                    $('#splittingContent').html(prepasToSplit[actualIndex]);
-                    $('#tableSplittingArticles').DataTable({
-                        "paging": false,
-                        "language": {
-                            url: "/js/i18n/dataTableLanguage.json",
-                        },
-                    });
-                    $('#startSplitting').click();
-                } else {
-                    let path = Routing.generate('preparation_take_articles', true);
-                    $.post(path, JSON.stringify(params), function (data) {
-                        $('#startPreparation').addClass('d-none');
-                        $('#finishPreparation').removeClass('d-none');
-                        tableArticle.ajax.reload();
-                        $('#statutPreparation').html(data);
-                    });
-                }
+    let path = Routing.generate('submit_splitting', true);
+    let params = {
+        'articles': articlesChosen,
+        'quantite': submit.data('qtt'),
+        'demande': submit.data('demande'),
+        'refArticle': submit.data('ref')
+    };
+    $.post(path, JSON.stringify(params), function (resp) {
+        if (resp == true) {
+            $('#modalSplitting').find('.close').click();
+                tableArticle.ajax.reload();
             } else {
-                $('#modalSplitting').find('.error-msg').html("Les quantités ne correspondent pas.")
+                $('#modalSplitting').find('.error-msg').html("Vous avez prélevé une quantité supérieure à celle demandée.")
             }
-        })
-    } else {
-        $('.error-msg').html("Veuillez collecter le nombre total indiqué d'articles.");
-    }
+    });
 }
 
 function updateRemainingQuantity() {
@@ -248,9 +223,15 @@ function updateRemainingQuantity() {
         let s = remainingQuantity < -1 ? 's' : '';
         $('#modalSplitting').find('.error-msg').html('(' + -remainingQuantity + ' article' + s + ' en trop)');
         $('#quantiteRestante').parent().addClass('red');
+        $('#quantiteRestante').parent().removeClass('green');
+    } else if (remainingQuantity > 0) {
+        $('#modalSplitting').find('.error-msg').html('');
+        $('#quantiteRestante').parent().addClass('red');
+        $('#quantiteRestante').parent().removeClass('green')
     } else {
         $('#modalSplitting').find('.error-msg').html('');
         $('#quantiteRestante').parent().removeClass('red');
+        $('#quantiteRestante').parent().addClass('green');
     }
 }
 
@@ -312,4 +293,34 @@ function clearEmplacementModal() {
     $('#preparation-emplacement').html('');
     $('#preparation-emplacement').val('');
     $('#select2-preparation-emplacement-container').html('');
+}
+
+function beginPrepa() {
+    if (!prepaHasBegun) {
+        let prepaId = $('#prepa-id').val();
+        let path = Routing.generate('prepa_begin');
+
+        $.post(path, prepaId, () => {
+            prepaHasBegun = true;
+        });
+    }
+}
+
+function finishPrepa() {
+    let allRowsEmpty = true;
+
+    let rows = tableArticle
+        .column('quantitePrelevee:name')
+        .data();
+
+    rows.each((elem) => {
+        if (elem > 0) allRowsEmpty = false;
+    })
+
+    if (allRowsEmpty) {
+        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
+    } else {
+        clearEmplacementModal();
+        $('#btnFinishPrepa').click();
+    }
 }

@@ -137,12 +137,16 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
-        {"data": 'Actions', 'title': 'Actions'},
     ],
+    order: [[1, "asc"]],
+    columnDefs: [
+        {orderable:false, targets: [0]}
+    ]
 });
 
 let modalDeleteLivraison = $('#modalDeleteLivraison');

@@ -280,12 +280,11 @@ function showRow(button, path, modal) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}) {
-
     let id = button.data('id');
     let ref = button.data('ref');
 
     let json = {id: id, isADemand: 0};
-    if (ref != false) {
+    if (ref !== false) {
         json.ref = ref;
     }
 
@@ -447,17 +446,17 @@ function typeChoice(bloc, text, content) {
     $('#' + cible + text).addClass('d-block');
 }
 
-function updateQuantityDisplay(elem) {
-    let typeQuantite = $('#type_quantite').val();
-    let modalBody = elem.closest('.modal-body');
+function updateQuantityDisplay($elem) {
+    let $modalBody = $elem.closest('.modal-body');
+    let typeQuantite = $modalBody.find('.type_quantite').val();
 
     if (typeQuantite == 'reference') {
-        modalBody.find('.article').addClass('d-none');
-        modalBody.find('.reference').removeClass('d-none');
+        $modalBody.find('.article').addClass('d-none');
+        $modalBody.find('.reference').removeClass('d-none');
 
     } else if (typeQuantite == 'article') {
-        modalBody.find('.reference').addClass('d-none');
-        modalBody.find('.article').removeClass('d-none');
+        $modalBody.find('.reference').addClass('d-none');
+        $modalBody.find('.article').removeClass('d-none');
     }
 }
 
@@ -471,16 +470,29 @@ function initFilterDateToday() {
     }
 }
 
-function initSelect2(select, placeholder) {
+function initSelect2(select, placeholder = '', lengthMin = 0) {
     $(select).select2({
+        language: {
+            inputTooShort: function () {
+                let s = lengthMin > 1 ? 's' : '';
+                return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: lengthMin,
         placeholder: {
             id: 0,
             text: placeholder,
-        }
+        },
     });
 }
 
-function ajaxAutoCompleteInit($select, route, lengthMin = 1, params = {}, placeholder = ''){
+function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
     $select.select2({
         ajax: {
             url: Routing.generate(route, params, true),
@@ -507,43 +519,43 @@ function ajaxAutoCompleteInit($select, route, lengthMin = 1, params = {}, placeh
 }
 
 function ajaxAutoCompleteEmplacementInit(select) {
-    ajaxAutoCompleteInit(select, 'get_emplacement');
+    initSelect2Ajax(select, 'get_emplacement');
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
-    ajaxAutoCompleteInit(select, 'get_transporteurs');
+    initSelect2Ajax(select, 'get_transporteurs');
 }
 
 function ajaxAutoRefArticleInit(select, typeQuantity = null) {
-    ajaxAutoCompleteInit(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
+    initSelect2Ajax(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
 };
 
 function ajaxAutoArticlesInit (select) {
-    ajaxAutoCompleteInit(select, 'get_articles', {activeOnly:1});
+    initSelect2Ajax(select, 'get_articles', {activeOnly:1});
 }
 
 function ajaxAutoArticlesReceptionInit(select) {
-    ajaxAutoCompleteInit(select, 'get_article_reception', 0, {reception: $('#receptionId').val()});
+    initSelect2Ajax(select, 'get_article_reception', 0, {reception: $('#receptionId').val()});
 }
 
 function ajaxAutoFournisseurInit(select, placeholder = '') {
-    ajaxAutoCompleteInit(select, 'get_fournisseur', 1, {}, placeholder);
+    initSelect2Ajax(select, 'get_fournisseur', 1, {}, placeholder);
 }
 
 function ajaxAutoChauffeurInit(select) {
-    ajaxAutoCompleteInit(select, 'get_chauffeur')
+    initSelect2Ajax(select, 'get_chauffeur')
 }
 
 function ajaxAutoUserInit(select, placeholder = '') {
-    ajaxAutoCompleteInit(select, 'get_user', 1, {}, placeholder);
+    initSelect2Ajax(select, 'get_user', 1, {}, placeholder);
 }
 
 function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
-    ajaxAutoCompleteInit(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
+    initSelect2Ajax(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
 }
 
 function ajaxAutoDemandCollectInit(select) {
-    ajaxAutoCompleteInit(select, 'get_demand_collect', 3, {}, 'Numéro demande');
+    initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
 }
 
 let toggleRequiredChampsLibres = function (select, require) {

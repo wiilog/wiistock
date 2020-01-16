@@ -24,6 +24,11 @@ class LigneArticle
     private $quantite;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantitePrelevee;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="ligneArticles")
      */
     private $reference;
@@ -89,6 +94,18 @@ class LigneArticle
     public function setToSplit(?bool $toSplit): self
     {
         $this->toSplit = $toSplit;
+
+        return $this;
+    }
+
+    public function getQuantitePrelevee(): ?int
+    {
+        return $this->quantitePrelevee;
+    }
+
+    public function setQuantitePrelevee(?int $quantitePrelevee): self
+    {
+        $this->quantitePrelevee = $quantitePrelevee;
 
         return $this;
     }
