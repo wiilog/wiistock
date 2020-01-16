@@ -167,10 +167,11 @@ let startPreparation = function (value) {
                 prepasToSplit = data.prepas;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
                 $('#tableSplittingArticles').DataTable({
-                    "paging": false,
                     "language": {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
+                    dom: 'fltir',
+                    'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous'] ]
                 });
                 $('#startSplitting').click();
             });

@@ -12,12 +12,18 @@ use App\Entity\Utilisateur;
 use App\Repository\MouvementStockRepository;
 use App\Repository\FiltreSupRepository;
 
+use App\Repository\MouvementTracaRepository;
 use DateTime;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class MouvementStockService
 {
@@ -30,6 +36,11 @@ class MouvementStockService
      * @var MouvementStockRepository
      */
     private $mouvementStockRepository;
+
+    /**
+     * @var MouvementTracaRepository
+     */
+    private $mouvementTracaRepository;
 
     /**
      * @var RouterInterface
@@ -56,7 +67,8 @@ class MouvementStockService
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
-                                Security $security)
+                                Security $security,
+								MouvementTracaRepository $mouvementTracaRepository)
     {
 
         $this->templating = $templating;
@@ -66,6 +78,7 @@ class MouvementStockService
         $this->userService = $userService;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
 	/**
@@ -96,27 +109,43 @@ class MouvementStockService
 	/**
 	 * @param MouvementStock $mouvement
 	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
 	 */
     public function dataRowMouvement($mouvement)
     {
+		$orderPath = $orderId = $from = null;
 		if ($mouvement->getPreparationOrder()) {
+			$from = 'préparation';
 			$orderPath = 'preparation_show';
 			$orderId = $mouvement->getPreparationOrder()->getId();
 		} else if ($mouvement->getLivraisonOrder()) {
+			$from = 'livraison';
 			$orderPath = 'livraison_show';
 			$orderId = $mouvement->getLivraisonOrder()->getId();
 		} else if ($mouvement->getCollecteOrder()) {
+			$from = 'collecte';
 			$orderPath = 'ordre_collecte_show';
 			$orderId = $mouvement->getCollecteOrder()->getId();
-		} else {
-			$orderPath = $orderId = null;
+		} else if ($mouvement->getReceptionOrder()) {
+			$from = 'réception';
+			$orderPath = 'reception_show';
+			$orderId = $mouvement->getReceptionOrder()->getId();
+		} else if ($this->mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+			$from = 'transfert de stock';
 		}
 
 		$row = [
 			'id' => $mouvement->getId(),
+			'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
+				'from' => $from,
+				'mvt' => $mouvement,
+				'orderPath' => $orderPath,
+				'orderId' => $orderId
+			]),
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : $mouvement->getRefArticle()->getReference(),
 			'quantite' => $mouvement->getQuantity(),
@@ -126,8 +155,6 @@ class MouvementStockService
 			'operateur' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '',
 			'actions' => $this->templating->render('mouvement_stock/datatableMvtStockRow.html.twig', [
 				'mvt' => $mouvement,
-				'orderPath' => $orderPath,
-				'orderId' => $orderId
 			])
 		];
 

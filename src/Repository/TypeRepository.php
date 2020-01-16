@@ -22,17 +22,22 @@ class TypeRepository extends ServiceEntityRepository
 
 	/**
 	 * @param string $categoryLabel
+	 * @param string|null $order ("asc" ou "desc")
 	 * @return Type[]
 	 */
-    public function findByCategoryLabel($categoryLabel)
+    public function findByCategoryLabel($categoryLabel, $order = null)
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT t
+        $dql = "SELECT t
             FROM App\Entity\Type t
             JOIN t.category c
-            WHERE c.label = :category"
-        );
+            WHERE c.label = :category";
+
+        if ($order) {
+        	$dql .= " ORDER BY t.label " . $order;
+		}
+        $query = $em->createQuery($dql);
+
         $query->setParameter("category", $categoryLabel);
 
         return $query->execute();

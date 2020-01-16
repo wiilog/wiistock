@@ -11,6 +11,7 @@ use App\Repository\InventoryEntryRepository;
 
 use App\Repository\UtilisateurRepository;
 use App\Service\InventoryEntryService;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,8 +98,14 @@ class InventoryEntryController extends AbstractController
      */
     public function getEntriesIntels(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $entries = $this->inventoryEntryRepository->findAll();
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $entries = $this->inventoryEntryRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
             $headers = array_merge($headers, ['Référence ou article', 'Opérateur', 'Emplacement', 'Date de saisie', 'Quantité']);

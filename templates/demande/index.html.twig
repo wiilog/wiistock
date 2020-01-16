@@ -15,7 +15,7 @@
     <input type="text" value="" id="typeFilter" hidden>
     <h1>Demandes de livraison</h1>
     <div class="row">
-        {% if receptionFilter is defined and receptionFilter is not null %}
+        {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
             <div>
                 <a href="{{ path('demande_index') }}" class='btn btn-primary btn-action'>Voir toutes les
                     demandes</a>
