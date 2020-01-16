@@ -321,9 +321,8 @@ class PreparationsManagerService {
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved) {
-//                $quantiteAPrelever = $article->getQuantiteAPrelever() ?? $article->getQuantite();
                 $quantitePrelevee = $article->getQuantitePrelevee();
-                $selected = !(!$quantitePrelevee || $quantitePrelevee === 0);
+                $selected = !(empty($quantitePrelevee));
                 $article->setStatut(
                     $statutRepository->findOneByCategorieNameAndStatutName(
                         Article::CATEGORIE,
