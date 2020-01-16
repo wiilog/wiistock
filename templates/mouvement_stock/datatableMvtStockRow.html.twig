@@ -6,11 +6,4 @@
             <i class='fas fa-trash'></i>
         </div>
     {% endif %}
-    {% if orderPath is not null %}
-        <a href="{{ path(orderPath, {'id': orderId}) }}" target="_blank">
-            <div data-id='{{ mvt.id }}' class='btn btn-col-action'>
-                <i class='fas fa-network-wired'></i>
-            </div>
-        </a>
-    {% endif %}
 </div>

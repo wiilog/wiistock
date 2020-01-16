@@ -9,9 +9,9 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -175,6 +175,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Quantité disponible' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
 			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
@@ -210,7 +211,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
                         case 'number':
-                            $qb->andWhere("ra." . $field . " = " . $filter['value']);
+                            $qb
+                                ->andWhere("ra.$field = :value$index")
+                                ->setParameter("value$index", $filter['value']);
                             break;
                         case 'list':
                             switch ($field) {
@@ -231,39 +234,41 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
+                    $champLibreLabelAlias = "champLibreLabel_$index";
                     $qbSub = $em->createQueryBuilder();
                     $qbSub
                         ->select('ra' . $index . '.id')
                         ->from('App\Entity\ReferenceArticle', 'ra' . $index)
-                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
+                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
+
+                        ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
+                        ->setParameter($champLibreLabelAlias, $filter['champLibre']);
 
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
                             $value = $filter['value'] == 1 ? '1' : '0';
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = ' . $value);
                             break;
                         case ChampLibre::TYPE_TEXT:
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
                                 ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                             break;
                         case ChampLibre::TYPE_NUMBER:
                         case ChampLibre::TYPE_LIST:
                             $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                                 ->andWhere('vcl' . $index . '.valeur = :value' . $index)
                                 ->setParameter('value' . $index, $filter['value']);
                             break;
                         case ChampLibre::TYPE_DATE:
-                            $date = explode('-', $filter['value']);
-                            $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                                ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
-                            break;
+						case ChampLibre::TYPE_DATETIME:
+							$date = explode('/', $filter['value']);
+							$formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
+							$qbSub
+								->andWhere("vcl$index.valeur LIKE :value$index")
+                                ->setParameter("value$index", $formattedDated);
+							break;
                     }
                     $subQueries[] = $qbSub->getQuery()->getResult();
                 }
@@ -542,18 +547,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getIdRefLabelAndQuantityByTypeQuantite($typeQuantite)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT ra.id, ra.reference, ra.libelle, ra.quantiteStock, ra.barCode
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.typeQuantite = :typeQuantite"
-        )->setParameter('typeQuantite', $typeQuantite);
-        return $query->execute();
-    }
-
     public function getTotalQuantityReservedByRefArticle($refArticle)
     {
         $em = $this->getEntityManager();
@@ -584,7 +577,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -603,17 +596,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByLivraisonsIds($livraisonsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -625,25 +614,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user
-        ]);
+			WHERE l.id IN (:livraisonsIds)"
+        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
 
-    public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByOrdreCollectesIds($collectesIds)
 	{
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE (s.nom = :statutLabel OR (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getRefArticleQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -652,13 +635,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getRefArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getRefArticleQuery()
+	private function getRefArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 			"SELECT ra.reference,
@@ -1156,52 +1139,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             JOIN v.articleReference a
             WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:ref"
         )->setParameter('ref', $ref);
-
-        return $query->execute();
-    }
-
-    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
-
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle.reference as reference,
-                             referenceArticle.quantiteDisponible as quantity,
-                             1 as is_ref
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN referenceArticle.emplacement emplacement
-                JOIN referenceArticle.statut status
-                WHERE emplacement.label = :location
-                  AND referenceArticle.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
-
-        return $query->execute();
-    }
-
-    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
-
-        $query = $em
-            ->createQuery(
-                "SELECT referenceArticle
-                FROM App\Entity\ReferenceArticle referenceArticle
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status
-                  AND referenceArticle.typeQuantite = :typeQuantite"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', ReferenceArticle::STATUT_ACTIF)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
         return $query->execute();
     }

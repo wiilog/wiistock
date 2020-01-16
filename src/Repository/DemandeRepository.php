@@ -132,6 +132,9 @@ class DemandeRepository extends ServiceEntityRepository
 	 */
     public function findByDates($dateMin, $dateMax)
     {
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT d

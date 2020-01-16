@@ -98,12 +98,14 @@ class ChampLibreController extends AbstractController
                     [
                         'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
                         'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
-                        'S\'applique' => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
+                        "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
-                        'Valeur par défaut' => ($champLibre->getDefaultValue() ? $champLibre->getDefaultValue() : 'Non défini'),
-                        'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]),
+                        'Valeur par défaut' => ($champLibre->getTypage() == ChampLibre::TYPE_BOOL
+                            ? ($champLibre->getDefaultValue() ? 'oui' : 'non')
+                            : ($champLibre->getDefaultValue() ?? 'Non défini')),
+                        'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
                         'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];
             }
@@ -147,6 +149,7 @@ class ChampLibreController extends AbstractController
                     ->setRequiredEdit($data['requiredEdit'])
                     ->setType($type)
                     ->settypage($data['typage']);
+
                 if ($champLibre->getTypage() === 'list') {
                     $champLibre
                         ->setElements(array_filter(explode(';', $data['elem'])))
@@ -176,8 +179,10 @@ class ChampLibreController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibre = $this->champLibreRepository->find($data['id']);
             $typages = ChampLibre::TYPAGE;
+
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
+                'typageCL' => ChampLibre::TYPAGE_ARR[$champLibre->getTypage()],
                 'categoriesCL' => $this->categorieCLRepository->findAll(),
                 'typages' => $typages,
             ]);

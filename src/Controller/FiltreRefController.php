@@ -163,13 +163,13 @@ class FiltreRefController extends AbstractController
 			$value = $data['value'];
 
 			if ($value === 'Emplacement') {
-				$emplacements = $this->emplacementRepository->findAll();
+				$emplacements = $this->emplacementRepository->findAllSorted();
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();

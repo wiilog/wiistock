@@ -269,6 +269,31 @@ function displayFilterValue(elem) {
     let val = elem.find(':selected').val();
     let modalBody = elem.closest('.modal-body');
 
+    let label = '';
+    let datetimepicker = false;
+    switch (type) {
+        case 'boolean':
+            label = 'Oui / Non';
+            type = 'checkbox';
+            break;
+        case 'number':
+        case 'list':
+            label = 'Valeur';
+            break;
+        case 'date':
+            label = 'Date';
+            type = 'text';
+            datetimepicker = true;
+            break;
+        case 'datetime':
+            label = 'Date et heure'
+            type = 'text';
+            datetimepicker = true;
+            break;
+        default:
+            label = 'Contient';
+    }
+
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
         let params = {
@@ -278,25 +303,8 @@ function displayFilterValue(elem) {
             modalBody.find('.input-group').html(data);
         }, 'json');
     } else {
-        if (type == 'booleen') type = 'checkbox';
-        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
-    }
-
-
-    let label = '';
-    switch (type) {
-        case 'checkbox':
-            label = 'Oui / Non';
-            break;
-        case 'number':
-        case 'list':
-            label = 'Valeur';
-            break;
-        case 'date':
-            label = 'Date';
-            break;
-        default:
-            label = 'Contient';
+        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data ' + type + '" id="value" name="value">');
+        if (datetimepicker) initDateTimePicker('#modalNewFilter .text');
     }
 
     elem.closest('.modal-body').find('.valueLabel').text(label);
@@ -455,14 +463,14 @@ function initRequiredChampsFixes(button) {
     let path = Routing.generate('get_quantity_type');
 
     $.post(path, JSON.stringify(params), function(data) {
-        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data)
+        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
     }, 'json');
 }
 
 function toggleRequiredChampsFixes(button) {
     clearErrorMsg(button);
     clearInvalidInputs(button);
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'));
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
 }
 
 function submitPlusAndGoToDemande(button) {

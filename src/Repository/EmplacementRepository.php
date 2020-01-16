@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -45,6 +46,7 @@ class EmplacementRepository extends ServiceEntityRepository
 	 * @param int|null $emplacementId
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
     public function countByLabel($label, $emplacementId = null)
     {
@@ -72,7 +74,7 @@ class EmplacementRepository extends ServiceEntityRepository
     /**
      * @param string $label
      * @return Emplacement|null
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneByLabel($label)
     {
@@ -199,4 +201,15 @@ class EmplacementRepository extends ServiceEntityRepository
         );
         return $query->execute();
     }
+
+    public function findAllSorted()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT e 
+			FROM App\Entity\Emplacement e
+			ORDER BY e.label ASC"
+		);
+		return $query->execute();	}
 }

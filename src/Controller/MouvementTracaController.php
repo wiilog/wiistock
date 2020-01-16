@@ -19,6 +19,7 @@ use App\Service\AttachmentService;
 use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -122,7 +123,7 @@ class MouvementTracaController extends AbstractController
 	 * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
 	 * @param Request $request
 	 * @return Response
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function new(Request $request): Response
 	{
@@ -134,7 +135,7 @@ class MouvementTracaController extends AbstractController
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
 
-			$date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P');
+			$date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
 			$type = $this->statutRepository->find($post->get('type'));
 			$location = $this->emplacementRepository->find($post->get('emplacement'));
 			$operator = $this->utilisateurRepository->find($post->get('operator'));
@@ -273,17 +274,22 @@ class MouvementTracaController extends AbstractController
 	 * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
 	 * @param Request $request
 	 * @return Response
-	 * @throws \Exception
+	 * @throws Exception
 	 */
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
-            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
-            $mouvements = $this->mouvementRepository->findByDates($dateMin, $dateMax);
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $mouvements = $this->mouvementRepository->findByDates($dateTimeMin, $dateTimeMax);
+
             foreach($mouvements as $mouvement) {
                 $date = $mouvement->getDatetime();
-                if ($dateMin >= $date || $dateMax <= $date) {
+                if ($dateTimeMin >= $date || $dateTimeMax <= $date) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }
