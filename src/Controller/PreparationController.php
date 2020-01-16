@@ -289,7 +289,7 @@ class PreparationController extends AbstractController
 						$articleRef->getQuantiteStock();
 
 
-					if ($ligneArticle->getQuantitePrelevee() > 0 && $preparationStatut === Preparation::STATUT_PREPARE) {
+					if ($ligneArticle->getQuantitePrelevee() > 0 || $preparationStatut !== Preparation::STATUT_PREPARE) {
 						$rows[] = [
 							"Référence" => $articleRef ? $articleRef->getReference() : ' ',
 							"Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
