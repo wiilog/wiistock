@@ -1,6 +1,7 @@
 $('.select2').select2();
 
 let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
+let prepaHasBegun = false;
 
 $(function() {
     initDateTimePicker();
@@ -142,7 +143,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-        {"data": 'Quantité prélevée', 'title': 'Quantité prélevée'},
+        {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
     order: [[1, "asc"]],
     columnDefs: [
@@ -292,4 +293,34 @@ function clearEmplacementModal() {
     $('#preparation-emplacement').html('');
     $('#preparation-emplacement').val('');
     $('#select2-preparation-emplacement-container').html('');
+}
+
+function beginPrepa() {
+    if (!prepaHasBegun) {
+        let prepaId = $('#prepa-id').val();
+        let path = Routing.generate('prepa_begin');
+
+        $.post(path, prepaId, () => {
+            prepaHasBegun = true;
+        });
+    }
+}
+
+function finishPrepa() {
+    let allRowsEmpty = true;
+
+    let rows = tableArticle
+        .column('quantitePrelevee:name')
+        .data();
+
+    rows.each((elem) => {
+        if (elem > 0) allRowsEmpty = false;
+    })
+
+    if (allRowsEmpty) {
+        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
+    } else {
+        clearEmplacementModal();
+        $('#btnFinishPrepa').click();
+    }
 }

@@ -48,9 +48,9 @@
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
                        data-toggle='modal'>Supprimer</a>
-                        <button id="finishPreparation" data-toggle="modal" data-target="#modalSubmitPreparation"
-                                onclick="clearEmplacementModal()"
-                           class="btn btn-primary btn-action ml-auto">Finir la préparation
+                    <button hidden id="btnFinishPrepa" data-toggle="modal" data-target="#modalSubmitPreparation"></button>
+                        <button onclick="finishPrepa()" class="btn btn-primary btn-action ml-auto">
+                            Finir la préparation
                         </button>
                 {% endif %}
             {% endif %}

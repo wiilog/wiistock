@@ -40,87 +40,87 @@ use App\Repository\LigneArticleRepository;
  */
 class PreparationController extends AbstractController
 {
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
+	/**
+	 * @var StatutRepository
+	 */
+	private $statutRepository;
 
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
+	/**
+	 * @var TypeRepository
+	 */
+	private $typeRepository;
 
-    /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
+	/**
+	 * @var LigneArticleRepository
+	 */
+	private $ligneArticleRepository;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
+	/**
+	 * @var ReferenceArticleRepository
+	 */
+	private $referenceArticleRepository;
 
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
+	/**
+	 * @var ArticleRepository
+	 */
+	private $articleRepository;
 
-    /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
+	/**
+	 * @var LivraisonRepository
+	 */
+	private $livraisonRepository;
 
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
+	/**
+	 * @var DemandeRepository
+	 */
+	private $demandeRepository;
 
-    /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
+	/**
+	 * @var PreparationRepository
+	 */
+	private $preparationRepository;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+	/**
+	 * @var UserService
+	 */
+	private $userService;
 
-    /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
+	/**
+	 * @var ArticleDataService
+	 */
+	private $articleDataService;
 
-    /**
-     * @var SpecificService
-     */
-    private $specificService;
+	/**
+	 * @var SpecificService
+	 */
+	private $specificService;
 
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
+	/**
+	 * @var UtilisateurRepository
+	 */
+	private $utilisateurRepository;
 
 	/**
 	 * @var PreparationsManagerService
 	 */
-    private $preparationsManagerService;
+	private $preparationsManagerService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
-    {
-        $this->typeRepository = $typeRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
-        $this->livraisonRepository = $livraisonRepository;
-        $this->statutRepository = $statutRepository;
-        $this->preparationRepository = $preparationRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->demandeRepository = $demandeRepository;
-        $this->ligneArticleRepository = $ligneArticleRepository;
-        $this->userService = $userService;
-        $this->articleDataService = $articleDataService;
-        $this->specificService = $specificService;
-        $this->preparationsManagerService = $preparationsManagerService;
-    }
+	public function __construct(PreparationsManagerService $preparationsManagerService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+	{
+		$this->typeRepository = $typeRepository;
+		$this->utilisateurRepository = $utilisateurRepository;
+		$this->livraisonRepository = $livraisonRepository;
+		$this->statutRepository = $statutRepository;
+		$this->preparationRepository = $preparationRepository;
+		$this->referenceArticleRepository = $referenceArticleRepository;
+		$this->articleRepository = $articleRepository;
+		$this->demandeRepository = $demandeRepository;
+		$this->ligneArticleRepository = $ligneArticleRepository;
+		$this->userService = $userService;
+		$this->articleDataService = $articleDataService;
+		$this->specificService = $specificService;
+		$this->preparationsManagerService = $preparationsManagerService;
+	}
 
 
 	/**
@@ -133,127 +133,127 @@ class PreparationController extends AbstractController
 	 * @return Response
 	 * @throws NonUniqueResultException
 	 */
-    public function finishPrepa($idPrepa,
-                                Request $request,
-                                EntityManagerInterface $entityManager,
-                                EmplacementRepository $emplacementRepository,
-                                PreparationsManagerService $preparationsManager): Response {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
+	public function finishPrepa($idPrepa,
+								Request $request,
+								EntityManagerInterface $entityManager,
+								EmplacementRepository $emplacementRepository,
+								PreparationsManagerService $preparationsManager): Response
+	{
+		if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+			return $this->redirectToRoute('access_denied');
+		}
 
-        $preparation = $this->preparationRepository->find($idPrepa);
-        $emplacementTo = $emplacementRepository->find($request->request->get('emplacement'));
+		$preparation = $this->preparationRepository->find($idPrepa);
+		$emplacementTo = $emplacementRepository->find($request->request->get('emplacement'));
 
-        $preparationsManager->createMouvementAndScission($preparation, $this->getUser());
+		$preparationsManager->createMouvementAndScission($preparation, $this->getUser());
 
-        $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison = $preparationsManager->persistLivraison($dateEnd);
-        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
-        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementTo);
+		$dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$livraison = $preparationsManager->persistLivraison($dateEnd);
+		$preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
+		$preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementTo);
 
-        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-        $mouvements = $mouvementRepository->findByPreparation($preparation);
+		$mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+		$mouvements = $mouvementRepository->findByPreparation($preparation);
 
-        foreach ($mouvements as $mouvement) {
-            $article = $mouvement->getArticle();
-            $refArticle = $mouvement->getRefArticle();
-            $preparationsManager->treatMouvement(
-                $mouvement->getQuantity(),
-                $preparation,
-                $this->getUser(),
-                $livraison,
-                isset($refArticle),
-                isset($refArticle) ? $refArticle : $article,
-                $emplacementTo
-            );
-        }
+		foreach ($mouvements as $mouvement) {
+			$article = $mouvement->getArticle();
+			$refArticle = $mouvement->getRefArticle();
+			$preparationsManager->treatMouvement(
+				$mouvement->getQuantity(),
+				$preparation,
+				$this->getUser(),
+				$livraison,
+				isset($refArticle),
+				isset($refArticle) ? $refArticle : $article,
+				$emplacementTo
+			);
+		}
 
-        $entityManager->flush();
+		$entityManager->flush();
 
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId(),
-        ]);
-    }
+		return $this->redirectToRoute('livraison_show', [
+			'id' => $livraison->getId(),
+		]);
+	}
 
-    /**
-     * @Route("/creer", name="", methods="POST")
-     */
-    public function new(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
-        {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	/**
+	 * @Route("/creer", name="", methods="POST")
+	 */
+	public function new(Request $request): Response
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+		{
+			if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            $preparation = new Preparation();
+			$preparation = new Preparation();
 
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $preparation->setNumero('P-' . $date->format('YmdHis'));
-            $preparation->setDate($date);
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-            $preparation->setStatut($statut);
+			$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+			$preparation->setNumero('P-' . $date->format('YmdHis'));
+			$preparation->setDate($date);
+			$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+			$preparation->setStatut($statut);
 
-            foreach ($data as $key) {
-                $demande = $this->demandeRepository->find($key);
-                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                $demande
-                    ->setPreparation($preparation)
-                    ->setStatut($statut);
-            }
+			foreach ($data as $key) {
+				$demande = $this->demandeRepository->find($key);
+				$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+				$demande
+					->setPreparation($preparation)
+					->setStatut($statut);
+			}
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
+			$em = $this->getDoctrine()->getManager();
+			$em->persist($preparation);
+			$em->flush();
 
-            $data = [
-                "preparation" => [
-                    "id" => $preparation->getId(),
-                    "numero" => $preparation->getNumero(),
-                    "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
-                    "Statut" => $preparation->getStatut()->getNom()
-                ],
-                "message" => "Votre préparation à été enregistrée."
-            ];
-            $data = json_encode($data);
-            return new JsonResponse($data);
-        }
+			$data = [
+				"preparation" => [
+					"id" => $preparation->getId(),
+					"numero" => $preparation->getNumero(),
+					"date" => $preparation->getDate()->format("d/m/Y H:i:s"),
+					"Statut" => $preparation->getStatut()->getNom()
+				],
+				"message" => "Votre préparation à été enregistrée."
+			];
+			$data = json_encode($data);
+			return new JsonResponse($data);
+		}
 
-        throw new NotFoundHttpException("404");
-    }
+		throw new NotFoundHttpException("404");
+	}
 
-    /**
-     * @Route("/", name="preparation_index", methods="GET|POST")
-     */
-    public function index(): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
-        return $this->render('preparation/index.html.twig', [
+	/**
+	 * @Route("/", name="preparation_index", methods="GET|POST")
+	 */
+	public function index(): Response
+	{
+		if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+			return $this->redirectToRoute('access_denied');
+		}
+		return $this->render('preparation/index.html.twig', [
 			'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-        ]);
-    }
+			'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+		]);
+	}
 
-    /**
-     * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
-     */
-    public function api(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest())
-        {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	/**
+	 * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function api(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            $data = $this->preparationsManagerService->getDataForDatatable($request->request);
+			$data = $this->preparationsManagerService->getDataForDatatable($request->request);
 
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
+			return new JsonResponse($data);
+		}
+		throw new NotFoundHttpException("404");
+	}
 
 
 	/**
@@ -264,41 +264,40 @@ class PreparationController extends AbstractController
 	 * @return Response
 	 * @throws NonUniqueResultException
 	 */
-    public function apiLignePreparation(Request $request, $id, $prepaId): Response
-    {
-        if ($request->isXmlHttpRequest())
-        {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	public function apiLignePreparation(Request $request, $id, $prepaId): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
 
-            $demande = $this->demandeRepository->find($id);
-            $preparation = $this->preparationRepository->find($prepaId);
-            $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
-            $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+			$demande = $this->demandeRepository->find($id);
+			$preparation = $this->preparationRepository->find($prepaId);
+			$preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+			$isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
-            if ($demande) {
-                $rows = [];
+			if ($demande) {
+				$rows = [];
 
-                $lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
-                foreach ($lignesArticles as $ligneArticle) {
-                    $articleRef = $ligneArticle->getReference();
-                    $isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                    $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-                    $qtt = $isRefByRef ?
-                        $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
-                        $articleRef->getQuantiteStock();
+				$lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
+				foreach ($lignesArticles as $ligneArticle) {
+					$articleRef = $ligneArticle->getReference();
+					$isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+					$statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+					$qtt = $isRefByRef ?
+						$this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
+						$articleRef->getQuantiteStock();
 
 
-                    $rows[] = [
-                        "Référence" => $articleRef ? $articleRef->getReference() : ' ',
-                        "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
-                        "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
-                        "Quantité" => $qtt,
-                        "Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
-                        "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $articleRef->getBarCode(),
+					$rows[] = [
+						"Référence" => $articleRef ? $articleRef->getReference() : ' ',
+						"Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
+						"Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
+						"Quantité" => $qtt,
+						"Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
+						"Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
+						"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+							'barcode' => $articleRef->getBarCode(),
 							'demandeId' => $id,
 							'isRef' => true,
 							'isRefByRef' => $isRefByRef,
@@ -307,24 +306,24 @@ class PreparationController extends AbstractController
 							'isPrepaEditable' => $isPrepaEditable,
 							'active' => !empty($ligneArticle->getQuantitePrelevee())
 						])
-                    ];
-                }
+					];
+				}
 
-                $articles = $this->articleRepository->findByDemande($demande);
-                foreach ($articles as $article) {
-                	if (empty($article->getQuantiteAPrelever())) {
-                		$article->setQuantiteAPrelever($article->getQuantite());
-                		$this->getDoctrine()->getManager()->flush();
+				$articles = $this->articleRepository->findByDemande($demande);
+				foreach ($articles as $article) {
+					if (empty($article->getQuantiteAPrelever())) {
+						$article->setQuantiteAPrelever($article->getQuantite());
+						$this->getDoctrine()->getManager()->flush();
 					}
-                    $rows[] = [
-                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                        "Quantité" => $article->getQuantite() ?? '',
-                        "Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
+					$rows[] = [
+						"Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+						"Libellé" => $article->getLabel() ? $article->getLabel() : '',
+						"Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+						"Quantité" => $article->getQuantite() ?? '',
+						"Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
 						"Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
 						"Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $article->getBarCode(),
+							'barcode' => $article->getBarCode(),
 							'demandeId' => $id,
 							'isRef' => false,
 							'isRefByRef' => false,
@@ -333,76 +332,76 @@ class PreparationController extends AbstractController
 							'isPrepaEditable' => $isPrepaEditable,
 							'active' => !empty($article->getQuantitePrelevee())
 						])
-                    ];
-                }
+					];
+				}
 
-                $data['data'] = $rows;
-            } else {
-                $data = false; //TODO gérer affichage erreur
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
+				$data['data'] = $rows;
+			} else {
+				$data = false; //TODO gérer affichage erreur
+			}
+			return new JsonResponse($data);
+		}
+		throw new NotFoundHttpException("404");
+	}
 
-    /**
-     * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
-     */
-    public function show(Preparation $preparation): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
+	/**
+	 * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
+	 */
+	public function show(Preparation $preparation): Response
+	{
+		if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+			return $this->redirectToRoute('access_denied');
+		}
 
-        $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+		$preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
-        return $this->render('preparation/show.html.twig', [
-            'demande' => $this->demandeRepository->findOneByPreparation($preparation),
-            'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
-            'preparation' => $preparation,
+		return $this->render('preparation/show.html.twig', [
+			'demande' => $this->demandeRepository->findOneByPreparation($preparation),
+			'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
+			'preparation' => $preparation,
 			'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
-            'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
-        ]);
-    }
+			'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
+		]);
+	}
 
-    /**
-     * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
-     */
-    public function delete(Preparation $preparation): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
+	/**
+	 * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
+	 */
+	public function delete(Preparation $preparation): Response
+	{
+		if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+			return $this->redirectToRoute('access_denied');
+		}
 
-        $em = $this->getDoctrine()->getManager();
-        foreach ($preparation->getDemandes() as $demande) {
-            $demande
-                ->setPreparation(null)
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+		$em = $this->getDoctrine()->getManager();
+		foreach ($preparation->getDemandes() as $demande) {
+			$demande
+				->setPreparation(null)
+				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
-            foreach ($demande->getArticles() as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
-                if ($article->getQuantiteAPrelever()) {
-                    $article->setQuantite($article->getQuantiteAPrelever());
-                    $article->setQuantiteAPrelever(0);
-                }
-            }
-        }
+			foreach ($demande->getArticles() as $article) {
+				$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
+				if ($article->getQuantiteAPrelever()) {
+					$article->setQuantite($article->getQuantiteAPrelever());
+					$article->setQuantiteAPrelever(0);
+				}
+			}
+		}
 
-        $em->remove($preparation);
-        $em->flush();
-        return $this->redirectToRoute('preparation_index');
-    }
+		$em->remove($preparation);
+		$em->flush();
+		return $this->redirectToRoute('preparation_index');
+	}
 
-    /**
-     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
-     * Get list of article
-     */
-    public function startSplitting(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
+	/**
+	 * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
+	 * Get list of article
+	 */
+	public function startSplitting(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
 
-        	$ligneArticle = $this->ligneArticleRepository->find($ligneArticleId);
+			$ligneArticle = $this->ligneArticleRepository->find($ligneArticleId);
 
 			$refArticle = $ligneArticle->getReference();
 			$statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -418,17 +417,17 @@ class PreparationController extends AbstractController
 				'demande' => $demande
 			]);
 
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			return new JsonResponse($response);
+		}
+		throw new NotFoundHttpException('404');
+	}
 
-    /**
-     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
-     */
-    public function submitSplitting(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+	/**
+	 * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function submitSplitting(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$totalQuantity = 0;
 			foreach ($data['articles'] as $id => $quantity) {
 				$totalQuantity += $quantity;
@@ -456,63 +455,63 @@ class PreparationController extends AbstractController
 			} else {
 				$resp = false;
 			}
-            return new JsonResponse($resp);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			return new JsonResponse($resp);
+		}
+		throw new NotFoundHttpException('404');
+	}
 
-    /**
-     * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
-     */
-    public function takeArticle(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $em = $this->getDoctrine()->getManager();
+	/**
+	 * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
+	 */
+	public function takeArticle(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+			$em = $this->getDoctrine()->getManager();
 
-            // modification des articles de la demande
-            $demande = $this->demandeRepository->find($data['demande']);
-            $articles = $demande->getArticles();
-            foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                // scission des articles dont la quantité prélevée n'est pas totale
-                if ($article->getQuantiteAPrelever() &&
-                    ($article->getQuantite() !== $article->getQuantiteAPrelever())) {
-                    $newArticle = [
-                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                        'libelle' => $article->getLabel(),
-                        'conform' => !$article->getConform(),
-                        'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => Article::STATUT_ACTIF,
+			// modification des articles de la demande
+			$demande = $this->demandeRepository->find($data['demande']);
+			$articles = $demande->getArticles();
+			foreach ($articles as $article) {
+				$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+				// scission des articles dont la quantité prélevée n'est pas totale
+				if ($article->getQuantiteAPrelever() &&
+					($article->getQuantite() !== $article->getQuantiteAPrelever())) {
+					$newArticle = [
+						'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+						'libelle' => $article->getLabel(),
+						'conform' => !$article->getConform(),
+						'commentaire' => $article->getcommentaire(),
+						'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+						'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+						'statut' => Article::STATUT_ACTIF,
 						'prix' => $article->getPrixUnitaire(),
 						'refArticle' => isset($data['refArticle'])
-                            ? $data['refArticle']
-                            : $article->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    ];
+							? $data['refArticle']
+							: $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+					];
 
-                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+					foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
 						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                    }
-                    $this->articleDataService->newArticle($newArticle);
+					}
+					$this->articleDataService->newArticle($newArticle);
 
-                    $article->setQuantite($article->getQuantiteAPrelever());
-                }
-            }
+					$article->setQuantite($article->getQuantiteAPrelever());
+				}
+			}
 
-            // modif du statut de la préparation
-            $preparation = $demande->getPreparation();
-            $statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-            $preparation->setStatut($statutEDP);
-            $em->flush();
+			// modif du statut de la préparation
+			$preparation = $demande->getPreparation();
+			$statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+			$preparation->setStatut($statutEDP);
+			$em->flush();
 
-            return new JsonResponse($statutEDP->getNom());
-        }
-        throw new NotFoundHttpException('404');
-    }
+			return new JsonResponse($statutEDP->getNom());
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 
 	/**
@@ -559,14 +558,33 @@ class PreparationController extends AbstractController
 			}
 
 			$json = $this->renderView(
-					'preparation/modalEditLigneArticleContent.html.twig',
-					[
-						'isRef' => $data['ref'],
-						'quantity' => $quantity,
-					]
+				'preparation/modalEditLigneArticleContent.html.twig',
+				[
+					'isRef' => $data['ref'],
+					'quantity' => $quantity,
+				]
 			);
 
 			return new JsonResponse($json);
+		}
+		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/commencer-preparation", name="prepa_begin", options={"expose"=true}, methods={"GET","POST"} )
+	 */
+	public function beginPrepa(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $prepaId = json_decode($request->getContent(), true)) {
+
+			$preparation = $this->preparationRepository->find($prepaId);
+
+			if ($preparation) {
+				$preparation->setUtilisateur($this->getUser());
+				$this->getDoctrine()->getManager()->flush();
+			}
+
+			return new JsonResponse();
 		}
 		throw new NotFoundHttpException("404");
 	}

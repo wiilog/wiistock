@@ -12,10 +12,10 @@
         {% set action = '' %}
         {% set attr = '' %}
         {% if isRefByRef %}
-            {% set action = "startPicking($(this))" %}
+            {% set action = ", startPicking($(this))" %}
             {% set attr = 'value='~id %}
         {% else %}
-            {% set action = "editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
+            {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
             {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
         {% endif %}
 
@@ -26,7 +26,7 @@
                  data-quantity="{{ quantity }}"
                  data-id='{{ id }}'
                  data-ref='{{ isRef ? 1 : 0 }}'
-                 onclick="{{ action }}">
+                 onclick="beginPrepa(){{ action }}">
                 <i class='fas fa-check'></i>
             </div>
         </div>
