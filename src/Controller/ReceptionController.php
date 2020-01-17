@@ -59,6 +59,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/reception")
@@ -991,6 +994,7 @@ class ReceptionController extends AbstractController
                 'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
+                    	'refArticleId' => $refArticle->getId(),
                         'reference' => $reference,
                         'referenceLabel' => $refArticle->getLibelle(),
                         'commande' => $commande,
@@ -1690,14 +1694,17 @@ class ReceptionController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
-     * @param Request $request
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param Reception $reception
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+	 * @param Request $request
+	 * @param DemandeLivraisonService $demandeLivraisonService
+	 * @param Reception $reception
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    Reception $reception): Response
@@ -1705,11 +1712,10 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $articles = $data['conditionnement'];
-
             // protection quantité réceptionnée < quantité attendue
             $totalQuantities = [];
             foreach ($articles as $article) {
-                $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle(
+                $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId(
                     $reception,
                     $article['noCommande'],
                     $article['refArticle']

@@ -255,15 +255,17 @@ class LivraisonController extends AbstractController
                 $lignes = $demande->getLigneArticle();
 
                 foreach ($lignes as $ligne) {
-                    $rows[] = [
-                        "Référence" => $ligne->getReference()->getReference(),
-                        "Libellé" => $ligne->getReference()->getLibelle(),
-                        "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
-                        "Quantité" => $ligne->getQuantitePrelevee(),
-                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                            'refArticleId' => $ligne->getReference()->getId(),
-                        ])
-                    ];
+                	if ($ligne->getQuantitePrelevee() > 0) {
+						$rows[] = [
+							"Référence" => $ligne->getReference()->getReference(),
+							"Libellé" => $ligne->getReference()->getLibelle(),
+							"Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
+							"Quantité" => $ligne->getQuantitePrelevee(),
+							"Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+								'refArticleId' => $ligne->getReference()->getId(),
+							])
+						];
+					}
                 }
 
                 $data['data'] = $rows;

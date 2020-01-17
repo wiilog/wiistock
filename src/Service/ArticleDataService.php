@@ -500,10 +500,13 @@ class ArticleDataService
 
 	/**
 	 * @param array $data
-	 * @param Reception $reception
 	 * @param Demande $demande
+	 * @param Reception $reception
 	 * @return Article
 	 * @throws NonUniqueResultException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
 	 */
     public function newArticle($data, $demande = null, $reception = null)
     {
@@ -512,7 +515,7 @@ class ArticleDataService
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
-        $refArticle = $this->referenceArticleRepository->findOneByReference($data['refArticle']);
+        $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
         $refReferenceArticle = $refArticle->getReference();
         $references = $this->articleRepository->getReferencesByRefAndDate($refReferenceArticle, $formattedDate);
 
@@ -577,7 +580,7 @@ class ArticleDataService
 		// optionnel : ajout dans une réception
 		if ($reception) {
 			$noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle->getReference());
+			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
 			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [

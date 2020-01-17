@@ -90,7 +90,7 @@ class LivraisonsManagerService {
 
             foreach ($ligneArticles as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();
-                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
+                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantitePrelevee());
             }
 
             // quantités gérées à l'article

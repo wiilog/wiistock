@@ -637,6 +637,8 @@ class DemandeController extends AbstractController
                 $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $demande = $article->getDemande();
                 $demande->removeArticle($article);
+                $article->setQuantitePrelevee(0);
+                $article->setQuantiteAPrelever(0);
             }
             $entityManager->flush();
 
