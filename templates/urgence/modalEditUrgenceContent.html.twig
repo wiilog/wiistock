@@ -1,11 +1,11 @@
 <div class="form-group">
     <label for="dateStart">Date de début*</label>
-    <input type="datetime-local" class="form-control data needed" name="dateStart" value="{{ urgence.dateStart|date('Y-m-d\\TH:i') }}">
+    <input type="text" class="form-control cursor-default data needed datepicker dateStart" name="dateStart" data-date="{{ urgence.dateStart|date('Y-m-d H:i') }}">
 </div>
 
 <div class="form-group">
     <label for="dateEnd">Date de fin*</label>
-    <input type="datetime-local" class="form-control data needed" name="dateEnd" value="{{ urgence.dateEnd|date('Y-m-d\\TH:i') }}">
+    <input type="text" class="form-control cursor-default data needed datepicker dateEnd" name="dateEnd" data-date="{{ urgence.dateEnd|date('Y-m-d H:i') }}">
 </div>
 
 <div class="form-group needed">

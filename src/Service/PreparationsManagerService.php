@@ -276,17 +276,21 @@ class PreparationsManagerService {
 		}
 		else {
 			// cas article
+            /**
+             * @var Article article
+             */
 			$article = $articleRepository->findOneByReference($mouvement['reference']);
 
 			if ($article) {
-
                 // cas ref par article
                 if (isset($mouvement['selected_by_article']) && $mouvement['selected_by_article']) {
                     if ($article->getDemande()) {
                         throw new Exception(self::ARTICLE_ALREADY_SELECTED);
                     } else {
                         $demande = $preparation->getDemandes()[0];
-                        $this->treatArticleSplitting($article, $mouvement['quantity'], $demande);
+                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+                        $this->treatArticleSplitting($article, $mouvement['quantity'], $ligneArticle);
                         // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                     }
                 }
