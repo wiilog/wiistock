@@ -304,9 +304,12 @@ class PreparationsManagerService {
 		$this->entityManager->flush();
 	}
 
-
 	public function treatArticleSplitting(Article $article, int $quantite, LigneArticle $ligneArticle) {
         if ($quantite !== '' && $quantite > 0 && $quantite <= $article->getQuantite()) {
+            if (!$article->getDemande()) {
+                $article->setQuantiteAPrelever(0);
+                $article->setQuantitePrelevee(0);
+            }
             $article->setDemande($ligneArticle->getDemande());
             if ($quantite <= $article->getQuantitePrelevee()) {
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
