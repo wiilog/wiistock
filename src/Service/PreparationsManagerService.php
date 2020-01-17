@@ -126,13 +126,17 @@ class PreparationsManagerService {
 	 */
     public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE);
-        $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE);
 
         $demandes = $preparation->getDemandes();
         $demande = $demandes[0];
 
         $livraison->addDemande($demande);
+
+		$isPreparationComplete = $this->isPreparationComplete($demande);
+		$prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
+		$statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
+		$demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
+		$statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
 
         $preparation
             ->addLivraison($livraison)
@@ -141,6 +145,23 @@ class PreparationsManagerService {
 
         $demande->setStatut($statutPrepareDemande);
     }
+
+    private function isPreparationComplete(Demande $demande)
+	{
+		$complete = true;
+
+		$articles = $demande->getArticles();
+		foreach ($articles as $article) {
+			if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) $complete = false;
+		}
+
+		$lignesArticle = $demande->getLigneArticle();
+		foreach ($lignesArticle as $ligneArticle) {
+			if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) $complete = false;
+		}
+
+		return $complete;
+	}
 
 	/**
 	 * @param DateTime $dateEnd
