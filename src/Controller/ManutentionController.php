@@ -182,7 +182,7 @@ class ManutentionController extends AbstractController
                 'manut' => $manutention,
                 'utilisateurs' => $this->utilisateurRepository->findAll(),
                 'emplacements' => $this->emplacementRepository->findAll(),
-                'statusTreated' => ($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 0 : 1,
+                'statusTreated' => ($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 1 : 0,
                 'statuts' => $this->statutRepository->findByCategorieName(Manutention::CATEGORIE),
             ]);
 
@@ -200,6 +200,7 @@ class ManutentionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            dump(intval($data['statut']));
             $manutention = $this->manutentionRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, $statutLabel);
