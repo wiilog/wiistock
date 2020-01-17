@@ -390,6 +390,7 @@ class PreparationController extends AbstractController
                 if ($article->getQuantiteAPrelever()) {
                     $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
+                    $article->setQuantitePrelevee(0);
                 }
             }
         }
