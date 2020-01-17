@@ -31,18 +31,18 @@
         <label for="statut" class="mtb-auto mr-2">Statut*</label>
         <div>
             {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE') ) %}
-            <span class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+            <span class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
                 onclick="changeStatus(this)" data-value="1">A Traiter</span><span
-                class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
+                class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
                 onclick="changeStatus(this)" data-value="0">Traité</span>
             {% else %}
-            <span class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+            <span class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
                 onclick="changeStatus(this)" data-value="1" style="pointer-events:none">A Traiter</span><span
-                class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
+                class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
                 onclick="changeStatus(this)" data-value="0" style="pointer-events:none">Traité</span>
             {% endif %}
         </div>
-        <input id="statut" type="hidden" value="{{not statusTreated}}" name="statut" class="data">
+        <input id="statutManut" type="hidden" value="{{statusTreated}}" name="statut" class="data">
     </div>
 </div>
 

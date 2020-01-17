@@ -137,10 +137,10 @@ function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
     if ($(button).hasClass('not-active')) {
-        if ($("#s").val() == "0") {
-            $("#s").val("1");
+        if ($("#statutManut").val() === "0") {
+            $("#statutManut").val("1");
         } else {
-            $("#s").val("0");
+            $("#statutManut").val("0");
         }
     }
 

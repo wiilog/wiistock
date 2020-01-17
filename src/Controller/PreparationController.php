@@ -301,6 +301,7 @@ class PreparationController extends AbstractController
 								'barcode' => $articleRef->getBarCode(),
 								'demandeId' => $id,
 								'isRef' => true,
+								'artOrRefId' => $articleRef->getId(),
 								'isRefByRef' => $isRefByRef,
 								'quantity' => $qtt,
 								'id' => $ligneArticle->getId(),
@@ -328,6 +329,7 @@ class PreparationController extends AbstractController
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
                                 'demandeId' => $id,
+                                'artOrRefId' => $article->getId(),
                                 'isRef' => false,
                                 'isRefByRef' => false,
                                 'quantity' => $article->getQuantiteAPrelever(),

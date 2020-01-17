@@ -13,6 +13,6 @@
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "yarn dev --watch",
-        "build": "encore production --progress"
+        "build": "encore production"
     }
 }
