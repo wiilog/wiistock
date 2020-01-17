@@ -315,7 +315,8 @@ class PreparationController extends AbstractController
 
                 $articles = $this->articleRepository->findByDemande($demande);
                 foreach ($articles as $article) {
-                    if (!($article->getQuantite() === 0 && $preparationStatut === Preparation::STATUT_PREPARE)) {
+                    if ($article->getQuantite() > 0 ||
+                        ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                         if (empty($article->getQuantiteAPrelever())) {
                             $article->setQuantiteAPrelever($article->getQuantite());
                             $this->getDoctrine()->getManager()->flush();
