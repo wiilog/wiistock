@@ -227,6 +227,12 @@ class PreparationsManagerService {
 		}
     }
 
+    public function deleteLigneRefOrNot(LigneArticle $ligne) {
+        if ($ligne && 0 === $ligne->getQuantite()) {
+            $this->entityManager->remove($ligne);
+        }
+    }
+
 	/**
 	 * @param array $mouvement
 	 * @param Preparation $preparation
@@ -259,14 +265,8 @@ class PreparationsManagerService {
                         throw new Exception(self::ARTICLE_ALREADY_SELECTED);
                     } else {
                         $demande = $preparation->getDemandes()[0];
-                        $article->setDemande($demande);
-
+                        $this->treatArticleSplitting($article, $mouvement['quantity'], $demande);
                         // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
-                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-                        if (!empty($ligneArticle)) {
-                            $this->entityManager->remove($ligneArticle);
-                        }
                     }
                 }
 
@@ -278,6 +278,20 @@ class PreparationsManagerService {
 
 		$this->entityManager->flush();
 	}
+
+
+	public function treatArticleSplitting(Article $article, int $quantite, LigneArticle $ligneArticle) {
+        if ($quantite !== '' && $quantite > 0 && $quantite <= $article->getQuantite()) {
+            $article->setDemande($ligneArticle->getDemande());
+            if ($quantite <= $article->getQuantitePrelevee()) {
+                $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
+            } else {
+                $ligneArticle->setQuantite($ligneArticle->getQuantite() - ($quantite - $article->getQuantitePrelevee()));
+            }
+            $article->setQuantiteAPrelever($quantite);
+            $article->setQuantitePrelevee($quantite);
+        }
+    }
 
     /**
      * On supprime les mouvements de transfert créés pour les réf gérées à l'articles
@@ -360,7 +374,7 @@ class PreparationsManagerService {
             $articleRef = $ligneArticle->getReference();
 
             $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
-            if (!$mouvementAlreadySaved) {
+            if (!$mouvementAlreadySaved && !empty($ligneArticle->getQuantitePrelevee())) {
                 $mouvement = new MouvementStock();
                 $mouvement
                     ->setUser($user)
