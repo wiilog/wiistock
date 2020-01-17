@@ -171,7 +171,7 @@ class DemandeLivraisonService
                 'Date' => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
                 'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                 'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
-                'Statut' => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
+                'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
                 'Type' => ($demande->getType() ? $demande->getType()->getLabel() : ''),
                 'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
                     [

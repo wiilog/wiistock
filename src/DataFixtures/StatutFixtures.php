@@ -73,7 +73,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Demande::STATUT_BROUILLON,
 				Demande::STATUT_A_TRAITER,
 				Demande::STATUT_PREPARE,
-				Demande::STATUT_LIVRE
+				Demande::STATUT_LIVRE,
+				Demande::STATUT_INCOMPLETE
 			],
 			CategorieStatut::ORDRE_LIVRAISON => [
 				Livraison::STATUT_A_TRAITER,
@@ -82,7 +83,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			CategorieStatut::PREPARATION => [
 				Preparation::STATUT_A_TRAITER,
 				Preparation::STATUT_EN_COURS_DE_PREPARATION,
-				Preparation::STATUT_PREPARE
+				Preparation::STATUT_PREPARE,
+				Preparation::STATUT_INCOMPLETE
 			],
 			CategorieStatut::RECEPTION => [
 				Reception::STATUT_EN_ATTENTE,
