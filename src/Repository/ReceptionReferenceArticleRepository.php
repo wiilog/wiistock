@@ -4,9 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
-use App\Entity\ReferenceArticle;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -78,11 +79,11 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 	/**
 	 * @param Reception $reception
 	 * @param string $noCommande
-	 * @param string $refArticle
+	 * @param int $refArticleId
 	 * @return ReceptionReferenceArticle|null
 	 * @throws NonUniqueResultException
 	 */
-	public function findOneByReceptionAndCommandeAndRefArticle($reception, $noCommande, $refArticle)
+	public function findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticleId)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -91,13 +92,13 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReceptionReferenceArticle rra
             JOIN rra.referenceArticle ra
             WHERE rra.reception = :reception
-            AND ra.reference = :refArticle
+            AND ra.id = :refArticleId
             AND rra.commande = :noCommande
             '
 		)->setParameters([
 			'reception' => $reception,
 			'noCommande' => $noCommande,
-			'refArticle' => $refArticle
+			'refArticleId' => $refArticleId
 		]);
 		return $query->getOneOrNullResult();
 	}
@@ -106,6 +107,7 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
 	 * @param int $receptionReferenceArticleId
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countArticlesByRRA($receptionReferenceArticleId)
 	{
