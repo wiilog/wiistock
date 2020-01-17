@@ -459,58 +459,58 @@ class PreparationController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
-     */
-    public function takeArticle(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $em = $this->getDoctrine()->getManager();
-
-            // modification des articles de la demande
-            $demande = $this->demandeRepository->find($data['demande']);
-            $articles = $demande->getArticles();
-            foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                // scission des articles dont la quantité prélevée n'est pas totale
-                if ($article->getQuantiteAPrelever() &&
-                    ($article->getQuantite() !== $article->getQuantiteAPrelever())) {
-                    $newArticle = [
-                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                        'libelle' => $article->getLabel(),
-                        'conform' => !$article->getConform(),
-                        'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => Article::STATUT_ACTIF,
-                        'prix' => $article->getPrixUnitaire(),
-                        'refArticle' => isset($data['refArticle'])
-                            ? $data['refArticle']
-                            : $article->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    ];
-
-                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                    }
-                    $this->articleDataService->newArticle($newArticle);
-
-                    $article->setQuantite($article->getQuantiteAPrelever());
-                }
-            }
-
-            // modif du statut de la préparation
-            $preparation = $demande->getPreparation();
-            $statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-            $preparation->setStatut($statutEDP);
-            $em->flush();
-
-            return new JsonResponse($statutEDP->getNom());
-        }
-        throw new NotFoundHttpException('404');
-    }
+//	/**
+//	 * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
+//	 */
+//	public function takeArticle(Request $request): Response
+//	{
+//		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//			if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+//				return $this->redirectToRoute('access_denied');
+//			}
+//			$em = $this->getDoctrine()->getManager();
+//
+//			// modification des articles de la demande
+//			$demande = $this->demandeRepository->find($data['demande']);
+//			$articles = $demande->getArticles();
+//			foreach ($articles as $article) {
+//				$article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+//				// scission des articles dont la quantité prélevée n'est pas totale
+//				if ($article->getQuantiteAPrelever() &&
+//					($article->getQuantite() !== $article->getQuantiteAPrelever())) {
+//					$newArticle = [
+//						'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+//						'libelle' => $article->getLabel(),
+//						'conform' => !$article->getConform(),
+//						'commentaire' => $article->getcommentaire(),
+//						'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+//						'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+//						'statut' => Article::STATUT_ACTIF,
+//						'prix' => $article->getPrixUnitaire(),
+//						'refArticle' => isset($data['refArticle'])
+//							? $data['refArticle']
+//							: $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+//					];
+//
+//					foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+//						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+//					}
+//					$this->articleDataService->newArticle($newArticle);
+//
+//					$article->setQuantite($article->getQuantiteAPrelever());
+//				}
+//			}
+//
+//			// modif du statut de la préparation
+//			$preparation = $demande->getPreparation();
+//			$statutEDP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+//			$preparation->setStatut($statutEDP);
+//			$em->flush();
+//
+//			return new JsonResponse($statutEDP->getNom());
+//		}
+//		throw new NotFoundHttpException('404');
+//	}
 
 
     /**

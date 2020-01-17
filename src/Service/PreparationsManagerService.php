@@ -304,11 +304,14 @@ class PreparationsManagerService {
         $this->refMouvementsToRemove = [];
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param Utilisateur $user
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Preparation $preparation
+	 * @param Utilisateur $user
+	 * @throws NonUniqueResultException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
     public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user) {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
@@ -338,7 +341,7 @@ class PreparationsManagerService {
                         'quantite' => $selected ? $article->getQuantite() - $article->getQuantitePrelevee() : 0,
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => $selected ? Article::STATUT_ACTIF : Article::STATUT_INACTIF,
-                        'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                        'refArticle' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : ''
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
