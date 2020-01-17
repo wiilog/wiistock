@@ -4,13 +4,13 @@ namespace App\Controller;
 
 
 use App\Entity\Action;
-use App\Entity\Manutention;
 use App\Entity\Menu;
 use App\Entity\Urgence;
-use App\Repository\DaysWorkedRepository;
 use App\Repository\UrgenceRepository;
 use App\Service\UrgenceService;
 use App\Service\UserService;
+use DateTime;
+use DateTimeZone;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,11 +83,13 @@ class UrgencesController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $dateStart = DateTime::createFromFormat('d/m/Y', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+            $dateEnd = DateTime::createFromFormat('d/m/Y', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
             $urgence = new Urgence();
             $urgence
                 ->setCommande($data['commande'])
-                ->setDateStart(new \DateTime($data['dateStart'], new \DateTimeZone("Europe/Paris")))
-                ->setDateEnd(new \DateTime($data['dateEnd'], new \DateTimeZone("Europe/Paris")));
+                ->setDateStart($dateStart)
+                ->setDateEnd($dateEnd);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($urgence);
@@ -146,11 +148,14 @@ class UrgencesController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+			$dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+			$dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
             $urgence = $this->urgenceRepository->find($data['id']);
             $urgence
                 ->setCommande($data['commande'])
-                ->setDateStart(new \DateTime($data['dateStart'], new \DateTimeZone("Europe/Paris")))
-                ->setDateEnd(new \DateTime($data['dateEnd'], new \DateTimeZone("Europe/Paris")));
+                ->setDateStart($dateStart)
+                ->setDateEnd($dateEnd);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();

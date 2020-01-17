@@ -213,7 +213,9 @@ function updateRemainingQuantity() {
     let totalQuantityTaken = 0;
     $inputs.each(function() {
         if ($(this).val() != '') {
-            totalQuantityTaken += parseFloat($(this).val());
+            totalQuantityTaken += parseFloat($(this).val()) - $(this).data('value-init');
+        } else {
+            totalQuantityTaken -= $(this).data('value-init');
         }
     });
 
