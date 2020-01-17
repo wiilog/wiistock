@@ -615,7 +615,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds)"
+			WHERE l.id IN (:livraisonsIds) AND la.quantitePrelevee > 0"
         )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
