@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
+use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
@@ -318,7 +319,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
                                         AttachmentService $attachmentService,
-                                        EntityManagerInterface $entityManager) {
+                                        EntityManagerInterface $entityManager)
+    {
         if (!$request->isXmlHttpRequest()) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
@@ -387,15 +389,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
                                     $article->setStatut($status);
                                 }
-                            }
-                            else { // MouvementTraca::TYPE_DEPOSE
+                            } else { // MouvementTraca::TYPE_DEPOSE
                                 $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
                                     [
                                         'colis' => $mouvementTraca->getColis(),
                                         'type' => $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
                                         'finished' => false
                                     ],
-                                    [ 'datetime' => 'DESC' ]
+                                    ['datetime' => 'DESC']
                                 );
                                 $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
                                 if (isset($mouvementTracaPrise)) {
@@ -461,8 +462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                             }
                         }
-                    }
-                    else if ($mouvementTraca->getType()->getNom() === MouvementTraca::TYPE_PRISE) {
+                    } else if ($mouvementTraca->getType()->getNom() === MouvementTraca::TYPE_PRISE) {
                         $finishMouvementTraca[] = $mouvementTraca;
                     }
 
@@ -495,12 +495,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
      * @Rest\View()
      * @param Request $request
-     * @param PreparationsManagerService $preparationsManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function beginPrepa(Request $request,
-                               PreparationsManagerService $preparationsManager)
+    public function beginPrepa(Request $request)
     {
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
@@ -510,17 +508,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 if (($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) ||
                     ($preparation->getUtilisateur() === $nomadUser)) {
-                    $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
-                    $preparationDone = true;
-                }
-                else {
-                    $preparationDone = false;
-                }
-
-                if ($preparationDone) {
                     $this->successDataMsg['success'] = true;
-                }
-                else {
+                } else {
                     $this->successDataMsg['success'] = false;
                     $this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
                     $this->successDataMsg['data'] = [];
@@ -537,17 +526,21 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
      * @Rest\View()
      * @param Request $request
+     * @param LigneArticleRepository $ligneArticleRepository
      * @param PreparationsManagerService $preparationsManager
      * @param EmplacementRepository $emplacementRepository
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
-     * @throws Throwable
+     * @throws ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function finishPrepa(Request $request,
+                                LigneArticleRepository $ligneArticleRepository,
                                 PreparationsManagerService $preparationsManager,
                                 EmplacementRepository $emplacementRepository,
-                                EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager)
+    {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest()) {
@@ -564,39 +557,62 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $preparation = $this->preparationRepository->find($preparationArray['id']);
                     if ($preparation) {
                         // if it has not been begun
-                        $preparationsManager->createMouvementAndScission($preparation, $nomadUser);
                         try {
                             $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
                             // flush auto at the end
-                            $entityManager->transactional(function()
-                                                               use ($preparationsManager, $preparationArray, $preparation, $nomadUser, $dateEnd, $emplacementRepository, $entityManager) {
+                            $entityManager->transactional(function () use (
+                                $preparationsManager,
+                                $preparationArray,
+                                $preparation,
+                                $nomadUser,
+                                $dateEnd,
+                                $emplacementRepository,
+                                $entityManager,
+                                $ligneArticleRepository) {
                                 $preparationsManager->setEntityManager($entityManager);
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
-
-                                $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
-
-                                $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                if ($emplacementPrepa) {
-                                    $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
-                                }
-                                else {
-                                    throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
-                                }
 
                                 $mouvementsNomade = $preparationArray['mouvements'];
-                                // on crée les mouvements de livraison
+                                $totalQuantitiesWithRef = [];
                                 foreach ($mouvementsNomade as $mouvementNomade) {
+                                    if (!$mouvementNomade['is_ref']) {
+                                        $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
+                                        $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                                        if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
+                                            $totalQuantitiesWithRef[$refArticle->getReference()] = 0;
+                                        }
+                                        $totalQuantitiesWithRef[$refArticle->getReference()] += $mouvementNomade['quantity'];
+                                    }
+                                    $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
+                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+
+                                    $livraison = $preparationsManager->persistLivraison($dateEnd);
+
+                                    $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
+
+                                    $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
+                                    if ($emplacementPrepa) {
+                                        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
+                                    } else {
+                                        throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
+                                    }
+
+                                    // on crée les mouvements de livraison
                                     $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
-                                    $preparationsManager->treatMouvement(
+                                    $preparationsManager->createMouvementLivraison(
                                         $mouvementNomade['quantity'],
-                                        $preparation,
                                         $nomadUser,
                                         $livraison,
-                                        (bool) $mouvementNomade['is_ref'],
-                                        $mouvementNomade['reference'],
                                         $emplacement,
-                                        (bool) (isset($mouvementNomade['selected_by_article']) && $mouvementNomade['selected_by_article'])
+                                        $mouvementNomade['is_ref'],
+                                        $mouvementNomade['reference'],
+                                        $preparation,
+                                        $mouvementNomade['selected_by_article']
                                     );
+                                }
+                                foreach ($totalQuantitiesWithRef as $ref => $quantity) {
+                                    $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
+                                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);
+                                    $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                                 }
                                 $entityManager->flush();
                             });
@@ -605,8 +621,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId()
                             ];
-                        }
-                        catch (Exception $exception) {
+                        } catch (Exception $exception) {
                             // we create a new entity manager because transactional() can call close() on it if transaction failed
                             if (!$entityManager->isOpen()) {
                                 $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -618,7 +633,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                                 'message' => (
-                                    ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                     (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
                                         'Une erreur est survenue')
                                 )
@@ -629,8 +644,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $preparationsManager->removeRefMouvements();
                 $entityManager->flush();
-            }
-            else {
+            } else {
                 $statusCode = Response::HTTP_UNAUTHORIZED;
                 $resData['success'] = false;
                 $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -648,7 +662,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
-            $id = $request->request->get('id');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
                 $em = $this->getDoctrine()->getManager();
@@ -772,7 +785,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function finishLivraison(Request $request,
                                     EntityManagerInterface $entityManager,
-                                    LivraisonsManagerService $livraisonsManager) {
+                                    LivraisonsManagerService $livraisonsManager)
+    {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest()) {
@@ -793,8 +807,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         try {
                             if ($emplacement) {
                                 // flush auto at the end
-                                $entityManager->transactional(function()
-                                                                   use($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
+                                $entityManager->transactional(function ()
+                                use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
                                     $livraisonsManager->setEntityManager($entityManager);
                                     $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $emplacement);
                                     $entityManager->flush();
@@ -804,12 +818,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     'numero_livraison' => $livraison->getNumero(),
                                     'id_livraison' => $livraison->getId()
                                 ];
-                            }
-                            else {
+                            } else {
                                 throw new Exception(LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                             }
-                        }
-                        catch (Exception $exception) {
+                        } catch (Exception $exception) {
                             // we create a new entity manager because transactional() can call close() on it if transaction failed
                             if (!$entityManager->isOpen()) {
                                 $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -821,7 +833,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'id_livraison' => $livraison->getId(),
 
                                 'message' => (
-                                    ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                     (($exception->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
                                         'Une erreur est survenue')
                                 )
@@ -869,7 +881,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
                     try {
                         $entityManager->transactional(function ()
-                                                      use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
+                        use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
                             $this->ordreCollecteService->setEntityManager($entityManager);
                             $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new \DateTimeZone('Europe/Paris'));
 
@@ -907,9 +919,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_collecte' => $collecte->getId(),
 
                             'message' => (
-                                ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
+                            ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? "La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ")." :
                                 ($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? "La collecte " . $collecte->getNumero() . " ne contient aucun article." :
-                                'Une erreur est survenue'
+                                    'Une erreur est survenue'
                             )
                         ];
                     }
@@ -1191,7 +1203,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function getArticles(Request $request): Response {
+    public function getArticles(Request $request): Response
+    {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest()) {
@@ -1206,8 +1219,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
                         $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
                     );
-                }
-                else {
+                } else {
                     $statusCode = Response::HTTP_BAD_REQUEST;
                     $resData['success'] = false;
                     $resData['articles'] = [];

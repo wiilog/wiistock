@@ -165,7 +165,7 @@ class MouvementStockController extends AbstractController
             }
 
             $headers = [];
-            $headers = array_merge($headers, ['date', 'issu de', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
+            $headers = array_merge($headers, ['date', 'ordre', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
             $data = [];
             $data[] = $headers;
 
@@ -175,25 +175,18 @@ class MouvementStockController extends AbstractController
                 // TODO code-barre au lieu de référence ??
                 $reference = $reference ? $reference : $mouvement->getArticle()->getReference();
 
-                $from = $orderNo = null;
+                $orderNo = null;
 				if ($mouvement->getPreparationOrder()) {
-					$from = 'préparation';
 					$orderNo = $mouvement->getPreparationOrder()->getNumero();
 				} else if ($mouvement->getLivraisonOrder()) {
-					$from = 'livraison';
 					$orderNo = $mouvement->getLivraisonOrder()->getNumero();
 				} else if ($mouvement->getCollecteOrder()) {
-					$from = 'collecte';
 					$orderNo = $mouvement->getCollecteOrder()->getNumero();
 				} else if ($mouvement->getReceptionOrder()) {
-					$from = 'réception';
 					$orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
-				} else if ($this->mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
-					$from = 'transfert de stock';
 				}
-
                 $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
-                $mouvementData[] = $from ? $from . ($orderNo ? ' ' . $orderNo : '') : '';
+                $mouvementData[] = $orderNo ? ' ' . $orderNo : '';
                 $mouvementData[] = $reference;
 				$mouvementData[] = $mouvement->getQuantity();
 				$mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
