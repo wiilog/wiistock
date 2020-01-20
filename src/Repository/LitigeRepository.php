@@ -7,6 +7,7 @@ use App\Entity\LitigeHistoric;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -118,6 +119,9 @@ class LitigeRepository extends ServiceEntityRepository
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
@@ -166,7 +170,7 @@ class LitigeRepository extends ServiceEntityRepository
 	 * @param array|null $params
 	 * @param array|null $filters
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function findByParamsAndFilters($params, $filters)
 	{

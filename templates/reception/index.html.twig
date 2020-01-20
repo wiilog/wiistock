@@ -20,7 +20,7 @@
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick='generateCSVReception()'>
+            <div class="btn btn-primary" onclick="generateCSV('get_receptions_for_csv', '{{ 'réception.réceptions'|trans }}')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
         {% endif %}

@@ -14,11 +14,11 @@
         <a href="" data-toggle="modal" data-target="#modalAddToMission" class="btn btn-primary" onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete-refArticle'), 'reference'), ajaxAutoArticlesInit($('.ajax-autocomplete-article'))">
             <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
         </a>
-        <div class="btn btn-primary" onclick='generateCSVMission()'>
+        <div class="btn btn-primary" onclick="generateCSV('get_mission_for_csv', 'mission-inv', {{ missionId }})">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
     </div>
-        <div class="d-none justify-content-center" id="spinnerMission">
+        <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
@@ -28,7 +28,7 @@
     </table>
 
     <input value="{{ missionId }}" id="missionId" hidden/>
-
+{# TODO CG SUPPR MISSION ID ?#}
     <a href="{{ path('inventory_mission_index') }}" class="btn btn-action">
         Retour à la liste
     </a>

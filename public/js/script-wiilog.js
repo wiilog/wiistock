@@ -1097,9 +1097,10 @@ function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
 }
 
-function generateCSV(route, filename = 'export') {
+function generateCSV(route, filename = 'export', param = null) {
     loadSpinner($('#spinner'));
-    let data = {};
+    let data = param ? {'param': param} : {};
+
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
             data[$(this).attr('name')] = $(this).val();
