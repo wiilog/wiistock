@@ -569,6 +569,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $emplacementRepository,
                                 $entityManager,
                                 $ligneArticleRepository) {
+
                                 $preparationsManager->setEntityManager($entityManager);
 
                                 $mouvementsNomade = $preparationArray['mouvements'];
@@ -634,7 +635,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                                 'message' => (
-                                ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                    ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                     (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
                                         'Une erreur est survenue')
                                 )
@@ -857,7 +858,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/finishCollecte", name= "api-finish-collecte")
+     * @Rest\Post("/api/finishCollecte", name="api-finish-collecte")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -887,7 +888,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new \DateTimeZone('Europe/Paris'));
 
                             $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                            $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements']);
+                            $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements'], true);
                             $entityManager->flush();
 
                             if (!empty($newCollecte)) {

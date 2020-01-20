@@ -273,8 +273,8 @@ class OrdreCollecteService
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
                     $collecteReference->getQuantite(),
-                    $fromNomade,
-					$ordreCollecte
+					$ordreCollecte,
+                    $fromNomade
                 );
 			}
 
@@ -291,8 +291,8 @@ class OrdreCollecteService
                     $demandeCollecte->getPointCollecte(),
                     $depositLocation,
                     $article->getQuantite(),
-                    $fromNomade,
-					$ordreCollecte
+					$ordreCollecte,
+                    $fromNomade
                 );
 			}
 		}
@@ -396,8 +396,8 @@ class OrdreCollecteService
                                        Emplacement $locationFrom,
                                        Emplacement $locationTo,
                                        int $quantity,
-                                       bool $fromNomade = false,
-									   OrdreCollecte $ordreCollecte): void {
+									   OrdreCollecte $ordreCollecte,
+                                       bool $fromNomade = false): void {
         $mouvementStock = $this->mouvementStockService->createMouvementStock($user, $locationFrom, $quantity, $article, MouvementStock::TYPE_ENTREE);
 
         if ($fromNomade) {
