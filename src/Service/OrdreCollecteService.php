@@ -438,7 +438,7 @@ class OrdreCollecteService
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
             $uniqueId = $dateStr . '_' . $random;
             $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
-        } while (count($existingMouvements) === 0);
+        } while (!empty($existingMouvements));
 
         return $uniqueId;
     }
