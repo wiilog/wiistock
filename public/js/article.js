@@ -97,6 +97,7 @@ function resizeTable() {
 
 function initNewArticleEditor(modal) {
     initEditor(modal + ' .editor-container-new');
+    $('.list-multiple').select2();
 };
 
 function loadAndDisplayInfos(select) {

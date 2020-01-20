@@ -318,7 +318,7 @@ class CollecteController extends AbstractController
 				if (gettype($champs) === 'integer') {
 					$valeurChampLibre = new ValeurChampLibre();
 					$valeurChampLibre
-						->setValeur($data[$champs])
+                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
 						->addDemandesCollecte($collecte)
 						->setChampLibre($this->champLibreRepository->find($champs));
 					$em->persist($valeurChampLibre);
@@ -600,7 +600,7 @@ class CollecteController extends AbstractController
 								->setChampLibre($this->champLibreRepository->find($champ));
 							$em->persist($valeurChampLibre);
 						}
-						$valeurChampLibre->setValeur($data[$champ]);
+						$valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
 						$em->flush();
 					}
 				}

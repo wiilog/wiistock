@@ -185,6 +185,7 @@ function initNewReceptionEditor(modal) {
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     initDateTimePicker('#dateCommande, #dateAttendue');
     initDateTimePickerCL();
+    $('.list-multiple').select2();
 }
 
 function initDateTimePickerCL() {

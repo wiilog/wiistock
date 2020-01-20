@@ -12,9 +12,9 @@ let tableType = $('#tableType_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions' },
-        { "data": 'Label', 'title': 'Libellé' },
-        { "data": "S'applique", 'title': "S'applique à" },
+        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Label', 'title': 'Libellé'},
+        {"data": "S'applique", 'title': "S'applique à"},
     ],
     columnDefs: [
         {
@@ -43,7 +43,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 //CHAMPS LIBRE
 
-const urlApiChampLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
+const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': id}, true);
 let tableChampLibre = $('#tableChamplibre_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -53,14 +53,14 @@ let tableChampLibre = $('#tableChamplibre_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions' },
-        { "data": 'Label', 'title': 'Libellé' },
-        { "data": "S'applique à", 'title': "S'applique à" },
-        { "data": 'Typage', 'title': 'Typage' },
-        { "data": 'Valeur par défaut', 'title': 'Valeur par défaut' },
-        { "data": 'Elements', 'title': 'Éléments' },
-        { "data": 'Obligatoire à la création', 'title': 'Obligatoire à la création' },
-        { "data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification' },
+        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Label', 'title': 'Libellé'},
+        {"data": "S'applique à", 'title': "S'applique à"},
+        {"data": 'Typage', 'title': 'Typage'},
+        {"data": 'Valeur par défaut', 'title': 'Valeur par défaut'},
+        {"data": 'Elements', 'title': 'Éléments'},
+        {"data": 'Obligatoire à la création', 'title': 'Obligatoire à la création'},
+        {"data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification'},
     ],
 });
 
@@ -87,7 +87,7 @@ function askForDeleteConfirmation(data) {
         let submit = $('#submitDeleteType');
 
         let typeId = submit.val();
-        let params = JSON.stringify({ force: true, type: typeId });
+        let params = JSON.stringify({force: true, type: typeId});
 
         submit.on('click', function () {
             $.post(Routing.generate('type_delete'), params, function () {
@@ -101,7 +101,7 @@ function askForDeleteConfirmation(data) {
 
 function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif')) {
     let $modal = $select.closest('.modal');
-    let valueDefault =  $modal.find('.valueDefault');
+    let valueDefault = $modal.find('.valueDefault');
     let typage = $select.val();
     let inputDefaultBlock;
     let name = 'valeur';
@@ -116,7 +116,7 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
         let checked = existingValue == 1 ? "checked" : "";
         inputDefaultBlock =
             `<label class="switch">
-                <input type="checkbox" class="data checkbox" 
+                <input type="checkbox" class="data checkbox"
                 name="valeur" value="` + existingValue + `" ` + checked + `>
                 <span class="slider round"></span>
             </label>`;
@@ -128,9 +128,15 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
             name = 'elem';
             existingValue = existingElem ? existingElem : '';
         }
-
-        inputDefaultBlock =
-            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
+        if (typage === 'list multiple') {
+            label = "Éléments";
+            existingValue = existingElem ? existingElem : '';
+            inputDefaultBlock =
+                `<select class="form-control cursor-default data" name="Elements" multiple="multiple"></select>`;
+        } else {
+            inputDefaultBlock =
+                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
+        }
     }
 
     let defaultBlock =
@@ -141,6 +147,25 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
 
     valueDefault.html(defaultBlock);
     if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
+    if (typage === 'list multiple') {
+        let data = [];
+        existingValue.split(';').forEach((value) => {
+            if (value !== '') {
+                data.push({
+                    id: value,
+                    text: value,
+                    selected: true
+                })
+            }
+        });
+        $('.data[name="Elements"]').select2({
+            tags: true,
+            "language":{
+                "noResults" : function () { return 'Ajoutez des éléments'; }
+            },
+            data: data
+        });
+    }
 }
 
 function displayErrorCL(data) {
