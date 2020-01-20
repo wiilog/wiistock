@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\ReferenceArticle;
 
 
-class RefArticleCollinsFixtures extends Fixture implements FixtureGroupInterface
+class RefArticleCollinsVERNONFixtures extends Fixture implements FixtureGroupInterface
 {
 
     /**
@@ -30,7 +30,7 @@ class RefArticleCollinsFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "src/DataFixtures/Csv/refs-collins.csv";
+        $path = "/root/refs-vernon.csv";
         $file = fopen($path, "r");
 
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -108,7 +108,7 @@ class RefArticleCollinsFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['collins-ref'];
+        return ['refs-vernon'];
     }
 
 }

@@ -1,17 +1,32 @@
 <div class="d-flex">
-  
-    {% if refArticleId is defined %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ refArticleId }}' data-target='#modalShowRefArticle' data-toggle='modal'
-                onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
-                <i class='fas fa-eye'></i>
-            </div>
+    {% set target = isRef ? '#modalShowRefArticle' : '#modalShowArticle' %}
+    {% set path = isRef ? 'reference_article_show' : 'article_show' %}
+    <div>
+        <div class="btn btn-col-action" data-barcode='{{ barcode }}' data-target='{{ target }}' data-toggle='modal' data-id="{{ artOrRefId }}"
+            onclick="showRow($(this), Routing.generate('{{ path }}', true), $('{{ target }}'))">
+            <i class='fas fa-eye'></i>
         </div>
-    {% else %}
+    </div>
+    {% if isPrepaEditable %}
+        {% set action = '' %}
+        {% set attr = '' %}
+        {% if isRefByRef %}
+            {% set action = ", startPicking($(this))" %}
+            {% set attr = 'value='~id %}
+        {% else %}
+            {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
+            {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
+        {% endif %}
+
         <div>
-            <div class="btn btn-col-action" data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal'
-            onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
-                <i class='fas fa-eye'></i>
+            <div class="btn btn-col-action btn-check {{ active ? 'active' : '' }}"
+                 {{ attr }}
+                 data-barcode='{{ barcode }}'
+                 data-quantity="{{ quantity }}"
+                 data-id='{{ id }}'
+                 data-ref='{{ isRef ? 1 : 0 }}'
+                 onclick="beginPrepa(){{ action }}">
+                <i class='fas fa-check'></i>
             </div>
         </div>
     {% endif %}

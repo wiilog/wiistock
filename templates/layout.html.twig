@@ -1,4 +1,4 @@
-{% set version = '2.2.0' %}
+{% set version = '2.3.0' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -73,7 +73,7 @@
                             <h4>Qualité</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            <li><a href="{{ path("litige_arrivage_index") }}" class="sub-item">• Litiges arrivage</a></li>
+                            <li><a href="{{ path("litige_arrivage_index") }}" class="sub-item">• Litiges {{ 'arrivage.arrivages'|trans }}</a></li>
                         </ul>
                     </li>
                 {% endif %}
@@ -104,7 +104,10 @@
                 <!-- ORDRE -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST'))
+                %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-network-wired"></i>

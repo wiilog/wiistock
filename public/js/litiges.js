@@ -38,6 +38,8 @@ $(function() {
                 $('#carriers').val(element.value).select2();
             }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            } else if (element.field == 'statut') {
+                $('#' + element.field).val(element.value).select2();
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -68,7 +70,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° d'arrivage"},
+        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° " + $('#trans-arrivage').val()},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},

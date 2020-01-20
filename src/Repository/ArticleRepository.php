@@ -14,12 +14,14 @@ use App\Entity\Utilisateur;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -90,9 +92,10 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'UPDATE App\Entity\Article a
-            SET a.reception = null
-            WHERE a.reception = :id'
+            '
+            UPDATE App\Entity\Article a
+            SET a.receptionReferenceArticle = null
+            WHERE a.receptionReferenceArticle = :id'
         )->setParameter('id', $id);
         return $query->execute();
     }
@@ -621,7 +624,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
           FROM App\Entity\Article a
           JOIN a.articleFournisseur af
-          WHERE af IN(:articleFournisseur)"
+          WHERE af IN (:articleFournisseur)"
         )->setParameters([
             'articleFournisseur' => $listAf,
         ]);
@@ -690,12 +693,21 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+    public function getByPreparationsIds($preparationsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa, a.barCode, ra.reference as reference_article_reference
+            "SELECT a.reference,
+                         e.label as location,
+                         a.label,
+                         (CASE
+                            WHEN a.quantiteAPrelever IS NULL THEN a.quantite
+                            ELSE a.quantiteAPrelever
+                         END) as quantity,
+                         0 as is_ref,
+                         p.id as id_prepa,
+                         a.barCode,
+                         ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
 			JOIN a.demande d
@@ -703,12 +715,9 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
-		)->setParameters([
-		    'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+			WHERE p.id IN (:preparationsIds)
+			  AND a.quantite > 0"
+        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -744,7 +753,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+    public function getByLivraisonsIds($livraisonsIds)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -755,25 +764,20 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user
-        ]);
+			WHERE l.id IN (:livraisonsIds) 
+			  AND a.quantite > 0"
+        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
 
-	public function getByOrdreCollecteStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	public function getByOrdreCollectesIds($collectesIds)
 	{
 		$em = $this->getEntityManager();
 		//TODO patch temporaire CEA (sur quantité envoyée)
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur is null OR oc.utilisateur = :user))")
-			->setParameters([
-				'statutLabel' => $statutLabel,
-				'user' => $user,
-			]);
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
+            ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
 		return $query->execute();
 	}
@@ -782,13 +786,13 @@ class ArticleRepository extends ServiceEntityRepository
 	{
 		$em = $this->getEntityManager();
 		$query = $em
-			->createQuery($this->getArticleQuery() . " WHERE oc.id = :id")
+			->createQuery($this->getArticleCollecteQuery() . " WHERE oc.id = :id")
 			->setParameter('id', $collecteId);
 
 		return $query->execute();
 	}
 
-	private function getArticleQuery()
+	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
 		"SELECT a.reference,
@@ -1002,44 +1006,34 @@ class ArticleRepository extends ServiceEntityRepository
     }
 
 	public function findArticleByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->addSelect('article');
 
-        $query = $em
-            ->createQuery(
-                "SELECT article
-                FROM App\Entity\Article article
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status"
-            )
-            ->setParameter('location', $location)
-            ->setParameter('barCode', $barCode)
-            ->setParameter('status', Article::STATUT_ACTIF);
-
-        return $query->execute();
+        return $queryBuilder->getQuery()->execute();
     }
 
 	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->select('article.reference as reference')
+            ->addSelect('article.quantite as quantity')
+            ->addSelect('0 as is_ref');
 
-        $query = $em
-            ->createQuery(
-                "SELECT article.reference as reference,
-                             article.quantite as quantity,
-                             0 as is_ref
-                FROM App\Entity\Article article
-                JOIN article.emplacement emplacement
-                JOIN article.statut status
-                WHERE emplacement.label = :location
-                  AND article.barCode = :barCode
-                  AND status.nom = :status"
-            )
+        return $queryBuilder->getQuery()->execute();
+    }
+
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('article');
+        return $queryBuilder
+            ->join('article.emplacement', 'emplacement')
+            ->join('article.statut', 'status')
+            ->andWhere('emplacement.label = :location')
+            ->andWhere('article.barCode = :barCode')
+            ->andWhere('status.nom = :statusNom')
+// TODO AB            ->andWhere('article.quantite IS NOT NULL AND article.quantite > 0')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('status', Article::STATUT_ACTIF);
-
-        return $query->execute();
+            ->setParameter('statusNom', Article::STATUT_ACTIF);
     }
 }

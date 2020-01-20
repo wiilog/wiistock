@@ -3,13 +3,15 @@ $('.select2').select2();
 $(function() {
     initDateTimePicker();
     initSelect2('#emplacement', 'Emplacement');
-    initSelect2('#statut', 'Statut');
+    initSelect2('#statut', 'Type');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_STOCK);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
+            console.log(element);
+
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');
@@ -20,8 +22,8 @@ $(function() {
                     let option = new Option(username, id, true, true);
                     $utilisateur.append(option).trigger('change');
                 });
-            } else if (element.field == 'emplacement') {
-                $('#emplacement').val(element.value).select2();
+            } else if (element.field == 'emplacement' || element.field == 'statut') {
+                $('#' + element.field).val(element.value).select2();
             }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             } else {
@@ -52,6 +54,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
+        {"data": 'from', 'name': 'from', 'title': 'Issu de'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
         {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
@@ -62,7 +65,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: [0]
+            targets: [0, 2]
         }
     ]
 });
@@ -141,10 +144,8 @@ function generateCSVMouvement () {
     });
 
     if (data['dateMin'] && data['dateMax']) {
-        console.log(data['dateMin']);
         moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
         moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        console.log(data['dateMin']);
         let params = JSON.stringify(data);
         let path = Routing.generate('get_mouvements_stock_for_csv', true);
 

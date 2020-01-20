@@ -227,47 +227,41 @@ class OrdreCollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $ordreCollecte->getDemandeCollecte();
+            $rows = [];
+            foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
+                $referenceArticle = $ligneArticle->getReferenceArticle();
 
-            if ($demande) {
-                $rows = [];
-                foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
-                    $referenceArticle = $ligneArticle->getReferenceArticle();
-
-                    $rows[] = [
-                        "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
-                        "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                        "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                        "Quantité" => $ligneArticle->getQuantite() ?? ' ',
-                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                            'id' => $ligneArticle->getId(),
-                            'refArticleId' => $referenceArticle->getId(),
-                            'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
-                            'quantity' => $ligneArticle->getQuantite(),
-                            'modifiable' => $ordreCollecte->getStatut() ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) : false,
-                        ])
-                    ];
-                }
-
-                foreach ($ordreCollecte->getArticles() as $article) {
-                    $rows[] = [
-                        'Référence' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        'Libellé' => $article->getLabel(),
-                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                        'Quantité' => $article->getQuantite(),
-                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                            'id' => $article->getId(),
-                            'refArt' => $article->getReference(),
-                            'quantity' => $article->getQuantite(),
-                            'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
-                        ])
-                    ];
-                }
-
-                $data['data'] = $rows;
-            } else {
-                $data = false; //TODO gérer retour message erreur
+                $rows[] = [
+                    "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
+                    "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
+                    "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                    "Quantité" => $ligneArticle->getQuantite() ?? ' ',
+                    "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                        'id' => $ligneArticle->getId(),
+                        'refArticleId' => $referenceArticle->getId(),
+                        'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
+                        'quantity' => $ligneArticle->getQuantite(),
+                        'modifiable' => $ordreCollecte->getStatut() ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) : false,
+                    ])
+                ];
             }
+
+            foreach ($ordreCollecte->getArticles() as $article) {
+                $rows[] = [
+                    'Référence' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                    'Libellé' => $article->getLabel(),
+                    "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                    'Quantité' => $article->getQuantite(),
+                    "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                        'id' => $article->getId(),
+                        'refArt' => $article->getReference(),
+                        'quantity' => $article->getQuantite(),
+                        'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
+                    ])
+                ];
+            }
+
+            $data['data'] = $rows;
 
             return new JsonResponse($data);
         }

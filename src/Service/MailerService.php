@@ -33,6 +33,9 @@ class MailerService
 
     public function sendMail($subject, $content, $to)
     {
+    	if (isset($_SERVER['APP_NO_MAIL']) && $_SERVER['APP_NO_MAIL'] == 1) {
+    		return true;
+		}
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
         if ($mailerServer) {
             $from = $mailerServer->getUser() ? $mailerServer->getUser() : '';
@@ -49,7 +52,7 @@ class MailerService
         }
 
         //protection dev
-        if (!isset($_SERVER['APP_ENV']) || (isset($_SERVER['APP_ENV']) and $_SERVER['APP_ENV'] !== 'prod')) {
+        if (!isset($_SERVER['APP_ENV']) || (isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] !== 'prod')) {
 
             $content .= '<p>DESTINATAIRES : ';
             if (!is_array($to)) {

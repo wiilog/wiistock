@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -79,12 +79,15 @@ class ReceptionRepository extends ServiceEntityRepository
 	}
 
     /**
-     * @param string $dateMin
-     * @param string $dateMax
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
      * @return Reception[]|null
      */
     public function findByDates($dateMin, $dateMax)
     {
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT r

@@ -43,6 +43,7 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\DemandeLivraisonService;
+use App\Service\MouvementStockService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
@@ -51,7 +52,6 @@ use App\Service\UserService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,6 +59,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/reception")
@@ -180,6 +183,11 @@ class ReceptionController extends AbstractController
      */
     private $paramGlobalRepository;
 
+	/**
+	 * @var MouvementStockService
+	 */
+    private $mouvementStockService;
+
     public function __construct(
         ArticleDataService $articleDataService,
         DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
@@ -203,7 +211,8 @@ class ReceptionController extends AbstractController
         AttachmentService $attachmentService,
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
-        ParametrageGlobalRepository $parametrageGlobalRepository
+        ParametrageGlobalRepository $parametrageGlobalRepository,
+		MouvementStockService $mouvementStockService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -229,6 +238,7 @@ class ReceptionController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
         $this->fieldsParamRepository = $fieldsParamRepository;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
 
@@ -452,7 +462,7 @@ class ReceptionController extends AbstractController
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
                         'valeurChampLibre' => $valeurChampReception,
-						'requiredEdit' => $champLibre->getRequiredEdit()
+                        'requiredEdit' => $champLibre->getRequiredEdit()
                     ];
                 }
 
@@ -565,7 +575,7 @@ class ReceptionController extends AbstractController
 
         $fields = array_reduce(
             $fieldsParam,
-            function(array $acc, $field) {
+            function (array $acc, $field) {
                 $acc[$field['fieldCode']] = [
                     'mustToCreate' => $field['mustToCreate'],
                     'mustToModify' => $field['mustToModify'],
@@ -596,8 +606,8 @@ class ReceptionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
                 $entityManager->remove($receptionArticle);
+                $this->articleRepository->setNullByReception($receptionArticle);
             }
-            $this->articleRepository->setNullByReception($reception);
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
@@ -619,6 +629,9 @@ class ReceptionController extends AbstractController
             }
 
             $ligneArticle = $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
+
+            if (!$ligneArticle) return new JsonResponse(false);
+
             $reception = $ligneArticle->getReception();
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ligneArticle);
@@ -981,6 +994,7 @@ class ReceptionController extends AbstractController
                 'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
+                    	'refArticleId' => $refArticle->getId(),
                         'reference' => $reference,
                         'referenceLabel' => $refArticle->getLibelle(),
                         'commande' => $commande,
@@ -1288,7 +1302,6 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
             $reception = $this->receptionRepository->find($data['id']);
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
 
@@ -1296,14 +1309,14 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($em, $reception, $listReceptionReferenceArticle);
+                    $this->validateReception($reception, $listReceptionReferenceArticle);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($em, $reception, $listReceptionReferenceArticle);
+                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle);
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1311,29 +1324,54 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @param $em
-     * @param $reception
-     * @param $listReceptionReferenceArticle
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    public function validateReception($em, $reception, $listReceptionReferenceArticle)
+	/**
+	 * @param Reception $reception
+	 * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
+	 * @throws NonUniqueResultException
+	 */
+    private function validateReception($reception, $listReceptionReferenceArticle)
     {
+    	$em = $this->getDoctrine()->getManager();
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
-        foreach ($listReceptionReferenceArticle as $receptionRA) {
+		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
-            }
-        }
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                $mouvementStock = new MouvementStock();
+                $mouvementStock
+					->setUser($this->getUser())
+					->setEmplacementTo($referenceArticle->getEmplacement())
+					->setQuantity($receptionRA->getQuantite())
+					->setRefArticle($referenceArticle)
+					->setType(MouvementStock::TYPE_ENTREE)
+					->setReceptionOrder($reception)
+					->setDate($now);
+				$em->persist($mouvementStock);
+            } else {
+				$articles = $receptionRA->getArticles();
+				foreach ($articles as $article) {
+					$mouvementStock = new MouvementStock();
+					$mouvementStock
+						->setUser($this->getUser())
+						->setEmplacementTo($article->getEmplacement())
+						->setQuantity($article->getQuantite())
+						->setArticle($article)
+						->setType(MouvementStock::TYPE_ENTREE)
+						->setReceptionOrder($reception)
+						->setDate($now);
+					$em->persist($mouvementStock);
+				}
+			}
+        }
 
         $reception
             ->setStatut($statut)
             ->setDateFinReception($now)
             ->setDateCommande($now);
+
         $em->flush();
     }
 
@@ -1421,10 +1459,10 @@ class ReceptionController extends AbstractController
             $nbArticles = $this->receptionReferenceArticleRepository->countArticlesByRRA($id);
             if ($nbArticles == 0) {
                 $delete = true;
-				$html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
+                $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-				$html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -1464,7 +1502,7 @@ class ReceptionController extends AbstractController
                     foreach ($recepRef->getArticles() as $article) {
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
                         $wantedIndex = 0;
-                        foreach($articles as $key => $articleWithCL) {
+                        foreach ($articles as $key => $articleWithCL) {
                             if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                                 $wantedIndex = $key;
                                 break;
@@ -1531,117 +1569,6 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/valider_lot", name="validate_lot", options={"expose"=true}, methods={"GET", "POST"})
-     * @throws Exception
-     */
-    public function validateLot(Request $request)
-    {
-        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $response = [];
-            $response['refs'] = [];
-            $response['barcodesLabel'] = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
-            $qtt = 0;
-            for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
-                for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
-                    $qtt += $dataContent['tailleLot'][$i];
-                }
-            }
-            $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
-            if ($qtt + $ligne->getQuantite() > $ligne->getQuantiteAR()) {
-                $response['exists'] = false;
-            } else {
-                $ligne->setQuantite($ligne->getQuantite() + $qtt);
-            }
-
-            if ($response['exists'] === true) {
-                $refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
-
-                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-                $formattedDate = $date->format('ym');
-                $references = $this->articleRepository->getReferencesByRefAndDate($refArticle, $formattedDate);
-
-                $highestCpt = 0;
-                foreach ($references as $reference) {
-                    $cpt = (int)substr($reference, -5, 5);
-                    if ($cpt > $highestCpt) $highestCpt = $cpt;
-                }
-                $counter = $highestCpt + 1;
-                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
-                    for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
-
-                        $toInsert = new Article();
-                        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-                        $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
-                        $reception = $this->receptionRepository->find($dataContent['receptionId']);
-                        $articleFournisseur = new ArticleFournisseur();
-                        $articleFournisseur
-                            ->setReferenceArticle($refArticle)
-                            ->setFournisseur($reception->getFournisseur())
-                            ->setReference($refArticle->getReference())
-                            ->setLabel($ligne->getCommande());
-                        $em->persist($articleFournisseur);
-
-                        $formattedCounter = sprintf('%05u', $counter);
-                        $toInsert
-                            ->setLabel($ligne->getCommande())
-                            ->setConform(true)
-                            ->setStatut($statut)
-                            ->setReference($refArticle->getReference() . $formattedDate . $formattedCounter)
-                            ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0))// protection contre quantités négatives
-                            ->setArticleFournisseur($articleFournisseur)
-                            ->setReceptionReferenceArticle($ligne)
-                            ->setType($refArticle->getType())
-                            ->setBarCode($this->articleDataService->generateBarCode());
-
-                        $newMouvement = new MouvementStock();
-                        $newMouvement
-                            ->setUser($this->getUser())
-                            ->setArticle($toInsert)
-                            ->setDate(new DateTime('now', new DateTimeZone('Europe/Paris')))
-                            ->setType(MouvementStock::TYPE_ENTREE)
-                            ->setQuantity($toInsert->getQuantite());
-                        $em->persist($newMouvement);
-
-                        $em->persist($toInsert);
-                        $em->flush();
-                        $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($toInsert->getId());
-                        $wantedIndex = 0;
-                        foreach($articles as $key => $articleWithCL) {
-                            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
-                                $wantedIndex = $key;
-                                break;
-                            }
-                        }
-                        $articleArray = $articles[$wantedIndex];
-                        array_push($response['refs'], $toInsert->getBarCode());
-                        array_push($response['barcodesLabel'], $this->renderView('article/barcodeLabel.html.twig', [
-                            'refRef' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                            'refLabel' => $toInsert->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
-                            'artLabel' => $toInsert->getLabel(),
-                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
-                        ])
-                        );
-                        $counter++;
-                    }
-                }
-            }
-            $em->flush();
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST")
      */
     public function apiArticle(Request $request): Response
@@ -1688,30 +1615,38 @@ class ReceptionController extends AbstractController
     public function getReceptionIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
-            $receptions = $this->receptionRepository->findByDates($dateMin, $dateMax);
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $receptions = $this->receptionRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['n° réception', 'n° de commande', 'fournisseur', 'utilisateur', 'statut', 'date',
-                'type']);
+            $headers = array_merge($headers,
+                [
+                    'n° réception',
+                    'n° de commande',
+                    'fournisseur',
+                    'utilisateur',
+                    'statut',
+                    'date',
+                    'quantité à recevoir',
+                    'quantité reçue',
+                    'référence',
+                    'libellé',
+                    'quantité',
+                    'type',
+                    'code-barre'
+                ]);
 
             $data = [];
             $data[] = $headers;
 
             foreach ($receptions as $reception) {
-                $receptionData = [];
-
-                $receptionData[] = $reception->getNumeroReception() ?? '';
-                $receptionData[] = $reception->getReference() ?? '';
-                $receptionData[] = $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '';
-                $receptionData[] = $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '';
-                $receptionData[] = $reception->getStatut() ? $reception->getStatut()->getNom() : '';
-                $receptionData[] = $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '';
-                $receptionData[] = $reception->getType() ? $reception->getType()->getLabel() : '';
-
-                $data[] = $receptionData;
+                $this->buildInfos($reception, $data);
             }
             return new JsonResponse($data);
         } else {
@@ -1719,14 +1654,57 @@ class ReceptionController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
-     * @param Request $request
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param Reception $reception
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+    private function buildInfos(Reception $reception, &$data)
+    {
+        foreach ($reception->getReceptionReferenceArticles() as $receptionReferenceArticle) {
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+            $data[] = [
+                $reception->getNumeroReception() ?? '',
+                $reception->getReference() ?? '',
+                $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
+                $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
+                $reception->getStatut() ? $reception->getStatut()->getNom() : '',
+                $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                $receptionReferenceArticle->getQuantiteAR(),
+                $receptionReferenceArticle->getQuantite(),
+                $referenceArticle->getReference(),
+                $referenceArticle->getLibelle(),
+                $referenceArticle->getQuantiteStock(),
+                $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
+                $referenceArticle->getBarCode(),
+            ];
+            $articles = $receptionReferenceArticle->getArticles();
+            foreach ($articles as $article) {
+                $data[] = [
+                    $reception->getNumeroReception() ?? '',
+                    $reception->getReference() ?? '',
+                    $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
+                    $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
+                    $reception->getStatut() ? $reception->getStatut()->getNom() : '',
+                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                    $receptionReferenceArticle->getQuantiteAR(),
+                    $receptionReferenceArticle->getQuantite(),
+                    $article->getReference(),
+                    $article->getLabel(),
+                    $article->getQuantite(),
+                    $article->getType() ? $article->getType()->getLabel() : '',
+                    $article->getBarCode(),
+                ];
+            }
+        }
+    }
+
+	/**
+	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+	 * @param Request $request
+	 * @param DemandeLivraisonService $demandeLivraisonService
+	 * @param Reception $reception
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    Reception $reception): Response
@@ -1734,11 +1712,10 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $articles = $data['conditionnement'];
-
             // protection quantité réceptionnée < quantité attendue
             $totalQuantities = [];
             foreach ($articles as $article) {
-                $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticle(
+                $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId(
                     $reception,
                     $article['noCommande'],
                     $article['refArticle']
@@ -1779,7 +1756,7 @@ class ReceptionController extends AbstractController
                 $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
                 $wantedIndex = 0;
-                foreach($articles as $key => $articleWithCL) {
+                foreach ($articles as $key => $articleWithCL) {
                     if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
                         $wantedIndex = $key;
                         break;

@@ -99,6 +99,7 @@ class Article
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
     private $emplacement;
+
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="articles")
      */
@@ -108,6 +109,11 @@ class Article
      * @ORM\Column(type="integer", nullable=true)
      */
 	private $quantiteAPrelever;
+
+	/**
+	 * @ORM\Column(type="integer", nullable=true)
+	 */
+	private $quantitePrelevee;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
@@ -444,31 +450,31 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-         {
-      	   return $this->inventoryEntries;
-         }
+               {
+            	   return $this->inventoryEntries;
+               }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-      	{
-      		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-      			$this->inventoryEntries[] = $inventoryEntry;
-      			$inventoryEntry->setArticle($this);
-      		}
-
-      		return $this;
-      	}
+            	{
+            		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            			$this->inventoryEntries[] = $inventoryEntry;
+            			$inventoryEntry->setArticle($this);
+            		}
+      
+            		return $this;
+            	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-      	{
-      		if ($this->inventoryEntries->contains($inventoryEntry)) {
-      			$this->inventoryEntries->removeElement($inventoryEntry);
-      			// set the owning side to null (unless already changed)
-      			if ($inventoryEntry->getArticle() === $this) {
-      				$inventoryEntry->setArticle(null);
-      			}
-      		}
-      		return $this;
-      	}
+            	{
+            		if ($this->inventoryEntries->contains($inventoryEntry)) {
+            			$this->inventoryEntries->removeElement($inventoryEntry);
+            			// set the owning side to null (unless already changed)
+            			if ($inventoryEntry->getArticle() === $this) {
+            				$inventoryEntry->setArticle(null);
+            			}
+            		}
+            		return $this;
+            	}
 
     /**
      * @return Collection|InventoryMission[]
@@ -582,6 +588,18 @@ class Article
     public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self
     {
         $this->receptionReferenceArticle = $receptionReferenceArticle;
+
+        return $this;
+    }
+
+    public function getQuantitePrelevee(): ?int
+    {
+        return $this->quantitePrelevee;
+    }
+
+    public function setQuantitePrelevee(?int $quantitePrelevee): self
+    {
+        $this->quantitePrelevee = $quantitePrelevee;
 
         return $this;
     }

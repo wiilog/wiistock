@@ -9,11 +9,12 @@ let tableUrgence = $('#tableUrgences').DataTable({
         "url": pathUrgences,
         "type": "POST"
     },
+    order: [[1, "desc"]],
     columns:[
+        { "data": 'actions', 'title': 'Actions' },
         { "data": 'start', 'name' : 'start','title' : 'Date de début' },
         { "data": 'end', 'name' : 'end', 'title' : 'Date de fin' },
         { "data": 'commande', 'name' : 'commande', 'title' : 'Numéro de commande' },
-        { "data": 'actions', 'title': 'Actions' },
     ],
     drawCallback: function() {
         overrideSearch($('#tableUrgences_filter input'), tableUrgence);
@@ -21,11 +22,11 @@ let tableUrgence = $('#tableUrgences').DataTable({
     columnDefs: [
         {
             "orderable" : false,
-            "targets" : 3
+            "targets" : 0
         },
         {
             "type": "customDate",
-            "targets": [0, 1]
+            "targets": [1, 2]
         }
     ],
 });
@@ -48,7 +49,7 @@ let urlModifyUrgence = Routing.generate('urgence_edit', true);
 InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence);
 
 $(function() {
-    initDateTimePicker();
+    initDateTimePicker('#dateMin, #dateMax, #dateStart, #dateEnd');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -57,6 +58,8 @@ $(function() {
         data.forEach(function(element) {
             if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            } else if (element.field == 'statut') {
+                $('#' + element.field).val(element.value).select2();
             } else {
                 $('#'+element.field).val(element.value);
             }
@@ -80,3 +83,15 @@ $submitSearchUrgence.on('click', function () {
 
     saveFilters(filters, tableUrgence);
 });
+
+function initDateTimePickerUrgence() {
+    initDateTimePicker('#modalEditUrgence .datepicker', 'DD/MM/YYYY HH:mm');
+    let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
+    let dateStart = $dateStartInput.data('date');
+
+    let $dateEndInput = $('#modalEditUrgence').find('.dateFin');
+    let dateEnd = $dateEndInput.data('date');
+
+    $dateStartInput.val(moment(dateStart, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+    $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+}

@@ -850,40 +850,6 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-fournisseur-by-refarticl-temp", name="ajax_fournisseur_by_refarticle_tmp", options={"expose"=true})
-     */
-    public function ajaxFournisseurByRefArticleTemp(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $articleFournisseurs = $refArticle->getArticlesFournisseur();
-                $fournisseurs = [];
-                foreach ($articleFournisseurs as $articleFournisseur) {
-                    $fournisseurs[] = $articleFournisseur->getFournisseur();
-                }
-                $fournisseursUnique = array_unique($fournisseurs);
-                $json = $this->renderView(
-                    'article/optionFournisseurNewArticle.html.twig',
-                    [
-                        'fournisseurs' => $fournisseursUnique
-                    ]
-                );
-            } else {
-                if ($refArticle) {
-                    $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
-                } else {
-                    $json = false; //TODO gérer erreur retour
-                }
-
-                return new JsonResponse($json, 250);
-            }
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
      * @Route("/ajax-article-depuis-id", name="get_article_from_id", options={"expose"=true}, methods="GET|POST")
      */
     public function getArticleRefFromId(Request $request): Response
@@ -954,7 +920,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
@@ -979,6 +945,7 @@ class ArticleController extends AbstractController
         $refData[] = $article->getStatut() ? $this->CSVExportService->escapeCSV($article->getStatut()->getNom()) : '';
         $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
         $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
+        $refData[] = $this->CSVExportService->escapeCSV($article->getBarCode());
         $champsLibres = [];
         foreach ($listTypes as $type) {
             $typeArticle = $this->typeRepository->find($type['id']);
