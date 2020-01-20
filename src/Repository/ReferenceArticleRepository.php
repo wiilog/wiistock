@@ -40,7 +40,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
         'Code barre' => 'barCode',
-        'Date d\'alerte' => 'dateEmergencyTriggered'
+        'Date d\'alerte' => 'dateEmergencyTriggered',
+        'typeQuantite' => 'typeQuantite'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -1036,7 +1037,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.quantiteStock,
                 ra.limitSecurity,
                 ra.limitWarning,
-                ra.dateEmergencyTriggered')
+                ra.dateEmergencyTriggered,
+                ra.typeQuantite')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
             ->andWhere('ra.limitSecurity > 0')
