@@ -94,6 +94,7 @@ class OrdreCollecteService
 	private $router;
 
 	private $mouvementTracaRepository;
+	private $mouvementTracaService;
 	private $mouvementStockService;
 
     public function __construct(RouterInterface $router,
@@ -109,6 +110,7 @@ class OrdreCollecteService
                                 MouvementStockService $mouvementStockService,
                                 MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
+                                MouvementTracaService $mouvementTracaService,
                                 Twig_Environment $templating)
 	{
 	    $this->mailerServerRepository = $mailerServerRepository;
@@ -116,6 +118,7 @@ class OrdreCollecteService
 		$this->entityManager = $entityManager;
 		$this->statutRepository = $statutRepository;
 		$this->mailerService = $mailerService;
+		$this->mouvementTracaService = $mouvementTracaService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
 		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
 		$this->articleRepository = $articleRepository;
@@ -149,7 +152,7 @@ class OrdreCollecteService
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
                                    DateTime $date,
-                                   Emplacement $depositLocation,
+                                   ?Emplacement $depositLocation,
                                    array $mouvements,
                                    bool $fromNomade = false)
 	{
@@ -265,8 +268,12 @@ class OrdreCollecteService
 		if ($demandeCollecte->getStockOrDestruct()) {
 			foreach ($collecteReferences as $collecteReference) {
 				$refArticle = $collecteReference->getReferenceArticle();
-				$refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
-                $this->persistMouvements(
+
+                if (!$fromNomade) {
+                    $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
+                }
+
+                $this->persistMouvementsFromStock(
                     $user,
                     $refArticle,
                     $date,
@@ -281,10 +288,17 @@ class OrdreCollecteService
 			// on modifie le statut des articles liés à la collecte
 			$articles = $ordreCollecte->getArticles();
 			foreach ($articles as $article) {
-				$article
-                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
-                    ->setEmplacement($depositLocation);
-                $this->persistMouvements(
+			    if (!$fromNomade) {
+                    $article->setEmplacement($depositLocation);
+                }
+
+                $statutArticle = $this->statutRepository->findOneByCategorieNameAndStatutName(
+                    CategorieStatut::ARTICLE,
+                    $fromNomade ? Article::STATUT_INACTIF : Article::STATUT_ACTIF
+                );
+                $article->setStatut($statutArticle);
+
+                $this->persistMouvementsFromStock(
                     $user,
                     $article,
                     $date,
@@ -390,56 +404,50 @@ class OrdreCollecteService
 	 * @param OrdreCollecte $ordreCollecte
 	 * @throws NonUniqueResultException
 	 */
-    private function persistMouvements(Utilisateur $user,
-                                       $article,
-                                       DateTime $date,
-                                       Emplacement $locationFrom,
-                                       Emplacement $locationTo,
-                                       int $quantity,
-									   OrdreCollecte $ordreCollecte,
-                                       bool $fromNomade = false): void {
+    private function persistMouvementsFromStock(Utilisateur $user,
+                                                $article,
+                                                ?DateTime $date,
+                                                Emplacement $locationFrom,
+                                                ?Emplacement $locationTo,
+                                                int $quantity,
+                                                OrdreCollecte $ordreCollecte,
+                                                bool $fromNomade = false): void {
+
+        // mouvement de stock d'entrée
         $mouvementStock = $this->mouvementStockService->createMouvementStock($user, $locationFrom, $quantity, $article, MouvementStock::TYPE_ENTREE);
+        $mouvementStock->setCollecteOrder($ordreCollecte);
+        $this->entityManager->persist($mouvementStock);
 
-        if ($fromNomade) {
-            $mouvementTraca = new MouvementTraca();
-            $typePrise = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE);
+        // Mouvement traca prise
+        $this->mouvementTracaService->persistMouvementTraca(
+            $article->getBarCode(),
+            $locationFrom,
+            $user,
+            $date,
+            $fromNomade,
+            !$fromNomade,
+            MouvementTraca::TYPE_PRISE,
+            $mouvementStock
+        );
 
-            // TODO AB article en inactif ?
+        // si on est sur la supervision
+        if (!$fromNomade) {
+            $deposeDate = clone $date;
+            $deposeDate->modify('+1 second');
+            // mouvement de traca de dépose
+            $this->mouvementTracaService->persistMouvementTraca(
+                $article->getBarCode(),
+                $locationTo,
+                $user,
+                $deposeDate,
+                $fromNomade,
+                !$fromNomade,
+                MouvementTraca::TYPE_DEPOSE,
+                $mouvementStock
+            );
 
-            $mouvementTraca
-                ->setColis($article->getReference())
-                ->setEmplacement($locationFrom)
-                ->setOperateur($user)
-                ->setUniqueIdForMobile($this->generateUniqueIdForMobile($date))
-                ->setDatetime($date)
-                ->setFinished(false)
-                ->setType($typePrise)
-                ->setMouvementStock($mouvementStock);
+            // On fini le mouvement de stock
+            $this->mouvementStockService->finishMouvementStock($mouvementStock, $deposeDate, $locationTo);
         }
-        else {
-            // TODO AB article en actif
-            $this->mouvementStockService->finishMouvementStock($mouvementStock, $date, $locationTo);
-        }
-
-		$mouvementStock->setCollecteOrder($ordreCollecte);
-		$this->entityManager->persist($mouvementStock);
-
-        if (isset($mouvementTraca)) {
-            $this->entityManager->persist($mouvementTraca);
-        }
-    }
-
-    private function generateUniqueIdForMobile(DateTime $date): string {
-        $uniqueId = null;
-        //same format as moment.defaultFormat
-        $dateStr = $date->format('Y-m-dTH:i:sP');
-        $randomLength = 9;
-        do {
-            $random = strtolower(substr(sha1(rand()), 0, $randomLength));
-            $uniqueId = $dateStr . '_' . $random;
-            $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
-        } while (!empty($existingMouvements));
-
-        return $uniqueId;
     }
 }
