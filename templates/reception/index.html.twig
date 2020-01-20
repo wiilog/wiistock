@@ -8,7 +8,9 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
+    <div class="col-12">
+        <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
+    </div>
 
     <div class='col-12'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -23,6 +25,7 @@
             </div>
         {% endif %}
     </div>
+
     <div class="d-none justify-content-center" id="spinnerReception">
         <div class="spinner-border sizeLoader" role="status">
             <span class="sr-only">Loading...</span>

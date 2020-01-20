@@ -1097,6 +1097,56 @@ function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
 }
 
+function generateCSV(route, filename = 'export') {
+    loadSpinner($('#spinner'));
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let params = JSON.stringify(data);
+        let path = Routing.generate(route, true);
+
+        $.post(path, params, function (response) {
+            if (response) {
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                dlFile(csv, filename);
+                hideSpinner($('#spinner'));
+            }
+        }, 'json');
+    } else {
+        warningEmptyDatesForCsv();
+        hideSpinner($('#spinner'));
+    }
+}
+
+let dlFile = function (csv, filename) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = filename + '-' + date + '.csv';
+    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    let link = document.createElement("a");
+    if (link.download !== undefined) {
+        let url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", exportedFilenmae);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 function warningEmptyDatesForCsv() {
     alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
     $('#dateMin, #dateMax').addClass('is-invalid');

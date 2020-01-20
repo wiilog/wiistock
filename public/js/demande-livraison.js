@@ -312,60 +312,6 @@ let ajaxEditArticle = function (select) {
     });
 }
 
-let generateCSVDemande = function () {
-    loadSpinner($('#spinnerlivrai'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_livraisons_for_csv', true);
-
-        $.post(path, params, function (response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                dlFile(csv);
-                hideSpinner($('#spinnerlivrai'));
-            }
-        }, 'json');
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerlivrai'));
-    }
-}
-
-let dlFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    var exportedFilenmae = 'export-demandes-' + date + '.csv';
-    var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        var link = document.createElement("a");
-        if (link.download !== undefined) {
-            var url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}
-
 $submitSearchDemandeLivraison.on('keypress', function (e) {
     if (e.which === 13) {
         $submitSearchDemandeLivraison.click();

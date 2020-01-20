@@ -7,6 +7,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -50,6 +51,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	 * @param Utilisateur $user
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByUser($user)
 	{
@@ -233,4 +235,25 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		];
 	}
 
+	/**
+	 * @param string $dateMin
+	 * @param string $dateMax
+	 * @return OrdreCollecte[]|null
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT oc
+            FROM App\Entity\OrdreCollecte oc
+            WHERE oc.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
+	}
 }
