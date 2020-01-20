@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Collecte;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -236,8 +237,8 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return OrdreCollecte[]|null
 	 */
 	public function findByDates($dateMin, $dateMax)

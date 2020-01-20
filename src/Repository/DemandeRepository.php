@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -126,8 +127,8 @@ class DemandeRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return Demande[]|null
 	 */
     public function findByDates($dateMin, $dateMax)

@@ -386,7 +386,6 @@ class OrdreCollecteController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-
 	/**
 	 * @Route("/infos", name="get_ordres_collecte_for_csv", options={"expose"=true}, methods={"GET","POST"})
 	 */

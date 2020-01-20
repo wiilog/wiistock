@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -111,8 +112,8 @@ class LitigeRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
 	public function findByDates($dateMin, $dateMax)
