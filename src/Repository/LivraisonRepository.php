@@ -4,7 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -45,7 +48,7 @@ class LivraisonRepository extends ServiceEntityRepository
 	/**
 	 * @param int $preparationId
 	 * @return Livraison|null
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
 	 */
     public function findOneByPreparationId($preparationId)
 	{
@@ -95,7 +98,8 @@ class LivraisonRepository extends ServiceEntityRepository
 	/**
 	 * @param Utilisateur $user
 	 * @return int
-	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByUser($user)
 	{
@@ -226,5 +230,28 @@ class LivraisonRepository extends ServiceEntityRepository
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
+	}
+
+
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return Livraison[]|null
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT l
+            FROM App\Entity\Livraison l
+            WHERE l.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
 	}
 }

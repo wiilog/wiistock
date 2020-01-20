@@ -118,61 +118,6 @@ $(function () {
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
 
-//RECEPTION
-function generateCSVReception() {
-    loadSpinner($('#spinnerReception'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_receptions_for_csv', true);
-
-        $.post(path, params, function (response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                aFile(csv);
-                hideSpinner($('#spinnerReception'));
-            }
-        }, 'json');
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerReception'))
-    }
-}
-
-function aFile(csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-reception-' + date + '.csv';
-    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}
-
 function initNewReceptionEditor(modal) {
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
