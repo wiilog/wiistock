@@ -1639,7 +1639,8 @@ class ReceptionController extends AbstractController
                     'libellé',
                     'quantité',
                     'type',
-                    'code-barre'
+                    'code-barre reference',
+                    'code-barre article'
                 ]);
 
             $data = [];
@@ -1672,6 +1673,7 @@ class ReceptionController extends AbstractController
                 $referenceArticle->getQuantiteStock(),
                 $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
                 $referenceArticle->getBarCode(),
+                '',
             ];
             $articles = $receptionReferenceArticle->getArticles();
             foreach ($articles as $article) {
@@ -1688,6 +1690,7 @@ class ReceptionController extends AbstractController
                     $article->getLabel(),
                     $article->getQuantite(),
                     $article->getType() ? $article->getType()->getLabel() : '',
+                    $article->getArticleFournisseur()->getReferenceArticle()->getBarCode(),
                     $article->getBarCode(),
                 ];
             }
