@@ -585,17 +585,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
                                     $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
 
-                                    $livraison = $preparationsManager->persistLivraison($dateEnd);
-
-                                    $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser);
-
-                                    $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                    if ($emplacementPrepa) {
-                                        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
-                                    } else {
-                                        throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
-                                    }
-
                                     // on crée les mouvements de livraison
                                     $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                                     $preparationsManager->createMouvementLivraison(
@@ -613,6 +602,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
                                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);
                                     $preparationsManager->deleteLigneRefOrNot($ligneArticle);
+                                }
+                                $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
+                                $livraison = $preparationsManager->persistLivraison($dateEnd);
+                                $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser, $emplacementPrepa);
+                                if ($emplacementPrepa) {
+                                    $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
+                                } else {
+                                    throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                                 }
                                 $entityManager->flush();
                             });

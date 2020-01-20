@@ -124,14 +124,20 @@ class PreparationsManagerService {
 	 * @param $userNomade
 	 * @throws NonUniqueResultException
 	 */
-    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
+    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade, Emplacement $emplacement): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $demandes = $preparation->getDemandes();
         $demande = $demandes[0];
-
         $livraison->addDemande($demande);
-
+        foreach ($demande->getLigneArticle() as $ligneArticle) {
+            if ($ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $ligneArticle->getReference()->setEmplacement($emplacement);
+            }
+        }
+        foreach ($demande->getArticles() as $article) {
+            $article->setEmplacement($emplacement);
+        }
 		$isPreparationComplete = $this->isPreparationComplete($demande);
 		$prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
 		$statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
