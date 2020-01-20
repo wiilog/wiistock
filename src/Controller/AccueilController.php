@@ -147,15 +147,14 @@ class AccueilController extends AbstractController
         $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
 
-        $statutDemandeP = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_PREPARE);
-        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatut($statutDemandeP);
+        $listStatutDemandeP = $this->statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
+        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
 
         $statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
         $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
-//            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

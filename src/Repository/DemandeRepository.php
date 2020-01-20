@@ -6,6 +6,7 @@ use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -111,6 +112,17 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.statut = :statut "
         )->setParameter('statut', $statut);
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByStatusesId($listStatusId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.statut in (:listStatus)"
+        )->setParameter('listStatus', $listStatusId, Connection::PARAM_STR_ARRAY);
         return $query->getSingleScalarResult();
     }
 

@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -84,11 +86,35 @@ class StatutRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    /**
+     * @param string $categorieName
+     * @param string[] $listStatusName
+     * @return Statut[]
+     */
+    public function getIdByCategorieNameAndStatusesNames($categorieName, $listStatusName)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT s.id
+			  FROM App\Entity\Statut s
+			  JOIN s.categorie c
+			  WHERE c.nom = :categorieName AND s.nom IN (:listStatusName)
+          "
+        );
+
+        $query
+			->setParameter('categorieName', $categorieName)
+			->setParameter('listStatusName', $listStatusName, Connection::PARAM_STR_ARRAY);
+
+		return array_column($query->execute(), 'id');
+    }
+
 	/**
 	 * @param string $label
 	 * @param string $category
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByLabelAndCategory($label, $category)
 	{
