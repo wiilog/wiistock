@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
+ * @ORM\EntityListeners({"App\EventListener\RefArticleQuantityNotifier"})
  */
 class ReferenceArticle
 {
@@ -167,6 +168,11 @@ class ReferenceArticle
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $isUrgent;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateEmergencyTriggered;
 
 
     public function __construct()
@@ -748,6 +754,32 @@ class ReferenceArticle
     public function setIsUrgent(?bool $isUrgent): self
     {
         $this->isUrgent = $isUrgent;
+
+        return $this;
+    }
+
+    public function getCalculedAvailableQuantity(): int {
+        $totalQuantity = 0;
+        if ($this->getTypeQuantite() === 'article') {
+            foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
+                foreach ($articleFournisseur->getArticles() as $article) {
+                    if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
+                        $totalQuantity += $article->getQuantite();
+                    }
+                }
+            }
+        }
+        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $this->getQuantiteStock() : $totalQuantity;
+    }
+
+    public function getDateEmergencyTriggered(): ?\DateTimeInterface
+    {
+        return $this->dateEmergencyTriggered;
+    }
+
+    public function setDateEmergencyTriggered(?\DateTimeInterface $dateEmergencyTriggered): self
+    {
+        $this->dateEmergencyTriggered = $dateEmergencyTriggered;
 
         return $this;
     }

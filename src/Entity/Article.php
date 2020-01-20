@@ -12,6 +12,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
+ * @ORM\EntityListeners({"App\EventListener\ArticleQuantityNotifier"})
  * @UniqueEntity("reference")
  */
 class Article
@@ -460,7 +461,7 @@ class Article
             			$this->inventoryEntries[] = $inventoryEntry;
             			$inventoryEntry->setArticle($this);
             		}
-      
+
             		return $this;
             	}
 

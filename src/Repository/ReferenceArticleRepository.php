@@ -39,7 +39,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
-        'Code barre' => 'barCode'
+        'Code barre' => 'barCode',
+        'Date d\'alerte' => 'dateEmergencyTriggered'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -952,7 +953,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-
                     switch ($column) {
 						case 'quantiteStock':
 							$qb
@@ -1035,44 +1035,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.id,
                 ra.quantiteStock,
                 ra.limitSecurity,
-                ra.limitWarning')
+                ra.limitWarning,
+                ra.dateEmergencyTriggered')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND
-            (
-				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
-            	 OR
-			 	(ra.limitWarning IS NOT NULL AND ra.limitWarning > 0 AND ra.quantiteStock <= ra.limitWarning)
-		  	)')
-            ->orWhere('ra.typeQuantite = :qte_article AND (
-				(
-					(SELECT SUM(art1.quantite)
-							FROM App\Entity\Article art1
-							JOIN art1.articleFournisseur af1
-							JOIN af1.referenceArticle refart1
-							JOIN art1.statut s1
-							WHERE s1.nom =:active AND refart1 = ra)
-							<= ra.limitWarning
-					AND ra.limitWarning IS NOT NULL
-					AND ra.limitWarning > 0
-				)
-				OR
-				(
-					(SELECT SUM(art2.quantite)
-							FROM App\Entity\Article art2
-							JOIN art2.articleFournisseur af2
-							JOIN af2.referenceArticle refart2
-							JOIN art2.statut s2
-							WHERE s2.nom =:active AND refart2 = ra)
-							<= ra.limitSecurity
-					AND ra.limitSecurity IS NOT NULL
-					AND ra.limitSecurity > 0
-				)
-			)')
-            ->setParameters([
-                'qte_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                'qte_article' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-                'active' => Article::STATUT_ACTIF
-            ]);
+            ->where('ra.dateEmergencyTriggered IS NOT NULL')
+            ->andWhere('ra.limitSecurity > 0')
+            ->andWhere('ra.limitWarning > 0');
         return $qb;
     }
 
