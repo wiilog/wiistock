@@ -68,6 +68,10 @@ submitFinishCollecte.on('click', function() {
     }
 });
 
+function toggleCheck($elem) {
+    $elem.toggleClass('active');
+}
+
 function checkIfRowSelected() {
     let $activeChecks = $('#tableArticle').find('.active');
     if ($activeChecks.length === 0) {
