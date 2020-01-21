@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\FiltreSup;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -23,6 +24,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
+use App\Repository\FiltreSupRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
@@ -89,6 +91,11 @@ class RefArticleDataService
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
+
+    /**
+     * @var FiltreSupRepository
+     */
+    private $filtreSupRepository;
     /**
      * @var EmplacementRepository
      */
@@ -161,8 +168,10 @@ class RefArticleDataService
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
                                 InventoryCategoryRepository $inventoryCategoryRepository,
+                                FiltreSupRepository $filtreSupRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
+        $this->filtreSupRepository = $filtreSupRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -503,13 +512,15 @@ class RefArticleDataService
         return $newBarcode;
     }
 
-    public function getAlerteDataByParams($params = null)
+    public function getAlerteDataByParams($params = null, $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
-        $results = $this->referenceArticleRepository->getAlertDataByParams($params);
+        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser( FiltreSup::PAGE_ALERTE, $user);
+
+        $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
 
         $rows = [];

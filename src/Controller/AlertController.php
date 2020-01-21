@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 
+use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
@@ -53,7 +54,16 @@ class AlertController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('alerte_reference/index.html.twig');
+        return $this->render('alerte_reference/index.html.twig', [
+            'types' => [
+                [
+                    'label' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+                ],
+                [
+                    'label' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                ]
+            ]
+        ]);
     }
 
     /**
@@ -65,7 +75,7 @@ class AlertController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getAlerteDataByParams($request->request);
+            $data = $this->refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

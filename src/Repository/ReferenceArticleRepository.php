@@ -931,11 +931,20 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $result ? $result[0]['barCode'] : null;
     }
 
-    public function getAlertDataByParams($params)
+    public function getAlertDataByParams($params, $filters)
     {
         $qb = $this->getDataAlert();
 
         $countTotal = count($qb->getQuery()->getResult());
+
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'type':
+                    $qb
+                        ->andWhere('ra.typeQuantite LIKE :type')
+                        ->setParameter('type', $filter['value']);
+            }
+        }
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
