@@ -338,14 +338,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
                 $finishMouvementTraca = [];
                 $successData['data'] = [
-                    'error' => []
+                    'errors' => []
                 ];
 
                 foreach ($mouvementsNomade as $index => $mvt) {
                     $invalidLocationTo = '';
                     try {
                         $entityManager->transactional(function (EntityManagerInterface $entityManager)
-                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo) {
+                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo, &$finishMouvementTraca) {
                             $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                             if (!isset($mouvementTraca)) {
                                 $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
@@ -502,7 +502,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
 
                         if ($e->getMessage() === MouvementTracaService::INVALID_LOCATION_TO) {
-                            $successData['data']['error'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement $invalidLocationTo");
+                            $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement $invalidLocationTo");
                         }
                         else {
                             throw $e;
@@ -517,7 +517,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
                         in_array($mouvementTracaPriseToFinish->getColis(), $finishMouvementTraca) &&
                         !$mouvementTracaPriseToFinish->isFinished()) {
-                        $mouvementTracaPriseToFinish->setFinished(true);
+                        $mouvementTracaPriseToFinish->setFinished((bool) $mvt['finished']);
                     }
                 }
                 $entityManager->flush();
