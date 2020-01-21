@@ -2,11 +2,12 @@
 
 namespace App\Repository;
 
-use App\Entity\Collecte;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -30,27 +31,12 @@ class OrdreCollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, OrdreCollecte::class);
     }
 
-	/**
-	 * @param Collecte $collecte
-	 * @return OrdreCollecte
-	 */
-    public function findByDemandeCollecte($collecte)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        	/** @lang DQL */
-            'SELECT oc
-            FROM App\Entity\OrdreCollecte oc
-            WHERE oc.demandeCollecte = :collecte'
-        )->setParameter('collecte', $collecte);
-        return $query->execute();
-    }
-
-	/**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
 	public function countByUser($user)
 	{
 		$em = $this->getEntityManager();
@@ -71,14 +57,14 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	 */
 	public function getByStatutLabelAndUser($statutLabel, $user)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager
-            ->createQuery($this->getOrdreCollecteQuery() . " WHERE (s.nom = :statutLabel AND (oc.utilisateur IS NULL OR oc.utilisateur = :user))")
+        $queryBuilder = $this->createOrdreCollecteQueryBuilder()
+            ->andWhere('s.nom = :statutLabel')
+            ->andWhere('oc.utilisateur IS NULL OR oc.utilisateur = :user')
             ->setParameters([
                 'statutLabel' => $statutLabel,
                 'user' => $user,
             ]);
-		return $query->execute();
+		return $queryBuilder->getQuery()->execute();
 	}
 
 	/**
@@ -87,25 +73,22 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 	 */
 	public function getById($ordreCollecteId)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager
-            ->createQuery($this->getOrdreCollecteQuery() . " WHERE oc.id = :id")
+		$queryBuilder = $this->createOrdreCollecteQueryBuilder()
+            ->andWhere('oc.id = :id')
             ->setParameter('id', $ordreCollecteId);
-		$result = $query->execute();
+		$result = $queryBuilder->getQuery()->execute();
 		return !empty($result) ? $result[0] : null;
 	}
 
-	private function getOrdreCollecteQuery(): string  {
-	    return (/** @lang DQL */
-            "SELECT oc.id,
-                    oc.numero as number,
-                    pc.label as location_from,
-                    dc.stockOrDestruct as forStock
-            FROM App\Entity\OrdreCollecte oc
-            LEFT JOIN oc.demandeCollecte dc
-            LEFT JOIN dc.pointCollecte pc
-            LEFT JOIN oc.statut s"
-        );
+	private function createOrdreCollecteQueryBuilder(): QueryBuilder  {
+	    return $this->createQueryBuilder('oc')
+            ->leftJoin('oc.demandeCollecte', 'dc')
+            ->leftJoin('dc.pointCollecte', 'pc')
+            ->leftJoin('oc.statut', 's')
+            ->addSelect('oc.id')
+            ->addSelect('oc.numero as number')
+            ->addSelect('pc.label as location_from')
+            ->addSelect('dc.stockOrDestruct as forStock');
     }
 
     public function findByParamsAndFilters($params, $filters)
