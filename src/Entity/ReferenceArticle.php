@@ -2,9 +2,12 @@
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
@@ -774,12 +777,18 @@ class ReferenceArticle
             : $totalQuantity;
     }
 
+    /**
+     * @throws Exception
+     */
     public function treatAlert(): void
     {
-        if ($this->getDateEmergencyTriggered() && $this->getCalculedAvailableQuantity() > $this->getLimitWarning()) {
+        $calculedAvailableQuantity = $this->getCalculedAvailableQuantity();
+
+        if ($calculedAvailableQuantity === 0 ||
+            ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $this->getLimitWarning()))) {
             $this->setDateEmergencyTriggered(null);
-        } else if (!$this->getDateEmergencyTriggered() && $this->getCalculedAvailableQuantity() <= $this->getLimitWarning()) {
-            $this->setDateEmergencyTriggered(new \DateTime('now', new \DateTimeZone("Europe/Paris")));
+        } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $this->getLimitWarning()) {
+            $this->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
         }
     }
 
