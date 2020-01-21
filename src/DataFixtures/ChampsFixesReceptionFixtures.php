@@ -33,20 +33,39 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
 			[FieldsParam::FIELD_CODE_UTILISATEUR, FieldsParam::FIELD_LABEL_UTILISATEUR],
 			[FieldsParam::FIELD_CODE_NUM_RECEPTION, FieldsParam::FIELD_LABEL_NUM_RECEPTION],
 			[FieldsParam::FIELD_CODE_TRANSPORTEUR, FieldsParam::FIELD_LABEL_TRANSPORTEUR],
+
+            [FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, FieldsParam::FIELD_LABEL_BUYERS_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, FieldsParam::FIELD_LABEL_CHAUFFEUR_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, FieldsParam::FIELD_LABEL_COMMENTAIRE_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, FieldsParam::FIELD_LABEL_CARRIER_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_IMMATRICULATION_ARRIVAGE, FieldsParam::FIELD_LABEL_IMMATRICULATION_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_LABEL_PJ_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE, FieldsParam::FIELD_LABEL_PROVIDER_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, FieldsParam::FIELD_LABEL_TARGET_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_LABEL_PRINT_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_NUM_BL_ARRIVAGE, FieldsParam::FIELD_LABEL_NUM_BL_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, FieldsParam::FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE, true],
 			];
 
     	foreach ($listFieldCodes as $fieldCode) {
-			$field = $this->fieldsParamRepository->findBy(['fieldCode' => $fieldCode[0]]);
+			$field = $this->fieldsParamRepository->findOneBy(
+			    [
+			        'fieldCode' => $fieldCode[0],
+                    'entityCode' => isset($fieldCode[2]) ? FieldsParam::ENTITY_CODE_ARRIVAGE : FieldsParam::ENTITY_CODE_RECEPTION
+                ]);
 			if (!$field) {
 				$field = new FieldsParam();
 				$field
-					->setEntityCode(FieldsParam::ENTITY_CODE_RECEPTION)
+					->setEntityCode(isset($fieldCode[2]) ? FieldsParam::ENTITY_CODE_ARRIVAGE : FieldsParam::ENTITY_CODE_RECEPTION)
 					->setFieldLabel($fieldCode[1])
+                    ->setDisplayed(true)
 					->setFieldCode($fieldCode[0]);
 				$manager->persist($field);
 				$manager->flush();
-				dump('Champ fixe ' . FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode[0] . ' créé.');
-			}
+				dump('Champ fixe ' . isset($fieldCode[2]) ? FieldsParam::ENTITY_CODE_ARRIVAGE : FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode[0] . ' créé.');
+			} else {
+			    $field->setDisplayed(true);
+            }
 		}
 
         $manager->flush();

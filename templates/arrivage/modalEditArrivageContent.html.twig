@@ -1,64 +1,77 @@
 <div class="row">
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+        <div class="form-group col">
+            <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
+            <select class="form-control data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
+                <option disabled selected></option>
+                {% for fournisseur in fournisseurs %}
+                    {% set selected = (fournisseur.id == arrivage.fournisseur.id ? 'selected' : '') %}
+                    <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
     <div class="form-group col">
-        <label for="fournisseur">Fournisseur*</label>
-        <select class="form-control data needed" id="fournisseur" name="fournisseur">
-            <option disabled selected> </option>
-            {% for fournisseur in fournisseurs %}
-                {% set selected = (fournisseur.id == arrivage.fournisseur.id ? 'selected' : '') %}
-                <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="form-group col">
-        <label for="transporteur">Transporteur*</label>
-        <select class="form-control data needed" id="transporteur" name="transporteur">
-            <option disabled selected> </option>
+        <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
+        <select class="form-control data {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
+            <option disabled selected></option>
             {% for transporteur in transporteurs %}
                 {% set selected = (transporteur.id == arrivage.transporteur.id ? 'selected' : '') %}
                 <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
             {% endfor %}
         </select>
     </div>
-
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
     <div class="form-group col">
-        <label for="chauffeur">Chauffeur</label>
-        <select class="form-control data" id="chauffeur" name="chauffeur">
-            <option disabled selected> </option>
+        <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? '*' : '' }}</label>
+        <select class="form-control data {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
+            <option disabled selected></option>
             {% for chauffeur in chauffeurs %}
                 {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
-                <option value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
+                <option
+                    value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
             {% endfor %}
         </select>
     </div>
+    {% endif %}
 </div>
 
 <div class="row">
+    {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
     <div class="form-group col-4">
-        <label for="noTracking">N° tracking transporteur</label>
-        <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64" value="{{ arrivage.noTracking }}">
+        <label for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? '*' : ''}}</label>
+        <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? 'needed' : ''}}" name="noTracking" maxlength="64"
+               value="{{ arrivage.noTracking }}">
     </div>
-
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
     <div class="form-group col-4">
-        <label for="noBL">N° commande / BL</label>
-        <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64" value="{{ arrivage.numeroBL }}">
+        <label for="noBL">N° commande / BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? '*' : ''}}</label>
+        <input type="text" id="noBL" class="form-control data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? 'needed' : ''}}" name="noBL" maxlength="64"
+               value="{{ arrivage.numeroBL }}">
     </div>
+    {% endif %}
 </div>
 
 <div class="row">
+    {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="form-group col-4">
-        <label for="destinataire">Destinataire</label>
-        <select class="form-control data" id="destinataire" name="destinataire">
-            <option disabled selected> </option>
+        <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
+        <select class="form-control data {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
+            <option disabled selected></option>
             {% for utilisateur in utilisateurs %}
                 {% set selected = (utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
                 <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
             {% endfor %}
         </select>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="form-group w-100 col-4">
-        <label for="acheteursEdit">Acheteur(s)*</label>
-        <select type="text" class="form-control data select2 needed" name="acheteurs" multiple="multiple"
+        <label for="acheteursEdit">Acheteur(s){{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
+        <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                 id="acheteursEdit">
             {% for utilisateur in utilisateurs %}
                 <option value="{{ utilisateur.username }}">
@@ -67,17 +80,23 @@
             {% endfor %}
         </select>
     </div>
+    {% endif %}
 </div>
 
 <div class="row">
+    {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
     <div class="form-group col-8 h-fit-content">
-        <label for="commentaire">Commentaire</label>
-        <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden" value="{{ arrivage.commentaire }}">
+        <label for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
+        <input id="commentaire" class="commentaire form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}" name="commentaire" type="hidden"
+               value="{{ arrivage.commentaire }}">
         <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
     <div class="form-group col-4">
         <div>
-        {% include 'arrivage/attachements.html.twig' with {'isNew': false } %}
+            {% include 'arrivage/attachements.html.twig' with {'isNew': false } %}
         </div>
     </div>
+    {% endif %}
 </div>
