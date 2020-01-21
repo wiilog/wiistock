@@ -731,7 +731,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getStatus();
+                $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -795,14 +795,12 @@ class ArrivageController extends AbstractController
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new DateTime('now'));
-
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
                     $litige->addColi($this->colisRepository->find($colisId));
                 }
             }
-
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();
             $statutNom = $litige->getStatus()->getNom();
