@@ -29,15 +29,6 @@ security:
         nomade_apk:
             pattern: ^/telecharger/nomade.apk$
             security: false
-        api:
-            pattern: ^/tests
-            stateless: true
-            # http_basic:
-            #     realm: "Webservice API"
-            #     provider: my_in_memory_provider
-            simple_preauth:
-                authenticator: App\Security\ApiKeyAuthenticator
-                provider: api_key_user_provider
         main:
             pattern: ^/
             form_login:
