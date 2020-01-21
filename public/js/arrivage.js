@@ -158,7 +158,8 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
+let redirectAfterArrival = $('#redirect').val();
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, null, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;

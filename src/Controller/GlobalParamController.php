@@ -64,11 +64,13 @@ class GlobalParamController extends AbstractController
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
         $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
         $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+        $redirect = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
                 'parametrageG' => $paramGlo,
+                'redirect' => $redirect,
                 'parametrageGPrepa' => $paramGloPrepa,
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -392,6 +394,40 @@ class GlobalParamController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/redirection-switch", name="active_desactive_redirection", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function actifDesactifRedirectArrival(Request $request,
+                                                        ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setParametre($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)
+                    ->setParametre($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
