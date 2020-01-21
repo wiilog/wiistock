@@ -760,7 +760,7 @@ class ReferenceArticle
 
     public function getCalculedAvailableQuantity(): int {
         $totalQuantity = 0;
-        if ($this->getTypeQuantite() === 'article') {
+        if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
                 foreach ($articleFournisseur->getArticles() as $article) {
                     if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
@@ -769,7 +769,9 @@ class ReferenceArticle
                 }
             }
         }
-        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $this->getQuantiteStock() : $totalQuantity;
+        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+            ? $this->getQuantiteStock()
+            : $totalQuantity;
     }
 
     public function treatAlert(): void

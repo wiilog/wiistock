@@ -512,7 +512,7 @@ class RefArticleDataService
         return $newBarcode;
     }
 
-    public function getAlerteDataByParams($params = null, $user)
+    public function getAlerteDataByParams($params, $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return new RedirectResponse($this->router->generate('access_denied'));
