@@ -502,7 +502,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
 
                         if ($e->getMessage() === MouvementTracaService::INVALID_LOCATION_TO) {
-                            $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement $invalidLocationTo");
+                            $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                         }
                         else {
                             throw $e;
