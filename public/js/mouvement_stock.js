@@ -124,7 +124,7 @@ $submitSearchMvt.on('click', function () {
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
-        emplacement: $('#emplacement').val(),
+        location: $('#emplacement').val(),
         demandeur: $('#utilisateur').select2('data'),
     };
 
