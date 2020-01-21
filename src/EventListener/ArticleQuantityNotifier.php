@@ -23,10 +23,8 @@ class ArticleQuantityNotifier
 
     public function preUpdate(Article $article, PreUpdateEventArgs $event)
     {
-        if ($event->hasChangedField('quantite')) {
-            $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $referenceArticle->treatAlert();
-        }
+        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
+        $referenceArticle->treatAlert();
     }
 
     public function postPersist(Article $article, LifecycleEventArgs $event)
