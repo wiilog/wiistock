@@ -23,16 +23,14 @@ class RefArticleQuantityNotifier
     public function preUpdate(ReferenceArticle $referenceArticle, PreUpdateEventArgs $event)
     {
         if ($event->hasChangedField('quantiteStock') && $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $preQuantity = $event->getOldValue('quantiteStock');
-            $postQuantity = $event->getNewValue('quantiteStock');
-            $this->refArticleService->treatAlert($referenceArticle, $postQuantity);
+            $referenceArticle->treatAlert();
         }
     }
 
     public function prePersist(ReferenceArticle $referenceArticle, LifecycleEventArgs $event)
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $this->refArticleService->treatAlert($referenceArticle, $referenceArticle->getQuantiteStock());
+            $referenceArticle->treatAlert();
         }
     }
 }

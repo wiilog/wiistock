@@ -25,16 +25,20 @@ class ArticleQuantityNotifier
     {
         if ($event->hasChangedField('quantite')) {
             $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $this->refArticleService->treatAlert($referenceArticle, $referenceArticle->getCalculedAvailableQuantity());
+            $referenceArticle->treatAlert();
         }
     }
 
-    public function prePersist(Article $article, LifecycleEventArgs $event)
+    public function postPersist(Article $article, LifecycleEventArgs $event)
     {
         $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $this->refArticleService->treatAlert(
-            $referenceArticle,
-            $referenceArticle->getCalculedAvailableQuantity()
-        );
+        $referenceArticle->treatAlert();
+    }
+
+    public function postRemove(Article $article, LifecycleEventArgs $event)
+    {
+        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
+        $referenceArticle->treatAlert();
+        $event->getEntityManager()->flush();
     }
 }

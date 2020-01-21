@@ -555,13 +555,4 @@ class RefArticleDataService
         ];
         return $row;
     }
-
-    public function treatAlert(ReferenceArticle $referenceArticle, int $newQuantity): void
-    {
-        if ($referenceArticle->getDateEmergencyTriggered() && $newQuantity > $referenceArticle->getLimitWarning()) {
-            $referenceArticle->setDateEmergencyTriggered(null);
-        } else if (!$referenceArticle->getDateEmergencyTriggered() && $newQuantity <= $referenceArticle->getLimitWarning()) {
-            $referenceArticle->setDateEmergencyTriggered(new \DateTime('now', new \DateTimeZone("Europe/Paris")));
-        }
-    }
 }

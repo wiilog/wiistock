@@ -772,6 +772,15 @@ class ReferenceArticle
         return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $this->getQuantiteStock() : $totalQuantity;
     }
 
+    public function treatAlert(): void
+    {
+        if ($this->getDateEmergencyTriggered() && $this->getCalculedAvailableQuantity() > $this->getLimitWarning()) {
+            $this->setDateEmergencyTriggered(null);
+        } else if (!$this->getDateEmergencyTriggered() && $this->getCalculedAvailableQuantity() <= $this->getLimitWarning()) {
+            $this->setDateEmergencyTriggered(new \DateTime('now', new \DateTimeZone("Europe/Paris")));
+        }
+    }
+
     public function getDateEmergencyTriggered(): ?\DateTimeInterface
     {
         return $this->dateEmergencyTriggered;

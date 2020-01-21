@@ -48,5 +48,6 @@ services:
     article_listener:
         class: App\EventListener\ArticleQuantityNotifier
         tags:
-            - { name: doctrine.orm.entity_listener, event: prePersist, lazy: true }
+            - { name: doctrine.orm.entity_listener, event: postPersist, lazy: true }
             - { name: doctrine.orm.entity_listener, event: preUpdate, lazy: true }
+            - { name: doctrine.orm.entity_listener, event: postRemove, lazy: true }
