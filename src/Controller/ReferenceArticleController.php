@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -1319,6 +1320,38 @@ class ReferenceArticleController extends AbstractController
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+    /**
+     * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getArticleRefFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $ref = $this->referenceArticleRepository->find(intval($dataContent['article']));
+            $barcodes[] = $ref->getBarCode();
+            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
+                'refRef' => $ref->getReference(),
+                'refLabel' =>$ref->getLibelle(),
+            ]);
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $tags['height'] = $dimension->getHeight();
+                $tags['width'] = $dimension->getWidth();
+                $tags['exists'] = true;
+            } else {
+                $tags['height'] = $tags['width'] = 0;
+                $tags['exists'] = false;
+            }
+            $data  = [
+                'tags' => $tags,
+                'barcodes' => $barcodes,
+                'barcodeLabels' => $barcodeLabels,
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
