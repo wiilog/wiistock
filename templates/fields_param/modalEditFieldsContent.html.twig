@@ -38,6 +38,7 @@
             </div>
         </div>
 
+        {% if field.entityCode == 'arrivage' %}
         <div class="row">
             {% set isCheckedModify = field.displayed ? 'checked' : '' %}
             <div class="form-group col-12">
@@ -48,6 +49,7 @@
                 </label>
             </div>
         </div>
+        {% endif %}
 
     </div>
 </form>
