@@ -795,11 +795,16 @@ class ArrivageController extends AbstractController
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new DateTime('now'));
+            $arrivage = null;
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
                     $litige->addColi($this->colisRepository->find($colisId));
+                    $arrivage = $this->colisRepository->find($colisId)->getArrivage();
                 }
+            }
+            if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
             }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();
