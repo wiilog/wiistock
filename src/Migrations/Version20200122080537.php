@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -19,6 +21,11 @@ final class Version20200122080537 extends AbstractMigration
 
     public function up(Schema $schema) : void
     {
+        $litigeStatut = Arrivage::STATUS_LITIGE;
+        $confirmeStatut = Arrivage::STATUS_CONFORME;
+        $categorieStatutArrivage = CategorieStatut::ARRIVAGE;
+
+        $this->addSql('ALTER TABLE arrivage ADD statut_id INT DEFAULT NULL');
         $this->addSql("
             UPDATE arrivage a
             SET a.statut_id =
@@ -32,7 +39,10 @@ final class Version20200122080537 extends AbstractMigration
                             INNER JOIN litige_colis lc on c.id = lc.colis_id
                             INNER JOIN litige l on l.id = lc.litige_id
                             INNER JOIN statut s2 on l.status_id = s2.id
-                            WHERE s2.treated = false and c.arrivage_id = a.id) > 0, 'litige', 'conforme') AND cs.nom LIKE 'arrivage'
+                            WHERE s2.treated = false and c.arrivage_id = a.id) > 0,
+                        '$litigeStatut',
+                        '$confirmeStatut')
+                      AND cs.nom LIKE '$categorieStatutArrivage'
                 )
         ");
     }
