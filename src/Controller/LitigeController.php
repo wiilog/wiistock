@@ -23,6 +23,8 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\LitigeService;
 use App\Service\UserService;
+use DateTime;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -159,13 +161,18 @@ class LitigeController extends AbstractController
 
 	/**
 	 * @Route("/arrivage-infos", name="get_litiges_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @throws Exception
 	 */
 	public function getLitigesArrivageIntels(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
-            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
-			$litiges = $this->litigeRepository->findByDates($dateMin, $dateMax);
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+			$litiges = $this->litigeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [];
 			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage', 'date commentaire', 'utilisateur', 'commentaire']);
@@ -289,7 +296,7 @@ class LitigeController extends AbstractController
      * @param Request $request
      * @param Litige $litige
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function addComment(Request $request, Litige $litige): Response
     {
@@ -299,7 +306,7 @@ class LitigeController extends AbstractController
             $litigeHisto
                 ->setLitige($litige)
                 ->setUser($this->getUser())
-                ->setDate(new \DateTime('now'))
+                ->setDate(new DateTime('now'))
                 ->setComment($data);
             $em->persist($litigeHisto);
             $em->flush();

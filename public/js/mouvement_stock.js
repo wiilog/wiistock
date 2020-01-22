@@ -10,8 +10,6 @@ $(function() {
     let params = JSON.stringify(PAGE_MVT_STOCK);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
-            console.log(element);
-
             if (element.field == 'utilisateurs') {
                 let values = element.value.split(',');
                 let $utilisateur = $('#utilisateur');
@@ -124,7 +122,7 @@ $submitSearchMvt.on('click', function () {
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
-        emplacement: $('#emplacement').val(),
+        location: $('#emplacement').val(),
         demandeur: $('#utilisateur').select2('data'),
     };
 
@@ -133,58 +131,3 @@ $submitSearchMvt.on('click', function () {
 
     saveFilters(filters, tableMvt);
 });
-
-function generateCSVMouvement () {
-    loadSpinner($('#spinnerMouvementStock'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_mouvements_stock_for_csv', true);
-
-        $.post(path, params, function(response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                mFile(csv);
-                hideSpinner($('#spinnerMouvementStock'));
-            }
-        }, 'json');
-
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerMouvementStock'));
-    }
-}
-
-let mFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilename = 'export-mouvements-stock-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilename);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}

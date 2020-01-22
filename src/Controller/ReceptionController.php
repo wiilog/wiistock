@@ -1624,7 +1624,6 @@ class ReceptionController extends AbstractController
             $receptions = $this->receptionRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
-            // en-têtes champs fixes
             $headers = array_merge($headers,
                 [
                     'n° réception',

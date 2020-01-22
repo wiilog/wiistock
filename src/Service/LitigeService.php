@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Repository\FiltreSupRepository;
 use App\Repository\LitigeRepository;
+use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
@@ -61,7 +62,7 @@ class LitigeService
 	/**
 	 * @param array|null $params
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
     public function getDataForDatatable($params = null)
     {

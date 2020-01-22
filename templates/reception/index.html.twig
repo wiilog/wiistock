@@ -8,7 +8,9 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
+    <div class="col-12">
+        <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
+    </div>
 
     <div class='col-12'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -18,11 +20,12 @@
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick='generateCSVReception()'>
+            <div class="btn btn-primary" onclick="generateCSV('get_receptions_for_csv', '{{ 'réception.réceptions'|trans }}')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
         {% endif %}
     </div>
+
     <div class="d-none justify-content-center" id="spinnerReception">
         <div class="spinner-border sizeLoader" role="status">
             <span class="sr-only">Loading...</span>
