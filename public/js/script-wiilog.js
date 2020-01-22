@@ -811,7 +811,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 if (barcodesLabel) {
                     let toPrint = (barcodesLabel[index]
                         .split('\n')
-                        .map((line) => line.trim())
+                        .map((line) => he.decode(line).trim())
                         .filter(Boolean)
                         .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
@@ -843,6 +843,7 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        console.log(response.articleRef.barcodeLabel);
         printBarcodes(
             [response.articleRef.barcode],
             response,
