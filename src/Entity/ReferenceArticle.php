@@ -11,7 +11,6 @@ use Exception;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
- * @ORM\EntityListeners({"App\EventListener\RefArticleQuantityNotifier"})
  */
 class ReferenceArticle
 {

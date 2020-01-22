@@ -22,12 +22,10 @@ class RefArticleQuantityNotifier
         $this->entityManager = $entityManager;
     }
 
-    public function preUpdate(ReferenceArticle $referenceArticle, PreUpdateEventArgs $event)
+    public function postUpdate(ReferenceArticle $referenceArticle)
     {
-        if ($event->hasChangedField('quantiteStock') && $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $referenceArticle->treatAlert();
-            $this->entityManager->flush();
-        }
+        $referenceArticle->treatAlert();
+        $this->entityManager->flush();
     }
 
     public function postPersist(ReferenceArticle $referenceArticle)
