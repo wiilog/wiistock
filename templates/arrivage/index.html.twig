@@ -23,12 +23,12 @@
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick='generateCSVArrivage()'>
+            <div class="btn btn-primary" onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
         {% endif %}
     </div>
-    <div class="d-none justify-content-center" id="spinnerArrivage">
+    <div class="d-none justify-content-center" id="spinner">
         <div class="spinner-border sizeLoader" role="status">
             <span class="sr-only">Loading...</span>
         </div>
@@ -39,6 +39,7 @@
     </div>
     <div hidden id="barcodes"></div>
     <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
+    <input id="redirect" value="{{ redirect }}" hidden>
 
     {% include "arrivage/modalNewArrivage.html.twig" %}
     {% include "arrivage/modalEditArrivage.html.twig" %}

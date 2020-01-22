@@ -13,7 +13,7 @@ $(function () {
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut litige traité'},
-            {"data": 'NotifToBuyer', 'title': 'Envoie de mails'},
+            {"data": 'NotifToBuyer', 'title': 'Envoi de mails'},
             {"data": 'Order', 'title': 'Ordre'},
             {"data": 'Actions', 'title': 'Actions'}
         ],

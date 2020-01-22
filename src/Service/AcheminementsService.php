@@ -89,7 +89,7 @@ Class AcheminementsService
             [
                 'id' => $acheminement->getId() ?? 'Non défini',
                 'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
-                'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
+                'Demandeur' => $acheminement->getRequester() ? $acheminement->getReequester()->getUserName() : '',
                 'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
                 'Emplacement prise' => $acheminement->getLocationTake() ?? '',
                 'Emplacement de dépose' => $acheminement->getLocationDrop() ?? '',

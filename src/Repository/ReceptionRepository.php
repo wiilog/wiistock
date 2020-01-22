@@ -116,7 +116,7 @@ class ReceptionRepository extends ServiceEntityRepository
                 case 'statut':
                     $qb
                         ->join('r.statut', 's')
-                        ->andWhere('s.nom = :statut')
+                        ->andWhere('s.id = :statut')
                         ->setParameter('statut', $filter['value']);
                     break;
                 case 'providers':
