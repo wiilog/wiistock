@@ -2,9 +2,12 @@
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
@@ -167,6 +170,11 @@ class ReferenceArticle
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $isUrgent;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateEmergencyTriggered;
 
 
     public function __construct()
@@ -748,6 +756,49 @@ class ReferenceArticle
     public function setIsUrgent(?bool $isUrgent): self
     {
         $this->isUrgent = $isUrgent;
+
+        return $this;
+    }
+
+    public function getCalculedAvailableQuantity(): int {
+        $totalQuantity = 0;
+        if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
+                foreach ($articleFournisseur->getArticles() as $article) {
+                    if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
+                        $totalQuantity += $article->getQuantite();
+                    }
+                }
+            }
+        }
+        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+            ? $this->getQuantiteStock()
+            : $totalQuantity;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function treatAlert(): void
+    {
+        $calculedAvailableQuantity = $this->getCalculedAvailableQuantity();
+
+        if ($calculedAvailableQuantity === 0 ||
+            ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $this->getLimitWarning()))) {
+            $this->setDateEmergencyTriggered(null);
+        } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $this->getLimitWarning()) {
+            $this->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
+        }
+    }
+
+    public function getDateEmergencyTriggered(): ?\DateTimeInterface
+    {
+        return $this->dateEmergencyTriggered;
+    }
+
+    public function setDateEmergencyTriggered(?\DateTimeInterface $dateEmergencyTriggered): self
+    {
+        $this->dateEmergencyTriggered = $dateEmergencyTriggered;
 
         return $this;
     }
