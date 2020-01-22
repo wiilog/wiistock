@@ -245,7 +245,7 @@ class InventoryMissionController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-        	$mission = $this->inventoryMissionRepository->find($data['missionId']);
+        	$mission = $this->inventoryMissionRepository->find($data['param']);
 
             $articles = $mission->getArticles();
             $refArticles = $mission->getRefArticles();

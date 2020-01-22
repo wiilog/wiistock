@@ -30,14 +30,14 @@
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::EXPORT')) %}
-                <div class="btn btn-primary" onclick='generateCSVDemande()'>
+                <div class="btn btn-primary" onclick="generateCSV('get_livraisons_for_csv', 'dem-livr')">
                     <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                 </div>
             {% endif %}
         {% endif %}
 
     </div>
-    <div class="d-none justify-content-center" id="spinnerlivrai">
+    <div class="d-none justify-content-center" id="spinner">
         <div class="spinner-border sizeLoader" role="status">
             <span class="sr-only">Loading...</span>
         </div>

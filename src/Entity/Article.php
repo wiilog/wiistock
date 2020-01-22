@@ -460,7 +460,7 @@ class Article
             			$this->inventoryEntries[] = $inventoryEntry;
             			$inventoryEntry->setArticle($this);
             		}
-      
+
             		return $this;
             	}
 

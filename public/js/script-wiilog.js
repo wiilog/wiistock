@@ -5,6 +5,7 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
@@ -77,7 +78,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');
             const objectIndex = $parent.data('multiple-object-index');
-            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey] = (Data[multipleKey] || {});
             Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
             Data[multipleKey][objectIndex][name] = val;
         }
@@ -811,7 +812,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 if (barcodesLabel) {
                     let toPrint = (barcodesLabel[index]
                         .split('\n')
-                        .map((line) => line.trim())
+                        .map((line) => he.decode(line).trim())
                         .filter(Boolean)
                         .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
@@ -843,6 +844,7 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        console.log(response.articleRef.barcodeLabel);
         printBarcodes(
             [response.articleRef.barcode],
             response,
@@ -1095,6 +1097,57 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
 
 function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
+}
+
+function generateCSV(route, filename = 'export', param = null) {
+    loadSpinner($('#spinner'));
+    let data = param ? {'param': param} : {};
+
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let params = JSON.stringify(data);
+        let path = Routing.generate(route, true);
+
+        $.post(path, params, function (response) {
+            if (response) {
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                dlFile(csv, filename);
+                hideSpinner($('#spinner'));
+            }
+        }, 'json');
+    } else {
+        warningEmptyDatesForCsv();
+        hideSpinner($('#spinner'));
+    }
+}
+
+let dlFile = function (csv, filename) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = filename + '-' + date + '.csv';
+    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    let link = document.createElement("a");
+    if (link.download !== undefined) {
+        let url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", exportedFilenmae);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 }
 
 function warningEmptyDatesForCsv() {

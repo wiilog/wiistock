@@ -19,16 +19,16 @@
             <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
                onclick="clearModal('#modalNewArrivage'); initNewArrivageEditor('#modalNewArrivage')">
-                <span class="fa fa-plus mr-2"></span>{{ 'arrivage.nouvel arrivage'|trans|capitalize }}
+                <span class="fa fa-plus mr-2"></span>
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick='generateCSVArrivage()'>
+            <div class="btn btn-primary" onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
         {% endif %}
     </div>
-    <div class="d-none justify-content-center" id="spinnerArrivage">
+    <div class="d-none justify-content-center" id="spinner">
         <div class="spinner-border sizeLoader" role="status">
             <span class="sr-only">Loading...</span>
         </div>
