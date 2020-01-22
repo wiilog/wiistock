@@ -22,7 +22,7 @@ let table = $('#tableCollecte_id').DataTable({
         "url": pathCollecte,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#statut').val()
+            'filterStatus': $('#filterStatus').val()
         },
     },
     drawCallback: function() {
@@ -161,9 +161,17 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     // applique les filtres si pré-remplis
-    let val = $('#statut').val();
-    if (!val || val.length == 0) {
-        // filtres enregistrés en base pour chaque utilisateur
+    let val = $('#filterStatus').val();
+
+    if (val && val.length > 0) {
+        let valuesStr = val.split(',');
+        let valuesInt = [];
+        valuesStr.forEach((value) => {
+            valuesInt.push(parseInt(value));
+        })
+        $('#statut').val(valuesInt).select2();
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_DEM_COLLECTE);
         $.post(path, params, function (data) {

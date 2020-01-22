@@ -24,7 +24,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
         "url": pathManut,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#statut').val()
+            'filterStatus': $('#filterStatus').val()
         },
     },
     'drawCallback': function() {
@@ -63,15 +63,23 @@ $submitSearchManut.on('click', function () {
     }
 });
 
-// applique les filtres si pré-remplis
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
-    let val = $('#statut').val();
-    if (!val || val.length == 0) {
-        // filtres enregistrés en base pour chaque utilisateur
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+    if (val && val.length > 0) {
+        let valuesStr = val.split(',');
+        let valuesInt = [];
+        valuesStr.forEach((value) => {
+            valuesInt.push(parseInt(value));
+        })
+        $('#statut').val(valuesInt).select2();
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_MANUT);
         $.post(path, params, function (data) {

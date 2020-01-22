@@ -12,7 +12,7 @@
             <div class="row justify-content-end">
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeCollecte }}</span>
                             {% set s = nbDemandeCollecte > 1 ? 's' : '' %}
@@ -22,7 +22,7 @@
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('livraison', '{{ status.DLtoTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonAT }}</span>
                             {% set s = nbDemandeLivraisonAT > 1 ? 's' : '' %}
@@ -32,7 +32,7 @@
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}, {{ constant('App\\Entity\\Demande::STATUT_INCOMPLETE') }}')">
+                       onclick="goToFilteredDemande('livraison', '{{ status.DLincomplete }}, {{ status.DLprepared }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonP }}</span>
                             {% set s = nbDemandeLivraisonP > 1 ? 's' : '' %}
@@ -42,7 +42,7 @@
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('manutention', '{{ status.MToTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeManutentionAT }}</span>
                             {% set s = nbDemandeManutentionAT > 1 ? 's' : '' %}
