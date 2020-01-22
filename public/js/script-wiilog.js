@@ -78,7 +78,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');
             const objectIndex = $parent.data('multiple-object-index');
-            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey] = (Data[multipleKey] || {});
             Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
             Data[multipleKey][objectIndex][name] = val;
         }
