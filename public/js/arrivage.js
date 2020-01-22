@@ -159,7 +159,7 @@ let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, null, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;

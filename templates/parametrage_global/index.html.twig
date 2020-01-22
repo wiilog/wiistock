@@ -144,13 +144,13 @@
         </a>
         <div class="collapse col-12" id="paramArrivage">
             <div class="row p-3">
-                {% set checked = (redirect.parametre ? 'checked' : '' %}
+                {% set checked = (redirect.parametre ? 'checked' : '') %}
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_redirection') }}')">
                     <span class="slider round"></span>
                 </label>
-                <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage crée</label>
+                <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage créé</label>
             </div>
         </div>
     </div>
