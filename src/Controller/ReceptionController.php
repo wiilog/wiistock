@@ -1624,7 +1624,6 @@ class ReceptionController extends AbstractController
             $receptions = $this->receptionRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
-            // en-têtes champs fixes
             $headers = array_merge($headers,
                 [
                     'n° réception',
@@ -1637,9 +1636,10 @@ class ReceptionController extends AbstractController
                     'quantité reçue',
                     'référence',
                     'libellé',
-                    'quantité',
+                    'quantité stock',
                     'type',
-                    'code-barre'
+                    'code-barre reference',
+                    'code-barre article'
                 ]);
 
             $data = [];
@@ -1672,6 +1672,7 @@ class ReceptionController extends AbstractController
                 $referenceArticle->getQuantiteStock(),
                 $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
                 $referenceArticle->getBarCode(),
+                '',
             ];
             $articles = $receptionReferenceArticle->getArticles();
             foreach ($articles as $article) {
@@ -1688,6 +1689,7 @@ class ReceptionController extends AbstractController
                     $article->getLabel(),
                     $article->getQuantite(),
                     $article->getType() ? $article->getType()->getLabel() : '',
+                    $article->getArticleFournisseur()->getReferenceArticle()->getBarCode(),
                     $article->getBarCode(),
                 ];
             }

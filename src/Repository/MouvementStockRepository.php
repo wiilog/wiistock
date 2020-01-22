@@ -381,8 +381,8 @@ class MouvementStockRepository extends ServiceEntityRepository
 					break;
 				case 'emplacement':
 					$qb
-						->join('m.emplacementFrom', 'ef')
-						->join('m.emplacementTo', 'et')
+						->leftJoin('m.emplacementFrom', 'ef')
+						->leftJoin('m.emplacementTo', 'et')
 						->andWhere('ef.label = :location OR et.label = :location')
 						->setParameter('location', $filter['value']);
 					break;

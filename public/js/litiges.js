@@ -201,61 +201,6 @@ $submitSearchLitigesArr.on('click', function () {
     saveFilters(filters, tableLitigesArrivage);
 });
 
-function generateCSVLitigeArrivage() {
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let $spinner = $('#spinnerLitigesArrivages');
-        loadSpinner($spinner);
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_litiges_arrivages_for_csv', true);
-
-        $.post(path, params, function(response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                aFile(csv);
-                hideSpinner($spinner);
-            }
-        }, 'json');
-
-    } else {
-        warningEmptyDatesForCsv();
-    }
-}
-
-let aFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-litiges-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-};
-
 function getCommentAndAddHisto()
 {
     let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);

@@ -574,7 +574,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
                                 foreach ($mouvementsNomade as $mouvementNomade) {
-                                    if (!$mouvementNomade['is_ref']) {
+                                    if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                         $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
                                         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                         if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
@@ -609,6 +609,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $mouvementNomade['selected_by_article']
                                     );
                                 }
+
                                 foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                                     $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
                                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);

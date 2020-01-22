@@ -1,4 +1,4 @@
-{% set version = '2.2.2' %}
+{% set version = '2.3.0' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -104,7 +104,10 @@
                 <!-- ORDRE -->
                 {% if
                     hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST'))
+                %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-network-wired"></i>
