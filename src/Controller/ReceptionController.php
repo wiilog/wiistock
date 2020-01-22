@@ -1637,7 +1637,7 @@ class ReceptionController extends AbstractController
                     'quantité reçue',
                     'référence',
                     'libellé',
-                    'quantité',
+                    'quantité stock',
                     'type',
                     'code-barre reference',
                     'code-barre article'
