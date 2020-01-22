@@ -589,8 +589,7 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
-function clearInvalidInputs($div) {
-    let $modal = $div.closest('.modal');
+function clearInvalidInputs($modal) {
     let $inputs = $modal.find('.modal-body').find(".data");
     $inputs.each(function () {
         // on enlève les classes is-invalid
