@@ -39,13 +39,18 @@ use App\Service\MailerService;
 
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -184,27 +189,36 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/", name="arrivage_index")
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+
         return $this->render('arrivage/index.html.twig', [
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-            'redirect' =>
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?
-                    intval($parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)->getParametre()) :
-                    0,
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre()
         ]);
     }
 
     /**
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
@@ -224,9 +238,14 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
-    public function new(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
+    public function new(Request $request,
+                        ParametrageGlobalRepository $parametrageGlobalRepository): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -327,16 +346,13 @@ class ArrivageController extends AbstractController
             if ($post->get('printArrivage') === 'true') {
                 $printArrivage = true;
             }
-            $wantsRedirect =
-                    $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)
-                    ?
-                    $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)->getParametre()
-                        : false;
-            ;
+
+            $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+
             $data = [
-                "redirect" => $wantsRedirect ? $this->generateUrl('arrivage_show', [
-                    'id' => $arrivage->getId(),
-                ]) : null,
+                "redirect" => $paramGlobalRedirectAfterNewArrivage->getParametre()
+                    ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
+                    : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
             ];
@@ -581,7 +597,7 @@ class ArrivageController extends AbstractController
             $response = '';
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
-            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN);
+            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_CS);
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();

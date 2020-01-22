@@ -144,7 +144,7 @@
         </a>
         <div class="collapse col-12" id="paramArrivage">
             <div class="row p-3">
-                {% set checked = ((redirect is not null ? redirect.parametre : 0) == 1) ? 'checked' : '' %}
+                {% set checked = (redirect.parametre ? 'checked' : '' %}
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_redirection') }}')">
