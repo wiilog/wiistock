@@ -191,26 +191,32 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/finir/{id}", name="ordre_collecte_finish", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param OrdreCollecte $collecte
+     * @param OrdreCollecte $ordreCollecte
      * @return Response
      * @throws NonUniqueResultException
 	 * @throws Exception
      */
-    public function finish(Request $request, OrdreCollecte $collecte): Response
+    public function finish(Request $request, OrdreCollecte $ordreCollecte): Response
     {
         if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($data = json_decode($request->getContent(), true)) {
-            if ($collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+            if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                 $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacementRepository->find($data['depositLocationId']), $data['rows']);
+                $this->ordreCollecteService->finishCollecte(
+                    $ordreCollecte,
+                    $this->getUser(),
+                    $date,
+                    isset($data['depositLocationId']) ? $this->emplacementRepository->find($data['depositLocationId']) : null,
+                    $data['rows']
+                );
             }
 
             $data = $this->renderView('ordre_collecte/enteteOrdreCollecte.html.twig', [
-            	'collecte' => $collecte,
-				'finished' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
+            	'collecte' => $ordreCollecte,
+				'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
 			]);
             return new JsonResponse($data);
         }

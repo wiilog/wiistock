@@ -1143,31 +1143,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        // TODO AB
-//        $exprBuilder = $queryBuilder->expr();
         return $queryBuilder
             ->join('referenceArticle.emplacement', 'emplacement')
             ->join('referenceArticle.statut', 'status')
             ->andWhere('emplacement.label = :location')
             ->andWhere('referenceArticle.barCode = :barCode')
-            ->andWhere('status.nom = :statusNom')
+            ->andWhere('status.nom = :activeStatus')
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
-//            ->andWhere(
-//                $exprBuilder->andX(
-//                    $exprBuilder->andX(
-//                        'referenceArticle.quantiteDisponible IS NOT NULL',
-//                        ' referenceArticle.quantiteDisponible > 0'
-//                    ),
-//                    $exprBuilder->orX(
-//                        'referenceArticle.quantiteReservee IS NULL',
-//                        'referenceArticle.quantiteReservee = 0',
-//                        '(referenceArticle.quantiteDisponible - referenceArticle.quantiteReservee) > 0'
-//                    )
-//                )
-//            )
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('statusNom', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF)
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
     }
 

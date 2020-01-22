@@ -14,7 +14,7 @@
                 <div class="row fly-form">
                     <div class="form-group col w-100">
                         <label for="fournisseur">Fournisseur*</label>
-                        <select class="form-control data ajax-autocomplete-fournisseur ajax-autocomplete needed"
+                        <select class="form-control input-sm data ajax-autocomplete-fournisseur ajax-autocomplete needed"
                                 name="fournisseur" id="fournisseur">
                         </select>
                     </div>
@@ -25,7 +25,7 @@
 
                     <div class="form-group col w-100">
                         <label for="transporteur">Transporteur*</label>
-                        <select class="form-control data ajax-autocomplete-transporteur ajax-autocomplete needed"
+                        <select class="form-control input-sm data ajax-autocomplete-transporteur ajax-autocomplete needed"
                                 name="transporteur" id="transporteur">
                         </select>
                     </div>
@@ -36,7 +36,7 @@
 
                     <div class="form-group col w-100">
                         <label for="chauffeur">Chauffeur</label>
-                        <select class="form-control data ajax-autocomplete-chauffeur ajax-autocomplete" name="chauffeur"
+                        <select class="form-control input-sm data ajax-autocomplete-chauffeur ajax-autocomplete" name="chauffeur"
                                 id="chauffeur">
                         </select>
                     </div>
@@ -49,10 +49,10 @@
                     <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
-                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
+                            <input type="text" id="newFournisseur" class="form-control input-sm valeur newFormulaire neededNew"
                                    name="Nom" maxlength="64">
                             <label for="newFournisseurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newFournisseurCode" class="form-control input-sm newFormulaire neededNew"
                                    name="Code" maxlength="64">
                         </div>
                         <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
@@ -64,10 +64,10 @@
                     <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
-                            <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newTransporteur" class="form-control input-sm newFormulaire neededNew"
                                    name="label" maxlength="64">
                             <label for="newTransporteurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newTransporteurCode" class="form-control input-sm newFormulaire neededNew"
                                    name="code" maxlength="64">
                         </div>
                         <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
@@ -80,17 +80,17 @@
                     <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="chauffeurDisplay">
                             <label for="newChauffeurName">Nom*</label>
-                            <input type="text" id="newChauffeurName" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newChauffeurName" class="form-control input-sm newFormulaire neededNew"
                                    name="nom" maxlength="64">
                             <label for="newChauffeurFirstName" class="mt-2">Prénom*</label>
-                            <input type="text" id="newChauffeurFirstName" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newChauffeurFirstName" class="form-control input-sm newFormulaire neededNew"
                                    name="prenom" maxlength="64">
                             <label for="newChauffeurNumero" class="mt-2">N°doc ID*</label>
-                            <input type="text" id="newChauffeurNumero" class="form-control newFormulaire neededNew"
+                            <input type="text" id="newChauffeurNumero" class="form-control input-sm newFormulaire neededNew"
                                    name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
                             <select
-                                class="form-control newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
+                                class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
                                 name="transporteur" id="newChauffeurTransporteur">
                             </select>
                         </div>
@@ -105,16 +105,16 @@
                 <div class="row">
                     <div class="form-group col-4">
                         <label for="noTracking">N° tracking transporteur</label>
-                        <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64">
+                        <input type="text" id="noTracking" class="form-control input-sm data" name="noTracking" maxlength="64">
                     </div>
 
                     <div class="form-group col-4">
                         <label for="noBL">N° commande / BL</label>
-                        <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64">
+                        <input type="text" id="noBL" class="form-control input-sm data" name="noBL" maxlength="64">
                     </div>
                     <div class="form-group col-4">
                         <label for="chauffeur">Statut*</label>
-                        <select class="form-control data needed" id="statut" name="statut">
+                        <select class="form-control input-sm data needed" id="statut" name="statut">
                             {% for statut in statuts %}
                                 <option value="{{ statut.id }}">{{ statut.nom|upper }}</option>
                             {% endfor %}
@@ -123,82 +123,79 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-4 w-100">
-                        <label for="destinataire">Destinataire*</label>
-                        <select class="form-control data ajax-autocomplete-user needed ajax-autocomplete"
-                                name="destinataire" id="destinataire">
-                        </select>
+                    <div class="col-4">
+                        <div class="row">
+                            <div class="form-group col-12 w-100">
+                                <label for="destinataire">Destinataire*</label>
+                                <select class="form-control input-sm data ajax-autocomplete-user needed ajax-autocomplete"
+                                        name="destinataire" id="destinataire">
+                                </select>
+                            </div>
+                            {% if natures != null %}
+                                <div class='col-12 mb-2'>
+                                    <h3 class="label">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
+
                     <div class="form-group w-100 col-4">
                         <label for="acheteurs">Acheteur(s)*</label>
                         <select name="acheteurs" id="acheteurs" multiple="multiple"
-                                class="form-control ajax-autocomplete-user data needed ajax-autocomplete">
+                                class="form-control input-sm ajax-autocomplete-user data needed ajax-autocomplete">
                             <option value="{{ app.user.id }}">{{ app.user.username }}</option>
-                            >
                         </select>
                     </div>
-                    <div class="form-group col-4">
-                        <label for="Immatriculation">Immatriculation</label>
-                        <input type="text" id="Immatriculation" class="form-control data" name="immatriculation"
-                               maxlength="64">
-                    </div>
                 </div>
-
-                {% if natures != null %}
-                    <div class="row mt-4">
-                        <div class='col-12 mb-2'>
-                            <h3 class="label">Nb {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
-                        </div>
-                        <div class="form-group col-12 blocVisible d-block" id=''>
+                <div class="row">
+                    {% if natures != null %}
+                        <div class="form-group col-12 blocVisible d-block natures-container">
                             <div class="d-block">
                                 <div class="row mt-2">
                                     {% for nature in natures %}
-                                        <div class="form-group col-2">
+                                        <div class="form-group col-1 form-group-nature">
                                             <label for="">
                                                 {{ nature.label | capitalize }}
                                             </label>
-                                            <input type="number" class="form-control data-array"
+                                            <input type="number" class="form-control input-sm data-array"
                                                    value="" name="nature" data-id="{{ nature.id }}" min="0">
                                         </div>
                                     {% endfor %}
+                                    {% if natures != null %}
+                                        <div class="form-group col-2">
+                                            <label>Imprimer {{ 'arrivage.colis'|trans }}</label>
+                                            <label class="switch d-block-switch mt-2">
+                                                <input class="checkbox" type="checkbox" name="printColis">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-group col-2">
+                                        <label>Imprimer {{ 'arrivage.arrivage'|trans }}</label>
+                                        <label class="switch d-block-switch mt-2">
+                                            <input class="checkbox" type="checkbox" name="printArrivage">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                {% else %}
-                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                        array: natures,
-                        warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ 'n\'a été créée',
-                        redirectPath: path('nature_param_index'),
-                        redirectLabel: 'Aller vers la création des natures'
-                    } %}
-                {% endif %}
-
-                <div class="row">
-                    {% if natures != null %}
-                        <div class="form-group col-3">
-                            <label>Imprimer {{ 'arrivage.colis'|trans }}</label>
-                            <label class="switch">
-                                <input class="checkbox" type="checkbox" name="printColis">
-                                <span class="slider round"></span>
-                            </label>
+                    {% else %}
+                        <div class="col-12">
+                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                array: natures,
+                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ 'n\'a été créée',
+                                redirectPath: path('nature_param_index'),
+                                redirectLabel: 'Aller vers la création des natures'
+                            } %}
                         </div>
                     {% endif %}
-
-                    <div class="form-group col-3">
-                        <label>Imprimer {{ 'arrivage.arrivage'|trans }}</label>
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" name="printArrivage">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
                 </div>
-
 
                 <div class="row">
                     <div class="form-group col-8 h-fit-content">
                         <label for="commentaire">Commentaire</label>
-                        <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
+                        <input id="commentaire" class="commentaire form-control input-sm data" name="commentaire" type="hidden">
                         <div class="editor-container-new"></div>
                     </div>
                     <div class="form-group col-4">
@@ -208,7 +205,7 @@
                     </div>
                 </div>
             </div>
-            <div class="error-msg p-4"></div>
+            <div class="error-msg pl-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewArrivage" type="button" class="btn btn-success"

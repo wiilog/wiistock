@@ -34,6 +34,27 @@ let modalFinishCollecte = $("#modalFinishCollecte");
 let submitFinishCollecte = $("#submitFinishCollecte");
 
 submitFinishCollecte.on('click', function() {
+    finishCollecte();
+});
+
+function toggleCheck($elem) {
+    $elem.toggleClass('active');
+}
+
+function checkIfRowSelected(success) {
+    let $activeChecks = $('#tableArticle').find('.active');
+    if ($activeChecks.length === 0) {
+        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
+    } else {
+        success();
+    }
+}
+
+function openLocationModal() {
+    $('#btnModalFinishCollecte').trigger('click');
+}
+
+function finishCollecte(withoutLocation = false) {
     // on récupère les lignes sélectionnées
     let $table = $('#tableArticle');
     let $rowsSelected = $table.find('.btn-check.active');
@@ -50,8 +71,11 @@ submitFinishCollecte.on('click', function() {
     // on récupère le point de dépose
     let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
 
-    if (depositLocationId) {
-        let params = {'rows': rowsData, 'depositLocationId': depositLocationId};
+    if (withoutLocation || depositLocationId) {
+        let params = {
+            rows: rowsData,
+            ...(depositLocationId ? {depositLocationId} : {})
+        };
 
         $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
             modalFinishCollecte.find('.close').click();
@@ -65,18 +89,5 @@ submitFinishCollecte.on('click', function() {
         });
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
-    }
-});
-
-function toggleCheck($elem) {
-    $elem.toggleClass('active');
-}
-
-function checkIfRowSelected() {
-    let $activeChecks = $('#tableArticle').find('.active');
-    if ($activeChecks.length === 0) {
-        alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
-    } else {
-        $('#btnModalFinishCollecte').click();
     }
 }

@@ -19,7 +19,7 @@
             <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
                onclick="clearModal('#modalNewArrivage'); initNewArrivageEditor('#modalNewArrivage')">
-                <span class="fa fa-plus mr-2"></span>
+                <span class="fa fa-plus mr-2"></span>{{ 'arrivage.nouvel arrivage'|trans|capitalize }}
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -39,6 +39,7 @@
     </div>
     <div hidden id="barcodes"></div>
     <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
+    <input id="redirect" value="{{ redirect }}" hidden>
 
     {% include "arrivage/modalNewArrivage.html.twig" %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
