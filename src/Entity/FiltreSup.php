@@ -42,7 +42,8 @@ class FiltreSup
 	const PAGE_LITIGE_ARR = 'litige_arrivage';
 	const PAGE_RCPT_TRACA = 'reception_traca';
 	const PAGE_ARTICLE = 'article';
-	const PAGE_URGENCES = 'urgences';
+    const PAGE_URGENCES = 'urgences';
+    const PAGE_ALERTE = 'alerte';
 
     /**
      * @ORM\Id()
