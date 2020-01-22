@@ -85,7 +85,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
             targets: [0]
         }
     ],
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
             extend: 'colvis',
