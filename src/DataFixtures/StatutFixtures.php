@@ -23,6 +23,7 @@ use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\DBAL\Connection;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class StatutFixtures extends Fixture implements FixtureGroupInterface
@@ -120,6 +121,23 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             ]
         ];
 
+        // on supprime les anciens statut d'arrivage qui ne sont pas dans le tableau
+        /** @var Statut[] $statutsASupprimer */
+        $statutsASupprimer = $this->statutRepository->createQueryBuilder('statut')
+            ->distinct()
+            ->innerJoin('statut.categorie', 'categorie')
+            ->andWhere('categorie.nom = :categorieArrivage')
+            ->andWhere('statut.nom NOT IN (:statutsArrivage)')
+            ->setParameter('statutsArrivage', $categoriesStatus[CategorieStatut::ARRIVAGE], Connection::PARAM_STR_ARRAY)
+            ->setParameter('categorieArrivage', CategorieStatut::ARRIVAGE)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($statutsASupprimer as $statutASupprimer) {
+            $manager->remove($statutASupprimer);
+            dump("suppression du statut " . $statutASupprimer->getNom() . ' (catégorie ' . CategorieStatut::ARRIVAGE . ')');
+        }
+
     	foreach ($categoriesStatus as $categoryName => $statuses) {
 
     		// création des catégories de statuts
@@ -132,7 +150,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				dump("création de la catégorie " . $categoryName);
 			}
 			$this->addReference('statut-' . $categoryName, $categorie);
-
 
 			// création des statuts
 			foreach ($statuses as $statusLabel) {
