@@ -5,7 +5,7 @@
             <select class="form-control data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
                 <option disabled selected></option>
                 {% for fournisseur in fournisseurs %}
-                    {% set selected = (fournisseur.id == arrivage.fournisseur.id ? 'selected' : '') %}
+                    {% set selected = (((arrivage.fournisseur is not empty) and (fournisseur.id == arrivage.fournisseur.id)) ? 'selected' : '') %}
                     <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
                 {% endfor %}
             </select>
@@ -17,7 +17,7 @@
         <select class="form-control data {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
             <option disabled selected></option>
             {% for transporteur in transporteurs %}
-                {% set selected = (transporteur.id == arrivage.transporteur.id ? 'selected' : '') %}
+                {% set selected = (((arrivage.transporteur is not empty) and (transporteur.id == arrivage.transporteur.id)) ? 'selected' : '') %}
                 <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
             {% endfor %}
         </select>
@@ -74,7 +74,7 @@
         <select class="form-control data {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
             <option disabled selected></option>
             {% for utilisateur in utilisateurs %}
-                {% set selected = (utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
+                {% set selected = (arrivage.destinataire is not empty and utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
                 <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
             {% endfor %}
         </select>
@@ -98,8 +98,8 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
     <div class="form-group col-8 h-fit-content">
-        <label for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
-        <input id="commentaire" class="commentaire form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}" name="commentaire" type="hidden"
+        <label for="commentaire">Commentaire</label>
+        <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"
                value="{{ arrivage.commentaire }}">
         <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
     </div>

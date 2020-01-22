@@ -122,10 +122,12 @@ class FieldsParamController extends AbstractController
             $fieldName = $field->getFieldCode();
             $fieldEntity = $field->getEntityCode();
 
-            $field
-                ->setMustToCreate($data['mustToCreate'])
-                ->setDisplayed($data['displayed'])
-                ->setMustToModify($data['mustToModify']);
+            if (!$field->getFieldRequiredHidden()) {
+                $field
+                    ->setMustToCreate($data['mustToCreate'])
+                    ->setDisplayed($data['displayed']);
+            }
+            $field->setDisplayed($data['displayed']);
 
             $entityManager->persist($field);
             $entityManager->flush();

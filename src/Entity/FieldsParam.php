@@ -90,6 +90,11 @@ class FieldsParam
      */
     private $displayed;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": false})
+     */
+    private $fieldRequiredHidden;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -163,6 +168,18 @@ class FieldsParam
     public function setDisplayed(?bool $displayed): self
     {
         $this->displayed = $displayed;
+
+        return $this;
+    }
+
+    public function getFieldRequiredHidden(): ?bool
+    {
+        return $this->fieldRequiredHidden;
+    }
+
+    public function setFieldRequiredHidden(?bool $fieldRequiredHidden): self
+    {
+        $this->fieldRequiredHidden = $fieldRequiredHidden;
 
         return $this;
     }
