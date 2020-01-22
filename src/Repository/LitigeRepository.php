@@ -20,6 +20,7 @@ class LitigeRepository extends ServiceEntityRepository
 	private const DtToDbLabels = [
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
+		'receptionNumber' => 'numeroReception',
 		'buyers' => 'acheteurs',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
@@ -179,22 +180,30 @@ class LitigeRepository extends ServiceEntityRepository
 
 		$qb
 			->select('distinct(l.id) as id')
+			->from('App\Entity\Litige', 'l')
 			->addSelect('l.creationDate')
 			->addSelect('l.updateDate')
-			->addSelect('a.numeroArrivage')
-			->addSelect('t.label as type')
-			->addSelect('a.id as arrivageId')
-			->addSelect('s.nom as status')
-			->addSelect('lh.date as dateHisto')
-			->addSelect('ach.username as achUsername')
-			->from('App\Entity\Litige', 'l')
-            ->join('l.colis', 'c')
 			->leftJoin('l.type', 't')
+			->addSelect('t.label as type')
+			->leftJoin('l.status', 's')
+			->addSelect('s.nom as status')
+			->leftJoin('l.litigeHistorics', 'lh')
+			->addSelect('lh.date as dateHisto')
+			// litiges sur arrivage
+            ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
-			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
-			->leftJoin('l.status', 's');
+			->addSelect('ach.username as achUsername')
+			->addSelect('a.numeroArrivage')
+			->addSelect('a.id as arrivageId')
+			// litiges sur réceptions
+            ->leftJoin('l.articles', 'art')
+			->leftJoin('art.receptionReferenceArticle', 'rra')
+			->leftJoin('rra.reception', 'r')
+			->addSelect('r.numeroReception')
+			->addSelect('r.id as receptionId')
+		;
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -215,7 +224,7 @@ class LitigeRepository extends ServiceEntityRepository
 					break;
 				case 'statut':
 					$qb
-						->andWhere('s.nom = :status')
+						->andWhere('s.id = :status')
 						->setParameter('status', $filter['value']);
 					break;
 				case 'type':
@@ -238,6 +247,13 @@ class LitigeRepository extends ServiceEntityRepository
 					$qb
 						->andWhere('l.creationDate <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+				case 'litigeOrigin':
+					if ($filter['value'] == Litige::ORIGIN_RECEPTION) {
+						$qb->andWhere('r.id is not null');
+					} else if ($filter['value'] == Litige::ORIGIN_ARRIVAGE) {
+						$qb->andWhere('a.id is not null');
+					}
 					break;
 			}
 		}
@@ -281,6 +297,9 @@ class LitigeRepository extends ServiceEntityRepository
 					} else if ($column === 'numeroArrivage') {
 						$qb
 							->orderBy('a.numeroArrivage', $order);
+					} else if ($column === 'numeroReception') {
+						$qb
+							->orderBy('r.numeroReception', $order);
 					} else {
 						$qb
 							->orderBy('l.' . $column, $order);

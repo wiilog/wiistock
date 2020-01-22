@@ -131,19 +131,11 @@ function reloadDatatableforActif() {
     let input = $('#actifInactif');
     let filterInput = input.prop('checked');
     input.attr('value', filterInput);
-    let statut = filterInput;
-    saveFiltersEmplacement(PAGE_EMPLACEMENT, statut);
-}
-
-function saveFiltersEmplacement(page, statut) {
-    let path = Routing.generate('filter_sup_new');
-    let params = {};
-    if (statut !== null && statut !== undefined) {
-        params.statut = statut;
+    let params = {
+      page: PAGE_EMPLACEMENT
+    };
+    if (filterInput !== null && filterInput !== undefined) {
+        params.statut = filterInput;
     }
-    params.page = page;
-
-    $.post(path, JSON.stringify(params), function() {
-        tableEmplacement.draw();
-    }, 'json');
+    saveFilters(params, tableEmplacement);
 }
