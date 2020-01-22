@@ -193,10 +193,7 @@ class ArrivageController extends AbstractController
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),
-            'statuts' => [
-                ['nom' => Arrivage::STATUS_CONFORME],
-                ['nom' => Arrivage::STATUS_LITIGE]
-            ],
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE)
         ]);
     }
 
@@ -239,6 +236,7 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
+                ->setStatut($this->statutRepository->find($post->get('statut')))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($post->get('commentaire') ?? null);
@@ -361,7 +359,8 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
                 ]);
             } else {
                 $html = '';
@@ -401,6 +400,9 @@ class ArrivageController extends AbstractController
             }
 			if (!empty($noTracking = $post->get('noTracking'))) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
+            }
+            if (!empty($statutId = $post->get('statut'))) {
+                $arrivage->setStatut($this->statutRepository->find($statutId));
             }
 			if (!empty($noBL = $post->get('noBL'))) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
@@ -731,7 +733,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getStatus();
+                $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -795,14 +797,17 @@ class ArrivageController extends AbstractController
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new DateTime('now'));
-
+            $arrivage = null;
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
                     $litige->addColi($this->colisRepository->find($colisId));
+                    $arrivage = $this->colisRepository->find($colisId)->getArrivage();
                 }
             }
-
+            if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
+            }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();
             $statutNom = $litige->getStatus()->getNom();
