@@ -2,12 +2,23 @@
 
 {% block moreFilters %}
 
-    <div>
-        <div class="input-group select2-overflow cursor-default">
+    <div class="minw-150px select2-overflow">
+        <div class="input-group w-100 cursor-default">
             <select class="form-control data minw-150px cursor-default" name="carriers" id="carriers" multiple="multiple" >
                     <option value>&nbsp;</option>
                 {% for carrier in carriers %}
                     <option value="{{ carrier.id }}">{{ carrier.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <div class="input-group minw-200px">
+            <select class="form-control data select2 cursor-default" name="litigeOrigin" id="litigeOrigin" {{ disabled }}>
+                <option value="">&nbsp;</option>
+                {% for code, litigeOrigin in litigeOrigins %}
+                    <option value="{{ code }}">{{ litigeOrigin }}</option>
                 {% endfor %}
             </select>
         </div>

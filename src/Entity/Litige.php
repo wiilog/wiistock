@@ -17,6 +17,10 @@ class Litige
 	const TRAITE_ACHETEUR = 'traité par acheteur';
 	const SOLDE = 'soldé';
 
+	// origine du litige
+	const ORIGIN_RECEPTION = 'REC';
+	const ORIGIN_ARRIVAGE = 'ARR';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

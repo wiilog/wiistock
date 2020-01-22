@@ -133,7 +133,7 @@ class PreparationRepository extends ServiceEntityRepository
 				case 'statut':
 					$qb
 						->join('p.statut', 's')
-						->andWhere('s.nom = :status')
+						->andWhere('s.id = :status')
 						->setParameter('status', $filter['value']);
 					break;
 				case 'utilisateurs':
