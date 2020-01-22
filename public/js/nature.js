@@ -10,6 +10,7 @@ let tableNature = $('#tableNatures').DataTable({
     columns:[
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Code', 'title' : 'Code' },
+        { "data": 'Quantité par défaut', 'title' : 'Quantité par défaut' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
 });

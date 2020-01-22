@@ -33,6 +33,11 @@ class Nature
      */
     private $colis;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $defaultQuantity;
+
     public function __construct()
     {
         $this->colis = new ArrayCollection();
@@ -94,6 +99,18 @@ class Nature
                 $coli->setNature(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDefaultQuantity(): ?int
+    {
+        return $this->defaultQuantity;
+    }
+
+    public function setDefaultQuantity(?int $defaultQuantity): self
+    {
+        $this->defaultQuantity = $defaultQuantity;
 
         return $this;
     }
