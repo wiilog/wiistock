@@ -42,8 +42,6 @@ $(function() {
     let params = JSON.stringify(PAGE_ALERTE);
 
     $.post(path, params, function (data) {
-        data.forEach(function (element) {
-            $('#' + element.field).val(element.value);
-        });
+        displayFiltersSup(data);
     });
 })

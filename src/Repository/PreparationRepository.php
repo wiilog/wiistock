@@ -131,10 +131,11 @@ class PreparationRepository extends ServiceEntityRepository
 						->setParameter('type', $filter['value']);
 					break;
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.statut', 's')
-						->andWhere('s.id = :status')
-						->setParameter('status', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);

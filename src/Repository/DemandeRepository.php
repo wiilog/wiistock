@@ -216,10 +216,11 @@ class DemandeRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
 						->join('d.statut', 's')
-						->andWhere('s.id = :statut')
-						->setParameter('statut', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'type':
 					$qb

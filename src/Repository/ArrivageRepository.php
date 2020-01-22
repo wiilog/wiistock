@@ -191,8 +191,12 @@ class ArrivageRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
-                    $statut = $filter['value'];
-                    break;
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.statut', 's')
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
+					break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb

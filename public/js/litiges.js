@@ -14,37 +14,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
     $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                let values = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-            } else if (element.field == 'providers') {
-                let values = element.value.split(',');
-                let $providers = $('#providers');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    let option = new Option(name, id, true, true);
-                    $providers.append(option).trigger('change');
-                });
-            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'carriers') {
-                $('#' + element.field).val(element.value).select2();
-            } else if (['statut', 'litigeOrigin'].indexOf(element.field) > -1) {
-                $('#' + element.field).val(element.value).select2();
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');

@@ -126,10 +126,11 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
 						->join('oc.statut', 's')
-						->andWhere('s.id = :statut')
-						->setParameter('statut', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'type':
 					$qb
@@ -142,7 +143,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('oc.utilisateur', 'u')
-						->andWhere("u.username in (:username)")
+						->andWhere("u.id in (:username)")
 						->setParameter('username', $value);
 					break;
 				case 'dateMin':
