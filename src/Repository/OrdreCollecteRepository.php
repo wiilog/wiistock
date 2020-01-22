@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -108,7 +109,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 				case 'statut':
 					$qb
 						->join('oc.statut', 's')
-						->andWhere('s.nom = :statut')
+						->andWhere('s.id = :statut')
 						->setParameter('statut', $filter['value']);
 					break;
 				case 'type':
@@ -216,4 +217,25 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		];
 	}
 
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return OrdreCollecte[]|null
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT oc
+            FROM App\Entity\OrdreCollecte oc
+            WHERE oc.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
+	}
 }

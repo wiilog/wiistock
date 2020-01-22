@@ -98,12 +98,14 @@ class MouvementTracaRepository extends ServiceEntityRepository
 	}
 
     //VERIFCECILE
-    /**
-     * @param $emplacement Emplacement
-     * @param $mvt MouvementTraca
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
+
+	/**
+	 * @param $emplacement Emplacement
+	 * @param $mvt MouvementTraca
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function findByEmplacementToAndArticleAndDate($emplacement, $mvt) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -160,7 +162,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
                 case 'statut':
                     $qb
                         ->leftJoin('m.type', 's')
-                        ->andWhere('s.nom = :type')
+                        ->andWhere('s.id = :type')
                         ->setParameter('type', $filter['value']);
                     break;
                 case 'emplacement':

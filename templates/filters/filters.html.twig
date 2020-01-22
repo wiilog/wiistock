@@ -43,7 +43,7 @@
                     {% else %}
                         {% set selected = '' %}
                     {% endif %}
-                    <option value="{{ statut.nom }}" {{ selected }}>{{ statut.nom }}</option>
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -67,7 +67,7 @@
                     id="type">
                 <option value>Type</option>
                 {% for type in types %}
-                    <option value="{{ type.label}}">
+                    <option value="{{ type.label }}">
                         {{ type.label }}
                     </option>
                 {% endfor %}
