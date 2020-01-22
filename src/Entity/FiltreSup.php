@@ -18,6 +18,7 @@ class FiltreSup
 	const FIELD_TYPE = 'type';
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
+	const FIELD_REFERENCE = 'reference';
 	const FIELD_DEM_COLLECTE = 'demCollecte';
 	const FIELD_EMERGENCY = 'emergency';
 	const FIELD_ANOMALY = 'anomaly';

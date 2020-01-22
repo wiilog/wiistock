@@ -7,17 +7,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_INV_SHOW_MISSION);
     $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'anomaly') {
-                $('#anomalyFilter').val(element.value);
-            } else if (element.field == 'statut') {
-                $('#' + element.field).val(element.value).select2();
-            } else {
-                $('#'+ element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
     }, 'json');
 });
 
@@ -58,7 +48,7 @@ $('#submitSearchMissionRef').on('click', function() {
         page: PAGE_INV_SHOW_MISSION,
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
-        anomaly: $('#anomalyFilter').val(),
+        anomaly: $('#anomaly').val(),
     };
 
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');

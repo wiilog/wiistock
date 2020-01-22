@@ -1175,14 +1175,15 @@ function displayFiltersSup(data) {
                 break;
 
             case 'providers':
-                let valuesProviders = element.value.split(',');
-                let $providers = $('#providers');
-                valuesProviders.forEach((value) => {
+            case 'reference':
+                let valuesElement = element.value.split(',');
+                let $select = $('#' + element.field);
+                valuesElement.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
                     let option = new Option(name, id, true, true);
-                    $providers.append(option).trigger('change');
+                    $select.append(option).trigger('change');
                 });
                 break;
 
@@ -1194,7 +1195,7 @@ function displayFiltersSup(data) {
 
             case 'carriers':
             case 'litigeOrigin':
-            case 'emplacement': //TODO CG utilisé ?
+            case 'emplacement':
                 $('#' + element.field).val(element.value).select2();
                 break;
 

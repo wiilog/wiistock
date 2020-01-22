@@ -162,6 +162,35 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+			if (!empty($data['reference'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_REFERENCE, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_REFERENCE)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				if (is_array($data['reference'])) {
+					$values = [];
+					foreach ($data['reference'] as $oneRef) {
+						$values[] = $oneRef['id'] . ':' . $oneRef['text'];
+					}
+					$reference = implode(',', $values);
+				} else {
+					$reference = $data['reference'];
+				}
+				$filter->setValue($reference);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_REFERENCE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
 			if (!empty($data['colis'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
 				if (!$filter) {
