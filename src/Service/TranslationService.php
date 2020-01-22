@@ -62,7 +62,7 @@ class TranslationService {
         $application->setAutoExit(false);
 
         $input = new ArrayInput(array(
-            'command' => 'cache:warmup',
+            'command' => 'cache:clear',
             '--env' => $env
         ));
 

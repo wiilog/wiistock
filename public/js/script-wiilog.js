@@ -5,6 +5,7 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
@@ -77,7 +78,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');
             const objectIndex = $parent.data('multiple-object-index');
-            Data[multipleKey] = (Data[multipleKey] || []);
+            Data[multipleKey] = (Data[multipleKey] || {});
             Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
             Data[multipleKey][objectIndex][name] = val;
         }
@@ -811,7 +812,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 if (barcodesLabel) {
                     let toPrint = (barcodesLabel[index]
                         .split('\n')
-                        .map((line) => line.trim())
+                        .map((line) => he.decode(line).trim())
                         .filter(Boolean)
                         .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
@@ -843,6 +844,7 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        console.log(response.articleRef.barcodeLabel);
         printBarcodes(
             [response.articleRef.barcode],
             response,
