@@ -123,7 +123,7 @@ class ArrivageDataService
 			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
 			'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
 			'Acheteurs' => implode(', ', $acheteursUsernames),
-			'Statut' => $arrivage->getStatus(),
+			'Statut' => $arrivage->getStatut()->getNom(),
 			'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
 			'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
 			'Actions' => $this->templating->render(
