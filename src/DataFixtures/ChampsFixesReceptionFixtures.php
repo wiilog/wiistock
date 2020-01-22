@@ -38,7 +38,6 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
             [FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, FieldsParam::FIELD_LABEL_CHAUFFEUR_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, FieldsParam::FIELD_LABEL_COMMENTAIRE_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, FieldsParam::FIELD_LABEL_CARRIER_ARRIVAGE, true],
-            [FieldsParam::FIELD_CODE_STATUT_ARRIVAGE, FieldsParam::FIELD_LABEL_STATUT_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_LABEL_PJ_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE, FieldsParam::FIELD_LABEL_PROVIDER_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, FieldsParam::FIELD_LABEL_TARGET_ARRIVAGE, true],
@@ -62,7 +61,7 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
 					->setFieldCode($fieldCode[0]);
 				$manager->persist($field);
 				$manager->flush();
-				dump('Champ fixe ' . isset($fieldCode[2]) ? FieldsParam::ENTITY_CODE_ARRIVAGE : FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode[0] . ' créé.');
+				dump('Champ fixe ' . (isset($fieldCode[2]) ? FieldsParam::ENTITY_CODE_ARRIVAGE : FieldsParam::ENTITY_CODE_RECEPTION) . ' / ' . $fieldCode[0] . ' créé.');
 			} else {
 			    $field->setDisplayed(true);
             }

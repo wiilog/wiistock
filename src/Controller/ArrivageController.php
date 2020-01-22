@@ -226,7 +226,8 @@ class ArrivageController extends AbstractController
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-            'fieldsParam' => $fields
+            'fieldsParam' => $fields,
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre()
         ]);
     }
 
