@@ -470,8 +470,9 @@ function initRequiredChampsFixes(button) {
 }
 
 function toggleRequiredChampsFixes(button) {
+    let $modal = button.closest('.modal');
     clearErrorMsg(button);
-    clearInvalidInputs(button);
+    clearInvalidInputs($modal);
     displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
 }
 

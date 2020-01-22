@@ -137,7 +137,7 @@ class LivraisonRepository extends ServiceEntityRepository
 				case 'statut':
 					$qb
 						->leftJoin('l.statut', 's')
-						->andWhere('s.nom = :statut')
+						->andWhere('s.id = :statut')
 						->setParameter('statut', $filter['value']);
 					break;
 				case 'type':

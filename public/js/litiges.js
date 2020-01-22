@@ -1,11 +1,12 @@
 $('.select2').select2();
 
-let $submitSearchLitigesArr = $('#submitSearchLitigesArrivages');
+let $submitSearchLitigesArr = $('#submitSearchLitiges');
 
 $(function() {
     initDateTimePicker();
     initSelect2('#carriers', 'Transporteurs');
     initSelect2('#statut', 'Statut');
+    initSelect2('#litigeOrigin', 'Origine');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 
@@ -34,11 +35,11 @@ $(function() {
                     let option = new Option(name, id, true, true);
                     $providers.append(option).trigger('change');
                 });
-            } else if (element.field == 'carriers') {
-                $('#carriers').val(element.value).select2();
             }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
                 $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'statut') {
+            } else if (element.field == 'carriers') {
+                $('#' + element.field).val(element.value).select2();
+            } else if (['statut', 'litigeOrigin'].indexOf(element.field) > -1) {
                 $('#' + element.field).val(element.value).select2();
             } else {
                 $('#'+element.field).val(element.value);
@@ -51,27 +52,28 @@ $(function() {
 
 });
 
-let pathLitigesArrivage = Routing.generate('litige_arrivage_api', true);
-let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
+let pathLitiges = Routing.generate('litige_api', true);
+let tableLitiges = $('#tableLitiges').DataTable({
     responsive: true,
     serverSide: true,
     processing: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[4, 'desc']],
+    order: [[5, 'desc']],
     ajax: {
-        "url": pathLitigesArrivage,
+        "url": pathLitiges,
         "type": "POST",
     },
     'drawCallback': function() {
-        overrideSearch($('#tableLitigesArrivages_filter input'), tableLitigesArrivage);
+        overrideSearch($('#tableLitiges_filter input'), tableLitiges);
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° " + $('#trans-arrivage').val()},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
+        {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': 'N° ' + $('#trans-reception').val()},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
@@ -83,7 +85,7 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
             targets: [0]
         }
     ],
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>',
+    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
             extend: 'colvis',
@@ -100,17 +102,17 @@ let tableLitigesArrivage = $('#tableLitigesArrivages').DataTable({
 let modalNewLitiges = $('#modalNewLitiges');
 let submitNewLitiges = $('#submitNewLitiges');
 let urlNewLitiges = Routing.generate('litige_new', true);
-InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitigesArrivage);
+InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
-initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesArrivage);
+initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
-InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesArrivage);
+InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
 
 function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
     let path = Routing.generate('litige_api_edit', true);
@@ -157,7 +159,7 @@ $.fn.dataTable.ext.search.push(
     function (settings, data) {
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
-        let indexDate = tableLitigesArrivage.column('creationDate:name').index();
+        let indexDate = tableLitiges.column('creationDate:name').index();
 
         if (typeof indexDate === "undefined") return true;
         if (typeof data[indexDate] !== "undefined") {
@@ -190,6 +192,7 @@ $submitSearchLitigesArr.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         type: $('#type').val(),
+        litigeOrigin: $('#litigeOrigin').val(),
         carriers: $('#carriers').select2('data'),
         providers: $('#providers').select2('data'),
         users: $('#utilisateur').select2('data'),
@@ -198,7 +201,7 @@ $submitSearchLitigesArr.on('click', function () {
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
     $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
-    saveFilters(filters, tableLitigesArrivage);
+    saveFilters(filters, tableLitiges);
 });
 
 function getCommentAndAddHisto()

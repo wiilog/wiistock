@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Litige
 {
+    // origine du litige
+    const ORIGIN_RECEPTION = 'REC';
+    const ORIGIN_ARRIVAGE = 'ARR';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

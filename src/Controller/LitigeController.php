@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
@@ -127,26 +128,31 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/arrivage/liste", name="litige_arrivage_index", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+	 * @param TranslatorInterface $translator
 	 * @return Response
 	 */
-    public function index()
+    public function index(TranslatorInterface $translator)
     {
         if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('litige/index_arrivages.html.twig',[
+        return $this->render('litige/index.html.twig',[
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+			'litigeOrigins' => [
+				Litige::ORIGIN_ARRIVAGE => $translator->trans('arrivage.arrivage'),
+				Litige::ORIGIN_RECEPTION => $translator->trans('réception.réception')
+			]
 		]);
     }
 
 	/**
-	 * @Route("/arrivage/api", name="litige_arrivage_api", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST")
 	 */
-    public function apiArrivage(Request $request) {
+    public function api(Request $request) {
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
 				return $this->redirectToRoute('access_denied');
@@ -160,10 +166,10 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/arrivage-infos", name="get_litiges_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @Route("/arrivage-infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
 	 * @throws Exception
 	 */
-	public function getLitigesArrivageIntels(Request $request): Response
+	public function getLitigesIntels(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$dateMin = $data['dateMin'] . ' 00:00:00';

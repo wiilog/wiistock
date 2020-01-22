@@ -190,6 +190,8 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
+        clearInvalidInputs(modal);
+        clearErrorMsg(modal.find(':first-child'));
         $.ajax({
             url: path,
             data: Data,

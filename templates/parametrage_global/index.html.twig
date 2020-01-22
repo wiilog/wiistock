@@ -6,7 +6,8 @@
     <div class="row mt-4">
         <a data-toggle="collapse" href="#dimsForm" role="button" aria-expanded="false"
            aria-controls="dimsForm" class="col-12 mb-4">
-            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
         <div class="collapse col-12" id="dimsForm">
             <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxDims()">
@@ -36,7 +37,8 @@
     <div class="row">
         <a data-toggle="collapse" href="#prefixeForm" role="button" aria-expanded="false"
            aria-controls="prefixeForm" class="col-12 mb-4">
-            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Préfixage des noms de demandes<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Préfixage des noms de demandes<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
 
         <div class="collapse col-12" id="prefixeForm">
@@ -71,7 +73,8 @@
     <div class="row">
         <a data-toggle="collapse" href="#mailerServerForm" role="button" aria-expanded="false"
            aria-controls="mailerServerForm" class="col-12 mb-4">
-            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration du serveur mail<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration du serveur mail<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
         <div class="collapse col-12" id="mailerServerForm">
             <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxMailerServer()">
@@ -108,7 +111,8 @@
     <div class="row">
         <a data-toggle="collapse" href="#paramReceptions" role="button" aria-expanded="false"
            aria-controls="paramReceptions" class="col-12 mb-4">
-            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage réceptions<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage réceptions<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
         </a>
         <div class="collapse col-12" id="paramReceptions">
             <div class="row p-3">
@@ -118,7 +122,8 @@
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
                     <span class="slider round"></span>
                 </label>
-                <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après réception</label>
+                <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
+                    réception</label>
             </div>
             <div class="row p-3">
                 {% set checked = ((parametrageGPrepa.parametre is defined ? parametrageGPrepa.parametre : 0) == 1) ? 'checked' : '' %}
@@ -131,23 +136,41 @@
             </div>
         </div>
     </div>
-
-<div class="row">
-    <a data-toggle="collapse" href="#paramDaysWorked" role="button" aria-expanded="false"
-       aria-controls="paramDaysWorked" class="col-12 mb-4">
-        <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage des heures travaillées<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
-    </a>
-    <div class="collapse col-12" id="paramDaysWorked">
-        <table id="tableDays" class="table table-striped table-bordered w-100">
-        </table>
-
-        {% include 'parametrage_global/modalEditDays.html.twig' %}
+    <div class="row">
+        <a data-toggle="collapse" href="#paramArrivage" role="button" aria-expanded="false"
+           aria-controls="paramArrivage" class="col-12 mb-4">
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage arrivage<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+        </a>
+        <div class="collapse col-12" id="paramArrivage">
+            <div class="row p-3">
+                {% set checked = (redirect.parametre ? 'checked' : '') %}
+                <label class="switch">
+                    <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
+                           onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_redirection') }}')">
+                    <span class="slider round"></span>
+                </label>
+                <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage créé</label>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="row">
+        <a data-toggle="collapse" href="#paramDaysWorked" role="button" aria-expanded="false"
+           aria-controls="paramDaysWorked" class="col-12 mb-4">
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage des heures travaillées<i
+                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+        </a>
+        <div class="collapse col-12" id="paramDaysWorked">
+            <table id="tableDays" class="table table-striped table-bordered w-100">
+            </table>
 
-<div class="row">
-    {% include 'parametrage_global/paramTranslations.html.twig' %}
-</div>
+            {% include 'parametrage_global/modalEditDays.html.twig' %}
+        </div>
+    </div>
+
+    <div class="row">
+        {% include 'parametrage_global/paramTranslations.html.twig' %}
+    </div>
 
 {% endblock %}
 {% block javascripts %}
