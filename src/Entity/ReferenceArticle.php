@@ -783,7 +783,9 @@ class ReferenceArticle
     {
         $calculedAvailableQuantity = $this->getCalculedAvailableQuantity();
 
-        if ($calculedAvailableQuantity === 0 ||
+        $status = $this->getStatut();
+        if (!isset($status) ||
+            ($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
             ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $this->getLimitWarning()))) {
             $this->setDateEmergencyTriggered(null);
         } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $this->getLimitWarning()) {

@@ -39,7 +39,7 @@ final class Version20200121090743 extends AbstractMigration
                     (
                         (
                             (
-                                SELECT SUM(art1.quantite)
+                                SELECT IF(SUM(art1.quantite) IS NULL, 0, SUM(art1.quantite))
                                 FROM article art1
                                 INNER JOIN article_fournisseur af1 ON af1.id = art1.article_fournisseur_id
                                 INNER JOIN (SELECT * FROM reference_article) refart1 ON refart1.id = af1.reference_article_id
@@ -52,7 +52,7 @@ final class Version20200121090743 extends AbstractMigration
                         OR
                         (
                             (
-                                SELECT SUM(art2.quantite)
+                                SELECT IF(SUM(art2.quantite) IS NULL, 0, SUM(art2.quantite))
                                 FROM article art2
                                 INNER JOIN article_fournisseur af2 ON af2.id = art2.article_fournisseur_id
                                 INNER JOIN (SELECT * FROM reference_article) refart2 ON refart2.id = af2.reference_article_id
