@@ -38,14 +38,14 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
             [FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, FieldsParam::FIELD_LABEL_CHAUFFEUR_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, FieldsParam::FIELD_LABEL_COMMENTAIRE_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, FieldsParam::FIELD_LABEL_CARRIER_ARRIVAGE, true],
-            [FieldsParam::FIELD_CODE_IMMATRICULATION_ARRIVAGE, FieldsParam::FIELD_LABEL_IMMATRICULATION_ARRIVAGE, true],
+            [FieldsParam::FIELD_CODE_STATUT_ARRIVAGE, FieldsParam::FIELD_LABEL_STATUT_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_LABEL_PJ_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE, FieldsParam::FIELD_LABEL_PROVIDER_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, FieldsParam::FIELD_LABEL_TARGET_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_LABEL_PRINT_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_NUM_BL_ARRIVAGE, FieldsParam::FIELD_LABEL_NUM_BL_ARRIVAGE, true],
             [FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, FieldsParam::FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE, true],
-			];
+        ];
 
     	foreach ($listFieldCodes as $fieldCode) {
 			$field = $this->fieldsParamRepository->findOneBy(

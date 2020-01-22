@@ -38,7 +38,7 @@ class FieldsParam
     const FIELD_CODE_NUM_BL_ARRIVAGE = 'numeroBL';
     const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
-    const FIELD_CODE_IMMATRICULATION_ARRIVAGE = 'immatriculation';
+    const FIELD_CODE_STATUT_ARRIVAGE = 'statut';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
@@ -50,7 +50,7 @@ class FieldsParam
     const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande/ BL';
     const FIELD_LABEL_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_LABEL_BUYERS_ARRIVAGE = 'acheteurs';
-    const FIELD_LABEL_IMMATRICULATION_ARRIVAGE = 'immatriculation';
+    const FIELD_LABEL_STATUT_ARRIVAGE = 'statut';
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
