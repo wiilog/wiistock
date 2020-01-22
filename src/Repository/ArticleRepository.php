@@ -764,7 +764,7 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.demande d
 			JOIN d.livraison l
 			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds) 
+			WHERE l.id IN (:livraisonsIds)
 			  AND a.quantite > 0"
         )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
 
@@ -1031,7 +1031,6 @@ class ArticleRepository extends ServiceEntityRepository
             ->andWhere('emplacement.label = :location')
             ->andWhere('article.barCode = :barCode')
             ->andWhere('status.nom = :statusNom')
-// TODO AB            ->andWhere('article.quantite IS NOT NULL AND article.quantite > 0')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('statusNom', Article::STATUT_ACTIF);

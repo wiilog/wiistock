@@ -191,26 +191,32 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/finir/{id}", name="ordre_collecte_finish", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param OrdreCollecte $collecte
+     * @param OrdreCollecte $ordreCollecte
      * @return Response
      * @throws NonUniqueResultException
 	 * @throws Exception
      */
-    public function finish(Request $request, OrdreCollecte $collecte): Response
+    public function finish(Request $request, OrdreCollecte $ordreCollecte): Response
     {
         if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($data = json_decode($request->getContent(), true)) {
-            if ($collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+            if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
                 $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $this->ordreCollecteService->finishCollecte($collecte, $this->getUser(), $date, $this->emplacementRepository->find($data['depositLocationId']), $data['rows']);
+                $this->ordreCollecteService->finishCollecte(
+                    $ordreCollecte,
+                    $this->getUser(),
+                    $date,
+                    isset($data['depositLocationId']) ? $this->emplacementRepository->find($data['depositLocationId']) : null,
+                    $data['rows']
+                );
             }
 
             $data = $this->renderView('ordre_collecte/enteteOrdreCollecte.html.twig', [
-            	'collecte' => $collecte,
-				'finished' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
+            	'collecte' => $ordreCollecte,
+				'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
 			]);
             return new JsonResponse($data);
         }
@@ -385,4 +391,84 @@ class OrdreCollecteController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+	/**
+	 * @Route("/infos", name="get_ordres_collecte_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 */
+	public function getOrdreCollecteIntels(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+			$collectes = $this->ordreCollecteRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+			$headers = [
+				'numéro',
+				'statut',
+				'date création',
+				'opérateur',
+				'type',
+				'référence',
+				'libellé',
+				'emplacement',
+				'quantité à collecter',
+				'code-barre'
+			];
+
+			$data = [];
+			$data[] = $headers;
+
+			foreach ($collectes as $collecte) {
+				$this->buildInfos($collecte, $data);
+			}
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+
+	private function buildInfos(OrdreCollecte $ordreCollecte, &$data)
+	{
+		$collecte = $ordreCollecte->getDemandeCollecte();
+
+		$dataCollecte =
+		[
+			$ordreCollecte->getNumero() ?? '',
+			$ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
+			$ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y h:i') : '',
+			$ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
+			$collecte->getType() ? $collecte->getType()->getLabel() : '',
+		];
+
+		foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
+			$referenceArticle = $ordreCollecteReference->getReferenceArticle();
+
+			$data[] = array_merge($dataCollecte, [
+				$referenceArticle->getReference() ?? '',
+				$referenceArticle->getLibelle() ?? '',
+				$referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+				$ordreCollecteReference->getQuantite() ?? 0,
+				$referenceArticle->getBarCode(),
+			]);
+		}
+
+		foreach ($ordreCollecte->getArticles() as $article) {
+			$articleFournisseur = $article->getArticleFournisseur();
+			$referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+			$reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+			$data[] = array_merge($dataCollecte, [
+				$reference,
+				$article->getLabel() ?? '',
+				$article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+				$article->getQuantite() ?? 0,
+				$article->getBarCode(),
+			]);
+		}
+	}
 }

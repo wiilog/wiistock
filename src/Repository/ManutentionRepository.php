@@ -103,7 +103,7 @@ class ManutentionRepository extends ServiceEntityRepository
                 case 'statut':
                     $qb
                         ->join('m.statut', 's')
-                        ->andWhere('s.nom = :statut')
+                        ->andWhere('s.id = :statut')
                         ->setParameter('statut', $filter['value']);
                     break;
                 case 'utilisateurs':

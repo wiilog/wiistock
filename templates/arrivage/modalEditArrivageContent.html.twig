@@ -40,18 +40,32 @@
 
 <div class="row">
     {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
-    <div class="form-group col-4">
-        <label for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? '*' : ''}}</label>
-        <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? 'needed' : ''}}" name="noTracking" maxlength="64"
-               value="{{ arrivage.noTracking }}">
-    </div>
+        <div class="form-group col-4">
+            <label for="noTracking">N° tracking transporteur{{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? '*' : ''}}</label>
+            <input type="text" id="noTracking" class="form-control data {{ fieldsParam|isFieldRequired('noTracking', 'mustToModify') ? 'needed' : ''}}" name="noTracking" maxlength="64"
+                   value="{{ arrivage.noTracking }}">
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
-    <div class="form-group col-4">
-        <label for="noBL">N° commande / BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? '*' : ''}}</label>
-        <input type="text" id="noBL" class="form-control data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? 'needed' : ''}}" name="noBL" maxlength="64"
-               value="{{ arrivage.numeroBL }}">
-    </div>
+        <div class="form-group col-4">
+            <label for="noBL">N° commande / BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? '*' : ''}}</label>
+            <input type="text" id="noBL" class="form-control data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? 'needed' : ''}}" name="noBL" maxlength="64"
+                   value="{{ arrivage.numeroBL }}">
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('statut', 'displayed') %}
+        <div class="form-group col-4">
+            <label for="chauffeur">Statut{{ fieldsParam|isFieldRequired('statut', 'mustToModify') ? '*' : ''}}</label>
+            <select class="form-control data {{ fieldsParam|isFieldRequired('statut', 'mustToModify') ? 'needed' : ''}}"
+                    id="statut"
+                    name="statut">
+                <option disabled selected> </option>
+                {% for statut in statuts %}
+                    {% set selected = (arrivage.statut is not empty and statut.id == arrivage.statut.id ? 'selected' : '') %}
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom|upper }}</option>
+                {% endfor %}
+            </select>
+        </div>
     {% endif %}
 </div>
 

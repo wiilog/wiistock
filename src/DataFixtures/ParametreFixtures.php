@@ -70,21 +70,37 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 		}
 
 		$globalParameterLabels = [
-			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION,
-			ParametrageGlobal::CREATE_PREPA_AFTER_DL,
-			ParametrageGlobal::INCLUDE_BL_IN_LABEL
+			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
+			    'default' => false,
+                SpecificService::CLIENT_COLLINS => true
+            ],
+			ParametrageGlobal::CREATE_PREPA_AFTER_DL => [
+                'default' => false,
+                SpecificService::CLIENT_COLLINS => true
+            ],
+			ParametrageGlobal::INCLUDE_BL_IN_LABEL => [
+                'default' => false,
+                SpecificService::CLIENT_COLLINS => true
+            ],
+			ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL => [
+                'default' => true,
+                SpecificService::CLIENT_SAFRAN_ED => false
+            ]
 		];
 
-		foreach ($globalParameterLabels as $globalParameterLabel) {
+		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
 			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
 			if (empty($globalParam)) {
-				$isCollins = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS);
+                $appClient = $this->specificService->getAppClient();
+                $value = isset($values[$appClient])
+                    ? $values[$appClient]
+                    : $values['default'];
 
 				$globalParam = new ParametrageGlobal();
 				$globalParam
 					->setLabel($globalParameterLabel)
-					->setParametre($isCollins);
+					->setParametre($value);
 				$manager->persist($globalParam);
 				dump("création du paramètre " . $globalParameterLabel);
 			}

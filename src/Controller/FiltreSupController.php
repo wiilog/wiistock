@@ -364,6 +364,26 @@ class FiltreSupController extends AbstractController
 					$em->flush();
 				}
 			}
+			if (!empty($data['litigeOrigin'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_LITIGE_ORIGIN, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_LITIGE_ORIGIN)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['litigeOrigin']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_LITIGE_ORIGIN, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
 
 			$em->flush();
 
