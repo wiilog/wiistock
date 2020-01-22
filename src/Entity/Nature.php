@@ -38,6 +38,11 @@ class Nature
      */
     private $defaultQuantity;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $prefix;
+
     public function __construct()
     {
         $this->colis = new ArrayCollection();
@@ -111,6 +116,18 @@ class Nature
     public function setDefaultQuantity(?int $defaultQuantity): self
     {
         $this->defaultQuantity = $defaultQuantity;
+
+        return $this;
+    }
+
+    public function getPrefix(): ?string
+    {
+        return $this->prefix;
+    }
+
+    public function setPrefix(?string $prefix): self
+    {
+        $this->prefix = $prefix;
 
         return $this;
     }

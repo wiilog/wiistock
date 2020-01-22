@@ -303,7 +303,7 @@ class ArrivageController extends AbstractController
                         $newCounter = sprintf('%05u', $highestCounter + 1);
 
                         $colis = new Colis();
-                        $code = $arrivageNum . '-' . $newCounter;
+                        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
                         $colis
                             ->setCode($code)
                             ->setNature($nature)
@@ -893,7 +893,7 @@ class ArrivageController extends AbstractController
                         $newCounter = sprintf('%05u', $highestCounter + 1);
 
                         $colis = new Colis();
-                        $code = $arrivageNum . '-' . $newCounter;
+                        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
                         $colis
                             ->setCode($code)
                             ->setNature($nature)
