@@ -151,7 +151,7 @@ class PreparationController extends AbstractController
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->persistLivraison($dateEnd);
-        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
+        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser(), $locationEndPrepa);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
