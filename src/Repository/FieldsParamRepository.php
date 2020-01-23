@@ -19,16 +19,31 @@ class FieldsParamRepository extends ServiceEntityRepository
         parent::__construct($registry, FieldsParam::class);
     }
 
-    function getByEntity($entity) {
+    /**
+     * @param $entity
+     * @return array [fieldCode => ['mustToCreate' => boolean, 'mustToModify' => boolean, 'displayed' => boolean]]
+     */
+    function getByEntity($entity): array {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        	/** @lang DQL */
-            "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayed
-            FROM App\Entity\FieldsParam f
-            WHERE f.entityCode = :entity"
-        )->setParameter('entity', $entity);
-
-        return $query->execute();
+        $query = $em
+            ->createQuery(
+                "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayed
+                FROM App\Entity\FieldsParam f
+                WHERE f.entityCode = :entity"
+            )
+            ->setParameter('entity', $entity);
+        $result = $query->execute();
+        return array_reduce(
+            $result,
+            function (array $acc, $field) {
+                $acc[$field['fieldCode']] = [
+                    'mustToCreate' => $field['mustToCreate'],
+                    'mustToModify' => $field['mustToModify'],
+                    'displayed' => $field['displayed'],
+                ];
+                return $acc;
+            },
+            []);
     }
 
     function getByEntityForEntity($entity) {
