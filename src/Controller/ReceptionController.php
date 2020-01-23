@@ -12,7 +12,6 @@ use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
 use App\Entity\Menu;
@@ -472,21 +471,12 @@ class ReceptionController extends AbstractController
             }
 
             $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-
-            $fields = [];
-            foreach ($fieldsParam as $field) {
-                $fields[$field['fieldCode']] = [
-                    'mustToCreate' => $field['mustToCreate'],
-                    'mustToModify' => $field['mustToModify'],
-                ];
-            }
-
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
-                'fieldsParam' => $fields,
+                'fieldsParam' => $fieldsParam,
             ]);
             return new JsonResponse($json);
         }
@@ -571,20 +561,9 @@ class ReceptionController extends AbstractController
             'champsLibres' => $champsLibres,
         ];
 
-        $fields = array_reduce(
-            $fieldsParam,
-            function (array $acc, $field) {
-                $acc[$field['fieldCode']] = [
-                    'mustToCreate' => $field['mustToCreate'],
-                    'mustToModify' => $field['mustToModify'],
-                ];
-                return $acc;
-            },
-            []);
-
         return $this->render('reception/index.html.twig', [
             'typeChampLibre' => $typeChampLibre,
-            'fieldsParam' => $fields,
+            'fieldsParam' => $fieldsParam,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
     }
