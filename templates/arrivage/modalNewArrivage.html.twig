@@ -186,7 +186,7 @@
                                                 {{ nature.label | capitalize }}
                                             </label>
                                             <input type="number" class="form-control input-sm data-array"
-                                                   value="" name="nature" data-id="{{ nature.id }}" min="0">
+                                                   value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}" name="nature" data-id="{{ nature.id }}" min="0">
                                         </div>
                                     {% endfor %}
                                     {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}

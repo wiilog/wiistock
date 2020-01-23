@@ -1,6 +1,21 @@
 .modal
 	.select2-selection
-		min-height: calc(2.25rem + 2px)
+        min-height: calc(2.25rem + 2px)
+        &:not(.select2-selection--multiple) .select2-selection__rendered
+            line-height: calc(2.25rem + 2px) !important
+        &.select2-selection--multiple
+            overflow-y: auto
+            max-height: 60px
+            .select2-selection__rendered
+                display: flex
+                flex-wrap: wrap
+                overflow-y: auto
+                .select2-selection__choice
+                    display: flex
+                    align-items: center
+                    margin-top: .340rem
+                .select2-search.select2-search--inline
+                    margin-top: .1rem
 
 .select2-container--default
     .select2-selection--single
@@ -8,18 +23,3 @@
             height: initial
             top: 0
             bottom: 0
-
-.select2-container
-    .select2-selection--multiple
-        overflow-y: auto
-        max-height: 60px
-        .select2-selection__rendered
-            display: flex
-            flex-wrap: wrap
-            overflow-y: auto
-            .select2-selection__choice
-                display: flex
-                align-items: center
-                margin-top: .340rem
-            .select2-search.select2-search--inline
-                margin-top: .1rem
