@@ -373,18 +373,10 @@ class EmplacementController extends AbstractController
                 $emplacementsString[] = $this->emplacementRepository->find($listEmplacements[$i])->getLabel();
             }
             $emplacementsString = array_slice($emplacementsString, $data['start'], $data['length']);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-            {
-                $tags['height'] = $dimension->getHeight();
-                $tags['width'] = $dimension->getWidth();
-                $tags['exists'] = true;
-            } else {
-                $tags['height'] = $tags['width'] = 0;
-                $tags['exists'] = false;
-            }
-            $data = array('tags' => $tags, 'emplacements' => $emplacementsString);
+            $data = array(
+                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'emplacements' => $emplacementsString
+            );
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
@@ -397,16 +389,8 @@ class EmplacementController extends AbstractController
     public function getEmplacementLabelFromId(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = [];
+            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
             $data['emplacementLabel'] = $this->emplacementRepository->find(intval($dataContent['emplacement']))->getLabel();
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $data['height'] = $dimension->getHeight();
-                $data['width'] = $dimension->getWidth();
-                $data['exists'] = true;
-            } else {
-                $data['exists'] = false;
-            }
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');

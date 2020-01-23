@@ -34,6 +34,7 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -42,6 +43,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/article")
@@ -851,11 +855,19 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/ajax-article-depuis-id", name="get_article_from_id", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ArticleDataService $articleDataService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getArticleRefFromId(Request $request): Response
+    public function getArticleRefFromId(Request $request,
+                                        ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = [];
+            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
             $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById(intval($dataContent['article']));
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $wantedIndex = 0;
@@ -866,24 +878,16 @@ class ArticleController extends AbstractController
                 }
             }
             $article = $articles[$wantedIndex];
-            $data['articleRef'] = [
+            $data['articleRef'] = $articleDataService->getBarcodeInformations([
                 'barcode' => $article['barcode'],
-                'barcodeLabel' => $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => trim($article['refRef']),
-                    'refLabel' => trim($article['refLabel']),
-                    'artLabel' => trim($article['artLabel']),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
-                ]),
+                'refReference' => $article['refRef'],
+                'refLabel' => $article['refLabel'],
                 'artLabel' => $article['artLabel'],
-            ];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $data['height'] = $dimension->getHeight();
-                $data['width'] = $dimension->getWidth();
-                $data['exists'] = true;
-            } else {
-                $data['exists'] = false;
-            }
+                'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                    ? $article['bl']
+                    : null)
+            ]);
+            $data['articleRef']['artLabel'] = $article['artLabel'];
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -967,8 +971,16 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
+     * @param Request $request
+     * @param ArticleDataService $articleDataService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getDataToPrintLabels(Request $request): Response
+    public function getDataToPrintLabels(Request $request,
+                                         ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -987,27 +999,23 @@ class ArticleController extends AbstractController
                 }
 
                 $article = $articles[$wantedIndex];
-                $barcodes[] = $article['barcode'];
-                $barcodeLabels[] = $this->renderView('article/barcodeLabel.html.twig', [
-                    'refRef' => trim($article['refRef']),
-                    'refLabel' => trim($article['refLabel']),
-                    'artLabel' => trim($article['artLabel']),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $article['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $article['bl'] : null : null,
+
+                $barcodeInformations = $articleDataService->getBarcodeInformations([
+                    'barcode' => $article['barcode'],
+                    'refReference' => $article['refRef'],
+                    'refLabel' => $article['refLabel'],
+                    'artLabel' => $article['artLabel'],
+                    'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                        ? $article['bl']
+                        : null)
                 ]);
 
+                $barcodes[] = $barcodeInformations['barcode'];
+                $barcodeLabels[] = $barcodeInformations['barcodeLabel'];
             }
             $barcodes = array_slice($barcodes, $data['start'], $data['length']);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $tags['height'] = $dimension->getHeight();
-                $tags['width'] = $dimension->getWidth();
-                $tags['exists'] = true;
-            } else {
-                $tags['height'] = $tags['width'] = 0;
-                $tags['exists'] = false;
-            }
             $data = [
-                'tags' => $tags,
+                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
                 'barcodes' => $barcodes,
                 'barcodesLabels' => $barcodeLabels
             ];

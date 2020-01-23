@@ -23,11 +23,25 @@ class FieldsParamRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         	/** @lang DQL */
-            "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify
+            "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayed
             FROM App\Entity\FieldsParam f
             WHERE f.entityCode = :entity"
         )->setParameter('entity', $entity);
 
         return $query->execute();
     }
+
+    function getByEntityForEntity($entity) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT f
+            FROM App\Entity\FieldsParam f
+            WHERE f.entityCode = :entity"
+        )->setParameter('entity', $entity);
+
+        return $query->execute();
+    }
+
+
 }

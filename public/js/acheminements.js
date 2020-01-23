@@ -79,17 +79,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ACHEMINEMENTS);
     $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'utilisateurs') {
-                $('#utilisateur').val(element.value.split(',')).select2();
-            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'statut') {
-                $('#' + element.field).val(element.value).select2();
-            } else {
-                $('#'+element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
     }, 'json');
 });
 

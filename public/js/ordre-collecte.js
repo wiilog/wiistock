@@ -89,23 +89,7 @@ $(function() {
         let params = JSON.stringify(PAGE_ORDRE_COLLECTE);
 
         $.post(path, params, function (data) {
-            data.forEach(function (element) {
-                if (element.field == 'utilisateurs') {
-                    $('#utilisateur').val(element.value.split(',')).select2();
-                } else if (element.field == 'demCollecte') {
-                    let valueArray = element.value.split(':');
-                    let id = valueArray[0];
-                    let label = valueArray[1];
-                    let option = new Option(label, id, true, true);
-                    $('#demandCollect').append(option).trigger('change');
-                }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                } else if (element.field == 'statut') {
-                    $('#' + element.field).val(element.value).select2();
-                } else {
-                    $('#' + element.field).val(element.value);
-                }
-            });
+            displayFiltersSup(data);
         }, 'json');
     }
 });

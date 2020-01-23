@@ -77,7 +77,7 @@ class ReceptionTracaRepository extends ServiceEntityRepository
                     break;
                 case 'arrivage_string':
                     $qb
-                        ->andWhere('r.arrivage = :arrivage_string')
+                        ->andWhere('r.arrivage LIKE :arrivage_string')
                         ->setParameter('arrivage_string', '%' . $filter['value'] . '%');
                     break;
                 case 'reception_string':

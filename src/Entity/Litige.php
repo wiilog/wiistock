@@ -11,11 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Litige
 {
-	// statuts de la catégorie litige
-	const CONFORME = 'conforme';
-	const ATTENTE_ACHETEUR = 'attente retour acheteur';
-	const TRAITE_ACHETEUR = 'traité par acheteur';
-	const SOLDE = 'soldé';
+    // origine du litige
+    const ORIGIN_RECEPTION = 'REC';
+    const ORIGIN_ARRIVAGE = 'ARR';
 
     /**
      * @ORM\Id()

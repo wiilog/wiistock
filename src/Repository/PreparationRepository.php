@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Preparation;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -82,11 +84,12 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    /**
-     * @param Utilisateur $user
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countByUser($user)
     {
         $em = $this->getEntityManager();
@@ -128,10 +131,11 @@ class PreparationRepository extends ServiceEntityRepository
 						->setParameter('type', $filter['value']);
 					break;
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.statut', 's')
-						->andWhere('s.nom = :status')
-						->setParameter('status', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
@@ -216,6 +220,28 @@ class PreparationRepository extends ServiceEntityRepository
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
+	}
+
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return Preparation[]|null
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT p
+            FROM App\Entity\Preparation p
+            WHERE p.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
 	}
 
 }

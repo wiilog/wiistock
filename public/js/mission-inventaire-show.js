@@ -7,17 +7,7 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_INV_SHOW_MISSION);
     $.post(path, params, function(data) {
-        data.forEach(function(element) {
-            if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'anomaly') {
-                $('#anomalyFilter').val(element.value);
-            } else if (element.field == 'statut') {
-                $('#' + element.field).val(element.value).select2();
-            } else {
-                $('#'+ element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
     }, 'json');
 });
 
@@ -58,7 +48,7 @@ $('#submitSearchMissionRef').on('click', function() {
         page: PAGE_INV_SHOW_MISSION,
         dateMin: $('#dateMin').val(),
         dateMax: $('#dateMax').val(),
-        anomaly: $('#anomalyFilter').val(),
+        anomaly: $('#anomaly').val(),
     };
 
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
@@ -66,42 +56,3 @@ $('#submitSearchMissionRef').on('click', function() {
 
     saveFilters(filters, tableMission);
 });
-
-function generateCSVMission () {
-    loadSpinner($('#spinnerMission'));
-    let params = {
-        missionId: $('#missionId').val(),
-    };
-    let path = Routing.generate('get_mission_for_csv', true);
-
-    $.post(path, JSON.stringify(params), function(response) {
-        if (response) {
-            let csv = "";
-            $.each(response, function (index, value) {
-                csv += value.join(';');
-                csv += '\n';
-            });
-            mFile(csv);
-            hideSpinner($('#spinnerMission'));
-        }
-    }, 'json');
-}
-
-let mFile = function (csv) {
-    let exportedFilenmae = 'export-mission' + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-};

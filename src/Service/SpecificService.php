@@ -12,11 +12,18 @@ class SpecificService
 {
 	const CLIENT_COLLINS = 'collins';
 	const CLIENT_CEA_LETI = 'cea-leti';
-	const CLIENT_SAFRAN = 'safran';
+	const CLIENT_SAFRAN_CS = 'safran-cs';
+	const CLIENT_SAFRAN_ED = 'safran-ed';
 
-	public function isCurrentClientNameFunction(string $clientName)
+	public static function isCurrentClientNameFunction(string $clientName)
 	{
 		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}
+
+	public function getAppClient(): string {
+	    return isset($_SERVER['APP_CLIENT'])
+            ? $_SERVER['APP_CLIENT']
+            : '';
+    }
 
 }

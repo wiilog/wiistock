@@ -9,7 +9,7 @@ const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
-const PAGE_LITIGE_ARR = 'litige_arrivage';
+const PAGE_LITIGE_ARR = 'litige';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
@@ -589,8 +589,7 @@ function clearErrorMsg($div) {
     $div.closest('.modal').find('.error-msg').html('');
 }
 
-function clearInvalidInputs($div) {
-    let $modal = $div.closest('.modal');
+function clearInvalidInputs($modal) {
     let $inputs = $modal.find('.modal-body').find(".data");
     $inputs.each(function () {
         // on enlève les classes is-invalid
@@ -854,6 +853,20 @@ function printSingleArticleBarcode(button) {
     });
 }
 
+function printSingleReferenceArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    };
+    $.post(Routing.generate('get_reference_article_from_id'), JSON.stringify(params), function (response) {
+        printBarcodes(
+            response.barcodes,
+            response.tags,
+            'Etiquette référence ' + response.barcodes[0] + '.pdf',
+            response.barcodeLabels,
+    );
+    });
+}
+
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
     let texts = text.split("\n");
 
@@ -1099,10 +1112,122 @@ function toggleQuill($modal, enable) {
     $modal.find('.ql-editor').prop('contenteditable', enable);
 }
 
+function generateCSV(route, filename = 'export', param = null) {
+    loadSpinner($('#spinner'));
+    let data = param ? {'param': param} : {};
+
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let params = JSON.stringify(data);
+        let path = Routing.generate(route, true);
+
+        $.post(path, params, function (response) {
+            if (response) {
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join(';');
+                    csv += '\n';
+                });
+                dlFile(csv, filename);
+                hideSpinner($('#spinner'));
+            }
+        }, 'json');
+    } else {
+        warningEmptyDatesForCsv();
+        hideSpinner($('#spinner'));
+    }
+}
+
+let dlFile = function (csv, filename) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let exportedFilenmae = filename + '-' + date + '.csv';
+    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    let link = document.createElement("a");
+    if (link.download !== undefined) {
+        let url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", exportedFilenmae);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 function warningEmptyDatesForCsv() {
     alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
     $('#dateMin, #dateMax').addClass('is-invalid');
     $('.is-invalid').on('click', function() {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
+    });
+}
+
+function displayFiltersSup(data) {
+    data.forEach(function (element) {
+
+        switch (element.field) {
+            case 'utilisateurs':
+                let valuesUsers = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                valuesUsers.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+                break;
+
+            case 'providers':
+            case 'reference':
+                let valuesElement = element.value.split(',');
+                let $select = $('#' + element.field);
+                valuesElement.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $select.append(option).trigger('change');
+                });
+                break;
+
+            case 'emergency':
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
+                break;
+
+            case 'carriers':
+            case 'litigeOrigin':
+            case 'emplacement':
+                $('#' + element.field).val(element.value).select2();
+                break;
+
+            case 'dateMin':
+            case 'dateMax':
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                break;
+
+            case 'statut':
+                let valuesStr = element.value.split(',');
+                let valuesInt = [];
+                valuesStr.forEach((value) => {
+                    valuesInt.push(parseInt(value));
+                })
+                $('#' + element.field).val(valuesInt).select2();
+                break;
+
+            default:
+                $('#' + element.field).val(element.value);
+        }
     });
 }

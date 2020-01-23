@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Service\SpecificService;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -18,12 +19,14 @@ class FiltreSup
 	const FIELD_TYPE = 'type';
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
+	const FIELD_REFERENCE = 'reference';
 	const FIELD_DEM_COLLECTE = 'demCollecte';
 	const FIELD_EMERGENCY = 'emergency';
 	const FIELD_ANOMALY = 'anomaly';
 	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
 	const FIELD_RECEPTION_STRING = 'reception_string';
 	const FIELD_COMMANDE = 'commande';
+	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -39,11 +42,28 @@ class FiltreSup
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
-	const PAGE_LITIGE_ARR = 'litige_arrivage';
+	const PAGE_LITIGE = 'litige';
 	const PAGE_RCPT_TRACA = 'reception_traca';
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
     const PAGE_ALERTE = 'alerte';
+
+
+    const PAGE_TO_CATEGORY = [
+        self::PAGE_DEM_COLLECTE => CategorieStatut::DEM_COLLECTE,
+        self::PAGE_DEM_LIVRAISON => CategorieStatut::DEM_LIVRAISON,
+        self::PAGE_MANUT => CategorieStatut::MANUTENTION,
+        self::PAGE_RECEPTION => CategorieStatut::RECEPTION,
+        self::PAGE_ORDRE_COLLECTE => CategorieStatut::ORDRE_COLLECTE,
+        self::PAGE_ORDRE_LIVRAISON => CategorieStatut::ORDRE_LIVRAISON,
+        self::PAGE_PREPA => CategorieStatut::PREPARATION,
+        self::PAGE_ARRIVAGE => CategorieStatut::ARRIVAGE,
+        self::PAGE_MVT_STOCK => CategorieStatut::MVT_STOCK,
+        self::PAGE_MVT_TRACA => CategorieStatut::MVT_TRACA,
+        self::PAGE_ACHEMINEMENTS => CategorieStatut::ACHEMINEMENT,
+        self::PAGE_LITIGE => CategorieStatut::LITIGE_ARR,
+        self::PAGE_ARTICLE => CategorieStatut::ARTICLE
+    ];
 
     /**
      * @ORM\Id()

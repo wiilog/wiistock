@@ -16,27 +16,41 @@
             </div>
         </div>
 
-        <div class="row">
-            {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
-            <div class="form-group col-12">
-                <label>Obligatoire à la création ?</label>
-                <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }}>
-                    <span class="slider round"></span>
-                </label>
+        {% if not field.fieldRequiredHidden %}
+            <div class="row">
+                {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
+                <div class="form-group col-12">
+                    <label>Obligatoire à la création ?</label>
+                    <label class="switch">
+                        <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
-        </div>
 
+            <div class="row">
+                {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
+                <div class="form-group col-12">
+                    <label>Obligatoire à la modification ?</label>
+                    <label class="switch">
+                        <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        {% endif %}
+        {% if field.entityCode == 'arrivage' %}
         <div class="row">
-            {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
+            {% set isCheckedModify = field.displayed ? 'checked' : '' %}
             <div class="form-group col-12">
-                <label>Obligatoire à la modification ?</label>
+                <label>Affiché ?</label>
                 <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }}>
+                    <input class="checkbox data" type="checkbox" name="displayed" {{ isCheckedModify }} onchange="switchDisplay($(this))">
                     <span class="slider round"></span>
                 </label>
             </div>
         </div>
+        {% endif %}
 
     </div>
 </form>

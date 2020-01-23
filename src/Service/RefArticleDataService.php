@@ -44,6 +44,9 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Article;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class RefArticleDataService
 {
@@ -565,5 +568,22 @@ class RefArticleDataService
             ]),
         ];
         return $row;
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return array Field barcode and barcodeLabel
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array {
+        return [
+            'barcode' => $referenceArticle->getBarCode(),
+            'barcodeLabel' => $this->templating->render('reference_article/barcodeLabel.html.twig', [
+                'refRef' => $referenceArticle->getReference(),
+                'refLabel' =>$referenceArticle->getLibelle(),
+            ])
+        ];
     }
 }

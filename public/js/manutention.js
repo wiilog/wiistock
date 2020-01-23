@@ -24,7 +24,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
         "url": pathManut,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#statut').val()
+            'filterStatus': $('#filterStatus').val()
         },
     },
     'drawCallback': function() {
@@ -63,37 +63,27 @@ $submitSearchManut.on('click', function () {
     }
 });
 
-// applique les filtres si pré-remplis
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
-    let val = $('#statut').val();
-    if (!val) {
-        // filtres enregistrés en base pour chaque utilisateur
+    // applique les filtres si pré-remplis
+    let val = $('#filterStatus').val();
+
+    if (val && val.length > 0) {
+        let valuesStr = val.split(',');
+        let valuesInt = [];
+        valuesStr.forEach((value) => {
+            valuesInt.push(parseInt(value));
+        })
+        $('#statut').val(valuesInt).select2();
+    } else {
+        // sinon, filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_MANUT);
         $.post(path, params, function (data) {
-            data.forEach(function (element) {
-                if (element.field == 'utilisateurs') {
-                    let values = element.value.split(',');
-                    let $utilisateur = $('#utilisateur');
-                    values.forEach((value) => {
-                        let valueArray = value.split(':');
-                        let id = valueArray[0];
-                        let username = valueArray[1];
-                        let option = new Option(username, id, true, true);
-                        $utilisateur.append(option).trigger('change');
-                    });
-                } else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                    $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                } else if (element.field == 'statut') {
-                    $('#' + element.field).val(element.value).select2();
-                } else {
-                    $('#' + element.field).val(element.value);
-                }
-            });
+            displayFiltersSup(data);
         }, 'json');
     }
 });

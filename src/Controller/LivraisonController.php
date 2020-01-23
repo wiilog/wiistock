@@ -331,184 +331,84 @@ class LivraisonController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/livraison-infos", name="get_livraisons_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     */
-    public function getLivraisonIntels(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+	/**
+	 * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 */
+	public function getOrdreLivraisonIntels(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
 
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-			$livraisons = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
+			$livraisons = $this->livraisonRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [];
-			// en-têtes champs fixes
-			$headers = array_merge($headers, [
-				'demandeur',
-				'statut',
-				'destination',
-				'commentaire',
-				'date demande',
-				'date validation',
+			$headers = [
 				'numéro',
-				'type demande',
-				'code préparation',
-				'code livraison',
-				'référence article',
-				'libellé article',
-				'quantité disponible',
-				'quantité à prélever'
-			]);
+				'statut',
+				'date création',
+				'opérateur',
+				'type',
+				'référence',
+				'libellé',
+				'emplacement',
+				'quantité à livrer',
+				'quantité en stock',
+				'code-barre'
+			];
 
-            // en-têtes champs libres DL
-            $clDL = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
-			foreach ($clDL as $champLibre) {
-				$headers[] = $champLibre->getLabel();
+			$data = [];
+			$data[] = $headers;
+
+			foreach ($livraisons as $livraison) {
+				$this->buildInfos($livraison, $data);
 			}
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
-			// en-têtes champs libres articles
-            $clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
-            foreach ($clAR as $champLibre) {
-                $headers[] = $champLibre->getLabel();
-            }
 
-            $data = [];
-            $data[] = $headers;
-            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-            $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
-            $listChampsLibresDL = [];
-			foreach ($listTypesDL as $type) {
-				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
-			}
-
-            foreach ($livraisons as $livraison) {
-
-				foreach ($livraison->getLigneArticle() as $ligneArticle) {
-                    $livraisonData = [];
-                    $articleRef = $ligneArticle->getReference();
-
-                    $quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-                        ? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
-                        : $articleRef->getQuantiteStock();
-
-                    $availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
-
-                    $livraisonData[] = $livraison->getUtilisateur()->getUsername();
-                    $livraisonData[] = $livraison->getStatut()->getNom();
-                    $livraisonData[] = $livraison->getDestination()->getLabel();
-                    $livraisonData[] = strip_tags($livraison->getCommentaire());
-                    $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
-                    $livraisonData[] = $livraison->getNumero();
-                    $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : 'ND';
-                    $livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : 'ND';
-                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
-                    $livraisonData[] = $availableQuantity;
-                    $livraisonData[] = $ligneArticle->getQuantite();
-
-					// champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
-
-                    // champs libres de l'article de référence
-                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
-                    $champsLibresArt = [];
-
-                    foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
-                        foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
-                            if ($valeurChampRefArticle) {
-                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
-                            }
-                        }
-                    }
-                    foreach ($clAR as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
-                        } else {
-                            $livraisonData[] = '';
-                        }
-                    }
-
-                    $data[] = $livraisonData;
-                }
-                foreach ($this->articleRepository->findByDemande($livraison) as $article) {
-                    $livraisonData = [];
-
-					$livraisonData[] = $livraison->getUtilisateur()->getUsername();
-                    $livraisonData[] = $livraison->getStatut()->getNom();
-                    $livraisonData[] = $livraison->getDestination()->getLabel();
-                    $livraisonData[] = strip_tags($livraison->getCommentaire());
-                    $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
-                    $livraisonData[] = $livraison->getNumero();
-					$livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
-					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-                    $livraisonData[] = $article->getLabel();
-                    $livraisonData[] = $article->getQuantite();
-
-					// champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
-
-                    // champs libres de l'article
-                    $champsLibresArt = [];
-                    foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-                        foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                            if ($valeurChampRefArticle) {
-                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
-                            }
-                        }
-                    }
-                    foreach ($clAR as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
-                        } else {
-                            $livraisonData[] = '';
-                        }
-                    }
-
-					$data[] = $livraisonData;
-                }
-            }
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
-        }
-    }
-
-	/**
-	 * @param Demande $livraison
-	 * @param ChampLibre[] $listChampsLibresDL
-	 * @param ChampLibre[] $cls
-	 * @param array $livraisonData
-	 * @throws NonUniqueResultException
-	 */
-    private function addChampsLibresDL($livraison, $listChampsLibresDL, $cls, &$livraisonData)
+	private function buildInfos(Livraison $livraison, &$data)
 	{
-		$champsLibresDL = [];
-		foreach ($listChampsLibresDL as $champLibre) {
-			$valeurChampDL = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($livraison, $champLibre);
-			if ($valeurChampDL) {
-				$champsLibresDL[$champLibre->getLabel()] = $valeurChampDL->getValeur();
-			}
+		$demande = $livraison->getDemande()[0];
+
+		$dataLivraison =
+			[
+				$livraison->getNumero() ?? '',
+				$livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+				$livraison->getDate() ? $livraison->getDate()->format('d/m/Y h:i') : '',
+				$livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
+				$demande->getType() ? $demande->getType()->getLabel() : '',
+			];
+
+		foreach ($demande->getLigneArticle() as $ligneArticle) {
+			$referenceArticle = $ligneArticle->getReference();
+
+			$data[] = array_merge($dataLivraison, [
+				$referenceArticle->getReference() ?? '',
+				$referenceArticle->getLibelle() ?? '',
+				$referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+				$ligneArticle->getQuantite() ?? 0,
+				$referenceArticle->getBarCode(),
+			]);
 		}
 
-		foreach ($cls as $cl) {
-			if (array_key_exists($cl->getLabel(), $champsLibresDL)) {
-				$livraisonData[] = $champsLibresDL[$cl->getLabel()];
-			} else {
-				$livraisonData[] = '';
-			}
-		}
+		foreach ($demande->getArticles() as $article) {
+			$articleFournisseur = $article->getArticleFournisseur();
+			$referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+			$reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
+			$data[] = array_merge($dataLivraison, [
+				$reference,
+				$article->getLabel() ?? '',
+				$article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+				$article->getQuantite() ?? 0,
+				$article->getBarCode(),
+			]);
+		}
 	}
 }
