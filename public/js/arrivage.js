@@ -3,7 +3,7 @@ let clicked = false;
 $('.select2').select2();
 
 $(function() {
-    initDateTimePicker();
+    initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
 
     // filtres enregistrés en base pour chaque utilisateur

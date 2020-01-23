@@ -172,7 +172,7 @@ class TypeController extends AbstractController
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
                 $this->articleRepository->setTypeIdNull($type);
-                foreach ($this->champLibreRepository->getByType($type) as $cl) {
+                foreach ($this->champLibreRepository->findByType($type) as $cl) {
                     $this->filtreRefRepository->deleteByChampLibre($cl);
                 }
                 $this->champLibreRepository->deleteByType($type);
@@ -183,7 +183,7 @@ class TypeController extends AbstractController
                 $articlesExist = $this->articleRepository->countByType($type);
                 $champsLibresExist = $this->champLibreRepository->countByType($type);
                 $filters = 0;
-                foreach ($this->champLibreRepository->getByType($type) as $cl) {
+                foreach ($this->champLibreRepository->findByType($type) as $cl) {
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {

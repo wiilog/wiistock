@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\ChampLibre;
@@ -299,6 +300,29 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 		);
 		$query->setParameters([
 			'demandeCollecteVCL' => $demandeCollecte->getValeurChampLibre(),
+			"champLibre" => $champLibre
+		]);
+
+		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param Arrivage $arrivage
+	 * @param ChampLibre $champLibre
+	 * @return string|null
+	 * @throws NonUniqueResultException
+	 */
+	public function getValueByArrivageAndChampLibre($arrivage, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL  */
+			"SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            WHERE v.champLibre = :champLibre AND v.id in (:arrivageVCL)"
+		);
+		$query->setParameters([
+			'arrivageVCL' => $arrivage->getValeurChampLibre(),
 			"champLibre" => $champLibre
 		]);
 

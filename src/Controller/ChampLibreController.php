@@ -74,7 +74,7 @@ class ChampLibreController extends AbstractController
     public function api(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $champsLibres = $this->champLibreRepository->getByType($this->typeRepository->find($id));
+            $champsLibres = $this->champLibreRepository->findByType($id);
             $rows = [];
             foreach ($champsLibres as $champLibre) {
 

@@ -32,6 +32,7 @@ use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
@@ -43,9 +44,7 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -197,13 +196,14 @@ class ArrivageController extends AbstractController
         $this->arrivageDataService = $arrivageDataService;
     }
 
-    /**
-     * @Route("/", name="arrivage_index")
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
-     */
-    public function index(ParametrageGlobalRepository $parametrageGlobalRepository)
+	/**
+	 * @Route("/", name="arrivage_index")
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @return RedirectResponse|Response
+	 * @throws NonUniqueResultException
+	 */
+    public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -229,7 +229,8 @@ class ArrivageController extends AbstractController
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fields,
-            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre()
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre(),
+			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
         ]);
     }
 
@@ -368,10 +369,17 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException('404 not found');
     }
 
-    /**
-     * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
-     */
-    public function editApi(Request $request): Response
+	/**
+	 * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @param ValeurChampLibreRepository $valeurChampLibreRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editApi(Request $request,
+							ChampLibreRepository$champLibreRepository,
+							ValeurChampLibreRepository $valeurChampLibreRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
@@ -384,18 +392,34 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
-            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            $fields = array_reduce(
-                $fieldsParam,
-                function (array $acc, $field) {
-                    $acc[$field['fieldCode']] = [
-                        'mustToCreate' => $field['mustToCreate'],
-                        'mustToModify' => $field['mustToModify'],
-                        'displayed' => $field['displayed'],
-                    ];
-                    return $acc;
-                },
-                []);
+			$fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+			$fields = array_reduce(
+				$fieldsParam,
+				function (array $acc, $field) {
+					$acc[$field['fieldCode']] = [
+						'mustToCreate' => $field['mustToCreate'],
+						'mustToModify' => $field['mustToModify'],
+						'displayed' => $field['displayed'],
+					];
+					return $acc;
+				},
+				[]);
+
+			$champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
+			$champsLibresArray = [];
+			foreach ($champsLibres as $champLibre) {
+				$valeurChampArr = $valeurChampLibreRepository->getValueByArrivageAndChampLibre($arrivage, $champLibre);
+				$champsLibresArray[] = [
+					'id' => $champLibre->getId(),
+					'label' => $champLibre->getLabel(),
+					'typage' => $champLibre->getTypage(),
+					'elements' => $champLibre->getElements() ?? '',
+					'requiredEdit' => $champLibre->getRequiredEdit(),
+					'valeurChampLibre' => $valeurChampArr,
+					'edit' => true
+				];
+			}
+
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -406,8 +430,9 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-                    'fieldsParam' => $fields
-                ]);
+                    'fieldsParam' => $fields,
+					'champsLibres' => $champsLibresArray
+					]);
             } else {
                 $html = '';
             }

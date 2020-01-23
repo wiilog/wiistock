@@ -3,7 +3,7 @@
 {% block title %}Création de nouveau champ libre{% endblock %}
 
 {% block page_content %}
-    <h1>Liste des champs libres pour le type {{type.label}} </h1>
+    <h1>Liste des champs libres pour la catégorie {{ type.category.label|upper }} / type {{type.label|upper}} </h1>
 
     <div>
         <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary" onclick="clearModal('#modalNewChampLibre')">
