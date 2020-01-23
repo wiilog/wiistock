@@ -40,6 +40,7 @@ use App\Service\UserService;
 use App\Service\MailerService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -274,7 +275,7 @@ class ArrivageController extends AbstractController
             $post = $request->request;
             $em = $this->getDoctrine()->getManager();
 
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
             $arrivage = new Arrivage();

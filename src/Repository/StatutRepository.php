@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -41,6 +43,31 @@ class StatutRepository extends ServiceEntityRepository
 		$query = $em->createQuery($dql);
 
         $query->setParameter("categorieName", $categorieName);
+
+        return $query->execute();
+    }
+
+    /**
+     * @param string $categorieName
+     * @param bool $ordered
+     * @return Statut[]
+     */
+    public function findByCategorieNames($categorieNames, $ordered = false)
+    {
+        $em = $this->getEntityManager();
+
+        $dql = "SELECT s
+            FROM App\Entity\Statut s
+            JOIN s.categorie c
+            WHERE c.nom IN(:categorieNames)";
+
+        if ($ordered) {
+            $dql .= " ORDER BY s.displayOrder ASC";
+        }
+
+        $query = $em->createQuery($dql);
+
+        $query->setParameter("categorieNames", $categorieNames, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }
@@ -84,11 +111,62 @@ class StatutRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    /**
+     * @param string $categorieName
+     * @param string[] $listStatusName
+     * @return Statut[]
+     */
+    public function getIdByCategorieNameAndStatusesNames($categorieName, $listStatusName)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT s.id
+			  FROM App\Entity\Statut s
+			  JOIN s.categorie c
+			  WHERE c.nom = :categorieName AND s.nom IN (:listStatusName)
+          "
+        );
+
+        $query
+			->setParameter('categorieName', $categorieName)
+			->setParameter('listStatusName', $listStatusName, Connection::PARAM_STR_ARRAY);
+
+		return array_column($query->execute(), 'id');
+    }
+
+	/**
+	 * @param string $categorieName
+	 * @param string $statusName
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function getOneIdByCategorieNameAndStatusName($categorieName, $statusName)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT s.id
+			  FROM App\Entity\Statut s
+			  JOIN s.categorie c
+			  WHERE c.nom = :categorieName AND s.nom = :statusName
+          "
+        );
+
+        $query
+			->setParameters([
+				'categorieName' => $categorieName,
+				'statusName' => $statusName
+			]);
+
+		return $query->getSingleScalarResult();
+    }
+
 	/**
 	 * @param string $label
 	 * @param string $category
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByLabelAndCategory($label, $category)
 	{
@@ -129,6 +207,7 @@ class StatutRepository extends ServiceEntityRepository
 	 * @param int $id
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countUsedById($id)
 	{

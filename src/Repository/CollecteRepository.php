@@ -101,11 +101,12 @@ class CollecteRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
-                    $qb
-                        ->join('c.statut', 's')
-                        ->andWhere('s.id = :statut')
-                        ->setParameter('statut', $filter['value']);
-                    break;
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('c.statut', 's')
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
+					break;
                 case 'type':
                     $qb
                         ->join('c.type', 't')

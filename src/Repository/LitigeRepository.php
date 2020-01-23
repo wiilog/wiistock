@@ -223,9 +223,10 @@ class LitigeRepository extends ServiceEntityRepository
 						->setParameter('transporteur', $filter['value']);
 					break;
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
-						->andWhere('s.id = :status')
-						->setParameter('status', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'type':
 					$qb

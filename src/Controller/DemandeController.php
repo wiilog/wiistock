@@ -209,7 +209,7 @@ class DemandeController extends AbstractController
 
                     foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                         $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                        if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
+                        if (in_array($statusLabel, [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE])) {
                             $quantiteReservee += $ligneArticle->getQuantite();
                         }
                     }
@@ -560,7 +560,7 @@ class DemandeController extends AbstractController
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                     "Quantité" => $availableQuantity,
-                    "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [

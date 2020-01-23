@@ -44,11 +44,12 @@ class AcheminementsRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
-                    $qb
-                        ->join('a.statut', 's')
-                        ->andWhere('s.id = :statut')
-                        ->setParameter('statut', $filter['value']);
-                    break;
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('a.statut', 's')
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
+					break;
                 case 'dateMin':
                     $qb->andWhere('a.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');

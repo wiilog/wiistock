@@ -1170,3 +1170,64 @@ function warningEmptyDatesForCsv() {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
     });
 }
+
+function displayFiltersSup(data) {
+    data.forEach(function (element) {
+
+        switch (element.field) {
+            case 'utilisateurs':
+                let valuesUsers = element.value.split(',');
+                let $utilisateur = $('#utilisateur');
+                valuesUsers.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let username = valueArray[1];
+                    let option = new Option(username, id, true, true);
+                    $utilisateur.append(option).trigger('change');
+                });
+                break;
+
+            case 'providers':
+            case 'reference':
+                let valuesElement = element.value.split(',');
+                let $select = $('#' + element.field);
+                valuesElement.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let name = valueArray[1];
+                    let option = new Option(name, id, true, true);
+                    $select.append(option).trigger('change');
+                });
+                break;
+
+            case 'emergency':
+                if (element.value === '1') {
+                    $('#urgence-filter').attr('checked', 'checked');
+                }
+                break;
+
+            case 'carriers':
+            case 'litigeOrigin':
+            case 'emplacement':
+                $('#' + element.field).val(element.value).select2();
+                break;
+
+            case 'dateMin':
+            case 'dateMax':
+                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                break;
+
+            case 'statut':
+                let valuesStr = element.value.split(',');
+                let valuesInt = [];
+                valuesStr.forEach((value) => {
+                    valuesInt.push(parseInt(value));
+                })
+                $('#' + element.field).val(valuesInt).select2();
+                break;
+
+            default:
+                $('#' + element.field).val(element.value);
+        }
+    });
+}

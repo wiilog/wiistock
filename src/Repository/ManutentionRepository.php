@@ -101,10 +101,12 @@ class ManutentionRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             switch($filter['field']) {
                 case 'statut':
-                    $qb
-                        ->join('m.statut', 's')
-                        ->andWhere('s.id = :statut')
-                        ->setParameter('statut', $filter['value']);
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('m.statut', 's')
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
+					break;
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);

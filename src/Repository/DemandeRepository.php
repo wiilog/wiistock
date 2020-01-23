@@ -7,6 +7,7 @@ use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -115,6 +116,17 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function countByStatusesId($listStatusId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.statut in (:listStatus)"
+        )->setParameter('listStatus', $listStatusId, Connection::PARAM_STR_ARRAY);
+        return $query->getSingleScalarResult();
+    }
+
     public function findOneByPreparation($preparation)
     {
         $entityManager = $this->getEntityManager();
@@ -204,10 +216,11 @@ class DemandeRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
 						->join('d.statut', 's')
-						->andWhere('s.id = :statut')
-						->setParameter('statut', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'type':
 					$qb

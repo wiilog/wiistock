@@ -160,11 +160,12 @@ class MouvementTracaRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             switch($filter['field']) {
                 case 'statut':
-                    $qb
-                        ->leftJoin('m.type', 's')
-                        ->andWhere('s.id = :type')
-                        ->setParameter('type', $filter['value']);
-                    break;
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('m.type', 's')
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
+					break;
                 case 'emplacement':
                     $qb
                         ->join('m.emplacement', 'e')
