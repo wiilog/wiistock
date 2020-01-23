@@ -269,17 +269,17 @@ function printSingleBarcode(button) {
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
             printBarcodes(
-                [response.ligneRef],
+                [response.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                'Etiquette concernant l\'article ' + response.barcode + '.pdf',
                 [response.barcodeLabel]
             );
         } else {
             $('#ligneSelected').val(button.data('id'));
             $('#chooseConditionnement').click();
             let $submit = $('#submitConditionnement');
-            $submit.attr('data-ref', response.article)
-            $submit.attr('data-id', button.data('id'))
+            $submit.attr('data-ref', response.article);
+            $submit.attr('data-id', button.data('id'));
             initDatatableConditionnement();
             $submit.addClass('d-none');
             $('#reference-list').html(response.article);
@@ -424,29 +424,30 @@ function validatePacking($button) {
                 commande: selectedOption.commande
             },
             'text/html'
-        ).done(
-            function (html) {
-                const $html = $(html);
-                for (let index = 0; index < packageNumber; index++) {
-                    const $clonedHtml = $html.clone();
-                    const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
-                    ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
+        ).done(function (html) {
+            const $html = $(html);
+            const $lastContainerArticle = $packingContainer.find('.articles-conditionnement-container .conditionnement-article:last-child');
+            const lastIndex = $lastContainerArticle.length > 0 ? $lastContainerArticle.data('multiple-object-index') : -1;
+            const initIndex = lastIndex + 1;
+            for (let index = initIndex; index < (initIndex + packageNumber); index++) {
+                const $clonedHtml = $html.clone();
+                const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
+                ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
 
-                    const $containerArticle = $('<div/>', {
-                        class: 'conditionnement-article',
-                        'data-multiple-key': 'conditionnement',
-                        'data-multiple-object-index': index,
-                        html: $clonedHtml
-                    });
+                const $containerArticle = $('<div/>', {
+                    class: 'conditionnement-article',
+                    'data-multiple-key': 'conditionnement',
+                    'data-multiple-object-index': index,
+                    html: $clonedHtml
+                });
 
-                    $packingContainer
-                        .find('.articles-conditionnement-container')
-                        .append($containerArticle);
+                $packingContainer
+                    .find('.articles-conditionnement-container')
+                    .append($containerArticle);
 
-                    $packingContainer.find('.packing-title').removeClass('d-none');
-                }
+                $packingContainer.find('.packing-title').removeClass('d-none');
             }
-        )
+        })
     }
 }
 
@@ -569,7 +570,7 @@ function printBarcode(button) {
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
             if (response.refs.length > 0) {
-                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
+                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabels);
             } else {
                 alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
             }

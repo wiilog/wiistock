@@ -88,7 +88,9 @@ class FiltreSupController extends AbstractController
 						->setUser($user);
 					$em->persist($filter);
 				}
-				$filter->setValue($data['statut']);
+
+				$statuses = implode(',', $data['statut']);
+				$filter->setValue($statuses);
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, $page, $user);
@@ -109,8 +111,8 @@ class FiltreSupController extends AbstractController
 				}
 
 				$values = [];
-				foreach ($data['users'] as $oneUser) {
-					$values[] = $oneUser['id'] . ':' . $oneUser['text'];
+				foreach ($data['users'] as $oneStatus) {
+					$values[] = $oneStatus['id'] . ':' . $oneStatus['text'];
 				}
 				$users = implode(',', $values);
 				$filter->setValue($users);
@@ -155,6 +157,35 @@ class FiltreSupController extends AbstractController
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMPLACEMENT, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (!empty($data['reference'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_REFERENCE, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_REFERENCE)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				if (is_array($data['reference'])) {
+					$values = [];
+					foreach ($data['reference'] as $oneRef) {
+						$values[] = $oneRef['id'] . ':' . $oneRef['text'];
+					}
+					$reference = implode(',', $values);
+				} else {
+					$reference = $data['reference'];
+				}
+				$filter->setValue($reference);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_REFERENCE, $page, $user);
 				if ($filter) {
 					$em->remove($filter);
 					$em->flush();
@@ -359,6 +390,26 @@ class FiltreSupController extends AbstractController
 				$em->flush();
 			} else {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COMMANDE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
+			}
+			if (!empty($data['litigeOrigin'])) {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_LITIGE_ORIGIN, $page, $user);
+				if (!$filter) {
+					$filter = new FiltreSup();
+					$filter
+						->setField(FiltreSup::FIELD_LITIGE_ORIGIN)
+						->setPage($page)
+						->setUser($user);
+					$em->persist($filter);
+				}
+
+				$filter->setValue($data['litigeOrigin']);
+				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_LITIGE_ORIGIN, $page, $user);
 				if ($filter) {
 					$em->remove($filter);
 					$em->flush();

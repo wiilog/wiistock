@@ -98,6 +98,11 @@ class Statut
      */
     private $sendNotifToBuyer;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
+     */
+    private $arrivages;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -110,6 +115,7 @@ class Statut
         $this->manutentions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->acheminements = new ArrayCollection();
+        $this->arrivages = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -502,6 +508,37 @@ class Statut
     public function setSendNotifToBuyer(?bool $sendNotifToBuyer): self
     {
         $this->sendNotifToBuyer = $sendNotifToBuyer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivages(): Collection
+    {
+        return $this->arrivages;
+    }
+
+    public function addArrivage(Arrivage $arrivage): self
+    {
+        if (!$this->arrivages->contains($arrivage)) {
+            $this->arrivages[] = $arrivage;
+            $arrivage->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivage(Arrivage $arrivage): self
+    {
+        if ($this->arrivages->contains($arrivage)) {
+            $this->arrivages->removeElement($arrivage);
+            // set the owning side to null (unless already changed)
+            if ($arrivage->getStatut() === $this) {
+                $arrivage->setStatut(null);
+            }
+        }
 
         return $this;
     }

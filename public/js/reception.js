@@ -94,84 +94,11 @@ $(function () {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_RECEPTION);
     $.post(path, params, function (data) {
-        data.forEach(function (element) {
-            if (element.field == 'providers') {
-                let values = element.value.split(',');
-                let $providers = $('#providers');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $providers.append(option).trigger('change');
-                });
-            }  else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'statut') {
-                $('#statut').val(element.value).select2();
-            } else {
-                $('#' + element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
     }, 'json');
 
     ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });
-
-//RECEPTION
-function generateCSVReception() {
-    loadSpinner($('#spinnerReception'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_receptions_for_csv', true);
-
-        $.post(path, params, function (response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                aFile(csv);
-                hideSpinner($('#spinnerReception'));
-            }
-        }, 'json');
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerReception'))
-    }
-}
-
-function aFile(csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-reception-' + date + '.csv';
-    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}
 
 function initNewReceptionEditor(modal) {
     onFlyFormOpened = {};

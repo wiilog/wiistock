@@ -33,27 +33,27 @@
     {% endblock %}
 
     {% block statusFilter %}
-    <div>
-        <div class="input-group minw-200px">
-            <select class="form-control data select2 cursor-default" name="statut" id="statut" {{ disabled }}>
-                <option value="">&nbsp;</option>
+    <div class="minw-150px select2-overflow">
+        <div class="input-group cursor-default">
+            <select class="form-control data select2" name="statut" id="statut" multiple="multiple" {{ disabled }}>
                 {% for statut in statuts %}
                     {% if filterStatus is defined and statut.nom == filterStatus%}
                         {% set selected = 'selected' %}
                     {% else %}
                         {% set selected = '' %}
                     {% endif %}
-                    <option value="{{ statut.nom }}" {{ selected }}>{{ statut.nom }}</option>
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
+        <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">
     </div>
     {% endblock %}
 
     {% block userFilter %}
     <div class="minw-150px select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select id="utilisateur" name="utilisateur" class="form-control data ajax-autocomplete-user min-150px" multiple="multiple" {{ disabled }}>
+            <select class="form-control data ajax-autocomplete-user" name="utilisateur" id="utilisateur" multiple="multiple" {{ disabled }}>
             </select>
         </div>
     </div>
@@ -67,7 +67,7 @@
                     id="type">
                 <option value>Type</option>
                 {% for type in types %}
-                    <option value="{{ type.label}}">
+                    <option value="{{ type.label }}">
                         {{ type.label }}
                     </option>
                 {% endfor %}

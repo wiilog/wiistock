@@ -151,7 +151,7 @@ class PreparationController extends AbstractController
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->persistLivraison($dateEnd);
-        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser());
+        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser(), $locationEndPrepa);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
@@ -593,4 +593,88 @@ class PreparationController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 */
+	public function getOrdrePrepaIntels(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+			$preparations = $this->preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+			$headers = [
+				'numéro',
+				'statut',
+				'date création',
+				'opérateur',
+				'type',
+				'référence',
+				'libellé',
+				'emplacement',
+				'quantité à collecter',
+				'code-barre'
+			];
+
+			$data = [];
+			$data[] = $headers;
+
+			foreach ($preparations as $preparation) {
+				$this->buildInfos($preparation, $data);
+			}
+			return new JsonResponse($data);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+
+	private function buildInfos(Preparation $preparation, &$data)
+	{
+		$demande = $preparation->getDemandes()[0];
+
+		$dataPrepa =
+			[
+				$preparation->getNumero() ?? '',
+				$preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
+				$preparation->getDate() ? $preparation->getDate()->format('d/m/Y h:i') : '',
+				$preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
+				$demande->getType() ? $demande->getType()->getLabel() : '',
+			];
+
+		foreach ($demande->getLigneArticle() as $ligneArticle) {
+			$referenceArticle = $ligneArticle->getReference();
+
+			if ($ligneArticle->getQuantitePrelevee() > 0) {
+				$data[] = array_merge($dataPrepa, [
+					$referenceArticle->getReference() ?? '',
+					$referenceArticle->getLibelle() ?? '',
+					$referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+					$ligneArticle->getQuantite() ?? 0,
+					$referenceArticle->getBarCode(),
+				]);
+			}
+		}
+
+		foreach ($demande->getArticles() as $article) {
+			$articleFournisseur = $article->getArticleFournisseur();
+			$referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+			$reference = $referenceArticle ? $referenceArticle->getReference() : '';
+
+			if ($article->getQuantitePrelevee() > 0) {
+				$data[] = array_merge($dataPrepa, [
+					$reference,
+					$article->getLabel() ?? '',
+					$article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+					$article->getQuantite() ?? 0,
+					$article->getBarCode(),
+				]);
+			}
+		}
+	}
 }

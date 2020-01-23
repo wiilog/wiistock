@@ -124,14 +124,26 @@ class PreparationsManagerService {
 	 * @param $userNomade
 	 * @throws NonUniqueResultException
 	 */
-    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade): void {
+    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade, Emplacement $emplacement): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $demandes = $preparation->getDemandes();
         $demande = $demandes[0];
-
         $livraison->addDemande($demande);
-
+        foreach ($demande->getLigneArticle() as $ligneArticle) {
+            $refQuantitePrelevee = $ligneArticle->getQuantitePrelevee();
+            if (isset($refQuantitePrelevee) &&
+                $refQuantitePrelevee > 0 &&
+                $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $ligneArticle->getReference()->setEmplacement($emplacement);
+            }
+        }
+        foreach ($demande->getArticles() as $article) {
+            $artQuantitePrelevee = $article->getQuantitePrelevee();
+            if (isset($artQuantitePrelevee) && $artQuantitePrelevee > 0) {
+                $article->setEmplacement($emplacement);
+            }
+        }
 		$isPreparationComplete = $this->isPreparationComplete($demande);
 		$prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
 		$statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
@@ -248,8 +260,8 @@ class PreparationsManagerService {
 		}
     }
 
-    public function deleteLigneRefOrNot(LigneArticle $ligne) {
-        if ($ligne && 0 === $ligne->getQuantite()) {
+    public function deleteLigneRefOrNot(?LigneArticle $ligne) {
+        if ($ligne && $ligne->getQuantite() === 0) {
             $this->entityManager->remove($ligne);
         }
     }

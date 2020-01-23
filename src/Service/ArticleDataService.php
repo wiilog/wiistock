@@ -12,6 +12,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -52,8 +53,11 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+use Twig\Error\LoaderError;
 use Twig\Error\LoaderError as Twig_Error_Loader;
+use Twig\Error\RuntimeError;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
+use Twig\Error\SyntaxError;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
@@ -756,4 +760,23 @@ class ArticleDataService
 
 		return $newBarcode;
 	}
+
+    /**
+     * @param array $article
+     * @return array Field barcode, refReference, refLabel, artLabel, artBL
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getBarcodeInformations(array $article): array {
+        return [
+            'barcode' => $article['barcode'],
+            'barcodeLabel' => $this->templating->render('article/barcodeLabel.html.twig', [
+                'refRef' => trim($article['refReference']),
+                'refLabel' => trim($article['refLabel']),
+                'artLabel' => trim($article['artLabel']),
+                'artBL' => isset($article['artBL']) ? trim($article['artBL']) : null
+            ])
+        ];
+    }
 }

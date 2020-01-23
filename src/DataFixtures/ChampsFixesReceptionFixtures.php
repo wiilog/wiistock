@@ -24,30 +24,57 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
 
 	public function load(ObjectManager $manager)
     {
-    	$listFieldCodes = [
-    		[FieldsParam::FIELD_CODE_FOURNISSEUR, FieldsParam::FIELD_LABEL_FOURNISSEUR],
-			[FieldsParam::FIELD_CODE_NUM_COMMANDE, FieldsParam::FIELD_LABEL_NUM_COMMANDE],
-			[FieldsParam::FIELD_CODE_COMMENTAIRE, FieldsParam::FIELD_LABEL_COMMENTAIRE],
-			[FieldsParam::FIELD_CODE_DATE_ATTENDUE, FieldsParam::FIELD_LABEL_DATE_ATTENDUE],
-			[FieldsParam::FIELD_CODE_DATE_COMMANDE, FieldsParam::FIELD_LABEL_DATE_COMMANDE],
-			[FieldsParam::FIELD_CODE_UTILISATEUR, FieldsParam::FIELD_LABEL_UTILISATEUR],
-			[FieldsParam::FIELD_CODE_NUM_RECEPTION, FieldsParam::FIELD_LABEL_NUM_RECEPTION],
-			[FieldsParam::FIELD_CODE_TRANSPORTEUR, FieldsParam::FIELD_LABEL_TRANSPORTEUR],
-			];
+        $listEntityFieldCodes = [
+            FieldsParam::ENTITY_CODE_RECEPTION => [
+                ['code' => FieldsParam::FIELD_CODE_FOURNISSEUR, 'label' => FieldsParam::FIELD_LABEL_FOURNISSEUR, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_NUM_COMMANDE, 'label' => FieldsParam::FIELD_LABEL_NUM_COMMANDE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_COMMENTAIRE, 'label' => FieldsParam::FIELD_LABEL_COMMENTAIRE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_DATE_ATTENDUE, 'label' => FieldsParam::FIELD_LABEL_DATE_ATTENDUE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_DATE_COMMANDE, 'label' => FieldsParam::FIELD_LABEL_DATE_COMMANDE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_UTILISATEUR, 'label' => FieldsParam::FIELD_LABEL_UTILISATEUR, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_NUM_RECEPTION, 'label' => FieldsParam::FIELD_LABEL_NUM_RECEPTION, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_TRANSPORTEUR, 'label' => FieldsParam::FIELD_LABEL_TRANSPORTEUR, 'displayed' => true],
+            ],
 
-    	foreach ($listFieldCodes as $fieldCode) {
-			$field = $this->fieldsParamRepository->findBy(['fieldCode' => $fieldCode[0]]);
-			if (!$field) {
-				$field = new FieldsParam();
-				$field
-					->setEntityCode(FieldsParam::ENTITY_CODE_RECEPTION)
-					->setFieldLabel($fieldCode[1])
-					->setFieldCode($fieldCode[0]);
-				$manager->persist($field);
-				$manager->flush();
-				dump('Champ fixe ' . FieldsParam::ENTITY_CODE_RECEPTION . ' / ' . $fieldCode[0] . ' créé.');
-			}
-		}
+            FieldsParam::ENTITY_CODE_ARRIVAGE => [
+                ['code' => FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_BUYERS_ARRIVAGE, 'displayed' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_CHAUFFEUR_ARRIVAGE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_COMMENTAIRE_ARRIVAGE, 'displayed' => true, 'hidden' => true],
+                ['code' => FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_CARRIER_ARRIVAGE, 'displayed' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_PJ_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_PJ_ARRIVAGE, 'displayed' => true, 'hidden' => true],
+                ['code' => FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_PROVIDER_ARRIVAGE, 'displayed' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_TARGET_ARRIVAGE, 'displayed' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_PRINT_ARRIVAGE, 'displayed' => true, 'hidden' => true],
+                ['code' => FieldsParam::FIELD_CODE_NUM_BL_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_NUM_BL_ARRIVAGE, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE, 'displayed' => true],
+            ]
+        ];
+
+    	foreach ($listEntityFieldCodes as $fieldEntity => $listFieldCodes) {
+            foreach ($listFieldCodes as $fieldCode) {
+                $field = $this->fieldsParamRepository->findOneBy(
+                    [
+                        'fieldCode' => $fieldCode['code'],
+                        'entityCode' => $fieldEntity
+                    ]);
+                if (!$field) {
+                    $field = new FieldsParam();
+                    $field
+                        ->setEntityCode($fieldEntity)
+                        ->setFieldLabel($fieldCode['label'])
+                        ->setDisplayed($fieldCode['displayed'])
+                        ->setMustToModify($fieldCode['default'] ?? false)
+                        ->setMustToCreate($fieldCode['default'] ?? false)
+                        ->setFieldRequiredHidden($fieldCode['hidden'] ?? false)
+                        ->setFieldCode($fieldCode['code']);
+                    $manager->persist($field);
+                    $manager->flush();
+                    dump('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                } else {
+                    $field->setDisplayed(true);
+                }
+            }
+        }
 
         $manager->flush();
     }

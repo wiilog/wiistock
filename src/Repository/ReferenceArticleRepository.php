@@ -39,7 +39,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
         'Statut' => 'status',
-        'Code barre' => 'barCode'
+        'Code barre' => 'barCode',
+        'Date d\'alerte' => 'dateEmergencyTriggered',
+        'typeQuantite' => 'typeQuantite'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -938,11 +940,20 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $result ? $result[0]['barCode'] : null;
     }
 
-    public function getAlertDataByParams($params)
+    public function getAlertDataByParams($params, $filters)
     {
         $qb = $this->getDataAlert();
 
         $countTotal = count($qb->getQuery()->getResult());
+
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'type':
+                    $qb
+                        ->andWhere('ra.typeQuantite LIKE :type')
+                        ->setParameter('type', $filter['value']);
+            }
+        }
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
@@ -961,7 +972,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-
                     switch ($column) {
 						case 'quantiteStock':
 							$qb
@@ -1044,44 +1054,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.id,
                 ra.quantiteStock,
                 ra.limitSecurity,
-                ra.limitWarning')
+                ra.limitWarning,
+                ra.dateEmergencyTriggered,
+                ra.typeQuantite')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.typeQuantite = :qte_reference AND
-            (
-				(ra.limitSecurity IS NOT NULL AND ra.limitSecurity > 0 AND ra.quantiteStock <= ra.limitSecurity)
-            	 OR
-			 	(ra.limitWarning IS NOT NULL AND ra.limitWarning > 0 AND ra.quantiteStock <= ra.limitWarning)
-		  	)')
-            ->orWhere('ra.typeQuantite = :qte_article AND (
-				(
-					(SELECT SUM(art1.quantite)
-							FROM App\Entity\Article art1
-							JOIN art1.articleFournisseur af1
-							JOIN af1.referenceArticle refart1
-							JOIN art1.statut s1
-							WHERE s1.nom =:active AND refart1 = ra)
-							<= ra.limitWarning
-					AND ra.limitWarning IS NOT NULL
-					AND ra.limitWarning > 0
-				)
-				OR
-				(
-					(SELECT SUM(art2.quantite)
-							FROM App\Entity\Article art2
-							JOIN art2.articleFournisseur af2
-							JOIN af2.referenceArticle refart2
-							JOIN art2.statut s2
-							WHERE s2.nom =:active AND refart2 = ra)
-							<= ra.limitSecurity
-					AND ra.limitSecurity IS NOT NULL
-					AND ra.limitSecurity > 0
-				)
-			)')
-            ->setParameters([
-                'qte_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                'qte_article' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-                'active' => Article::STATUT_ACTIF
-            ]);
+            ->where('ra.dateEmergencyTriggered IS NOT NULL')
+            ->andWhere('ra.limitSecurity > 0')
+            ->andWhere('ra.limitWarning > 0');
         return $qb;
     }
 
@@ -1173,31 +1152,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        // TODO AB
-//        $exprBuilder = $queryBuilder->expr();
         return $queryBuilder
             ->join('referenceArticle.emplacement', 'emplacement')
             ->join('referenceArticle.statut', 'status')
             ->andWhere('emplacement.label = :location')
             ->andWhere('referenceArticle.barCode = :barCode')
-            ->andWhere('status.nom = :statusNom')
+            ->andWhere('status.nom = :activeStatus')
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
-//            ->andWhere(
-//                $exprBuilder->andX(
-//                    $exprBuilder->andX(
-//                        'referenceArticle.quantiteDisponible IS NOT NULL',
-//                        ' referenceArticle.quantiteDisponible > 0'
-//                    ),
-//                    $exprBuilder->orX(
-//                        'referenceArticle.quantiteReservee IS NULL',
-//                        'referenceArticle.quantiteReservee = 0',
-//                        '(referenceArticle.quantiteDisponible - referenceArticle.quantiteReservee) > 0'
-//                    )
-//                )
-//            )
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('statusNom', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF)
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
     }
 

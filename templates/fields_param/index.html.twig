@@ -5,15 +5,24 @@
 {% block page_content %}
 
     <h1>Paramétrage des champs fixes</h1>
-
-    <table id="tableFieldsParam" class="table table-striped table-bordered w-100">
-    </table>
-
+    {% for table in tables %}
+        <div class="row pt-2">
+            <a data-toggle="collapse" href="#{{ table }}" role="button" aria-expanded="false"
+               aria-controls="{{ table }}" class="col-12 mb-4">
+                <h1 class="btn btn-primary m-0 w-100 border-radius-light">Catégorie {{ table }}<i
+                        class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            </a>
+            <div class="collapse col-12" id="{{ table }}">
+                <table id="table{{ table }}" class="table table-striped table-bordered w-100">
+                </table>
+            </div>
+        </div>
+    {% endfor %}
     {% include 'fields_param/modalEditFields.html.twig' %}
 
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src = "{{ asset('js/fields_param.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="{{ asset('js/fields_param.js') }}?{{ date().timestamp }}"></script>
+    {% endblock %}

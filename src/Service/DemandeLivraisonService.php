@@ -162,17 +162,17 @@ class DemandeLivraisonService
         ];
     }
 
-    public function dataRowDemande($demande)
+    public function dataRowDemande(Demande $demande)
     {
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
         $row =
             [
-                'Date' => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
-                'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
-                'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
+                'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
+                'Demandeur' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : '',
+                'Numéro' => $demande->getNumero() ?? '',
                 'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
-                'Type' => ($demande->getType() ? $demande->getType()->getLabel() : ''),
+                'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
                 'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
                     [
                         'idDemande' => $idDemande,

@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Repository\FieldsParamRepository;
 use App\Service\UserService;
@@ -25,17 +26,19 @@ class FieldsParamController extends AbstractController
      * @param UserService $userService
      * @return RedirectResponse|Response
      */
-    public function index(UserService $userService)
+    public function index(UserService $userService, FieldsParamRepository $fieldsParamRepository)
     {
         if (!$userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('fields_param/index.html.twig', []);
+        return $this->render('fields_param/index.html.twig', [
+            'tables' => [FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::ENTITY_CODE_RECEPTION]
+        ]);
     }
 
     /**
-     * @Route("/api", name="fields_param_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api/{entityCode}", name="fields_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
      * @param FieldsParamRepository $fieldsParamRepository
@@ -43,14 +46,15 @@ class FieldsParamController extends AbstractController
      */
     public function api(Request $request,
                         UserService $userService,
-                        FieldsParamRepository $fieldsParamRepository): Response
+                        FieldsParamRepository $fieldsParamRepository,
+                        string $entityCode): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrayFields = $fieldsParamRepository->findAll();
+            $arrayFields = $fieldsParamRepository->getByEntityForEntity($entityCode);
             $rows = [];
             foreach ($arrayFields as $field) {
                 $url['edit'] = $this->generateUrl('fields_api_edit', ['id' => $field->getId()]);
@@ -58,7 +62,7 @@ class FieldsParamController extends AbstractController
                 $rows[] =
                     [
                         'entityCode' => $field->getEntityCode(),
-                        'fieldCode' => $field->getFieldCode(),
+                        'fieldCode' => $field->getFieldLabel(),
                         'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
                             'url' => $url,
                             'fieldId' => $field->getId(),
@@ -118,9 +122,12 @@ class FieldsParamController extends AbstractController
             $fieldName = $field->getFieldCode();
             $fieldEntity = $field->getEntityCode();
 
-            $field
-                ->setMustToCreate($data['mustToCreate'])
-                ->setMustToModify($data['mustToModify']);
+            if (!$field->getFieldRequiredHidden()) {
+                $field
+                    ->setMustToCreate($data['mustToCreate'])
+                    ->setDisplayed($data['displayed']);
+            }
+            $field->setDisplayed($data['displayed']);
 
             $entityManager->persist($field);
             $entityManager->flush();

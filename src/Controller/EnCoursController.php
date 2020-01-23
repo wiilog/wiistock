@@ -3,8 +3,6 @@
 
 namespace App\Controller;
 
-use App\Entity\MouvementTraca;
-
 use App\Repository\DaysWorkedRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\EmplacementRepository;
@@ -12,8 +10,10 @@ use App\Repository\EmplacementRepository;
 use App\Service\EnCoursService;
 
 use DateInterval;
+use DatePeriod;
 use DateTime as DateTimeAlias;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -125,12 +125,13 @@ class EnCoursController extends AbstractController
     }
 
 
-    /**
-     * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function apiForRetard(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
             $retards = [];
@@ -140,7 +141,7 @@ class EnCoursController extends AbstractController
                     if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                         //VERIFCECILE
                         $dateMvt = $mvt->getDatetime();
-                        $minutesBetween = $this->getMinutesBetween($mvt);
+                        $minutesBetween = $this->getMinutesBetween($dateMvt);
                         $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
                         //VERIFCECILE
                         if ($dataForTable['late']) {
@@ -174,7 +175,7 @@ class EnCoursController extends AbstractController
             ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
 
         $interval = DateInterval::createFromDateString('1 day');
-        $period = new \DatePeriod($dateMvt, $interval, $nowIncluding);
+        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;
         /**
          * @var $day DateTimeAlias

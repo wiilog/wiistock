@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method Litige|null find($id, $lockMode = null, $lockVersion = null)
@@ -18,6 +20,7 @@ class LitigeRepository extends ServiceEntityRepository
 	private const DtToDbLabels = [
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
+		'receptionNumber' => 'numeroReception',
 		'buyers' => 'acheteurs',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
@@ -111,12 +114,15 @@ class LitigeRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param string $dateMin
-	 * @param string $dateMax
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{
+		$dateMax = $dateMax->format('Y-m-d H:i:s');
+		$dateMin = $dateMin->format('Y-m-d H:i:s');
+
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
@@ -165,7 +171,7 @@ class LitigeRepository extends ServiceEntityRepository
 	 * @param array|null $params
 	 * @param array|null $filters
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function findByParamsAndFilters($params, $filters)
 	{
@@ -174,22 +180,30 @@ class LitigeRepository extends ServiceEntityRepository
 
 		$qb
 			->select('distinct(l.id) as id')
+			->from('App\Entity\Litige', 'l')
 			->addSelect('l.creationDate')
 			->addSelect('l.updateDate')
-			->addSelect('a.numeroArrivage')
-			->addSelect('t.label as type')
-			->addSelect('a.id as arrivageId')
-			->addSelect('s.nom as status')
-			->addSelect('lh.date as dateHisto')
-			->addSelect('ach.username as achUsername')
-			->from('App\Entity\Litige', 'l')
-            ->join('l.colis', 'c')
 			->leftJoin('l.type', 't')
+			->addSelect('t.label as type')
+			->leftJoin('l.status', 's')
+			->addSelect('s.nom as status')
+			->leftJoin('l.litigeHistorics', 'lh')
+			->addSelect('lh.date as dateHisto')
+			// litiges sur arrivage
+            ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
-			->leftJoin('l.litigeHistorics', 'lh')
 			->leftJoin('a.acheteurs', 'ach')
-			->leftJoin('l.status', 's');
+			->addSelect('ach.username as achUsername')
+			->addSelect('a.numeroArrivage')
+			->addSelect('a.id as arrivageId')
+			// litiges sur réceptions
+            ->leftJoin('l.articles', 'art')
+			->leftJoin('art.receptionReferenceArticle', 'rra')
+			->leftJoin('rra.reception', 'r')
+			->addSelect('r.numeroReception')
+			->addSelect('r.id as receptionId')
+		;
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -209,9 +223,10 @@ class LitigeRepository extends ServiceEntityRepository
 						->setParameter('transporteur', $filter['value']);
 					break;
 				case 'statut':
+					$value = explode(',', $filter['value']);
 					$qb
-						->andWhere('s.nom = :status')
-						->setParameter('status', $filter['value']);
+						->andWhere('s.id in (:statut)')
+						->setParameter('statut', $value);
 					break;
 				case 'type':
 					$qb
@@ -233,6 +248,13 @@ class LitigeRepository extends ServiceEntityRepository
 					$qb
 						->andWhere('l.creationDate <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
+				case 'litigeOrigin':
+					if ($filter['value'] == Litige::ORIGIN_RECEPTION) {
+						$qb->andWhere('r.id is not null');
+					} else if ($filter['value'] == Litige::ORIGIN_ARRIVAGE) {
+						$qb->andWhere('a.id is not null');
+					}
 					break;
 			}
 		}
@@ -276,6 +298,9 @@ class LitigeRepository extends ServiceEntityRepository
 					} else if ($column === 'numeroArrivage') {
 						$qb
 							->orderBy('a.numeroArrivage', $order);
+					} else if ($column === 'numeroReception') {
+						$qb
+							->orderBy('r.numeroReception', $order);
 					} else {
 						$qb
 							->orderBy('l.' . $column, $order);
