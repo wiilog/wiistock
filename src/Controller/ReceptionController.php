@@ -12,7 +12,6 @@ use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
 use App\Entity\Menu;
