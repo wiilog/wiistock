@@ -282,13 +282,13 @@ class LitigeRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('
+						->andWhere('(
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value
-						')
+						)')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -327,7 +327,6 @@ class LitigeRepository extends ServiceEntityRepository
 		}
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
-
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
