@@ -158,7 +158,8 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
+let redirectAfterArrival = $('#redirect').val();
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -200,58 +201,3 @@ $submitSearchArrivage.on('click', function () {
 
     saveFilters(filters, tableArrivage);
 });
-
-function generateCSVArrivage () {
-    loadSpinner($('#spinnerArrivage'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_arrivages_for_csv', true);
-
-        $.post(path, params, function(response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                aFile(csv);
-                hideSpinner($('#spinnerArrivage'));
-            }
-        }, 'json');
-
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerArrivage'))
-    }
-}
-
-let aFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-arrivage-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}

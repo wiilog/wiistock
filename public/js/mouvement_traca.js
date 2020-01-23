@@ -150,61 +150,6 @@ $submitSearchMvt.on('click', function () {
     saveFilters(filters, tableMvt);
 });
 
-function generateCSVMouvement () {
-    loadSpinner($('#spinnerMouvementTraca'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_mouvements_traca_for_csv', true);
-
-        $.post(path, params, function(response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                mFile(csv);
-                hideSpinner($('#spinnerMouvementTraca'));
-            }
-        }, 'json');
-
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerMouvementTraca'));
-    }
-}
-
-let mFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-mouvement-traca-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}
-
 let editorNewMvtTracaAlreadyDone = false;
 
 function initNewMvtTracaEditor(modal) {

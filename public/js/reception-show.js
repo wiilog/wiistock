@@ -424,29 +424,30 @@ function validatePacking($button) {
                 commande: selectedOption.commande
             },
             'text/html'
-        ).done(
-            function (html) {
-                const $html = $(html);
-                for (let index = 0; index < packageNumber; index++) {
-                    const $clonedHtml = $html.clone();
-                    const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
-                    ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
+        ).done(function (html) {
+            const $html = $(html);
+            const $lastContainerArticle = $packingContainer.find('.articles-conditionnement-container .conditionnement-article:last-child');
+            const lastIndex = $lastContainerArticle.length > 0 ? $lastContainerArticle.data('multiple-object-index') : -1;
+            const initIndex = lastIndex + 1;
+            for (let index = initIndex; index < (initIndex + packageNumber); index++) {
+                const $clonedHtml = $html.clone();
+                const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
+                ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
 
-                    const $containerArticle = $('<div/>', {
-                        class: 'conditionnement-article',
-                        'data-multiple-key': 'conditionnement',
-                        'data-multiple-object-index': index,
-                        html: $clonedHtml
-                    });
+                const $containerArticle = $('<div/>', {
+                    class: 'conditionnement-article',
+                    'data-multiple-key': 'conditionnement',
+                    'data-multiple-object-index': index,
+                    html: $clonedHtml
+                });
 
-                    $packingContainer
-                        .find('.articles-conditionnement-container')
-                        .append($containerArticle);
+                $packingContainer
+                    .find('.articles-conditionnement-container')
+                    .append($containerArticle);
 
-                    $packingContainer.find('.packing-title').removeClass('d-none');
-                }
+                $packingContainer.find('.packing-title').removeClass('d-none');
             }
-        )
+        })
     }
 }
 

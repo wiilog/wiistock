@@ -46,7 +46,13 @@
                 <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
                 <div
                         class="btn btn-primary"
-                        onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected()">
+
+                        {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
+                            onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
+                        {% else %}
+                            onclick="checkIfRowSelected(() => finishCollecte(true))"
+                        {% endif %}
+                        >
                     Finir la collecte
                 </div>
             {% endif %}

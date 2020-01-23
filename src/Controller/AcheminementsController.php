@@ -85,10 +85,7 @@ Class AcheminementsController extends AbstractController
 
         return $this->render('acheminements/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
-            'statuts' => [
-                ['nom' => Acheminements::STATUT_A_TRAITER],
-                ['nom' => Acheminements::STATUT_TRAITE]
-            ]
+			'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
         ]);
     }
 

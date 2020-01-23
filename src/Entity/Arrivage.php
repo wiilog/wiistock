@@ -11,7 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Arrivage
 {
-	const STATUS_CONFORME = 'conforme';
+    const STATUS_CONFORME = 'conforme';
+    const STATUS_RESERVE = 'reserve';
 	const STATUS_LITIGE = 'litige';
 
     /**
@@ -92,14 +93,14 @@ class Arrivage
     private $attachements;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $immatriculation;
-
-    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $isUrgent;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="arrivages")
+     */
+    private $statut;
 
 
     public function __construct()
@@ -423,18 +424,6 @@ class Arrivage
         return $this;
     }
 
-    public function getImmatriculation(): ?string
-    {
-        return $this->immatriculation;
-    }
-
-    public function setImmatriculation(?string $immatriculation): self
-    {
-        $this->immatriculation = $immatriculation;
-
-        return $this;
-    }
-
     public function getIsUrgent(): ?bool
     {
         return $this->isUrgent;
@@ -443,6 +432,18 @@ class Arrivage
     public function setIsUrgent(?bool $isUrgent): self
     {
         $this->isUrgent = $isUrgent;
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statut
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?Statut $statut): self
+    {
+        $this->statut = $statut;
 
         return $this;
     }
