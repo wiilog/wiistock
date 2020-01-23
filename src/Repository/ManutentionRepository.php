@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Manutention;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -46,7 +47,7 @@ class ManutentionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @Lang DQL */
-        "SELECT m.id, m.dateAttendue as date_attendue, d.username as demandeur, m.commentaire, m.source, m.destination
+        "SELECT m.id, m.dateAttendue as date_attendue, d.username as demandeur, m.commentaire, m.source, m.destination, m.libelle as objet
         FROM App\Entity\Manutention m
         JOIN m.demandeur d
         WHERE m.statut = :statut
@@ -85,6 +86,28 @@ class ManutentionRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Manutention[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT m
+            FROM App\Entity\Manutention m
+            WHERE m.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
 
 	public function findByParamAndFilters($params, $filters)
     {

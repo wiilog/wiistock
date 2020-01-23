@@ -35,7 +35,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
 			Menu::STOCK => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
 			Menu::REFERENTIEL => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
-			Menu::MANUT => [Action::LIST, Action::CREATE, Action::EDIT_DELETE],
+			Menu::MANUT => [Action::LIST, Action::CREATE, Action::EDIT_DELETE, Action::EXPORT],
 			Menu::PREPA => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
 			Menu::LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
 			Menu::COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
