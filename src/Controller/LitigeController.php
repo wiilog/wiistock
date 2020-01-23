@@ -23,6 +23,8 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\LitigeService;
 use App\Service\UserService;
+use DateTime;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +32,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
@@ -125,26 +128,31 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/arrivage/liste", name="litige_arrivage_index", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+	 * @param TranslatorInterface $translator
 	 * @return Response
 	 */
-    public function index()
+    public function index(TranslatorInterface $translator)
     {
         if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('litige/index_arrivages.html.twig',[
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+        return $this->render('litige/index.html.twig',[
+            'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+			'litigeOrigins' => [
+				Litige::ORIGIN_ARRIVAGE => $translator->trans('arrivage.arrivage'),
+				Litige::ORIGIN_RECEPTION => $translator->trans('réception.réception')
+			],
 		]);
     }
 
 	/**
-	 * @Route("/arrivage/api", name="litige_arrivage_api", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST")
 	 */
-    public function apiArrivage(Request $request) {
+    public function api(Request $request) {
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
 				return $this->redirectToRoute('access_denied');
@@ -158,14 +166,19 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/arrivage-infos", name="get_litiges_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @Route("/arrivage-infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @throws Exception
 	 */
-	public function getLitigesArrivageIntels(Request $request): Response
+	public function getLitigesIntels(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = new \DateTime(str_replace('/', '-', $data['dateMin']) . ' 00:00:00', new \DateTimeZone("Europe/Paris"));
-            $dateMax = new \DateTime(str_replace('/', '-', $data['dateMax']) . ' 23:59:59', new \DateTimeZone("Europe/Paris"));
-			$litiges = $this->litigeRepository->findByDates($dateMin, $dateMax);
+			$dateMin = $data['dateMin'] . ' 00:00:00';
+			$dateMax = $data['dateMax'] . ' 23:59:59';
+
+			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+			$litiges = $this->litigeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [];
 			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage', 'date commentaire', 'utilisateur', 'commentaire']);
@@ -289,7 +302,7 @@ class LitigeController extends AbstractController
      * @param Request $request
      * @param Litige $litige
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function addComment(Request $request, Litige $litige): Response
     {
@@ -299,7 +312,7 @@ class LitigeController extends AbstractController
             $litigeHisto
                 ->setLitige($litige)
                 ->setUser($this->getUser())
-                ->setDate(new \DateTime('now'))
+                ->setDate(new DateTime('now'))
                 ->setComment($data);
             $em->persist($litigeHisto);
             $em->flush();

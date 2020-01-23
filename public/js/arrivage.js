@@ -4,46 +4,14 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#statut', 'Type');
+    initSelect2('#statut', 'Statut');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
 
     $.post(path, params, function (data) {
-        data.forEach(function (element) {
-            if (element.field == 'utilisateurs') {
-                let values = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-            } else if (element.field == 'providers') {
-                let values = element.value.split(',');
-                let $providers = $('#providers');
-                values.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let name = valueArray[1];
-                    let option = new Option(name, id, true, true);
-                    $providers.append(option).trigger('change');
-                });
-            } else if (element.field == 'emergency') {
-                if (element.value === '1') {
-                    $('#urgence-filter').attr('checked', 'checked');
-                }
-            } else if (element.field == 'dateMin' || element.field == 'dateMax') {
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            } else if (element.field == 'statut') {
-                $('#statut').val(element.value).select2();
-            } else {
-                $('#' + element.field).val(element.value);
-            }
-        });
+        displayFiltersSup(data);
         initFilterDateToday();
     }, 'json');
 
@@ -158,7 +126,8 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage);
+let redirectAfterArrival = $('#redirect').val();
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -200,58 +169,3 @@ $submitSearchArrivage.on('click', function () {
 
     saveFilters(filters, tableArrivage);
 });
-
-function generateCSVArrivage () {
-    loadSpinner($('#spinnerArrivage'));
-    let data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            data[$(this).attr('name')] = $(this).val();
-        }
-    });
-
-    if (data['dateMin'] && data['dateMax']) {
-        moment(data['dateMin'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        moment(data['dateMax'], 'DD/MM/YYYY').format('YYYY-MM-DD');
-        let params = JSON.stringify(data);
-        let path = Routing.generate('get_arrivages_for_csv', true);
-
-        $.post(path, params, function(response) {
-            if (response) {
-                let csv = "";
-                $.each(response, function (index, value) {
-                    csv += value.join(';');
-                    csv += '\n';
-                });
-                aFile(csv);
-                hideSpinner($('#spinnerArrivage'));
-            }
-        }, 'json');
-
-    } else {
-        warningEmptyDatesForCsv();
-        hideSpinner($('#spinnerArrivage'))
-    }
-}
-
-let aFile = function (csv) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-arrivage-' + date + '.csv';
-    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
-    } else {
-        let link = document.createElement("a");
-        if (link.download !== undefined) {
-            let url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-}

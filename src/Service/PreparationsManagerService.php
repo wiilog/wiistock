@@ -254,8 +254,8 @@ class PreparationsManagerService {
 		}
     }
 
-    public function deleteLigneRefOrNot(LigneArticle $ligne) {
-        if ($ligne && 0 === $ligne->getQuantite()) {
+    public function deleteLigneRefOrNot(?LigneArticle $ligne) {
+        if ($ligne && $ligne->getQuantite() === 0) {
             $this->entityManager->remove($ligne);
         }
     }

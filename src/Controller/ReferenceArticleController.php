@@ -43,8 +43,8 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -55,6 +55,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -1287,38 +1290,56 @@ class ReferenceArticleController extends AbstractController
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $data = json_decode($request->getContent(), true);
-        $barcodes = $barcodeLabels = [];
+
+        /** @var ReferenceArticle[] $refs */
         $refs = array_slice($refs, $data['start'] ,$data['length']);
 
-        /** @var ReferenceArticle $ref */
-        foreach ($refs as $ref) {
-            $barcodes[] = $ref->getBarCode();
-            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
-				'refRef' => $ref->getReference(),
-				'refLabel' =>$ref->getLibelle(),
-			]);
-        }
+        $refArticleDataService = $this->refArticleDataService;
+        $barcodeInformations = array_reduce(
+            $refs,
+            function (array $acc, ReferenceArticle $referenceArticle) use ($refArticleDataService) {
+                $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
+                $acc['barcodes'][] = $refBarcodeInformations['barcode'];
+                $acc['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
+                return $acc;
+            },
+            ['barcodes' => [], 'barcodeLabels' => []]
+        );
 
         if ($request->isXmlHttpRequest()) {
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $tags['height'] = $dimension->getHeight();
-                $tags['width'] = $dimension->getWidth();
-                $tags['exists'] = true;
-            } else {
-                $tags['height'] = $tags['width'] = 0;
-                $tags['exists'] = false;
-            }
-
-            $data  = [
-            	'tags' => $tags,
-				'barcodes' => $barcodes,
-				'barcodeLabels' => $barcodeLabels,
+            $data = [
+            	'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+				'barcodes' => $barcodeInformations['barcodes'],
+				'barcodeLabels' => $barcodeInformations['barcodeLabels'],
 			];
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+    /**
+     * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getArticleRefFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $ref = $this->referenceArticleRepository->find(intval($dataContent['article']));
+            $barcodeInformations = $this->refArticleDataService->getBarcodeInformations($ref);
+            $data  = [
+                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'barcodes' => [$barcodeInformations['barcode']],
+                'barcodeLabels' => [$barcodeInformations['barcodeLabel']],
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**

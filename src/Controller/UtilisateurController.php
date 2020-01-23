@@ -392,9 +392,8 @@ class UtilisateurController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $fournisseur = $this->utilisateurRepository->getIdAndLibelleBySearch($search);
-
-            return new JsonResponse(['results' => $fournisseur]);
+            $user = $this->utilisateurRepository->getIdAndLibelleBySearch($search);
+            return new JsonResponse(['results' => $user]);
         }
         throw new NotFoundHttpException("404");
     }

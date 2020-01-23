@@ -7,20 +7,24 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\FieldsParam;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
+use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\NatureRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -30,20 +34,26 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
+use App\Service\ColisService;
 use App\Service\DashboardService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -116,9 +126,9 @@ class ArrivageController extends AbstractController
      */
     private $attachmentService;
 
-	/**
-	 * @var ArrivageDataService
-	 */
+    /**
+     * @var ArrivageDataService
+     */
     private $arrivageDataService;
 
     /**
@@ -155,8 +165,14 @@ class ArrivageController extends AbstractController
      */
     private $dashboardService;
 
-    public function __construct(ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var FieldsParamRepository
+     */
+    private $fieldsParamsRepository;
+
+    public function __construct(FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->fieldsParamsRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
@@ -182,26 +198,37 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/", name="arrivage_index")
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
-    public function index()
+    public function index(ParametrageGlobalRepository $parametrageGlobalRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+        $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+
         return $this->render('arrivage/index.html.twig', [
             'transporteurs' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),
-            'statuts' => [
-                ['nom' => Arrivage::STATUS_CONFORME],
-                ['nom' => Arrivage::STATUS_LITIGE]
-            ],
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+            'fieldsParam' => $fieldsParam,
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre()
         ]);
     }
 
     /**
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
@@ -221,9 +248,16 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param ColisService $colisService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
      */
-    public function new(Request $request): Response
-    {
+    public function new(Request $request,
+                        ParametrageGlobalRepository $parametrageGlobalRepository,
+                        ColisService $colisService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -232,13 +266,14 @@ class ArrivageController extends AbstractController
             $post = $request->request;
             $em = $this->getDoctrine()->getManager();
 
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
 
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
+                ->setStatut($this->statutRepository->find($post->get('statut')))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($post->get('commentaire') ?? null);
@@ -249,20 +284,20 @@ class ArrivageController extends AbstractController
             if (!empty($transporteur = $post->get('transporteur'))) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-			if (!empty($chauffeur = $post->get('chauffeur'))) {
+            if (!empty($chauffeur = $post->get('chauffeur'))) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-			if (!empty($noTracking = $post->get('noTracking'))) {
+            if (!empty($noTracking = $post->get('noTracking'))) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-			if (!empty($noBL = $post->get('noBL'))) {
+            if (!empty($noBL = $post->get('noBL'))) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-			if (!empty($destinataire = $post->get('destinataire'))) {
+            if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			if (!empty($post->get('acheteurs'))) {
-			    $acheteursId = explode(',', $post->get('acheteurs'));
+            if (!empty($post->get('acheteurs'))) {
+                $acheteursId = explode(',', $post->get('acheteurs'));
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
                 }
@@ -271,46 +306,29 @@ class ArrivageController extends AbstractController
             $em->persist($arrivage);
             $em->flush();
 
-			$this->attachmentService->addAttachements($request->files, $arrivage);
-			if ($arrivage->getNumeroBL()) {
+            $this->attachmentService->addAttachements($request->files, $arrivage);
+            if ($arrivage->getNumeroBL()) {
                 $urgences = $this->urgenceRepository->countByArrivageData($arrivage);
                 if (intval($urgences) > 0) {
                     $arrivage->setIsUrgent(true);
                 }
             }
             $em->flush();
-			$arrivageNum = $arrivage->getNumeroArrivage();
+            $arrivageNum = $arrivage->getNumeroArrivage();
 
             $codes = [];
 
-			$natures = json_decode($post->get('nature'), true);
+            $natures = json_decode($post->get('nature'), true);
 
-			$checkNatures = $this->natureRepository->countAll();
-			if ($checkNatures != 0) {
+            $checkNatures = $this->natureRepository->countAll();
+            if ($checkNatures != 0) {
                 foreach ($natures as $natureArray) {
                     $nature = $this->natureRepository->find($natureArray['id']);
 
                     for ($i = 0; $i < $natureArray['val']; $i++) {
-
-                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                        if ($highestCode) {
-                            $highestCodeArray = explode('-', $highestCode);
-                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-                        } else {
-                            $highestCounter = 0;
-                        }
-
-                        $newCounter = sprintf('%05u', $highestCounter + 1);
-
-                        $colis = new Colis();
-                        $code = $arrivageNum . '-' . $newCounter;
-                        $colis
-                            ->setCode($code)
-                            ->setNature($nature)
-                            ->setArrivage($arrivage);
-                        $em->persist($colis);
+                        $colis = $colisService->persistColis($arrivage, $nature);
                         $em->flush();
-                        $codes[] = $code;
+                        $codes[] = $colis->getCode();
                     }
                 }
             }
@@ -324,10 +342,12 @@ class ArrivageController extends AbstractController
                 $printArrivage = true;
             }
 
+            $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+
             $data = [
-                "redirect" => $this->generateUrl('arrivage_show', [
-                    'id' => $arrivage->getId(),
-                ]),
+                "redirect" => $paramGlobalRedirectAfterNewArrivage->getParametre()
+                    ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
+                    : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
             ];
@@ -352,7 +372,7 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
-
+            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -361,7 +381,9 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+                    'fieldsParam' => $fieldsParam
                 ]);
             } else {
                 $html = '';
@@ -390,33 +412,35 @@ class ArrivageController extends AbstractController
             if (!empty($commentaire = $post->get('commentaire'))) {
                 $arrivage->setCommentaire($commentaire);
             }
-			if (!empty($fournisseur = $post->get('fournisseur'))) {
+            if (!empty($fournisseur = $post->get('fournisseur'))) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-			if (!empty($transporteur = $post->get('transporteur'))) {
+            if (!empty($transporteur = $post->get('transporteur'))) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-			if (!empty($chauffeur = $post->get('chauffeur'))) {
+            if (!empty($chauffeur = $post->get('chauffeur'))) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-			if (!empty($noTracking = $post->get('noTracking'))) {
+            if (!empty($noTracking = $post->get('noTracking'))) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-			if (!empty($noBL = $post->get('noBL'))) {
+            if (!empty($statutId = $post->get('statut'))) {
+                $arrivage->setStatut($this->statutRepository->find($statutId));
+            }
+            if (!empty($noBL = $post->get('noBL'))) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-			if (!empty($destinataire = $post->get('destinataire'))) {
+            if (!empty($destinataire = $post->get('destinataire'))) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-			$acheteurs = $post->get('acheteurs');
+            $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...
             $existingAcheteurs = $arrivage->getAcheteurs();
 
             foreach ($existingAcheteurs as $existingAcheteur) {
                 $arrivage->removeAcheteur($existingAcheteur);
             }
-            if (!empty($acheteurs))
-            {
+            if (!empty($acheteurs)) {
                 // ... et on ajoute ceux sélectionnés
                 $listAcheteurs = explode(',', $acheteurs);
                 foreach ($listAcheteurs as $acheteur) {
@@ -426,7 +450,7 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
-			$listAttachmentIdToKeep = $post->get('files') ?? [];
+            $listAttachmentIdToKeep = $post->get('files') ?? [];
 
             $attachments = $arrivage->getAttachements()->toArray();
             foreach ($attachments as $attachment) {
@@ -438,11 +462,12 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
             $em->flush();
-
+            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
+                    'fieldsParam' => $fieldsParam
                 ]),
             ];
             return new JsonResponse($response);
@@ -543,8 +568,8 @@ class ArrivageController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-    	//TODO HM getId ?
-		$acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        //TODO HM getId ?
+        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -569,7 +594,7 @@ class ArrivageController extends AbstractController
             $response = '';
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
-            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN);
+            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_CS);
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();
@@ -604,21 +629,12 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $arrivage = $data;
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
-
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-            {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['height'] = $response['width'] = 0;
-                $response['exists'] = false;
-            }
-            $responseData = array('response' => $response, 'codeColis' => $codeColis);
+            $responseData = array(
+                'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'codeColis' => $codeColis
+            );
             return new JsonResponse($responseData);
 
         } else {
@@ -628,20 +644,13 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+     * @param Request $request
+     * @return JsonResponse
      */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['height'] = $response['width'] = 0;
-                $response['exists'] = false;
-            }
-
+            $response = $this->dimensionsEtiquettesRepository->getDimensionArray();
             return new JsonResponse($response);
 
         } else {
@@ -698,11 +707,11 @@ class ArrivageController extends AbstractController
     public function getArrivageIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
             $arrivages = $this->arrivageRepository->findByDates($dateTimeMin, $dateTimeMax);
 
@@ -731,7 +740,7 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getStatus();
+                $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
@@ -744,14 +753,14 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @param bool $printColis
-	 * @param bool $printArrivage
-	 * @return JsonResponse
-	 * @throws NonUniqueResultException
-	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-	 */
+    /**
+     * @param Arrivage $arrivage
+     * @param bool $printColis
+     * @param bool $printArrivage
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
@@ -762,7 +771,7 @@ class ArrivageController extends AbstractController
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
-
+        $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -770,10 +779,11 @@ class ArrivageController extends AbstractController
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
-				'natures' => $this->natureRepository->findAll(),
-				'printColis' => $printColis,
-				'printArrivage' => $printArrivage,
-				'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
+                'natures' => $this->natureRepository->findAll(),
+                'printColis' => $printColis,
+                'printArrivage' => $printArrivage,
+                'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
+                'fieldsParam' => $fieldsParam
             ]);
     }
 
@@ -795,14 +805,17 @@ class ArrivageController extends AbstractController
                 ->setStatus($this->statutRepository->find($post->get('statutLitige')))
                 ->setType($this->typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new DateTime('now'));
-
+            $arrivage = null;
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
                     $litige->addColi($this->colisRepository->find($colisId));
+                    $arrivage = $this->colisRepository->find($colisId)->getArrivage();
                 }
             }
-
+            if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
+            }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();
             $statutNom = $litige->getStatus()->getNom();
@@ -811,7 +824,7 @@ class ArrivageController extends AbstractController
             $userComment = trim($post->get('commentaire'));
             $nl = !empty($userComment) ? "\n" : '';
             $trimmedTypeDescription = !empty($trimmedTypeDescription) ? "\n" . $trimmedTypeDescription : '';
-            $commentaire = $userComment . $nl . 'Type à la création -> '. $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
+            $commentaire = $userComment . $nl . 'Type à la création -> ' . $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
             if (!empty($commentaire)) {
                 $histo = new LitigeHistoric();
                 $histo
@@ -860,10 +873,12 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param ColisService $colisService
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function addColis(Request $request)
+    public function addColis(Request $request, ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
@@ -881,41 +896,14 @@ class ArrivageController extends AbstractController
                 if (gettype($natureId) === 'integer') {
                     $nature = $this->natureRepository->find($natureId);
                     for ($i = 0; $i < $data[$natureId]; $i++) {
-                        $arrivageNum = $arrivage->getNumeroArrivage();
-                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                        if ($highestCode) {
-                            $highestCodeArray = explode('-', $highestCode);
-                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-                        } else {
-                            $highestCounter = 0;
-                        }
-
-                        $newCounter = sprintf('%05u', $highestCounter + 1);
-
-                        $colis = new Colis();
-                        $code = $arrivageNum . '-' . $newCounter;
-                        $colis
-                            ->setCode($code)
-                            ->setNature($nature)
-                            ->setArrivage($arrivage);
-                        $em->persist($colis);
+                        $colis = $colisService->persistColis($arrivage, $nature);
                         $em->flush();
-
-                        $codes[] = $code;
+                        $codes[] = $colis->getCode();
                     }
                 }
             }
 
-            $response = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
-
+            $response = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 
@@ -1146,8 +1134,8 @@ class ArrivageController extends AbstractController
                 /** @var $colis Colis */
                 $mouvement = $this->mouvementTracaRepository->getLastByColis($colis->getCode());
                 $rows[] = [
-					'nature' => $colis->getNature() ? $colis->getNature()->getLabel() : '',
-					'code' => $colis->getCode(),
+                    'nature' => $colis->getNature() ? $colis->getNature()->getLabel() : '',
+                    'code' => $colis->getCode(),
                     'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
                     'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                     'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',

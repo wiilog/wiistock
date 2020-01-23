@@ -200,7 +200,6 @@ class ManutentionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            dump(intval($data['statut']));
             $manutention = $this->manutentionRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, $statutLabel);

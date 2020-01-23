@@ -5,10 +5,14 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Repository\FiltreSupRepository;
 use App\Repository\LitigeRepository;
+use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class LitigeService
 {
@@ -61,11 +65,11 @@ class LitigeService
 	/**
 	 * @param array|null $params
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE_ARR, $this->security->getUser());
+		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE, $this->security->getUser());
 
 		$queryResult = $this->litigeRepository->findByParamsAndFilters($params, $filters);
 
@@ -86,9 +90,9 @@ class LitigeService
 	/**
 	 * @param array $litige
 	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
     public function dataRowLitige($litige)
     {
@@ -98,19 +102,18 @@ class LitigeService
 		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 		$row = [
-			'type' => $litige['type'] ?? '',
-			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
-			'buyers' => implode(', ', $acheteursUsernames),
-			'provider' => $litige['provider'] ?? '',
-			'carrier' => $litige['carrier'] ?? '',
-			'lastHistoric' => $lastHistoricStr,
-			'status' => $litige['status'] ?? '',
-			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
-			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
 			'actions' => $this->templating->render('litige/datatableLitigesArrivageRow.html.twig', [
 				'litigeId' => $litige['id'],
 				'arrivageId' => $litige['arrivageId']
-			])
+			]),
+			'type' => $litige['type'] ?? '',
+			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
+			'buyers' => implode(', ', $acheteursUsernames),
+			'receptionNumber' => $litige['numeroReception'] ?? '',
+			'lastHistoric' => $lastHistoricStr,
+			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
+			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
+			'status' => $litige['status'] ?? '',
 		];
         return $row;
     }

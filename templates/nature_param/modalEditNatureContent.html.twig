@@ -15,5 +15,13 @@
             <input type="text" class="data form-control needed" name="code" value="{{ nature.code }}">
         </div>
 
+        <div class="mb-3 form-group col-12">
+            <label for="code">Quantité par défaut*</label>
+            <input type="text" class="data form-control needed" name="quantity" value="{{ nature.defaultQuantity ? nature.defaultQuantity : '' }}">
+        </div>
+        <div class="mb-3 form-group col-12">
+            <label for="code">Préfixe*</label>
+            <input type="text" class="data form-control needed" name="prefix" value="{{ nature.prefix ? nature.prefix : '' }}">
+        </div>
     </div>
 </form>

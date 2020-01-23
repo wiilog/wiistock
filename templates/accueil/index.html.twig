@@ -12,37 +12,41 @@
             <div class="row justify-content-end">
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('collecte', '{{ constant('App\\Entity\\Collecte::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeCollecte }}</span>
-                            <span class="bold"> demandes de collecte à traiter</span>
+                            {% set s = nbDemandeCollecte > 1 ? 's' : '' %}
+                            <span class="bold"> demande{{ s }} de collecte à traiter</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('livraison', '{{ status.DLtoTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonAT }}</span>
-                            <span class="bold"> demandes de livraison à traiter</span>
+                            {% set s = nbDemandeLivraisonAT > 1 ? 's' : '' %}
+                            <span class="bold"> demande{{ s }} de livraison à traiter</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('livraison', '{{ constant('App\\Entity\\Demande::STATUT_PREPARE') }}')">
+                       onclick="goToFilteredDemande('livraison', '{{ status.DLincomplete }}, {{ status.DLprepared }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonP }}</span>
-                            <span class="bold"> demandes de livraison préparées</span>
+                            {% set s = nbDemandeLivraisonP > 1 ? 's' : '' %}
+                            <span class="bold"> demande{{ s }} de livraison préparée{{ s }}</span>
                         </p>
                     </a>
                 </div>
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
-                       onclick="goToFilteredDemande('manutention', '{{ constant('App\\Entity\\Manutention::STATUT_A_TRAITER') }}')">
+                       onclick="goToFilteredDemande('manutention', '{{ status.MToTreat }}')">
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbDemandeManutentionAT }}</span>
-                            <span class="bold"> demandes de manutention à traiter</span>
+                            {% set s = nbDemandeManutentionAT > 1 ? 's' : '' %}
+                            <span class="bold"> demande{{ s }} de manutention à traiter</span>
                         </p>
                     </a>
                 </div>
@@ -51,7 +55,7 @@
                     <a href={{ path('alerte_index', {'filter': 'active'}) }}>
                         <p>
                             <span class="badge badge-secondary font-size-100">{{ nbAlerts }}</span>
-                            <span class="bold"> alertes de seuil</span>
+                            <span class="bold"> alerte{{ s }} de seuil</span>
                         </p>
                     </a>
                 </div>

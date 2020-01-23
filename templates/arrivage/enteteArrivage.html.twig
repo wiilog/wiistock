@@ -35,37 +35,54 @@
 </div>
 
 <div class="row">
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
     <div class="col-4">
         <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
     <div class="col-4">
         <p><strong>Transporteur :</strong> {{ arrivage.transporteur ? arrivage.transporteur.label : "" }}</p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
     <div class="col-4">
         <p><strong>Chauffeur :</strong> <span>{{ arrivage.chauffeur ? arrivage.chauffeur.nom : "" }}</span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
     <div class="col-4">
         <p><strong>N°tracking transporteur :</strong> <span>{{ arrivage.notracking }}</span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
     <div class="col-4">
         <p><strong>N°commande / BL :</strong> <span>{{ arrivage.numerobl ? arrivage.numerobl : "" }}</span></p>
     </div>
     <div class="col-4">
-        <p><strong>Statut :</strong> <span>{{ arrivage.status }}</span></p>
+        <p><strong>Statut :</strong> <span>{{ arrivage.statut }}</span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="col-4">
         <p><strong>Destinataire :</strong> <span>{{ arrivage.destinataire ? arrivage.destinataire.username : '' }}</span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="col-4">
         <p><strong>Acheteurs :</strong>
             {{ arrivage.acheteurs|join(', ') }}
         </p>
     </div>
+    {% endif %}
 </div>
 <div class="row">
+    {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
     <div class="col-8">
         <p><strong>Commentaire :</strong> <span>{{ arrivage.commentaire | raw}} </span></p>
     </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
     <div class="col-4">
         <p><strong>Pièces jointes :</strong><br>
         {% for attachement in arrivage.attachements %}
@@ -75,4 +92,5 @@
         {% endfor %}
         </p>
     </div>
+    {% endif %}
 </div>

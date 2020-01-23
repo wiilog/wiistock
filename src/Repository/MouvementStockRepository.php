@@ -31,9 +31,13 @@ class MouvementStockRepository extends ServiceEntityRepository
 		'operateur' => 'user',
 	];
 
-    public function __construct(ManagerRegistry $registry)
+	private $statutRepository;
+
+    public function __construct(ManagerRegistry $registry, StatutRepository $statutRepository)
     {
         parent::__construct($registry, MouvementStock::class);
+
+        $this->statutRepository = $statutRepository;
     }
 
     public function countByEmplacement($emplacementId)
@@ -375,14 +379,15 @@ class MouvementStockRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'statut':
+					$type = $this->statutRepository->find($filter['value']);
 					$qb
 						->andWhere('m.type = :type')
-						->setParameter('type', $filter['value']);
+						->setParameter('type', $type->getNom());
 					break;
 				case 'emplacement':
 					$qb
-						->join('m.emplacementFrom', 'ef')
-						->join('m.emplacementTo', 'et')
+						->leftJoin('m.emplacementFrom', 'ef')
+						->leftJoin('m.emplacementTo', 'et')
 						->andWhere('ef.label = :location OR et.label = :location')
 						->setParameter('location', $filter['value']);
 					break;

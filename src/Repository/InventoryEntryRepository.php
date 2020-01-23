@@ -116,12 +116,13 @@ class InventoryEntryRepository extends ServiceEntityRepository
 					$qb->andWhere('ie.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
-				case 'colis':
-					$value = explode(',', $filter['value']);
-					$qb->join('ie.refArticle', 'ra')
-						->andWhere('ra.id = :reference')
-						->setParameter('reference', $value);
-					break;
+				case 'reference':
+					$value = explode(':', $filter['value']);
+					$qb
+						->leftJoin('ie.refArticle', 'ra')
+						->leftJoin('ie.article', 'a')
+						->andWhere('ra.reference = :reference OR a.reference = :reference')
+						->setParameter('reference', $value[1]);
 			}
 		}
 

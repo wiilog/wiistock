@@ -29,6 +29,30 @@ class FieldsParam
     const FIELD_LABEL_NUM_RECEPTION = 'numéro de réception';
 	const FIELD_LABEL_TRANSPORTEUR = 'transporteur';
 
+	const ENTITY_CODE_ARRIVAGE = 'arrivage';
+
+    const FIELD_CODE_PROVIDER_ARRIVAGE = 'fournisseur';
+    const FIELD_CODE_CARRIER_ARRIVAGE = 'transporteur';
+    const FIELD_CODE_CHAUFFEUR_ARRIVAGE = 'chauffeur';
+    const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
+    const FIELD_CODE_NUM_BL_ARRIVAGE = 'numeroBL';
+    const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
+    const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
+    const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
+    const FIELD_CODE_PJ_ARRIVAGE = 'pj';
+
+    const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
+    const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
+    const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
+    const FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE = 'numéro tracking transporteur';
+    const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande/ BL';
+    const FIELD_LABEL_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_LABEL_BUYERS_ARRIVAGE = 'acheteurs';
+    const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
+    const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
+    const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -60,6 +84,16 @@ class FieldsParam
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $mustToModify;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $displayed;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": false})
+     */
+    private $fieldRequiredHidden;
 
     public function getId(): ?int
     {
@@ -122,6 +156,30 @@ class FieldsParam
     public function setFieldLabel(string $fieldLabel): self
     {
         $this->fieldLabel = $fieldLabel;
+
+        return $this;
+    }
+
+    public function getDisplayed(): ?bool
+    {
+        return $this->displayed;
+    }
+
+    public function setDisplayed(?bool $displayed): self
+    {
+        $this->displayed = $displayed;
+
+        return $this;
+    }
+
+    public function getFieldRequiredHidden(): ?bool
+    {
+        return $this->fieldRequiredHidden;
+    }
+
+    public function setFieldRequiredHidden(?bool $fieldRequiredHidden): self
+    {
+        $this->fieldRequiredHidden = $fieldRequiredHidden;
 
         return $this;
     }
