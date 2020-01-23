@@ -129,7 +129,8 @@ class CollecteService
                 'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
                 'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
                 'Demandeur' => $collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : '',
-                'Objet' => $collecte->getObjet() ?? '',
+                'Demandeur' => $collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : '',
+                'Numero' => $collecte->getNumero() ?? '',
                 'Statut' => $collecte->getStatut()->getNom() ?? '',
                 'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
                 'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
