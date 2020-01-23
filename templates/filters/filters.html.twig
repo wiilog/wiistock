@@ -46,7 +46,7 @@
                 {% endfor %}
             </select>
         </div>
-        <input hidden id="filterStatus" value="{{ filterStatus }}">
+        <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">
     </div>
     {% endblock %}
 

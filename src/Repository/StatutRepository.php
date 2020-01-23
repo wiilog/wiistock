@@ -47,6 +47,31 @@ class StatutRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param string $categorieName
+     * @param bool $ordered
+     * @return Statut[]
+     */
+    public function findByCategorieNames($categorieNames, $ordered = false)
+    {
+        $em = $this->getEntityManager();
+
+        $dql = "SELECT s
+            FROM App\Entity\Statut s
+            JOIN s.categorie c
+            WHERE c.nom IN(:categorieNames)";
+
+        if ($ordered) {
+            $dql .= " ORDER BY s.displayOrder ASC";
+        }
+
+        $query = $em->createQuery($dql);
+
+        $query->setParameter("categorieNames", $categorieNames, Connection::PARAM_STR_ARRAY);
+
+        return $query->execute();
+    }
+
     public function findByName($name)
     {
         $em = $this->getEntityManager();

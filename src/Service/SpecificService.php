@@ -15,7 +15,7 @@ class SpecificService
 	const CLIENT_SAFRAN_CS = 'safran-cs';
 	const CLIENT_SAFRAN_ED = 'safran-ed';
 
-	public function isCurrentClientNameFunction(string $clientName)
+	public static function isCurrentClientNameFunction(string $clientName)
 	{
 		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}

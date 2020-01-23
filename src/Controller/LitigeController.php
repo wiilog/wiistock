@@ -139,13 +139,13 @@ class LitigeController extends AbstractController
         }
 
         return $this->render('litige/index.html.twig',[
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+            'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => [
 				Litige::ORIGIN_ARRIVAGE => $translator->trans('arrivage.arrivage'),
 				Litige::ORIGIN_RECEPTION => $translator->trans('réception.réception')
-			]
+			],
 		]);
     }
 
