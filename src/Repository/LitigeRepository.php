@@ -65,6 +65,23 @@ class LitigeRepository extends ServiceEntityRepository
         }, $query->execute());
     }
 
+    public function getAcheteursByLitigeIdForReception(int $litigeId, string $field = 'email') {
+        $em = $this->getEntityManager();
+
+        $sql = "SELECT DISTINCT acheteur.$field
+			FROM App\Entity\Litige litige
+			JOIN litige.buyers acheteur
+            WHERE litige.id = :litigeId";
+
+        $query = $em
+            ->createQuery($sql)
+            ->setParameter('litigeId', $litigeId);
+
+        return array_map(function($utilisateur) use ($field) {
+            return $utilisateur[$field];
+        }, $query->execute());
+    }
+
 	public function getAllWithArrivageData()
 	{
 		$em = $this->getEntityManager();

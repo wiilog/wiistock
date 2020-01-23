@@ -98,7 +98,9 @@ class LitigeService
     {
     	$litigeId = $litige['id'];
 		$acheteursUsernames = $this->litigeRepository->getAcheteursByLitigeId($litigeId, 'username');
-
+		if (count($acheteursUsernames) === 0 ) {
+            $acheteursUsernames = $this->litigeRepository->getAcheteursByLitigeIdForReception($litigeId, 'username');
+        }
 		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 		$row = [
