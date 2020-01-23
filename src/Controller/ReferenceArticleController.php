@@ -43,6 +43,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,6 +55,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -1316,6 +1320,12 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function getArticleRefFromId(Request $request): Response
     {
@@ -1324,8 +1334,8 @@ class ReferenceArticleController extends AbstractController
             $barcodeInformations = $this->refArticleDataService->getBarcodeInformations($ref);
             $data  = [
                 'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
-                'barcodes' => $barcodeInformations['barcode'],
-                'barcodeLabels' => $barcodeInformations['barcodeLabel'],
+                'barcodes' => [$barcodeInformations['barcode']],
+                'barcodeLabels' => [$barcodeInformations['barcodeLabel']],
             ];
             return new JsonResponse($data);
         }

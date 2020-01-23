@@ -880,7 +880,7 @@ class ArticleController extends AbstractController
             $article = $articles[$wantedIndex];
             $data['articleRef'] = $articleDataService->getBarcodeInformations([
                 'barcode' => $article['barcode'],
-                'refRef' => $article['refRef'],
+                'refReference' => $article['refRef'],
                 'refLabel' => $article['refLabel'],
                 'artLabel' => $article['artLabel'],
                 'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
@@ -1002,7 +1002,7 @@ class ArticleController extends AbstractController
 
                 $barcodeInformations = $articleDataService->getBarcodeInformations([
                     'barcode' => $article['barcode'],
-                    'refRef' => $article['refRef'],
+                    'refReference' => $article['refRef'],
                     'refLabel' => $article['refLabel'],
                     'artLabel' => $article['artLabel'],
                     'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))

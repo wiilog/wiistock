@@ -1509,7 +1509,7 @@ class ReceptionController extends AbstractController
                         $articleArray = $articles[$wantedIndex];
                         $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
                             'barcode' => $article->getBarCode(),
-                            'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            'refReference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                             'artLabel' => $article->getLabel(),
                             'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
@@ -1769,7 +1769,7 @@ class ReceptionController extends AbstractController
 
                 $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
                     'barcode' => $createdArticle->getBarCode(),
-                    'refRef' => $refArticle ? $refArticle->getReference() : '',
+                    'refReference' => $refArticle ? $refArticle->getReference() : '',
                     'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
                     'artLabel' => $createdArticle->getLabel(),
                     'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
