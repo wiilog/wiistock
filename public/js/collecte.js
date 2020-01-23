@@ -33,7 +33,7 @@ let table = $('#tableCollecte_id').DataTable({
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
         {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'Numero', 'name': 'Numero', 'title': 'Numéro'},
+        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
         {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
