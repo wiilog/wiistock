@@ -84,21 +84,49 @@ let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
 InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
-    let path = Routing.generate('litige_api_edit', true);
+function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId) {
+    let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
+    let path = Routing.generate(route, true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
-        arrivageId: arrivageId
     };
+
+    if (isArrivage) {
+        params.arrivageId = arrivageOrReceptionId;
+    } else {
+        params.reception = arrivageOrReceptionId;
+    }
 
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('#colisEditLitige').val(data.colis).select2();
-        afterLoadingEditModal()
+
+        if (isArrivage) {
+            modal.find('#colisEditLitige').val(data.colis).select2();
+        } else {
+            ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
+
+            let values = [];
+            data.colis.forEach(val => {
+                values.push({
+                    id: val.id,
+                    text: val.text
+                })
+            });
+            values.forEach(value => {
+                $('#colisEditLitige').select2("trigger", "select", {
+                    data: value
+                });
+            });
+
+            modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
+        }
+
+        afterLoadingEditModal();
+
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);

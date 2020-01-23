@@ -535,8 +535,9 @@ function ajaxAutoArticlesInit (select) {
     initSelect2Ajax(select, 'get_articles', {activeOnly:1});
 }
 
-function ajaxAutoArticlesReceptionInit(select) {
-    initSelect2Ajax(select, 'get_article_reception', 0, {reception: $('#receptionId').val()});
+function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
+    let reception = receptionId ? receptionId : $('#receptionId').val();
+    initSelect2Ajax(select, 'get_article_reception', 0, {reception: reception});
 }
 
 function ajaxAutoFournisseurInit(select, placeholder = '') {

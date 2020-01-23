@@ -181,7 +181,7 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
+function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
