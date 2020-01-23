@@ -131,12 +131,18 @@ class PreparationsManagerService {
         $demande = $demandes[0];
         $livraison->addDemande($demande);
         foreach ($demande->getLigneArticle() as $ligneArticle) {
-            if ($ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $refQuantitePrelevee = $ligneArticle->getQuantitePrelevee();
+            if (isset($refQuantitePrelevee) &&
+                $refQuantitePrelevee > 0 &&
+                $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $ligneArticle->getReference()->setEmplacement($emplacement);
             }
         }
         foreach ($demande->getArticles() as $article) {
-            $article->setEmplacement($emplacement);
+            $artQuantitePrelevee = $article->getQuantitePrelevee();
+            if (isset($artQuantitePrelevee) && $artQuantitePrelevee > 0) {
+                $article->setEmplacement($emplacement);
+            }
         }
 		$isPreparationComplete = $this->isPreparationComplete($demande);
 		$prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
