@@ -30,6 +30,7 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
+use App\Service\ColisService;
 use App\Service\DashboardService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -37,6 +38,7 @@ use App\Service\MailerService;
 
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -221,8 +223,13 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param ColisService $colisService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
-    public function new(Request $request): Response
+    public function new(Request $request, ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
@@ -291,26 +298,9 @@ class ArrivageController extends AbstractController
                     $nature = $this->natureRepository->find($natureArray['id']);
 
                     for ($i = 0; $i < $natureArray['val']; $i++) {
-
-                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                        if ($highestCode) {
-                            $highestCodeArray = explode('-', $highestCode);
-                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-                        } else {
-                            $highestCounter = 0;
-                        }
-
-                        $newCounter = sprintf('%05u', $highestCounter + 1);
-
-                        $colis = new Colis();
-                        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
-                        $colis
-                            ->setCode($code)
-                            ->setNature($nature)
-                            ->setArrivage($arrivage);
-                        $em->persist($colis);
+                        $colis = $colisService->persistColis($arrivage, $nature);
                         $em->flush();
-                        $codes[] = $code;
+                        $codes[] = $colis->getCode();
                     }
                 }
             }
@@ -860,10 +850,12 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param ColisService $colisService
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function addColis(Request $request)
+    public function addColis(Request $request, ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
@@ -881,27 +873,9 @@ class ArrivageController extends AbstractController
                 if (gettype($natureId) === 'integer') {
                     $nature = $this->natureRepository->find($natureId);
                     for ($i = 0; $i < $data[$natureId]; $i++) {
-                        $arrivageNum = $arrivage->getNumeroArrivage();
-                        $highestCode = $this->colisRepository->getHighestCodeByPrefix($arrivageNum);
-                        if ($highestCode) {
-                            $highestCodeArray = explode('-', $highestCode);
-                            $highestCounter = $highestCodeArray ? $highestCodeArray[1] : 0;
-                        } else {
-                            $highestCounter = 0;
-                        }
-
-                        $newCounter = sprintf('%05u', $highestCounter + 1);
-
-                        $colis = new Colis();
-                        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
-                        $colis
-                            ->setCode($code)
-                            ->setNature($nature)
-                            ->setArrivage($arrivage);
-                        $em->persist($colis);
+                        $colis = $colisService->persistColis($arrivage, $nature);
                         $em->flush();
-
-                        $codes[] = $code;
+                        $codes[] = $colis->getCode();
                     }
                 }
             }
