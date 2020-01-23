@@ -105,9 +105,8 @@ $submitSearchMvt.on('click', function () {
         dateMax: $('#dateMax').val(),
         statut: $('#statut').val(),
         location: $('#emplacement').val(),
-        demandeur: $('#utilisateur').select2('data'),
+        users: $('#utilisateur').select2('data'),
     };
-
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
     $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
