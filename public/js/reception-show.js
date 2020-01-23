@@ -269,17 +269,17 @@ function printSingleBarcode(button) {
     $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
         if (!response.article) {
             printBarcodes(
-                [response.ligneRef],
+                [response.barcode],
                 response,
-                'Etiquette concernant l\'article ' + response.ligneRef + '.pdf',
+                'Etiquette concernant l\'article ' + response.barcode + '.pdf',
                 [response.barcodeLabel]
             );
         } else {
             $('#ligneSelected').val(button.data('id'));
             $('#chooseConditionnement').click();
             let $submit = $('#submitConditionnement');
-            $submit.attr('data-ref', response.article)
-            $submit.attr('data-id', button.data('id'))
+            $submit.attr('data-ref', response.article);
+            $submit.attr('data-id', button.data('id'));
             initDatatableConditionnement();
             $submit.addClass('d-none');
             $('#reference-list').html(response.article);
@@ -569,7 +569,7 @@ function printBarcode(button) {
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
             if (response.refs.length > 0) {
-                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabel);
+                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabels);
             } else {
                 alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
             }

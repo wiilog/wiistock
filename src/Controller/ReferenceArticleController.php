@@ -8,7 +8,6 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -45,7 +44,6 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -1288,33 +1286,27 @@ class ReferenceArticleController extends AbstractController
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $data = json_decode($request->getContent(), true);
-        $barcodes = $barcodeLabels = [];
+
+        /** @var ReferenceArticle[] $refs */
         $refs = array_slice($refs, $data['start'] ,$data['length']);
 
-        /** @var ReferenceArticle $ref */
-        foreach ($refs as $ref) {
-            $barcodes[] = $ref->getBarCode();
-            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
-				'refRef' => $ref->getReference(),
-				'refLabel' =>$ref->getLibelle(),
-			]);
-        }
+        $refArticleDataService = $this->refArticleDataService;
+        $barcodeInformations = array_reduce(
+            $refs,
+            function (array $acc, ReferenceArticle $referenceArticle) use ($refArticleDataService) {
+                $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
+                $acc['barcodes'][] = $refBarcodeInformations['barcode'];
+                $acc['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
+                return $acc;
+            },
+            ['barcodes' => [], 'barcodeLabels' => []]
+        );
 
         if ($request->isXmlHttpRequest()) {
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $tags['height'] = $dimension->getHeight();
-                $tags['width'] = $dimension->getWidth();
-                $tags['exists'] = true;
-            } else {
-                $tags['height'] = $tags['width'] = 0;
-                $tags['exists'] = false;
-            }
-
-            $data  = [
-            	'tags' => $tags,
-				'barcodes' => $barcodes,
-				'barcodeLabels' => $barcodeLabels,
+            $data = [
+            	'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+				'barcodes' => $barcodeInformations['barcodes'],
+				'barcodeLabels' => $barcodeInformations['barcodeLabels'],
 			];
             return new JsonResponse($data);
         } else {
@@ -1328,26 +1320,12 @@ class ReferenceArticleController extends AbstractController
     public function getArticleRefFromId(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = [];
             $ref = $this->referenceArticleRepository->find(intval($dataContent['article']));
-            $barcodes[] = $ref->getBarCode();
-            $barcodeLabels[] = $this->renderView('reference_article/barcodeLabel.html.twig', [
-                'refRef' => $ref->getReference(),
-                'refLabel' =>$ref->getLibelle(),
-            ]);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $tags['height'] = $dimension->getHeight();
-                $tags['width'] = $dimension->getWidth();
-                $tags['exists'] = true;
-            } else {
-                $tags['height'] = $tags['width'] = 0;
-                $tags['exists'] = false;
-            }
+            $barcodeInformations = $this->refArticleDataService->getBarcodeInformations($ref);
             $data  = [
-                'tags' => $tags,
-                'barcodes' => $barcodes,
-                'barcodeLabels' => $barcodeLabels,
+                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'barcodes' => $barcodeInformations['barcode'],
+                'barcodeLabels' => $barcodeInformations['barcodeLabel'],
             ];
             return new JsonResponse($data);
         }

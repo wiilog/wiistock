@@ -13,15 +13,12 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
-use App\Entity\ArticleFournisseur;
-
 use App\Repository\LitigeRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
@@ -47,6 +44,7 @@ use App\Service\MouvementStockService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
+use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use DateTime;
@@ -1471,33 +1469,33 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param RefArticleDataService $refArticleDataService
+     * @param ArticleDataService $articleDataService
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getAllReferences(Request $request): Response
+    public function getAllReferences(Request $request,
+                                     RefArticleDataService $refArticleDataService,
+                                     ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = [];
+            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
             $data['refs'] = [];
             $data['barcodeLabel'] = [];
-            $reception = $this->receptionRepository->find($dataContent['reception']);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /**  @var $dimension DimensionsEtiquettes */
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $data['height'] = $dimension->getHeight();
-                $data['width'] = $dimension->getWidth();
-                $data['exists'] = true;
-            } else {
-                $data['exists'] = false;
-            }
 
+            $reception = $this->receptionRepository->find($dataContent['reception']);
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             foreach ($listReceptionReferenceArticle as $recepRef) {
-                if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    array_push($data['refs'], $recepRef->getReferenceArticle()->getBarCode());
-                    array_push($data['barcodeLabel'], $this->renderView('reference_article/barcodeLabel.html.twig', [
-                        'refRef' => $recepRef->getReferenceArticle()->getReference(),
-                        'refLabel' => $recepRef->getReferenceArticle()->getLibelle(),
-                    ]));
+                $referenceArticle = $recepRef->getReferenceArticle();
+                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
+                    $data['refs'][] = $refBarcodeInformations['barcode'];
+                    $data['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
                 } else {
                     foreach ($recepRef->getArticles() as $article) {
                         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
@@ -1509,14 +1507,17 @@ class ReceptionController extends AbstractController
                             }
                         }
                         $articleArray = $articles[$wantedIndex];
-                        array_push($data['refs'], $article->getBarCode());
-                        array_push($data['barcodeLabel'], $this->renderView('article/barcodeLabel.html.twig', [
-                            'refRef' => trim($article->getArticleFournisseur()->getReferenceArticle()->getReference()),
-                            'refLabel' => trim($article->getArticleFournisseur()->getReferenceArticle()->getLibelle()),
-                            'artLabel' => trim($article->getLabel()),
-                            'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
-                        ])
-                        );
+                        $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
+                            'barcode' => $article->getBarCode(),
+                            'refRef' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
+                            'artLabel' => $article->getLabel(),
+                            'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                                ? $articleArray['bl']
+                                : null)
+                        ]);
+                        $data['refs'][] = $articleBarcodeInformations['barcode'];
+                        $data['barcodeLabel'][] = $articleBarcodeInformations['barcodeLabel'];
                     }
                 }
             }
@@ -1528,26 +1529,24 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/obtenir-ligne", name="get_ligne_from_id", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param RefArticleDataService $refArticleDataService
+     * @return JsonResponse
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getLignes(Request $request)
+    public function getLignes(Request $request,
+                              RefArticleDataService $refArticleDataService)
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $data = [];
                 $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
-                $data['ligneRef'] = $articleRef->getBarCode();
-                $data['barcodeLabel'] = $this->renderView('reference_article/barcodeLabel.html.twig', [
-                    'refRef' => $articleRef->getReference(),
-                    'refLabel' => $articleRef->getLibelle(),
-                ]);
-                $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-                if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                    $data['height'] = $dimension->getHeight();
-                    $data['width'] = $dimension->getWidth();
-                    $data['exists'] = true;
-                } else {
-                    $data['exists'] = false;
-                }
+                $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+                $barcodeInformations = $refArticleDataService->getBarcodeInformations($articleRef);
+                $data['barcode'] = $barcodeInformations['barcode'];
+                $data['barcodeLabel'] = $barcodeInformations['barcodeLabel'];
             } else {
                 $data = [];
                 $data['article'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
@@ -1694,19 +1693,21 @@ class ReceptionController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
-	 * @param Request $request
-	 * @param DemandeLivraisonService $demandeLivraisonService
-	 * @param Reception $reception
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
+     * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param ArticleDataService $articleDataService
+     * @param Reception $reception
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
+                                   ArticleDataService $articleDataService,
                                    Reception $reception): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -1763,13 +1764,19 @@ class ReceptionController extends AbstractController
                     }
                 }
                 $articleArray = $articles[$wantedIndex];
-                $response['barcodes'][] = $createdArticle->getBarCode();
-                $response['barcodesLabel'][] = $this->renderView('article/barcodeLabel.html.twig', [
+
+                $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
+                    'barcode' => $createdArticle->getBarCode(),
                     'refRef' => $refArticle ? $refArticle->getReference() : '',
                     'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
                     'artLabel' => $createdArticle->getLabel(),
-                    'artBL' => $wantBL ? $wantBL->getParametre() && $articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL ? $articleArray['bl'] : null : null,
+                    'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                        ? $articleArray['bl']
+                        : null)
                 ]);
+
+                $response['barcodes'][] = $articleBarcodeInformations['barcode'];
+                $response['barcodesLabel'][] = $articleBarcodeInformations['barcodeLabel'];
             }
 
             $em->flush();

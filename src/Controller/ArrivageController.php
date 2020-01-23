@@ -604,21 +604,12 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $arrivage = $data;
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
-
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-            {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['height'] = $response['width'] = 0;
-                $response['exists'] = false;
-            }
-            $responseData = array('response' => $response, 'codeColis' => $codeColis);
+            $responseData = array(
+                'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'codeColis' => $codeColis
+            );
             return new JsonResponse($responseData);
 
         } else {
@@ -628,20 +619,13 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+     * @param Request $request
+     * @return JsonResponse
      */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['height'] = $response['width'] = 0;
-                $response['exists'] = false;
-            }
-
+            $response = $this->dimensionsEtiquettesRepository->getDimensionArray();
             return new JsonResponse($response);
 
         } else {
@@ -906,16 +890,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $response = [];
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
-                $response['height'] = $dimension->getHeight();
-                $response['width'] = $dimension->getWidth();
-                $response['exists'] = true;
-            } else {
-                $response['exists'] = false;
-            }
-
+            $response = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 
