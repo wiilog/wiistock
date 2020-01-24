@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -76,8 +77,12 @@ class LivraisonsManagerService {
             $demandeRepository = $this->entityManager->getRepository(Demande::class);
             $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
+            $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutName(
+                CategorieStatut::ORDRE_LIVRAISON,
+                $livraison->getPreparation()->getStatut()->getNom() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
+
             $livraison
-                ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_LIVRE))
+                ->setStatut($statutForLivraison)
                 ->setUtilisateur($user)
                 ->setDateFin($dateEnd);
 
