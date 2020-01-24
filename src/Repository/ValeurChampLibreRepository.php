@@ -261,6 +261,28 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
+
+	/**
+	 * @param Arrivage $arrivage
+	 * @param ChampLibre $champLibre
+	 * @return ValeurChampLibre|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByArrivageAndChampLibre($arrivage, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT v
+            FROM App\Entity\ValeurChampLibre v
+            WHERE v.champLibre = :champLibre AND v.id IN (:arrivageVCL)"
+		);
+		$query->setParameters([
+			'arrivageVCL' => $arrivage->getValeurChampLibre(),
+			"champLibre" => $champLibre
+		]);
+		return $query->getOneOrNullResult();
+	}
+
 	/**
 	 * @param Demande $demandeLivraison
 	 * @param ChampLibre $champLibre

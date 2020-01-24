@@ -145,6 +145,7 @@ function initNewArrivageEditor(modal) {
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
+    $('.list-multiple').select2();
 }
 
 let $submitSearchArrivage = $('#submitSearchArrivage');

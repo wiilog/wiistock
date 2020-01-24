@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
+use App\Entity\ValeurChampLibre;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -44,6 +45,7 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -170,7 +172,12 @@ class ArrivageController extends AbstractController
      */
     private $fieldsParamsRepository;
 
-    public function __construct(FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+	/**
+	 * @var ValeurChampLibreRepository
+	 */
+    private $valeurChampLibreRepository;
+
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->fieldsParamsRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
@@ -194,6 +201,7 @@ class ArrivageController extends AbstractController
         $this->attachmentService = $attachmentService;
         $this->natureRepository = $natureRepository;
         $this->arrivageDataService = $arrivageDataService;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
 	/**
@@ -255,7 +263,7 @@ class ArrivageController extends AbstractController
      * @param ColisService $colisService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -265,7 +273,7 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $post = $request->request;
+            $data = $request->request->all();
             $em = $this->getDoctrine()->getManager();
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -275,31 +283,31 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-                ->setStatut($this->statutRepository->find($post->get('statut')))
+                ->setStatut($this->statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setCommentaire($post->get('commentaire') ?? null);
+                ->setCommentaire($data['commentaire'] ?? null);
 
-            if (!empty($fournisseur = $post->get('fournisseur'))) {
+            if (!empty($fournisseur = $data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (!empty($transporteur = $post->get('transporteur'))) {
+            if (!empty($transporteur = $data['transporteur'])) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
+            if (!empty($chauffeur = $data['chauffeur'])) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $post->get('noTracking'))) {
+            if (!empty($noTracking = $data['noTracking'])) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($noBL = $post->get('noBL'))) {
+            if (!empty($noBL = $data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (!empty($destinataire = $post->get('destinataire'))) {
+            if (!empty($destinataire = $data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($post->get('acheteurs'))) {
-                $acheteursId = explode(',', $post->get('acheteurs'));
+            if (!empty($data['acheteurs'])) {
+                $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
                 }
@@ -316,11 +324,9 @@ class ArrivageController extends AbstractController
                 }
             }
             $em->flush();
-            $arrivageNum = $arrivage->getNumeroArrivage();
 
             $codes = [];
-
-            $natures = json_decode($post->get('nature'), true);
+            $natures = json_decode($data['nature'], true);
 
             $checkNatures = $this->natureRepository->countAll();
             if ($checkNatures != 0) {
@@ -337,16 +343,30 @@ class ArrivageController extends AbstractController
 
             $printColis = null;
             $printArrivage = null;
-            if ($post->get('printColis') === 'true') {
+            if ($data['printColis'] === 'true') {
                 $printColis = true;
             }
-            if ($post->get('printArrivage') === 'true') {
+            if ($data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
 
+			$champsLibresKey = array_keys($data);
+			foreach ($champsLibresKey as $champs) {
+				if (gettype($champs) === 'integer') {
+					$valeurChampLibre = new ValeurChampLibre();
+					$valeurChampLibre
+						->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
+						->addArrivage($arrivage)
+						->setChampLibre($this->champLibreRepository->find($champs));
+					$em->persist($valeurChampLibre);
+					$em->flush();
+					$arrivage->addValeurChampLibre($valeurChampLibre);
+				}
+			}
+
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
-            $data = [
+			$data = [
                 "redirect" => $paramGlobalRedirectAfterNewArrivage->getParametre()
                     ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                     : null,
@@ -488,12 +508,52 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
             $em->flush();
+
+            $data = $post->all();
+			$champLibreKey = array_keys($data);
+			foreach ($champLibreKey as $champ) {
+				if (gettype($champ) === 'integer') {
+					$champLibre = $this->champLibreRepository->find($champ);
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+					// si la valeur n'existe pas, on la crée
+					if (!$valeurChampLibre) {
+						$valeurChampLibre = new ValeurChampLibre();
+						$valeurChampLibre
+							->addArrivage($arrivage) //TODO CG check
+							->setChampLibre($this->champLibreRepository->find($champ));
+						$em->persist($valeurChampLibre);
+					}
+					$valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+					$em->flush();
+				}
+			}
+
+			$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+			$champsLibres = [];
+			foreach ($listTypes as $type) {
+				$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+				foreach ($listChampsLibres as $champLibre) {
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+
+					$champsLibres[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampLibre,
+					];
+				}
+			}
+
             $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                    'fieldsParam' => $fieldsParam
+                    'fieldsParam' => $fieldsParam,
+					'champsLibres' => $champsLibres
                 ]),
             ];
             return new JsonResponse($response);
@@ -798,6 +858,26 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+		$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+		$champsLibres = [];
+		foreach ($listTypes as $type) {
+			$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+			foreach ($listChampsLibres as $champLibre) {
+				$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+
+				$champsLibres[] = [
+					'id' => $champLibre->getId(),
+					'label' => $champLibre->getLabel(),
+					'typage' => $champLibre->getTypage(),
+					'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+					'defaultValue' => $champLibre->getDefaultValue(),
+					'valeurChampLibre' => $valeurChampLibre,
+				];
+			}
+		}
+
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -809,7 +889,8 @@ class ArrivageController extends AbstractController
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                'fieldsParam' => $fieldsParam
+                'fieldsParam' => $fieldsParam,
+				'champsLibres' => $champsLibres
             ]);
     }
 

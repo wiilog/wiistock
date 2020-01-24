@@ -304,7 +304,6 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $champsLibresKey = array_keys($data);
-
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
                     $valeurChampLibre = new ValeurChampLibre();
@@ -555,7 +554,7 @@ class ReceptionController extends AbstractController
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
+            $champsLibres = $this->champLibreRepository->findByType($type['id']);
             $typeChampLibre[] = [
                 'typeLabel' => $type['label'],
                 'typeId' => $type['id'],

@@ -253,6 +253,7 @@ class ValeurChampLibre
     {
         if (!$this->arrivages->contains($arrivage)) {
             $this->arrivages[] = $arrivage;
+            $arrivage->addValeurChampLibre($this);
         }
 
         return $this;
@@ -262,7 +263,8 @@ class ValeurChampLibre
     {
         if ($this->arrivages->contains($arrivage)) {
             $this->arrivages->removeElement($arrivage);
-        }
+			$arrivage->removeValeurChampLibre($this);
+		}
 
         return $this;
     }

@@ -1,12 +1,11 @@
 {% for champLibre in champsLibres %}
     {% if (edit is defined and edit == true) %}
+        {% set required = champLibre.requiredEdit %}
+        {% set defaultValue = champLibre.valeurChampLibre is defined and champLibre.valeurChampLibre is not empty ? champLibre.valeurChampLibre.valeur : '' %}
+    {% else %}
         {% set required = champLibre.requiredCreate %}
         {% set defaultValue = champLibre.defaultValue is defined ? champLibre.defaultValue : '' %}
-    {% else %}
-        {% set required = champLibre.requiredEdit %}
-        {% set defaultValue = champLibre.valeurChampLibre %}
     {% endif %}
-
     <div class="form-group col-4">
         <label for="input{{ champLibre.id }}">
             {{ champLibre.label }}{{ required ? '*' : '' }}
@@ -14,7 +13,7 @@
 
         {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
             <input type="checkbox" class="data checkbox"
-                   value="{{ defaultValue }}"
+                   value="{{ defaultValue }}" {{ defaultValue ? 'checked': '' }}
                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
 
 
@@ -30,6 +29,16 @@
                     class="form-control data {{ required ? 'needed' : '' }} "
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
                 <option value=""></option>
+                {% for elem in  champLibre.elements %}
+                    <option value="{{ elem }}">{{ elem }}</option>
+                {% endfor %}
+            </select>
+
+        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
+            <select
+                    class="form-control data list-multiple w-100 {{ required ? 'needed' : '' }} "
+                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
+                    multiple="multiple">
                 {% for elem in  champLibre.elements %}
                     <option value="{{ elem }}">{{ elem }}</option>
                 {% endfor %}
