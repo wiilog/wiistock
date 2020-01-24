@@ -29,8 +29,9 @@
                     class="form-control data {{ required ? 'needed' : '' }} "
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
                 <option value=""></option>
-                {% for elem in  champLibre.elements %}
-                    <option value="{{ elem }}">{{ elem }}</option>
+                {% for elem in champLibre.elements %}
+                    {% set selected = defaultValue == elem ? 'selected' : '' %}
+                    <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                 {% endfor %}
             </select>
 
@@ -40,7 +41,8 @@
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
                     multiple="multiple">
                 {% for elem in  champLibre.elements %}
-                    <option value="{{ elem }}">{{ elem }}</option>
+                    {% set selected = defaultValue == elem ? 'selected' : '' %}
+                    <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                 {% endfor %}
             </select>
 

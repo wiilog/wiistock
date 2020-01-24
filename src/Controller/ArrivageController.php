@@ -451,35 +451,36 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
+            $data = $post->all();
             $em = $this->getDoctrine()->getManager();
 
-            $arrivage = $this->arrivageRepository->find($post->get('id'));
+            $arrivage = $this->arrivageRepository->find($data['id']);
 
-            if (!empty($commentaire = $post->get('commentaire'))) {
+            if (!empty($commentaire = $data['commentaire'])) {
                 $arrivage->setCommentaire($commentaire);
             }
-            if (!empty($fournisseur = $post->get('fournisseur'))) {
+            if (!empty($fournisseur = $data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (!empty($transporteur = $post->get('transporteur'))) {
+            if (!empty($transporteur = $data['transporteur'])) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
+            if (!empty($chauffeur = $data['chauffeur'])) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $post->get('noTracking'))) {
+            if (!empty($noTracking = $data['noTracking'])) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($statutId = $post->get('statut'))) {
+            if (!empty($statutId = $data['statut'])) {
                 $arrivage->setStatut($this->statutRepository->find($statutId));
             }
-            if (!empty($noBL = $post->get('noBL'))) {
+            if (!empty($noBL = $data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (!empty($destinataire = $post->get('destinataire'))) {
+            if (!empty($destinataire = $data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            $acheteurs = $post->get('acheteurs');
+            $acheteurs = $data['acheteurs'];
             // on détache les acheteurs existants...
             $existingAcheteurs = $arrivage->getAcheteurs();
 
@@ -509,7 +510,6 @@ class ArrivageController extends AbstractController
             $this->attachmentService->addAttachements($request->files, $arrivage);
             $em->flush();
 
-            $data = $post->all();
 			$champLibreKey = array_keys($data);
 			foreach ($champLibreKey as $champ) {
 				if (gettype($champ) === 'integer') {
@@ -519,7 +519,7 @@ class ArrivageController extends AbstractController
 					if (!$valeurChampLibre) {
 						$valeurChampLibre = new ValeurChampLibre();
 						$valeurChampLibre
-							->addArrivage($arrivage) //TODO CG check
+							->addArrivage($arrivage)
 							->setChampLibre($this->champLibreRepository->find($champ));
 						$em->persist($valeurChampLibre);
 					}

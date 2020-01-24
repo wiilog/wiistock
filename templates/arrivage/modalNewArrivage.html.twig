@@ -14,45 +14,45 @@
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
                         <div class="form-group col w-100">
                             <label
-                                    for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                    class="form-control input-sm data ajax-autocomplete-fournisseur ajax-autocomplete {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
-                                    name="fournisseur" id="fournisseur">
+                                class="form-control input-sm data ajax-autocomplete-fournisseur ajax-autocomplete {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="fournisseur" id="fournisseur">
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
                         <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')"><i
-                                    class="fa fa-plus"></i></span>
+                                class="fa fa-plus"></i></span>
                         </div>
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
                         <div class="form-group col w-100">
                             <label
-                                    for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                    class="form-control input-sm data ajax-autocomplete-transporteur ajax-autocomplete {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
-                                    name="transporteur" id="transporteur">
+                                class="form-control input-sm data ajax-autocomplete-transporteur ajax-autocomplete {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="transporteur" id="transporteur">
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
                         <span class="btn btn-primary"
                               onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
-                                    class="fa fa-plus"></i></span>
+                                class="fa fa-plus"></i></span>
                         </div>
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
                         <div class="form-group col w-100">
                             <label
-                                    for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                    class="form-control input-sm data ajax-autocomplete-chauffeur ajax-autocomplete {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
-                                    name="chauffeur"
-                                    id="chauffeur">
+                                class="form-control input-sm data ajax-autocomplete-chauffeur ajax-autocomplete {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="chauffeur"
+                                id="chauffeur">
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
                         <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')"><i
-                                    class="fa fa-plus"></i></span>
+                                class="fa fa-plus"></i></span>
                         </div>
                     {% endif %}
                 </div>
@@ -101,8 +101,8 @@
                                    name="documentID" maxlength="64">
                             <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
                             <select
-                                    class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
-                                    name="transporteur" id="newChauffeurTransporteur">
+                                class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
+                                name="transporteur" id="newChauffeurTransporteur">
                             </select>
                         </div>
                         <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
@@ -191,30 +191,30 @@
                     <div class="col-6 blocVisible d-block natures-container">
                         <h3 class="label">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
 
-                        <div class="mt-2">
+                        <div class="mt-2 row">
                             {% for nature in natures %}
-                                <div class="form-group form-group-nature">
-                                    <label for="">
+                                <div class="form-group col">
+                                    <label>
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array"
-                                           value="" name="nature" data-id="{{ nature.id }}" min="0">
+                                           name="nature" data-id="{{ nature.id }}" min="0">
                                 </div>
                             {% endfor %}
                         </div>
                     </div>
-                </div>
 
                 {% else %}
                     <div class="col-12">
                         {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                             array: natures,
-                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ 'n\'a été créée',
+                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                             redirectPath: path('nature_param_index'),
                             redirectLabel: 'Aller vers la création des natures'
                         } %}
                     </div>
                 {% endif %}
+                </div>
 
                 <div class="row">
                     {% include 'arrivage/champsLibresArrivage.html.twig' %}
@@ -224,7 +224,7 @@
                     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
                         <div class="form-group col-8 h-fit-content">
                             <label
-                                    for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                                for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
                             <input id="commentaire"
                                    class="commentaire form-control input-sm data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
                                    name="commentaire" type="hidden">
