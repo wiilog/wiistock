@@ -264,6 +264,7 @@ function showRow(button, path, modal) {
 
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
+        $('.list-multiple').select2();
     }, 'json');
 }
 
@@ -300,7 +301,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-
+        $('.list-multiple').select2();
         toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
@@ -577,6 +578,7 @@ let toggleRequiredChampsLibres = function (select, require) {
                     $formControl.addClass('needed');
                 });
             }
+            $('.list-multiple').select2();
         }, 'json');
     }
 }

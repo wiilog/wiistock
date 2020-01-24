@@ -172,7 +172,13 @@
                                         <option value=""></option>
                                     {% endif %}
                                 </select>
-
+                            {% elseif champ.typage == 'list multiple' %}
+                                <select id="{{ champ.id ~ 'create' }}" class="list-multiple form-control data {{ champ.requiredCreate ? 'needed' : ''}}"
+                                        name="{{ champ.id }}" multiple="multiple">
+                                    {% for elem in champ.elements %}
+                                        <option value="{{ elem }}">{{ elem }}</option>
+                                    {% endfor %}
+                                </select>
                             {% elseif champ.typage == 'text' %}
                                 <input id="{{ champ.id ~ 'create' }}" class="form-control data"
                                        type="text"
