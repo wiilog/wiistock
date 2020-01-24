@@ -569,7 +569,7 @@ class ArrivageController extends AbstractController
     private function sendMailToAcheteurs(Litige $litige)
     {
         //TODO HM getId ?
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -976,7 +976,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response
     {
