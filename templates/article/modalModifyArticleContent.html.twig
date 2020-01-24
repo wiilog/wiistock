@@ -110,8 +110,10 @@
                     {# cas général #}
                     {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                         {% set needed = 'needed' %}
+                        {% set star = '*' %}
                     {% else %}
                         {% set needed = '' %}
+                        {% set star = '' %}
                     {% endif %}
 
                     <div class="form-group col-6">
@@ -119,7 +121,7 @@
                     {% if champLibre.label|lower == 'code projet' %}
                     <label for="input">{{ champLibre.label }}*</label>
                     {% else %}
-                    <label for="input">{{ champLibre.label }}</label>
+                    <label for="input">{{ champLibre.label }}{{ star }}</label>
                     {% endif %}
 
                     {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
