@@ -116,7 +116,7 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
         let checked = existingValue == 1 ? "checked" : "";
         inputDefaultBlock =
             `<label class="switch">
-                <input type="checkbox" class="data checkbox" 
+                <input type="checkbox" class="data checkbox"
                 name="valeur" value="` + existingValue + `" ` + checked + `>
                 <span class="slider round"></span>
             </label>`;
@@ -130,7 +130,7 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
         }
 
         inputDefaultBlock =
-            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
+            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
     }
 
     let defaultBlock =

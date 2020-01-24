@@ -12,6 +12,7 @@ class Livraison
 
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
+    const STATUT_INCOMPLETE = 'partiellement livré';
 
     /**
      * @ORM\Id()
