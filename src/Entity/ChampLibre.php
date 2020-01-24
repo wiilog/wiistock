@@ -15,6 +15,7 @@ class ChampLibre
     const TYPE_TEXT = 'text';
     const TYPE_NUMBER = 'number';
     const TYPE_LIST = 'list';
+    const TYPE_LIST_MULTIPLE = 'list multiple';
     const TYPE_DATE = 'date';
     const TYPE_DATETIME = 'datetime';
     const TYPAGE = [
@@ -36,6 +37,10 @@ class ChampLibre
             'label' => 'Liste',
         ],
         [
+            'value' => ChampLibre::TYPE_LIST_MULTIPLE,
+            'label' => 'Liste multiple',
+        ],
+        [
             'value' => ChampLibre::TYPE_NUMBER,
             'label' => 'Nombre',
         ],
@@ -45,13 +50,14 @@ class ChampLibre
         ],
     ];
     const TYPAGE_ARR = [
-			ChampLibre::TYPE_BOOL => 'Oui/Non',
-			ChampLibre::TYPE_DATE => 'Date',
-			ChampLibre::TYPE_DATETIME => 'Date et heure',
-			ChampLibre::TYPE_LIST => 'Liste',
-			ChampLibre::TYPE_NUMBER => 'Nombre',
-			ChampLibre::TYPE_TEXT => 'Texte'
-	];
+        ChampLibre::TYPE_BOOL => 'Oui/Non',
+        ChampLibre::TYPE_DATE => 'Date',
+        ChampLibre::TYPE_DATETIME => 'Date et heure',
+        ChampLibre::TYPE_LIST => 'Liste',
+        ChampLibre::TYPE_NUMBER => 'Nombre',
+        ChampLibre::TYPE_TEXT => 'Texte',
+        ChampLibre::TYPE_LIST_MULTIPLE => 'Liste multiple'
+    ];
     const SPECIC_COLLINS_BL = 'BL';
 
     /**

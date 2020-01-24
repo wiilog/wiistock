@@ -15,6 +15,7 @@ use App\Service\MailerService;
 use App\Service\UserService;
 use App\Service\ManutentionService;
 
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -257,5 +258,54 @@ class ManutentionController extends AbstractController
         }
 
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/infos", name="get_manutentions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getOrdreLivraisonIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+            $manutentions = $this->manutentionRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+            $headers = [
+                'date création',
+                'demandeur',
+                'chargement',
+                'déchargement',
+                'date attendue',
+                'statut',
+            ];
+
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($manutentions as $manutention) {
+                $this->buildInfos($manutention, $data);
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+
+    private function buildInfos(Manutention $manutention, &$data)
+    {
+        $data[] =
+            [
+                $manutention->getDate()->format('d/m/Y H:i'),
+                $manutention->getDemandeur()->getUsername(),
+                $manutention->getSource(),
+                $manutention->getDestination(),
+                $manutention->getDateAttendue()->format('d/m/Y H:i'),
+                $manutention->getStatut() ? $manutention->getStatut()->getNom() : '',
+            ];
     }
 }

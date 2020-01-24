@@ -5,7 +5,7 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[4, "asc"]],
+    order: [[4, "desc"]],
     ajax: {
         "url": pathAlerte,
         "type": "POST",
@@ -24,6 +24,10 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         { "data": 'Actions', 'name': 'Actions', 'title': 'Alerte'},
     ],
     columnDefs: [
+        {
+            "type": "customDate",
+            "targets": 4
+        },
         { "orderable": false, "targets": 7 },
     ],
 });
@@ -43,5 +47,6 @@ $(function() {
 
     $.post(path, params, function (data) {
         displayFiltersSup(data);
+        extendsDateSort('customDate')
     });
-})
+});

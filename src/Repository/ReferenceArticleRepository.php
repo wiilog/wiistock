@@ -246,7 +246,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
                         ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
                         ->setParameter($champLibreLabelAlias, $filter['champLibre']);
-
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
                             $value = $filter['value'] == 1 ? '1' : '0';
@@ -263,6 +262,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             $qbSub
                                 ->andWhere('vcl' . $index . '.valeur = :value' . $index)
                                 ->setParameter('value' . $index, $filter['value']);
+                            break;
+                        case ChampLibre::TYPE_LIST_MULTIPLE:
+                            $conditions = [];
+                            foreach (explode(',', $filter['value']) as $listElement) {
+                                $conditions[] = 'vcl' . $index . ".valeur LIKE '%" . $listElement . "%'";
+                            }
+                            $qbSub
+                                ->andWhere(
+                                    $qbSub->expr()->andX()->addMultiple($conditions)
+                                );
                             break;
                         case ChampLibre::TYPE_DATE:
 						case ChampLibre::TYPE_DATETIME:

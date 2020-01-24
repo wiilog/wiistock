@@ -209,17 +209,6 @@ class ArrivageController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $fields = array_reduce(
-            $fieldsParam,
-            function (array $acc, $field) {
-                $acc[$field['fieldCode']] = [
-                    'mustToCreate' => $field['mustToCreate'],
-                    'mustToModify' => $field['mustToModify'],
-                    'displayed' => $field['displayed'],
-                ];
-                return $acc;
-            },
-            []);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('arrivage/index.html.twig', [
@@ -228,10 +217,10 @@ class ArrivageController extends AbstractController
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-            'fieldsParam' => $fields,
+            'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre(),
 			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-        ]);
+		]);
     }
 
     /**
@@ -392,18 +381,7 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
-			$fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-			$fields = array_reduce(
-				$fieldsParam,
-				function (array $acc, $field) {
-					$acc[$field['fieldCode']] = [
-						'mustToCreate' => $field['mustToCreate'],
-						'mustToModify' => $field['mustToModify'],
-						'displayed' => $field['displayed'],
-					];
-					return $acc;
-				},
-				[]);
+            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
 			$champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
 			$champsLibresArray = [];
@@ -430,9 +408,9 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-                    'fieldsParam' => $fields,
+                    'fieldsParam' => $fieldsParam,
 					'champsLibres' => $champsLibresArray
-					]);
+				]);
             } else {
                 $html = '';
             }
@@ -511,22 +489,11 @@ class ArrivageController extends AbstractController
             $this->attachmentService->addAttachements($request->files, $arrivage);
             $em->flush();
             $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            $fields = array_reduce(
-                $fieldsParam,
-                function (array $acc, $field) {
-                    $acc[$field['fieldCode']] = [
-                        'mustToCreate' => $field['mustToCreate'],
-                        'mustToModify' => $field['mustToModify'],
-                        'displayed' => $field['displayed'],
-                    ];
-                    return $acc;
-                },
-                []);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                    'fieldsParam' => $fields
+                    'fieldsParam' => $fieldsParam
                 ]),
             ];
             return new JsonResponse($response);
@@ -628,7 +595,7 @@ class ArrivageController extends AbstractController
     private function sendMailToAcheteurs(Litige $litige)
     {
         //TODO HM getId ?
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -831,17 +798,6 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $fields = array_reduce(
-            $fieldsParam,
-            function (array $acc, $field) {
-                $acc[$field['fieldCode']] = [
-                    'mustToCreate' => $field['mustToCreate'],
-                    'mustToModify' => $field['mustToModify'],
-                    'displayed' => $field['displayed'],
-                ];
-                return $acc;
-            },
-            []);
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -853,7 +809,7 @@ class ArrivageController extends AbstractController
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                'fieldsParam' => $fields
+                'fieldsParam' => $fieldsParam
             ]);
     }
 
@@ -1046,7 +1002,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response
     {
@@ -1225,10 +1181,12 @@ class ArrivageController extends AbstractController
         if (isset($reloadArrivageId)) {
             $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
+                $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
+                        'fieldsParam' => $fieldsParam
                     ]),
                 ];
             }

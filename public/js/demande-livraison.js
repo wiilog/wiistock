@@ -22,10 +22,6 @@ let tableArticle = $('#table-lignes').DataTable({
     ],
     columnDefs: [
         {
-            type: "customDate",
-            targets: 0
-        },
-        {
             orderable: false,
             targets: 0
         }
@@ -47,22 +43,6 @@ let submitEditArticle = $("#submitEditArticle");
 let pathEditArticle = Routing.generate('demande_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
 
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
-
 //DEMANDE
 let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
@@ -76,7 +56,7 @@ let tableDemande = $('#table_demande').DataTable({
         "url": pathDemande,
         "type": "POST",
         'data' : {
-            'filterStatus': $('#statut').val(),
+            'filterStatus': $('#filterStatus').val(),
             'filterReception': $('#receptionFilter').val()
         },
     },

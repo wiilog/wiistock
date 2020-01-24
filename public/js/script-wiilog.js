@@ -264,6 +264,7 @@ function showRow(button, path, modal) {
 
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
+        $('.list-multiple').select2();
     }, 'json');
 }
 
@@ -300,7 +301,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-
+        $('.list-multiple').select2();
         toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
@@ -535,8 +536,9 @@ function ajaxAutoArticlesInit (select) {
     initSelect2Ajax(select, 'get_articles', {activeOnly:1});
 }
 
-function ajaxAutoArticlesReceptionInit(select) {
-    initSelect2Ajax(select, 'get_article_reception', 0, {reception: $('#receptionId').val()});
+function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
+    let reception = receptionId ? receptionId : $('#receptionId').val();
+    initSelect2Ajax(select, 'get_article_reception', 0, {reception: reception});
 }
 
 function ajaxAutoFournisseurInit(select, placeholder = '') {
@@ -577,6 +579,7 @@ let toggleRequiredChampsLibres = function (select, require) {
                     $formControl.addClass('needed');
                 });
             }
+            $('.list-multiple').select2();
         }, 'json');
     }
 }
@@ -1228,6 +1231,32 @@ function displayFiltersSup(data) {
 
             default:
                 $('#' + element.field).val(element.value);
+        }
+    });
+}
+
+function extendsDateSort(name) {
+    $.extend($.fn.dataTableExt.oSort, {
+        [name + "-pre"]: function (date) {
+            const dateSplitted = date.split(' ');
+            const dateDaysParts = dateSplitted[0].split('/');
+            const year = parseInt(dateDaysParts[2]);
+            const month = parseInt(dateDaysParts[1]);
+            const day = parseInt(dateDaysParts[0]);
+
+            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
+            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
+            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
+            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
+
+            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
+            return madeDate.getTime();
+        },
+        [name + "-asc"]: function (a, b) {
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        },
+        [name + "-desc"]: function (a, b) {
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
         }
     });
 }

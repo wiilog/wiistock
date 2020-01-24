@@ -80,6 +80,10 @@ col2-prod)
   db=col2prod;;
 col1-rec)
   db=col1rec;;
+sed1-rec)
+  db=sed1rec;;
+sed1-prod)
+  db=sed1prod;;
 *) backup=false ;;
 esac
 

@@ -90,6 +90,8 @@ class ChampLibreController extends AbstractController
                     $typageCLFr = 'Date';
                 } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATETIME) {
                     $typageCLFr = 'Date et heure';
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
+                    $typageCLFr = 'Liste multiple';
                 } else {
                     $typageCLFr = '';
                 }
@@ -105,7 +107,7 @@ class ChampLibreController extends AbstractController
                         'Valeur par défaut' => ($champLibre->getTypage() == ChampLibre::TYPE_BOOL
                             ? ($champLibre->getDefaultValue() ? 'oui' : 'non')
                             : ($champLibre->getDefaultValue() ?? 'Non défini')),
-                        'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
+                        'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST || $champLibre->getTypage() == ChampLibre::TYPE_LIST_MULTIPLE ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
                         'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];
             }
@@ -153,6 +155,10 @@ class ChampLibreController extends AbstractController
                 if ($champLibre->getTypage() === 'list') {
                     $champLibre
                         ->setElements(array_filter(explode(';', $data['elem'])))
+                        ->setDefaultValue(null);
+                } else if ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
+                    $champLibre
+                        ->setElements($data['Elements'])
                         ->setDefaultValue(null);
                 } else {
                     $champLibre
@@ -211,6 +217,10 @@ class ChampLibreController extends AbstractController
             if ($champLibre->getTypage() === 'list') {
                 $champLibre
                     ->setElements(array_filter(explode(';', $data['elem'])))
+                    ->setDefaultValue(null);
+            } else if ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
+                $champLibre
+                    ->setElements($data['Elements'])
                     ->setDefaultValue(null);
             } else {
                 $champLibre

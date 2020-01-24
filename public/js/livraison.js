@@ -41,10 +41,6 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     ],
     columnDefs: [
         {
-            type: "customDate",
-            targets: 3
-        },
-        {
             orderable: false,
             targets: 0
         }
@@ -75,22 +71,6 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
 
 $submitSearchLivraison.on('click', function () {
     $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');

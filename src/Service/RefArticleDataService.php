@@ -388,7 +388,7 @@ class RefArticleDataService
                             ->setChampLibre($this->champLibreRepository->find($champ));
                         $entityManager->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur($data[$champ]);
+                    $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
                     $entityManager->flush();
                 }
             }

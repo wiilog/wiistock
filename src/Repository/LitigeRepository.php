@@ -46,7 +46,7 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getAcheteursByLitigeId(int $litigeId, string $field = 'email') {
+	public function getAcheteursArrivageByLitigeId(int $litigeId, string $field = 'email') {
         $em = $this->getEntityManager();
 
         $sql = "SELECT DISTINCT acheteur.$field
@@ -54,6 +54,23 @@ class LitigeRepository extends ServiceEntityRepository
 			JOIN litige.colis colis
 			JOIN colis.arrivage arrivage
             JOIN arrivage.acheteurs acheteur
+            WHERE litige.id = :litigeId";
+
+        $query = $em
+            ->createQuery($sql)
+            ->setParameter('litigeId', $litigeId);
+
+        return array_map(function($utilisateur) use ($field) {
+            return $utilisateur[$field];
+        }, $query->execute());
+    }
+
+    public function getAcheteursReceptionByLitigeId(int $litigeId, string $field = 'email') {
+        $em = $this->getEntityManager();
+
+        $sql = "SELECT DISTINCT acheteur.$field
+			FROM App\Entity\Litige litige
+			JOIN litige.buyers acheteur
             WHERE litige.id = :litigeId";
 
         $query = $em
@@ -236,7 +253,8 @@ class LitigeRepository extends ServiceEntityRepository
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
-						->andWhere("ach.id in (:userId)")
+						->leftJoin('l.buyers', 'b')
+						->andWhere("ach.id in (:userId) OR b.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
 				case 'dateMin':
@@ -265,13 +283,13 @@ class LitigeRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('
+						->andWhere('(
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value
-						')
+						)')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -310,7 +328,6 @@ class LitigeRepository extends ServiceEntityRepository
 		}
 		// compte éléments filtrés
 		$countFiltered = count($qb->getQuery()->getResult());
-
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
