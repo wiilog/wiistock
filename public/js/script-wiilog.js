@@ -576,9 +576,9 @@ let toggleRequiredChampsLibres = function (select, require) {
                     const $label = $formControl.siblings('label');
                     $label.append($('<span class="is-required-label">&nbsp;*</span>'));
                     $formControl.addClass('needed');
-                    $('.list-multiple').select2();
                 });
             }
+            $('.list-multiple').select2();
         }, 'json');
     }
 }

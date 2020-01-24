@@ -130,12 +130,12 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
         }
         if (typage === 'list multiple') {
             label = "Éléments";
+            existingValue = existingElem ? existingElem : '';
             inputDefaultBlock =
                 `<select class="form-control cursor-default data" name="Elements" multiple="multiple"></select>`;
         } else {
             inputDefaultBlock =
-                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
-
+                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
         }
     }
 
