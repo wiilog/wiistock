@@ -234,7 +234,7 @@ class DemandeLivraisonService
             if (gettype($champs) === 'integer') {
                 $valeurChampLibre = new ValeurChampLibre();
                 $valeurChampLibre
-                    ->setValeur($data[$champs])
+                    ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                     ->addDemandesLivraison($demande)
                     ->setChampLibre($this->champLibreRepository->find($champs));
 				$this->em->persist($valeurChampLibre);

@@ -195,6 +195,7 @@ function ajaxGetCollecteArticle(select) {
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
+            $('.list-multiple').select2();
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)

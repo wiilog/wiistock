@@ -101,7 +101,7 @@ function askForDeleteConfirmation(data) {
 
 function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif')) {
     let $modal = $select.closest('.modal');
-    let valueDefault =  $modal.find('.valueDefault');
+    let valueDefault = $modal.find('.valueDefault');
     let typage = $select.val();
     let inputDefaultBlock;
     let name = 'valeur';
@@ -128,9 +128,15 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
             name = 'elem';
             existingValue = existingElem ? existingElem : '';
         }
-
-        inputDefaultBlock =
-            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
+        if (typage === 'list multiple') {
+            label = "Éléments";
+            existingValue = existingElem ? existingElem : '';
+            inputDefaultBlock =
+                `<select class="form-control cursor-default data" name="Elements" multiple="multiple"></select>`;
+        } else {
+            inputDefaultBlock =
+                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
+        }
     }
 
     let defaultBlock =
@@ -141,6 +147,25 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
 
     valueDefault.html(defaultBlock);
     if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
+    if (typage === 'list multiple') {
+        let data = [];
+        existingValue.split(';').forEach((value) => {
+            if (value !== '') {
+                data.push({
+                    id: value,
+                    text: value,
+                    selected: true
+                })
+            }
+        });
+        $('.data[name="Elements"]').select2({
+            tags: true,
+            "language":{
+                "noResults" : function () { return 'Ajoutez des éléments'; }
+            },
+            data: data
+        });
+    }
 }
 
 function displayErrorCL(data) {

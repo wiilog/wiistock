@@ -21,6 +21,8 @@
         <div class="col-6">
             {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                 {% set value = (champLibre.valeur == 1) ? 'oui' : 'non' %}
+            {% elseif champLibre.typage == 'list multiple' %}
+                {% set value = champLibre.valeur | replace({';' : ','}) %}
             {% else %}
                 {% set value = champLibre.valeur %}
             {% endif %}
