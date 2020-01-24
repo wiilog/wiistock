@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Repository\ActionRepository;
+use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -14,22 +15,25 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $encoder;
-
-    /**
-     * @var ActionRepository
-     */
     private $actionRepository;
+    private $specificService;
 
-    public function __construct(ActionRepository $actionRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(ActionRepository $actionRepository,
+                                UserPasswordEncoderInterface $encoder,
+                                SpecificService $specificService)
     {
         $this->encoder = $encoder;
         $this->actionRepository = $actionRepository;
+        $this->specificService = $specificService;
     }
 
     public function load(ObjectManager $manager)
     {
+        $specifics = [
+            Action::MODIFIER_SAFRAN => [SpecificService::CLIENT_SAFRAN_CS]
+        ];
     	$menus = [
-			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE],
+			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE, Action::MODIFIER_SAFRAN],
 			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP, Action::EXPORT],
 			Menu::DEM_LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
 			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
@@ -49,7 +53,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			foreach ($actionLabels as $actionLabel) {
 				$action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
-				if (empty($action)) {
+				$canCreate = (
+				    !isset($specifics[$actionLabel]) ||
+                    in_array($this->specificService->getAppClient(), $specifics[$actionLabel])
+                );
+
+				if (empty($action) && $canCreate) {
 					$action = new Action();
 
 					$action

@@ -124,7 +124,7 @@ function uploadFE(span) {
 }
 
 function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
-    submit.click(function () {
+    submit.click(function (e) {
         submitActionWithAttachments(modal, path, table, callback, close, clear);
     });
 }

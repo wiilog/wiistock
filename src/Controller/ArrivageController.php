@@ -962,10 +962,13 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
+            $hasRightModifierSafran = $this->hasRightModifierSafran($litige);
+
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
+                'hasRightModifierSafran' => $hasRightModifierSafran,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true, $hasRightModifierSafran),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getColis(),
             ]);
@@ -973,6 +976,14 @@ class ArrivageController extends AbstractController
             return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    private function hasRightModifierSafran(Litige $litige) {
+        $litigeStatus = $litige->getStatus();
+        return (
+            (!isset($litigeStatus) || !$litigeStatus->getTreated()) &&
+            $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN)
+        );
     }
 
     /**
@@ -996,8 +1007,12 @@ class ArrivageController extends AbstractController
             $statutAfter = (int)$post->get('statutLitige');
             $litige
                 ->setUpdateDate(new DateTime('now'))
-                ->setType($this->typeRepository->find($post->get('typeLitige')))
-                ->setStatus($this->statutRepository->find($post->get('statutLitige')));
+                ->setType($this->typeRepository->find($post->get('typeLitige')));
+
+            $hasRightModifierSafran = $this->hasRightModifierSafran($litige);
+            if (!$hasRightModifierSafran) {
+                $litige->setStatus($this->statutRepository->find($post->get('statutLitige')));
+            };
 
             if (!empty($colis = $post->get('colis'))) {
                 // on détache les colis existants...

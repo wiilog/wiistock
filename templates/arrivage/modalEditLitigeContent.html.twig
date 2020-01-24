@@ -15,7 +15,9 @@
 
         <div class="form-group col-12">
             <label for="statutLitige">Statut*</label>
-            <select class="form-control data needed" id="statutLitige" name="statutLitige">
+            <select class="form-control data needed" id="statutLitige" name="statutLitige"
+                    data-has-safran-right="{{ hasRightModifierSafran ? 1 : 0 }}"
+                    data-init-value="{{ litige.status.id }}">
                 {% for statut in statusLitige %}
                     {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
                     <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
