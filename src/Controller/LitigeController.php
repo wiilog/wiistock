@@ -271,7 +271,7 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
+	 * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
 	 * @param Litige $litige
 	 * @return Response
 	 */
@@ -321,4 +321,27 @@ class LitigeController extends AbstractController
         }
         return new JsonResponse(false);
     }
+
+	/**
+	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+	 */
+	public function editLitige(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$post = $request->request;
+			$isArrivage = $post->get('isArrivage');
+
+			$controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
+
+			return $this->forward($controller . '::editLitige', [
+				'request' => $request
+			]);
+
+		}
+		throw new NotFoundHttpException('404');
+	}
 }

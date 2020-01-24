@@ -128,7 +128,7 @@ function InitiliaserPageDataTable() {
 
 
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');

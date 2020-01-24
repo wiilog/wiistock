@@ -569,7 +569,7 @@ class ArrivageController extends AbstractController
     private function sendMailToAcheteurs(Litige $litige)
     {
         //TODO HM getId ?
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -962,7 +962,7 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
-            $hasRightModifierSafran = $this->hasRightModifierSafran($litige);
+            $hasRightModifierSafran = $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
@@ -978,16 +978,8 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    private function hasRightModifierSafran(Litige $litige) {
-        $litigeStatus = $litige->getStatus();
-        return (
-            (!isset($litigeStatus) || !$litigeStatus->getTreated()) &&
-            $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN)
-        );
-    }
-
     /**
-     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response
     {
@@ -1009,9 +1001,10 @@ class ArrivageController extends AbstractController
                 ->setUpdateDate(new DateTime('now'))
                 ->setType($this->typeRepository->find($post->get('typeLitige')));
 
-            $hasRightModifierSafran = $this->hasRightModifierSafran($litige);
-            if (!$hasRightModifierSafran) {
-                $litige->setStatus($this->statutRepository->find($post->get('statutLitige')));
+            $newStatus = $this->statutRepository->find($post->get('statutLitige'));
+            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN) ||
+                !$newStatus->getTreated()) {
+                $litige->setStatus($newStatus);
             };
 
             if (!empty($colis = $post->get('colis'))) {

@@ -1159,7 +1159,7 @@ class ReceptionController extends AbstractController
             $litige = $this->litigeRepository->find($data['litigeId']);
             $colisCode = [];
             $acheteursCode = [];
-            $reception = $this->receptionRepository->find($data['reception']);
+
             foreach ($litige->getArticles() as $colis) {
                 $colisCode[] = [
                     'id' => $colis->getId(),
@@ -1184,7 +1184,7 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
 
