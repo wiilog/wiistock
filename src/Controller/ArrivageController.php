@@ -1155,10 +1155,12 @@ class ArrivageController extends AbstractController
         if (isset($reloadArrivageId)) {
             $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
+                $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
+                        'fieldsParam' => $fieldsParam
                     ]),
                 ];
             }
