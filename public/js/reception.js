@@ -39,10 +39,6 @@ $(function () {
         order: [[1, "desc"]],
         "columnDefs": [
             {
-                "type": "customDate",
-                "targets": 1
-            },
-            {
                 "orderable": false,
                 "targets": 0
             }
@@ -67,22 +63,6 @@ $(function () {
             {"data": 'Statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'title': 'Commentaire'},
         ],
-    });
-
-    $.extend($.fn.dataTableExt.oSort, {
-        "customDate-pre": function (a) {
-            let dateParts = a.split('/'),
-                year = parseInt(dateParts[2]) - 1900,
-                month = parseInt(dateParts[1]),
-                day = parseInt(dateParts[0]);
-            return Date.UTC(year, month, day, 0, 0, 0);
-        },
-        "customDate-asc": function (a, b) {
-            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-        },
-        "customDate-desc": function (a, b) {
-            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-        }
     });
 
     let modalReceptionNew = $("#modalNewReception");

@@ -1234,3 +1234,29 @@ function displayFiltersSup(data) {
         }
     });
 }
+
+function extendsDateSort(name) {
+    $.extend($.fn.dataTableExt.oSort, {
+        [name + "-pre"]: function (date) {
+            const dateSplitted = date.split(' ');
+            const dateDaysParts = dateSplitted[0].split('/');
+            const year = parseInt(dateDaysParts[2]);
+            const month = parseInt(dateDaysParts[1]);
+            const day = parseInt(dateDaysParts[0]);
+
+            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
+            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
+            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
+            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
+
+            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
+            return madeDate.getTime();
+        },
+        [name + "-asc"]: function (a, b) {
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        },
+        [name + "-desc"]: function (a, b) {
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        }
+    });
+}

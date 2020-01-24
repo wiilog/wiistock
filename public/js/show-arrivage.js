@@ -75,6 +75,7 @@ function openTableHisto() {
             "url": pathHistoLitige,
             "type": "POST"
         },
+        order: [[1, 'asc']],
         columns: [
             {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
             {"data": 'date', 'name': 'date', 'title': 'Date'},
@@ -89,22 +90,7 @@ function openTableHisto() {
         dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
+extendsDateSort('customDate');
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
