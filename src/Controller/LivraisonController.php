@@ -290,7 +290,7 @@ class LivraisonController extends AbstractController
             'demande' => $this->demandeRepository->findOneByLivraison($livraison),
             'livraison' => $livraison,
             'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId()),
-            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE)
+            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE)
         ]);
     }
 
