@@ -142,7 +142,7 @@ initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableArr
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
-let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
+let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
 initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");

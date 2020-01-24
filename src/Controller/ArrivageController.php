@@ -976,7 +976,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-litige", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
      */
     public function editLitige(Request $request): Response
     {

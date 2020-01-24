@@ -87,8 +87,8 @@ InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLi
 function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, true);
-    let modal = $('#modalEditLitige');
-    let submit = $('#submitEditLitige');
+    let $modal = $('#modalEditLitige');
+    let $submit = $modal.find('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
@@ -101,13 +101,13 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     }
 
     $.post(path, JSON.stringify(params), function (data) {
-        modal.find('.error-msg').html('');
-        modal.find('.modal-body').html(data.html);
+        $modal.find('.error-msg').html('');
+        $modal.find('.modal-body').html(data.html);
 
         if (isArrivage) {
-            modal.find('#colisEditLitige').val(data.colis).select2();
+            $modal.find('#colisEditLitige').val(data.colis).select2();
         } else {
-            ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
+            ajaxAutoArticlesReceptionInit($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
 
             let values = [];
             data.colis.forEach(val => {
@@ -122,14 +122,15 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
                 });
             });
 
-            modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
+            $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         }
 
+        $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
 
     }, 'json');
 
-    modal.find(submit).attr('value', litigeId);
+    $modal.find($submit).attr('value', litigeId);
 }
 
 let tableHistoLitige;
