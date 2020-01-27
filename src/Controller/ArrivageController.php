@@ -962,8 +962,11 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
+                'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
@@ -994,10 +997,17 @@ class ArrivageController extends AbstractController
             $statutBefore = $litige->getStatus()->getId();
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
-            $litige
-                ->setUpdateDate(new DateTime('now'))
-                ->setType($this->typeRepository->find($post->get('typeLitige')))
-                ->setStatus($this->statutRepository->find($post->get('statutLitige')));
+            $litige->setUpdateDate(new DateTime('now'));
+
+            $newStatus = $this->statutRepository->find($statutAfter);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
+                $litige->setStatus($newStatus);
+            }
+
+            if ($hasRightToTreatLitige) {
+                $litige->setType($this->typeRepository->find($typeAfter));
+            }
 
             if (!empty($colis = $post->get('colis'))) {
                 // on détache les colis existants...
