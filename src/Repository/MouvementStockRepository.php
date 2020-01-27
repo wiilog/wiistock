@@ -400,7 +400,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 					break;
 				case 'dateMin':
 					$qb->andWhere('m.date >= :dateMin')
-						->setParameter('dateMin', $filter['value']. " 00:00:00");
+						->setParameter('dateMin', $filter['value'] . " 00:00:00");
 					break;
 				case 'dateMax':
 					$qb->andWhere('m.date <= :dateMax')

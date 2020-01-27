@@ -89,7 +89,7 @@ class FiltreSupController extends AbstractController
 					$em->persist($filter);
 				}
 
-				$statuses = implode(',', $data['statut']);
+				$statuses = is_array($data['statut']) ? implode(',', $data['statut']) : $data['statut'];
 				$filter->setValue($statuses);
 				$em->flush();
 			} else {
