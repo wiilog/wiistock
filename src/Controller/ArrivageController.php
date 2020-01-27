@@ -14,7 +14,6 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
-use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -312,13 +311,7 @@ class ArrivageController extends AbstractController
                 $urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage);
                 if (!empty($urgencesMatching)) {
                     $arrivage->setIsUrgent(true);
-                    foreach ($urgencesMatching as $urgenceMatching) {
-                        $emergencyBuyer = $urgenceMatching->getBuyer();
-                        if (isset($emergencyBuyer) &&
-                            !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
-                            $arrivage->addAcheteur($emergencyBuyer);
-                        }
-                    }
+                    $this->arrivageDataService->addBuyersToArrivage($arrivage, $urgencesMatching);
                 }
             }
 
@@ -347,22 +340,7 @@ class ArrivageController extends AbstractController
             $em->flush();
 
             if (!empty($urgencesMatching)) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Arrivage urgent',
-                    $this->renderView(
-                        'mails/mailArrivageUrgent.html.twig',
-                        [
-                            'title' => 'Arrivage urgent',
-                            'arrivage' => $arrivage
-                        ]
-                    ),
-                    array_map(
-                        function (Utilisateur $buyer) {
-                            return $buyer->getEmail();
-                        },
-                        $arrivage->getAcheteurs()->toArray()
-                    )
-                );
+                $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
             }
 
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -432,30 +410,18 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($post->get('id'));
 
-            if (!empty($commentaire = $post->get('commentaire'))) {
-                $arrivage->setCommentaire($commentaire);
-            }
-            if (!empty($fournisseur = $post->get('fournisseur'))) {
-                $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
-            }
-            if (!empty($transporteur = $post->get('transporteur'))) {
-                $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
-            }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
-                $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
-            }
-            if (!empty($noTracking = $post->get('noTracking'))) {
-                $arrivage->setNoTracking(substr($noTracking, 0, 64));
-            }
-            if (!empty($statutId = $post->get('statut'))) {
-                $arrivage->setStatut($this->statutRepository->find($statutId));
-            }
-            if (!empty($noBL = $post->get('noBL'))) {
-                $arrivage->setNumeroBL(substr($noBL, 0, 64));
-            }
-            if (!empty($destinataire = $post->get('destinataire'))) {
-                $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
-            }
+            $oldNumeroBL = $arrivage->getNumeroBL();
+
+            $arrivage
+                ->setCommentaire($post->get('commentaire'))
+                ->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')))
+                ->setTransporteur($this->transporteurRepository->find($post->get('transporteur')))
+                ->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')))
+                ->setNoTracking(substr($post->get('noTracking'), 0, 64))
+                ->setStatut($this->statutRepository->find($post->get('statut')))
+                ->setNumeroBL(substr($post->get('noBL'), 0, 64))
+                ->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+
             $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...
             $existingAcheteurs = $arrivage->getAcheteurs();
@@ -484,7 +450,27 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
+            $arrivageEditUrgent = false;
+            if ($arrivage->getNumeroBL() &&
+                ($oldNumeroBL !== $arrivage->getNumeroBL())) {
+                $urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage);
+                if (!empty($urgencesMatching)) {
+                    $arrivage->setIsUrgent(true);
+                    $this->arrivageDataService->addBuyersToArrivage($arrivage, $urgencesMatching);
+                    $arrivageEditUrgent = true;
+                }
+                else {
+                    $arrivage->setIsUrgent(false);
+                }
+            }
+
+            if ($arrivageEditUrgent) {
+                $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
+            }
+
             $em->flush();
+
+
             $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
