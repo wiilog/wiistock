@@ -77,7 +77,7 @@ $(function() {
         let id = valueArray[0];
         let label = valueArray[1];
         let option = new Option(label, id, true, true);
-        $('#demandCollect').append(option).trigger('change');
+        $('#demCollecte').append(option).trigger('change');
     } else {
 
         // filtres enregistrés en base pour chaque utilisateur
@@ -101,6 +101,7 @@ $submitSearchOrdreCollecte.on('click', function () {
         statut: $('#statut').val(),
         type: $('#type').val(),
         users: $('#utilisateur').select2('data'),
+        demCollecte: $('#demCollecte').select2('data'),
     };
 
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');

@@ -1192,6 +1192,7 @@ function displayFiltersSup(data) {
 
             case 'providers':
             case 'reference':
+            case 'demCollecte':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);
                 valuesElement.forEach((value) => {

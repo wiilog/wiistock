@@ -5,6 +5,7 @@ $('.select2').select2();
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
+    initSelect2('#carriers', 'Transporteurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -160,6 +161,8 @@ $submitSearchArrivage.on('click', function () {
         users: $('#utilisateur').select2('data'),
         urgence: $('#urgence-filter').is(':checked'),
         providers: $('#providers').select2('data'),
+        carriers: $('#carriers').select2('data'),
+        numArrivage: $('#numArrivage').val(),
     };
 
     $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');

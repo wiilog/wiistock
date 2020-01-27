@@ -27,6 +27,7 @@ class FiltreSup
 	const FIELD_RECEPTION_STRING = 'reception_string';
 	const FIELD_COMMANDE = 'commande';
 	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
+	const FIELD_NUM_ARRIVAGE = 'numArrivage';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
