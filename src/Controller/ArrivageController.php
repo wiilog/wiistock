@@ -308,13 +308,18 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
             if ($arrivage->getNumeroBL()) {
-                $urgences = $this->urgenceRepository->countByArrivageData($arrivage);
-                if (intval($urgences) > 0) {
+                $urgenceMatching = $this->urgenceRepository->findUrgenceMatching($arrivage);
+                if (isset($urgenceMatching)) {
                     $arrivage->setIsUrgent(true);
+                    $emergencyBuyer = $urgenceMatching->getBuyer();
+                    if (isset($emergencyBuyer) &&
+                        !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
+                        $arrivage->addAcheteur($emergencyBuyer);
+                    }
+                    // TODO send email
                 }
             }
             $em->flush();
-            $arrivageNum = $arrivage->getNumeroArrivage();
 
             $codes = [];
 

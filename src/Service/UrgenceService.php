@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\FiltreSup;
+use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
@@ -101,13 +102,14 @@ class UrgenceService
         ];
     }
 
-    public function dataRowUrgence($urgence)
+    public function dataRowUrgence(Urgence$urgence)
     {
         $row =
             [
                 'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
                 'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
                 'commande' => $urgence->getCommande(),
+                'buyer' => $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '',
                 'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                     'urgence' => $urgence
                 ])

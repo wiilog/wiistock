@@ -6,7 +6,9 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
+use App\Entity\Utilisateur;
 use App\Repository\UrgenceRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use DateTime;
@@ -76,8 +78,12 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param UtilisateurRepository $utilisateurRepository
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        UtilisateurRepository $utilisateurRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
@@ -90,6 +96,13 @@ class UrgencesController extends AbstractController
                 ->setCommande($data['commande'])
                 ->setDateStart($dateStart)
                 ->setDateEnd($dateEnd);
+
+            if (isset($data['acheteur'])) {
+                $buyer = $utilisateurRepository->find($data['acheteur']);
+                if (isset($buyer)) {
+                    $urgence->setBuyer($buyer);
+                }
+            }
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($urgence);
@@ -141,8 +154,12 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UtilisateurRepository $utilisateurRepository
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         UtilisateurRepository $utilisateurRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
@@ -156,6 +173,18 @@ class UrgencesController extends AbstractController
                 ->setCommande($data['commande'])
                 ->setDateStart($dateStart)
                 ->setDateEnd($dateEnd);
+
+            $buyer = isset($data['acheteur'])
+                ? $utilisateurRepository->find($data['acheteur'])
+                : null;
+
+            if(isset($buyer)) {
+                $buyer->addEmergency($urgence);
+            }
+            else {
+                $urgence->setBuyer(null);
+            }
+
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();

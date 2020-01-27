@@ -31,6 +31,11 @@ class Urgence
      */
     private $commande;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="emergencies")
+     */
+    private $buyer;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -69,6 +74,15 @@ class Urgence
     {
         $this->commande = $commande;
 
+        return $this;
+    }
+
+    public function getBuyer(): ?Utilisateur {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?Utilisateur $buyer): self {
+        $this->buyer = $buyer;
         return $this;
     }
 }

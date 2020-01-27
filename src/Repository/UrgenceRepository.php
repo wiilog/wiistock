@@ -6,9 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Urgence;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-
-use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,9 +18,9 @@ class UrgenceRepository extends ServiceEntityRepository
 {
 
     private const DtToDbLabels = [
-        'commande' => 'commande',
-        "start" => 'dateEnd',
-        "end" => 'dateStart',
+        "start" => 'dateStart',
+        "end" => 'dateEnd',
+        'commande' => 'commande'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -31,26 +28,26 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function countByArrivageData(Arrivage $arrivage)
-    {
+    /**
+     * @param Arrivage $arrivage
+     * @return Urgence|null
+     */
+    public function findUrgenceMatching(Arrivage $arrivage): ?Urgence {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
+            "SELECT u
                 FROM App\Entity\Urgence u
-                WHERE u.dateStart <= :date AND u.dateEnd >= :date AND u.commande LIKE :commande"
+                WHERE u.dateStart <= :date
+                  AND u.dateEnd >= :date
+                  AND u.commande LIKE :commande"
         )->setParameters([
             'date' => $arrivage->getDate(),
             'commande' => $arrivage->getNumeroBL()
         ]);
 
-        return $query->getSingleScalarResult();
+        $res = $query->getResult();
+
+        return count($res) > 0 ? $res[0] : null;
     }
 
     public function findByParamsAndFilters($params, $filters)
@@ -82,6 +79,7 @@ class UrgenceRepository extends ServiceEntityRepository
 			}
 		}
 
+        dump('----------------------------------------------');
         //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -93,9 +91,12 @@ class UrgenceRepository extends ServiceEntityRepository
                 }
             }
             if (!empty($params->get('order'))) {
+                dump($params->get('order'));
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    dump($column);
+                    dump($order);
                     $qb
                         ->orderBy('u.' . $column, $order);
                 }
