@@ -86,7 +86,7 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
     let dateStart = $dateStartInput.data('date');
 
-    let $dateEndInput = $('#modalEditUrgence').find('.dateFin');
+    let $dateEndInput = $('#modalEditUrgence').find('.dateEnd');
     let dateEnd = $dateEndInput.data('date');
 
     $dateStartInput.val(moment(dateStart, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));

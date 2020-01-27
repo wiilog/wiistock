@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
+use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -253,7 +254,7 @@ class ArrivageController extends AbstractController
      * @param ColisService $colisService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Exception
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -308,20 +309,18 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
             if ($arrivage->getNumeroBL()) {
-                $urgenceMatching = $this->urgenceRepository->findUrgenceMatching($arrivage);
-                if (isset($urgenceMatching)) {
+                $urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage);
+                if (!empty($urgencesMatching)) {
                     $arrivage->setIsUrgent(true);
-                    $emergencyBuyer = $urgenceMatching->getBuyer();
-                    if (isset($emergencyBuyer) &&
-                        !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
-                        $arrivage->addAcheteur($emergencyBuyer);
+                    foreach ($urgencesMatching as $urgenceMatching) {
+                        $emergencyBuyer = $urgenceMatching->getBuyer();
+                        if (isset($emergencyBuyer) &&
+                            !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
+                            $arrivage->addAcheteur($emergencyBuyer);
+                        }
                     }
-                    // TODO send email
                 }
             }
-            $em->flush();
-
-            $codes = [];
 
             $natures = json_decode($post->get('nature'), true);
 
@@ -331,9 +330,7 @@ class ArrivageController extends AbstractController
                     $nature = $this->natureRepository->find($natureArray['id']);
 
                     for ($i = 0; $i < $natureArray['val']; $i++) {
-                        $colis = $colisService->persistColis($arrivage, $nature);
-                        $em->flush();
-                        $codes[] = $colis->getCode();
+                        $colisService->persistColis($arrivage, $nature);
                     }
                 }
             }
@@ -345,6 +342,27 @@ class ArrivageController extends AbstractController
             }
             if ($post->get('printArrivage') === 'true') {
                 $printArrivage = true;
+            }
+
+            $em->flush();
+
+            if (!empty($urgencesMatching)) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Arrivage urgent',
+                    $this->renderView(
+                        'mails/mailArrivageUrgent.html.twig',
+                        [
+                            'title' => 'Arrivage urgent',
+                            'arrivage' => $arrivage
+                        ]
+                    ),
+                    array_map(
+                        function (Utilisateur $buyer) {
+                            return $buyer->getEmail();
+                        },
+                        $arrivage->getAcheteurs()->toArray()
+                    )
+                );
             }
 
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);

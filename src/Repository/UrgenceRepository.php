@@ -30,9 +30,9 @@ class UrgenceRepository extends ServiceEntityRepository
 
     /**
      * @param Arrivage $arrivage
-     * @return Urgence|null
+     * @return Urgence[]
      */
-    public function findUrgenceMatching(Arrivage $arrivage): ?Urgence {
+    public function findUrgencesMatching(Arrivage $arrivage): array {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT u
@@ -47,7 +47,7 @@ class UrgenceRepository extends ServiceEntityRepository
 
         $res = $query->getResult();
 
-        return count($res) > 0 ? $res[0] : null;
+        return $res;
     }
 
     public function findByParamsAndFilters($params, $filters)
