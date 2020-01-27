@@ -118,7 +118,7 @@ class GlobalParamController extends AbstractController
 				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 $em->persist($parametrageGlobal);
             }
-
+            $parametrageGlobal->setParametre($data['param-bl-etiquette']);
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
             if (empty($parametrageGlobal128)) {

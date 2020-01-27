@@ -819,10 +819,10 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                             .filter(Boolean)
                             .join('\n'));
                         posX = (docWidth - imageWidth) / 2;
-                        posY = 0;
+                        posY = 0.5;
                         let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                        doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
-                        doc.text(toPrint, docWidth / 2, imageHeight + 2, {align: 'center', baseline: 'top'});
+                        doc.setFontSize(Math.min(maxSize, ((docHeight - imageHeight)/1.6) - 1));
+                        doc.text(toPrint, docWidth / 2, imageHeight + 1, {align: 'center', baseline: 'top'});
                     }
                     doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
                     doc.addPage();
@@ -840,7 +840,14 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                         format: "CODE128",
                     });
                 } else {
-                    $("#barcode" + index).qrcode(code);
+                    $("#barcode" + index).qrcode({
+                        text: code,
+                        mode: 2,
+                        label: code,
+                        fontname:'sans',
+                        fontcolor:'#000',
+                        mPosY: 0,
+                    });
                     let canvas = $("#barcode" + index + " canvas");
                     $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
                 }
