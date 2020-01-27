@@ -79,7 +79,6 @@ class UrgenceRepository extends ServiceEntityRepository
 			}
 		}
 
-        dump('----------------------------------------------');
         //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -91,12 +90,9 @@ class UrgenceRepository extends ServiceEntityRepository
                 }
             }
             if (!empty($params->get('order'))) {
-                dump($params->get('order'));
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    dump($column);
-                    dump($order);
                     $qb
                         ->orderBy('u.' . $column, $order);
                 }
