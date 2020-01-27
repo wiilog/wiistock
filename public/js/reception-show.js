@@ -570,7 +570,11 @@ function printBarcode(button) {
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
             if (response.refs.length > 0) {
-                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabels);
+                printBarcodes(
+                    response.refs,
+                    response,
+                    'Etiquettes du ' + date + '.pdf',
+                    response.barcodeLabel);
             } else {
                 alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
             }
