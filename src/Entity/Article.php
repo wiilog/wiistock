@@ -76,11 +76,6 @@ class Article
     private $mouvements;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
-     */
-    private $preparations;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="articles")
      */
     private $articleFournisseur;
@@ -151,10 +146,14 @@ class Article
      */
     private $litiges;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="articles")
+     */
+    private $preparation;
+
 
     public function __construct()
     {
-        $this->preparations = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
@@ -270,34 +269,6 @@ class Article
     public function setLabel(?string $label): self
     {
         $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Preparation[]
-     */
-    public function getPreparations(): Collection
-    {
-        return $this->preparations;
-    }
-
-    public function addPreparation(Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparation(Preparation $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            $preparation->removeArticle($this);
-        }
 
         return $this;
     }
@@ -450,31 +421,31 @@ class Article
 	 * @return Collection|InventoryEntry[]
 	 */
 	public function getInventoryEntries(): Collection
-               {
-            	   return $this->inventoryEntries;
-               }
+                        {
+                     	   return $this->inventoryEntries;
+                        }
 
 	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-            	{
-            		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-            			$this->inventoryEntries[] = $inventoryEntry;
-            			$inventoryEntry->setArticle($this);
-            		}
-
-            		return $this;
-            	}
+                     	{
+                     		if (!$this->inventoryEntries->contains($inventoryEntry)) {
+                     			$this->inventoryEntries[] = $inventoryEntry;
+                     			$inventoryEntry->setArticle($this);
+                     		}
+         
+                     		return $this;
+                     	}
 
 	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-            	{
-            		if ($this->inventoryEntries->contains($inventoryEntry)) {
-            			$this->inventoryEntries->removeElement($inventoryEntry);
-            			// set the owning side to null (unless already changed)
-            			if ($inventoryEntry->getArticle() === $this) {
-            				$inventoryEntry->setArticle(null);
-            			}
-            		}
-            		return $this;
-            	}
+                     	{
+                     		if ($this->inventoryEntries->contains($inventoryEntry)) {
+                     			$this->inventoryEntries->removeElement($inventoryEntry);
+                     			// set the owning side to null (unless already changed)
+                     			if ($inventoryEntry->getArticle() === $this) {
+                     				$inventoryEntry->setArticle(null);
+                     			}
+                     		}
+                     		return $this;
+                     	}
 
     /**
      * @return Collection|InventoryMission[]
@@ -600,6 +571,18 @@ class Article
     public function setQuantitePrelevee(?int $quantitePrelevee): self
     {
         $this->quantitePrelevee = $quantitePrelevee;
+
+        return $this;
+    }
+
+    public function getPreparation(): ?Preparation
+    {
+        return $this->preparation;
+    }
+
+    public function setPreparation(?Preparation $preparation): self
+    {
+        $this->preparation = $preparation;
 
         return $this;
     }

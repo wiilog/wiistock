@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -266,6 +267,19 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $preparation->addArticle($article);
+            }
+            $lignesArticles = $demande->getLigneArticle();
+            foreach ($lignesArticles as $ligneArticle) {
+                $lignesArticlePreparation = new LigneArticlePreparation();
+                $lignesArticlePreparation
+                    ->setToSplit($ligneArticle->getToSplit())
+                    ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
+                    ->setQuantite($ligneArticle->getQuantite())
+                    ->setReference($ligneArticle->getReference())
+                    ->setPreparation($preparation);
+                $em->persist($lignesArticlePreparation);
+                $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }
             $em->flush();
 

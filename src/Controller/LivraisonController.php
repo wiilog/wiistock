@@ -234,12 +234,11 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->findOneByLivraison($livraison);
+            $preparation = $livraison->getPreparation();
             $data = [];
-            if ($demande) {
+            if ($preparation) {
                 $rows = [];
-                $articles = $this->articleRepository->findByDemande($demande);
-                foreach ($articles as $article) {
+                foreach ($preparation->getArticles() as $article) {
                     if ($article->getQuantite() !== 0) {
                         $rows[] = [
                             "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
@@ -252,9 +251,8 @@ class LivraisonController extends AbstractController
                         ];
                     }
                 }
-                $lignes = $demande->getLigneArticle();
 
-                foreach ($lignes as $ligne) {
+                foreach ($preparation->getLigneArticlePreparations() as $ligne) {
                 	if ($ligne->getQuantitePrelevee() > 0) {
 						$rows[] = [
 							"Référence" => $ligne->getReference()->getReference(),

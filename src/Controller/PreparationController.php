@@ -6,11 +6,13 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\EmplacementRepository;
+use App\Repository\LigneArticlePreparationRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
@@ -35,6 +37,9 @@ use App\Repository\StatutRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Repository\LigneArticleRepository;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/preparation")
@@ -133,6 +138,9 @@ class PreparationController extends AbstractController
      * @param PreparationsManagerService $preparationsManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
@@ -162,11 +170,11 @@ class PreparationController extends AbstractController
                 $mouvement->getQuantity(),
                 $this->getUser(),
                 $livraison,
-                $locationEndPrepa,
                 !empty($mouvement->getRefArticle()),
                 $mouvement->getRefArticle() ?? $mouvement->getArticle(),
                 $preparation,
-                false
+                false,
+                $locationEndPrepa
             );
         }
 
@@ -189,7 +197,7 @@ class PreparationController extends AbstractController
             }
 
             $preparation = new Preparation();
-
+            $em = $this->getDoctrine()->getManager();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
@@ -202,9 +210,25 @@ class PreparationController extends AbstractController
                 $demande
                     ->setPreparation($preparation)
                     ->setStatut($statut);
+                $articles = $demande->getArticles();
+                foreach ($articles as $article) {
+                    $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                    $preparation->addArticle($article);
+                }
+                $lignesArticles = $demande->getLigneArticle();
+                foreach ($lignesArticles as $ligneArticle) {
+                    $lignesArticlePreparation = new LigneArticlePreparation();
+                    $lignesArticlePreparation
+                        ->setToSplit($ligneArticle->getToSplit())
+                        ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
+                        ->setQuantite($ligneArticle->getQuantite())
+                        ->setReference($ligneArticle->getReference())
+                        ->setPreparation($preparation);
+                    $em->persist($lignesArticlePreparation);
+                    $preparation->addLigneArticlePreparation($lignesArticlePreparation);
+                }
             }
 
-            $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
 
@@ -278,9 +302,7 @@ class PreparationController extends AbstractController
 
             if ($demande) {
                 $rows = [];
-
-                $lignesArticles = $this->ligneArticleRepository->findByDemande($demande->getId());
-                foreach ($lignesArticles as $ligneArticle) {
+                foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
                     $isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -313,8 +335,7 @@ class PreparationController extends AbstractController
                     }
                 }
 
-                $articles = $this->articleRepository->findByDemande($demande);
-                foreach ($articles as $article) {
+                foreach ($preparation->getArticles() as $article) {
                     if ($article->getQuantite() > 0 ||
                         ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                         if (empty($article->getQuantiteAPrelever())) {
@@ -387,13 +408,17 @@ class PreparationController extends AbstractController
                 ->setPreparation(null)
                 ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
-            foreach ($demande->getArticles() as $article) {
+            foreach ($preparation->getArticles() as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getQuantiteAPrelever()) {
                     $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
                     $article->setQuantitePrelevee(0);
                 }
+            }
+
+            foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
+                $em->remove($ligneArticlePreparation);
             }
         }
 
@@ -406,24 +431,24 @@ class PreparationController extends AbstractController
      * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
      * Get list of article
      */
-    public function startSplitting(Request $request): Response
+    public function startSplitting(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
     {
         if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
 
-            $ligneArticle = $this->ligneArticleRepository->find($ligneArticleId);
+            $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
             $refArticle = $ligneArticle->getReference();
             $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-            $demande = $ligneArticle->getDemande();
+            $preparation = $ligneArticle->getPreparation();
 
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
                 'articles' => $articles,
                 'quantite' => $ligneArticle->getQuantite(),
-                'preparation' => $demande ? $demande->getPreparation() : null,
-                'demande' => $demande
+                'preparation' => $preparation,
+                'demande' => $preparation->getDemandes()[0]
             ]);
 
             return new JsonResponse($response);
@@ -434,7 +459,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
      */
-    public function submitSplitting(Request $request): Response
+    public function submitSplitting(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $totalQuantity = 0;
@@ -443,10 +468,10 @@ class PreparationController extends AbstractController
             }
             if (!empty($data['articles'])) {
                 $em = $this->getDoctrine()->getManager();
-                $demande = $this->demandeRepository->find($data['demande']);
+                $preparation = $this->preparationRepository->find($data['preparation']);
                 $articleFirst = $this->articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
-                $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande);
+                $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndPreparationAndToSplit($refArticle, $preparation);
                 foreach ($data['articles'] as $idArticle => $quantite) {
                     $article = $this->articleRepository->find($idArticle);
                     $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
@@ -519,7 +544,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function editLigneArticle(Request $request): Response
+    public function editLigneArticle(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -527,7 +552,7 @@ class PreparationController extends AbstractController
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($data['isRef']) {
-                $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
+                $ligneArticle = $ligneArticlePreparationRepository->find($data['ligneArticle']);
             } else {
                 $ligneArticle = $this->articleRepository->find($data['ligneArticle']);
             }
@@ -544,7 +569,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"} )
      */
-    public function apiEditLigneArticle(Request $request): Response
+    public function apiEditLigneArticle(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
@@ -552,7 +577,7 @@ class PreparationController extends AbstractController
             }
 
             if ($data['ref']) {
-                $ligneArticle = $this->ligneArticleRepository->find($data['id']);
+                $ligneArticle = $ligneArticlePreparationRepository->find($data['id']);
                 $quantity = $ligneArticle->getQuantite();
             } else {
                 $article = $this->articleRepository->find($data['id']);
@@ -594,87 +619,87 @@ class PreparationController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 */
-	public function getOrdrePrepaIntels(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+    /**
+     * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getOrdrePrepaIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-			$preparations = $this->preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $preparations = $this->preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-			$headers = [
-				'numéro',
-				'statut',
-				'date création',
-				'opérateur',
-				'type',
-				'référence',
-				'libellé',
-				'emplacement',
-				'quantité à collecter',
-				'code-barre'
-			];
+            $headers = [
+                'numéro',
+                'statut',
+                'date création',
+                'opérateur',
+                'type',
+                'référence',
+                'libellé',
+                'emplacement',
+                'quantité à collecter',
+                'code-barre'
+            ];
 
-			$data = [];
-			$data[] = $headers;
+            $data = [];
+            $data[] = $headers;
 
-			foreach ($preparations as $preparation) {
-				$this->buildInfos($preparation, $data);
-			}
-			return new JsonResponse($data);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+            foreach ($preparations as $preparation) {
+                $this->buildInfos($preparation, $data);
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
 
-	private function buildInfos(Preparation $preparation, &$data)
-	{
-		$demande = $preparation->getDemandes()[0];
+    private function buildInfos(Preparation $preparation, &$data)
+    {
+        $demande = $preparation->getDemandes()[0];
 
-		$dataPrepa =
-			[
-				$preparation->getNumero() ?? '',
-				$preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-				$preparation->getDate() ? $preparation->getDate()->format('d/m/Y h:i') : '',
-				$preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
-				$demande->getType() ? $demande->getType()->getLabel() : '',
-			];
+        $dataPrepa =
+            [
+                $preparation->getNumero() ?? '',
+                $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
+                $preparation->getDate() ? $preparation->getDate()->format('d/m/Y h:i') : '',
+                $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
+                $demande->getType() ? $demande->getType()->getLabel() : '',
+            ];
 
-		foreach ($demande->getLigneArticle() as $ligneArticle) {
-			$referenceArticle = $ligneArticle->getReference();
+        foreach ($demande->getLigneArticle() as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReference();
 
-			if ($ligneArticle->getQuantitePrelevee() > 0) {
-				$data[] = array_merge($dataPrepa, [
-					$referenceArticle->getReference() ?? '',
-					$referenceArticle->getLibelle() ?? '',
-					$referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-					$ligneArticle->getQuantite() ?? 0,
-					$referenceArticle->getBarCode(),
-				]);
-			}
-		}
+            if ($ligneArticle->getQuantitePrelevee() > 0) {
+                $data[] = array_merge($dataPrepa, [
+                    $referenceArticle->getReference() ?? '',
+                    $referenceArticle->getLibelle() ?? '',
+                    $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                    $ligneArticle->getQuantite() ?? 0,
+                    $referenceArticle->getBarCode(),
+                ]);
+            }
+        }
 
-		foreach ($demande->getArticles() as $article) {
-			$articleFournisseur = $article->getArticleFournisseur();
-			$referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-			$reference = $referenceArticle ? $referenceArticle->getReference() : '';
+        foreach ($demande->getArticles() as $article) {
+            $articleFournisseur = $article->getArticleFournisseur();
+            $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+            $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-			if ($article->getQuantitePrelevee() > 0) {
-				$data[] = array_merge($dataPrepa, [
-					$reference,
-					$article->getLabel() ?? '',
-					$article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-					$article->getQuantite() ?? 0,
-					$article->getBarCode(),
-				]);
-			}
-		}
-	}
+            if ($article->getQuantitePrelevee() > 0) {
+                $data[] = array_merge($dataPrepa, [
+                    $reference,
+                    $article->getLabel() ?? '',
+                    $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                    $article->getQuantite() ?? 0,
+                    $article->getBarCode(),
+                ]);
+            }
+        }
+    }
 }

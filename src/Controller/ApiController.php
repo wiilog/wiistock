@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
+use App\Repository\LigneArticlePreparationRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
@@ -584,7 +585,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function finishPrepa(Request $request,
-                                LigneArticleRepository $ligneArticleRepository,
+                                LigneArticlePreparationRepository $ligneArticleRepository,
                                 PreparationsManagerService $preparationsManager,
                                 EmplacementRepository $emplacementRepository,
                                 EntityManagerInterface $entityManager)
@@ -622,6 +623,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
+                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 foreach ($mouvementsNomade as $mouvementNomade) {
                                     if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                         $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
@@ -633,18 +635,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     }
                                     $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
                                     $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
-
                                     // on crée les mouvements de livraison
                                     $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                                     $preparationsManager->createMouvementLivraison(
                                         $mouvementNomade['quantity'],
                                         $nomadUser,
                                         $livraison,
-                                        $emplacement,
                                         $mouvementNomade['is_ref'],
                                         $mouvementNomade['reference'],
                                         $preparation,
-                                        $mouvementNomade['selected_by_article']
+                                        $mouvementNomade['selected_by_article'],
+                                        $emplacement
                                     );
                                 }
 
@@ -654,7 +655,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                                 }
                                 $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser, $emplacementPrepa);
                                 if ($emplacementPrepa) {
                                     $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
@@ -674,7 +674,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                                 $preparationsManager->setEntityManager($entityManager);
                             }
-
                             $resData['errors'][] = [
                                 'numero_prepa' => $preparation->getNumero(),
                                 'id_prepa' => $preparation->getId(),

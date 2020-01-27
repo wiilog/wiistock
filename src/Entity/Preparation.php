@@ -12,7 +12,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Preparation
 {
     const CATEGORIE = 'preparation';
-
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
     const STATUT_PREPARE = 'préparé';
@@ -51,11 +50,6 @@ class Preparation
     private $utilisateur;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="preparations")
-     */
-    private $articles;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
      */
     private $livraisons;
@@ -70,13 +64,24 @@ class Preparation
      */
     private $commentaire;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="preparation")
+     */
+    private $articles;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="preparation")
+     */
+    private $ligneArticlePreparations;
+
 
     public function __construct()
     {
         $this->demandes = new ArrayCollection();
-        $this->articles = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->ligneArticlePreparations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -163,32 +168,6 @@ class Preparation
         return $this;
     }
 
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-        }
-
-        return $this;
-    }
-
     public function getLivraisons(): Collection
     {
         return $this->livraisons;
@@ -260,4 +239,65 @@ class Preparation
         return $this;
     }
 
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getPreparation() === $this) {
+                $article->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LigneArticlePreparation[]
+     */
+    public function getLigneArticlePreparations(): Collection
+    {
+        return $this->ligneArticlePreparations;
+    }
+
+    public function addLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if (!$this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations[] = $ligneArticlePreparation;
+            $ligneArticlePreparation->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if ($this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations->removeElement($ligneArticlePreparation);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticlePreparation->getPreparation() === $this) {
+                $ligneArticlePreparation->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
 }

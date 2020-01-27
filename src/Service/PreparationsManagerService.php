@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\LigneArticle;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
@@ -130,7 +131,7 @@ class PreparationsManagerService {
         $demandes = $preparation->getDemandes();
         $demande = $demandes[0];
         $livraison->addDemande($demande);
-        foreach ($demande->getLigneArticle() as $ligneArticle) {
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $refQuantitePrelevee = $ligneArticle->getQuantitePrelevee();
             if (isset($refQuantitePrelevee) &&
                 $refQuantitePrelevee > 0 &&
@@ -138,7 +139,7 @@ class PreparationsManagerService {
                 $ligneArticle->getReference()->setEmplacement($emplacement);
             }
         }
-        foreach ($demande->getArticles() as $article) {
+        foreach ($preparation->getArticles() as $article) {
             $artQuantitePrelevee = $article->getQuantitePrelevee();
             if (isset($artQuantitePrelevee) && $artQuantitePrelevee > 0) {
                 $article->setEmplacement($emplacement);
@@ -209,11 +210,12 @@ class PreparationsManagerService {
     public function createMouvementLivraison(int $quantity,
 											 Utilisateur $userNomade,
 											 Livraison $livraison,
-											 Emplacement $emplacementFrom = null,
 											 bool $isRef,
 											 $article,
 											 Preparation $preparation,
-											 bool $isSelectedByArticle) {
+											 bool $isSelectedByArticle,
+                                             Emplacement $emplacementFrom = null
+) {
 		$referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 		$articleRepository = $this->entityManager->getRepository(Article::class);
 		$mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -260,7 +262,7 @@ class PreparationsManagerService {
 		}
     }
 
-    public function deleteLigneRefOrNot(?LigneArticle $ligne) {
+    public function deleteLigneRefOrNot(?LigneArticlePreparation $ligne) {
         if ($ligne && $ligne->getQuantite() === 0) {
             $this->entityManager->remove($ligne);
         }
@@ -274,7 +276,7 @@ class PreparationsManagerService {
     public function treatMouvementQuantities($mouvement, Preparation $preparation)
 	{
 		$referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-		$ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
+		$ligneArticleRepository = $this->entityManager->getRepository(LigneArticlePreparation::class);
 		$articleRepository = $this->entityManager->getRepository(Article::class);
 		$statutRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -282,7 +284,7 @@ class PreparationsManagerService {
 			// cas ref par ref
 			$refArticle = $referenceArticleRepository->findOneByReference($mouvement['reference']);
 			if ($refArticle) {
-				$ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);
+				$ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
 				$ligneArticle->setQuantitePrelevee($mouvement['quantity']);
 			}
 		}
@@ -296,12 +298,11 @@ class PreparationsManagerService {
 			if ($article) {
                 // cas ref par article
                 if (isset($mouvement['selected_by_article']) && $mouvement['selected_by_article']) {
-                    if ($article->getDemande()) {
+                    if ($article->getPreparation()) {
                         throw new Exception(self::ARTICLE_ALREADY_SELECTED);
                     } else {
-                        $demande = $preparation->getDemandes()[0];
                         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+                        $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                         $this->treatArticleSplitting($article, $mouvement['quantity'], $ligneArticle);
                         // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                     }
@@ -316,13 +317,13 @@ class PreparationsManagerService {
 		$this->entityManager->flush();
 	}
 
-	public function treatArticleSplitting(Article $article, int $quantite, LigneArticle $ligneArticle) {
+	public function treatArticleSplitting(Article $article, int $quantite, LigneArticlePreparation $ligneArticle) {
         if ($quantite !== '' && $quantite > 0 && $quantite <= $article->getQuantite()) {
-            if (!$article->getDemande()) {
+            if (!$article->getPreparation()) {
                 $article->setQuantiteAPrelever(0);
                 $article->setQuantitePrelevee(0);
             }
-            $article->setDemande($ligneArticle->getDemande());
+            $article->setPreparation($ligneArticle->getPreparation());
             if ($quantite <= $article->getQuantitePrelevee()) {
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
             } else {
@@ -360,7 +361,7 @@ class PreparationsManagerService {
         $demande = $demandes[0];
 
         // modification des articles de la demande
-        $articles = $demande->getArticles();
+        $articles = $preparation->getArticles();
         foreach ($articles as $article) {
             $mouvementAlreadySaved = $mouvementRepository->findByArtAndPrepa($article->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved) {
@@ -391,8 +392,8 @@ class PreparationsManagerService {
                     if ($selected) {
                         $article->setQuantite($quantitePrelevee);
                     } else {
-                        $demande->addArticle($insertedArticle);
-                        $demande->removeArticle($article);
+                        $preparation->addArticle($insertedArticle);
+                        $preparation->removeArticle($article);
                     }
                 }
 
@@ -413,7 +414,7 @@ class PreparationsManagerService {
         }
 
         // création des mouvements de préparation pour les articles de référence
-        foreach ($demande->getLigneArticle() as $ligneArticle) {
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $articleRef = $ligneArticle->getReference();
 
             $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
