@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ArticleFournisseur;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -213,6 +214,24 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
             'search' => '%' . $search . '%',
             'ref' => $ref,
         ]);
+
+        return $query->execute();
+    }
+
+	/**
+	 * @param ReferenceArticle $ref
+	 * @return array
+	 */
+    public function getIdAndLibelleByRef($ref)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        	/** @lang DQL */
+            "SELECT articleFournisseur.id,
+                         articleFournisseur.reference as reference
+          FROM App\Entity\ArticleFournisseur articleFournisseur
+          WHERE articleFournisseur.referenceArticle = :ref"
+        )->setParameter('ref', $ref);
 
         return $query->execute();
     }

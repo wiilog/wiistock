@@ -5,12 +5,11 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\UserService;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -225,39 +224,22 @@ class ArticleFournisseurController extends AbstractController
         return $row;
     }
 
-    /**
-     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true})
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function getArticleFournisseur(Request $request)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-
-            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearch($search);
-
-            return new JsonResponse(['results' => $articleFournisseur]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/autocomplete-fournisseur-by-ref/{referenceArticle}", name="get_article_fournisseur_autocomplete", options={"expose"=true})
-     * @param Request $request
-     * @param String $referenceArticle
-     * @return JsonResponse
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getArticleFournisseurByRef(Request $request, String $referenceArticle)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-            $reference = $this->referenceArticleRepository->findOneByReference($referenceArticle);
-            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearchAndRef($search, $reference);
-
-            return new JsonResponse(['results' => $articleFournisseur]);
-        }
-        throw new NotFoundHttpException("404");
-    }
+//    /**
+//     * @Route("/autocomplete-fournisseur-by-ref/{referenceArticle}", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+//     * @param Request $request
+//     * @param String $referenceArticle
+//     * @return JsonResponse
+//     * @throws NonUniqueResultException
+//     */
+//    public function getArticleFournisseurByRef(Request $request, String $referenceArticle)
+//    {
+//        if ($request->isXmlHttpRequest()) {
+//            $search = $request->query->get('term');
+//            $reference = $this->referenceArticleRepository->findOneByReference($referenceArticle);
+//            $articleFournisseur = $this->articleFournisseurRepository->getIdAndLibelleBySearchAndRef($search, $reference);
+//
+//            return new JsonResponse(['results' => $articleFournisseur]);
+//        }
+//        throw new NotFoundHttpException("404");
+//    }
 }
