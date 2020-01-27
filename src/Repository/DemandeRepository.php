@@ -237,11 +237,11 @@ class DemandeRepository extends ServiceEntityRepository
 					break;
 				case 'dateMin':
 					$qb->andWhere('d.date >= :dateMin')
-						->setParameter('dateMin', $filter['value']);
+						->setParameter('dateMin', $filter['value'] . " 00:00:00");
 					break;
 				case 'dateMax':
 					$qb->andWhere('d.date <= :dateMax')
-						->setParameter('dateMax', $filter['value']);
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
 			}
 		}

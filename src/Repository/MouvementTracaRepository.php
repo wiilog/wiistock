@@ -182,7 +182,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
                 case 'dateMin':
                     $qb
                         ->andWhere('m.datetime >= :dateMin')
-                        ->setParameter('dateMin', $filter['value']. " 00:00:00");
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
                     $qb

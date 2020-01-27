@@ -22,54 +22,46 @@ class StatutRepository extends ServiceEntityRepository
         parent::__construct($registry, Statut::class);
     }
 
-	/**
-	 * @param string $categorieName
-	 * @param bool $ordered
-	 * @return Statut[]
-	 */
-    public function findByCategorieName($categorieName, $ordered = false)
-    {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT s
-            FROM App\Entity\Statut s
-            JOIN s.categorie c
-            WHERE c.nom = :categorieName";
-
-        if ($ordered) {
-        	$dql .= " ORDER BY s.displayOrder ASC";
-		}
-
-		$query = $em->createQuery($dql);
-
-        $query->setParameter("categorieName", $categorieName);
-
-        return $query->execute();
-    }
-
     /**
      * @param string $categorieName
      * @param bool $ordered
      * @return Statut[]
      */
-    public function findByCategorieNames($categorieNames, $ordered = false)
+    public function findByCategorieName($categorieName, $ordered = false)
     {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT s
-            FROM App\Entity\Statut s
-            JOIN s.categorie c
-            WHERE c.nom IN(:categorieNames)";
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->join('status.categorie', 'categorie')
+            ->andWhere('categorie.nom = :categorieName');
 
         if ($ordered) {
-            $dql .= " ORDER BY s.displayOrder ASC";
+            $queryBuilder->orderBy('status.displayOrder', 'ASC');
+		}
+
+        $queryBuilder
+            ->setParameter("categorieName", $categorieName);
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @param string $categorieNames
+     * @param bool $ordered
+     * @return Statut[]
+     */
+    public function findByCategorieNames($categorieNames, $ordered = false)
+    {
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->join('status.categorie', 'categorie')
+            ->andWhere('categorie.nom IN (:categorieNames)')
+            ->setParameter("categorieNames", $categorieNames, Connection::PARAM_STR_ARRAY);
+
+        if ($ordered) {
+            $queryBuilder->orderBy('status.displayOrder', 'ASC');
         }
 
-        $query = $em->createQuery($dql);
-
-        $query->setParameter("categorieNames", $categorieNames, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
+        return $queryBuilder->getQuery()->execute();
     }
 
     public function findByName($name)

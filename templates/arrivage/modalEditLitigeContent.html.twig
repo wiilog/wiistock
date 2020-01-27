@@ -3,7 +3,9 @@
     <div class="row">
         <div class="form-group col-12">
             <label for="typeLitige">Type*</label>
-            <select class="form-control data needed" id="typeLitige" name="typeLitige">
+            <select class="form-control data needed"
+                    {{ not hasRightToTreatLitige ? 'disabled' }}
+                    id="typeLitige" name="typeLitige">
                 <option placeholder="" value="{{ litige.type.id }}" selected>{{ litige.type.label }}</option>
                 {% for type in typesLitige %}
                     {% if type.id != litige.type.id %}
@@ -18,7 +20,8 @@
             <select class="form-control data needed" id="statutLitige" name="statutLitige">
                 {% for statut in statusLitige %}
                     {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
-                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                    {% set disabled = hasRightToTreatLitige ? '' : (statut.treated and statut.id != litige.status.id ? 'disabled' : '') %}
+                    <option value="{{ statut.id }}" {{ selected }} {{ disabled }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>

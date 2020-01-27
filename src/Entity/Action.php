@@ -24,6 +24,7 @@ class Action
     const REFERENCE = 'fiabilité par réference';
     const MONETAIRE = 'fiabilité par monétaire';
     const CREATE_REF_FROM_RECEP = 'création réf depuis réception';
+    const TREAT_LITIGE = 'traiter litige';
 
     /**
      * @ORM\Id()

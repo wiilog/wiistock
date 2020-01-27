@@ -553,9 +553,9 @@ function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2Ajax(select, 'get_user', 1, {}, placeholder);
 }
 
-function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
-    initSelect2Ajax(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
-}
+// function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
+//     initSelect2Ajax(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
+// }
 
 function ajaxAutoDemandCollectInit(select) {
     initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
@@ -846,7 +846,6 @@ function printSingleArticleBarcode(button) {
         'article': button.data('id')
     };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
-        console.log(response.articleRef.barcodeLabel);
         printBarcodes(
             [response.articleRef.barcode],
             response,
