@@ -46,7 +46,7 @@ class LitigeRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getAcheteursByLitigeId(int $litigeId, string $field = 'email') {
+	public function getAcheteursArrivageByLitigeId(int $litigeId, string $field = 'email') {
         $em = $this->getEntityManager();
 
         $sql = "SELECT DISTINCT acheteur.$field
@@ -65,7 +65,7 @@ class LitigeRepository extends ServiceEntityRepository
         }, $query->execute());
     }
 
-    public function getAcheteursByLitigeIdForReception(int $litigeId, string $field = 'email') {
+    public function getAcheteursReceptionByLitigeId(int $litigeId, string $field = 'email') {
         $em = $this->getEntityManager();
 
         $sql = "SELECT DISTINCT acheteur.$field
@@ -253,7 +253,8 @@ class LitigeRepository extends ServiceEntityRepository
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
-						->andWhere("ach.id in (:userId)")
+						->leftJoin('l.buyers', 'b')
+						->andWhere("ach.id in (:userId) OR b.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
 				case 'dateMin':

@@ -381,7 +381,7 @@ class DemandeController extends AbstractController
                                 ->setChampLibre($this->champLibreRepository->find($champ));
                             $em->persist($valeurChampLibre);
                         }
-                        $valeurChampLibre->setValeur($data[$champ]);
+                        $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
                         $em->flush();
                     }
                 }

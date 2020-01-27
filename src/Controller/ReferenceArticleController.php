@@ -493,7 +493,7 @@ class ReferenceArticleController extends AbstractController
                 if (gettype($champs) === 'integer') {
                     $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
-                        ->setValeur($data[$champs])
+                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                         ->addArticleReference($refArticle)
                         ->setChampLibre($this->champLibreRepository->find($champs));
                     $em->persist($valeurChampLibre);

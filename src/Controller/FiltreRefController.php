@@ -102,7 +102,7 @@ class FiltreRefController extends AbstractController
 
                 // champ Value
                 if (isset($data['value'])) {
-                    $filter->setValue($data['value']);
+                    $filter->setValue(is_array($data['value']) ? implode(",", $data['value']) : $data['value']);
                 }
 
                 // champ Utilisateur
@@ -161,7 +161,7 @@ class FiltreRefController extends AbstractController
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
 			$value = $data['value'];
-
+			$multiple = false;
 			if ($value === 'Emplacement') {
 				$emplacements = $this->emplacementRepository->findAllSorted();
 				$options = [];
@@ -177,10 +177,12 @@ class FiltreRefController extends AbstractController
 			} else {
 				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
 				$options = $cl->getElements();
+				$multiple = true;
 			}
 
 			$view = $this->renderView('reference_article/selectInFilter.html.twig', [
 				'options' => $options,
+                'multiple' => $multiple
 			]);
 			return new JsonResponse($view);
 		}

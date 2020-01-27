@@ -7,10 +7,6 @@ let table = $('#tableCollecte_id').DataTable({
     order: [[1, 'desc']],
     columnDefs: [
         {
-            "type": "customDate",
-            "targets": 1
-        },
-        {
             "orderable": false,
             "targets": [0]
         }
@@ -80,22 +76,6 @@ let modalModifyCollecte = $('#modalEditCollecte');
 let submitModifyCollecte = $('#submitEditCollecte');
 let urlModifyCollecte = Routing.generate('collecte_edit', true);
 InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
 
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
@@ -195,6 +175,7 @@ function ajaxGetCollecteArticle(select) {
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
+            $('.list-multiple').select2();
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)

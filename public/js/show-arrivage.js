@@ -75,6 +75,7 @@ function openTableHisto() {
             "url": pathHistoLitige,
             "type": "POST"
         },
+        order: [[1, 'asc']],
         columns: [
             {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
             {"data": 'date', 'name': 'date', 'title': 'Date'},
@@ -89,22 +90,7 @@ function openTableHisto() {
         dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-});
+extendsDateSort('customDate');
 
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
@@ -142,7 +128,7 @@ initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableArr
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
-let urlEditLitige = Routing.generate('litige_edit', {reloadArrivage: $('#arrivageId').val()}, true);
+let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
 initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
@@ -181,7 +167,7 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
+function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');

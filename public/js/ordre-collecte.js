@@ -10,10 +10,6 @@ let tableCollecte = $('#tableCollecte').DataTable({
     order: [[3, 'desc']],
     columnDefs: [
         {
-            type: "customDate",
-            targets: 3
-        },
-        {
             orderable: false,
             targets: 0
         }
@@ -111,20 +107,4 @@ $submitSearchOrdreCollecte.on('click', function () {
     $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
 
     saveFilters(filters, tableCollecte);
-});
-
-$.extend($.fn.dataTableExt.oSort, {
-    "customDate-pre": function (a) {
-        let dateParts = a.split('/'),
-            year = parseInt(dateParts[2]) - 1900,
-            month = parseInt(dateParts[1]),
-            day = parseInt(dateParts[0]);
-        return Date.UTC(year, month, day, 0, 0, 0);
-    },
-    "customDate-asc": function (a, b) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
-    "customDate-desc": function (a, b) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
 });

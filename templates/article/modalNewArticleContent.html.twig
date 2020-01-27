@@ -87,7 +87,8 @@
                 {% for champLibre in champsLibres %}
                 <div class="form-group col-6">
                     <label for="">
-                        {{champLibre.label | capitalize}}
+                        {% set label = champLibre.label %}
+                        {{ label | capitalize ~ (champLibre.requiredCreate ? '*' : '') }}
                     </label>
 
                     {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
@@ -107,7 +108,13 @@
                         <option value="{{elem}}">{{elem}}</option>
                         {% endfor %}
                     </select>
-
+                    {% elseif champLibre.typage == 'list multiple' %}
+                        <select id="{{ champLibre.id ~ 'create' }}" class="list-multiple form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                                name="{{ champLibre.id }}" multiple="multiple">
+                            {% for elem in champLibre.elements %}
+                                <option value="{{ elem }}">{{ elem }}</option>
+                            {% endfor %}
+                        </select>
                     {% elseif champLibre.typage == 'text'  %}
                     <input type="text" id="{{ champLibre.label ~ 'edit'}}"
                         class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"

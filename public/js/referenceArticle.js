@@ -282,6 +282,9 @@ function displayFilterValue(elem) {
         case 'list':
             label = 'Valeur';
             break;
+        case 'list multiple':
+            label = 'Contient';
+            break;
         case 'date':
             label = 'Date';
             type = 'text';
@@ -297,12 +300,13 @@ function displayFilterValue(elem) {
     }
 
     // cas particulier de liste déroulante pour type
-    if (type == 'list') {
+    if (type === 'list' || type === 'list multiple') {
         let params = {
             'value': val
         };
         $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
             modalBody.find('.input-group').html(data);
+            $('.list-multiple').select2();
         }, 'json');
     } else {
         modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data ' + type + '" id="value" name="value">');

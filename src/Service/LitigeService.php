@@ -97,20 +97,21 @@ class LitigeService
     public function dataRowLitige($litige)
     {
     	$litigeId = $litige['id'];
-		$acheteursUsernames = $this->litigeRepository->getAcheteursByLitigeId($litigeId, 'username');
-		if (count($acheteursUsernames) === 0 ) {
-            $acheteursUsernames = $this->litigeRepository->getAcheteursByLitigeIdForReception($litigeId, 'username');
-        }
+		$acheteursArrivage = $this->litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
+		$acheteursReception = $this->litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
+
 		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesArrivageRow.html.twig', [
 				'litigeId' => $litige['id'],
-				'arrivageId' => $litige['arrivageId']
+				'arrivageId' => $litige['arrivageId'],
+				'receptionId' => $litige['receptionId'],
+				'isArrivage' => !empty($litige['arrivageId']) ? 1 : 0
 			]),
 			'type' => $litige['type'] ?? '',
 			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
-			'buyers' => implode(', ', $acheteursUsernames),
+			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
 			'receptionNumber' => $litige['numeroReception'] ?? '',
 			'lastHistoric' => $lastHistoricStr,
 			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',

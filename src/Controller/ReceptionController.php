@@ -309,7 +309,7 @@ class ReceptionController extends AbstractController
                 if (gettype($champs) === 'integer') {
                     $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
-                        ->setValeur($data[$champs])
+                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                         ->addReception($reception)
                         ->setChampLibre($this->champLibreRepository->find($champs));
 
@@ -394,7 +394,7 @@ class ReceptionController extends AbstractController
                             ->setChampLibre($this->champLibreRepository->find($champ));
                         $em->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur($data[$champ]);
+                    $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
                     $em->flush();
                 }
             }
@@ -550,19 +550,21 @@ class ReceptionController extends AbstractController
         }
 
         //TODO à modifier si plusieurs types possibles pour une réception
-        $type = $this->typeRepository->getOneIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
-        $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
-
-        $typeChampLibre = [
-            'typeLabel' => $type['label'],
-            'typeId' => $type['id'],
-            'champsLibres' => $champsLibres,
-        ];
+        $typeChampLibre = [];
+        foreach ($listType as $type) {
+            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
+            $typeChampLibre[] = [
+                'typeLabel' => $type['label'],
+                'typeId' => $type['id'],
+                'champsLibres' => $champsLibres,
+            ];
+        }
 
         return $this->render('reception/index.html.twig', [
-            'typeChampLibre' => $typeChampLibre,
+            'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
         ]);
@@ -1157,7 +1159,7 @@ class ReceptionController extends AbstractController
             $litige = $this->litigeRepository->find($data['litigeId']);
             $colisCode = [];
             $acheteursCode = [];
-            $reception = $this->receptionRepository->find($data['reception']);
+
             foreach ($litige->getArticles() as $colis) {
                 $colisCode[] = [
                     'id' => $colis->getId(),
@@ -1182,7 +1184,7 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursByLitigeId($litige->getId());
+        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
 
