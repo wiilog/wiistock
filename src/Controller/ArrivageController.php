@@ -997,15 +997,18 @@ class ArrivageController extends AbstractController
             $statutBefore = $litige->getStatus()->getId();
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
-            $litige
-                ->setUpdateDate(new DateTime('now'))
-                ->setType($this->typeRepository->find($post->get('typeLitige')));
+            $litige->setUpdateDate(new DateTime('now'));
 
-            $newStatus = $this->statutRepository->find($post->get('statutLitige'));
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN) ||
+            $newStatus = $this->statutRepository->find($statutAfter);
+            $hasRightModifierSafran = $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN);
+            if (!$hasRightModifierSafran ||
                 !$newStatus->getTreated()) {
                 $litige->setStatus($newStatus);
-            };
+            }
+
+            if (!$hasRightModifierSafran) {
+                $litige->setType($this->typeRepository->find($typeAfter));
+            }
 
             if (!empty($colis = $post->get('colis'))) {
                 // on détache les colis existants...
