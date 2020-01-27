@@ -25,20 +25,13 @@ class StatutRepository extends ServiceEntityRepository
     /**
      * @param string $categorieName
      * @param bool $ordered
-     * @param bool $hasRightModifierSafran if false we return all status else only notTreated status
      * @return Statut[]
      */
-    public function findByCategorieName($categorieName, $ordered = false, bool $hasRightModifierSafran = false)
+    public function findByCategorieName($categorieName, $ordered = false)
     {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieName');
-
-        if ($hasRightModifierSafran) {
-            $queryBuilder
-                ->andWhere('status.treated = :notTreated')
-                ->setParameter('notTreated', false);
-        }
 
         if ($ordered) {
             $queryBuilder->orderBy('status.displayOrder', 'ASC');

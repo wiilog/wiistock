@@ -962,13 +962,13 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
-            $hasRightModifierSafran = $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
-                'hasRightModifierSafran' => $hasRightModifierSafran,
+                'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true, $hasRightModifierSafran),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getColis(),
             ]);
@@ -1000,13 +1000,12 @@ class ArrivageController extends AbstractController
             $litige->setUpdateDate(new DateTime('now'));
 
             $newStatus = $this->statutRepository->find($statutAfter);
-            $hasRightModifierSafran = $this->userService->hasRightFunction(Menu::LITIGE, Action::MODIFIER_SAFRAN);
-            if (!$hasRightModifierSafran ||
-                !$newStatus->getTreated()) {
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
                 $litige->setStatus($newStatus);
             }
 
-            if (!$hasRightModifierSafran) {
+            if ($hasRightToTreatLitige) {
                 $litige->setType($this->typeRepository->find($typeAfter));
             }
 

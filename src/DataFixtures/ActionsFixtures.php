@@ -29,11 +29,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
     public function load(ObjectManager $manager)
     {
-        $specifics = [
-            Action::MODIFIER_SAFRAN => [SpecificService::CLIENT_SAFRAN_CS]
-        ];
     	$menus = [
-			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE, Action::MODIFIER_SAFRAN],
+			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE],
 			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP, Action::EXPORT],
 			Menu::DEM_LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
 			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
@@ -49,16 +46,16 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			Menu::ARRIVAGE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::LIST_ALL, Action::EXPORT],
 		];
 
+    	// spécifique safran
+    	if ($this->specificService::isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_CS)) {
+    		$menus[Menu::LITIGE][] = Action::TREAT_LITIGE;
+		}
+
 		foreach ($menus as $menuCode => $actionLabels) {
 			foreach ($actionLabels as $actionLabel) {
 				$action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
-				$canCreate = (
-				    !isset($specifics[$actionLabel]) ||
-                    in_array($this->specificService->getAppClient(), $specifics[$actionLabel])
-                );
-
-				if (empty($action) && $canCreate) {
+				if (empty($action)) {
 					$action = new Action();
 
 					$action
