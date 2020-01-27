@@ -1,0 +1,10 @@
+<div>
+    <div class="input-group minw-200px">
+        <select class="form-control data select2 cursor-default" name="emplacement" id="emplacement" {{ disabled }}>
+            <option value="">&nbsp;</option>
+            {% for emplacement in emplacements %}
+                <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

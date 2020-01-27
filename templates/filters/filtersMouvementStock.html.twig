@@ -1,4 +1,8 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filterDate.html.twig' %}
+    {% include 'filters/filterLocation.html.twig' %}
+    {% include 'filters/filterStatus.html.twig' %}
+    {% include 'filters/filterUser.html.twig' %}
 {% endblock %}
