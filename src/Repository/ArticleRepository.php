@@ -710,8 +710,7 @@ class ArticleRepository extends ServiceEntityRepository
                          ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.demande d
-			JOIN d.preparation p
+			JOIN a.preparation p
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
@@ -737,12 +736,11 @@ class ArticleRepository extends ServiceEntityRepository
 			LEFT JOIN a.emplacement e
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			JOIN ra.ligneArticles la
-			JOIN la.demande d
-			JOIN d.preparation p
+			JOIN ra.ligneArticlePreparations la
+			JOIN la.preparation p
 			JOIN p.statut s
 			WHERE a.quantite > 0
-			  AND a.demande IS NULL
+			  AND a.preparation IS NULL
 			  AND (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
         )->setParameters([
             'statutLabel' => $statutLabel,
