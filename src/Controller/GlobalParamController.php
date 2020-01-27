@@ -75,7 +75,9 @@ class GlobalParamController extends AbstractController
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
-				'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                'paramCodeETQ' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
+                'types' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE]
         ]);
     }
 
@@ -116,7 +118,15 @@ class GlobalParamController extends AbstractController
 				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 $em->persist($parametrageGlobal);
             }
-            $parametrageGlobal->setParametre($data['param-bl-etiquette']);
+
+            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+
+            if (empty($parametrageGlobal128)) {
+                $parametrageGlobal128 = new ParametrageGlobal();
+                $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $em->persist($parametrageGlobal128);
+            }
+            $parametrageGlobal128->setParametre($data['param-type-etiquette']);
 
             $em->flush();
 
@@ -464,4 +474,14 @@ class GlobalParamController extends AbstractController
 		}
 		throw new NotFoundHttpException("404");
 	}
+
+    /**
+     * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST")
+     */
+	public function getIsCode128(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository) {
+        if ($request->isXmlHttpRequest()) {
+            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+            return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getParametre() : true);
+        }
+    }
 }

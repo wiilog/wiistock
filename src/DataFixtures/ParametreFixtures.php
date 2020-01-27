@@ -51,7 +51,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				'type' => Parametre::TYPE_LIST,
 				'elements' => [Parametre::VALUE_PAR_ART, Parametre::VALUE_PAR_REF],
 				'default' => Parametre::VALUE_PAR_REF
-			],
+			]
 		];
 
 		foreach ($parameters as $parameter) {
@@ -85,7 +85,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
-            ]
+            ],
+            ParametrageGlobal::BARCODE_TYPE_IS_128 => [
+                'default' => true,
+            ],
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
