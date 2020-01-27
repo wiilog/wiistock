@@ -1006,6 +1006,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $numberOfRowsInserted = 0;
 
                 $entries = json_decode($request->request->get('entries'), true);
+                $newAnomalies = [];
 
                 foreach ($entries as $entry) {
                     $newEntry = new InventoryEntry();
@@ -1045,6 +1046,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                         $em->persist($newEntry);
                         $em->flush();
+
+                        if ($newEntry->getAnomaly()) {
+                            $newAnomalies[] = $newEntry->getId();
+                        }
                     }
                     $numberOfRowsInserted++;
                 }
@@ -1053,6 +1058,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
                     ? "Aucune saisie d'inventaire à synchroniser."
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
+                $this->successDataMsg['data']['anomalies'] = array_merge(
+                    $this->inventoryEntryRepository->getAnomaliesOnRef($newAnomalies),
+                    $this->inventoryEntryRepository->getAnomaliesOnArt($newAnomalies)
+                );
             } else {
                 $this->successDataMsg['success'] = false;
                 $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
