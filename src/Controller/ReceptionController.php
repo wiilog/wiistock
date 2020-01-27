@@ -980,7 +980,8 @@ class ReceptionController extends AbstractController
                         'quantity' => $quantity,
                     ],
                     'typeArticle' => $typeArticle->getLabel(),
-                    'champsLibres' => $champsLibres
+                    'champsLibres' => $champsLibres,
+					'references' => $this->articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
                 ]
             ));
             return $response;
