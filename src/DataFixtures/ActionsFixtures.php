@@ -69,7 +69,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
 					// actions à sélectionner par défaut
 					if (in_array($menuCode . $actionLabel, $selectedByDefault)) {
-						$roles = $this->roleRepository->findAll();
+					    if (!isset($roles)) {
+                            $roles = $this->roleRepository->findAll();
+                        }
 						foreach ($roles as $role) {
 							$action->addRole($role);
 						}
