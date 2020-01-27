@@ -1172,7 +1172,7 @@ class ReceptionController extends AbstractController
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
                 'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
