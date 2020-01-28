@@ -1,6 +1,7 @@
 let encoding;
 let textEncoder;
-    function initExport(button, type) {
+
+function initExport(button, type) {
     if (!button.attr('data-clicked') || button.attr('data-clicked') === "false") {
         button.attr('data-clicked', true);
         button.css('pointer-events', 'none');
@@ -27,7 +28,7 @@ let textEncoder;
 
 async function exportAll(type, total, headers, button) {
     let increment = 50;
-    let csv = textEncoder.encode(headers) + '\n';
+    let csv = [textEncoder.encode(headers + '\n')];
     for (let i = 0; i < total; i += increment) {
         let path = '';
         switch (type) {
@@ -50,8 +51,7 @@ async function exportAll(type, total, headers, button) {
         button.css('background', 'linear-gradient(to right, #00b31e ' + percent + '%, grey ' + percent + '%');
         button.html('Export CSV en cours... ' + percent + '%');
         $.each(result, function (index, value) {
-            csv += textEncoder.encode(value);
-            csv += '\n';
+            csv.push(textEncoder.encode(value + '\n'));
         });
     }
     button.removeClass('btn-light');
@@ -78,13 +78,22 @@ $(function () {
     });
 });
 
-let dlFileForArts = function (csv, type) {
+let dlFileForArts = function (csvArray, type) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     let exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv'
         : type === "art" ? 'export-articles-' + date + '.csv'
             : 'export-others-' + data + '.csv';
+
+    // merge multiple Int8Array : https://stackoverflow.com/questions/14071463/how-can-i-merge-typedarrays-in-javascript
+    const csvLength = csvArray.reduce((counter, line) => (counter + line.length), 0);
+    const csv = new Int8Array(csvLength);
+    let currentOffset = 0;
+    csvArray.forEach((line) => {
+        csv.set(line, currentOffset);
+        currentOffset += line.length;
+    });
     let blob = new Blob([csv], {type: 'text/csv;charset=' + encoding + ';'});
     saveAs(blob, exportedFilenmae);
 }
