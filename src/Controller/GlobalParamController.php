@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\MenuConfig;
 use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -65,6 +66,13 @@ class GlobalParamController extends AbstractController
         $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
         $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
         $redirect = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+        $menuConfigRepository = $this->getDoctrine()->getRepository(MenuConfig::class);
+
+        $listMenuConfig = $menuConfigRepository->findAll();
+        $submenus = [];
+        foreach ($listMenuConfig as $menuConfig) {
+			$submenus[$menuConfig->getMenu()][$menuConfig->getSubmenu()] = $menuConfig->getDisplay();
+		}
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -75,7 +83,8 @@ class GlobalParamController extends AbstractController
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
-				'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+				'menusConfig' => $submenus
         ]);
     }
 
