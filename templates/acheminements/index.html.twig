@@ -3,7 +3,6 @@
 {% block title %}Acheminements{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersAcheminements.html.twig' with {'btnName' : 'submitSearchAcheminements'} %}
 {% endblock %}
 

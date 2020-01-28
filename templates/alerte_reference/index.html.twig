@@ -3,7 +3,6 @@
 {% block title %}Alertes{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersAlerte.html.twig' with {'btnName': 'submitSearchAlerte'} %}
 {% endblock %}
 

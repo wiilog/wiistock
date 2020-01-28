@@ -3,7 +3,6 @@
 {% block title %}Ordres de collecte{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersOrderCollect.html.twig' with {'btnName': 'submitSearchOrdreCollecte'} %}
 {% endblock %}
 

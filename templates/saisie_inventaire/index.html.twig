@@ -2,7 +2,6 @@
 
 {% block title %}Saisie d'inventaire{% endblock %}
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersEntryInv.html.twig' with {'btnName' : 'submitSearchEntry'} %}
 {% endblock %}
 {% block page_content %}

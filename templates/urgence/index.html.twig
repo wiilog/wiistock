@@ -3,7 +3,6 @@
 {% block title %}Urgences{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersUrgence.html.twig' with {'btnName' : 'submitSearchUrgence'} %}
 {% endblock %}
 

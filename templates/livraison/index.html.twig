@@ -3,7 +3,6 @@
 {% block title %}Ordres de livraison{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersDemands.html.twig' with {'btnName': 'submitSearchLivraison'} %}
 {% endblock %}
 

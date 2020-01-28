@@ -3,7 +3,6 @@
 {% block title %}Références et articles de la mission{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersMissionInv.html.twig' with {'btnName' : 'submitSearchMissionRef'} %}
 {% endblock %}
 

@@ -3,7 +3,6 @@
 {% block title %}Litiges{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersLitiges.html.twig' with {'btnName': 'submitSearchLitiges'} %}
 {% endblock %}
 
