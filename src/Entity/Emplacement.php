@@ -71,6 +71,11 @@ class Emplacement
      */
     private $dateMaxTime;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dropzone")
+     */
+    private $utilisateurs;
+
 
     public function __construct()
     {
@@ -81,6 +86,7 @@ class Emplacement
         $this->referenceArticles = new ArrayCollection();
         $this->isActive = true;
         $this->mouvementsTraca = new ArrayCollection();
+        $this->utilisateurs = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -332,6 +338,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($mouvementsTraca->getEmplacement() === $this) {
                 $mouvementsTraca->setEmplacement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUtilisateurs(): Collection
+    {
+        return $this->utilisateurs;
+    }
+
+    public function addUtilisateur(Utilisateur $utilisateur): self
+    {
+        if (!$this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs[] = $utilisateur;
+            $utilisateur->setDropzone($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUtilisateur(Utilisateur $utilisateur): self
+    {
+        if ($this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs->removeElement($utilisateur);
+            // set the owning side to null (unless already changed)
+            if ($utilisateur->getDropzone() === $this) {
+                $utilisateur->setDropzone(null);
             }
         }
 

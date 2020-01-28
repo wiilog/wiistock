@@ -6,6 +6,7 @@ use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Utilisateur;
 
+use App\Repository\EmplacementRepository;
 use App\Repository\RoleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
@@ -150,6 +151,7 @@ class UtilisateurController extends AbstractController
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
                 ->setRole($role)
+                ->setDropzone($data['dropzone'])
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
@@ -202,15 +204,21 @@ class UtilisateurController extends AbstractController
                 'types' => $types
             ]);
 
-            return new JsonResponse(['userTypes' => $typeUser, 'html' => $json]);
+            return new JsonResponse(['userTypes' => $typeUser, 'html' => $json, 'dropzone' => $user->getDropzone() ? [
+                'id' => $user->getDropzone()->getId(),
+                'text' => $user->getDropzone()->getLabel()
+            ] : null]);
         }
         throw new NotFoundHttpException('404');
     }
 
     /**
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EmplacementRepository $emplacementRepository
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, EmplacementRepository $emplacementRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
@@ -260,10 +268,10 @@ class UtilisateurController extends AbstractController
 						'action' => 'edit'
 				]);
 			}
-
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
+                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setEmail($data['email']);
             if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);

@@ -200,6 +200,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArticle;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
+     */
+    private $dropzone;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1077,6 +1082,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
     {
         $this->columnsVisibleForArticle = $columnsVisibleForArticle;
+
+        return $this;
+    }
+
+    public function getDropzone(): ?Emplacement
+    {
+        return $this->dropzone;
+    }
+
+    public function setDropzone(?Emplacement $dropzone): self
+    {
+        $this->dropzone = $dropzone;
 
         return $this;
     }

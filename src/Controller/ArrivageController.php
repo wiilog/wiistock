@@ -350,6 +350,9 @@ class ArrivageController extends AbstractController
                     : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
+                'arrivageId' => $arrivage->getId(),
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
+                'dropzone' => count($arrivage->getAcheteurs()) > 1 ? null : $arrivage->getAcheteurs()[0]->getDropzone() ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel() : null,
             ];
             return new JsonResponse($data);
         }

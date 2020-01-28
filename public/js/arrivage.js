@@ -92,20 +92,22 @@ function listColis(elem) {
     }, 'json');
 }
 
-function getDataAndPrintLabels(codes) {
+function getDataAndPrintLabels(codes, dropzone = null) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
     let param = codes;
 
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
+        let dropZones = [];
         if (response.response.exists) {
             if (response.codeColis.length === 0) {
                 alertErrorMsg("Il n'y a aucun colis à imprimer.");
             } else {
                 for (const code of response.codeColis) {
                     codeColis.push(code.code)
+                    dropZones.push(dropzone);
                 }
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
             }
         }
     });
@@ -115,7 +117,7 @@ function printBarcode(code) {
     let path = Routing.generate('get_print_data', true);
 
     $.post(path, function (response) {
-        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'), dropzone);
     });
 }
 
@@ -127,7 +129,15 @@ let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
+function createCallback(response) {
+    alertSuccessMsg('Votre arrivage a bien été créé');
+    if (response.printColis) {
+        getDataAndPrintLabels(response.arrivageId, response.dropzone)
+    } if (response.printArrivage) {
+        printBarcode(response.numeroArrivage);
+    }
+}
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
