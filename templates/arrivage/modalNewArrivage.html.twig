@@ -16,8 +16,11 @@
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data ajax-autocomplete-fournisseur ajax-autocomplete {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="fournisseur" id="fournisseur">
+                                {% for fournisseur in fournisseurs %}
+                                    <option value="{{ fournisseur.id }}">{{fournisseur.nom}}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
@@ -30,8 +33,11 @@
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data ajax-autocomplete-transporteur ajax-autocomplete {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="transporteur" id="transporteur">
+                                {% for transporteur in transporteurs %}
+                                    <option value="{{ transporteur.id }}">{{transporteur.label}}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
@@ -45,9 +51,12 @@
                             <label
                                 for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data ajax-autocomplete-chauffeur ajax-autocomplete {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="chauffeur"
                                 id="chauffeur">
+                                {% for chauffeurs in chauffeurs %}
+                                    <option value="{{ chauffeurs.id }}">{{chauffeurs.nom}}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group col-1 toggle-button-container">
