@@ -1148,22 +1148,17 @@ function generateCSV(route, filename = 'export', param = null) {
 }
 
 let dlFile = function (csv, filename) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = filename + '-' + date + '.csv';
-    let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-    let link = document.createElement("a");
-    if (link.download !== undefined) {
-        let url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", exportedFilenmae);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
+    $.post(Routing.generate('get_encodage'), function(usesUTF8) {
+        let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
+        let d = new Date();
+        let textEncode = new CustomTextEncoder(encoding, {NONSTANDARD_allowLegacyEncoding: true});
+        let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+        date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+        let exportedFilenmae = filename + '-' + date + '.csv';
+        let blob = new Blob([textEncode.encode(csv)], {type: 'text/csv;charset=' + encoding + ';'});
+        saveAs(blob, exportedFilenmae);
+    });
+};
 
 function warningEmptyDatesForCsv() {
     alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);

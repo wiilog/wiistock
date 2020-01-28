@@ -217,7 +217,8 @@ class ArrivageController extends AbstractController
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fieldsParam,
-            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre()
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre(),
+            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage()
         ]);
     }
 

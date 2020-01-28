@@ -200,6 +200,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArticle;
 
+    /**
+     * @ORM\Column(type="integer", options={"unsigned":true, "default":100})
+     */
+    private $pageLengthForArrivage;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1077,6 +1082,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
     {
         $this->columnsVisibleForArticle = $columnsVisibleForArticle;
+
+        return $this;
+    }
+
+    public function getPageLengthForArrivage(): ?int
+    {
+        return $this->pageLengthForArrivage;
+    }
+
+    public function setPageLengthForArrivage(int $pageLengthForArrivage): self
+    {
+        $this->pageLengthForArrivage = $pageLengthForArrivage;
 
         return $this;
     }

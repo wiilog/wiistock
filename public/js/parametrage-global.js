@@ -140,3 +140,9 @@ function saveTranslations() {
         }
     });
 }
+
+function ajaxEncodage() {
+    $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function() {
+        alertSuccessMsg('Mise à jour de vos préférences d\'encodage réussie.');
+    });
+}

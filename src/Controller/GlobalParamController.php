@@ -75,7 +75,9 @@ class GlobalParamController extends AbstractController
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
-				'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
+                'encodages' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8]
         ]);
     }
 
@@ -464,4 +466,55 @@ class GlobalParamController extends AbstractController
 		}
 		throw new NotFoundHttpException("404");
 	}
+
+    /**
+     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
+     * @param Request $request
+     * @param TranslationRepository $translationRepository
+     * @param TranslationService $translationService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function saveEncodage(Request $request,
+                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $data = json_decode($request->getContent(), true);
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+            $em = $this->getDoctrine()->getManager();
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+                $parametrageGlobal->setLabel(ParametrageGlobal::USES_UTF8);
+                $em->persist($parametrageGlobal);
+            }
+            $parametrageGlobal->setParametre($data);
+
+            $em->flush();
+
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
+     * @param Request $request
+     * @param TranslationRepository $translationRepository
+     * @param TranslationService $translationService
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getEncodage(Request $request,
+                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+            return new JsonResponse($parametrageGlobal->getParametre());
+        }
+        throw new NotFoundHttpException("404");
+    }
 }
