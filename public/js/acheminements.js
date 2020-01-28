@@ -131,11 +131,6 @@ function printColis(data) {
                 } else {
                     $("#barcode" + index).qrcode({
                         text: code,
-                        mode: 2,
-                        label: code,
-                        fontname:'sans',
-                        fontcolor:'#000',
-                        mPosY: 0,
                     });
                     let canvas = $("#barcode" + index + " canvas");
                     $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
