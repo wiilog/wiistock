@@ -148,27 +148,3 @@ function initNewArrivageEditor(modal) {
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
 }
 
-let $submitSearchArrivage = $('#submitSearchArrivage');
-$submitSearchArrivage.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ARRIVAGE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked'),
-        providers: $('#providers').select2('data'),
-        carriers: $('#carriers').select2('data'),
-        numArrivage: $('#numArrivage').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    clicked = true;
-
-    saveFilters(filters, tableArrivage);
-});

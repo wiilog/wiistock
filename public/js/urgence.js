@@ -59,23 +59,6 @@ $(function() {
     }, 'json');
 });
 
-$submitSearchUrgence.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_URGENCES,
-        commande: $('#commande').val(),
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val()
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableUrgence);
-});
-
 function initDateTimePickerUrgence() {
     initDateTimePicker('#modalEditUrgence .datepicker', 'DD/MM/YYYY HH:mm');
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');

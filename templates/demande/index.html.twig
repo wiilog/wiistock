@@ -3,7 +3,11 @@
 {% block title %}Demandes de livraison{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersDemands.html.twig' with {'btnName': 'submitSearchDemandeLivraison'} %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        'page': 'PAGE_DEM_LIVRAISON',
+        'tableSelector': '#table_demande',
+        'callback': 'callbackSaveFilter'
+    } %}
 {% endblock %}
 
 {% block page_content %}

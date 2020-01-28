@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Repository\FiltreSupRepository;
+use App\Service\LitigeService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,9 +43,7 @@ class FiltreSupController extends AbstractController
 			$filterLabels = [
 				'dateMin' => FiltreSup::FIELD_DATE_MIN,
 				'dateMax' => FiltreSup::FIELD_DATE_MAX,
-				'statut' => FiltreSup::FIELD_STATUT,
 				'type' => FiltreSup::FIELD_TYPE,
-				'location' => FiltreSup::FIELD_EMPLACEMENT,
 				'urgence' => FiltreSup::FIELD_EMERGENCY,
 				'arrivage_string' => FiltreSup::FIELD_ARRIVAGE_STRING,
 				'reception_string' => FiltreSup::FIELD_RECEPTION_STRING,
@@ -83,7 +82,9 @@ class FiltreSupController extends AbstractController
 
 			$filterLabelsSelect2 = [
 				'users' => FiltreSup::FIELD_USERS,
+                'location' => FiltreSup::FIELD_EMPLACEMENT,
 				'reference' => FiltreSup::FIELD_REFERENCE,
+                'statut' => FiltreSup::FIELD_STATUT,
 				'colis' => FiltreSup::FIELD_COLIS,
 				'carriers' => FiltreSup::FIELD_CARRIERS,
 				'providers' => FiltreSup::FIELD_PROVIDERS,
@@ -130,14 +131,27 @@ class FiltreSupController extends AbstractController
 		}
     }
 
-	/**
-	 * @Route("/api", name="filter_get_by_page", options={"expose"=true})
-	 */
-    public function getByPage(Request $request): Response
+    /**
+     * @Route("/api", name="filter_get_by_page", options={"expose"=true})
+     * @param Request $request
+     * @param LitigeService $litigeService
+     * @return Response
+     */
+    public function getByPage(Request $request,
+                              LitigeService $litigeService): Response
 	{
 		if ($request->isXmlHttpRequest() && $page = json_decode($request->getContent(), true)) {
 
 			$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser($page, $this->getUser());
+			if ($page === FiltreSup::PAGE_LITIGE) {
+			    $translations = $litigeService->getLitigeOrigin();
+			    foreach ($filters as $index => $filter) {
+                    if (isset($translations[$filter['value']])) {
+                        $filters[$index]['value'] = $translations[$filter['value']];
+                        $filters[$index]['value'] = $translations[$filter['value']];
+                    }
+                }
+            }
 
 			return new JsonResponse($filters);
 		} else {

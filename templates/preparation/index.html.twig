@@ -3,7 +3,10 @@
 {% block title %}Ordres de préparation{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersDemands.html.twig' with {'btnName': 'submitSearchPrepaLivraison'} %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        page: 'PAGE_PREPA',
+        tableSelector: '#table_id'
+    } %}
 {% endblock %}
 
 {% block page_content %}

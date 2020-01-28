@@ -89,23 +89,3 @@ $(function() {
         }, 'json');
     }
 });
-
-$submitSearchOrdreCollecte.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ORDRE_COLLECTE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        type: $('#type').val(),
-        users: $('#utilisateur').select2('data'),
-        demCollecte: $('#demCollecte').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableCollecte);
-});

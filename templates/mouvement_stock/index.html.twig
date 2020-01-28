@@ -4,8 +4,8 @@
 
 {% block page_filter %}
     {% include 'filters/filtersMouvementStock.html.twig' with {
-        'btnName' : 'submitSearchMvt',
-        'statut' : 'Type'
+        'page': 'PAGE_MVT_STOCK',
+        'tableSelector': '#tableMvts'
     } %}
 {% endblock %}
 

@@ -3,7 +3,11 @@
 {% block title %}Demandes de manutention{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersDemands.html.twig' with {'btnName': 'submitSearchManutention'} %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        'page': 'PAGE_MANUT',
+        'tableSelector': '#tableManutention_id',
+        'callback': 'callbackSaveFilter'
+    } %}
 {% endblock %}
 
 {% block page_content %}

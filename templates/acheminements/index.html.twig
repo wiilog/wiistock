@@ -3,7 +3,10 @@
 {% block title %}Acheminements{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersAcheminements.html.twig' with {'btnName' : 'submitSearchAcheminements'} %}
+    {% include 'filters/filtersAcheminements.html.twig' with {
+        'page': 'PAGE_ACHEMINEMENTS',
+        'tableSelector': '#tableAcheminement'
+    } %}
 {% endblock %}
 
 {% block page_content %}

@@ -46,7 +46,7 @@ class StatutRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string $categorieNames
+     * @param array $categorieNames
      * @param bool $ordered
      * @return Statut[]
      */

@@ -3,7 +3,10 @@
 {% block title %}Ordres {{ 'réception.de réception'|trans }}{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersReception.html.twig' with {'btnName': 'submitSearchReception'} %}
+    {% include 'filters/filtersReception.html.twig' with {
+        page: 'PAGE_RECEPTION',
+        tableSelector: '#tableReception_id'
+    } %}
 {% endblock %}
 
 {% block page_content %}

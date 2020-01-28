@@ -92,23 +92,3 @@ let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
-
-let $submitSearchMvt = $('#submitSearchMvt');
-$submitSearchMvt.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-
-    let filters = {
-        page: PAGE_MVT_STOCK,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        location: $('#emplacement').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableMvt);
-});

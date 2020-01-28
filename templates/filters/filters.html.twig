@@ -1,11 +1,17 @@
 {% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
-<div class="filterService filters form-row justify-content-center">
+<div class="filterService filters form-row justify-content-center filters-container">
     {% block filters %}
     {% endblock %}
     <div>
-        <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
+        <button class="btn btn-primary minw-105px"
+             tabindex="0"
+             onclick="saveFilters(
+                 {{ page }},
+                 {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }}
+                 {{ callback is defined ? (', ' ~ callback) }}
+             )">
             <i class="fas fa-filter mr-2"></i>
             Filtrer
-        </div>
+        </button>
     </div>
 </div>

@@ -3,7 +3,7 @@
 {% block title %}Alertes{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersAlerte.html.twig' with {'btnName': 'submitSearchAlerte'} %}
+    {% include 'filters/filtersAlerte.html.twig' with {'page': 'PAGE_ALERTE', tableSelector: '#tableAlerte_id'} %}
 {% endblock %}
 
 {% block page_content %}

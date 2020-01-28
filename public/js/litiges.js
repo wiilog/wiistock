@@ -1,7 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchLitigesArr = $('#submitSearchLitiges');
-
 $(function() {
     initDateTimePicker();
     initSelect2('#carriers', 'Transporteurs');
@@ -180,28 +178,6 @@ $.fn.dataTable.ext.search.push(
         return true;
     }
 );
-
-$submitSearchLitigesArr.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_LITIGE_ARR,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        type: $('#type').val(),
-        litigeOrigin: $('#litigeOrigin').val(),
-        carriers: $('#carriers').select2('data'),
-        providers: $('#providers').select2('data'),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableLitiges);
-});
 
 function getCommentAndAddHisto()
 {

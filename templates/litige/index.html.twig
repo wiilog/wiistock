@@ -3,7 +3,10 @@
 {% block title %}Litiges{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersLitiges.html.twig' with {'btnName': 'submitSearchLitiges'} %}
+    {% include 'filters/filtersLitiges.html.twig' with {
+        page: 'PAGE_LITIGE_ARR',
+        tableSelector: '#tableLitiges'
+    } %}
 {% endblock %}
 
 {% block page_content %}

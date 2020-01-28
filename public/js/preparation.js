@@ -1,6 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
 let prepaHasBegun = false;
 
 $(function() {
@@ -75,24 +74,6 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
-
-$submitSearchPrepa.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-    let filters = {
-        page: PAGE_PREPA,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        type: $('#type').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, table);
-});
 
 let pathArticle = Routing.generate('preparation_article_api', {'id': id, 'prepaId': $('#prepa-id').val()});
 let tableArticle = $('#tableArticle_id').DataTable({
