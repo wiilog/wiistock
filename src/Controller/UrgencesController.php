@@ -89,8 +89,8 @@ class UrgencesController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $dateStart = DateTime::createFromFormat('d/m/Y', $data['dateStart'], new DateTimeZone("Europe/Paris"));
-            $dateEnd = DateTime::createFromFormat('d/m/Y', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
+            $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+            $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
             $urgence = new Urgence();
             $urgence
                 ->setCommande($data['commande'])

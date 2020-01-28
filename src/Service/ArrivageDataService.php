@@ -158,7 +158,7 @@ class ArrivageDataService
         if($arrivage->getIsUrgent()) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Arrivage urgent',
-                $this->renderView(
+                $this->templating->render(
                     'mails/mailArrivageUrgent.html.twig',
                     [
                         'title' => 'Arrivage urgent',
