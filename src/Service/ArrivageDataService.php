@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
+use App\Entity\Urgence;
+use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
@@ -46,11 +48,13 @@ class ArrivageDataService
     private $filtreSupRepository;
 
     private $em;
+    private $mailerService;
 
     public function __construct(UserService $userService,
                                 ArrivageRepository $arrivageRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $em,
+                                MailerService $mailerService,
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
                                 Security $security)
@@ -63,6 +67,7 @@ class ArrivageDataService
         $this->userService = $userService;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
+        $this->mailerService = $mailerService;
     }
 
 	/**
@@ -133,5 +138,40 @@ class ArrivageDataService
 		];
 
         return $row;
+    }
+
+    /**
+     * @param Arrivage $arrivage
+     * @param Urgence[] $emergencies
+     */
+    public function addBuyersToArrivage(Arrivage $arrivage, array $emergencies): void {
+        foreach ($emergencies as $emergency) {
+            $emergencyBuyer = $emergency->getBuyer();
+            if (isset($emergencyBuyer) &&
+                !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
+                $arrivage->addAcheteur($emergencyBuyer);
+            }
+        }
+    }
+
+    public function sendArrivageUrgentEmail(Arrivage $arrivage): void {
+        if($arrivage->getIsUrgent()) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Arrivage urgent',
+                $this->templating->render(
+                    'mails/mailArrivageUrgent.html.twig',
+                    [
+                        'title' => 'Arrivage urgent',
+                        'arrivage' => $arrivage
+                    ]
+                ),
+                array_map(
+                    function (Utilisateur $buyer) {
+                        return $buyer->getEmail();
+                    },
+                    $arrivage->getAcheteurs()->toArray()
+                )
+            );
+        }
     }
 }

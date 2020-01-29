@@ -620,7 +620,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $ligneArticleRepository) {
 
                                 $preparationsManager->setEntityManager($entityManager);
-
+                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
                                 $livraison = $preparationsManager->persistLivraison($dateEnd);
