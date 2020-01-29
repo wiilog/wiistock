@@ -8,7 +8,7 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group input-group mb-3">
+                <div class="form-group input-group mb-5">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Libellé*</span>
                     </div>
@@ -17,9 +17,9 @@
                 </div>
 
                 {% for menu in menus %}
-                    <div class="form-group">
+                    <div class="form-group ml-2">
                         <div class="row">
-                            <div class="col-12 mt-4 mb-3 pointer" data-toggle="collapse" href="#menu-{{ menu.id }}">
+                            <div class="col-12 mb-3 pointer" data-toggle="collapse" href="#menu-{{ menu.id }}">
                                 <span class="bold">
                                     Menu {{ menu.label | capitalize }}
                                 </span>
