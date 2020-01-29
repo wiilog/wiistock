@@ -44,7 +44,7 @@ class DemandeRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			'SELECT d
             FROM App\Entity\Livraison l
-            JOIN l.preparation p
+            JOIN l.preparations p
             JOIN p.demandes d
             WHERE p.livraison = :livraison'
 		)->setParameter('livraison', $livraison);
