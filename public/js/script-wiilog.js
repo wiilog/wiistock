@@ -308,7 +308,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         if (editorToInit) initEditor(editor);
 
-        afterLoadingEditModal();
+        afterLoadingEditModal(modal);
     }, 'json');
 
 }
@@ -513,6 +513,7 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
                 return 'Aucun résultat.';
             }
         },
+        allowClear: true,
         minimumInputLength: lengthMin,
         placeholder: {
             text: placeholder,
