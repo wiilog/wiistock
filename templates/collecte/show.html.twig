@@ -27,7 +27,7 @@
                        class="btn btn-primary btn-action ml-auto">Valider</a>
                 {% endif %}
             {% else %}
-                {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
                     <div class="col text-right">
                         <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                            class="btn btn-primary btn-action">

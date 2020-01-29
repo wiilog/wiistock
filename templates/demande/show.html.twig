@@ -18,7 +18,7 @@
                     Supprimer</a>
             {% endif %}
             {% if demande.reception is not empty %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
                         <a href="{{path('reception_show', {'id': demande.reception.id }) }}"
                            class="btn btn-primary btn-action ml-auto"> Aller vers la réception</a>
                 {% endif %}
@@ -35,14 +35,14 @@
             {% endif %}
 
         {% elseif demande.preparation is not empty %}
-            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
                 <div class=" text-right">
                     <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"
                        class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
                 </div>
             {% endif %}
             {% if demande.livraison is not empty %}
-                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
                     <div class=" text-right">
                         <a href="{{path('livraison_show', {'id': demande.livraison.id }) }}"
                            class="btn btn-primary btn-action ml-auto"> Aller vers l'ordre de livraison</a>

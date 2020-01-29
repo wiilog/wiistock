@@ -104,7 +104,7 @@ class ManutentionController extends AbstractController
      */
     public function index($filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
             return $this->redirectToRoute('access_denied');
         }
 

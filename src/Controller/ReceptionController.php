@@ -1555,7 +1555,7 @@ class ReceptionController extends AbstractController
     public function apiArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $ligne = $request->request->get('ligne')) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

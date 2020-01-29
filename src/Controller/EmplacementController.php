@@ -346,10 +346,7 @@ class EmplacementController extends AbstractController
      */
     public function getRefArticles(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
-//            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-//                return new JsonResponse(['results' => []]);
-//            }
+    	if ($request->isXmlHttpRequest()) {
 
             $search = $request->query->get('term');
 

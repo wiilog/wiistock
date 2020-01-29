@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Action
 {
-    const LIST = 'lister'; //todo cg
+    const LIST = 'lister';
     const CREATE = 'créer';
     const EDIT = 'modifer';
     const DELETE = 'supprimer';
