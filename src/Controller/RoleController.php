@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
@@ -75,14 +76,27 @@ class RoleController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $menus = $this->menuRepository->findAll();
 
+		$params = $this->parametreRepository->findAll();
+		$listParams = [];
+		foreach ($params as $param) {
+			$listParams[] = [
+				'id' => $param->getId(),
+				'label' => $param->getLabel(),
+				'typage' => $param->getTypage(),
+				'elements' => $param->getElements(),
+				'default' => $param->getDefaultValue()
+			];
+		}
+
         return $this->render('role/index.html.twig', [
-        	'menus' => $menus
+        	'menus' => $menus,
+			'params' => $listParams
 		]);
     }
 
@@ -92,7 +106,7 @@ class RoleController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -124,7 +138,7 @@ class RoleController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -139,22 +153,40 @@ class RoleController extends AbstractController
                 $role
                     ->setActive(true)
                     ->setLabel($data['label']);
+				$em->persist($role);
 
                 unset($data['label']);
                 unset($data['elem']);
 
+				// on traite les paramètres
+				foreach (array_keys($data) as $id) {
+					if (is_numeric($id)) {
+						$parametre = $this->parametreRepository->find($id);
+
+						$paramRole = new ParametreRole();
+						$paramRole
+							->setParametre($parametre)
+							->setRole($role)
+							->setValue($data[$id]);
+						$em->persist($paramRole);
+						$em->flush();
+						$role->addParametreRole($paramRole);
+						unset($data[$id]);
+					}
+				}
+
+				// on traite les actions
                 foreach ($data as $menuAction => $isChecked) {
                     $menuActionArray = explode('/', $menuAction);
-                    $menuCode = $menuActionArray[0];
+                    $menuLabel = $menuActionArray[0];
                     $actionLabel = $menuActionArray[1];
 
-                    $action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
+                    $action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
                     if ($action && $isChecked) {
                         $role->addAction($action);
                     }
                 }
-                $em->persist($role);
                 $em->flush();
 
                 return new JsonResponse();
@@ -171,7 +203,7 @@ class RoleController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -215,7 +247,7 @@ class RoleController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -249,9 +281,9 @@ class RoleController extends AbstractController
             // on traite les actions
             foreach ($data as $menuAction => $isChecked) {
                 $menuActionArray = explode('/', $menuAction);
-                $menuCode = $menuActionArray[0];
+                $menuLabel = $menuActionArray[0];
                 $actionLabel = $menuActionArray[1];
-                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
+                $action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
                 if ($action) {
                     if ($isChecked) {
@@ -262,7 +294,7 @@ class RoleController extends AbstractController
                 }
             }
             $em->flush();
-            return new JsonResponse();
+            return new JsonResponse($role->getLabel());
         }
         throw new NotFoundHttpException("404");
     }
@@ -273,7 +305,7 @@ class RoleController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

@@ -1,68 +1,70 @@
-<div class="mb-3 form-group">
-    <label for="label">Nom*</label>
-    <input type="text" class="data form-control data needed" name="label" value="{{ role.label }}">
+<div class="form-group input-group mb-3">
+    <div class="input-group-prepend">
+        <span class="input-group-text">Libellé*</span>
+    </div>
+    <label hidden>Libellé</label>
+    <input type="text" class="data form-control needed" name="label" value="{{ role.label }}">
 </div>
 
 {% for menu in menus %}
-<div class="form-group">
-    <div class="row">
-        <div class="col-3">
-            <label>{{ menu.label }}</label>
-        </div>
+    <div class="form-group">
+        <div class="row">
+            <div class="col-12 mt-4 mb-3 pointer" data-toggle="collapse" href="#menu-{{ menu.id }}">
+            <span class="bold">
+                Menu {{ menu.label | capitalize }}
+            </span>
+                <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+            </div>
 
-        {% for action in menu.actions %}
-            {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
-            {% if(loop.index % 3 == 1 and loop.index != 1) %}
+            <div class="collapse col-12 row" id="menu-{{ menu.id }}">
+                {% for action in menu.actions %}
+                    {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
+                    <div class="col-4 mb-2">
+                        <label class="switch mini-switch">
+                            <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.label~'/'~action.label }}">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="font-size-mini pointer" onclick="$(this).closest('div').find('.checkbox').click();">{{ action.label }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-    <div class="row mt-3">
-                {% set offset = 'offset-3' %}
-            {% else %}
-                {% set offset = '' %}
-            {% endif %}
-            <div class="col-3 {{ offset }}">
-                    <label class="switch">
-                        <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
-                        <span class="slider round"></span>
-                    </label>
-                    {{ action.label }}
-                </div>
-        {% endfor %}
-    </div>
-</div>
 {% endfor %}
 
 <hr class="m-4">
 
 <div class="form-group">
-{% for param in params %}
-        <div class="row">
-            <label for="{{ param.id }}" class="col-3">{{ param.label|capitalize }}</label>
-
-            {% if param.typage == 'bool' %}
-                {% set checked = param.value ? 'checked' : '' %}
-                <label class="switch">
-                    <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id}}" id="{{ param.id }}">
-                    <span class="slider round"></span>
-                </label>
-
-            {% elseif param.typage == 'number' %}
-                <input type="number" id="{{ param.id }}" class="form-control data col-3"
-                       value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id}}">
-
-            {% elseif param.typage == 'list' %}
-                <select class="form-control data col-3" id="{{ param.id }}" name="{{ param.id }}">
-                    {% set value = param.value is null ? param.default : param.value %}
-                    {% for elem in param.elements %}
-                        {% set selected = (elem == value) ? 'selected' : '' %}
-                        <option value="{{ elem }}" {{ selected }}>{{elem}}</option>
-                    {% endfor %}
-                </select>
-
-            {% else %}
-                <input type="text" id="{{ param.id }}" class="form-control data col-3"
-                      value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id }}">
-            {% endif %}
-            </div>
+    {% for param in params %}
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text">{{ param.label|capitalize }}</span>
         </div>
+
+        {% if param.typage == 'bool' %}
+            {% set checked = param.value ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id}}" id="{{ param.id }}">
+                <span class="slider round"></span>
+            </label>
+
+        {% elseif param.typage == 'number' %}
+            <input type="number" id="{{ param.id }}" class="form-control data col-3"
+                   value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id}}">
+
+        {% elseif param.typage == 'list' %}
+            <select class="form-control data col-3" id="{{ param.id }}" name="{{ param.id }}">
+                {% set value = param.value is null ? param.default : param.value %}
+                {% for elem in param.elements %}
+                    {% set selected = (elem == value) ? 'selected' : '' %}
+                    <option value="{{ elem }}" {{ selected }}>{{elem}}</option>
+                {% endfor %}
+            </select>
+
+        {% else %}
+            <input type="text" id="{{ param.id }}" class="form-control data col-3"
+                   value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id }}">
+        {% endif %}
+    </div>
 {% endfor %}
 </div>

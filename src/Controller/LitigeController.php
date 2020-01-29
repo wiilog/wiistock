@@ -134,7 +134,7 @@ class LitigeController extends AbstractController
 	 */
     public function index(TranslatorInterface $translator)
     {
-        if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -154,7 +154,7 @@ class LitigeController extends AbstractController
 	 */
     public function api(Request $request) {
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

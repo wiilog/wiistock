@@ -141,22 +141,6 @@ function saveTranslations() {
     });
 }
 
-function saveMenuConfig($button) {
-    let $checkbox = $button.closest('.switch').find('.checkbox');
-
-    let params = {
-        toDisplay: !$checkbox.is(':checked'),
-        menuSubmenu: $checkbox.attr('name')
-    };
-
-    $.post(Routing.generate('save_menu_config', true), params, (resp) => {
-       if (resp) {
-           alertSuccessMsg("La configuration des menus a bien été mise à jour. Veuillez rafraîchir votre page pour mettre à jour l'affichage.");
-       } else {
-           alertErrorMsg('Une erreur est survenue lors de la configuration des menus. Veuillez rafraîchir votre page et recommencer.');
-       }
-    });
-}
 function ajaxEncodage() {
     $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function() {
         alertSuccessMsg('Mise à jour de vos préférences d\'encodage réussie.');

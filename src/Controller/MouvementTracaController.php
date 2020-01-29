@@ -109,7 +109,7 @@ class MouvementTracaController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -166,7 +166,7 @@ class MouvementTracaController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -338,7 +338,7 @@ class MouvementTracaController extends AbstractController
     public function show(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

@@ -10,7 +10,7 @@
     <div class="row justify-content-end">
         <div class="col-4 ">
             <div class="row justify-content-end">
-                {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::YES')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
                 <div class="col-12 mb-1 mt-1 home-card">
                     <a href="#"
                        onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
@@ -61,7 +61,7 @@
                     </a>
                 </div>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::REFERENCE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::INDIC_INV_REFERENCE')) %}
                     <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
                         <p class="bold col-12">Fiabilité par référence</p>
                         <p class="col-6">
@@ -77,7 +77,7 @@
                         <div class="curve_chart_line" id="curve_chart_reference"></div>
                     </div>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::MONETAIRE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::INDIC_INV_MONETAIRE')) %}
                     <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card carreNbrIndicateur">
                         <p class="bold col-12">Fiabilité monétaire</p>
                         <p class="col-6">

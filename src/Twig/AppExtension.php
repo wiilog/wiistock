@@ -59,7 +59,6 @@ class AppExtension extends AbstractExtension
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
-			new TwigFunction('displaySubmenu', [$this, 'displaySubmenuFunction']),
 			new TwigFunction('displayMenu', [$this, 'displayMenuFunction'])
         ];
     }
@@ -72,7 +71,7 @@ class AppExtension extends AbstractExtension
 		];
 	}
 
-	public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
+	public function hasRightFunction(string $menuCode, string $actionLabel)
     {
 		return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
@@ -80,16 +79,6 @@ class AppExtension extends AbstractExtension
     public function isCurrentClientNameFunction(string $clientName)
 	{
 		return $this->specificService->isCurrentClientNameFunction($clientName);
-	}
-
-	public function displaySubmenuFunction($menu, $submenu)
-	{
-		return $this->specificService->displaySubmenuFunction($menu, $submenu);
-	}
-
-	public function displayMenuFunction($menu)
-	{
-		return $this->specificService->displayMenuFunction($menu);
 	}
 
     public function withoutExtensionFilter(string $filename)

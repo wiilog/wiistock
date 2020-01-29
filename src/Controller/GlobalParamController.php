@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
-use App\Entity\MenuConfig;
 use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -57,7 +57,7 @@ class GlobalParamController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository): response
     {
-        if (!$userService->hasRightFunction(Menu::PARAM)) {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -66,13 +66,6 @@ class GlobalParamController extends AbstractController
         $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
         $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
         $redirect = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-        $menuConfigRepository = $this->getDoctrine()->getRepository(MenuConfig::class);
-
-        $listMenuConfig = $menuConfigRepository->findAll();
-        $submenus = [];
-        foreach ($listMenuConfig as $menuConfig) {
-			$submenus[$menuConfig->getMenu()][$menuConfig->getSubmenu()] = $menuConfig->getDisplay();
-		}
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -84,7 +77,6 @@ class GlobalParamController extends AbstractController
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
 				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
-				'menusConfig' => $submenus,
                 'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
                 'encodages' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8]
         ]);
@@ -105,7 +97,7 @@ class GlobalParamController extends AbstractController
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -197,7 +189,7 @@ class GlobalParamController extends AbstractController
                         DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -236,7 +228,7 @@ class GlobalParamController extends AbstractController
                             DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -264,7 +256,7 @@ class GlobalParamController extends AbstractController
                          DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -310,7 +302,7 @@ class GlobalParamController extends AbstractController
                                      MailerServerRepository $mailerServerRepository): response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -476,40 +468,12 @@ class GlobalParamController extends AbstractController
 	}
 
 	/**
-	 * @Route("/configuration-menu", name="save_menu_config", options={"expose"=true}, methods="POST")
+	 * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
 	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @return Response
 	 * @throws NonUniqueResultException
 	 */
-    public function saveMenuConfig(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest())
-		{
-			$data = $request->request->all();
-			$menuSubmenu = explode('/', $data['menuSubmenu']);
-
-			$menuRepository = $this->getDoctrine()->getRepository(MenuConfig::class);
-			$menuConfig = $menuRepository->findOneByMenuAndSubmenu($menuSubmenu[0], $menuSubmenu[1]);
-
-			if (!$menuConfig) return new JsonResponse(false);
-
-			$menuConfig->setDisplay($data['toDisplay'] == 'true');
-			$this->getDoctrine()->getManager()->flush();
-
-			return new JsonResponse(true);
-		}
-		throw new NotFoundHttpException("404");
-	}
-
-    /**
-     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param TranslationRepository $translationRepository
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function saveEncodage(Request $request,
                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {

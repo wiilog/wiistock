@@ -83,7 +83,7 @@ class ManutentionController extends AbstractController
     {
 		if ($request->isXmlHttpRequest()) {
 
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -121,7 +121,7 @@ class ManutentionController extends AbstractController
     public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

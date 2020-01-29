@@ -426,7 +426,7 @@ class DemandeController extends AbstractController
      */
     public function index($reception = null, $filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -487,7 +487,7 @@ class DemandeController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -507,7 +507,7 @@ class DemandeController extends AbstractController
      */
     public function show(Demande $demande): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -533,7 +533,7 @@ class DemandeController extends AbstractController
     public function articleApi(Request $request, Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
 

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -20,12 +21,12 @@ class ActionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string $menuCode
-     * @param string $label
+     * @param string $menuLabel
+     * @param string $actionLabel
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
-    public function findOneByMenuCodeAndLabel($menuCode, $label)
+    public function findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel)
     {
         $em = $this->getEntityManager();
 
@@ -33,8 +34,8 @@ class ActionRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Action a
             JOIN a.menu m
-            WHERE a.label = :label AND m.code = :menuCode"
-        )->setParameters(['label' => $label, 'menuCode' => $menuCode]);
+            WHERE a.label = :actionLabel AND m.label = :menuLabel"
+        )->setParameters(['actionLabel' => $actionLabel, 'menuLabel' => $menuLabel]);
 
         return $query->getOneOrNullResult();
     }

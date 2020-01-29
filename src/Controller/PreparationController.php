@@ -229,7 +229,7 @@ class PreparationController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
         return $this->render('preparation/index.html.twig', [
@@ -244,7 +244,7 @@ class PreparationController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -267,7 +267,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Request $request, $id, $prepaId): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -357,7 +357,7 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -377,7 +377,7 @@ class PreparationController extends AbstractController
      */
     public function delete(Preparation $preparation): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
         }
 

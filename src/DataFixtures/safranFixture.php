@@ -14,7 +14,7 @@ class safranFixture extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
 		$rolesLabels = [
-			Role::DEM_SAFRAN
+			'Demandeur Safran'
 		];
 
 		foreach ($rolesLabels as $roleLabel) {

@@ -75,7 +75,7 @@ class InventoryMissionController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -88,7 +88,7 @@ class InventoryMissionController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -105,7 +105,7 @@ class InventoryMissionController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -133,7 +133,7 @@ class InventoryMissionController extends AbstractController
     public function checkUserCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_UTIL)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -182,7 +182,7 @@ class InventoryMissionController extends AbstractController
      */
     public function show(InventoryMission $mission)
     {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -196,7 +196,7 @@ class InventoryMissionController extends AbstractController
      */
     public function entryApi(InventoryMission $mission, Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -210,7 +210,7 @@ class InventoryMissionController extends AbstractController
     public function addToMission(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

@@ -56,7 +56,7 @@ class ArticleFournisseurController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI_FOUR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -69,7 +69,7 @@ class ArticleFournisseurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI_FOUR)) {
                 return $this->redirectToRoute('access_denied');
             }
 

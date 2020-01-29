@@ -3,7 +3,14 @@
     display: inline-block
     width: 50px
     height: 25px
-
+    &.mini-switch
+      width: 35px
+      height: 16px
+      .slider:before
+          height: 11px
+          width: 11px
+          left: 4px
+          bottom: 3px
     &.d-block-switch
         display: block
 
@@ -21,9 +28,9 @@
             box-shadow: 0 0 1px $redDark
 
         &:checked + .slider:before
-            -webkit-transform: translateX(26px)
-            -ms-transform: translateX(26px)
-            transform: translateX(26px)
+            -webkit-transform: translateX(17px)
+            -ms-transform: translateX(17px)
+            transform: translateX(17px)
 
     .slider
         position: absolute
@@ -47,7 +54,6 @@
             background-color: white
             -webkit-transition: .4s
             transition: .4s
-
         &.round
             border-radius: 34px
 

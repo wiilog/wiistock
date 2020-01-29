@@ -139,7 +139,7 @@ class OrdreCollecteController extends AbstractController
 	 */
     public function index(string $demandId = null)
     {
-        if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -160,7 +160,7 @@ class OrdreCollecteController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -178,7 +178,7 @@ class OrdreCollecteController extends AbstractController
      */
     public function show(OrdreCollecte $ordreCollecte): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -229,7 +229,7 @@ class OrdreCollecteController extends AbstractController
     public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
                 return $this->redirectToRoute('access_denied');
             }
 

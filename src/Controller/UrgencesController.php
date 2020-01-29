@@ -52,7 +52,7 @@ class UrgencesController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_URGE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -67,7 +67,7 @@ class UrgencesController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_URGE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->urgenceService->getDataForDatatable($request->request);

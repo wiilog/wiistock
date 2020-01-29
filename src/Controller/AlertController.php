@@ -38,7 +38,7 @@ class AlertController extends AbstractController
      */
     public function indexAlerte(UserService $userService): Response
     {
-        if (!$userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -66,7 +66,7 @@ class AlertController extends AbstractController
                         UserService $userService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());

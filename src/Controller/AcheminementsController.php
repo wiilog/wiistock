@@ -79,7 +79,7 @@ Class AcheminementsController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -96,7 +96,7 @@ Class AcheminementsController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ACHE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->acheminementsService->getDataForDatatable($request->request);

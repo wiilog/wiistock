@@ -489,7 +489,7 @@ class ReceptionController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -506,7 +506,7 @@ class ReceptionController extends AbstractController
     public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -545,7 +545,7 @@ class ReceptionController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -836,7 +836,7 @@ class ReceptionController extends AbstractController
      */
     public function show(Reception $reception): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1360,7 +1360,7 @@ class ReceptionController extends AbstractController
      */
     public function getArticleStock(Request $request)
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1376,7 +1376,7 @@ class ReceptionController extends AbstractController
     public function getArticleFournisseur(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $json = null;
@@ -1573,7 +1573,7 @@ class ReceptionController extends AbstractController
     public function checkReceptionCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

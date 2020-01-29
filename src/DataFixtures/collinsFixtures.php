@@ -17,11 +17,16 @@ use Doctrine\Common\Persistence\ObjectManager;
 
 class collinsFixtures extends Fixture implements FixtureGroupInterface
 {
-    public function load(ObjectManager $manager)
-    {
-    	$specificService = new SpecificService();
+	private $specificService;
 
-    	$isCollins = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS);
+	public function __construct(SpecificService $specificService)
+	{
+		$this->specificService = $specificService;
+	}
+
+	public function load(ObjectManager $manager)
+    {
+    	$isCollins = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS);
 
     	if ($isCollins) {
 			// spécifique collins champ libre 'BL' (numéro BL d'un article, à afficher sur étiquette)

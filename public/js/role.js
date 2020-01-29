@@ -22,7 +22,7 @@ InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErr
 let modalEditRole = $('#modalEditRole');
 let submitEditRole = $('#submitEditRole');
 let urlEditRole = Routing.generate('role_edit', true);
-InitialiserModal(modalEditRole, submitEditRole, urlEditRole, tableRoles);
+InitialiserModal(modalEditRole, submitEditRole, urlEditRole, tableRoles, displayAlertRole);
 
 let ModalDeleteRole = $("#modalDeleteRole");
 let SubmitDeleteRole = $("#submitDeleteRole");
@@ -33,4 +33,10 @@ function displayErrorRole(data) {
     let modal = $("#modalNewRole");
     let msg = 'Ce nom de rôle existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
+}
+
+function displayAlertRole(data) {
+    if (data) {
+       alertSuccessMsg('Le rôle "' + data + '" a bien été mis à jour. Veuillez rafraîchir la page si nécessaire.');
+    }
 }

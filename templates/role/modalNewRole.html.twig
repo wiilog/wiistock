@@ -8,29 +8,73 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="mb-3 form-group">
-                    <label for="label">Nom*</label>
+                <div class="form-group input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Libellé*</span>
+                    </div>
+                    <label hidden>Libellé</label>
                     <input type="text" class="data form-control needed" name="label">
                 </div>
 
                 {% for menu in menus %}
                     <div class="form-group">
                         <div class="row">
-                            <div class="col-3">
-                                <label>{{ menu.label }}</label>
+                            <div class="col-12 mt-4 mb-3 pointer" data-toggle="collapse" href="#menu-{{ menu.id }}">
+                                <span class="bold">
+                                    Menu {{ menu.label | capitalize }}
+                                </span>
+                                <i class="fas fa-arrow-alt-circle-down ml-2"></i>
                             </div>
-                            {% for action in menu.actions %}
-                                <div class="col-3">
-                                    <label class="switch">
-                                        <input class="checkbox" type="checkbox" name="{{ menu.code~'/'~action.label }}">
-                                        <span class="slider round"></span>
-                                    </label>
-                                    {{ action.label }}
-                                </div>
-                            {% endfor %}
+
+                            <div class="collapse col-12 row" id="menu-{{ menu.id }}">
+                                {% for action in menu.actions %}
+                                    <div class="col-4 mb-2">
+                                        <label class="switch mini-switch">
+                                            <input class="checkbox" type="checkbox" name="{{ menu.label~'/'~action.label }}">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <span class="font-size-mini pointer" onclick="$(this).closest('div').find('.checkbox').click();">{{ action.label }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
+
+                <hr class="m-4">
+
+                <div class="form-group">
+                    {% for param in params %}
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">{{ param.label|capitalize }}</span>
+                            </div>
+
+                            {% if param.typage == 'bool' %}
+                                <label class="switch">
+                                    <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id}}" id="{{ param.id }}">
+                                    <span class="slider round"></span>
+                                </label>
+
+                            {% elseif param.typage == 'number' %}
+                                <input type="number" id="{{ param.id }}" class="form-control data col-3"
+                                       id="{{ param.id }}" name="{{ param.id}}">
+
+                            {% elseif param.typage == 'list' %}
+                                <select class="form-control data col-3" id="{{ param.id }}" name="{{ param.id }}">
+                                    {% for elem in param.elements %}
+                                        <option value="{{ elem }}">{{elem}}</option>
+                                    {% endfor %}
+                                </select>
+
+                            {% else %}
+                                <input type="text" id="{{ param.id }}" class="form-control data col-3"
+                                       id="{{ param.id }}" name="{{ param.id }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
             </div>
 
             <div class="error-msg p-4"></div>

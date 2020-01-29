@@ -66,7 +66,7 @@ class InventoryEntryController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -81,7 +81,7 @@ class InventoryEntryController extends AbstractController
     public function api(Request $request)
     {
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

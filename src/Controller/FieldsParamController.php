@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Repository\FieldsParamRepository;
@@ -21,14 +22,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class FieldsParamController extends AbstractController
 {
 
-    /**
-     * @Route("/", name="fields_param_index")
-     * @param UserService $userService
-     * @return RedirectResponse|Response
-     */
-    public function index(UserService $userService, FieldsParamRepository $fieldsParamRepository)
+	/**
+	 * @Route("/", name="fields_param_index")
+	 * @param UserService $userService
+	 * @return RedirectResponse|Response
+	 */
+    public function index(UserService $userService)
     {
-        if (!$userService->hasRightFunction(Menu::PARAM)) {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -50,7 +51,7 @@ class FieldsParamController extends AbstractController
                         string $entityCode): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -87,7 +88,7 @@ class FieldsParamController extends AbstractController
                             FieldsParamRepository $fieldsParamRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -113,7 +114,7 @@ class FieldsParamController extends AbstractController
                          UserService $userService,
                          FieldsParamRepository $fieldsParamRepository): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
