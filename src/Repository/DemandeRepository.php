@@ -45,8 +45,7 @@ class DemandeRepository extends ServiceEntityRepository
 			'SELECT d
             FROM App\Entity\Livraison l
             JOIN l.preparation p
-            JOIN p.demandes d
-            WHERE :livraison IN (p.livraisons)'
+            JOIN p.demandes d'
 		)->setParameter('livraison', $livraison);
 		$result = $query->getResult();
 		return !empty($result) ? $result[0] : null;
