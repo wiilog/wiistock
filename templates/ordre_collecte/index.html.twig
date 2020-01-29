@@ -5,7 +5,8 @@
 {% block page_filter %}
     {% include 'filters/filtersOrderCollect.html.twig' with {
         page: 'PAGE_ORDRE_COLLECTE',
-        tableSelector: '#tableCollecte'
+        tableSelector: '#tableCollecte',
+        disabled: filtersDisabled
     } %}
 {% endblock %}
 

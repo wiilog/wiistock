@@ -143,11 +143,15 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $demandeCollecte = $demandId ? $this->collecteRepository->find($demandId) : null;
+        $demandeCollecte = $demandId
+            ? $this->collecteRepository->find($demandId)
+            : null;
 
         return $this->render('ordre_collecte/index.html.twig', [
-        	'filterDemand' => $demandId ? ($demandId . ':' . $demandeCollecte->getNumero()) : null,
-            'filtersDisabled' => $demandeCollecte != null,
+        	'filterDemand' => isset($demandeCollecte)
+                ? ($demandId . ':' . $demandeCollecte->getNumero())
+                : null,
+            'filtersDisabled' => isset($demandeCollecte),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),

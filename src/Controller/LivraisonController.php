@@ -161,9 +161,12 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/{demandId}", name="livraison_index", methods={"GET", "POST"})
+     * @param string|null $demandId
+     * @param DemandeRepository $demandeRepository
+     * @return Response
      */
-    public function index($demandId,
-                          DemandeRepository $demandeRepository): Response
+    public function index(DemandeRepository $demandeRepository,
+                          string $demandId = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -175,6 +178,7 @@ class LivraisonController extends AbstractController
 
         return $this->render('livraison/index.html.twig', [
             'filterDemand' => isset($filterDemand) ? ($demandId . ':' . $filterDemand->getNumero()) : null,
+            'filtersDisabled' => isset($filterDemand),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
