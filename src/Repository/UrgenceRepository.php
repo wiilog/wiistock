@@ -6,9 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Urgence;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-
-use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,9 +18,9 @@ class UrgenceRepository extends ServiceEntityRepository
 {
 
     private const DtToDbLabels = [
-        'commande' => 'commande',
-        "start" => 'dateEnd',
-        "end" => 'dateStart',
+        "start" => 'dateStart',
+        "end" => 'dateEnd',
+        'commande' => 'commande'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -31,26 +28,26 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function countByArrivageData(Arrivage $arrivage)
-    {
+    /**
+     * @param Arrivage $arrivage
+     * @return Urgence[]
+     */
+    public function findUrgencesMatching(Arrivage $arrivage): array {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
+            "SELECT u
                 FROM App\Entity\Urgence u
-                WHERE u.dateStart <= :date AND u.dateEnd >= :date AND u.commande LIKE :commande"
+                WHERE u.dateStart <= :date
+                  AND u.dateEnd >= :date
+                  AND u.commande LIKE :commande"
         )->setParameters([
             'date' => $arrivage->getDate(),
             'commande' => $arrivage->getNumeroBL()
         ]);
 
-        return $query->getSingleScalarResult();
+        $res = $query->getResult();
+
+        return $res;
     }
 
     public function findByParamsAndFilters($params, $filters)

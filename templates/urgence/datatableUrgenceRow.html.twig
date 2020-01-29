@@ -9,7 +9,7 @@
                  false,
                  '.editor-container-edit',
                  false,
-                 initDateTimePickerUrgence)">
+                 ($modal) => callbackEditFormLoading($modal, {{ urgence.buyer ? urgence.buyer.id : 'undefined' }}, {{ urgence.buyer ? ("'" ~ urgence.buyer.username ~ "'") : 'undefined' }}))">
 
             <i class='fas fa-pencil-alt'></i>
         </div>
