@@ -382,7 +382,7 @@ class LivraisonController extends AbstractController
 				$livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
 				$livraison->getDate() ? $livraison->getDate()->format('d/m/Y h:i') : '',
 				$livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-				$demande->getType() ? $demande->getType()->getLabel() : '',
+				$demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
 			];
 
 		foreach ($demande->getLigneArticle() as $ligneArticle) {
