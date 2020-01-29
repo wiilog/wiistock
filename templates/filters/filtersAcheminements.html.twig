@@ -1,10 +1,6 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block emplacementFilter %}
-{% endblock %}
-{% block userFilter %}
-{% endblock %}
-{% block typeFilter %}
-{% endblock %}
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
 {% endblock %}

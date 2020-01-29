@@ -57,20 +57,3 @@ function displayErrorMision(data) {
         alertSuccessMsg(msg);
     }
 }
-
-$('#submitSearchMission').on('click', function() {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_INV_MISSIONS,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        anomaly: $('#anomaly').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableMissions);
-});

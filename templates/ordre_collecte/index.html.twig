@@ -3,8 +3,10 @@
 {% block title %}Ordres de collecte{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersOrderCollect.html.twig' with {'btnName': 'submitSearchOrdreCollecte'} %}
+    {% include 'filters/filtersOrderCollect.html.twig' with {
+        page: 'PAGE_ORDRE_COLLECTE',
+        tableSelector: '#tableCollecte'
+    } %}
 {% endblock %}
 
 {% block page_content %}

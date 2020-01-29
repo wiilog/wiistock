@@ -77,9 +77,9 @@ $(function() {
         let id = valueArray[0];
         let label = valueArray[1];
         let option = new Option(label, id, true, true);
-        $('.filters-container .filter').append(option).trigger('change');
-    }
-    else {
+        $('#demCollecte').append(option).trigger('change');
+    } else {
+
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_COLLECTE);
@@ -88,23 +88,4 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
-});
-
-$submitSearchOrdreCollecte.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ORDRE_COLLECTE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        type: $('#type').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableCollecte);
 });

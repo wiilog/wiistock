@@ -10,25 +10,6 @@ $(function () {
 
     $('.body-add-ref').css('display', 'none');
 
-    const $submitSearchReception = $('#submitSearchReception');
-
-    $submitSearchReception.on('click', function () {
-        $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-        $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-        let filters = {
-            page: PAGE_RECEPTION,
-            dateMin: $('#dateMin').val(),
-            dateMax: $('#dateMax').val(),
-            statut: $('#statut').val(),
-            providers: $('#providers').select2('data'),
-        };
-
-        $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-        $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-        saveFilters(filters, tableReception);
-    });
-
     ajaxAutoArticlesReceptionInit($('.select2-autocomplete-articles'));
 
     // RECEPTION

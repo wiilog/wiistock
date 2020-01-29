@@ -39,20 +39,3 @@ let modalAddToMission = $("#modalAddToMission");
 let submitAddToMission = $("#submitAddToMission");
 let urlAddToMission = Routing.generate('add_to_mission', true);
 InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, null);
-
-$('#submitSearchMissionRef').on('click', function() {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_INV_SHOW_MISSION,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        anomaly: $('#anomaly').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableMission);
-});

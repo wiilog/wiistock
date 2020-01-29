@@ -3,8 +3,10 @@
 {% block title %}Urgences{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersUrgence.html.twig' with {'btnName' : 'submitSearchUrgence'} %}
+    {% include 'filters/filtersUrgence.html.twig' with {
+        page: 'PAGE_URGENCES',
+        tableSelector: '#tableUrgences'
+    } %}
 {% endblock %}
 
 {% block page_content %}

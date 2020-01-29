@@ -1,12 +1,9 @@
-{% extends 'filters/filtersWithoutLocation.html.twig' %}
+{% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-    <div class="input-group maxw-250px">
-        <select class="ajax-autocomplete-dem-collecte data form-control" id="demandCollect" name="demandCollect" {{ disabled }}>
-        </select>
-    </div>
-{% endblock %}
-{% block emplacementFilter %}
-{% endblock %}
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterDemandCollect.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterType.html.twig' %}
 {% endblock %}

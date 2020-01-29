@@ -29,6 +29,8 @@ $.fn.dataTable.ext.errMode = (resp) => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
 
+$.fn.select2.defaults.set('allowClear', true);
+
 /**
  * Initialise une fenêtre modale
  *
@@ -679,11 +681,92 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(params, table = null) {
+function saveFilters(page, tableSelector, callback) {
     let path = Routing.generate('filter_sup_new');
 
+    const $filterDateMin = $('.filter-date-min');
+    const $filterDateMax = $('.filter-date-max');
+    const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
+    const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
+
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format('YYYY-MM-DD');
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format('YYYY-MM-DD');
+    }
+
+    const paramsToSend = {
+        input: [
+            'filter-date-min',
+            'filter-date-max',
+            'filter-type',
+            'filter-num-arrivage',
+            'filter-anomaly',
+            'filter-colis',
+            'filter-litige-origin',
+            'filter-arrivage-string',
+            'filter-reception-string',
+            'filter-command'
+        ],
+        select2: [
+            'filter-status',
+            'filter-user',
+            'filter-provider',
+            'filter-carrier',
+            'filter-reference',
+            'filter-location',
+            'filter-demand-collect'
+        ],
+        checkbox: [
+            'filter-checkbox'
+        ]
+    };
+
+    const valFunction = {
+        input: ($input) => $input.val(),
+        select2: ($input) => $input.select2('data').map(({id, text}) => ({id, text})),
+        checkbox: ($input) => $input.is(':checked')
+    };
+
+    let params = {
+        page,
+        ...(Object.keys(paramsToSend).reduce((acc, key) => ({
+            ...acc,
+            ...(
+                paramsToSend[key]
+                    ? paramsToSend[key].reduce((acc, className) => {
+                        const $field = $('.filters-container').find(`.${className}`);
+
+                        return ({
+                            ...acc,
+                            ...($field.length > 0
+                                ? {[$field.attr('name')]: valFunction[key]($field)}
+                                : {})
+                        });
+                    }, {})
+                    : {}
+            )
+        }), {}))
+    };
+
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format('DD/MM/YYYY');
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format('DD/MM/YYYY');
+    }
+
     $.post(path, JSON.stringify(params), function() {
-        if (table) table.draw();
+        if (callback) {
+            callback();
+        }
+        if (tableSelector) {
+            const $table = $(tableSelector);
+            if ($table && $table.DataTable) {
+                $table.DataTable().draw();
+            }
+        }
     }, 'json');
 }
 
@@ -1171,7 +1254,6 @@ function warningEmptyDatesForCsv() {
 
 function displayFiltersSup(data) {
     data.forEach(function (element) {
-
         switch (element.field) {
             case 'utilisateurs':
                 let valuesUsers = element.value.split(',');
@@ -1187,6 +1269,8 @@ function displayFiltersSup(data) {
 
             case 'providers':
             case 'reference':
+            case 'demCollecte':
+            case 'emplacement':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);
                 valuesElement.forEach((value) => {
@@ -1198,30 +1282,44 @@ function displayFiltersSup(data) {
                 });
                 break;
 
+            case 'statut':
+            case 'carriers':
+            case 'emplacement':
+                let valuesElement2 = element.value.split(',');
+                let $select2 = $('#' + element.field);
+                valuesElement2.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    $select2.val(id).trigger('change');
+                });
+                break;
+
             case 'emergency':
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
                 }
                 break;
 
-            case 'carriers':
+
             case 'litigeOrigin':
-            case 'emplacement':
-                $('#' + element.field).val(element.value).select2();
+                const text = element.value || '';
+                const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
+                $('#' + element.field).val(id).trigger('change');
                 break;
 
             case 'dateMin':
             case 'dateMax':
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                break;
-
-            case 'statut':
-                let valuesStr = element.value.split(',');
-                let valuesInt = [];
-                valuesStr.forEach((value) => {
-                    valuesInt.push(parseInt(value));
-                })
-                $('#' + element.field).val(valuesInt).select2();
+                const sourceFormat = (element.value && element.value.indexOf('/') > -1)
+                    ? 'DD/MM/YYYY'
+                    : 'YYYY-MM-DD';
+                const $fieldDate = $('#' + element.field);
+                const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                if ($fieldDate.data("DateTimePicker")) {
+                    $fieldDate.data("DateTimePicker").date(dateValue);
+                }
+                else {
+                    $fieldDate.val(dateValue);
+                }
                 break;
 
             default:

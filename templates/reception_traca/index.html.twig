@@ -3,9 +3,9 @@
 {% block title %}Réceptions{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersReceptionTraca.html.twig' with {
-        'btnName' : 'submitSearchRecep',
+        'page' : 'PAGE_RCPT_TRACA',
+        'tableSelector' : '#tableRecepts'
     } %}
 {% endblock %}
 

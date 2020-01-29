@@ -3,8 +3,10 @@
 {% block title %}Ordres de livraison{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName': 'submitSearchLivraison'} %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        page: 'PAGE_ORDRE_LIVRAISON',
+        tableSelector: '#tableLivraison_id'
+    } %}
 {% endblock %}
 
 {% block page_content %}
