@@ -385,8 +385,8 @@ class PreparationController extends AbstractController
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
         return $this->render('preparation/show.html.twig', [
-            'demande' => $this->demandeRepository->findOneByPreparation($preparation),
-            'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
+            'demande' => $preparation->getDemande(),
+            'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),

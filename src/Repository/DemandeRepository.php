@@ -110,17 +110,6 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findOneByPreparation($preparation)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Demande a
-            WHERE a.preparation = :preparation'
-        )->setParameter('preparation', $preparation);
-        return $query->getOneOrNullResult();
-    }
-
 	/**
 	 * @param DateTime $dateMin
 	 * @param DateTime $dateMax

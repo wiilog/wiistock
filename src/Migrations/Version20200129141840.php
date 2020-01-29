@@ -28,6 +28,20 @@ final class Version20200129141840 extends AbstractMigration
                             FROM demande as demande
                             WHERE demande.preparation_id = preparation.id
                     )');
+        $this->addSql('
+            DELETE l
+            FROM livraison AS l
+            LEFT OUTER JOIN
+            (
+                 SELECT
+                 MAX(livraison.id) as IdToKeep
+                 FROM
+                 (SELECT * FROM livraison) AS livraison
+                INNER JOIN preparation ON preparation.id = livraison.preparation_id
+                 GROUP BY preparation.id
+            ) AS tableToKeep ON tableToKeep.IdToKeep = l.id
+            WHERE tableToKeep.IdToKeep IS NULL
+        ');
     }
 
     public function down(Schema $schema) : void

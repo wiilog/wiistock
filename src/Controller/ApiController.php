@@ -647,9 +647,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $emplacement
                                     );
                                 }
-
-                                // TODO prepaPartielle mettre la nouvelle prepa dans la ligne article prélevée partiellement
-                                // TODO prepaPartielle supprimer la ligneArticlePreparation qui a été prélevée entièrement
                                 foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                                     $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
                                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());

@@ -45,27 +45,6 @@ class LivraisonRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param int $preparationId
-	 * @return Livraison|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByPreparationId($preparationId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT l
-			FROM App\Entity\Livraison l
-			JOIN l.demande d
-			JOIN d.preparation p
-			WHERE p.id = :preparationId
-			"
-		)->setParameter('preparationId', $preparationId);
-
-		return $query->getOneOrNullResult();
-	}
-
 	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
 	{
         $typeUser = [];

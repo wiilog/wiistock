@@ -50,7 +50,7 @@ class Livraison
 
     /**
      * @var Preparation|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="livraisons")
+     * @ORM\OneToOne(targetEntity="App\Entity\Preparation", inversedBy="livraison")
      */
     private $preparation;
 

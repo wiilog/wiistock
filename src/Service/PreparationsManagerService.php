@@ -142,7 +142,7 @@ class PreparationsManagerService {
                 $article->setEmplacement($emplacement);
             }
         }
-		$isPreparationComplete = $this->isPreparationComplete($demande);
+		$isPreparationComplete = $this->isPreparationComplete($preparation);
 		$prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
 		$statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
 		$demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
@@ -152,19 +152,27 @@ class PreparationsManagerService {
             ->setUtilisateur($userNomade)
             ->setStatut($statutPreparePreparation);
 
+        // TODO get remaining articles and refs
+        if (!$isPreparationComplete) {
+            $newPreparation = new Preparation();
+            $newPreparation
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
+            $demande->addPreparation($newPreparation);
+        }
+
         $demande->setStatut($statutPrepareDemande);
     }
 
-    private function isPreparationComplete(Demande $demande)
+    private function isPreparationComplete(Preparation $preparation)
 	{
 		$complete = true;
 
-		$articles = $demande->getArticles();
+		$articles = $preparation->getArticles();
 		foreach ($articles as $article) {
 			if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) $complete = false;
 		}
 
-		$lignesArticle = $demande->getLigneArticle();
+		$lignesArticle = $preparation->getLigneArticlePreparations();
 		foreach ($lignesArticle as $ligneArticle) {
 			if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) $complete = false;
 		}
@@ -471,7 +479,7 @@ class PreparationsManagerService {
 	 */
 	private function dataRowPreparation($preparation)
 	{
-		$demande = $this->demandeRepository->findOneByPreparation($preparation);
+		$demande = $preparation->getDemande();
 		$url['show'] = $this->router->generate('preparation_show', ['id' => $preparation->getId()]);
 		$row = [
 			'Numéro' => $preparation->getNumero() ?? '',

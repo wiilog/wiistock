@@ -19,6 +19,7 @@ class Demande
 	const STATUT_INCOMPLETE = 'partiellement préparé';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
+    const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
 
     /**
      * @ORM\Id()
