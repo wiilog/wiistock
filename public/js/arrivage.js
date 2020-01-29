@@ -92,7 +92,7 @@ function listColis(elem) {
     }, 'json');
 }
 
-function getDataAndPrintLabels(codes, dropzone = null) {
+function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
     let param = codes;
 
@@ -104,9 +104,10 @@ function getDataAndPrintLabels(codes, dropzone = null) {
                 alertErrorMsg("Il n'y a aucun colis à imprimer.");
             } else {
                 for (const code of response.codeColis) {
-                    codeColis.push(code.code)
-                    dropZones.push(dropzone);
+                    codeColis.push(code.code);
+                    dropZones.push(response.dropzone);
                 }
+                if (!response.dropzone) dropZones = null;
                 printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
             }
         }
@@ -117,7 +118,7 @@ function printBarcode(code) {
     let path = Routing.generate('get_print_data', true);
 
     $.post(path, function (response) {
-        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'), dropzone);
+        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
     });
 }
 
@@ -132,7 +133,7 @@ let redirectAfterArrival = $('#redirect').val();
 function createCallback(response) {
     alertSuccessMsg('Votre arrivage a bien été créé');
     if (response.printColis) {
-        getDataAndPrintLabels(response.arrivageId, response.dropzone)
+        getDataAndPrintLabels(response.arrivageId);
     } if (response.printArrivage) {
         printBarcode(response.numeroArrivage);
     }

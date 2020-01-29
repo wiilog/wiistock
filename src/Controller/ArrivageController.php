@@ -257,7 +257,8 @@ class ArrivageController extends AbstractController
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
-                        ColisService $colisService): Response {
+                        ColisService $colisService): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -352,7 +353,6 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
-                'dropzone' => count($arrivage->getAcheteurs()) > 1 ? null : $arrivage->getAcheteurs()[0]->getDropzone() ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel() : null,
             ];
             return new JsonResponse($data);
         }
@@ -633,10 +633,19 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $data;
+            $arrivage = $this->arrivageRepository->find($arrivage);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
                 'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
-                'codeColis' => $codeColis
+                'codeColis' => $codeColis,
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
+                'dropzone' => count($arrivage->getAcheteurs()) > 1
+                    ? null
+                    : count($arrivage->getAcheteurs()) > 0
+                        ? $arrivage->getAcheteurs()[0]->getDropzone()
+                            ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                            : null
+                        : null,
             );
             return new JsonResponse($responseData);
 
@@ -1152,7 +1161,16 @@ class ArrivageController extends AbstractController
                     'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
                     'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                     'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
+                        'code' => $colis->getCode(),
+                        'dropzone' => count($arrivage->getAcheteurs()) > 1
+                            ? null
+                            : count($arrivage->getAcheteurs()) > 0
+                                ? $arrivage->getAcheteurs()[0]->getDropzone()
+                                    ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                                    : null
+                                : null,
+                    ]),
                 ];
             }
             $data['data'] = $rows;

@@ -200,27 +200,29 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
 function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
     let param = codes;
-
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
+        let dropZones = [];
         if (response.response.exists) {
             if (response.codeColis.length === 0) {
                 alertErrorMsg("Il n'y a aucun colis à imprimer.");
             } else {
                 for (const code of response.codeColis) {
-                    codeColis.push(code.code)
+                    codeColis.push(code.code);
+                    dropZones.push(response.dropzone);
                 }
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+                if (!response.dropzone) dropZones = null;
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
             }
         }
     });
 }
 
-function printColisBarcode(codeColis) {
+function printColisBarcode(codeColis, dropzone) {
     let path = Routing.generate('get_print_data', true);
 
     $.post(path, function (response) {
-        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'));
+        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'), dropzone ? [dropzone] : dropzone);
     });
 }
 
