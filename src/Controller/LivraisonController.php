@@ -374,7 +374,7 @@ class LivraisonController extends AbstractController
 
 	private function buildInfos(Livraison $livraison, &$data)
 	{
-		$demande = $livraison->getDemande()[0];
+		$demande = !empty($livraison->getDemande()) ? $livraison->getDemande()[0] : null;
 		if ($demande) {
             $dataLivraison =
                 [
