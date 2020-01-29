@@ -85,15 +85,6 @@ let dlFileForArts = function (csvArray, type) {
     let exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv'
         : type === "art" ? 'export-articles-' + date + '.csv'
             : 'export-others-' + data + '.csv';
-
-    // merge multiple Int8Array : https://stackoverflow.com/questions/14071463/how-can-i-merge-typedarrays-in-javascript
-    const csvLength = csvArray.reduce((counter, line) => (counter + line.length), 0);
-    const csv = new Int8Array(csvLength);
-    let currentOffset = 0;
-    csvArray.forEach((line) => {
-        csv.set(line, currentOffset);
-        currentOffset += line.length;
-    });
-    let blob = new Blob([csv], {type: 'text/csv;charset=' + encoding + ';'});
+    let blob = new Blob(csvArray, {type: 'text/csv;charset=' + encoding + ';'});
     saveAs(blob, exportedFilenmae);
-}
+};
