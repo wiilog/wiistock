@@ -437,7 +437,6 @@ class GlobalParamController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
      * @param Request $request
@@ -468,6 +467,32 @@ class GlobalParamController extends AbstractController
 			$this->getDoctrine()->getManager()->flush();
 
 			$translationService->generateTranslationsFile();
+
+			return new JsonResponse(true);
+		}
+		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/configuration-menu", name="save_menu_config", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function saveMenuConfig(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest())
+		{
+			$data = $request->request->all();
+			$menuSubmenu = explode('/', $data['menuSubmenu']);
+
+			$menuRepository = $this->getDoctrine()->getRepository(MenuConfig::class);
+			$menuConfig = $menuRepository->findOneByMenuAndSubmenu($menuSubmenu[0], $menuSubmenu[1]);
+
+			if (!$menuConfig) return new JsonResponse(false);
+
+			$menuConfig->setDisplay($data['toDisplay'] == 'true');
+			$this->getDoctrine()->getManager()->flush();
 
 			return new JsonResponse(true);
 		}

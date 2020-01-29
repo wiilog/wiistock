@@ -16,7 +16,7 @@
             <div class="mb-2 ml-2">
                 <label class="switch mr-2">
                     <input class="checkbox" type="checkbox" {{ display ? 'checked' : '' }} name="{{ menu~'/'~submenu }}">
-                    <span class="slider round"></span>
+                    <span class="slider round" onclick="saveMenuConfig($(this))"></span>
                 </label>
                 {{ submenu|capitalize }}
             </div>

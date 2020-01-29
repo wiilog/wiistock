@@ -8,6 +8,8 @@
 
 namespace App\Service;
 
+use App\Repository\MenuConfigRepository;
+
 class SpecificService
 {
 	const CLIENT_COLLINS = 'collins';
@@ -15,15 +17,31 @@ class SpecificService
 	const CLIENT_SAFRAN_CS = 'safran-cs';
 	const CLIENT_SAFRAN_ED = 'safran-ed';
 
-	public static function isCurrentClientNameFunction(string $clientName)
+	private $menuConfigRepository;
+
+	public function __construct(MenuConfigRepository $menuConfigRepository)
+	{
+		$this->menuConfigRepository = $menuConfigRepository;
+	}
+
+	public function isCurrentClientNameFunction(string $clientName)
 	{
 		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}
 
 	public function getAppClient(): string {
-	    return isset($_SERVER['APP_CLIENT'])
-            ? $_SERVER['APP_CLIENT']
-            : '';
-    }
+		return isset($_SERVER['APP_CLIENT'])
+			? $_SERVER['APP_CLIENT']
+			: '';
+	}
 
+	public function displaySubmenuFunction($menu, $submenu)
+	{
+		return $this->menuConfigRepository->getOneDisplayByMenuAndSubmenu($menu, $submenu) == '1';
+	}
+
+	public function displayMenuFunction($menu)
+	{
+		return (int)$this->menuConfigRepository->countDisplayedByMenu($menu) > 0;
+	}
 }

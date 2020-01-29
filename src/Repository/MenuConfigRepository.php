@@ -6,6 +6,7 @@ use App\Entity\MenuConfig;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method MenuConfig|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,7 +24,7 @@ class MenuConfigRepository extends ServiceEntityRepository
 	/**
 	 * @param string $menu
 	 * @param string $submenu
-	 * @return mixed
+	 * @return MenuConfig
 	 * @throws NonUniqueResultException
 	 */
 	public function findOneByMenuAndSubmenu($menu, $submenu)
@@ -35,5 +36,41 @@ class MenuConfigRepository extends ServiceEntityRepository
 			->setParameter('submenu', $submenu)
 			->getQuery()
 			->getOneOrNullResult();
+	}
+
+	/**
+	 * @param string $menu
+	 * @param string $submenu
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+	public function getOneDisplayByMenuAndSubmenu($menu, $submenu)
+	{
+		return $this->createQueryBuilder('mc')
+			->select('mc.display')
+			->andWhere('mc.menu = :menu')
+			->setParameter('menu', $menu)
+			->andWhere('mc.submenu = :submenu')
+			->setParameter('submenu', $submenu)
+			->getQuery()
+			->getSingleScalarResult();
+	}
+
+	/**
+	 * @param string $menu
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+	public function countDisplayedByMenu($menu)
+	{
+		return $this->createQueryBuilder('mc')
+			->select('COUNT(mc.id)')
+			->andWhere('mc.menu = :menu')
+			->andWhere('mc.display = 1')
+			->setParameter('menu', $menu)
+			->getQuery()
+			->getSingleScalarResult();
 	}
 }
