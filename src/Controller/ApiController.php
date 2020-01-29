@@ -620,10 +620,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $ligneArticleRepository) {
 
                                 $preparationsManager->setEntityManager($entityManager);
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
+                                $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
                                 foreach ($mouvementsNomade as $mouvementNomade) {
                                     if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                         $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
@@ -649,13 +648,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     );
                                 }
 
+                                // TODO prepaPartielle mettre la nouvelle prepa dans la ligne article prélevée partiellement
+                                // TODO prepaPartielle supprimer la ligneArticlePreparation qui a été prélevée entièrement
                                 foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                                     $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
-                                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemandes()[0]);
+                                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                                     $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                                 }
+
                                 $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser, $emplacementPrepa);
+                                $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa);
                                 if ($emplacementPrepa) {
                                     $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
                                 } else {

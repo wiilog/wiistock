@@ -29,10 +29,6 @@ class Livraison
      */
     private $destination;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="livraison")
-     */
-    private $demande;
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="livraisons")
      */
     private $statut;
@@ -53,6 +49,7 @@ class Livraison
     private $utilisateur;
 
     /**
+     * @var Preparation|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="livraisons")
      */
     private $preparation;
@@ -65,7 +62,6 @@ class Livraison
 
     public function __construct()
     {
-        $this->demande = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
     }
     public function getId(): ?int
@@ -85,37 +81,20 @@ class Livraison
     {
         return $this->destination;
     }
-    public function setDestination(?emplacement $destination): self
-    {
+    public function setDestination(?emplacement $destination): self {
         $this->destination = $destination;
         return $this;
     }
+
     /**
-     * @return Collection|Demande[]
+     * @return Demande|null
      */
-    public function getDemande(): Collection
-    {
-        return $this->getPreparation()->getDemandes();
+    public function getDemande(): ?Demande {
+        return isset($this->preparation)
+            ? $this->preparation->getDemande()
+            : null;
     }
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demande->contains($demande)) {
-            $this->demande[] = $demande;
-            $demande->setLivraison($this);
-        }
-        return $this;
-    }
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demande->contains($demande)) {
-            $this->demande->removeElement($demande);
-            // set the owning side to null (unless already changed)
-            if ($demande->getLivraison() === $this) {
-                $demande->setLivraison(null);
-            }
-        }
-        return $this;
-    }
+
     public function getStatut(): ?Statut
     {
         return $this->statut;

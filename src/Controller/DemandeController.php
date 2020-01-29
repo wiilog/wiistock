@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\LigneArticlePreparation;
+use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -258,7 +259,7 @@ class DemandeController extends AbstractController
             $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
 
-            $demande->setPreparation($preparation);
+            $demande->addPreparation($preparation);
             $statutD = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
             $em->persist($preparation);
@@ -478,7 +479,9 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $demande = $this->demandeRepository->find($data['demandeId']);
-            if (!$demande->getPreparation()) {
+            $preparations = $demande->getPreparations();
+            if (empty($preparations)) {
+                // TODO prepaPartielle on doit supprimer les lignes articles aussi ??
                 foreach ($demande->getArticles() as $article) {
                     $article->setDemande(null);
                 }
@@ -738,24 +741,23 @@ class DemandeController extends AbstractController
 
 			$livraisons = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
-			$headers = [];
-			// en-têtes champs fixes
-			$headers = array_merge($headers, [
+            // en-têtes champs fixes
+            $headers = [
 				'demandeur',
 				'statut',
 				'destination',
 				'commentaire',
 				'date demande',
-				'date validation',
+				'date(s) validation(s)',
 				'numéro',
 				'type demande',
-				'code préparation',
-				'code livraison',
+				'code(s) préparation(s)',
+				'code(s) livraison(s)',
 				'référence article',
 				'libellé article',
 				'quantité disponible',
 				'quantité à prélever'
-			]);
+			];
 
 			// en-têtes champs libres DL
 			$clDL = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
@@ -780,7 +782,7 @@ class DemandeController extends AbstractController
 			}
 
 			foreach ($livraisons as $livraison) {
-
+			    $infosDemand = $this->getCSVExportFromDemand($livraison);
 				foreach ($livraison->getLigneArticle() as $ligneArticle) {
 					$livraisonData = [];
 					$articleRef = $ligneArticle->getReference();
@@ -791,16 +793,23 @@ class DemandeController extends AbstractController
 
 					$availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
-					$livraisonData[] = $livraison->getUtilisateur()->getUsername();
-					$livraisonData[] = $livraison->getStatut()->getNom();
-					$livraisonData[] = $livraison->getDestination()->getLabel();
-					$livraisonData[] = strip_tags($livraison->getCommentaire());
-					$livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
-					$livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
-					$livraisonData[] = $livraison->getNumero();
-					$livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
-					$livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getNumero() : 'ND';
-					$livraisonData[] = $livraison->getLivraison() ? $livraison->getLivraison()->getNumero() : 'ND';
+                    $livraisonOrders = $livraison
+                        ->getLivraisons()
+                        ->map(function (Livraison $livraison) {
+                            return $livraison->getNumero();
+                        })
+                        ->toArray();
+                    $preparationOrders = $livraison->getPreparations();
+                    $preparationOrdersNumeros = $preparationOrders
+                        ->map(function (Preparation $preparation) {
+                            return $preparation->getNumero();
+                        })
+                        ->toArray();
+
+					// TODO prepaPartielle attention pas le meme nombre de colonne comparé aux articles ???????  ????? $preparationOrdersNumeros & $livraisonOrders pour les articles aussi
+                    array_push($livraisonData, ...$infosDemand);
+					$livraisonData[] = !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND';
+					$livraisonData[] = !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND';
 					$livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
 					$livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
 					$livraisonData[] = $availableQuantity;
@@ -835,14 +844,8 @@ class DemandeController extends AbstractController
 				foreach ($this->articleRepository->findByDemande($livraison) as $article) {
 					$livraisonData = [];
 
-					$livraisonData[] = $livraison->getUtilisateur()->getUsername();
-					$livraisonData[] = $livraison->getStatut()->getNom();
-					$livraisonData[] = $livraison->getDestination()->getLabel();
-					$livraisonData[] = strip_tags($livraison->getCommentaire());
-					$livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
-					$livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
-					$livraisonData[] = $livraison->getNumero();
-					$livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
+                    // TODO prepaPartielle attention pas le meme nombre de colonne comparé aux articles ???????  ????? $preparationOrdersNumeros & $livraisonOrders pour les articles aussi
+                    array_push($livraisonData, ...$infosDemand);
 					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
 					$livraisonData[] = $article->getLabel();
 					$livraisonData[] = $article->getQuantite();
@@ -903,5 +906,24 @@ class DemandeController extends AbstractController
 			}
 		}
 	}
+
+    private function getCSVExportFromDemand(Demande $demande): array {
+        $preparationOrders = $demande->getPreparations();
+        $preparationOrdersDates = $preparationOrders
+            ->map(function (Preparation $preparation) {
+                return $preparation->getDate()->format('Y/m/d-H:i:s');
+            })
+            ->toArray();
+        return [
+            $demande->getUtilisateur()->getUsername(),
+            $demande->getStatut()->getNom(),
+            $demande->getDestination()->getLabel(),
+            strip_tags($demande->getCommentaire()),
+            $demande->getDate()->format('Y/m/d-H:i:s'),
+            !empty($preparationOrdersDates) ? implode(' / ', $preparationOrdersDates) : '',
+            $demande->getNumero(),
+            $demande->getType() ? $demande->getType()->getLabel() : ''
+        ];
+    }
 
 }

@@ -33,25 +33,6 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-	/**
-	 * @param Livraison $livraison
-	 * @return Demande|null
-	 * @throws NonUniqueResultException
-	 */
-	public function findOneByLivraison($livraison)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT d
-            FROM App\Entity\Demande d
-            JOIN d.preparation p
-            JOIN p.livraisons l
-            WHERE l = :livraison'
-		)->setParameter('livraison', $livraison);
-		$result = $query->getResult();
-		return !empty($result) ? $result[0] : null;
-	}
-
     public function findByUserAndNotStatus($user, $status)
     {
         $entityManager = $this->getEntityManager();

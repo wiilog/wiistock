@@ -7,7 +7,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -119,18 +118,16 @@ class PreparationsManagerService {
         }
     }
 
-	/**
-	 * @param Preparation $preparation
-	 * @param Livraison $livraison
-	 * @param $userNomade
-	 * @throws NonUniqueResultException
-	 */
-    public function treatPreparation(Preparation $preparation, Livraison $livraison, $userNomade, Emplacement $emplacement): void {
+    /**
+     * @param Preparation $preparation
+     * @param $userNomade
+     * @param Emplacement $emplacement
+     * @throws NonUniqueResultException
+     */
+    public function treatPreparation(Preparation $preparation, $userNomade, Emplacement $emplacement): void {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $demandes = $preparation->getDemandes();
-        $demande = $demandes[0];
-        $livraison->addDemande($demande);
+        $demande = $preparation->getDemande();
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $refQuantitePrelevee = $ligneArticle->getQuantitePrelevee();
             if (isset($refQuantitePrelevee) &&
@@ -152,7 +149,6 @@ class PreparationsManagerService {
 		$statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
 
         $preparation
-            ->addLivraison($livraison)
             ->setUtilisateur($userNomade)
             ->setStatut($statutPreparePreparation);
 
@@ -176,17 +172,19 @@ class PreparationsManagerService {
 		return $complete;
 	}
 
-	/**
-	 * @param DateTime $dateEnd
-	 * @return Livraison
-	 * @throws NonUniqueResultException
-	 */
-    public function persistLivraison(DateTime $dateEnd) {
+    /**
+     * @param DateTime $dateEnd
+     * @param Preparation $preparation
+     * @return Livraison
+     * @throws NonUniqueResultException
+     */
+    public function persistLivraison(DateTime $dateEnd, Preparation $preparation) {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
 
         $livraison
+            ->setPreparation($preparation)
             ->setDate($dateEnd)
             ->setNumero('L-' . $dateEnd->format('YmdHis'))
             ->setStatut($statut);
@@ -356,9 +354,6 @@ class PreparationsManagerService {
     public function createMouvementsPrepaAndSplit(Preparation $preparation, Utilisateur $user) {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-
-        $demandes = $preparation->getDemandes();
-        $demande = $demandes[0];
 
         // modification des articles de la demande
         $articles = $preparation->getArticles();

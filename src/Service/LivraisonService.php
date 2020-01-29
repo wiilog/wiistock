@@ -114,9 +114,9 @@ class LivraisonService
     {
 		$url['show'] = $this->router->generate('livraison_show', ['id' => $livraison->getId()]);
 
-		$demande = $this->demandeRepository->findOneByLivraison($livraison);
+		$demande = $livraison->getDemande();
 
-		$row = [
+        return [
 			'id' => $livraison->getId() ?? '',
 			'Numéro' => $livraison->getNumero() ?? '',
 			'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
@@ -125,7 +125,5 @@ class LivraisonService
 			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
 			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
 		];
-
-        return $row;
     }
 }

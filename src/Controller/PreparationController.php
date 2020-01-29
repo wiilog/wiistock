@@ -158,8 +158,8 @@ class PreparationController extends AbstractController
         $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison = $preparationsManager->persistLivraison($dateEnd);
-        $preparationsManager->treatPreparation($preparation, $livraison, $this->getUser(), $locationEndPrepa);
+        $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
+        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
@@ -208,7 +208,7 @@ class PreparationController extends AbstractController
                 $demande = $this->demandeRepository->find($key);
                 $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
-                    ->setPreparation($preparation)
+                    ->addPreparation($preparation)
                     ->setStatut($statut);
                 $articles = $demande->getArticles();
                 foreach ($articles as $article) {
@@ -402,24 +402,24 @@ class PreparationController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        // TODO prepraPartielle delete ligneArticlePreparation & preparation_id dans les articles ????
+
         $em = $this->getDoctrine()->getManager();
-        foreach ($preparation->getDemandes() as $demande) {
-            $demande
-                ->setPreparation(null)
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+        $demande = $preparation->getDemande();
+        $demande
+            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
-            foreach ($preparation->getArticles() as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
-                if ($article->getQuantiteAPrelever()) {
-                    $article->setQuantite($article->getQuantiteAPrelever());
-                    $article->setQuantiteAPrelever(0);
-                    $article->setQuantitePrelevee(0);
-                }
+        foreach ($preparation->getArticles() as $article) {
+            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
+            if ($article->getQuantiteAPrelever()) {
+                $article->setQuantite($article->getQuantiteAPrelever());
+                $article->setQuantiteAPrelever(0);
+                $article->setQuantitePrelevee(0);
             }
+        }
 
-            foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
-                $em->remove($ligneArticlePreparation);
-            }
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
+            $em->remove($ligneArticlePreparation);
         }
 
         $em->remove($preparation);
@@ -448,7 +448,7 @@ class PreparationController extends AbstractController
                 'articles' => $articles,
                 'quantite' => $ligneArticle->getQuantite(),
                 'preparation' => $preparation,
-                'demande' => $preparation->getDemandes()[0]
+                'demande' => $preparation->getDemande()
             ]);
 
             return new JsonResponse($response);
@@ -661,7 +661,7 @@ class PreparationController extends AbstractController
 
     private function buildInfos(Preparation $preparation, &$data)
     {
-        $demande = $preparation->getDemandes()[0];
+        $demande = $preparation->getDemande();
 
         $dataPrepa =
             [

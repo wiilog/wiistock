@@ -74,7 +74,6 @@ class LivraisonsManagerService {
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
-            $demandeRepository = $this->entityManager->getRepository(Demande::class);
             $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutName(
@@ -86,7 +85,7 @@ class LivraisonsManagerService {
                 ->setUtilisateur($user)
                 ->setDateFin($dateEnd);
 
-            $demande = $demandeRepository->findOneByLivraison($livraison);
+            $demande = $livraison->getDemande();
             $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 

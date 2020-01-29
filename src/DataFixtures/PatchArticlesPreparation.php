@@ -35,7 +35,7 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
 	public function load(ObjectManager $manager)
 	{
 	    foreach ($this->preparationRepository->findAll() as $preparation) {
-	        $demande = $preparation->getDemandes()[0];
+	        $demande = $preparation->getDemande();
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));

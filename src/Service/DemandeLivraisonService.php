@@ -255,7 +255,7 @@ class DemandeLivraisonService
                 $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
                 $this->em->persist($preparation);
-                $demande->setPreparation($preparation);
+                $demande->addPreparation($preparation);
             }
 			$this->em->flush();
             $data = $demande;

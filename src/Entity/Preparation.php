@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,9 +36,14 @@ class Preparation
     private $numero;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="preparation")
+     * @ORM\Column(type="text", nullable=true)
      */
-    private $demandes;
+    private $commentaire;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="preparations")
+     */
+    private $demande;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="preparations")
@@ -50,19 +56,15 @@ class Preparation
     private $utilisateur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
+     * @var Livraison|null
+     * @ORM\OneToOne(targetEntity="App\Entity\Livraison", mappedBy="preparation")
      */
-    private $livraisons;
+    private $livraison;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="preparationOrder")
 	 */
 	private $mouvements;
-
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $commentaire;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="preparation")
@@ -77,8 +79,6 @@ class Preparation
 
     public function __construct()
     {
-        $this->demandes = new ArrayCollection();
-        $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
@@ -89,12 +89,12 @@ class Preparation
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -114,33 +114,14 @@ class Preparation
     }
 
     /**
-     * @return Collection|Demande[]
+     * @return Demande|null
      */
-    public function getDemandes(): Collection
-    {
-        return $this->demandes;
+    public function getDemande(): ?Demande {
+        return $this->demande;
     }
 
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demandes->contains($demande)) {
-            $this->demandes[] = $demande;
-            $demande->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demandes->contains($demande)) {
-            $this->demandes->removeElement($demande);
-            // set the owning side to null (unless already changed)
-            if ($demande->getPreparation() === $this) {
-                $demande->setPreparation(null);
-            }
-        }
-
+    public function setDemande(?Demande $demande): self {
+        $this->demande = $demande;
         return $this;
     }
 
@@ -168,29 +149,23 @@ class Preparation
         return $this;
     }
 
-    public function getLivraisons(): Collection
-    {
-        return $this->livraisons;
+    /**
+     * @return Livraison|null
+     */
+    public function getLivraison(): ?Livraison {
+        return $this->livraison;
     }
 
-    public function addLivraison(Livraison $livraison): self
+    public function setLivraison(?Livraison $livraison): self
     {
-        if (!$this->livraisons->contains($livraison)) {
-            $this->livraisons[] = $livraison;
-            $livraison->setPreparation($this);
+        if (isset($this->livraison) && ($this->livraison !== $livraison)) {
+            $this->livraison->setPreparation(null);
         }
 
-        return $this;
-    }
+        $this->livraison = $livraison;
 
-    public function removeLivraison(Livraison $livraison): self
-    {
-        if ($this->livraisons->contains($livraison)) {
-            $this->livraisons->removeElement($livraison);
-            // set the owning side to null (unless already changed)
-            if ($livraison->getPreparation() === $this) {
-                $livraison->setPreparation(null);
-            }
+        if (isset($this->livraison)) {
+            $this->livraison->setPreparation($this);
         }
 
         return $this;
