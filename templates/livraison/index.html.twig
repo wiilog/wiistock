@@ -30,6 +30,9 @@
         <table id="tableLivraison_id" class="table table-striped table-bordered w-100">
         </table>
     </div>
+    {% if filterDemand is defined and filterDemand is not null %}
+        <input hidden id="filterDemand" value="{{ filterDemand }}"/>
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}

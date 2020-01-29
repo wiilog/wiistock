@@ -83,9 +83,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ preparation.demandes is not empty ?preparation.demandes.0.id: 0 }};
-    </script>
     <script src="{{asset('js/preparation.js')}}?{{ date().timestamp }}"></script>
-
 {% endblock %}

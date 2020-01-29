@@ -281,26 +281,25 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api_article/{id}/{prepaId}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api_article/{prepaId}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param $id
      * @param $prepaId
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function apiLignePreparation(Request $request, $id, $prepaId): Response
+    public function apiLignePreparation(Request $request, $prepaId): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->find($id);
             $preparation = $this->preparationRepository->find($prepaId);
+            $demande = $preparation->getDemande();
             $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
             $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
 
-            if ($demande) {
+            if (isset($demande)) {
                 $rows = [];
                 foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
@@ -322,7 +321,6 @@ class PreparationController extends AbstractController
                             "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $articleRef->getBarCode(),
-                                'demandeId' => $id,
                                 'isRef' => true,
                                 'artOrRefId' => $articleRef->getId(),
                                 'isRefByRef' => $isRefByRef,
@@ -351,7 +349,6 @@ class PreparationController extends AbstractController
                             "Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
-                                'demandeId' => $id,
                                 'artOrRefId' => $article->getId(),
                                 'isRef' => false,
                                 'isRefByRef' => false,

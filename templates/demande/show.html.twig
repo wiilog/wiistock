@@ -41,11 +41,20 @@
                        class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
                 </div>
             {% endif %}
-            {% if demande.livraison is not empty %}
+            {% if demande.livraisons is not empty %}
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                     <div class=" text-right">
-                        <a href="{{path('livraison_show', {'id': demande.livraison.id }) }}"
-                           class="btn btn-primary btn-action ml-auto"> Aller vers l'ordre de livraison</a>
+                        {% if demande.livraisons|length > 1 %}
+                            <a href="{{path('livraison_index', {'demandId': demande.id }) }}"
+                               class="btn btn-primary btn-action ml-auto">
+                                Aller vers les ordres de livraison
+                            </a>
+                        {% else %}
+                            <a href="{{path('livraison_show', {'id': demande.livraisons[0].id }) }}"
+                               class="btn btn-primary btn-action ml-auto">
+                                Aller vers l'ordre de livraison
+                            </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endif %}

@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 
 use App\Repository\ArticleRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\StatutRepository;
@@ -159,15 +160,21 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/", name="livraison_index", methods={"GET", "POST"})
+     * @Route("/{demandId}", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index(): Response
+    public function index($demandId,
+                          DemandeRepository $demandeRepository): Response
     {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $filterDemand = $demandId
+            ? $demandeRepository->find($demandId)
+            : null;
+
         return $this->render('livraison/index.html.twig', [
+            'filterDemand' => isset($filterDemand) ? ($demandId . ':' . $filterDemand->getNumero()) : null,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);

@@ -77,9 +77,9 @@ $(function() {
         let id = valueArray[0];
         let label = valueArray[1];
         let option = new Option(label, id, true, true);
-        $('#demandCollect').append(option).trigger('change');
-    } else {
-
+        $('.filters-container .filter').append(option).trigger('change');
+    }
+    else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_COLLECTE);

@@ -6,14 +6,27 @@ $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);;
-    $.post(path, params, function(data) {
-        displayFiltersSup(data);
-    }, 'json');
+    // cas d'un filtre par demande de collecte
+    let filterDemand = $('#filterDemand').val();
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    if (filterDemand) {
+        let valueArray = filterDemand.split(':');
+        let id = valueArray[0];
+        let label = valueArray[1];
+        let option = new Option(label, id, true, true);
+        $('#demandCollect').append(option).trigger('change');
+    }
+    else {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
+        ;
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+
+        ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    }
 });
 
 let pathLivraison = Routing.generate('livraison_api');
@@ -23,9 +36,14 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[3, "desc"]],
+    order: [
+        [3, "desc"]
+    ],
     ajax: {
         'url': pathLivraison,
+        'data': {
+            'filterDemand': $('#filterDemand').val()
+        },
         "type": "POST"
     },
     'drawCallback': function() {

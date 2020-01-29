@@ -94,7 +94,7 @@ $submitSearchPrepa.on('click', function () {
     saveFilters(filters, table);
 });
 
-let pathArticle = Routing.generate('preparation_article_api', {'id': id, 'prepaId': $('#prepa-id').val()});
+let pathArticle = Routing.generate('preparation_article_api', {'prepaId': $('#prepa-id').val()});
 let tableArticle = $('#tableArticle_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",

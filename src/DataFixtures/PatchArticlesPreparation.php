@@ -38,7 +38,6 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
 	        $demande = $preparation->getDemande();
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 $preparation->addArticle($article);
             }
             $lignesArticles = $demande->getLigneArticle();
@@ -48,8 +47,7 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
                     ->setToSplit($ligneArticle->getToSplit())
                     ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
                     ->setQuantite($ligneArticle->getQuantite())
-                    ->setReference($ligneArticle->getReference())
-                    ->setPreparation($preparation);
+                    ->setReference($ligneArticle->getReference());
                 $manager->persist($lignesArticlePreparation);
                 $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }

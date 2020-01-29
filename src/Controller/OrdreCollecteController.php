@@ -147,7 +147,7 @@ class OrdreCollecteController extends AbstractController
 
         return $this->render('ordre_collecte/index.html.twig', [
         	'filterDemand' => $demandId ? ($demandId . ':' . $demandeCollecte->getNumero()) : null,
-            'disabled' => $demandeCollecte != null,
+            'filtersDisabled' => $demandeCollecte != null,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
