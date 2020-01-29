@@ -43,9 +43,10 @@ class DemandeRepository extends ServiceEntityRepository
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			'SELECT d
-            FROM App\Entity\Livraison l
-            JOIN l.preparation p
-            JOIN p.demandes d'
+            FROM App\Entity\Demande d
+            JOIN d.preparation p
+            JOIN p.livraisons l
+            WHERE l = :livraison'
 		)->setParameter('livraison', $livraison);
 		$result = $query->getResult();
 		return !empty($result) ? $result[0] : null;
