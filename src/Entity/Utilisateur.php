@@ -146,6 +146,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $arrivagesDestinataire;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="buyer")
+     */
+    private $emergencies;
+
+    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Arrivage", mappedBy="acheteurs")
      */
     private $arrivagesAcheteur;
@@ -217,13 +222,13 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
+        $this->emergencies = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->types = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
-        $this->acheminements = new ArrayCollection();
         $this->acheminementsReceive = new ArrayCollection();
         $this->acheminementsRequester = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
@@ -662,6 +667,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
+     * @return Collection|Urgence[]
+     */
+    public function getEmergencies(): Collection
+    {
+        return $this->emergencies;
+    }
+
+    public function addEmergency(Urgence $urgence): self
+    {
+        if (!$this->emergencies->contains($urgence)) {
+            $this->emergencies[] = $urgence;
+            $urgence->setBuyer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmergency(Urgence $urgence): self
+    {
+        if ($this->emergencies->contains($urgence)) {
+            $this->emergencies->removeElement($urgence);
+            // set the owning side to null (unless already changed)
+            if ($urgence->getBuyer() === $this) {
+                $urgence->setBuyer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Collection|Arrivage[]
      */
     public function getArrivagesAcheteur(): Collection
@@ -904,37 +940,6 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($litigeHistoric->getUser() === $this) {
                 $litigeHistoric->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Acheminements[]
-     */
-    public function getAcheminements(): Collection
-    {
-        return $this->acheminements;
-    }
-
-    public function addAcheminement(Acheminements $acheminement): self
-    {
-        if (!$this->acheminements->contains($acheminement)) {
-            $this->acheminements[] = $acheminement;
-            $acheminement->setDemandeur($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAcheminement(Acheminements $acheminement): self
-    {
-        if ($this->acheminements->contains($acheminement)) {
-            $this->acheminements->removeElement($acheminement);
-            // set the owning side to null (unless already changed)
-            if ($acheminement->getDemandeur() === $this) {
-                $acheminement->setDemandeur(null);
             }
         }
 

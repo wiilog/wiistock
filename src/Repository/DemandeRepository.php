@@ -44,10 +44,12 @@ class DemandeRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			'SELECT d
             FROM App\Entity\Demande d
-            WHERE d.livraison = :livraison'
+            JOIN d.preparation p
+            JOIN p.livraisons l
+            WHERE l = :livraison'
 		)->setParameter('livraison', $livraison);
-
-		return $query->getOneOrNullResult();
+		$result = $query->getResult();
+		return !empty($result) ? $result[0] : null;
 	}
 
     public function findByUserAndNotStatus($user, $status)
