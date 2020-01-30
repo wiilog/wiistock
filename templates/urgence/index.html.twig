@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Urgences{% endblock %}
+{% block title %}{{ 'urgences.urgences'|trans|capitalize }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersUrgence.html.twig' with {
@@ -10,15 +10,20 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Urgences</h1>
+    <h1>{{ 'urgences.urgences'|trans|capitalize }}</h1>
     <a href="" data-toggle="modal" data-target="#modalNewUrgence" class="btn btn-primary">
-        <span class="fa fa-plus mr-2"></span>Nouvelle urgence
+        <span class="fa fa-plus mr-2"></span>{{ 'urgences.nouvelle urgence'|trans|capitalize }}
     </a>
     <table id="tableUrgences" class="table table-striped table-bordered w-100">
     </table>
     {% include 'urgence/modalNewUrgence.html.twig' %}
     {% include 'urgence/modalDeleteUrgence.html.twig' %}
     {% include 'urgence/modalEditUrgence.html.twig' %}
+
+    <input hidden id="dateBeginTranslation" value="{{ 'urgences.date de début'|trans|capitalize }}">
+    <input hidden id="dateEndTranslation" value="{{ 'urgences.date de fin'|trans|capitalize }}">
+    <input hidden id="numComTranslation" value="{{ 'urgences.numéro de commande'|trans|capitalize }}">
+    <input hidden id="buyerTranslation" value="{{ 'urgences.acheteur'|trans|capitalize }}">
 {% endblock %}
 
 {% block javascripts %}

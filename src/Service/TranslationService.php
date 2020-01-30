@@ -48,22 +48,24 @@ class TranslationService {
 
             $this->translationRepository->clearUpdate();
 
-            $this->cacheWarmUp();
+            $this->cacheClearWarmUp();
         }
     }
 
     /**
      * @throws Exception
      */
-    private function cacheWarmUp() {
+    private function cacheClearWarmUp() {
         $env = $this->kernel->getEnvironment();
 
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
 
-        $input = new ArrayInput(array(
-            'command' => 'cache:clear',
-            '--env' => $env
+        $command = isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] == 'dev' ? 'warmup' : 'clear';
+
+		$input = new ArrayInput(array(
+			'command' => 'cache:' . $command,
+			'--env' => $env
         ));
 
         $output = new BufferedOutput();

@@ -477,15 +477,13 @@ class GlobalParamController extends AbstractController
 		throw new NotFoundHttpException("404");
 	}
 
-    /**
-     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param TranslationRepository $translationRepository
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
+	/**
+	 * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function saveEncodage(Request $request,
                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {

@@ -27,10 +27,10 @@ function initPage() {
         order: [[1, "desc"]],
         columns:[
             { "data": 'actions', 'title': 'Actions' },
-            { "data": 'start', 'name' : 'start','title' : 'Date de début' },
-            { "data": 'end', 'name' : 'end', 'title' : 'Date de fin' },
-            { "data": 'commande', 'name' : 'commande', 'title' : 'Numéro de commande' },
-            { "data": 'buyer', 'name' : 'buyer', 'title' : 'Acheteur' },
+            { "data": 'start', 'name' : 'start','title' : $('#dateBeginTranslation').val() },
+            { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
+            { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
+            { "data": 'buyer', 'name' : 'buyer', 'title' : $('#buyerTranslation').val() },
         ],
         drawCallback: function() {
             overrideSearch($('#tableUrgences_filter input'), tableUrgence);
