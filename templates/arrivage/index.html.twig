@@ -3,8 +3,11 @@
 {% block title %}{{ 'arrivage.arrivages'|trans|capitalize }}{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersArrivage.html.twig' with {'btnName': 'submitSearchArrivage'} %}
+    {% include 'filters/filtersArrivage.html.twig' with {
+        'page': 'PAGE_ARRIVAGE',
+        'tableSelector': '#tableArrivages',
+        'callback': '() => {clicked = true;}'
+    } %}
 {% endblock %}
 
 {% block page_content %}
@@ -46,7 +49,6 @@
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
-    {% include "parametrage_global/modalNoParamsEtiquettes.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

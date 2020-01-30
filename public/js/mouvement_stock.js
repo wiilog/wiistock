@@ -50,65 +50,7 @@ let tableMvt = $('#tableMvts').DataTable({
     ]
 });
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let emplacement = $('#emplacement').val();
-        if (emplacement !== '') {
-            let originIndex = tableMvt.column('origine:name').index();
-            let destinationIndex = tableMvt.column('destination:name').index();
-            return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
-        } else {
-            return true;
-        }
-    }
-);
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableMvt.column('date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
-
-let $submitSearchMvt = $('#submitSearchMvt');
-$submitSearchMvt.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-
-    let filters = {
-        page: PAGE_MVT_STOCK,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        location: $('#emplacement').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableMvt);
-});

@@ -53,24 +53,6 @@ function printAcheminement(id) {
     });
 }
 
-let $submitSearchAcheminements = $('#submitSearchAcheminements');
-$submitSearchAcheminements.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ACHEMINEMENTS,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableAcheminements);
-});
-
 $(function() {
     initSelect2('#statut', 'Statut');
     initDateTimePicker();

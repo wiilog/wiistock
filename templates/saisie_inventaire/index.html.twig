@@ -2,8 +2,10 @@
 
 {% block title %}Saisie d'inventaire{% endblock %}
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersEntryInv.html.twig' with {'btnName' : 'submitSearchEntry'} %}
+    {% include 'filters/filtersEntryInv.html.twig' with {
+        'page': 'PAGE_INV_ENTRIES',
+        'tableSelector': '#tableMissionEntries'
+    } %}
 {% endblock %}
 {% block page_content %}
     <div class="col-12">

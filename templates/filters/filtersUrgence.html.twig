@@ -1,20 +1,6 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-    <div>
-        <div class="input-group">
-            <input type="text" class="form-control data cursor-default" name="commande" id="commande" placeholder="N° de commande">
-        </div>
-    </div>
-{% endblock %}
-
-{% block emplacementFilter %}
-{% endblock %}
-{% block statusFilter %}
-{% endblock %}
-{% block userFilter %}
-{% endblock %}
-{% block typeFilter %}
-{% endblock %}
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterCommand.html.twig' %}
 {% endblock %}

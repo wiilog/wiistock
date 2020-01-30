@@ -206,10 +206,17 @@ class ArrivageRepository extends ServiceEntityRepository
                     break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
-                    $qb
+					$qb
                         ->join('a.fournisseur', 'f2')
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
+                    break;
+                case 'carriers':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('a.transporteur', 't2')
+                        ->andWhere("t2.id in (:transporteurId)")
+                        ->setParameter('transporteurId', $value);
                     break;
                 case 'dateMin':
                     $needsDefaultDateFilter = false;
@@ -225,6 +232,11 @@ class ArrivageRepository extends ServiceEntityRepository
                     $qb
                         ->andWhere('a.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
+                    break;
+                case 'numArrivage':
+                    $qb
+                        ->andWhere('a.numeroArrivage = :numeroArrivage')
+                        ->setParameter('numeroArrivage', $filter['value']);
                     break;
             }
         }

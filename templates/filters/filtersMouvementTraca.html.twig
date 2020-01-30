@@ -1,12 +1,9 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-    <div>
-        <div class="input-group minw-100px">
-            <input type="text" class="form-control data cursor-default" name="colis" id="colis" placeholder="Colis">
-        </div>
-    </div>
-{% endblock %}
-
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterColis.html.twig' %}
+    {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

@@ -21,12 +21,12 @@
             <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fas fa-cog"></i>
             </div>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <div class="dropdown-menu filters-container" aria-labelledby="dropdownMenuButton">
                 <div class="statut dropdown-item" >
                     Statut emplacement actif
                     <label class="switch">
                         {% set checked = active ? 'checked' : '' %}
-                        <input class="checkbox" id="actifInactif" type="checkbox" onchange="reloadDatatableforActif()" {{ checked }}>
+                        <input class="checkbox filter-checkbox" id="actifInactif" name="statut" type="checkbox" onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id')" {{ checked }}>
                         <span class="slider round"></span>
                     </label>
                 </div>

@@ -1,30 +1,11 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-
-    <div class="minw-150px select2-overflow">
-        <div class="input-group w-100 cursor-default">
-            <select class="form-control data minw-150px cursor-default" name="carriers" id="carriers" multiple="multiple" >
-                    <option value>&nbsp;</option>
-                {% for carrier in carriers %}
-                    <option value="{{ carrier.id }}">{{ carrier.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <div>
-        <div class="input-group minw-200px">
-            <select class="form-control data select2 cursor-default" name="litigeOrigin" id="litigeOrigin" {{ disabled }}>
-                <option value="">&nbsp;</option>
-                {% for code, litigeOrigin in litigeOrigins %}
-                    <option value="{{ code }}">{{ litigeOrigin }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-{% endblock %}
-
-{% block emplacementFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+{#    {% include 'filters/filter_item/filterCarrier.html.twig' %}#}
+    {% include 'filters/filter_item/filterOriginLitige.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterType.html.twig' %}
+{#    {% include 'filters/filter_item/filterProvider.html.twig' %}#}
 {% endblock %}

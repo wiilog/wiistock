@@ -3,8 +3,10 @@
 {% block title %}Missions d'inventaire{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersMissionInv.html.twig' with {'btnName': 'submitSearchMission'} %}
+    {% include 'filters/filtersMissionInv.html.twig' with {
+        'page': 'PAGE_INV_MISSIONS',
+        'tableSelector': '#tableMissionsInv'
+    } %}
 {% endblock %}
 
 {% block page_content %}

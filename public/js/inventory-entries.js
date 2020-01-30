@@ -25,7 +25,6 @@ $(function () {
             dataType: 'json',
             delay: 250,
         },
-        allowClear: true,
         placeholder: {
             id: 0,
             text: 'Référence',
@@ -69,24 +68,4 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         { "data": 'Operator', 'title' : 'Opérateur', 'name': 'operator' },
         { "data": 'Quantity', 'title' : 'Quantité' }
     ],
-});
-
-let $submitSearchEntry = $('#submitSearchEntry');
-$submitSearchEntry.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_INV_ENTRIES,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        reference: $('#reference').select2('data'),
-        location: $('#emplacement').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableEntries);
 });

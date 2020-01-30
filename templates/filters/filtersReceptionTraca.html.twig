@@ -1,27 +1,8 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-    <div>
-        <div class="input-group">
-            <input type="text" class="form-control data cursor-default" name="arrivage" id="arrivage_string" placeholder="Arrivage">
-        </div>
-    </div>
-
-    <div>
-        <div class="input-group">
-            <input type="text" class="form-control data cursor-default" name="reception" id="reception_string" placeholder="Réception">
-        </div>
-    </div>
-{% endblock %}
-
-{% block emplacementFilter %}
-{% endblock %}
-
-{% block statusFilter %}
-{% endblock %}
-
-{% block typeFilter %}
-{% endblock %}
-
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterArrivageString.html.twig' %}
+    {% include 'filters/filter_item/filterReceptionString.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

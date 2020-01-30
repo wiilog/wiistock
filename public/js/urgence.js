@@ -61,25 +61,6 @@ function initPage() {
     let submitModifyUrgence = $('#submitEditUrgence');
     let urlModifyUrgence = Routing.generate('urgence_edit', true);
     InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence);
-
-    let $submitSearchUrgence = $('#submitSearchUrgence');
-
-    $submitSearchUrgence.on('click', function () {
-        $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-        $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-        let filters = {
-            page: PAGE_URGENCES,
-            commande: $('#commande').val(),
-            dateMin: $('#dateMin').val(),
-            dateMax: $('#dateMax').val()
-        };
-
-        $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-        $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-        saveFilters(filters, tableUrgence);
-    });
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {

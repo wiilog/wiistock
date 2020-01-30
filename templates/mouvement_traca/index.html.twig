@@ -3,10 +3,9 @@
 {% block title %}Mouvements{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
     {% include 'filters/filtersMouvementTraca.html.twig' with {
-        'btnName' : 'submitSearchMvt',
-        'statut' : 'Type'
+        'page' : 'PAGE_MVT_TRACA',
+        'tableSelector' : '#tableMvts'
     } %}
 {% endblock %}
 

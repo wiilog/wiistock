@@ -3,8 +3,11 @@
 {% block title %}Demandes de collecte{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-    {% include 'filters/filtersWithoutLocation.html.twig' with {'btnName': 'submitSearchCollecte'} %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        'page': 'PAGE_DEM_COLLECTE',
+        'tableSelector': '#tableCollecte_id',
+        'callback': 'callbackSaveFilter'
+    } %}
 {% endblock %}
 
 {% block page_content %}

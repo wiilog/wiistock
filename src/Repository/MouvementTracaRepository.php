@@ -167,10 +167,11 @@ class MouvementTracaRepository extends ServiceEntityRepository
 						->setParameter('statut', $value);
 					break;
                 case 'emplacement':
+                    $emplacementValue = explode(':', $filter['value']);
                     $qb
                         ->join('m.emplacement', 'e')
                         ->andWhere('e.label = :location')
-                        ->setParameter('location', $filter['value']);
+                        ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);

@@ -40,29 +40,6 @@ let tableManutention = $('#tableManutention_id').DataTable({
     ],
 });
 
-$submitSearchManut.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-    let filters = {
-        page: PAGE_MANUT,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableManutention);
-
-    // supprime le filtre de l'url
-    let str = window.location.href.split('/');
-    if (str[5]) {
-        window.location.href = Routing.generate('manutention_index');
-    }
-});
-
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
@@ -138,15 +115,16 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-$submitSearchManut.on('keypress', function(e) {
-    if (e.which === 13) {
-        $submitSearchManut.click();
-    }
-});
-
 function toggleManutQuill() {
     let $modal = $('#modalEditManutention');
     let enable = $modal.find('#statut').val() === '1';
     toggleQuill($modal, enable);
 }
 
+function callbackSaveFilter() {
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('manutention_index');
+    }
+}

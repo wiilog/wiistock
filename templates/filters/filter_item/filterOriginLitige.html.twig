@@ -1,0 +1,9 @@
+<div>
+    <div class="input-group minw-200px">
+        <select class="form-control data select2 cursor-default filter-litige-origin" name="litigeOrigin" id="litigeOrigin" {{ disabled }}>
+            {% for code, litigeOrigin in litigeOrigins %}
+                <option value="{{ code }}">{{ litigeOrigin }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

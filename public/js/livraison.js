@@ -1,7 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchLivraison = $('#submitSearchLivraison');
-
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
@@ -71,25 +69,6 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
-
-$submitSearchLivraison.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ORDRE_LIVRAISON,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        type: $('#type').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableLivraison);
-});
 
 let pathArticle = Routing.generate('livraison_article_api', {'id': id});
 let tableArticle = $('#tableArticle_id').DataTable({

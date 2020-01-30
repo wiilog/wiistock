@@ -221,7 +221,7 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('arrivage/index.html.twig', [
-            'transporteurs' => $this->transporteurRepository->findAllSorted(),
+            'carriers' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),

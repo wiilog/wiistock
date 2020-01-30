@@ -13,7 +13,6 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
 });
 
-let $submitSearchMvt = $('#submitSearchRecep');
 let pathRecep = Routing.generate('reception_traca_api', true);
 let tableRecep = $('#tableRecepts').DataTable({
     serverSide: true,
@@ -81,25 +80,6 @@ let modalDeleteReception = $('#modalDeleteRecepTraca');
 let submitDeleteReception = $('#submitDeleteRecepTraca');
 let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
 InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
-
-$submitSearchMvt.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_RCPT_TRACA,
-        dateMin: $('#dateMin').val(),
-        dateMax:  $('#dateMax').val(),
-        arrivage_string:  $('#arrivage_string').val(),
-        reception_string: $('#reception_string').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableRecep);
-});
 
 let customExport = function() {
     tableRecep.button('.buttons-csv').trigger();
