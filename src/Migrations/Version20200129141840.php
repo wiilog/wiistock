@@ -42,6 +42,12 @@ final class Version20200129141840 extends AbstractMigration
             ) AS tableToKeep ON tableToKeep.IdToKeep = l.id
             WHERE tableToKeep.IdToKeep IS NULL
         ');
+        $this->addSql("
+            DELETE p
+            FROM preparation AS p
+            LEFT JOIN demande ON demande.preparation_id = p.id
+            WHERE demande.id IS NULL
+        ");
     }
 
     public function down(Schema $schema) : void
