@@ -63,7 +63,8 @@
                 {% if demande.livraisons is not empty %}
                     {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                         <div class=" text-right">
-                            {% if demande.livraisons|length > 1 %}
+                            {# Si on a plusieurs prerations, on affiche une liste pour les livraisons #}
+                            {% if demande.preparations|length > 1 %}
                                 <a href="{{ path('livraison_index', {'demandId': demande.id }) }}"
                                    class="btn btn-primary btn-action ml-auto">
                                     Aller vers les ordres de livraison

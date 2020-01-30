@@ -279,9 +279,7 @@ class PreparationsManagerService
                                              $article,
                                              Preparation $preparation,
                                              bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null
-    )
-    {
+                                             Emplacement $emplacementFrom = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
