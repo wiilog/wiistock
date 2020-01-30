@@ -16,17 +16,19 @@
     </div>
 
     <div class="col-12">
-        {% if filterDemand is defined and filterDemand is not null %}
-            <div>
-                <a href="{{ path('ordre_collecte_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
-                <a href="{{ path('collecte_show', {'id': filterDemand}) }}" class='btn btn-action'>Retour à la demande</a>
-            </div>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
-                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-            </div>
-        {% endif %}
+        <div class="row">
+            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::EXPORT')) %}
+                <div class="btn btn-primary" onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
+                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                </div>
+            {% endif %}
+            {% if filterDemand is defined and filterDemand is not null %}
+                <div class="col-auto">
+                    <a href="{{ path('ordre_collecte_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
+                    <a href="{{ path('collecte_show', {'id': filterDemand}) }}" class='btn btn-action'>Retour à la demande</a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 
     <div class="d-none justify-content-center" id="spinner">

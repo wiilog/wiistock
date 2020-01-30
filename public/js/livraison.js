@@ -3,6 +3,7 @@ $('.select2').select2();
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
     // cas d'un filtre par demande de collecte
     let $filterDemand = $('.filters-container .filter-demand');
@@ -26,7 +27,6 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
 
-        ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
     }
 });
 

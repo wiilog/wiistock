@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
@@ -75,18 +76,28 @@ class LivraisonService
         $this->demandeRepository = $demandeRepository;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    public function getDataForDatatable($params = null)
+    /**
+     * @param array|null $params
+     * @param int|null $filterDemandId
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getDataForDatatable($params = null, $filterDemandId = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
-
+        if ($filterDemandId) {
+            $filters = [
+                [
+                    'field' => 'demLivraison',
+                    'value' => $filterDemandId
+                ]
+            ];
+        }
+        else {
+            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
+        }
 		$queryResult = $this->livraisonRepository->findByParamsAndFilters($params, $filters);
 
 		$livraisons = $queryResult['data'];

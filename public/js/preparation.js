@@ -6,16 +6,16 @@ $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
 
+    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
+    $('#preparation-emplacement + .select2').addClass('col-6');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_PREPA);;
     $.post(path, params, function(data) {
         displayFiltersSup(data);
     }, 'json');
-
-    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
-    $('#preparation-emplacement + .select2').addClass('col-6');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 });
 
 let path = Routing.generate('preparation_api');
