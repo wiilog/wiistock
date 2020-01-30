@@ -374,7 +374,6 @@ class MouvementStockRepository extends ServiceEntityRepository
 			->from('App\Entity\MouvementStock', 'm');
 
 		$countTotal = count($qb->getQuery()->getResult());
-
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {

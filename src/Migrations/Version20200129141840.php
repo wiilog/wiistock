@@ -48,6 +48,9 @@ final class Version20200129141840 extends AbstractMigration
             LEFT JOIN demande ON demande.preparation_id = p.id
             WHERE demande.id IS NULL
         ");
+        $this->addSql("
+            DELETE FROM filtre_sup
+        ");
     }
 
     public function down(Schema $schema) : void
