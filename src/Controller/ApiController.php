@@ -19,7 +19,6 @@ use App\Repository\ColisRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LigneArticlePreparationRepository;
-use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
@@ -703,6 +702,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (!empty($insertedPrepasIds)) {
                     $resData['data']['preparations'] = $this->preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
                     $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
+                    $resData['data']['articlesPrepaByRefArticle'] = $this->articleRepository->getRefArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
                 }
 
                 $preparationsManager->removeRefMouvements();
@@ -1114,7 +1114,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
         // get article linked to a ReferenceArticle where type_quantite === 'article'
-        $articlesPrepaByRefArticle = $this->articleRepository->getRefArticleByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
+        $articlesPrepaByRefArticle = $this->articleRepository->getRefArticlePrepaForPickingByUser($user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
