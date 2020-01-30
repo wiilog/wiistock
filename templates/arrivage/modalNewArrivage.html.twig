@@ -35,8 +35,8 @@
                             <select
                                 class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="transporteur" id="transporteur">
-                                {% for transporteur in transporteurs %}
-                                    <option value="{{ transporteur.id }}">{{transporteur.label}}</option>
+                                {% for carrier in carriers %}
+                                    <option value="{{ carrier.id }}">{{carrier.label}}</option>
                                 {% endfor %}
                             </select>
                         </div>
