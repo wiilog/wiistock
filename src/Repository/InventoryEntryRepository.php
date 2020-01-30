@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\InventoryEntry;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -43,36 +44,54 @@ class InventoryEntryRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getAnomaliesOnRef()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ie.id, ra.reference, ra.libelle as label, e.label as location, ra.quantiteStock as quantity, 1 as is_ref, 0 as treated, ra.barCode as barCode
-			FROM App\Entity\InventoryEntry ie
-			JOIN ie.refArticle ra
-			LEFT JOIN ra.emplacement e
-			WHERE ie.anomaly = 1
-			"
-		);
+    public function getAnomaliesOnRef($anomaliesIds = []) {
+		$queryBuilder = $this->createQueryBuilder('ie')
+            ->select('ie.id')
+            ->addSelect('ra.reference')
+            ->addSelect('ra.libelle as label')
+            ->addSelect('e.label as location')
+            ->addSelect('ra.quantiteStock as quantity')
+            ->addSelect('1 as is_ref')
+            ->addSelect('0 as treated')
+            ->addSelect('ra.barCode as barCode')
+            ->join('ie.refArticle', 'ra')
+            ->leftJoin('ra.emplacement', 'e')
+            ->andWhere('ie.anomaly = 1');
 
-		return $query->execute();
+        if (!empty($anomaliesIds)) {
+            $queryBuilder
+                ->andWhere('ie.id IN (:inventoryEntries)')
+                ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
+        }
+
+		return $queryBuilder
+            ->getQuery()
+            ->getScalarResult();
 	}
 
-    public function getAnomaliesOnArt()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT ie.id, a.reference, a.label, e.label as location, a.quantite as quantity, 0 as is_ref, 0 as treated, a.barCode as barCode
-			FROM App\Entity\InventoryEntry ie
-			JOIN ie.article a
-			LEFT JOIN a.emplacement e
-			WHERE ie.anomaly = 1
-			"
-		);
+    public function getAnomaliesOnArt($anomaliesIds = []) {
+        $queryBuilder = $this->createQueryBuilder('ie')
+            ->select('ie.id')
+            ->addSelect('a.reference')
+            ->addSelect('a.label')
+            ->addSelect('e.label as location')
+            ->addSelect('a.quantite as quantity')
+            ->addSelect('0 as is_ref')
+            ->addSelect('0 as treated')
+            ->addSelect('a.barCode as barCode')
+            ->join('ie.article', 'a')
+            ->leftJoin('a.emplacement', 'e')
+            ->andWhere('ie.anomaly = 1');
 
-		return $query->execute();
+        if (!empty($anomaliesIds)) {
+            $queryBuilder
+                ->andWhere('ie.id IN (:inventoryEntries)')
+                ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getScalarResult();
 	}
 
 	/**

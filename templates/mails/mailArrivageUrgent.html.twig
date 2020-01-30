@@ -1,0 +1,23 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <br/>
+    <p>Votre commande urgente est arrivée : </p>
+    <br/>
+    <p>Numéro d'arrivage : {{ arrivage.numeroArrivage }}</p>
+    {% if arrivage.fournisseur %}
+        <p>Intitulé fournisseur : {{ arrivage.fournisseur.nom }}</p>
+    {% endif %}
+    {% if arrivage.noTracking %}
+        <p>N° tracking transporteur : {{ arrivage.noTracking }}</p>
+    {% endif %}
+    {% if arrivage.numeroBL %}
+        <p>N° commande : {{ arrivage.numeroBL }}</p>
+    {% endif %}
+    <p>Horodatage de l'arrivage : {{ arrivage.date|date('d/m/Y H:i') }}</p>
+    <br/>
+    <p>La réception de cette commande sera effectuée sous deux heures.</p>
+    <br/>
+    <br/>
+{% endblock %}

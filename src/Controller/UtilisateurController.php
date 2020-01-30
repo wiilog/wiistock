@@ -428,4 +428,21 @@ class UtilisateurController extends AbstractController
         return new JsonResponse();
     }
 
+    /**
+     * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateUserPageLengthForArrivage(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            /**
+             * @var Utilisateur $user
+             */
+            $user = $this->getUser();
+            $user->setPageLengthForArrivage($data);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+        }
+        return new JsonResponse();
+    }
+
 }

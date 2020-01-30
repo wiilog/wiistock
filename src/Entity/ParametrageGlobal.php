@@ -14,6 +14,16 @@ class ParametrageGlobal
 	const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
 	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
 
+	const USES_UTF8 = 'utilise utf8';
+    const ENCODAGE_UTF8 = [
+        'value'=> true,
+        'label'=> 'UTF-8'
+    ];
+    const ENCODAGE_EUW = [
+        'value'=> false,
+        'label'=> '1252 Europe de l\'ouest Windows'
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
