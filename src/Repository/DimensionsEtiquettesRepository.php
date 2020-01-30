@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\ParametrageGlobal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -15,9 +16,15 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DimensionsEtiquettesRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+	private $parametrageGlobalRepository;
+
+    public function __construct(
+    	ManagerRegistry $registry,
+		ParametrageGlobalRepository $parametrageGlobalRepository
+	)
     {
         parent::__construct($registry, DimensionsEtiquettes::class);
+        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
     }
 
 	/**
@@ -33,30 +40,6 @@ class DimensionsEtiquettesRepository extends ServiceEntityRepository
             "
         );
         return $query->getOneOrNullResult();
-    }
-
-    /**
-     * @param bool $includeNullDimensions if true and dimension are not defined we include width and height (= 0) in returned array
-     * @return array
-     * @throws NonUniqueResultException
-     */
-    public function getDimensionArray(bool $includeNullDimensions = true) {
-        /** @var DimensionsEtiquettes|null $dimension */
-        $dimension = $this->findOneDimension();
-        $response = [];
-        if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-        {
-            $response['height'] = $dimension->getHeight();
-            $response['width'] = $dimension->getWidth();
-            $response['exists'] = true;
-        } else {
-            if($includeNullDimensions) {
-                $response['height'] = 0;
-                $response['width'] = 0;
-            }
-            $response['exists'] = false;
-        }
-        return $response;
     }
 
 }

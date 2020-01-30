@@ -77,9 +77,9 @@ class GlobalParamController extends AbstractController
 				'translations' => $translationRepository->findAll(),
 				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
                 'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
-                'encodages' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8]
+                'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
-                'types' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE]
+                'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE]
         ]);
     }
 
@@ -508,15 +508,13 @@ class GlobalParamController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param TranslationRepository $translationRepository
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
+	/**
+	 * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function getEncodage(Request $request,
                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
@@ -537,4 +535,5 @@ class GlobalParamController extends AbstractController
             return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getParametre() : true);
         }
     }
+
 }

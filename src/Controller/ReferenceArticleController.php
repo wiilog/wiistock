@@ -35,15 +35,16 @@ use App\Repository\ArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\CSVExportService;
+use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -175,9 +176,9 @@ class ReferenceArticleController extends AbstractController
     private $parametreRoleRepository;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     /**
      * @var InventoryFrequencyRepository
@@ -202,7 +203,7 @@ class ReferenceArticleController extends AbstractController
     private $CSVExportService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
-                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                GlobalParamService $globalParamService,
                                 ParametreRoleRepository $parametreRoleRepository,
                                 ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
@@ -252,7 +253,7 @@ class ReferenceArticleController extends AbstractController
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
@@ -1308,7 +1309,7 @@ class ReferenceArticleController extends AbstractController
 
         if ($request->isXmlHttpRequest()) {
             $data = [
-            	'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+            	'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
 				'barcodes' => $barcodeInformations['barcodes'],
 				'barcodeLabels' => $barcodeInformations['barcodeLabels'],
 			];
@@ -1318,22 +1319,23 @@ class ReferenceArticleController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 */
     public function getArticleRefFromId(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $ref = $this->referenceArticleRepository->find(intval($dataContent['article']));
             $barcodeInformations = $this->refArticleDataService->getBarcodeInformations($ref);
             $data  = [
-                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
                 'barcodes' => [$barcodeInformations['barcode']],
                 'barcodeLabels' => [$barcodeInformations['barcodeLabel']],
             ];

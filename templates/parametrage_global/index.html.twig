@@ -34,7 +34,7 @@
             <div class="form-group w-fit-content">
                 <label for="param-type-etiquette">Type d'étiquette</label>
                 <select name="param-type-etiquette" class="data form-control">
-                    {% for type in types %}
+                    {% for type in typesETQ %}
                         <option value="{{ type.value }}" {{ type.value == paramCodeETQ.parametre ? 'selected' : '' }}>{{ type.label }}</option>
                     {% endfor %}
                 </select>
@@ -54,8 +54,8 @@
             <div class="form-group w-fit-content">
                 <label for="param-type-encodage">Encodage des exports CSV</label>
                 <select name="param-type-encodage" class="data form-control">
-                    {% for encodage in encodages %}
-                        <option value="{{ encodage.value }}" {{ encodage.value == paramCodeENC.parametre ? 'selected' : '' }}>{{ encodage.label }}</option>
+                    {% for encoding in encodings %}
+                        <option value="{{ encoding.value }}" {{ encoding.value == paramCodeENC.parametre ? 'selected' : '' }}>{{ encoding.label }}</option>
                     {% endfor %}
                 </select>
             </div>

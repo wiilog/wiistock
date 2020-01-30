@@ -766,90 +766,88 @@ function createJsPDFBarcode(apiResponse) {
  * @param {string} fileName
  */
 function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
-    $.post(Routing.generate('get_is_code_128'), function (isCode128) {
-        // on vérifie la validité des code-barres
-        barcodes.forEach(element => {
-            if (!BARCODE_VALID_REGEX.test(element)) {
-                alertErrorMsg('Le code-barre ' + element + ' ne peut pas être imprimé : il ne doit pas contenir de caractères spéciaux ni d\'accents.', true);
-                return;
-            }
-        });
-
-        if (!barcodes || barcodes.length === 0) {
-            alertErrorMsg("Il n'y a rien à imprimer.", true);
-        } else if (apiResponse.exists === false) {
-            alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
-        } else {
-            const doc = createJsPDFBarcode(apiResponse);
-            const docSize = doc.internal.pageSize;
-            let docWidth = docSize.getWidth();
-            let docHeight = docSize.getHeight();
-            const docScale = (docWidth / docHeight);
-
-            // to launch print for the document on the end of generation
-            const imageLoaded = (new Array(barcodes.length)).fill(false);
-
-            $("#barcodes").empty();
-            barcodes.forEach(function (code, index) {
-                const $img = $('<img/>', {id: "barcode" + index});
-                $img.on('load', function () {
-                    const naturalScale = (this.naturalWidth / this.naturalHeight);
-                    const upperNaturalScale = (naturalScale >= docScale);
-                    let imageWidth = (upperNaturalScale
-                        ? docWidth
-                        : (docHeight * this.naturalWidth / this.naturalHeight));
-                    let imageHeight = (upperNaturalScale
-                        ? (docWidth * this.naturalHeight / this.naturalWidth)
-                        : docHeight);
-                    if (barcodesLabel) {
-                        imageWidth *= 0.6;
-                        imageHeight *= 0.6;
-                    }
-
-                    let posX = (upperNaturalScale
-                        ? 0
-                        : ((docWidth - imageWidth) / 2));
-                    let posY = (upperNaturalScale
-                        ? ((docHeight - imageHeight) / 2)
-                        : 2);
-
-                    if (barcodesLabel) {
-                        let toPrint = (barcodesLabel[index]
-                            .split('\n')
-                            .map((line) => he.decode(line).trim())
-                            .filter(Boolean)
-                            .join('\n'));
-                        posX = (docWidth - imageWidth) / 2;
-                        posY = 0.5;
-                        let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                        doc.setFontSize(Math.min(maxSize, ((docHeight - imageHeight)/1.6) - 1));
-                        doc.text(toPrint, docWidth / 2, imageHeight + 1, {align: 'center', baseline: 'top'});
-                    }
-                    doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight - 3);
-                    doc.addPage();
-
-                    imageLoaded[index] = true;
-
-                    if (imageLoaded.every(loaded => loaded)) {
-                        doc.deletePage(doc.internal.getNumberOfPages());
-                        doc.save(fileName);
-                    }
-                });
-                $('#barcodes').append($img);
-                if (isCode128) {
-                    JsBarcode("#barcode" + index, code, {
-                        format: "CODE128",
-                    });
-                } else {
-                    $("#barcode" + index).qrcode({
-                        text: code,
-                    });
-                    let canvas = $("#barcode" + index + " canvas");
-                    $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
-                }
-            });
+    // on vérifie la validité des code-barres
+    barcodes.forEach(element => {
+        if (!BARCODE_VALID_REGEX.test(element)) {
+            alertErrorMsg('Le code-barre ' + element + ' ne peut pas être imprimé : il ne doit pas contenir de caractères spéciaux ni d\'accents.', true);
+            return;
         }
     });
+
+    if (!barcodes || barcodes.length === 0) {
+        alertErrorMsg("Il n'y a rien à imprimer.", true);
+    } else if (apiResponse.exists === false) {
+        alertErrorMsg('Les dimensions étiquettes ne sont pas connues, veuillez les renseigner depuis le menu Paramétrage.', true);
+    } else {
+        const doc = createJsPDFBarcode(apiResponse);
+        const docSize = doc.internal.pageSize;
+        let docWidth = docSize.getWidth();
+        let docHeight = docSize.getHeight();
+        const docScale = (docWidth / docHeight);
+
+        // to launch print for the document on the end of generation
+        const imageLoaded = (new Array(barcodes.length)).fill(false);
+
+        $("#barcodes").empty();
+        barcodes.forEach(function (code, index) {
+            const $img = $('<img/>', {id: "barcode" + index});
+            $img.on('load', function () {
+                const naturalScale = (this.naturalWidth / this.naturalHeight);
+                const upperNaturalScale = (naturalScale >= docScale);
+                let imageWidth = (upperNaturalScale
+                    ? docWidth
+                    : (docHeight * this.naturalWidth / this.naturalHeight));
+                let imageHeight = (upperNaturalScale
+                    ? (docWidth * this.naturalHeight / this.naturalWidth)
+                    : docHeight);
+                if (barcodesLabel) {
+                    imageWidth *= 0.6;
+                    imageHeight *= 0.6;
+                }
+
+                let posX = (upperNaturalScale
+                    ? 0
+                    : ((docWidth - imageWidth) / 2));
+                let posY = (upperNaturalScale
+                    ? ((docHeight - imageHeight) / 2)
+                    : 2);
+
+                if (barcodesLabel) {
+                    let toPrint = (barcodesLabel[index]
+                        .split('\n')
+                        .map((line) => he.decode(line).trim())
+                        .filter(Boolean)
+                        .join('\n'));
+                    posX = (docWidth - imageWidth) / 2;
+                    posY = 0.5;
+                    let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
+                    doc.setFontSize(Math.min(maxSize, ((docHeight - imageHeight)/1.6) - 1));
+                    doc.text(toPrint, docWidth / 2, imageHeight + 1, {align: 'center', baseline: 'top'});
+                }
+                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight - 3);
+                doc.addPage();
+
+                imageLoaded[index] = true;
+
+                if (imageLoaded.every(loaded => loaded)) {
+                    doc.deletePage(doc.internal.getNumberOfPages());
+                    doc.save(fileName);
+                }
+            });
+            $('#barcodes').append($img);
+            if (apiResponse.isCode128) {
+                JsBarcode("#barcode" + index, code, {
+                    format: "CODE128",
+                });
+            } else {
+                $("#barcode" + index).qrcode({
+                    text: code,
+                });
+                let canvas = $("#barcode" + index + " canvas");
+                $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
+            }
+        });
+    }
 }
 
 function printSingleArticleBarcode(button) {
