@@ -186,6 +186,8 @@ class Demande
     {
         return $this->getPreparations()->map(function (Preparation $preparation) {
             return $preparation->getLivraison();
+        })->filter(function(?Livraison $livraison) {
+            return isset($livraison);
         });
     }
 
