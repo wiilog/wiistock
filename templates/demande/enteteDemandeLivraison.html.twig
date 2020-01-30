@@ -8,10 +8,12 @@
     </div>
     <div class="col-6">
         <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
-        <p><strong>Date de validation :</strong>
-            {% if demande.preparation is not null %}
-            {{ demande.preparation.date|date('d/m/Y H:i') }}</p>
-        {% endif %}
+        <p>
+            <strong>Date de validation :</strong>
+            {% if demande.preparations is not empty %}
+                {{ (demande.preparations|last).date|date('d/m/Y H:i') }}
+            {% endif %}
+        </p>
         <p><strong>Type :</strong> {{ demande.type is not null ? demande.type.label : '' }} </p>
     </div>
 
