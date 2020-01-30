@@ -409,8 +409,10 @@ class PreparationController extends AbstractController
 
         $em = $this->getDoctrine()->getManager();
         $demande = $preparation->getDemande();
-        $demande
-            ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+        if ($demande->getPreparations()->count() === 1) {
+            $demande
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+        }
 
         foreach ($preparation->getArticles() as $article) {
             $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));

@@ -156,7 +156,9 @@ class PreparationsManagerService
         $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
         $demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
         $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
-        $demande->setStatut($statutPrepareDemande);
+        if ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER) {
+            $demande->setStatut($statutPrepareDemande);
+        }
 
         $preparation
             ->setUtilisateur($userNomade)
