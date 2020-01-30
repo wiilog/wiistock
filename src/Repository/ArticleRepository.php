@@ -724,7 +724,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getRefArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
         $queryBuilder = $this->createQueryBuilder('a')
             ->select('DISTINCT a.reference')
             ->addSelect('a.label')

@@ -702,7 +702,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (!empty($insertedPrepasIds)) {
                     $resData['data']['preparations'] = $this->preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
                     $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
-                    $resData['data']['articlesPrepaByRefArticle'] = $this->articleRepository->getRefArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
+                    $resData['data']['articlesPrepaByRefArticle'] = $this->articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
                 }
 
                 $preparationsManager->removeRefMouvements();
@@ -1114,7 +1114,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
         // get article linked to a ReferenceArticle where type_quantite === 'article'
-        $articlesPrepaByRefArticle = $this->articleRepository->getRefArticlePrepaForPickingByUser($user);
+        $articlesPrepaByRefArticle = $this->articleRepository->getArticlePrepaForPickingByUser($user);
 
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
