@@ -85,7 +85,6 @@ class Emplacement
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->isActive = true;
-        $this->mouvementsTraca = new ArrayCollection();
         $this->utilisateurs = new ArrayCollection();
     }
 
@@ -309,37 +308,6 @@ class Emplacement
     public function setDateMaxTime(?string $dateMaxTime): self
     {
         $this->dateMaxTime = $dateMaxTime;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|MouvementTraca[]
-     */
-    public function getMouvementsTraca(): Collection
-    {
-        return $this->mouvementsTraca;
-    }
-
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setEmplacement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
-    {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
-            // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getEmplacement() === $this) {
-                $mouvementsTraca->setEmplacement(null);
-            }
-        }
 
         return $this;
     }

@@ -45,7 +45,7 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -265,7 +265,7 @@ class ArrivageController extends AbstractController
      * @param ColisService $colisService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -751,11 +751,12 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
-     * @param Request $request
-     * @return JsonResponse
-     */
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
@@ -1262,7 +1263,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param Arrivage $arrivage
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function apiColis(Request $request, Arrivage $arrivage): Response
     {

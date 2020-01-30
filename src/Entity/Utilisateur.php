@@ -205,9 +205,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $columnsVisibleForArticle;
 
     /**
-     * @ORM\Column(type="integer", options={"unsigned":true, "default":100})
+     * @ORM\Column(type="integer", options={"unsigned":true})
      */
-    private $pageLengthForArrivage;
+    private $pageLengthForArrivage = 100;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")

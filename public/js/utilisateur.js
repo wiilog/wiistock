@@ -50,8 +50,11 @@ function displayErrorUser(data) {
     displayError(modal, data.msg, data.success);
 }
 
-$('.select2').select2();
-ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+$(function() {
+    $('.select2').select2();
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+})
+
 function editRowUser(button) {
     let path = Routing.generate('user_api_edit', true);
     let modal = $('#modalEditUser');

@@ -135,15 +135,16 @@ let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+
 function createCallback(response) {
-    alertSuccessMsg('Votre arrivage a bien été créé');
+    alertSuccessMsg('Votre arrivage a bien été créé.');
     if (response.printColis) {
         getDataAndPrintLabels(response.arrivageId);
     } if (response.printArrivage) {
         printBarcode(response.numeroArrivage);
     }
 }
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
