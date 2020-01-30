@@ -3,8 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\AlerteExpiry;
-use App\Entity\Article;
-use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

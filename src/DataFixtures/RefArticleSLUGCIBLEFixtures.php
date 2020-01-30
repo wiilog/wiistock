@@ -3,8 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;

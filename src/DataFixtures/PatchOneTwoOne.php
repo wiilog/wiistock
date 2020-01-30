@@ -11,7 +11,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-use App\Entity\CategoryType;
 
 class PatchOneTwoOne extends Fixture implements FixtureGroupInterface
 {

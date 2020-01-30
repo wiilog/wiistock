@@ -9,7 +9,6 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\UserService;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;

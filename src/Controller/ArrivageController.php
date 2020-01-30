@@ -21,7 +21,6 @@ use App\Repository\ColisRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\NatureRepository;

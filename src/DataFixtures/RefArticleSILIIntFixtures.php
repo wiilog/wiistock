@@ -2,8 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;

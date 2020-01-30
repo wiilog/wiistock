@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\ParametrageGlobalRepository;

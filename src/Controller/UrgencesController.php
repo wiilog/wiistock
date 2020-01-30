@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
-use App\Entity\Utilisateur;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UrgenceService;

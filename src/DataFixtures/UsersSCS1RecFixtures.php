@@ -2,14 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
-use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\Role;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
@@ -24,9 +17,6 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-
-use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 

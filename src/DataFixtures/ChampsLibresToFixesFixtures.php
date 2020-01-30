@@ -15,7 +15,6 @@ use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
