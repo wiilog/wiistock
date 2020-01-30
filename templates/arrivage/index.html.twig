@@ -21,7 +21,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
-               onclick="clearModal('#modalNewArrivage'); initNewArrivageEditor('#modalNewArrivage')">
+               onclick="initNewArrivageEditor('#modalNewArrivage')">
                 <span class="fa fa-plus mr-2"></span>{{ 'arrivage.nouvel arrivage'|trans|capitalize }}
             </a>
         {% endif %}

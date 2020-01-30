@@ -75,7 +75,25 @@
         </p>
     </div>
     {% endif %}
+
+    {% for champLibre in champsLibres %}
+    <div class="col-4">
+        {% set value = null %}
+        {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
+            {% set value = (champLibre.valeurChampLibre is not null and champLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
+        {% elseif champLibre.typage == 'list multiple' and champLibre.valeurChampLibre is not null%}
+            {% set value = champLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
+        {% elseif champLibre.valeurChampLibre is not null %}
+            {% set value = champLibre.valeurChampLibre.valeur %}
+        {% endif %}
+        {% if value is not null %}
+            <p><strong>{{ champLibre.label|capitalize }} :</strong> {{ value }}</p>
+        {% endif %}
+    </div>
+{% endfor %}
 </div>
+
+
 <div class="row">
     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
     <div class="col-8">

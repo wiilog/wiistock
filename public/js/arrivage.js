@@ -3,7 +3,7 @@ let clicked = false;
 $('.select2').select2();
 
 $(function() {
-    initDateTimePicker();
+    initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
     initSelect2('#carriers', 'Transporteurs');
 
@@ -151,5 +151,6 @@ function initNewArrivageEditor(modal) {
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
+    $('.list-multiple').select2();
 }
 

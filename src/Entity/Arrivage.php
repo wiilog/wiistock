@@ -102,13 +102,19 @@ class Arrivage
      */
     private $statut;
 
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="arrivages")
+	 */
+	private $valeurChampLibre;
 
-    public function __construct()
-    {
-        $this->acheteurs = new ArrayCollection();
-        $this->colis = new ArrayCollection();
-        $this->attachements = new ArrayCollection();
-    }
+
+	public function __construct()
+                {
+                    $this->acheteurs = new ArrayCollection();
+                    $this->colis = new ArrayCollection();
+                    $this->attachements = new ArrayCollection();
+                    $this->valeurChampLibre = new ArrayCollection();
+                }
 
     public function getId(): ?int
     {
@@ -444,6 +450,32 @@ class Arrivage
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ValeurChampLibre[]
+     */
+    public function getValeurChampLibre(): Collection
+    {
+        return $this->valeurChampLibre;
+    }
+
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
+    {
+        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre[] = $valeurChampLibre;
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
+    {
+        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre->removeElement($valeurChampLibre);
+        }
 
         return $this;
     }

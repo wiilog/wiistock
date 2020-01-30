@@ -48,6 +48,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 				Type::LABEL_PB_COMMANDE,
 				Type::LABEL_DEST_NON_IDENT
 			],
+			CategoryType::ARRIVAGE => [Type::LABEL_STANDARD],
 		];
 
     	foreach ($categoriesTypes as $categoryName => $typesNames) {

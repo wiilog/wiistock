@@ -152,8 +152,7 @@
                 </div>
 
                 <div class="row">
-
-                    {% if fieldsParam|isFieldRequired('destinataire', 'displayed') or natures != null  %}
+                    {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                         <div class="col-4">
                             <div class="row">
                                 {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
@@ -162,12 +161,6 @@
                                         <select class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
                                                 name="destinataire" id="destinataire">
                                         </select>
-                                    </div>
-                                {% endif %}
-
-                                {% if natures != null %}
-                                    <div class='col-12 mb-2'>
-                                        <h3 class="label">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
                                     </div>
                                 {% endif %}
                             </div>
@@ -184,63 +177,68 @@
                         </div>
                     {% endif %}
                 </div>
+
                 <div class="row">
-                    {% if natures != null %}
-                        <div class="form-group col-12 blocVisible d-block natures-container">
-                            <div class="d-block">
-                                <div class="row mt-2">
-                                    {% for nature in natures %}
-                                        <div class="form-group col-1 form-group-nature">
-                                            <label for="">
-                                                {{ nature.label | capitalize }}
-                                            </label>
-                                            <input type="number" class="form-control input-sm data-array"
-                                                   value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}" name="nature" data-id="{{ nature.id }}" min="0">
-                                        </div>
-                                    {% endfor %}
-                                    {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}
-                                        {% if natures != null %}
-                                            <div class="form-group col-2">
-                                                <label>Imprimer {{ 'arrivage.colis'|trans }}</label>
-                                                <label class="switch d-block-switch mt-2">
-                                                    <input class="checkbox" type="checkbox" name="printColis">
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        {% endif %}
-                                        <div class="form-group col-2">
-                                            <label>Imprimer {{ 'arrivage.arrivage'|trans }}</label>
-                                            <label class="switch d-block-switch mt-2">
-                                                <input class="checkbox" type="checkbox" name="printArrivage">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="col-12">
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: natures,
-                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ 'n\'a été créée',
-                                redirectPath: path('nature_param_index'),
-                                redirectLabel: 'Aller vers la création des natures'
-                            } %}
+                    {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}
+                        <div class="form-group col-2">
+                            <label>Imprimer {{ 'arrivage.arrivage'|trans }}</label>
+                            <label class="switch d-block-switch mt-2">
+                                <input class="checkbox" type="checkbox" name="printArrivage">
+                                <span class="slider round"></span>
+                            </label>
                         </div>
                     {% endif %}
+
+                    {% if natures != null %}
+                    <div class="form-group col-2">
+                        <label>Imprimer {{ 'arrivage.colis'|trans }}</label>
+                        <label class="switch d-block-switch mt-2">
+                            <input class="checkbox" type="checkbox" name="printColis">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="col-6 blocVisible d-block natures-container">
+                        <h3 class="label">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
+
+                        <div class="mt-2 row">
+                            {% for nature in natures %}
+                                <div class="form-group col">
+                                    <label>
+                                        {{ nature.label | capitalize }}
+                                    </label>
+                                    <input type="number" class="form-control input-sm data-array"
+                                           name="nature" data-id="{{ nature.id }}" min="0">
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% else %}
+                    <div class="col-12">
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: natures,
+                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
+                            redirectPath: path('nature_param_index'),
+                            redirectLabel: 'Aller vers la création des natures'
+                        } %}
+                    </div>
+                {% endif %}
+                </div>
+
+                <div class="row">
+                    {% include 'arrivage/champsLibresArrivage.html.twig' %}
                 </div>
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
-                    <div class="form-group col-8 h-fit-content">
-                        <label
-                            for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
-                        <input id="commentaire"
-                               class="commentaire form-control input-sm data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
-                               name="commentaire" type="hidden">
-                        <div class="editor-container-new"></div>
-                    </div>
+                        <div class="form-group col-8 h-fit-content">
+                            <label
+                                for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                            <input id="commentaire"
+                                   class="commentaire form-control input-sm data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="commentaire" type="hidden">
+                            <div class="editor-container-new"></div>
+                        </div>
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
                         <div class="form-group col-4">
