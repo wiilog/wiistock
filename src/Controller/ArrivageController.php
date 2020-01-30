@@ -38,6 +38,7 @@ use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
 use App\Service\DashboardService;
+use App\Service\GlobalParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -99,9 +100,9 @@ class ArrivageController extends AbstractController
     private $transporteurRepository;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     /**
      * @var MailerService
@@ -177,13 +178,13 @@ class ArrivageController extends AbstractController
 	 */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->fieldsParamsRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -219,10 +220,8 @@ class ArrivageController extends AbstractController
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
-        $carriers = $this->transporteurRepository->findAllSorted();
         return $this->render('arrivage/index.html.twig', [
-            'transporteurs' => $carriers, // TODO remove (vérifier impacts)
-            'carriers' => $carriers,
+            'carriers' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -331,7 +330,7 @@ class ArrivageController extends AbstractController
             }
 			$em->flush();
 
-			$natures = json_decode($data['nature'], true);
+			$natures = isset($data['nature']) ? json_decode($data['nature'], true) : [];
 
             $checkNatures = $this->natureRepository->countAll();
             if ($checkNatures != 0) {
@@ -346,7 +345,7 @@ class ArrivageController extends AbstractController
 
             $printColis = null;
             $printArrivage = null;
-            if ($data['printColis'] === 'true') {
+            if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
             if ($data['printArrivage'] === 'true') {
@@ -735,7 +734,7 @@ class ArrivageController extends AbstractController
             $arrivage = $this->arrivageRepository->find($arrivage);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
-                'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'response' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
                 'codeColis' => $codeColis,
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
                 'dropzone' => count($arrivage->getAcheteurs()) > 1
@@ -757,12 +756,11 @@ class ArrivageController extends AbstractController
 	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
 	 * @param Request $request
 	 * @return JsonResponse
-	 * @throws NonUniqueResultException
 	 */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            $response = $this->dimensionsEtiquettesRepository->getDimensionArray();
+            $response = $this->globalParamService->getDimensionAndTypeBarcodeArray();
             return new JsonResponse($response);
 
         } else {
@@ -1036,7 +1034,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $response = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+            $response = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 

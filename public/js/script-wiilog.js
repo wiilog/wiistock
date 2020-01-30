@@ -25,11 +25,9 @@ const STATUT_EN_TRANSIT = 'en transit';
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
-$.fn.dataTable.ext.errMode = (resp) => {
+$.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
-
-$.fn.select2.defaults.set('allowClear', true);
 
 /**
  * Initialise une fenêtre modale
@@ -475,6 +473,8 @@ function initFilterDateToday() {
 }
 
 function initSelect2(select, placeholder = '', lengthMin = 0) {
+    let isMultiple = $(select).attr('multiple') === 'multiple';
+
     $(select).select2({
         language: {
             inputTooShort: function () {
@@ -493,10 +493,13 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
             id: 0,
             text: placeholder,
         },
+        allowClear: !isMultiple
     });
 }
 
 function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
+    let isMultiple = $select.attr('multiple') === 'multiple';
+
     $select.select2({
         ajax: {
             url: Routing.generate(route, params, true),
@@ -519,7 +522,8 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
         minimumInputLength: lengthMin,
         placeholder: {
             text: placeholder,
-        }
+        },
+        allowClear: !isMultiple
     });
 }
 
@@ -897,7 +901,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : ((docWidth - imageWidth) / 2));
                 let posY = (upperNaturalScale
                     ? ((docHeight - imageHeight) / 2)
-                    : 0);
+                    : 2);
 
                 if (barcodesLabel) {
                     let toPrint = (barcodesLabel[index]
@@ -906,12 +910,12 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                         .filter(Boolean)
                         .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
-                    posY = 0;
+                    posY = 0.5;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
-                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, ((docHeight - imageHeight)/1.6) - 1));
+                    doc.text(toPrint, docWidth / 2, imageHeight + 1, {align: 'center', baseline: 'top'});
                 }
-                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
+                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight - 3);
                 doc.addPage();
 
                 imageLoaded[index] = true;
@@ -922,9 +926,17 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 }
             });
             $('#barcodes').append($img);
-            JsBarcode("#barcode" + index, code, {
-                format: "CODE128",
-            });
+            if (apiResponse.isCode128) {
+                JsBarcode("#barcode" + index, code, {
+                    format: "CODE128",
+                });
+            } else {
+                $("#barcode" + index).qrcode({
+                    text: code,
+                });
+                let canvas = $("#barcode" + index + " canvas");
+                $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
+            }
         });
     }
 }
@@ -1275,7 +1287,6 @@ function displayFiltersSup(data) {
             case 'reference':
             case 'demCollecte':
             case 'demande':
-            case 'emplacement':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);
                 valuesElement.forEach((value) => {

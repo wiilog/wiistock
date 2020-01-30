@@ -4,22 +4,20 @@ namespace App\Controller;
 
 use App\Entity\Acheminements;
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
-use App\Entity\Utilisateur;
 
 use App\Repository\AcheminementsRepository;
 use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
-use App\Service\SpecificService;
+use App\Service\GlobalParamService;
 use App\Service\UserService;
-use App\Service\MailerService;
 use App\Service\AcheminementsService;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -107,10 +105,15 @@ Class AcheminementsController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function new(Request $request): Response
+	/**
+	 * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param Request $request
+	 * @param GlobalParamService $globalParamService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+    public function new(Request $request, GlobalParamService $globalParamService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $status = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ACHEMINEMENT, Acheminements::STATUT_A_TRAITER);
@@ -144,15 +147,22 @@ Class AcheminementsController extends AbstractController
             $response['depose'] = $data['depose'];
             $response['prise'] = $data['prise'];
             $response['acheminements'] = (string)$acheminements->getId();
+			$paramTypeBarcode = $globalParamService->getDimensionAndTypeBarcodeArray();
+            $response['isCode128'] = $paramTypeBarcode['isCode128'];
             return new JsonResponse($response);
         }
         throw new XmlHttpException('404 not found');
     }
 
-    /**
-     * @Route("/get-info", name="get_info_to_print", options={"expose"=true}, methods="GET|POST")
-     */
-    public function getInfo(Request $request) : Response
+	/**
+	 * @Route("/get-info", name="get_info_to_print", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param GlobalParamService $globalParamService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+    public function getInfo(Request $request, GlobalParamService $globalParamService) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -168,6 +178,8 @@ Class AcheminementsController extends AbstractController
             $response['depose'] = $acheminement->getLocationDrop();
             $response['prise'] = $acheminement->getLocationTake();
             $response['acheminements'] = (string)$acheminement->getId();
+			$paramTypeBarcode = $globalParamService->getDimensionAndTypeBarcodeArray();
+			$response['isCode128'] = $paramTypeBarcode['isCode128'];
 
             return new JsonResponse($response);
         }

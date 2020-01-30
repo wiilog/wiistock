@@ -11,8 +11,19 @@ class ParametrageGlobal
 {
     const CREATE_DL_AFTER_RECEPTION = 'CREATION DL APRES RECEPTION';
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
-	const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
-	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
+    const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
+    const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
+
+
+    const BARCODE_TYPE_IS_128 = 'barcode type';
+    const QR_CODE = [
+        "value" => false,
+        "label" => 'QR Code'
+    ];
+    const CODE_128 = [
+        "value" => true,
+        "label" => 'Code 128'
+    ];
 
 	const USES_UTF8 = 'utilise utf8';
     const ENCODAGE_UTF8 = [

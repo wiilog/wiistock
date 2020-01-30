@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\ParametrageGlobal;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,39 +21,10 @@ class ParametrageGlobalRepository extends ServiceEntityRepository
         parent::__construct($registry, ParametrageGlobal::class);
     }
 
-    // /**
-    //  * @return ParametrageGlobal[] Returns an array of ParametrageGlobal objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?ParametrageGlobal
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-
     /**
      * @param $label
      * @return ParametrageGlobal
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
@@ -62,5 +35,22 @@ class ParametrageGlobalRepository extends ServiceEntityRepository
             "
         )->setParameter('label', $label);
         return $query->getOneOrNullResult();
+    }
+
+	/**
+	 * @param $label
+	 * @return ParametrageGlobal
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+    public function getOneParamByLabel($label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT pg.parametre
+            FROM App\Entity\ParametrageGlobal pg
+            WHERE pg.label LIKE :label
+            "
+        )->setParameter('label', $label);
+        return $query->getSingleScalarResult();
     }
 }
