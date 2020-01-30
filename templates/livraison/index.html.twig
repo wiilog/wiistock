@@ -6,7 +6,8 @@
     {% include 'filters/filtersDemands.html.twig' with {
         page: 'PAGE_ORDRE_LIVRAISON',
         tableSelector: '#tableLivraison_id',
-        disabled: filtersDisabled
+        disabled: filtersDisabled,
+        displayDemandFilter: displayDemandFilter
     } %}
 {% endblock %}
 
@@ -28,7 +29,7 @@
             {% endif %}
             {% if pageFilteredByDemand %}
                 <div class="col-auto">
-                    <a href="{{ path('demande_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
+                    <a href="{{ path('livraison_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
                     <a href="{{ path('demande_show', {'id': filterDemandId}) }}" class='btn btn-action'>Retour à la demande</a>
                 </div>
             {% endif %}

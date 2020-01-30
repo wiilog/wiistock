@@ -564,6 +564,10 @@ function ajaxAutoDemandCollectInit(select) {
     initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
 }
 
+function ajaxAutoDemandesInit(select) {
+    initSelect2Ajax(select, 'get_demandes', 3, {}, 'Numéro demande');
+}
+
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     let params = {};
@@ -1270,7 +1274,7 @@ function displayFiltersSup(data) {
             case 'providers':
             case 'reference':
             case 'demCollecte':
-            case 'demLivraison':
+            case 'demande':
             case 'emplacement':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);

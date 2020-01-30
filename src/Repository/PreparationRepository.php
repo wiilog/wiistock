@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\Preparation;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -106,38 +108,38 @@ class PreparationRepository extends ServiceEntityRepository
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
-				case 'type':
+				case FiltreSup::FIELD_TYPE:
 					$qb
 						->leftJoin('p.demande', 'd')
 						->leftJoin('d.type', 't')
 						->andWhere('t.label = :type')
 						->setParameter('type', $filter['value']);
 					break;
-				case 'statut':
+				case FiltreSup::FIELD_STATUT:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-				case 'utilisateurs':
+				case FiltreSup::FIELD_USERS:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.utilisateur', 'u')
 						->andWhere("u.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
-				case 'dateMin':
+				case FiltreSup::FIELD_DATE_MIN:
 					$qb
 						->andWhere('p.date >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
 					break;
-				case 'dateMax':
+				case FiltreSup::FIELD_DATE_MAX:
 					$qb
 						->andWhere('p.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
-                case 'demande':
+                case FiltreSup::FIELD_DEMANDE:
                     $qb
                         ->join('p.demande', 'demande')
                         ->andWhere('demande.id = :id')
@@ -198,8 +200,12 @@ class PreparationRepository extends ServiceEntityRepository
 		$countFiltered = count($qb->getQuery()->getResult());
 
 		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+			if (!empty($params->get('start'))) {
+			    $qb->setFirstResult($params->get('start'));
+            }
+			if (!empty($params->get('length'))) {
+			    $qb->setMaxResults($params->get('length'));
+            }
 		}
 
 		$query = $qb->getQuery();

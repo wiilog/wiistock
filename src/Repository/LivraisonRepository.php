@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -116,38 +117,37 @@ class LivraisonRepository extends ServiceEntityRepository
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
-				case 'statut':
+				case FiltreSup::FIELD_STATUT:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('livraison.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-				case 'type':
+                case FiltreSup::FIELD_TYPE:
 					$qb
 						->leftJoin('demande.type', 'type')
 						->andWhere('type.label = :type')
 						->setParameter('type', $filter['value']);
 					break;
-				case 'utilisateurs':
+				case FiltreSup::FIELD_USERS:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('livraison.utilisateur', 'user')
 						->andWhere("user.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
-				case 'demLivraison':
-                    $value = explode(':', $filter['value'])[0];
+				case FiltreSup::FIELD_DEMANDE:
                     $qb
                         ->andWhere('demande.id = :id')
-                        ->setParameter('id', $value);
+                        ->setParameter('id', $filter['value']);
                     break;
-				case 'dateMin':
+				case FiltreSup::FIELD_DATE_MIN:
 					$qb
 						->andWhere('livraison.date >= :dateMin')
 						->setParameter('dateMin', $filter['value'] . " 00:00:00");
 					break;
-				case 'dateMax':
+				case FiltreSup::FIELD_DATE_MAX:
 					$qb
 						->andWhere('livraison.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");

@@ -6,16 +6,29 @@ $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
 
+    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
     ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
     $('#preparation-emplacement + .select2').addClass('col-6');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_PREPA);;
-    $.post(path, params, function(data) {
-        displayFiltersSup(data);
-    }, 'json');
+    let $filterDemand = $('.filters-container .filter-demand');
+    $filterDemand.attr('name', 'demande');
+    $filterDemand.attr('id', 'demande');
+    let filterDemandId = $('#filterDemandId').val();
+    let filterDemandValue = $('#filterDemandValue').val();
+
+    if (filterDemandId && filterDemandValue) {
+        let option = new Option(filterDemandValue, filterDemandId, true, true);
+        $filterDemand.append(option).trigger('change');
+    }
+    else {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_PREPA);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
 });
 
 let path = Routing.generate('preparation_api');
@@ -265,7 +278,7 @@ function finishPrepa() {
 
     rows.each((elem) => {
         if (elem > 0) allRowsEmpty = false;
-    })
+    });
 
     if (allRowsEmpty) {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);

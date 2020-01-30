@@ -20,18 +20,28 @@
                 {% if demande.reception is not empty %}
                     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
                         <a href="{{ path('reception_show', {'id': demande.reception.id }) }}"
-                           class="btn btn-primary btn-action ml-auto"> Aller vers la réception</a>
+                           class="btn btn-primary btn-action ml-auto">
+                            Aller vers la réception
+                        </a>
                     {% endif %}
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                    <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                    <a href=""
+                       data-id='{{ demande.id }}'
+                       data-target='#modalEditDemande'
                        onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
-                       data-toggle='modal' class="btn btn-primary btn-action ml-auto">
-                        Modifier</a>
+                       data-toggle='modal'
+                       class="btn btn-primary btn-action ml-auto">
+                        Modifie
+                        r</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                    <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{ demande.id }}'
-                       class="btn btn-primary btn-action ml-auto">Valider</a>
+                    <a href="#"
+                       onclick="validateLivraison({{ demande.id }}, $(this))"
+                       data-id='{{ demande.id }}'
+                       class="btn btn-primary btn-action ml-auto">
+                        Valider
+                    </a>
                 {% endif %}
 
             {% elseif demande.preparations is not empty %}

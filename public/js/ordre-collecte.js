@@ -1,7 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
-
 let pathCollecte = Routing.generate('ordre_collecte_api');
 
 let tableCollecte = $('#tableCollecte').DataTable({

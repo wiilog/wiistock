@@ -4,11 +4,12 @@ $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
 
     // cas d'un filtre par demande de collecte
     let $filterDemand = $('.filters-container .filter-demand');
-    $filterDemand.attr('name', 'demLivraison');
-    $filterDemand.attr('id', 'demLivraison');
+    $filterDemand.attr('name', 'demande');
+    $filterDemand.attr('id', 'demande');
     let filterDemandId = $('#filterDemandId').val();
     let filterDemandValue = $('#filterDemandValue').val();
 
@@ -20,11 +21,9 @@ $(function() {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
-        ;
         $.post(path, params, function (data) {
             displayFiltersSup(data);
         }, 'json');
-
     }
 });
 
