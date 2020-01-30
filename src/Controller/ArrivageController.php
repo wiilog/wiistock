@@ -330,7 +330,7 @@ class ArrivageController extends AbstractController
             }
 			$em->flush();
 
-			$natures = json_decode($data['nature'], true);
+			$natures = isset($data['nature']) ? json_decode($data['nature'], true) : [];
 
             $checkNatures = $this->natureRepository->countAll();
             if ($checkNatures != 0) {
@@ -345,7 +345,7 @@ class ArrivageController extends AbstractController
 
             $printColis = null;
             $printArrivage = null;
-            if ($data['printColis'] === 'true') {
+            if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
             if ($data['printArrivage'] === 'true') {
