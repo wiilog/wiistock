@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\ChampLibre;
-use App\Entity\Type;
 
 use App\Repository\ChampLibreRepository;
 use App\Repository\ReferenceArticleRepository;

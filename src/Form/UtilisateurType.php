@@ -8,10 +8,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class UtilisateurType extends AbstractType
 {
@@ -34,7 +32,7 @@ class UtilisateurType extends AbstractType
             //     'choice_label' => 'nom',
             //     'multiple' => false,
             //     ))
-          
+
             // ->add('roles', ChoiceType::class, array(
             //     'label' => "Rôles",
             //     'choices' => array(

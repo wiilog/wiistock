@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Article;
-use App\Entity\ReferenceArticle;
 
 use App\Repository\CategorieStatutRepository;
 use App\Repository\FiltreRefRepository;

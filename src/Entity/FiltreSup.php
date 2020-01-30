@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Service\SpecificService;
 use Doctrine\ORM\Mapping as ORM;
 
 /**

@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
-use App\Entity\Litige;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;

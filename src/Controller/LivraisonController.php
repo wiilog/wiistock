@@ -3,16 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
-use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
 
 use App\Repository\ArticleRepository;
 use App\Repository\LivraisonRepository;

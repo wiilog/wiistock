@@ -12,7 +12,6 @@ use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
 
 class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements FixtureGroupInterface
