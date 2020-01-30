@@ -85,6 +85,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
+            ],
+            ParametrageGlobal::USES_UTF8 => [
+                'default' => true,
             ]
 		];
 

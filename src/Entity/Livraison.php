@@ -95,7 +95,7 @@ class Livraison
      */
     public function getDemande(): Collection
     {
-        return $this->demande;
+        return $this->getPreparation()->getDemandes();
     }
     public function addDemande(Demande $demande): self
     {

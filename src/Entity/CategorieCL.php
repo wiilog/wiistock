@@ -17,6 +17,7 @@ class CategorieCL
     const RECEPTION = 'réception';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
+    const ARRIVAGE = 'arrivage';
     const AUCUNE = 'aucune';
 
     /**

@@ -619,7 +619,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $ligneArticleRepository) {
 
                                 $preparationsManager->setEntityManager($entityManager);
-
+                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
                                 foreach ($mouvementsNomade as $mouvementNomade) {
@@ -654,7 +654,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                                 }
                                 $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                $livraison = $preparationsManager->persistLivraison($dateEnd);
                                 $preparationsManager->treatPreparation($preparation, $livraison, $nomadUser, $emplacementPrepa);
                                 if ($emplacementPrepa) {
                                     $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
