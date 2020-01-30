@@ -34,7 +34,10 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
 
 	public function load(ObjectManager $manager)
 	{
-	    foreach ($this->preparationRepository->findAll() as $preparation) {
+        $cpt = 0;
+        $cptGlobal = 0;
+        $preparations = $this->preparationRepository->findAll();
+	    foreach ($preparations as $preparation) {
 	        $demande = $preparation->getDemande();
 
 	        if ($demande) {
@@ -53,8 +56,18 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
 					$manager->persist($lignesArticlePreparation);
 					$preparation->addLigneArticlePreparation($lignesArticlePreparation);
 				}
+
+                $cpt++;
+                if ($cpt === 500) {
+                    $cptGlobal += $cpt;
+                    dump('flush ' . $cptGlobal .' / ' . count($preparations));
+                    $manager->flush();
+                    $cpt = 0;
+                }
 			}
         }
+        $cptGlobal += $cpt;
+        dump('flush ' . $cptGlobal .' / ' . count($preparations));
 	    $manager->flush();
 	}
 
