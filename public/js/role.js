@@ -3,7 +3,7 @@ let tableRoles = $('#tableRoles').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{ 
+    ajax:{
         "url": pathRoles,
         "type": "POST"
     },
@@ -37,6 +37,6 @@ function displayErrorRole(data) {
 
 function displayAlertRole(data) {
     if (data) {
-       alertSuccessMsg('Le rôle "' + data + '" a bien été mis à jour. Veuillez rafraîchir la page si nécessaire.');
+       alertSuccessMsg('Le rôle "' + data + '" a bien été mis à jour. Veuillez rafraîchir la page si nécessaire.', false);
     }
 }
