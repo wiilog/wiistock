@@ -262,9 +262,10 @@ class PreparationController extends AbstractController
         $demandeLivraison = $demandeId ? $this->demandeRepository->find($demandeId) : null;
 
         return $this->render('preparation/index.html.twig', [
-            'filterDemand' => isset($demandeLivraison) ? ($demandeId . ':' . $demandeLivraison->getNumero()) : null,
+            'filterDemandId' => isset($demandeLivraison) ? $demandeId : null,
+            'filterDemandValue' => isset($demandeLivraison) ? $demandeLivraison->getNumero() : null,
             'filtersDisabled' => isset($demandeLivraison),
-            'displayDemandFilter' => isset($filterDemand),
+            'displayDemandFilter' => true,
             'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)
         ]);

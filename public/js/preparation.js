@@ -29,7 +29,7 @@ let table = $('#table_id').DataTable({
     ajax: {
         url: path,
         'data' : {
-            'filterDemand': $('#filterDemand').val()
+            'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },

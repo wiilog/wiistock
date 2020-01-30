@@ -177,9 +177,10 @@ class LivraisonController extends AbstractController
             : null;
 
         return $this->render('livraison/index.html.twig', [
-            'filterDemand' => isset($filterDemand) ? ($demandId . ':' . $filterDemand->getNumero()) : null,
+            'filterDemandId' => isset($filterDemand) ? $demandId : null,
+            'filterDemandValue' => isset($filterDemand) ? $filterDemand->getNumero() : null,
             'filtersDisabled' => isset($filterDemand),
-            'displayDemandFilter' => isset($filterDemand),
+            'displayDemandFilter' => true,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
