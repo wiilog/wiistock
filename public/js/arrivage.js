@@ -104,14 +104,17 @@ function getDataAndPrintLabels(codes) {
 
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
+        let dropZones = [];
         if (response.response.exists) {
             if (response.codeColis.length === 0) {
                 alertErrorMsg("Il n'y a aucun colis à imprimer.");
             } else {
                 for (const code of response.codeColis) {
-                    codeColis.push(code.code)
+                    codeColis.push(code.code);
+                    dropZones.push(response.dropzone);
                 }
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+                if (!response.dropzone) dropZones = null;
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
             }
         }
     });
@@ -133,7 +136,16 @@ let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+
+function createCallback(response) {
+    alertSuccessMsg('Votre arrivage a bien été créé.');
+    if (response.printColis) {
+        getDataAndPrintLabels(response.arrivageId);
+    } if (response.printArrivage) {
+        printBarcode(response.numeroArrivage);
+    }
+}
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;

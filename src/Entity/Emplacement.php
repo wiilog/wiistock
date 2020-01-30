@@ -71,6 +71,11 @@ class Emplacement
      */
     private $dateMaxTime;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dropzone")
+     */
+    private $utilisateurs;
+
 
     public function __construct()
     {
@@ -80,7 +85,7 @@ class Emplacement
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->isActive = true;
-        $this->mouvementsTraca = new ArrayCollection();
+        $this->utilisateurs = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -308,30 +313,30 @@ class Emplacement
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection|Utilisateur[]
      */
-    public function getMouvementsTraca(): Collection
+    public function getUtilisateurs(): Collection
     {
-        return $this->mouvementsTraca;
+        return $this->utilisateurs;
     }
 
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function addUtilisateur(Utilisateur $utilisateur): self
     {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setEmplacement($this);
+        if (!$this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs[] = $utilisateur;
+            $utilisateur->setDropzone($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function removeUtilisateur(Utilisateur $utilisateur): self
     {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
+        if ($this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs->removeElement($utilisateur);
             // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getEmplacement() === $this) {
-                $mouvementsTraca->setEmplacement(null);
+            if ($utilisateur->getDropzone() === $this) {
+                $utilisateur->setDropzone(null);
             }
         }
 

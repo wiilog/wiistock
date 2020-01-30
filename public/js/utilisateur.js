@@ -50,7 +50,10 @@ function displayErrorUser(data) {
     displayError(modal, data.msg, data.success);
 }
 
-$('.select2').select2();
+$(function() {
+    $('.select2').select2();
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+})
 
 function editRowUser(button) {
     let path = Routing.generate('user_api_edit', true);
@@ -63,6 +66,11 @@ function editRowUser(button) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         modal.find('#inputEditType').val(data.userTypes).select2();
+        ajaxAutoCompleteEmplacementInit($('#dropzone'));
+        if (data.dropzone) {
+            let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
+            modal.find('#dropzone').append(newOption).trigger('change');
+        }
     }, 'json');
 
     modal.find(submit).attr('value', id);

@@ -45,7 +45,7 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -267,11 +267,12 @@ class ArrivageController extends AbstractController
      * @param ColisService $colisService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
-                        ColisService $colisService): Response {
+                        ColisService $colisService): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -380,6 +381,8 @@ class ArrivageController extends AbstractController
                     : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
+                'arrivageId' => $arrivage->getId(),
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
             ];
             return new JsonResponse($data);
         }
@@ -729,10 +732,19 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $data;
+            $arrivage = $this->arrivageRepository->find($arrivage);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
                 'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
-                'codeColis' => $codeColis
+                'codeColis' => $codeColis,
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
+                'dropzone' => count($arrivage->getAcheteurs()) > 1
+                    ? null
+                    : count($arrivage->getAcheteurs()) > 0
+                        ? $arrivage->getAcheteurs()[0]->getDropzone()
+                            ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                            : null
+                        : null,
             );
             return new JsonResponse($responseData);
 
@@ -741,11 +753,12 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
-     * @param Request $request
-     * @return JsonResponse
-     */
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
@@ -1252,7 +1265,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param Arrivage $arrivage
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function apiColis(Request $request, Arrivage $arrivage): Response
     {
@@ -1269,7 +1282,16 @@ class ArrivageController extends AbstractController
                     'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
                     'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                     'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
+                        'code' => $colis->getCode(),
+                        'dropzone' => count($arrivage->getAcheteurs()) > 1
+                            ? null
+                            : count($arrivage->getAcheteurs()) > 0
+                                ? $arrivage->getAcheteurs()[0]->getDropzone()
+                                    ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                                    : null
+                                : null,
+                    ]),
                 ];
             }
             $data['data'] = $rows;
