@@ -34,7 +34,7 @@
                    class="btn btn-primary btn-action ml-auto">Valider</a>
             {% endif %}
 
-        {% elseif demande.preparation is not empty %}
+        {% elseif demande.preparations is not empty %}
             {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
                 <div class=" text-right">
                     <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"

@@ -5,6 +5,9 @@ $(function() {
     initSelect2('#statut', 'Statut');
 
     // cas d'un filtre par demande de collecte
+    let $filterDemand = $('.filters-container .filter-demand');
+    $filterDemand.attr('name', 'demLivraison');
+    $filterDemand.attr('id', 'demLivraison');
     let filterDemand = $('#filterDemand').val();
 
     if (filterDemand) {
@@ -12,7 +15,7 @@ $(function() {
         let id = valueArray[0];
         let label = valueArray[1];
         let option = new Option(label, id, true, true);
-        $('#demandCollect').append(option).trigger('change');
+        $filterDemand.append(option).trigger('change');
     }
     else {
         // filtres enregistrés en base pour chaque utilisateur

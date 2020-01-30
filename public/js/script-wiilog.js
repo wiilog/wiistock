@@ -716,7 +716,7 @@ function saveFilters(page, tableSelector, callback) {
             'filter-carrier',
             'filter-reference',
             'filter-location',
-            'filter-demand-collect'
+            'filter-demand'
         ],
         checkbox: [
             'filter-checkbox'
@@ -1270,6 +1270,7 @@ function displayFiltersSup(data) {
             case 'providers':
             case 'reference':
             case 'demCollecte':
+            case 'demLivraison':
             case 'emplacement':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);

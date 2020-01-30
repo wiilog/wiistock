@@ -70,6 +70,9 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
     // cas d'un filtre par demande de collecte
+    let $filterDemand = $('.filters-container .filter-demand');
+    $filterDemand.attr('name', 'demCollecte');
+    $filterDemand.attr('id', 'demCollecte');
     let filterDemand = $('#filterDemand').val();
 
     if (filterDemand) {
@@ -77,7 +80,7 @@ $(function() {
         let id = valueArray[0];
         let label = valueArray[1];
         let option = new Option(label, id, true, true);
-        $('#demCollecte').append(option).trigger('change');
+        $filterDemand.append(option).trigger('change');
     } else {
 
         // filtres enregistrés en base pour chaque utilisateur
