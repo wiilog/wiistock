@@ -909,18 +909,13 @@ class DemandeController extends AbstractController
 
     private function getCSVExportFromDemand(Demande $demande): array {
         $preparationOrders = $demande->getPreparations();
-        $preparationOrdersDates = $preparationOrders
-            ->map(function (Preparation $preparation) {
-                return $preparation->getDate()->format('Y/m/d-H:i:s');
-            })
-            ->toArray();
         return [
             $demande->getUtilisateur()->getUsername(),
             $demande->getStatut()->getNom(),
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),
             $demande->getDate()->format('Y/m/d-H:i:s'),
-            !empty($preparationOrdersDates) ? implode(' / ', $preparationOrdersDates) : '',
+            !empty($preparationOrders) ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : ''
         ];
