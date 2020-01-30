@@ -566,9 +566,15 @@ class PreparationController extends AbstractController
 
             if ($ligneArticle instanceof Article) {
                 $ligneRef = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($ligneArticle->getArticleFournisseur()->getReferenceArticle(), $ligneArticle->getPreparation());
-                $ligneRef->setQuantite($ligneRef->getQuantite() + ($ligneArticle->getQuantitePrelevee() - intval($data['quantite'])));
+
+                if (isset($ligneRef)) {
+                    $ligneRef->setQuantite($ligneRef->getQuantite() + ($ligneArticle->getQuantitePrelevee() - intval($data['quantite'])));
+                }
             }
-            if (isset($data['quantite'])) $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0)); // protection contre quantités négatives
+            // protection contre quantités négatives
+            if (isset($data['quantite'])) {
+                $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0));
+            }
             $this->getDoctrine()->getManager()->flush();
 
             return new JsonResponse();
