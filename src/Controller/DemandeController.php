@@ -923,4 +923,27 @@ class DemandeController extends AbstractController
         ];
     }
 
+
+    /**
+     * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param DemandeRepository $demandeRepository
+     * @return Response
+     */
+    public function getDemandesAutoComplete(Request $request,
+                                            DemandeRepository $demandeRepository): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $search = $request->query->get('term');
+            return new JsonResponse([
+                'results' => $demandeRepository->getIdAndLibelleBySearch($search)
+            ]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 }

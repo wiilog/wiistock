@@ -280,4 +280,19 @@ class DemandeRepository extends ServiceEntityRepository
             'total' => $countTotal
         ];
     }
+
+    /**
+     * @param $search
+     * @return mixed
+     */
+    public function getIdAndLibelleBySearch($search)
+    {
+        return $this->createQueryBuilder('demande')
+            ->select('demande.id')
+            ->addSelect('demande.numero AS text')
+            ->andWhere('demande.numero LIKE :search')
+            ->setParameter('search', '%' . $search . '%')
+            ->getQuery()
+            ->execute();
+    }
 }

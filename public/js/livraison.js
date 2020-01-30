@@ -3,30 +3,27 @@ $('.select2').select2();
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
 
     // cas d'un filtre par demande de collecte
     let $filterDemand = $('.filters-container .filter-demand');
-    $filterDemand.attr('name', 'demLivraison');
-    $filterDemand.attr('id', 'demLivraison');
-    let filterDemand = $('#filterDemand').val();
+    $filterDemand.attr('name', 'demande');
+    $filterDemand.attr('id', 'demande');
+    let filterDemandId = $('#filterDemandId').val();
+    let filterDemandValue = $('#filterDemandValue').val();
 
-    if (filterDemand) {
-        let valueArray = filterDemand.split(':');
-        let id = valueArray[0];
-        let label = valueArray[1];
-        let option = new Option(label, id, true, true);
+    if (filterDemandId && filterDemandValue) {
+        let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
     }
     else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
-        ;
         $.post(path, params, function (data) {
             displayFiltersSup(data);
         }, 'json');
-
-        ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
     }
 });
 
@@ -43,7 +40,7 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     ajax: {
         'url': pathLivraison,
         'data': {
-            'filterDemand': $('#filterDemand').val()
+            'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },

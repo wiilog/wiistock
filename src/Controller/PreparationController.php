@@ -249,23 +249,25 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/liste/{demandeId}", name="preparation_index", methods="GET|POST")
-     * @param string|null $demandeId
+     * @Route("/liste/{demandId}", name="preparation_index", methods="GET|POST")
+     * @param string|null $demandId
      * @return Response
      */
-    public function index(string $demandeId = null): Response
+    public function index(string $demandId = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $demandeLivraison = $demandeId ? $this->demandeRepository->find($demandeId) : null;
+        $demandeLivraison = $demandId ? $this->demandeRepository->find($demandId) : null;
 
         return $this->render('preparation/index.html.twig', [
-            'filterDemand' => isset($demandeLivraison) ? ($demandeId . ':' . $demandeLivraison->getNumero()) : null,
-            'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'filterDemandId' => isset($demandeLivraison) ? $demandId : null,
+            'filterDemandValue' => isset($demandeLivraison) ? $demandeLivraison->getNumero() : null,
             'filtersDisabled' => isset($demandeLivraison),
+            'displayDemandFilter' => true,
+            'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)
         ]);
     }
 

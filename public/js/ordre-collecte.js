@@ -1,7 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchOrdreCollecte = $('#submitSearchOrdreCollecte');
-
 let pathCollecte = Routing.generate('ordre_collecte_api');
 
 let tableCollecte = $('#tableCollecte').DataTable({
@@ -20,7 +18,7 @@ let tableCollecte = $('#tableCollecte').DataTable({
     ajax: {
         'url': pathCollecte,
         'data' : {
-          'filterDemand': $('#filterDemand').val()
+          'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },
@@ -73,13 +71,11 @@ $(function() {
     let $filterDemand = $('.filters-container .filter-demand');
     $filterDemand.attr('name', 'demCollecte');
     $filterDemand.attr('id', 'demCollecte');
-    let filterDemand = $('#filterDemand').val();
+    let filterDemandId = $('#filterDemandId').val();
+    let filterDemandValue = $('#filterDemandValue').val();
 
-    if (filterDemand) {
-        let valueArray = filterDemand.split(':');
-        let id = valueArray[0];
-        let label = valueArray[1];
-        let option = new Option(label, id, true, true);
+    if (filterDemandId && filterDemandValue) {
+        let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
     } else {
 

@@ -524,7 +524,7 @@ class PreparationsManagerService
         if ($filterDemande) {
             $filters = [
                 [
-                    'field' => 'demande',
+                    'field' => FiltreSup::FIELD_DEMANDE,
                     'value' => $filterDemande
                 ]
             ];

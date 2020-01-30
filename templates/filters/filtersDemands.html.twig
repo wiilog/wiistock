@@ -3,6 +3,11 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
+
+    {% if displayDemandFilter is defined and displayDemandFilter %}
+        {% include 'filters/filter_item/filterDemand.html.twig' %}
+    {% endif %}
+
     {% include 'filters/filter_item/filterUser.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' %}
 {% endblock %}

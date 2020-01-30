@@ -177,8 +177,10 @@ class LivraisonController extends AbstractController
             : null;
 
         return $this->render('livraison/index.html.twig', [
-            'filterDemand' => isset($filterDemand) ? ($demandId . ':' . $filterDemand->getNumero()) : null,
+            'filterDemandId' => isset($filterDemand) ? $demandId : null,
+            'filterDemandValue' => isset($filterDemand) ? $filterDemand->getNumero() : null,
             'filtersDisabled' => isset($filterDemand),
+            'displayDemandFilter' => true,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
@@ -220,6 +222,12 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function api(Request $request): Response
     {
@@ -228,8 +236,8 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			$data = $this->livraisonService->getDataForDatatable($request->request);
-
+            $filterDemandId = $request->request->get('filterDemand');
+			$data = $this->livraisonService->getDataForDatatable($request->request, $filterDemandId);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
