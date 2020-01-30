@@ -618,7 +618,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
+            "SELECT ra.reference,
+                         e.label as location,
+                         ra.libelle as label,
+                         la.quantitePrelevee as quantity,
+                         1 as is_ref,
+                         l.id as id_livraison,
+                         ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticlePreparations la
