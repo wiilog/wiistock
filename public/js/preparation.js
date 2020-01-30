@@ -141,7 +141,8 @@ function submitSplitting(submit) {
         'articles': articlesChosen,
         'quantite': submit.data('qtt'),
         'demande': submit.data('demande'),
-        'refArticle': submit.data('ref')
+        'refArticle': submit.data('ref'),
+        'preparation': submit.data('prep')
     };
     $.post(path, JSON.stringify(params), function (resp) {
         if (resp == true) {

@@ -476,7 +476,7 @@ class PreparationController extends AbstractController
                 $preparation = $this->preparationRepository->find($data['preparation']);
                 $articleFirst = $this->articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
-                $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndPreparationAndToSplit($refArticle, $preparation);
+                $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                 foreach ($data['articles'] as $idArticle => $quantite) {
                     $article = $this->articleRepository->find($idArticle);
                     $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
@@ -562,8 +562,11 @@ class PreparationController extends AbstractController
                 $ligneArticle = $this->articleRepository->find($data['ligneArticle']);
             }
 
+            if ($ligneArticle instanceof Article) {
+                $ligneRef = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($ligneArticle->getArticleFournisseur()->getReferenceArticle(), $ligneArticle->getPreparation());
+                $ligneRef->setQuantite($ligneRef->getQuantite() + ($ligneArticle->getQuantitePrelevee() - intval($data['quantite'])));
+            }
             if (isset($data['quantite'])) $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0)); // protection contre quantités négatives
-
             $this->getDoctrine()->getManager()->flush();
 
             return new JsonResponse();
@@ -586,7 +589,7 @@ class PreparationController extends AbstractController
                 $quantity = $ligneArticle->getQuantite();
             } else {
                 $article = $this->articleRepository->find($data['id']);
-                $quantity = $article->getQuantiteAPrelever();
+                $quantity = $article->getQuantitePrelevee();
             }
 
             $json = $this->renderView(
@@ -594,6 +597,7 @@ class PreparationController extends AbstractController
                 [
                     'isRef' => $data['ref'],
                     'quantity' => $quantity,
+                    'max' => $data['ref'] ? $quantity : $article->getQuantiteAPrelever()
                 ]
             );
 
