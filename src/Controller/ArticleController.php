@@ -27,14 +27,15 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\CSVExportService;
+use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -134,9 +135,9 @@ class ArticleController extends AbstractController
     private $templating;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     private $CSVExportService;
 
@@ -151,7 +152,7 @@ class ArticleController extends AbstractController
 	private $paramGlobalRepository;
 
     public function __construct(Twig_Environment $templating,
-                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+                                GlobalParamService $globalParamService,
                                 CategorieCLRepository $categorieCLRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 ChampLibreRepository $champLibreRepository,
@@ -172,7 +173,7 @@ class ArticleController extends AbstractController
                                 CSVExportService $CSVExportService)
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
@@ -867,7 +868,7 @@ class ArticleController extends AbstractController
                                         ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+            $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
             $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById(intval($dataContent['article']));
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $wantedIndex = 0;
@@ -969,24 +970,27 @@ class ArticleController extends AbstractController
         return implode(';', $refData);
     }
 
-    /**
-     * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
-     * @param Request $request
-     * @param ArticleDataService $articleDataService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
+	 * @param Request $request
+	 * @param ArticleDataService $articleDataService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 */
     public function getDataToPrintLabels(Request $request,
                                          ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $listArticles = explode(',', $data['listArticles']);
+			if (empty($data['listArticles'])) return new JsonResponse(false);
 
+            $listArticles = explode(',', $data['listArticles']);
             $barcodes = $barcodeLabels = [];
+
             for ($i = 0; $i < count($listArticles); $i++) {
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($listArticles[$i]);
                 $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
@@ -1015,7 +1019,7 @@ class ArticleController extends AbstractController
             }
             $barcodes = array_slice($barcodes, $data['start'], $data['length']);
             $data = [
-                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
                 'barcodes' => $barcodes,
                 'barcodesLabels' => $barcodeLabels
             ];

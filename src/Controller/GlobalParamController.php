@@ -78,7 +78,9 @@ class GlobalParamController extends AbstractController
 				'translations' => $translationRepository->findAll(),
 				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
                 'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
-                'encodages' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8]
+                'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
+                'paramCodeETQ' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
+                'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE]
         ]);
     }
 
@@ -120,6 +122,14 @@ class GlobalParamController extends AbstractController
                 $em->persist($parametrageGlobal);
             }
             $parametrageGlobal->setParametre($data['param-bl-etiquette']);
+            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+
+            if (empty($parametrageGlobal128)) {
+                $parametrageGlobal128 = new ParametrageGlobal();
+                $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+                $em->persist($parametrageGlobal128);
+            }
+            $parametrageGlobal128->setParametre($data['param-type-etiquette']);
 
             $em->flush();
 
@@ -496,15 +506,13 @@ class GlobalParamController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param TranslationRepository $translationRepository
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
+	/**
+	 * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function getEncodage(Request $request,
                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
@@ -515,4 +523,15 @@ class GlobalParamController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST")
+     */
+	public function getIsCode128(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository) {
+        if ($request->isXmlHttpRequest()) {
+            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+            return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getParametre() : true);
+        }
+    }
+
 }

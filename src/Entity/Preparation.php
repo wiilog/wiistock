@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,7 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Preparation
 {
     const CATEGORIE = 'preparation';
-
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
     const STATUT_PREPARE = 'préparé';
@@ -36,9 +36,14 @@ class Preparation
     private $numero;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="preparation")
+     * @ORM\Column(type="text", nullable=true)
      */
-    private $demandes;
+    private $commentaire;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="preparations")
+     */
+    private $demande;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="preparations")
@@ -51,14 +56,10 @@ class Preparation
     private $utilisateur;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="preparations")
+     * @var Livraison|null
+     * @ORM\OneToOne(targetEntity="App\Entity\Livraison", mappedBy="preparation")
      */
-    private $articles;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
-     */
-    private $livraisons;
+    private $livraison;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="preparationOrder")
@@ -66,17 +67,21 @@ class Preparation
 	private $mouvements;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="preparation")
      */
-    private $commentaire;
+    private $articles;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="preparation")
+     */
+    private $ligneArticlePreparations;
 
 
     public function __construct()
     {
-        $this->demandes = new ArrayCollection();
-        $this->articles = new ArrayCollection();
-        $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->ligneArticlePreparations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -84,12 +89,12 @@ class Preparation
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
@@ -109,33 +114,14 @@ class Preparation
     }
 
     /**
-     * @return Collection|Demande[]
+     * @return Demande|null
      */
-    public function getDemandes(): Collection
-    {
-        return $this->demandes;
+    public function getDemande(): ?Demande {
+        return $this->demande;
     }
 
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demandes->contains($demande)) {
-            $this->demandes[] = $demande;
-            $demande->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demandes->contains($demande)) {
-            $this->demandes->removeElement($demande);
-            // set the owning side to null (unless already changed)
-            if ($demande->getPreparation() === $this) {
-                $demande->setPreparation(null);
-            }
-        }
-
+    public function setDemande(?Demande $demande): self {
+        $this->demande = $demande;
         return $this;
     }
 
@@ -164,54 +150,22 @@ class Preparation
     }
 
     /**
-     * @return Collection|Article[]
+     * @return Livraison|null
      */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
+    public function getLivraison(): ?Livraison {
+        return $this->livraison;
     }
 
-    public function addArticle(Article $article): self
+    public function setLivraison(?Livraison $livraison): self
     {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
+        if (isset($this->livraison) && ($this->livraison !== $livraison)) {
+            $this->livraison->setPreparation(null);
         }
 
-        return $this;
-    }
+        $this->livraison = $livraison;
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-        }
-
-        return $this;
-    }
-
-    public function getLivraisons(): Collection
-    {
-        return $this->livraisons;
-    }
-
-    public function addLivraison(Livraison $livraison): self
-    {
-        if (!$this->livraisons->contains($livraison)) {
-            $this->livraisons[] = $livraison;
-            $livraison->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLivraison(Livraison $livraison): self
-    {
-        if ($this->livraisons->contains($livraison)) {
-            $this->livraisons->removeElement($livraison);
-            // set the owning side to null (unless already changed)
-            if ($livraison->getPreparation() === $this) {
-                $livraison->setPreparation(null);
-            }
+        if (isset($this->livraison)) {
+            $this->livraison->setPreparation($this);
         }
 
         return $this;
@@ -260,4 +214,65 @@ class Preparation
         return $this;
     }
 
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getPreparation() === $this) {
+                $article->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LigneArticlePreparation[]
+     */
+    public function getLigneArticlePreparations(): Collection
+    {
+        return $this->ligneArticlePreparations;
+    }
+
+    public function addLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if (!$this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations[] = $ligneArticlePreparation;
+            $ligneArticlePreparation->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if ($this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations->removeElement($ligneArticlePreparation);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticlePreparation->getPreparation() === $this) {
+                $ligneArticlePreparation->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
 }

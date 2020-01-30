@@ -604,9 +604,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     p.id as id_prepa
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
-			JOIN ra.ligneArticles la
-			JOIN la.demande d
-			JOIN d.preparation p
+			JOIN ra.ligneArticlePreparations la
+			JOIN la.preparation p
 			JOIN p.statut s
 			WHERE p.id IN (:preparationsIds)"
         )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
@@ -1059,8 +1058,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.typeQuantite')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
-            ->andWhere('ra.limitSecurity > 0')
-            ->andWhere('ra.limitWarning > 0');
+            ->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->gt('ra.limitSecurity', 0),
+                    $qb->expr()->gt('ra.limitWarning', 0)
+                )
+            );
         return $qb;
     }
 

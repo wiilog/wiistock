@@ -3,8 +3,9 @@ let clicked = false;
 $('.select2').select2();
 
 $(function() {
-    initDateTimePicker();
+    initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
+    initSelect2('#carriers', 'Transporteurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -103,14 +104,17 @@ function getDataAndPrintLabels(codes) {
 
     $.post(path, JSON.stringify(param), function (response) {
         let codeColis = [];
+        let dropZones = [];
         if (response.response.exists) {
             if (response.codeColis.length === 0) {
                 alertErrorMsg("Il n'y a aucun colis à imprimer.");
             } else {
                 for (const code of response.codeColis) {
-                    codeColis.push(code.code)
+                    codeColis.push(code.code);
+                    dropZones.push(response.dropzone);
                 }
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'));
+                if (!response.dropzone) dropZones = null;
+                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
             }
         }
     });
@@ -132,7 +136,16 @@ let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, () => {alertSuccessMsg('Votre arrivage a bien été créé');}, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+
+function createCallback(response) {
+    alertSuccessMsg('Votre arrivage a bien été créé.');
+    if (response.printColis) {
+        getDataAndPrintLabels(response.arrivageId);
+    } if (response.printArrivage) {
+        printBarcode(response.numeroArrivage);
+    }
+}
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -150,27 +163,6 @@ function initNewArrivageEditor(modal) {
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
+    $('.list-multiple').select2();
 }
 
-let $submitSearchArrivage = $('#submitSearchArrivage');
-$submitSearchArrivage.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ARRIVAGE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked'),
-        providers: $('#providers').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    clicked = true;
-
-    saveFilters(filters, tableArrivage);
-});

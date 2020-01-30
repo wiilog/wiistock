@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -45,27 +46,6 @@ class LivraisonRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param int $preparationId
-	 * @return Livraison|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByPreparationId($preparationId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT l
-			FROM App\Entity\Livraison l
-			JOIN l.demande d
-			JOIN d.preparation p
-			WHERE p.id = :preparationId
-			"
-		)->setParameter('preparationId', $preparationId);
-
-		return $query->getOneOrNullResult();
-	}
-
 	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
 	{
         $typeUser = [];
@@ -82,9 +62,10 @@ class LivraisonRepository extends ServiceEntityRepository
                          dest.label as location
 			FROM App\Entity\Livraison l
 			JOIN l.statut s
-			JOIN l.demande d
-			JOIN d.destination dest
-			JOIN d.type t
+			JOIN l.preparation preparation
+			JOIN preparation.demande demande
+			JOIN demande.destination dest
+			JOIN demande.type t
 			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:type)"
 		)->setParameters([
 			'statusLabel' => $statusLabel,
@@ -126,43 +107,49 @@ class LivraisonRepository extends ServiceEntityRepository
 		$qb = $em->createQueryBuilder();
 
 		$qb
-			->select('l')
-			->from('App\Entity\Livraison', 'l');
+			->select('livraison')
+			->from('App\Entity\Livraison', 'livraison')
+            ->join('livraison.preparation', 'preparation')
+            ->join('preparation.demande', 'demande');
 
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
-				case 'statut':
+				case FiltreSup::FIELD_STATUT:
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('l.statut', 's')
+						->join('livraison.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-				case 'type':
+                case FiltreSup::FIELD_TYPE:
 					$qb
-						->join('l.demande', 'd')
-						->leftJoin('d.type', 't')
-						->andWhere('t.label = :type')
+						->leftJoin('demande.type', 'type')
+						->andWhere('type.label = :type')
 						->setParameter('type', $filter['value']);
 					break;
-				case 'utilisateurs':
+				case FiltreSup::FIELD_USERS:
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('l.utilisateur', 'u')
-						->andWhere("u.id in (:userId)")
+						->join('livraison.utilisateur', 'user')
+						->andWhere("user.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
-				case 'dateMin':
+				case FiltreSup::FIELD_DEMANDE:
+                    $qb
+                        ->andWhere('demande.id = :id')
+                        ->setParameter('id', $filter['value']);
+                    break;
+				case FiltreSup::FIELD_DATE_MIN:
 					$qb
-						->andWhere('l.date >= :dateMin')
+						->andWhere('livraison.date >= :dateMin')
 						->setParameter('dateMin', $filter['value'] . " 00:00:00");
 					break;
-				case 'dateMax':
+				case FiltreSup::FIELD_DATE_MAX:
 					$qb
-						->andWhere('l.date <= :dateMax')
+						->andWhere('livraison.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
 			}
@@ -174,12 +161,11 @@ class LivraisonRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('l.statut', 's2')
-						->leftJoin('l.utilisateur', 'u2')
-						->leftJoin('l.demande', 'd2')
-						->leftJoin('d2.type', 't2')
+						->leftJoin('livraison.statut', 's2')
+						->leftJoin('livraison.utilisateur', 'u2')
+						->leftJoin('demande.type', 't2')
 						->andWhere('
-						l.numero LIKE :value
+						livraison.numero LIKE :value
 						OR s2.nom LIKE :value
 						OR u2.username LIKE :value
 						OR t2.label LIKE :value
@@ -197,20 +183,19 @@ class LivraisonRepository extends ServiceEntityRepository
 
 					if ($column === 'statut') {
 						$qb
-							->leftJoin('l.statut', 's3')
+							->leftJoin('livraison.statut', 's3')
 							->orderBy('s3.nom', $order);
 					} else if ($column === 'utilisateur') {
 						$qb
-							->leftJoin('l.utilisateur', 'u3')
+							->leftJoin('livraison.utilisateur', 'u3')
 							->orderBy('u3.username', $order);
 					} else if ($column === 'type') {
 						$qb
-							->leftJoin('l.demande', 'd3')
-							->leftJoin('d3.type', 't3')
+							->leftJoin('demande.type', 't3')
 							->orderBy('t3.label', $order);
 					} else {
 						$qb
-							->orderBy('l.' . $column, $order);
+							->orderBy('livraison.' . $column, $order);
 					}
 				}
 			}

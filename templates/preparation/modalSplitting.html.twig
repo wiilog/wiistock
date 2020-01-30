@@ -38,8 +38,8 @@
                                 </label>
                                 <label class="pr-2 pl-2">Quantité : </label>
                                 <input id="{{ article.id }}" class="input w-25" data-ref="{{ reference }}"
-                                       value="{{ article.quantitePrelevee and article.demande ? article.quantitePrelevee : '' }}"
-                                       data-value-init="{{ article.quantitePrelevee and article.demande ? article.quantitePrelevee : 0 }}"
+                                       value="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : '' }}"
+                                       data-value-init="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : 0 }}"
                                        data-total="{{ quantiteArt }}"
                                        data-quantite="{{ quantiteArt }}" type="number"
                                        data-name="{{ article.label }}" data-id="{{ article.id }}"

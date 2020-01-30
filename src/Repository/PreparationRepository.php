@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\Preparation;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -54,7 +56,7 @@ class PreparationRepository extends ServiceEntityRepository
                          t.label as type
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
-			JOIN p.demandes d
+			JOIN p.demande d
 			JOIN d.destination dest
 			JOIN d.type t
 			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
@@ -64,23 +66,6 @@ class PreparationRepository extends ServiceEntityRepository
             'enCours' => $statutEnCoursLabel,
             'type' => $userTypes,
         ]);
-        return $query->execute();
-    }
-
-    public function findOneForAPI($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p.id,
-                         p.numero as number,
-                         dest.label as destination
-			FROM App\Entity\Preparation p
-			JOIN p.statut s
-			JOIN p.demandes d
-			JOIN d.destination dest
-			JOIN d.type t
-			WHERE p.id = :id"
-        )->setParameter('id', $id);
         return $query->execute();
     }
 
@@ -123,37 +108,43 @@ class PreparationRepository extends ServiceEntityRepository
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
-				case 'type':
+				case FiltreSup::FIELD_TYPE:
 					$qb
-						->leftJoin('p.demandes', 'd')
+						->leftJoin('p.demande', 'd')
 						->leftJoin('d.type', 't')
 						->andWhere('t.label = :type')
 						->setParameter('type', $filter['value']);
 					break;
-				case 'statut':
+				case FiltreSup::FIELD_STATUT:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-				case 'utilisateurs':
+				case FiltreSup::FIELD_USERS:
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('p.utilisateur', 'u')
 						->andWhere("u.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
-				case 'dateMin':
+				case FiltreSup::FIELD_DATE_MIN:
 					$qb
 						->andWhere('p.date >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
 					break;
-				case 'dateMax':
+				case FiltreSup::FIELD_DATE_MAX:
 					$qb
 						->andWhere('p.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
+                case FiltreSup::FIELD_DEMANDE:
+                    $qb
+                        ->join('p.demande', 'demande')
+                        ->andWhere('demande.id = :id')
+                        ->setParameter('id', $filter['value']);
+                    break;
 			}
 		}
 
@@ -163,7 +154,7 @@ class PreparationRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('p.demandes', 'd2')
+						->leftJoin('p.demande', 'd2')
 						->leftJoin('d2.type', 't2')
 						->leftJoin('p.utilisateur', 'p2')
 						->leftJoin('p.statut', 's2')
@@ -190,7 +181,7 @@ class PreparationRepository extends ServiceEntityRepository
 							->orderBy('s3.nom', $order);
 					} else if ($column === 'type') {
 						$qb
-							->leftJoin('p.demandes', 'd3')
+							->leftJoin('p.demande', 'd3')
 							->leftJoin('d3.type', 't3')
 							->orderBy('t3.label', $order);
 					} else if ($column === 'user') {
@@ -209,8 +200,12 @@ class PreparationRepository extends ServiceEntityRepository
 		$countFiltered = count($qb->getQuery()->getResult());
 
 		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+			if (!empty($params->get('start'))) {
+			    $qb->setFirstResult($params->get('start'));
+            }
+			if (!empty($params->get('length'))) {
+			    $qb->setMaxResults($params->get('length'));
+            }
 		}
 
 		$query = $qb->getQuery();

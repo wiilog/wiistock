@@ -3,14 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\LivraisonRepository;
@@ -18,6 +16,7 @@ use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 
+use App\Service\GlobalParamService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
@@ -80,9 +79,9 @@ class EmplacementController extends AbstractController
     private $userService;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     /**
      * @var ReferenceArticleRepository
@@ -94,7 +93,7 @@ class EmplacementController extends AbstractController
      */
     private $filtreSupRepository;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, GlobalParamService $globalParamService, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -104,7 +103,7 @@ class EmplacementController extends AbstractController
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
@@ -371,7 +370,7 @@ class EmplacementController extends AbstractController
             }
             $emplacementsString = array_slice($emplacementsString, $data['start'], $data['length']);
             $data = array(
-                'tags' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
+                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
                 'emplacements' => $emplacementsString
             );
             return new JsonResponse($data);
@@ -386,7 +385,7 @@ class EmplacementController extends AbstractController
     public function getEmplacementLabelFromId(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+            $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
             $data['emplacementLabel'] = $this->emplacementRepository->find(intval($dataContent['emplacement']))->getLabel();
             return new JsonResponse($data);
         }

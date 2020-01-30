@@ -379,17 +379,22 @@ class MouvementStockRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'statut':
-					$type = $this->statutRepository->find($filter['value']);
-					$qb
-						->andWhere('m.type = :type')
-						->setParameter('type', $type->getNom());
+                    $types = explode(',', $filter['value']);
+                    $typeIds = array_map(function($type) {
+                        $splitted = explode(':', $type);
+                        return $splitted[1] ?? $type;
+                    }, $types);
+                    $qb
+                        ->andWhere('m.type in (:typeIds)')
+                        ->setParameter('typeIds', $typeIds, Connection::PARAM_STR_ARRAY);
 					break;
 				case 'emplacement':
+                    $value = explode(':', $filter['value']);
 					$qb
 						->leftJoin('m.emplacementFrom', 'ef')
 						->leftJoin('m.emplacementTo', 'et')
 						->andWhere('ef.label = :location OR et.label = :location')
-						->setParameter('location', $filter['value']);
+						->setParameter('location', $value[1] ?? $filter['value']);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);

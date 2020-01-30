@@ -1,6 +1,5 @@
 function goToFilteredDemande(type, filter){
     let path = '';
-console.log(filter);
     if (type === 'livraison'){
         path = 'demande_index';
     } else if (type === 'collecte') {

@@ -229,11 +229,15 @@ function getDataAndPrintLabels() {
         length: tableArticle.page.info().length
     });
     $.post(path, params, function (response) {
+        if (response === false) {
+            alertErrorMsg("Il n'y a aucun article à imprimer.");
+        } else {
             printBarcodes(
                 response.barcodes,
                 response.tags,
                 'Etiquettes-articles.pdf',
                 response.barcodesLabels);
+        }
     });
 }
 

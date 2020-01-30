@@ -23,22 +23,6 @@ class ChampLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ChampLibre::class);
     }
 
-	/**
-	 * @param int $type
-	 * @return ChampLibre[]
-	 */
-    public function getByType($type)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            WHERE t.id = :id"
-        )->setParameter('id', $type);;
-        return $query->execute();
-    }
-
     public function getByTypeAndRequiredCreate($type)
     {
         $entityManager = $this->getEntityManager();
@@ -190,10 +174,10 @@ class ChampLibreRepository extends ServiceEntityRepository
 	}
 
 	/**
-	 * @param $typeId
+	 * @param int|Type $typeId
 	 * @return ChampLibre[]
 	 */
-    public function findByTypeId($typeId)
+    public function findByType($typeId)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -207,7 +191,7 @@ class ChampLibreRepository extends ServiceEntityRepository
 
 	/**
 	 * @param string[] $categoryTypeLabels
-	 * @return mixed
+	 * @return ChampLibre[]
 	 */
 	public function findByCategoryTypeLabels($categoryTypeLabels)
 	{

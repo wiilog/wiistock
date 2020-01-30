@@ -115,10 +115,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'emplacement':
+                    $value = explode(':', $filter['value']);
 					$qb
 						->join('ie.location', 'l')
 						->andWhere('l.label = :location')
-						->setParameter('location', $filter['value']);
+						->setParameter('location', $value[1] ?? $filter['value']);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);

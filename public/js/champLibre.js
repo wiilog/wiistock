@@ -135,7 +135,7 @@ function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif'))
                 `<select class="form-control cursor-default data" name="Elements" multiple="multiple"></select>`;
         } else {
             inputDefaultBlock =
-                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + existingValue + `">`
+                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
         }
     }
 

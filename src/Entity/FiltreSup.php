@@ -21,12 +21,14 @@ class FiltreSup
 	const FIELD_COLIS = 'colis';
 	const FIELD_REFERENCE = 'reference';
 	const FIELD_DEM_COLLECTE = 'demCollecte';
+	const FIELD_DEMANDE = 'demande';
 	const FIELD_EMERGENCY = 'emergency';
 	const FIELD_ANOMALY = 'anomaly';
 	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
 	const FIELD_RECEPTION_STRING = 'reception_string';
 	const FIELD_COMMANDE = 'commande';
 	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
+	const FIELD_NUM_ARRIVAGE = 'numArrivage';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';

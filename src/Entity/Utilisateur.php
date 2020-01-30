@@ -129,7 +129,6 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $filters;
 
-
     /**
      * @ORM\Column(type="json", nullable=true)
      */
@@ -206,9 +205,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $columnsVisibleForArticle;
 
     /**
-     * @ORM\Column(type="integer", options={"unsigned":true, "default":100})
+     * @ORM\Column(type="integer", options={"unsigned":true})
      */
-    private $pageLengthForArrivage;
+    private $pageLengthForArrivage = 100;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
+     */
+    private $dropzone;
 
     public function __construct()
     {
@@ -1099,6 +1103,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setPageLengthForArrivage(int $pageLengthForArrivage): self
     {
         $this->pageLengthForArrivage = $pageLengthForArrivage;
+
+        return $this;
+    }
+
+    public function getDropzone(): ?Emplacement
+    {
+        return $this->dropzone;
+    }
+
+    public function setDropzone(?Emplacement $dropzone): self
+    {
+        $this->dropzone = $dropzone;
 
         return $this;
     }

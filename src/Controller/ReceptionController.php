@@ -27,7 +27,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
@@ -39,6 +38,7 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\DemandeLivraisonService;
+use App\Service\GlobalParamService;
 use App\Service\MouvementStockService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -50,6 +50,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
 
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -131,9 +132,9 @@ class ReceptionController extends AbstractController
     private $typeRepository;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     /**
      * @var FieldsParamRepository
@@ -187,7 +188,7 @@ class ReceptionController extends AbstractController
 
     public function __construct(
         ArticleDataService $articleDataService,
-        DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+        GlobalParamService $globalParamService,
         TypeRepository $typeRepository,
         ChampLibreRepository $champLibreRepository,
         ValeurChampLibreRepository $valeurChampsLibreRepository,
@@ -218,7 +219,7 @@ class ReceptionController extends AbstractController
         $this->litigeRepository = $litigeRepository;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
@@ -304,7 +305,6 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $champsLibresKey = array_keys($data);
-
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
                     $valeurChampLibre = new ValeurChampLibre();
@@ -404,7 +404,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -447,7 +447,7 @@ class ReceptionController extends AbstractController
 
             $typeChampLibre = [];
             foreach ($listType as $type) {
-                $champsLibresComplet = $this->champLibreRepository->findByTypeId($type['id']);
+                $champsLibresComplet = $this->champLibreRepository->findByType($type['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
@@ -555,7 +555,7 @@ class ReceptionController extends AbstractController
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
+            $champsLibres = $this->champLibreRepository->findByType($type['id']);
             $typeChampLibre[] = [
                 'typeLabel' => $type['label'],
                 'typeId' => $type['id'],
@@ -626,7 +626,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -701,7 +701,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -803,7 +803,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -850,7 +850,7 @@ class ReceptionController extends AbstractController
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibresReception = [];
         foreach ($listTypes as $type) {
-            $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+            $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
                 $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -1465,7 +1465,7 @@ class ReceptionController extends AbstractController
                                      ArticleDataService $articleDataService): Response
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+            $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
             $data['refs'] = [];
             $data['barcodeLabel'] = [];
 
@@ -1509,23 +1509,24 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/obtenir-ligne", name="get_ligne_from_id", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param RefArticleDataService $refArticleDataService
-     * @return JsonResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @Route("/obtenir-ligne", name="get_ligne_from_id", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param Request $request
+	 * @param RefArticleDataService $refArticleDataService
+	 * @return JsonResponse
+	 * @throws LoaderError
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 */
     public function getLignes(Request $request,
                               RefArticleDataService $refArticleDataService)
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
-                $data = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+                $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
                 $barcodeInformations = $refArticleDataService->getBarcodeInformations($articleRef);
                 $data['barcode'] = $barcodeInformations['barcode'];
                 $data['barcodeLabel'] = $barcodeInformations['barcodeLabel'];

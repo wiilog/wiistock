@@ -268,14 +268,14 @@ class InventoryMissionRepository extends ServiceEntityRepository
 						$qb
 							->andWhere('
 							(SELECT COUNT(ie.id)
-							FROM App\Entity\InventoryEntry ie 
+							FROM App\Entity\InventoryEntry ie
 							WHERE ie.mission = im AND ie.anomaly = 1)
 							 > 0');
 					} else if ($filter['value'] == 'false') {
 						$qb
 							->andWhere('
 							(SELECT COUNT(ie.id)
-							FROM App\Entity\InventoryEntry ie 
+							FROM App\Entity\InventoryEntry ie
 							WHERE ie.mission = im AND ie.anomaly = 1)
 							 = 0');
 					}

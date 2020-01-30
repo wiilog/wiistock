@@ -25,7 +25,7 @@ const STATUT_EN_TRANSIT = 'en transit';
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
-$.fn.dataTable.ext.errMode = (resp) => {
+$.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
 
@@ -473,6 +473,8 @@ function initFilterDateToday() {
 }
 
 function initSelect2(select, placeholder = '', lengthMin = 0) {
+    let isMultiple = $(select).attr('multiple') === 'multiple';
+
     $(select).select2({
         language: {
             inputTooShort: function () {
@@ -491,10 +493,13 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
             id: 0,
             text: placeholder,
         },
+        allowClear: !isMultiple
     });
 }
 
 function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
+    let isMultiple = $select.attr('multiple') === 'multiple';
+
     $select.select2({
         ajax: {
             url: Routing.generate(route, params, true),
@@ -517,7 +522,8 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
         minimumInputLength: lengthMin,
         placeholder: {
             text: placeholder,
-        }
+        },
+        allowClear: !isMultiple
     });
 }
 
@@ -560,6 +566,10 @@ function ajaxAutoUserInit(select, placeholder = '') {
 
 function ajaxAutoDemandCollectInit(select) {
     initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
+}
+
+function ajaxAutoDemandesInit(select) {
+    initSelect2Ajax(select, 'get_demandes', 3, {}, 'Numéro demande');
 }
 
 let toggleRequiredChampsLibres = function (select, require) {
@@ -679,11 +689,92 @@ function alertSuccessMsg(data) {
     $alertSuccess.find('.confirm-msg').html(data);
 }
 
-function saveFilters(params, table = null) {
+function saveFilters(page, tableSelector, callback) {
     let path = Routing.generate('filter_sup_new');
 
+    const $filterDateMin = $('.filter-date-min');
+    const $filterDateMax = $('.filter-date-max');
+    const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
+    const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
+
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format('YYYY-MM-DD');
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format('YYYY-MM-DD');
+    }
+
+    const paramsToSend = {
+        input: [
+            'filter-date-min',
+            'filter-date-max',
+            'filter-type',
+            'filter-num-arrivage',
+            'filter-anomaly',
+            'filter-colis',
+            'filter-litige-origin',
+            'filter-arrivage-string',
+            'filter-reception-string',
+            'filter-command'
+        ],
+        select2: [
+            'filter-status',
+            'filter-user',
+            'filter-provider',
+            'filter-carrier',
+            'filter-reference',
+            'filter-location',
+            'filter-demand'
+        ],
+        checkbox: [
+            'filter-checkbox'
+        ]
+    };
+
+    const valFunction = {
+        input: ($input) => $input.val(),
+        select2: ($input) => $input.select2('data').map(({id, text}) => ({id, text})),
+        checkbox: ($input) => $input.is(':checked')
+    };
+
+    let params = {
+        page,
+        ...(Object.keys(paramsToSend).reduce((acc, key) => ({
+            ...acc,
+            ...(
+                paramsToSend[key]
+                    ? paramsToSend[key].reduce((acc, className) => {
+                        const $field = $('.filters-container').find(`.${className}`);
+
+                        return ({
+                            ...acc,
+                            ...($field.length > 0
+                                ? {[$field.attr('name')]: valFunction[key]($field)}
+                                : {})
+                        });
+                    }, {})
+                    : {}
+            )
+        }), {}))
+    };
+
+    if ($filterDateMinPicker) {
+        $filterDateMinPicker.format('DD/MM/YYYY');
+    }
+    if ($filterDateMaxPicker) {
+        $filterDateMaxPicker.format('DD/MM/YYYY');
+    }
+
     $.post(path, JSON.stringify(params), function() {
-        if (table) table.draw();
+        if (callback) {
+            callback();
+        }
+        if (tableSelector) {
+            const $table = $(tableSelector);
+            if ($table && $table.DataTable) {
+                $table.DataTable().draw();
+            }
+        }
     }, 'json');
 }
 
@@ -810,7 +901,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : ((docWidth - imageWidth) / 2));
                 let posY = (upperNaturalScale
                     ? ((docHeight - imageHeight) / 2)
-                    : 0);
+                    : 2);
 
                 if (barcodesLabel) {
                     let toPrint = (barcodesLabel[index]
@@ -819,12 +910,12 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                         .filter(Boolean)
                         .join('\n'));
                     posX = (docWidth - imageWidth) / 2;
-                    posY = 0;
+                    posY = 0.5;
                     let maxSize = getFontSizeByText(barcodesLabel[index], docWidth, docHeight, imageHeight, doc);
-                    doc.setFontSize(Math.min(maxSize, (docHeight - imageHeight)/1.6));
-                    doc.text(toPrint, docWidth / 2, imageHeight, {align: 'center', baseline: 'top'});
+                    doc.setFontSize(Math.min(maxSize, ((docHeight - imageHeight)/1.6) - 1));
+                    doc.text(toPrint, docWidth / 2, imageHeight + 1, {align: 'center', baseline: 'top'});
                 }
-                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight);
+                doc.addImage($(this).attr('src'), 'JPEG', posX, posY, imageWidth, imageHeight - 3);
                 doc.addPage();
 
                 imageLoaded[index] = true;
@@ -835,9 +926,17 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                 }
             });
             $('#barcodes').append($img);
-            JsBarcode("#barcode" + index, code, {
-                format: "CODE128",
-            });
+            if (apiResponse.isCode128) {
+                JsBarcode("#barcode" + index, code, {
+                    format: "CODE128",
+                });
+            } else {
+                $("#barcode" + index).qrcode({
+                    text: code,
+                });
+                let canvas = $("#barcode" + index + " canvas");
+                $("#barcode" + index).attr('src', canvas.get(0).toDataURL("image/png"));
+            }
         });
     }
 }
@@ -1171,7 +1270,6 @@ function warningEmptyDatesForCsv() {
 
 function displayFiltersSup(data) {
     data.forEach(function (element) {
-
         switch (element.field) {
             case 'utilisateurs':
                 let valuesUsers = element.value.split(',');
@@ -1187,6 +1285,8 @@ function displayFiltersSup(data) {
 
             case 'providers':
             case 'reference':
+            case 'demCollecte':
+            case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);
                 valuesElement.forEach((value) => {
@@ -1198,30 +1298,44 @@ function displayFiltersSup(data) {
                 });
                 break;
 
+            case 'statut':
+            case 'carriers':
+            case 'emplacement':
+                let valuesElement2 = element.value.split(',');
+                let $select2 = $('#' + element.field);
+                valuesElement2.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    $select2.val(id).trigger('change');
+                });
+                break;
+
             case 'emergency':
                 if (element.value === '1') {
                     $('#urgence-filter').attr('checked', 'checked');
                 }
                 break;
 
-            case 'carriers':
+
             case 'litigeOrigin':
-            case 'emplacement':
-                $('#' + element.field).val(element.value).select2();
+                const text = element.value || '';
+                const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
+                $('#' + element.field).val(id).trigger('change');
                 break;
 
             case 'dateMin':
             case 'dateMax':
-                $('#' + element.field).val(moment(element.value, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                break;
-
-            case 'statut':
-                let valuesStr = element.value.split(',');
-                let valuesInt = [];
-                valuesStr.forEach((value) => {
-                    valuesInt.push(parseInt(value));
-                })
-                $('#' + element.field).val(valuesInt).select2();
+                const sourceFormat = (element.value && element.value.indexOf('/') > -1)
+                    ? 'DD/MM/YYYY'
+                    : 'YYYY-MM-DD';
+                const $fieldDate = $('#' + element.field);
+                const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
+                if ($fieldDate.data("DateTimePicker")) {
+                    $fieldDate.data("DateTimePicker").date(dateValue);
+                }
+                else {
+                    $fieldDate.val(dateValue);
+                }
                 break;
 
             default:

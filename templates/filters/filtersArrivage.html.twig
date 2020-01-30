@@ -1,17 +1,11 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block emplacementFilter %}
-{% endblock %}
-
-{% block urgence %}
-    <div class="urgence-filter cursor-default">
-        Urgence ?
-        <label class="switch">
-            <input class="checkbox" type="checkbox" name="urgence" id="urgence-filter">
-            <span class="slider round"></span>
-        </label>
-    </div>
-{% endblock %}
-
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    {% include 'filters/filter_item/filterProvider.html.twig' %}
+    {% include 'filters/filter_item/filterCarrier.html.twig' %}
+    {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
 {% endblock %}

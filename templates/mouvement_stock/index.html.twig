@@ -3,11 +3,9 @@
 {% block title %}Mouvements de stock{% endblock %}
 
 {% block page_filter %}
-    {{ parent() }}
-
     {% include 'filters/filtersMouvementStock.html.twig' with {
-        'btnName' : 'submitSearchMvt',
-        'statut' : 'Type'
+        'page': 'PAGE_MVT_STOCK',
+        'tableSelector': '#tableMvts'
     } %}
 {% endblock %}
 

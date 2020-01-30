@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
+use App\Entity\ValeurChampLibre;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
@@ -32,10 +33,12 @@ use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
 use App\Service\DashboardService;
+use App\Service\GlobalParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -43,8 +46,8 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -97,9 +100,9 @@ class ArrivageController extends AbstractController
     private $transporteurRepository;
 
     /**
-     * @var DimensionsEtiquettesRepository
+     * @var GlobalParamService
      */
-    private $dimensionsEtiquettesRepository;
+    private $globalParamService;
 
     /**
      * @var MailerService
@@ -170,13 +173,18 @@ class ArrivageController extends AbstractController
      */
     private $fieldsParamsRepository;
 
-    public function __construct(FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+	/**
+	 * @var ValeurChampLibreRepository
+	 */
+    private $valeurChampLibreRepository;
+
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->fieldsParamsRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->globalParamService = $globalParamService;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -194,15 +202,17 @@ class ArrivageController extends AbstractController
         $this->attachmentService = $attachmentService;
         $this->natureRepository = $natureRepository;
         $this->arrivageDataService = $arrivageDataService;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
-    /**
-     * @Route("/", name="arrivage_index")
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
-     */
-    public function index(ParametrageGlobalRepository $parametrageGlobalRepository)
+	/**
+	 * @Route("/", name="arrivage_index")
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @return RedirectResponse|Response
+	 * @throws NonUniqueResultException
+	 */
+    public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
@@ -211,7 +221,7 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('arrivage/index.html.twig', [
-            'transporteurs' => $this->transporteurRepository->findAllSorted(),
+            'carriers' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
@@ -219,6 +229,7 @@ class ArrivageController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre(),
+			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage()
         ]);
     }
@@ -255,17 +266,18 @@ class ArrivageController extends AbstractController
      * @param ColisService $colisService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function new(Request $request,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
-                        ColisService $colisService): Response {
+                        ColisService $colisService): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $post = $request->request;
+            $data = $request->request->all();
             $em = $this->getDoctrine()->getManager();
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -275,31 +287,31 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
-                ->setStatut($this->statutRepository->find($post->get('statut')))
+                ->setStatut($this->statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setCommentaire($post->get('commentaire') ?? null);
+                ->setCommentaire($data['commentaire'] ?? null);
 
-            if (!empty($fournisseur = $post->get('fournisseur'))) {
+            if (!empty($fournisseur = $data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (!empty($transporteur = $post->get('transporteur'))) {
+            if (!empty($transporteur = $data['transporteur'])) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $post->get('chauffeur'))) {
+            if (!empty($chauffeur = $data['chauffeur'])) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $post->get('noTracking'))) {
+            if (!empty($noTracking = $data['noTracking'])) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($noBL = $post->get('noBL'))) {
+            if (!empty($noBL = $data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (!empty($destinataire = $post->get('destinataire'))) {
+            if (!empty($destinataire = $data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($post->get('acheteurs'))) {
-                $acheteursId = explode(',', $post->get('acheteurs'));
+            if (!empty($data['acheteurs'])) {
+                $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
                 }
@@ -316,8 +328,9 @@ class ArrivageController extends AbstractController
                     $this->arrivageDataService->addBuyersToArrivage($arrivage, $urgencesMatching);
                 }
             }
+			$em->flush();
 
-            $natures = json_decode($post->get('nature'), true);
+			$natures = isset($data['nature']) ? json_decode($data['nature'], true) : [];
 
             $checkNatures = $this->natureRepository->countAll();
             if ($checkNatures != 0) {
@@ -332,10 +345,10 @@ class ArrivageController extends AbstractController
 
             $printColis = null;
             $printArrivage = null;
-            if ($post->get('printColis') === 'true') {
+            if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
-            if ($post->get('printArrivage') === 'true') {
+            if ($data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
 
@@ -345,7 +358,21 @@ class ArrivageController extends AbstractController
                 $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
             }
 
-            $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+			$champsLibresKey = array_keys($data);
+			foreach ($champsLibresKey as $champs) {
+				if (gettype($champs) === 'integer') {
+					$valeurChampLibre = new ValeurChampLibre();
+					$valeurChampLibre
+						->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
+						->addArrivage($arrivage)
+						->setChampLibre($this->champLibreRepository->find($champs));
+					$em->persist($valeurChampLibre);
+					$em->flush();
+					$arrivage->addValeurChampLibre($valeurChampLibre);
+				}
+			}
+
+			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
             $data = [
                 "redirect" => $paramGlobalRedirectAfterNewArrivage->getParametre()
@@ -353,16 +380,25 @@ class ArrivageController extends AbstractController
                     : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
+                'arrivageId' => $arrivage->getId(),
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
             ];
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404 not found');
     }
 
-    /**
-     * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
-     */
-    public function editApi(Request $request): Response
+	/**
+	 * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @param ValeurChampLibreRepository $valeurChampLibreRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editApi(Request $request,
+							ChampLibreRepository$champLibreRepository,
+							ValeurChampLibreRepository $valeurChampLibreRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -376,7 +412,23 @@ class ArrivageController extends AbstractController
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
             $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+
+			$champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
+			$champsLibresArray = [];
+			foreach ($champsLibres as $champLibre) {
+				$valeurChampArr = $valeurChampLibreRepository->getValueByArrivageAndChampLibre($arrivage, $champLibre);
+				$champsLibresArray[] = [
+					'id' => $champLibre->getId(),
+					'label' => $champLibre->getLabel(),
+					'typage' => $champLibre->getTypage(),
+					'elements' => $champLibre->getElements() ?? '',
+					'requiredEdit' => $champLibre->getRequiredEdit(),
+					'valeurChampLibre' => $valeurChampArr,
+					'edit' => true
+				];
+			}
+
+			if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
@@ -386,8 +438,9 @@ class ArrivageController extends AbstractController
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-                    'fieldsParam' => $fieldsParam
-                ]);
+                    'fieldsParam' => $fieldsParam,
+					'champsLibres' => $champsLibresArray
+				]);
             } else {
                 $html = '';
             }
@@ -472,13 +525,50 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
+			$champLibreKey = array_keys($post->all());
+			foreach ($champLibreKey as $champ) {
+				if (gettype($champ) === 'integer') {
+					$champLibre = $this->champLibreRepository->find($champ);
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+					// si la valeur n'existe pas, on la crée
+					if (!$valeurChampLibre) {
+						$valeurChampLibre = new ValeurChampLibre();
+						$valeurChampLibre
+							->addArrivage($arrivage)
+							->setChampLibre($this->champLibreRepository->find($champ));
+						$em->persist($valeurChampLibre);
+					}
+					$valeurChampLibre->setValeur(is_array($post->get($champ)) ? implode(";", $post->get($champ)) : $post->get($champ));
+					$em->flush();
+				}
+			}
+
+			$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+			$champsLibres = [];
+			foreach ($listTypes as $type) {
+				$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+				foreach ($listChampsLibres as $champLibre) {
+					$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+
+					$champsLibres[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampLibre,
+					];
+				}
+			}
 
             $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                    'fieldsParam' => $fieldsParam
+                    'fieldsParam' => $fieldsParam,
+					'champsLibres' => $champsLibres
                 ]),
             ];
             return new JsonResponse($response);
@@ -640,11 +730,20 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $arrivage = $data;
+            	//TODO CG
+            $arrivage = $this->arrivageRepository->find($data);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
-                'response' => $this->dimensionsEtiquettesRepository->getDimensionArray(),
-                'codeColis' => $codeColis
+                'response' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
+                'codeColis' => $codeColis,
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
+                'dropzone' => count($arrivage->getAcheteurs()) > 1
+                    ? null
+                    : count($arrivage->getAcheteurs()) > 0
+                        ? $arrivage->getAcheteurs()[0]->getDropzone()
+                            ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                            : null
+                        : null,
             );
             return new JsonResponse($responseData);
 
@@ -653,15 +752,15 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
-     * @param Request $request
-     * @return JsonResponse
-     */
+	/**
+	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
     public function getPrintData(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            $response = $this->dimensionsEtiquettesRepository->getDimensionArray();
+            $response = $this->globalParamService->getDimensionAndTypeBarcodeArray();
             return new JsonResponse($response);
 
         } else {
@@ -784,6 +883,26 @@ class ArrivageController extends AbstractController
             $acheteursNames[] = $user->getUsername();
         }
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+		$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+		$champsLibres = [];
+		foreach ($listTypes as $type) {
+			$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+			foreach ($listChampsLibres as $champLibre) {
+				$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+
+				$champsLibres[] = [
+					'id' => $champLibre->getId(),
+					'label' => $champLibre->getLabel(),
+					'typage' => $champLibre->getTypage(),
+					'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+					'defaultValue' => $champLibre->getDefaultValue(),
+					'valeurChampLibre' => $valeurChampLibre,
+				];
+			}
+		}
+
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -795,7 +914,8 @@ class ArrivageController extends AbstractController
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                'fieldsParam' => $fieldsParam
+                'fieldsParam' => $fieldsParam,
+				'champsLibres' => $champsLibres
             ]);
     }
 
@@ -915,7 +1035,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $response = $this->dimensionsEtiquettesRepository->getDimensionArray(false);
+            $response = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
             $response['codes'] = $codes;
             $response['arrivage'] = $arrivage->getNumeroArrivage();
 
@@ -1144,7 +1264,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param Arrivage $arrivage
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function apiColis(Request $request, Arrivage $arrivage): Response
     {
@@ -1161,7 +1281,16 @@ class ArrivageController extends AbstractController
                     'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
                     'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                     'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', ['code' => $colis->getCode()]),
+                    'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
+                        'code' => $colis->getCode(),
+                        'dropzone' => count($arrivage->getAcheteurs()) > 1
+                            ? null
+                            : count($arrivage->getAcheteurs()) > 0
+                                ? $arrivage->getAcheteurs()[0]->getDropzone()
+                                    ? $arrivage->getAcheteurs()[0]->getDropzone()->getLabel()
+                                    : null
+                                : null,
+                    ]),
                 ];
             }
             $data['data'] = $rows;
