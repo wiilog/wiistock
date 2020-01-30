@@ -736,7 +736,9 @@ function saveFilters(page, tableSelector, callback) {
 
     const valFunction = {
         input: ($input) => $input.val(),
-        select2: ($input) => $input.select2('data').map(({id, text}) => ({id, text})),
+        select2: ($input) => $input.select2('data')
+            .filter(({id, text}) => (id.trim() && text.trim()))
+            .map(({id, text}) => ({id, text})),
         checkbox: ($input) => $input.is(':checked')
     };
 
