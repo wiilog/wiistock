@@ -950,7 +950,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             switch ($filter['field']) {
                 case 'type':
                     $qb
-                        ->andWhere('ra.typeQuantite LIKE :type')
+                        ->join('ra.type', 't3')
+                        ->andWhere('t3.label LIKE :type')
                         ->setParameter('type', $filter['value']);
             }
         }
@@ -973,6 +974,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     switch ($column) {
+                        case 'Type':
+                            $qb
+                                ->join('ra.type', 't2')
+                                ->orderBy('t2.label', $order);
 						case 'quantiteStock':
 							$qb
 								->leftJoin('ra.articlesFournisseur', 'af')
@@ -1056,9 +1061,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitSecurity,
                 ra.limitWarning,
                 ra.dateEmergencyTriggered,
-                ra.typeQuantite')
+                ra.typeQuantite,
+                t.label as type')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
+            ->join('ra.type', 't')
             ->andWhere(
                 $qb->expr()->orX(
                     $qb->expr()->gt('ra.limitSecurity', 0),

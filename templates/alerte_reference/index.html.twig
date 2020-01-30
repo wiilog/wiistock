@@ -4,7 +4,7 @@
 
 {% block page_filter %}
     {{ parent() }}
-    {% include 'filters/filtersWithOnlyTypeQuantite.html.twig' with {'btnName': 'submitSearchAlerte'} %}
+    {% include 'filters/filtersWithOnlyType.html.twig' with {'btnName': 'submitSearchAlerte'} %}
 {% endblock %}
 
 {% block page_content %}
