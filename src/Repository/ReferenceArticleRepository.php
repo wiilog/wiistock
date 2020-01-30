@@ -1059,8 +1059,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.typeQuantite')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
-            ->andWhere('ra.limitSecurity > 0')
-            ->andWhere('ra.limitWarning > 0');
+            ->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->gt('ra.limitSecurity', 0),
+                    $qb->expr()->gt('ra.limitWarning', 0)
+                )
+            );
         return $qb;
     }
 

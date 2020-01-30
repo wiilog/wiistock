@@ -3,7 +3,7 @@ let clicked = false;
 $('.select2').select2();
 
 $(function() {
-    initDateTimePicker();
+    initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -17,6 +17,9 @@ $(function() {
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    $('select[name="tableArrivages_length"]').on('change', function() {
+        $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify($(this).val()));
+    });
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
@@ -24,6 +27,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
     serverSide: true,
     processing: true,
+    pageLength: $('#pageLengthForArrivage').val(),
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -78,7 +82,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
         //     extend: 'csv',
         //     className: 'dt-btn'
         // }
-    ]
+    ],
+    "lengthMenu": [10, 25, 50, 100],
 });
 
 function listColis(elem) {
@@ -145,6 +150,7 @@ function initNewArrivageEditor(modal) {
     ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
     ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
+    $('.list-multiple').select2();
 }
 
 let $submitSearchArrivage = $('#submitSearchArrivage');

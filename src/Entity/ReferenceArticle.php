@@ -22,9 +22,9 @@ class ReferenceArticle
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';
 
-	const BARCODE_PREFIX = 'REF';
+    const BARCODE_PREFIX = 'REF';
 
-	/**
+    /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -41,10 +41,10 @@ class ReferenceArticle
      */
     private $reference;
 
-	/**
-	 * @ORM\Column(type="string", length=15, nullable=true)
-	 */
-	private $barCode;
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $barCode;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -116,15 +116,15 @@ class ReferenceArticle
      */
     private $emplacement;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="refArticle")
-	 */
-	private $mouvements;
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="refArticle")
+     */
+    private $mouvements;
 
-	/**
-	 * @ORM\Column(type="date", nullable=true)
-	 */
-	private $expiryDate;
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $expiryDate;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
@@ -446,12 +446,12 @@ class ReferenceArticle
         return $this;
     }
 
-    public function removeReceptionReferenceArticle(ReceptionReferenceArticle  $receptionReferenceArticle): self
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
     {
         if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
             // set the owning side to null (unless already changed)
-            if ($receptionReferenceArticle->getReferenceArticle() ===  $this) {
+            if ($receptionReferenceArticle->getReferenceArticle() === $this) {
                 $receptionReferenceArticle->setReferenceArticle(null);
             }
             return $this;
@@ -760,7 +760,8 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getCalculedAvailableQuantity(): int {
+    public function getCalculedAvailableQuantity(): int
+    {
         $totalQuantity = 0;
         if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
@@ -782,14 +783,21 @@ class ReferenceArticle
     public function treatAlert(): void
     {
         $calculedAvailableQuantity = $this->getCalculedAvailableQuantity();
-
+        $limitToCompare = empty($this->getLimitWarning())
+            ? empty($this->getLimitSecurity())
+                ? 0
+                : $this->getLimitSecurity()
+            : $this->getLimitWarning();
         $status = $this->getStatut();
-        if (!isset($status) ||
-            ($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
-            ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $this->getLimitWarning()))) {
-            $this->setDateEmergencyTriggered(null);
-        } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $this->getLimitWarning()) {
-            $this->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
+        $limitToCompare = intval($limitToCompare);
+        if ($limitToCompare > 0) {
+            if (!isset($status) ||
+                ($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
+                ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
+                $this->setDateEmergencyTriggered(null);
+            } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
+                $this->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
+            }
         }
     }
 

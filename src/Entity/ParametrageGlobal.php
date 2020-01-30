@@ -25,6 +25,16 @@ class ParametrageGlobal
         "label" => 'Code 128'
     ];
 
+	const USES_UTF8 = 'utilise utf8';
+    const ENCODAGE_UTF8 = [
+        'value'=> true,
+        'label'=> 'UTF-8'
+    ];
+    const ENCODAGE_EUW = [
+        'value'=> false,
+        'label'=> '1252 Europe de l\'ouest Windows'
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

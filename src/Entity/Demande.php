@@ -165,7 +165,11 @@ class Demande
 
     public function getLivraison(): ?Livraison
     {
-        return $this->livraison;
+        return $this->getPreparation()
+                ? (!empty($this->getPreparation()->getLivraisons())
+                    ? $this->getPreparation()->getLivraisons()[0]
+                    : null)
+                : null;
     }
 
     public function setLivraison(?Livraison $livraison): self

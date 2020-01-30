@@ -53,6 +53,10 @@ class ValeurChampLibre
 	 */
 	private $demandesCollecte;
 
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\Arrivage", mappedBy="valeurChampLibre")
+	 */
+	private $arrivages;
 
     public function __construct()
     {
@@ -62,6 +66,7 @@ class ValeurChampLibre
         $this->receptions = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->demandesCollecte = new ArrayCollection();
+        $this->arrivages = new ArrayCollection();
     }
 
 
@@ -232,6 +237,34 @@ class ValeurChampLibre
             $this->demandesCollecte->removeElement($demandesCollecte);
             $demandesCollecte->removeValeurChampLibre($this);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivages(): Collection
+    {
+        return $this->arrivages;
+    }
+
+    public function addArrivage(Arrivage $arrivage): self
+    {
+        if (!$this->arrivages->contains($arrivage)) {
+            $this->arrivages[] = $arrivage;
+            $arrivage->addValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivage(Arrivage $arrivage): self
+    {
+        if ($this->arrivages->contains($arrivage)) {
+            $this->arrivages->removeElement($arrivage);
+			$arrivage->removeValeurChampLibre($this);
+		}
 
         return $this;
     }

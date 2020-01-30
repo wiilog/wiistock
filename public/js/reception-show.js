@@ -431,8 +431,6 @@ function validatePacking($button) {
             const initIndex = lastIndex + 1;
             for (let index = initIndex; index < (initIndex + packageNumber); index++) {
                 const $clonedHtml = $html.clone();
-                const $articleFournisseur = $clonedHtml.find('select[name="articleFournisseur"]');
-                ajaxAutoArticleFournisseurByRefInit(selectedOption.reference, $articleFournisseur);
 
                 const $containerArticle = $('<div/>', {
                     class: 'conditionnement-article',
@@ -570,7 +568,11 @@ function printBarcode(button) {
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
         if (response.exists) {
             if (response.refs.length > 0) {
-                printBarcodes(response.refs, response, 'Etiquettes du ' + date + '.pdf', response.barcodeLabels);
+                printBarcodes(
+                    response.refs,
+                    response,
+                    'Etiquettes du ' + date + '.pdf',
+                    response.barcodeLabel);
             } else {
                 alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
             }

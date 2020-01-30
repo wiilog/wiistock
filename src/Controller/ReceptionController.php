@@ -304,7 +304,6 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $champsLibresKey = array_keys($data);
-
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
                     $valeurChampLibre = new ValeurChampLibre();
@@ -404,7 +403,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -447,7 +446,7 @@ class ReceptionController extends AbstractController
 
             $typeChampLibre = [];
             foreach ($listType as $type) {
-                $champsLibresComplet = $this->champLibreRepository->findByTypeId($type['id']);
+                $champsLibresComplet = $this->champLibreRepository->findByType($type['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
@@ -555,7 +554,7 @@ class ReceptionController extends AbstractController
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
+            $champsLibres = $this->champLibreRepository->findByType($type['id']);
             $typeChampLibre[] = [
                 'typeLabel' => $type['label'],
                 'typeId' => $type['id'],
@@ -626,7 +625,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -701,7 +700,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -803,7 +802,7 @@ class ReceptionController extends AbstractController
             $champsLibres = [];
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
             foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByTypeId($oneType['id']);
+                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
                     $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -850,7 +849,7 @@ class ReceptionController extends AbstractController
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibresReception = [];
         foreach ($listTypes as $type) {
-            $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
+            $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
                 $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
@@ -980,7 +979,8 @@ class ReceptionController extends AbstractController
                         'quantity' => $quantity,
                     ],
                     'typeArticle' => $typeArticle->getLabel(),
-                    'champsLibres' => $champsLibres
+                    'champsLibres' => $champsLibres,
+					'references' => $this->articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
                 ]
             ));
             return $response;

@@ -86,6 +86,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            ParametrageGlobal::USES_UTF8 => [
+                'default' => true,
+            ],
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],

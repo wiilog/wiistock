@@ -91,6 +91,7 @@
 
         {# datetime picker #}
         <script src={{ asset('js/bootstrap-datetimepicker.min.js') }}></script>
+
         {# Select 2 #}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
         <script src={{asset("js/i18n/select2.full.min.js")}}></script>
@@ -103,7 +104,14 @@
 
         {# he.js #}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/he/1.2.0/he.min.js" integrity="sha256-awnFgdmMV/qmPoT6Fya+g8h/E4m0Z+UFwEHZck/HRcc=" crossorigin="anonymous"></script>
+
+        <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/encoding-indexes.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/encoding.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/FileSaver.js') }}"></script>
+
+        {# jQuery qrCode #}
         <script type="text/javascript" src="{{ asset('js/qr-code-logo-label/dist/jquery-qrcode.js') }}"></script>
+
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}

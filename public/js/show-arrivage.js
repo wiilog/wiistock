@@ -162,6 +162,8 @@ function editRowArrivage(button) {
         quillEdit = initEditor('.editor-container-edit');
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         originalText = quillEdit.getText();
+        modal.find('.list-multiple').select2();
+        initDateTimePicker('.date-cl');
     }, 'json');
 
     modal.find(submit).attr('value', id);
