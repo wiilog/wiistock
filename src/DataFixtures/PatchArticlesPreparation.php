@@ -36,21 +36,24 @@ class PatchArticlesPreparation extends Fixture implements FixtureGroupInterface
 	{
 	    foreach ($this->preparationRepository->findAll() as $preparation) {
 	        $demande = $preparation->getDemande();
-            $articles = $demande->getArticles();
-            foreach ($articles as $article) {
-                $preparation->addArticle($article);
-            }
-            $lignesArticles = $demande->getLigneArticle();
-            foreach ($lignesArticles as $ligneArticle) {
-                $lignesArticlePreparation = new LigneArticlePreparation();
-                $lignesArticlePreparation
-                    ->setToSplit($ligneArticle->getToSplit())
-                    ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
-                    ->setQuantite($ligneArticle->getQuantite())
-                    ->setReference($ligneArticle->getReference());
-                $manager->persist($lignesArticlePreparation);
-                $preparation->addLigneArticlePreparation($lignesArticlePreparation);
-            }
+
+	        if ($demande) {
+				$articles = $demande->getArticles();
+				foreach ($articles as $article) {
+					$preparation->addArticle($article);
+				}
+				$lignesArticles = $demande->getLigneArticle();
+				foreach ($lignesArticles as $ligneArticle) {
+					$lignesArticlePreparation = new LigneArticlePreparation();
+					$lignesArticlePreparation
+						->setToSplit($ligneArticle->getToSplit())
+						->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
+						->setQuantite($ligneArticle->getQuantite())
+						->setReference($ligneArticle->getReference());
+					$manager->persist($lignesArticlePreparation);
+					$preparation->addLigneArticlePreparation($lignesArticlePreparation);
+				}
+			}
         }
 	    $manager->flush();
 	}
