@@ -41,7 +41,7 @@
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
                     multiple="multiple">
                 {% for elem in  champLibre.elements %}
-                    {% set selected = (champLibre.valeurChampLibre and elem in (champLibre.valeurChampLibre.valeur | split(','))) ? 'selected' : '' %}
+                    {% set selected = elem in (defaultValue|split(',')) ? 'selected' : '' %}
                     <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                 {% endfor %}
             </select>

@@ -459,11 +459,11 @@ class ArrivageController extends AbstractController
             $post = $request->request;
             $em = $this->getDoctrine()->getManager();
 
-            $arrivage = $this->arrivageRepository->find($data['id']);
+            $arrivage = $this->arrivageRepository->find($post->get('id'));
 
             $oldNumeroBL = $arrivage->getNumeroBL();
 
-            $arrivage //TODO CG
+            $arrivage
                 ->setCommentaire($post->get('commentaire'))
                 ->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')))
                 ->setTransporteur($this->transporteurRepository->find($post->get('transporteur')))
@@ -521,7 +521,7 @@ class ArrivageController extends AbstractController
 
             $em->flush();
 
-			$champLibreKey = array_keys($data);
+			$champLibreKey = array_keys($post->all());
 			foreach ($champLibreKey as $champ) {
 				if (gettype($champ) === 'integer') {
 					$champLibre = $this->champLibreRepository->find($champ);
@@ -534,7 +534,7 @@ class ArrivageController extends AbstractController
 							->setChampLibre($this->champLibreRepository->find($champ));
 						$em->persist($valeurChampLibre);
 					}
-					$valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+					$valeurChampLibre->setValeur(is_array($post->get($champ)) ? implode(";", $post->get($champ)) : $post->get($champ));
 					$em->flush();
 				}
 			}
