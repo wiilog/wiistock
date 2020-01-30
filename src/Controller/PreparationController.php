@@ -407,8 +407,6 @@ class PreparationController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        // TODO prepraPartielle delete ligneArticlePreparation & preparation_id dans les articles ????
-
         $em = $this->getDoctrine()->getManager();
         $demande = $preparation->getDemande();
         $demande
