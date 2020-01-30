@@ -1,4 +1,4 @@
-{% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
+{% set disabled = (((disabled is defined) and (disabled == true)) ? 'disabled' : '') %}
 <div class="filterService filters form-row justify-content-center filters-container">
     {% block filters %}
     {% endblock %}

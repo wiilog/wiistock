@@ -10,9 +10,9 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 
 use App\Repository\ArticleRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\DemandeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticleRepository;
@@ -86,11 +86,6 @@ class LivraisonController extends AbstractController
     private $preparationRepository;
 
     /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -131,7 +126,21 @@ class LivraisonController extends AbstractController
     private $livraisonService;
 
 
-    public function __construct(LivraisonService $livraisonService, CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+    public function __construct(LivraisonService $livraisonService,
+                                CategorieCLRepository $categorieCLRepository,
+                                TypeRepository $typeRepository,
+                                ValeurChampLibreRepository $valeurChampLibreRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                PreparationRepository $preparationRepository,
+                                LigneArticleRepository $ligneArticleRepository,
+                                EmplacementRepository $emplacementRepository,
+                                LivraisonRepository $livraisonRepository,
+                                StatutRepository $statutRepository,
+                                UserService $userService,
+                                MailerService $mailerService,
+                                ArticleRepository $articleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -139,7 +148,6 @@ class LivraisonController extends AbstractController
         $this->champLibreRepository = $champsLibreRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
@@ -152,15 +160,27 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/", name="livraison_index", methods={"GET", "POST"})
+     * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
+     * @param string|null $demandId
+     * @param DemandeRepository $demandeRepository
+     * @return Response
      */
-    public function index(): Response
+    public function index(DemandeRepository $demandeRepository,
+                          string $demandId = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $filterDemand = $demandId
+            ? $demandeRepository->find($demandId)
+            : null;
+
         return $this->render('livraison/index.html.twig', [
+            'filterDemandId' => isset($filterDemand) ? $demandId : null,
+            'filterDemandValue' => isset($filterDemand) ? $filterDemand->getNumero() : null,
+            'filtersDisabled' => isset($filterDemand),
+            'displayDemandFilter' => true,
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
@@ -180,7 +200,6 @@ class LivraisonController extends AbstractController
      */
     public function finish(Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
-                           DemandeRepository $demandeRepository,
                            EntityManagerInterface $entityManager): Response {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -188,12 +207,11 @@ class LivraisonController extends AbstractController
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $demande = $demandeRepository->findOneByLivraison($livraison);
             $livraisonsManager->finishLivraison(
                 $this->getUser(),
                 $livraison,
                 $dateEnd,
-                $demande->getDestination()
+                $livraison->getDemande()->getDestination()
             );
             $entityManager->flush();
         }
@@ -204,6 +222,12 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
      */
     public function api(Request $request): Response
     {
@@ -212,8 +236,8 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			$data = $this->livraisonService->getDataForDatatable($request->request);
-
+            $filterDemandId = $request->request->get('filterDemand');
+			$data = $this->livraisonService->getDataForDatatable($request->request, $filterDemandId);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -229,12 +253,11 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->findOneByLivraison($livraison);
+            $preparation = $livraison->getPreparation();
             $data = [];
-            if ($demande) {
+            if ($preparation) {
                 $rows = [];
-                $articles = $this->articleRepository->findByDemande($demande);
-                foreach ($articles as $article) {
+                foreach ($preparation->getArticles() as $article) {
                     if ($article->getQuantite() !== 0) {
                         $rows[] = [
                             "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
@@ -247,9 +270,8 @@ class LivraisonController extends AbstractController
                         ];
                     }
                 }
-                $lignes = $demande->getLigneArticle();
 
-                foreach ($lignes as $ligne) {
+                foreach ($preparation->getLigneArticlePreparations() as $ligne) {
                 	if ($ligne->getQuantitePrelevee() > 0) {
 						$rows[] = [
 							"Référence" => $ligne->getReference()->getReference(),
@@ -282,7 +304,7 @@ class LivraisonController extends AbstractController
         }
 
         return $this->render('livraison/show.html.twig', [
-            'demande' => $this->demandeRepository->findOneByLivraison($livraison),
+            'demande' => $livraison->getDemande(),
             'livraison' => $livraison,
             'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId()),
             'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE)
@@ -306,11 +328,6 @@ class LivraisonController extends AbstractController
 
             $preparation = $livraison->getpreparation();
             $preparation->setStatut($statutP);
-
-            $demandes = $livraison->getDemande();
-            foreach ($demandes as $demande) {
-                $demande->setLivraison(null);
-            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($livraison);
@@ -369,8 +386,8 @@ class LivraisonController extends AbstractController
 
 	private function buildInfos(Livraison $livraison, &$data)
 	{
-		$demande = !empty($livraison->getDemande()) ? $livraison->getDemande()[0] : null;
-		if ($demande) {
+		$demande = $livraison->getDemande();
+		if (isset($demande)) {
             $dataLivraison =
                 [
                     $livraison->getNumero() ?? '',

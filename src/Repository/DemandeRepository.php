@@ -33,25 +33,6 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-	/**
-	 * @param Livraison $livraison
-	 * @return Demande|null
-	 * @throws NonUniqueResultException
-	 */
-	public function findOneByLivraison($livraison)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT d
-            FROM App\Entity\Demande d
-            JOIN d.preparation p
-            JOIN p.livraisons l
-            WHERE l = :livraison'
-		)->setParameter('livraison', $livraison);
-		$result = $query->getResult();
-		return !empty($result) ? $result[0] : null;
-	}
-
     public function findByUserAndNotStatus($user, $status)
     {
         $entityManager = $this->getEntityManager();
@@ -127,17 +108,6 @@ class DemandeRepository extends ServiceEntityRepository
             WHERE d.statut in (:listStatus)"
         )->setParameter('listStatus', $listStatusId, Connection::PARAM_STR_ARRAY);
         return $query->getSingleScalarResult();
-    }
-
-    public function findOneByPreparation($preparation)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Demande a
-            WHERE a.preparation = :preparation'
-        )->setParameter('preparation', $preparation);
-        return $query->getOneOrNullResult();
     }
 
 	/**
@@ -309,5 +279,20 @@ class DemandeRepository extends ServiceEntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    /**
+     * @param $search
+     * @return mixed
+     */
+    public function getIdAndLibelleBySearch($search)
+    {
+        return $this->createQueryBuilder('demande')
+            ->select('demande.id')
+            ->addSelect('demande.numero AS text')
+            ->andWhere('demande.numero LIKE :search')
+            ->setParameter('search', '%' . $search . '%')
+            ->getQuery()
+            ->execute();
     }
 }

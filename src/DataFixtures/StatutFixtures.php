@@ -74,7 +74,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Demande::STATUT_A_TRAITER,
 				Demande::STATUT_PREPARE,
 				Demande::STATUT_LIVRE,
-				Demande::STATUT_INCOMPLETE
+				Demande::STATUT_INCOMPLETE,
+                Demande::STATUT_LIVRE_INCOMPLETE
 			],
 			CategorieStatut::ORDRE_LIVRAISON => [
 				Livraison::STATUT_A_TRAITER,

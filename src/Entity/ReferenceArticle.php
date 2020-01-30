@@ -176,6 +176,11 @@ class ReferenceArticle
      */
     private $dateEmergencyTriggered;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="reference")
+     */
+    private $ligneArticlePreparations;
+
 
     public function __construct()
     {
@@ -189,6 +194,7 @@ class ReferenceArticle
         $this->inventoryCategoryHistory = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
+        $this->ligneArticlePreparations = new ArrayCollection();
     }
 
     public function getId()
@@ -809,6 +815,37 @@ class ReferenceArticle
     public function setDateEmergencyTriggered(?\DateTimeInterface $dateEmergencyTriggered): self
     {
         $this->dateEmergencyTriggered = $dateEmergencyTriggered;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LigneArticlePreparation[]
+     */
+    public function getLigneArticlePreparations(): Collection
+    {
+        return $this->ligneArticlePreparations;
+    }
+
+    public function addLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if (!$this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations[] = $ligneArticlePreparation;
+            $ligneArticlePreparation->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    {
+        if ($this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
+            $this->ligneArticlePreparations->removeElement($ligneArticlePreparation);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticlePreparation->getReference() === $this) {
+                $ligneArticlePreparation->setReference(null);
+            }
+        }
 
         return $this;
     }

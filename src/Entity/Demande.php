@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,6 +19,7 @@ class Demande
 	const STATUT_INCOMPLETE = 'partiellement préparé';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
+    const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
 
     /**
      * @ORM\Id()
@@ -47,14 +49,10 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="demandes")
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="demande")
      */
-    private $preparation;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="demande")
-     */
-    private $livraison;
+    private $preparations;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
@@ -93,6 +91,7 @@ class Demande
 
 
 	public function __construct() {
+        $this->preparations = new ArrayCollection();
         $this->ligneArticle = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
@@ -139,44 +138,57 @@ class Demande
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDate(?DateTimeInterface $date): self
     {
         $this->date = $date;
 
         return $this;
     }
 
-    public function getPreparation(): ?Preparation
-    {
-        return $this->preparation;
+    /**
+     * @return Collection|Preparation[]
+     */
+    public function getPreparations(): Collection {
+        return $this->preparations;
     }
 
-    public function setPreparation(?Preparation $preparation): self
+    public function addPreparation(?Preparation $preparation): self
     {
-        $this->preparation = $preparation;
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations[] = $preparation;
+            $preparation->setDemande($this);
+        }
 
         return $this;
     }
 
-    public function getLivraison(): ?Livraison
+    public function removePreparation(?Preparation $preparation): self
     {
-        return $this->getPreparation()
-                ? (!empty($this->getPreparation()->getLivraisons())
-                    ? $this->getPreparation()->getLivraisons()[0]
-                    : null)
-                : null;
-    }
-
-    public function setLivraison(?Livraison $livraison): self
-    {
-        $this->livraison = $livraison;
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations->removeElement($preparation);
+            // set the owning side to null (unless already changed)
+            if ($preparation->getDemande() === $this) {
+                $preparation->setDemande(null);
+            }
+        }
 
         return $this;
+    }
+    /**
+     * @return Livraison[]|Collection
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->getPreparations()->map(function (Preparation $preparation) {
+            return $preparation->getLivraison();
+        })->filter(function(?Livraison $livraison) {
+            return isset($livraison);
+        });
     }
 
     public function getStatut(): ?Statut
@@ -190,21 +202,6 @@ class Demande
 
         return $this;
     }
-
-
-
-
-//    public function getDateAttendu(): ?\DateTimeInterface
-//    {
-//        return $this->DateAttendu;
-//    }
-//
-//    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
-//    {
-//        $this->DateAttendu = $DateAttendu;
-//
-//        return $this;
-//    }
 
     /**
      * @return Collection|LigneArticle[]

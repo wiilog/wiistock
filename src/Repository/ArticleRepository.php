@@ -178,6 +178,8 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+
+
     public function findByStatut($statut)
     {
         $entityManager = $this->getEntityManager();
@@ -710,8 +712,7 @@ class ArticleRepository extends ServiceEntityRepository
                          ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.demande d
-			JOIN d.preparation p
+			JOIN a.preparation p
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
@@ -737,12 +738,11 @@ class ArticleRepository extends ServiceEntityRepository
 			LEFT JOIN a.emplacement e
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			JOIN ra.ligneArticles la
-			JOIN la.demande d
-			JOIN d.preparation p
+			JOIN ra.ligneArticlePreparations la
+			JOIN la.preparation p
 			JOIN p.statut s
 			WHERE a.quantite > 0
-			  AND a.demande IS NULL
+			  AND a.preparation IS NULL
 			  AND (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
         )->setParameters([
             'statutLabel' => $statutLabel,
@@ -825,6 +825,60 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByDemandeAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
 
 	/**
 	 * @param string $reference

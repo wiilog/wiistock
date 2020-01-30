@@ -15,6 +15,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use phpDocumentor\Reflection\Types\Integer;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
@@ -74,7 +75,6 @@ class LivraisonsManagerService {
 
             // repositories
             $statutRepository = $this->entityManager->getRepository(Statut::class);
-            $demandeRepository = $this->entityManager->getRepository(Demande::class);
             $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
             $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutName(
@@ -86,12 +86,24 @@ class LivraisonsManagerService {
                 ->setUtilisateur($user)
                 ->setDateFin($dateEnd);
 
-            $demande = $demandeRepository->findOneByLivraison($livraison);
-            $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_LIVRE);
+            $demande = $livraison->getDemande();
+            $demandeIsPartial = ($demande->getPreparations()->filter(function(Preparation $preparation) {
+                return $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+            })->count() > 0);
+            foreach ($demande->getPreparations() as $preparation) {
+                if ($preparation->getLivraison() &&
+                    ($preparation->getLivraison()->getStatut()->getNom() === Livraison::STATUT_A_TRAITER)) {
+                    $demandeIsPartial = true;
+                    break;
+                }
+            }
+            $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(
+                CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             // quantités gérées à la référence
-            $ligneArticles = $demande->getLigneArticle();
+            $preparation = $livraison->getPreparation();
+            $ligneArticles = $preparation->getLigneArticlePreparations();
 
             foreach ($ligneArticles as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();

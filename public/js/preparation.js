@@ -6,16 +6,29 @@ $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_PREPA);;
-    $.post(path, params, function(data) {
-        displayFiltersSup(data);
-    }, 'json');
-
+    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
     ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
     $('#preparation-emplacement + .select2').addClass('col-6');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+
+    let $filterDemand = $('.filters-container .filter-demand');
+    $filterDemand.attr('name', 'demande');
+    $filterDemand.attr('id', 'demande');
+    let filterDemandId = $('#filterDemandId').val();
+    let filterDemandValue = $('#filterDemandValue').val();
+
+    if (filterDemandId && filterDemandValue) {
+        let option = new Option(filterDemandValue, filterDemandId, true, true);
+        $filterDemand.append(option).trigger('change');
+    }
+    else {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_PREPA);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
 });
 
 let path = Routing.generate('preparation_api');
@@ -28,7 +41,10 @@ let table = $('#table_id').DataTable({
     order: [[3, 'desc']],
     ajax: {
         url: path,
-        type: 'POST'
+        'data' : {
+            'filterDemand': $('#filterDemandId').val()
+        },
+        "type": "POST"
     },
     'drawCallback': function() {
         overrideSearch($('#table_id_filter input'), table);
@@ -75,7 +91,7 @@ $.fn.dataTable.ext.search.push(
     }
 );
 
-let pathArticle = Routing.generate('preparation_article_api', {'id': id, 'prepaId': $('#prepa-id').val()});
+let pathArticle = Routing.generate('preparation_article_api', {'prepaId': $('#prepa-id').val()});
 let tableArticle = $('#tableArticle_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -138,7 +154,8 @@ function submitSplitting(submit) {
         'articles': articlesChosen,
         'quantite': submit.data('qtt'),
         'demande': submit.data('demande'),
-        'refArticle': submit.data('ref')
+        'refArticle': submit.data('ref'),
+        'preparation': submit.data('prep')
     };
     $.post(path, JSON.stringify(params), function (resp) {
         if (resp == true) {
@@ -262,7 +279,7 @@ function finishPrepa() {
 
     rows.each((elem) => {
         if (elem > 0) allRowsEmpty = false;
-    })
+    });
 
     if (allRowsEmpty) {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
