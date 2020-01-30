@@ -660,6 +660,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 }
                                 $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
                                 $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep);
+                                // TODO array prepa
                                 if ($insertedPreparation) $resData['insertedPrepas'][] = $insertedPreparation->getId();
                                 if ($emplacementPrepa) {
                                     $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
