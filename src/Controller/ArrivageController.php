@@ -210,10 +210,8 @@ class ArrivageController extends AbstractController
         $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
-        $carriers = $this->transporteurRepository->findAllSorted();
         return $this->render('arrivage/index.html.twig', [
-            'transporteurs' => $carriers, // TODO remove (vérifier impacts)
-            'carriers' => $carriers,
+            'carriers' => $this->transporteurRepository->findAllSorted(),
             'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
             'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $this->natureRepository->findAll(),

@@ -188,7 +188,6 @@ class ArrivageRepository extends ServiceEntityRepository
         // filtres sup
         $statut = null;
         $needsDefaultDateFilter = true;
-        dump($filters);
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':

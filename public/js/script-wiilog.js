@@ -25,11 +25,9 @@ const STATUT_EN_TRANSIT = 'en transit';
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
-$.fn.dataTable.ext.errMode = (resp) => {
+$.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
-
-$.fn.select2.defaults.set('allowClear', true);
 
 /**
  * Initialise une fenêtre modale
@@ -475,6 +473,8 @@ function initFilterDateToday() {
 }
 
 function initSelect2(select, placeholder = '', lengthMin = 0) {
+    let isMultiple = $(select).attr('multiple') === 'multiple';
+
     $(select).select2({
         language: {
             inputTooShort: function () {
@@ -493,10 +493,13 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
             id: 0,
             text: placeholder,
         },
+        allowClear: !isMultiple
     });
 }
 
 function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
+    let isMultiple = $select.attr('multiple') === 'multiple';
+
     $select.select2({
         ajax: {
             url: Routing.generate(route, params, true),
@@ -518,7 +521,8 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
         minimumInputLength: lengthMin,
         placeholder: {
             text: placeholder,
-        }
+        },
+        allowClear: !isMultiple
     });
 }
 
@@ -1275,7 +1279,6 @@ function displayFiltersSup(data) {
             case 'providers':
             case 'reference':
             case 'demCollecte':
-            case 'emplacement':
                 let valuesElement = element.value.split(',');
                 let $select = $('#' + element.field);
                 valuesElement.forEach((value) => {
