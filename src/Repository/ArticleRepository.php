@@ -178,6 +178,8 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+
+
     public function findByStatut($statut)
     {
         $entityManager = $this->getEntityManager();
@@ -823,6 +825,60 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByDemandeAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
 
 	/**
 	 * @param string $reference

@@ -28,7 +28,10 @@ let table = $('#table_id').DataTable({
     order: [[3, 'desc']],
     ajax: {
         url: path,
-        type: 'POST'
+        'data' : {
+            'filterDemand': $('#filterDemand').val()
+        },
+        "type": "POST"
     },
     'drawCallback': function() {
         overrideSearch($('#table_id_filter input'), table);

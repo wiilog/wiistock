@@ -591,6 +591,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 EntityManagerInterface $entityManager)
     {
         $resData = [];
+        $resData['insertedPrepas'] = [];
         $statusCode = Response::HTTP_OK;
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
@@ -623,6 +624,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $mouvementsNomade = $preparationArray['mouvements'];
                                 $totalQuantitiesWithRef = [];
                                 $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
+                                $articlesToKeep = [];
                                 foreach ($mouvementsNomade as $mouvementNomade) {
                                     if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                         $article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
@@ -633,8 +635,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $totalQuantitiesWithRef[$refArticle->getReference()] += $mouvementNomade['quantity'];
                                     }
                                     $preparationsManager->treatMouvementQuantities($mouvementNomade, $preparation);
-                                    $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
                                     // on crée les mouvements de livraison
+                                    if (empty($articlesToKeep)) {
+                                        $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    } else {
+                                        $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser);
+                                    }
                                     $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
                                     $preparationsManager->createMouvementLivraison(
                                         $mouvementNomade['quantity'],
@@ -652,9 +658,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                                     $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                                 }
-
                                 $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                                $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa);
+                                $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep);
+                                if ($insertedPreparation) $resData['insertedPrepas'][] = $insertedPreparation->getId();
                                 if ($emplacementPrepa) {
                                     $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
                                 } else {

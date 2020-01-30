@@ -155,11 +155,11 @@ class PreparationController extends AbstractController
         $preparation = $this->preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
-        $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+        $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
-        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa);
+        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
@@ -249,16 +249,23 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/", name="preparation_index", methods="GET|POST")
+     * @Route("/liste/{demandeId}", name="preparation_index", methods="GET|POST")
+     * @param string|null $demandeId
+     * @return Response
      */
-    public function index(): Response
+    public function index(string $demandeId = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $demandeLivraison = $demandeId ? $this->demandeRepository->find($demandeId) : null;
+
         return $this->render('preparation/index.html.twig', [
+            'filterDemand' => isset($demandeLivraison) ? ($demandeId . ':' . $demandeLivraison->getNumero()) : null,
             'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'filtersDisabled' => isset($demandeLivraison),
         ]);
     }
 
@@ -272,7 +279,8 @@ class PreparationController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->preparationsManagerService->getDataForDatatable($request->request);
+            $filterDemand = $request->request->get('filterDemand');
+            $data = $this->preparationsManagerService->getDataForDatatable($request->request, $filterDemand);
 
             return new JsonResponse($data);
         }

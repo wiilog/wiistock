@@ -54,7 +54,7 @@ class PreparationRepository extends ServiceEntityRepository
                          t.label as type
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
-			JOIN p.demandes d
+			JOIN p.demande d
 			JOIN d.destination dest
 			JOIN d.type t
 			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
@@ -64,23 +64,6 @@ class PreparationRepository extends ServiceEntityRepository
             'enCours' => $statutEnCoursLabel,
             'type' => $userTypes,
         ]);
-        return $query->execute();
-    }
-
-    public function findOneForAPI($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p.id,
-                         p.numero as number,
-                         dest.label as destination
-			FROM App\Entity\Preparation p
-			JOIN p.statut s
-			JOIN p.demandes d
-			JOIN d.destination dest
-			JOIN d.type t
-			WHERE p.id = :id"
-        )->setParameter('id', $id);
         return $query->execute();
     }
 
@@ -125,7 +108,7 @@ class PreparationRepository extends ServiceEntityRepository
 			switch($filter['field']) {
 				case 'type':
 					$qb
-						->leftJoin('p.demandes', 'd')
+						->leftJoin('p.demande', 'd')
 						->leftJoin('d.type', 't')
 						->andWhere('t.label = :type')
 						->setParameter('type', $filter['value']);
@@ -154,6 +137,12 @@ class PreparationRepository extends ServiceEntityRepository
 						->andWhere('p.date <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
+                case 'demande':
+                    $qb
+                        ->join('p.demande', 'demande')
+                        ->andWhere('demande.id = :id')
+                        ->setParameter('id', $filter['value']);
+                    break;
 			}
 		}
 
@@ -163,7 +152,7 @@ class PreparationRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('p.demandes', 'd2')
+						->leftJoin('p.demande', 'd2')
 						->leftJoin('d2.type', 't2')
 						->leftJoin('p.utilisateur', 'p2')
 						->leftJoin('p.statut', 's2')
@@ -190,7 +179,7 @@ class PreparationRepository extends ServiceEntityRepository
 							->orderBy('s3.nom', $order);
 					} else if ($column === 'type') {
 						$qb
-							->leftJoin('p.demandes', 'd3')
+							->leftJoin('p.demande', 'd3')
 							->leftJoin('d3.type', 't3')
 							->orderBy('t3.label', $order);
 					} else if ($column === 'user') {

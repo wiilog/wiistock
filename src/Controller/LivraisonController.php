@@ -160,7 +160,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{demandId}", name="livraison_index", methods={"GET", "POST"})
+     * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
      * @param string|null $demandId
      * @param DemandeRepository $demandeRepository
      * @return Response

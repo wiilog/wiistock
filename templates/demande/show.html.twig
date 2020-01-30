@@ -37,8 +37,17 @@
         {% elseif demande.preparations is not empty %}
             {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
                 <div class=" text-right">
-                    <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"
-                       class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
+                    {% if demande.preparations|length > 1 %}
+                        <a href="{{path('preparation_index', {'demandId': demande.id }) }}"
+                           class="btn btn-primary btn-action ml-auto">
+                            Aller vers les ordres de préparations
+                        </a>
+                    {% else %}
+                        <a href="{{path('preparation_show', {'id': demande.preparations[0].id }) }}"
+                           class="btn btn-primary btn-action ml-auto">
+                            Aller vers l'ordre de préparation
+                        </a>
+                    {% endif %}
                 </div>
             {% endif %}
             {% if demande.livraisons is not empty %}
