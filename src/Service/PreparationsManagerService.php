@@ -251,8 +251,11 @@ class PreparationsManagerService
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
                     ->setQuantite($newQuantity);
+                $this->entityManager->persist($newLigneArticle);
             }
         }
+        $this->entityManager->persist($newPreparation);
+        $this->entityManager->flush();
         return $newPreparation;
     }
 
@@ -451,8 +454,11 @@ class PreparationsManagerService
                     }
                     $insertedArticle = $this->articleDataService->newArticle($newArticle);
                     if ($selected) {
+                        if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
+                            $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
+                            $articlesSplittedToKeep[] = $insertedArticle->getId();
+                        }
                         $article->setQuantite($quantitePrelevee);
-                        $articlesSplittedToKeep[] = $insertedArticle->getId();
                     } else {
                         $preparation->addArticle($insertedArticle);
                         $preparation->removeArticle($article);

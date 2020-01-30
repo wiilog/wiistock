@@ -480,12 +480,14 @@ class DemandeController extends AbstractController
             }
             $demande = $this->demandeRepository->find($data['demandeId']);
             $preparations = $demande->getPreparations();
-            if (empty($preparations)) {
-                // TODO prepaPartielle on doit supprimer les lignes articles aussi ??
+            $entityManager = $this->getDoctrine()->getManager();
+            if ($preparations->count() === 0) {
                 foreach ($demande->getArticles() as $article) {
                     $article->setDemande(null);
                 }
-                $entityManager = $this->getDoctrine()->getManager();
+                foreach ($demande->getLigneArticle() as $ligneArticle) {
+                    $entityManager->remove($ligneArticle);
+                }
                 $entityManager->remove($demande);
                 $entityManager->flush();
                 $data = [
@@ -915,7 +917,7 @@ class DemandeController extends AbstractController
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),
             $demande->getDate()->format('Y/m/d-H:i:s'),
-            !empty($preparationOrders) ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
+            $preparationOrders->count() > 0 ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : ''
         ];
