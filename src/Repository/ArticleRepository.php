@@ -765,8 +765,8 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.demande d
-			JOIN d.livraison l
+			JOIN a.preparation p
+			JOIN p.livraison l
 			JOIN l.statut s
 			WHERE l.id IN (:livraisonsIds)
 			  AND a.quantite > 0"

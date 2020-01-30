@@ -621,9 +621,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             "SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison, ra.barCode
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
-			JOIN ra.ligneArticles la
-			JOIN la.demande d
-			JOIN d.livraison l
+			JOIN ra.ligneArticlePreparations la
+			JOIN la.preparation p
+			JOIN p.livraison l
 			JOIN l.statut s
 			WHERE l.id IN (:livraisonsIds) AND la.quantitePrelevee > 0"
         )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
