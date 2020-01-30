@@ -679,13 +679,14 @@ function alertErrorMsg(data, remove = false) {
     }
 }
 
-function alertSuccessMsg(data, toHide = true) {
+function alertSuccessMsg(data, remove = true) {
     let $alertSuccess = $('#alerts').find('.alert-success');
     $alertSuccess.removeClass('d-none');
     $alertSuccess
         .css('display', 'block')
         .css('opacity', '1');
-    if (toHide) {
+
+    if (remove) {
         $alertSuccess.delay(2000).fadeOut(2000);
     }
     $alertSuccess.find('.confirm-msg').html(data);
