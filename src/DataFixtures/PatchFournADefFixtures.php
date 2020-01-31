@@ -32,11 +32,25 @@ class PatchFournADefFixtures extends Fixture implements FixtureGroupInterface
     	if (SpecificService::isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
 
     		// on vide la base articles fournisseurs
-			$query = $manager->createQuery(
-			/** @lang DQL */
-			"DELETE FROM App\Entity\ArticleFournisseur af"
-			);
-			$query->execute();
+			$queries = [
+                $manager->createQuery("DELETE FROM App\Entity\MouvementStock mouvement"),
+                $manager->createQuery("DELETE FROM App\Entity\Article article"),
+                $manager->createQuery("DELETE FROM App\Entity\LigneArticle la"),
+                $manager->createQuery("DELETE FROM App\Entity\LigneArticlePreparation lap"),
+                $manager->createQuery("DELETE FROM App\Entity\Livraison livraison"),
+                $manager->createQuery("DELETE FROM App\Entity\Preparation preparation"),
+                $manager->createQuery("DELETE FROM App\Entity\Demande demande"),
+			    $manager->createQuery("DELETE FROM App\Entity\ReceptionReferenceArticle rra"),
+			    $manager->createQuery("DELETE FROM App\Entity\Reception r"),
+                $manager->createQuery("DELETE FROM App\Entity\ArticleFournisseur af"),
+                $manager->createQuery("DELETE FROM App\Entity\Colis c"),
+                $manager->createQuery("DELETE FROM App\Entity\Arrivage arrivage"),
+                $manager->createQuery("DELETE FROM App\Entity\Fournisseur fournisseur"),
+            ];
+
+			foreach ($queries as $query) {
+                $query->execute();
+            }
 
 			// on crée les articles fournisseurs et on les lie aux références
     		$fournisseurADef = new Fournisseur();
@@ -50,10 +64,11 @@ class PatchFournADefFixtures extends Fixture implements FixtureGroupInterface
     		$listRef = $this->refArticleRepository->findAll();
     		foreach ($listRef as $ref) {
     			$artFourn = new ArticleFournisseur();
-    			$artFourn->setLabel($ref->getLibelle() . '/' . $fournisseurADef->getNom())
+    			$artFourn
+                    ->setLabel($ref->getLibelle() . ' / ' . $fournisseurADef->getNom())
 					->setReferenceArticle($ref)
 					->setFournisseur($fournisseurADef)
-					->setReference($ref->getReference() . '/' . $fournisseurADef->getCodeReference());
+					->setReference($ref->getReference() . ' / ' . $fournisseurADef->getCodeReference());
     			$manager->persist($artFourn);
 			}
     		$manager->flush();
