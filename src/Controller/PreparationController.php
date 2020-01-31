@@ -318,16 +318,29 @@ class PreparationController extends AbstractController
                     $qtt = $isRefByRef ?
                         $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
-
-
+                    $ligneArticleFromDemande = $this->ligneArticleRepository->findOneByRefArticleAndDemande($articleRef, $demande);
                     if ($ligneArticle->getQuantitePrelevee() > 0 ||
                         ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
+                        $qttForCurrentLine = $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : null;
+                        $qttForDemandLine = $ligneArticleFromDemande && $ligneArticleFromDemande->getQuantite() ? $ligneArticleFromDemande->getQuantite() : null;
+                        $qttAlreadyPicked = array_reduce($demande->getPreparations()->toArray(), function (int $carry, Preparation $preparationReduced) use ($preparation) {
+                            // return counted quantites picked for previous preparations
+                            return ($preparation->getId() > $preparationReduced->getId())
+                                ? $carry + array_reduce(
+                                    $preparationReduced->getLigneArticlePreparations()->toArray(),
+                                    function (int $carryInPrepa, LigneArticlePreparation $ligneArticlePreparation) {
+                                        return $carryInPrepa + $ligneArticlePreparation->getQuantitePrelevee() ?? 0;
+                                    }, 0
+                                )
+                                : $carry;
+                        }, 0);
+                        $qttToDisplay = $qttForDemandLine ? ($qttForDemandLine - $qttAlreadyPicked) : ($qttForCurrentLine ?? ' ');
                         $rows[] = [
                             "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                             "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
                             "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
                             "Quantité" => $qtt,
-                            "Quantité à prélever" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' ',
+                            "Quantité à prélever" => $qttToDisplay,
                             "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $articleRef->getBarCode(),
