@@ -1334,6 +1334,7 @@ class ReceptionController extends AbstractController
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
 
+        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1352,7 +1353,7 @@ class ReceptionController extends AbstractController
 
 				$mouvementTraca = new MouvementTraca();
 				$mouvementTraca
-					->setType(MouvementTraca::TYPE_DEPOSE)
+					->setType($typeMouvementTraca)
 					->setEmplacement($receptionLocation)
 					->setOperateur($currentUser)
 					->setDatetime($now)
@@ -1376,7 +1377,7 @@ class ReceptionController extends AbstractController
 
 					$mouvementTraca = new MouvementTraca();
 					$mouvementTraca
-						->setType(MouvementTraca::TYPE_DEPOSE)
+						->setType($typeMouvementTraca)
 						->setEmplacement($receptionLocation)
 						->setOperateur($currentUser)
 						->setDatetime($now)
@@ -1777,7 +1778,13 @@ class ReceptionController extends AbstractController
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $response['barcodes'] = $response['barcodesLabel'] = [];
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $receptionLocation = $reception->getLocation();
+            $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
+            dump($receptionLocationId);
             foreach ($articles as $article) {
+                if (isset($receptionLocationId)) {
+                    $article['emplacement'] = $receptionLocationId;
+                }
                 $createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
                 $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
