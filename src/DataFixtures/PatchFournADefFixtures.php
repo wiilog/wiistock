@@ -43,6 +43,7 @@ class PatchFournADefFixtures extends Fixture implements FixtureGroupInterface
 			    $manager->createQuery("DELETE FROM App\Entity\ReceptionReferenceArticle rra"),
 			    $manager->createQuery("DELETE FROM App\Entity\Reception r"),
                 $manager->createQuery("DELETE FROM App\Entity\ArticleFournisseur af"),
+                $manager->createQuery("DELETE FROM App\Entity\Litige l"),
                 $manager->createQuery("DELETE FROM App\Entity\Colis c"),
                 $manager->createQuery("DELETE FROM App\Entity\Arrivage arrivage"),
                 $manager->createQuery("DELETE FROM App\Entity\Fournisseur fournisseur"),
