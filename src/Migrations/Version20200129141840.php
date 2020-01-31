@@ -23,6 +23,8 @@ final class Version20200129141840 extends AbstractMigration
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE preparation ADD demande_id INT DEFAULT NULL');
+        $this->addSql('ALTER TABLE article ADD preparation_id INT DEFAULT NULL');
+        $this->addSql('CREATE TABLE ligne_article_preparation (id INT AUTO_INCREMENT NOT NULL, reference_id INT NOT NULL, preparation_id INT NOT NULL, quantite INT NOT NULL, quantite_prelevee INT DEFAULT NULL, to_split TINYINT(1) DEFAULT NULL, INDEX IDX_B87D82D01645DEA9 (reference_id), INDEX IDX_B87D82D03DD9B8BA (preparation_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         $this->addSql('UPDATE preparation SET demande_id = (
                             SELECT demande.id
                             FROM demande as demande
@@ -50,6 +52,22 @@ final class Version20200129141840 extends AbstractMigration
         ");
         $this->addSql("
             DELETE FROM filtre_sup
+        ");
+        $this->addSql("
+            UPDATE article SET preparation_id =
+            (
+                SELECT preparation.id
+                FROM preparation
+                WHERE preparation.demande_id = article.demande_id
+            )
+            WHERE demande_id IS NOT NULL AND preparation_id IS NULL
+        ");
+        $this->addSql("
+            INSERT INTO `ligne_article_preparation` (reference_id, preparation_id, quantite, quantite_prelevee, to_split)
+            SELECT reference_id, preparation.id as preparation_id, quantite, quantite_prelevee, to_split
+            FROM ligne_article
+            INNER JOIN demande ON demande.id = ligne_article.demande_id
+            INNER JOIN preparation ON demande.id = preparation.demande_id
         ");
     }
 

@@ -835,10 +835,10 @@ class ArrivageController extends AbstractController
             foreach ($arrivages as $arrivage) {
                 $arrivageData = [];
 
-                $arrivageData[] = $arrivage->getNumeroArrivage();
-                $arrivageData[] = $arrivage->getDestinataire()->getUsername();
-                $arrivageData[] = $arrivage->getFournisseur()->getNom();
-                $arrivageData[] = $arrivage->getTransporteur()->getLabel();
+                $arrivageData[] = $arrivage->getNumeroArrivage() ?? ' ';
+                $arrivageData[] = $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : ' ';
+                $arrivageData[] = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : ' ';
+                $arrivageData[] = $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : ' ';
                 $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
                 $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
                 $arrivageData[] = $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '';
@@ -939,7 +939,7 @@ class ArrivageController extends AbstractController
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
-                    $litige->addColi($this->colisRepository->find($colisId));
+                    $litige->addColis($this->colisRepository->find($colisId));
                     $arrivage = $this->colisRepository->find($colisId)->getArrivage();
                 }
             }
@@ -1142,13 +1142,13 @@ class ArrivageController extends AbstractController
             if (!empty($colis = $post->get('colis'))) {
                 // on détache les colis existants...
                 $existingColis = $litige->getColis();
-                foreach ($existingColis as $coli) {
-                    $litige->removeColi($coli);
+                foreach ($existingColis as $colis) {
+                    $litige->removeColis($colis);
                 }
                 // ... et on ajoute ceux sélectionnés
                 $listColis = explode(',', $colis);
                 foreach ($listColis as $colisId) {
-                    $litige->addColi($this->colisRepository->find($colisId));
+                    $litige->addColis($this->colisRepository->find($colisId));
                 }
             }
 

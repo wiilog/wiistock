@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 

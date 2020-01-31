@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Demande;
-use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
