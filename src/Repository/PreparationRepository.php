@@ -7,6 +7,7 @@ use App\Entity\Preparation;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -46,27 +47,41 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByStatusLabelAndUser($statusLabel, $statutEnCoursLabel, $user, $userTypes)
+    public function getAvailablePreparations($user, array $preparationIdsFilter = [])
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p.id,
-                         p.numero as number,
-                         dest.label as destination,
-                         t.label as type
-			FROM App\Entity\Preparation p
-			JOIN p.statut s
-			JOIN p.demande d
-			JOIN d.destination dest
-			JOIN d.type t
-			WHERE (s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)) AND t.id IN (:type)"
-        )->setParameters([
-            'statusLabel' => $statusLabel,
-            'user' => $user,
-            'enCours' => $statutEnCoursLabel,
-            'type' => $userTypes,
-        ]);
-        return $query->execute();
+        $userTypes = [];
+        foreach ($user->getTypes() as $type) {
+            $userTypes[] = $type->getId();
+        }
+
+        $queryBuilder = $this->createQueryBuilder('p');
+        $queryBuilder
+            ->select('p.id')
+            ->addSelect('p.numero as number')
+            ->addSelect('dest.label as destination')
+            ->addSelect('t.label as type')
+            ->join('p.statut', 's')
+            ->join('p.demande', 'd')
+            ->join('d.destination', 'dest')
+            ->join('d.type', 't')
+            ->andWhere('s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)')
+            ->andWhere('t.id IN (:type)')
+            ->setParameters([
+                'statusLabel' => Preparation::STATUT_A_TRAITER,
+                'user' => $user,
+                'enCours' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
+                'type' => $userTypes,
+            ]);
+
+        if (!empty($preparationIdsFilter)) {
+            $queryBuilder
+                ->andWhere('p.id IN (:preparationIdsFilter)')
+                ->setParameter('preparationIdsFilter', $preparationIdsFilter, Connection::PARAM_STR_ARRAY);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
 	/**

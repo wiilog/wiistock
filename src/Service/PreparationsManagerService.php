@@ -17,7 +17,6 @@ use App\Entity\Utilisateur;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -279,9 +278,7 @@ class PreparationsManagerService
                                              $article,
                                              Preparation $preparation,
                                              bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null
-    )
-    {
+                                             Emplacement $emplacementFrom = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
