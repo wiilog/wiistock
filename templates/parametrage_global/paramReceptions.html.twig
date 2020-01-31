@@ -5,7 +5,7 @@
 </a>
 <div class="collapse col-12" id="paramReceptions">
     <div class="row p-3">
-        {% set checked = ((parametrageG.value is defined ? parametrageG.value : 0) == 1) ? 'checked' : '' %}
+        {% set checked = (parametrageG == 1) ? 'checked' : '' %}
         <label class="switch">
             <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                    onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
@@ -15,7 +15,7 @@
             réception</label>
     </div>
     <div class="row p-3">
-        {% set checked = ((parametrageGPrepa.value is defined ? parametrageGPrepa.value : 0) == 1) ? 'checked' : '' %}
+        {% set checked = ((parametrageGPrepa == 1) ? 'checked' : '' %}
         <label class="switch">
             <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
                    onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_prepa') }}')">
@@ -24,7 +24,6 @@
         <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
     </div>
     <div class="row p-3">
-
         <div>
             <div class="input-group minw-200px">
                 <label>Emplacement de réception par défaut</label>
@@ -32,7 +31,6 @@
                 </select>
             </div>
         </div>
-
-        <input hidden id="receptionLocationValue" data-id="{{ receptionLocation.id }}" data-text="{{ receptionLocation.text }}">
+        <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
     </div>
 </div>

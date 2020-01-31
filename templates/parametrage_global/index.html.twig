@@ -27,7 +27,7 @@
                 <label for="param-bl-etiquette">Numéro BL sur l'étiquette</label>
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3 data"
-                           name="param-bl-etiquette" {{ wantsBL ? wantsBL.value ? 'checked' : '' : '' }}>
+                           name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
                     <span class="slider round"></span>
                 </label>
             </div>
@@ -35,7 +35,7 @@
                 <label for="param-type-etiquette">Type d'étiquette</label>
                 <select name="param-type-etiquette" class="data form-control">
                     {% for type in typesETQ %}
-                        <option value="{{ type.value }}" {{ type.value == paramCodeETQ.value ? 'selected' : '' }}>{{ type.label }}</option>
+                        <option value="{{ type.value }}" {{ type.value == paramCodeETQ ? 'selected' : '' }}>{{ type.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -55,7 +55,7 @@
                 <label for="param-type-encodage">Encodage des exports CSV</label>
                 <select name="param-type-encodage" class="data form-control">
                     {% for encoding in encodings %}
-                        <option value="{{ encoding.value }}" {{ encoding.value == paramCodeENC.value ? 'selected' : '' }}>{{ encoding.label }}</option>
+                        <option value="{{ encoding.value }}" {{ encoding.value == paramCodeENC ? 'selected' : '' }}>{{ encoding.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -148,7 +148,7 @@
         </a>
         <div class="collapse col-12" id="paramArrivage">
             <div class="row p-3">
-                {% set checked = (redirect.value ? 'checked' : '') %}
+                {% set checked = (redirect ? 'checked' : '') %}
                 <label class="switch">
                     <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                            onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_redirection') }}')">

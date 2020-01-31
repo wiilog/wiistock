@@ -67,24 +67,27 @@ class GlobalParamController extends AbstractController
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
         $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-        $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
         $redirect = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+        $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+        $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+        $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
                 'paramReceptions' => [
-                    'parametrageG' => $paramGlo,
-                    'redirect' => $redirect,
-                    'parametrageGPrepa' => $paramGloPrepa
+                    'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
+                    'redirect' => $redirect ? $redirect->getValue() : true,
+                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false
                 ],
                 'mailerServer' => $mailerServer,
-                'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
+                'wantsBL' => $wantBL ? $wantBL->getValue() : false,
 				'translations' => $translationRepository->findAll(),
 				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
-                'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
+                'paramCodeENC' => $paramCodeENC ? $paramCodeENC->getValue() : true,
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
-                'paramCodeETQ' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
+                'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
 				'receptionLocation' => $globalParamService->getReceptionDefaultLocation()
         ]);
@@ -554,7 +557,7 @@ class GlobalParamController extends AbstractController
         if ($request->isXmlHttpRequest())
         {
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
-            return new JsonResponse($parametrageGlobal->getValue());
+            return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
         }
         throw new NotFoundHttpException("404");
     }

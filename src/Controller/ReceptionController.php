@@ -893,6 +893,8 @@ class ReceptionController extends AbstractController
             ];
         }
 
+        $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
@@ -905,7 +907,7 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)->getValue()
+            'createDL' => $createDL ? $createDL->getValue() : false
         ]);
     }
 

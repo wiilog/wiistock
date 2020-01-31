@@ -37,10 +37,12 @@ $(function() {
 
     // initialise valeur champs select2 ajax
     let dataReceptionLocation = $('#receptionLocationValue').data();
-    $receptionLocationSelect.off('change');
-    let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
-    $receptionLocationSelect.append(option).trigger('change');
-    $receptionLocationSelect.on('change', editDefaultLocationValue);
+    if (dataReceptionLocation.id && dataReceptionLocation.text) {
+        $receptionLocationSelect.off('change');
+        let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
+        $receptionLocationSelect.append(option).trigger('change');
+        $receptionLocationSelect.on('change', editDefaultLocationValue);
+    }
 });
 
 function errorEditDays(data) {
