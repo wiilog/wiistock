@@ -13,6 +13,7 @@ class ParametrageGlobal
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
     const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
     const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
+    const DEFAULT_LOCATION_RECEPTION = 'DEFAULT LOCATION RECEPTION';
 
 
     const BARCODE_TYPE_IS_128 = 'barcode type';
@@ -48,25 +49,14 @@ class ParametrageGlobal
     private $label;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $parametre;
+    private $value;
+
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getParametre(): ?bool
-    {
-        return $this->parametre;
-    }
-
-    public function setParametre(?bool $parametre): self
-    {
-        $this->parametre = $parametre;
-
-        return $this;
     }
 
     public function getLabel(): ?string
@@ -80,4 +70,17 @@ class ParametrageGlobal
 
         return $this;
     }
+
+    public function getValue(): ?string
+    {
+        return $this->value;
+    }
+
+    public function setValue(?string $value): self
+    {
+        $this->value = $value;
+
+        return $this;
+    }
+
 }

@@ -8,12 +8,14 @@ use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\NonUniqueResultException;
@@ -40,21 +42,25 @@ class GlobalParamController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
-    /**
-     * @Route("/", name="global_param_index")
-     * @param TranslationRepository $translationRepository
-     * @param UserService $userService
-     * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param MailerServerRepository $mailerServerRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/", name="global_param_index")
+	 * @param TranslationRepository $translationRepository
+	 * @param UserService $userService
+	 * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param MailerServerRepository $mailerServerRepository
+	 * @param GlobalParamService $globalParamService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function index(TranslationRepository $translationRepository,
                           UserService $userService,
                           DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                           ParametrageGlobalRepository $parametrageGlobalRepository,
-                          MailerServerRepository $mailerServerRepository): response
+                          MailerServerRepository $mailerServerRepository,
+						  GlobalParamService $globalParamService
+	): response
     {
         if (!$userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
@@ -79,7 +85,8 @@ class GlobalParamController extends AbstractController
                 'paramCodeENC' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8),
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
-                'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE]
+                'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
+				'receptionLocation' => $globalParamService->getReceptionDefaultLocation()
         ]);
     }
 
@@ -120,7 +127,7 @@ class GlobalParamController extends AbstractController
 				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 $em->persist($parametrageGlobal);
             }
-            $parametrageGlobal->setParametre($data['param-bl-etiquette']);
+            $parametrageGlobal->setValue($data['param-bl-etiquette']);
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
             if (empty($parametrageGlobal128)) {
@@ -128,7 +135,7 @@ class GlobalParamController extends AbstractController
                 $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
                 $em->persist($parametrageGlobal128);
             }
-            $parametrageGlobal128->setParametre($data['param-type-etiquette']);
+            $parametrageGlobal128->setValue($data['param-type-etiquette']);
 
             $em->flush();
 
@@ -357,7 +364,7 @@ class GlobalParamController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
-                $ifExist->setParametre($data['val']);
+                $ifExist->setValue($data['val']);
                 $em->flush();
             }
             else
@@ -365,7 +372,7 @@ class GlobalParamController extends AbstractController
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)
-                    ->setParametre($data['val']);
+                    ->setValue($data['val']);
                 $em->persist($parametrage);
                 $em->flush();
             }
@@ -390,7 +397,7 @@ class GlobalParamController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
-                $ifExist->setParametre($data['val']);
+                $ifExist->setValue($data['val']);
                 $em->flush();
             }
             else
@@ -398,7 +405,7 @@ class GlobalParamController extends AbstractController
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL)
-                    ->setParametre($data['val']);
+                    ->setValue($data['val']);
                 $em->persist($parametrage);
                 $em->flush();
             }
@@ -423,7 +430,7 @@ class GlobalParamController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             if ($ifExist)
             {
-                $ifExist->setParametre($data['val']);
+                $ifExist->setValue($data['val']);
                 $em->flush();
             }
             else
@@ -431,7 +438,7 @@ class GlobalParamController extends AbstractController
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)
-                    ->setParametre($data['val']);
+                    ->setValue($data['val']);
                 $em->persist($parametrage);
                 $em->flush();
             }
@@ -477,15 +484,13 @@ class GlobalParamController extends AbstractController
 		throw new NotFoundHttpException("404");
 	}
 
-    /**
-     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param TranslationRepository $translationRepository
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
+	/**
+	 * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function saveEncodage(Request $request,
                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
@@ -499,7 +504,36 @@ class GlobalParamController extends AbstractController
                 $parametrageGlobal->setLabel(ParametrageGlobal::USES_UTF8);
                 $em->persist($parametrageGlobal);
             }
-            $parametrageGlobal->setParametre($data);
+            $parametrageGlobal->setValue($data);
+
+            $em->flush();
+
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+	/**
+	 * @Route("/emplacement-reception", name="edit_reception_location", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editReceptionLocation(Request $request,
+                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $post = $request->request;
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+            $em = $this->getDoctrine()->getManager();
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+                $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+                $em->persist($parametrageGlobal);
+            }
+            $parametrageGlobal->setValue($post->get('value'));
 
             $em->flush();
 
@@ -521,19 +555,24 @@ class GlobalParamController extends AbstractController
         if ($request->isXmlHttpRequest())
         {
             $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
-            return new JsonResponse($parametrageGlobal->getParametre());
+            return new JsonResponse($parametrageGlobal->getValue());
         }
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST")
-     */
+	/**
+	 * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 */
 	public function getIsCode128(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository) {
         if ($request->isXmlHttpRequest()) {
             $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
-            return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getParametre() : true);
+            return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
         }
-    }
+		throw new NotFoundHttpException("404");
+	}
 
 }

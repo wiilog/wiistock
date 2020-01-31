@@ -227,7 +227,7 @@ class ArrivageController extends AbstractController
             'natures' => $this->natureRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fieldsParam,
-            'redirect' => $paramGlobalRedirectAfterNewArrivage->getParametre(),
+            'redirect' => $paramGlobalRedirectAfterNewArrivage->getValue(),
 			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage()
         ]);
@@ -374,7 +374,7 @@ class ArrivageController extends AbstractController
 			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
             $data = [
-                "redirect" => $paramGlobalRedirectAfterNewArrivage->getParametre()
+                "redirect" => $paramGlobalRedirectAfterNewArrivage->getValue()
                     ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                     : null,
                 'printColis' => $printColis,

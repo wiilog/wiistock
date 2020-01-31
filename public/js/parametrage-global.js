@@ -30,6 +30,19 @@ let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
 InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
 
+$(function() {
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
+    let $receptionLocationSelect = $('#receptionLocation');
+    $receptionLocationSelect.on('change', editDefaultLocationValue);
+
+    // initialise valeur champs select2 ajax
+    let dataReceptionLocation = $('#receptionLocationValue').data();
+    $receptionLocationSelect.off('change');
+    let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
+    $receptionLocationSelect.append(option).trigger('change');
+    $receptionLocationSelect.on('change', editDefaultLocationValue);
+});
+
 function errorEditDays(data) {
     let modal = $("#modalEditDays");
     if (data.success === false) {
@@ -144,5 +157,20 @@ function saveTranslations() {
 function ajaxEncodage() {
     $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function() {
         alertSuccessMsg('Mise à jour de vos préférences d\'encodage réussie.');
+    });
+}
+
+function editDefaultLocationValue() {
+    let path = Routing.generate('edit_reception_location',true);
+    let param = {
+        value: $(this).val()
+    };
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("L'emplacement de réception a bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.");
+        }
     });
 }

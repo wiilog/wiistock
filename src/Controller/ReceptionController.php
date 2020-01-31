@@ -890,7 +890,7 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)->getParametre()
+            'createDL' => $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)->getValue()
         ]);
     }
 
@@ -1494,7 +1494,7 @@ class ReceptionController extends AbstractController
                             'refReference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                             'artLabel' => $article->getLabel(),
-                            'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                            'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                                 ? $articleArray['bl']
                                 : null)
                         ]);
@@ -1723,12 +1723,12 @@ class ReceptionController extends AbstractController
             }
             // optionnel : crée la demande de livraison
             $paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getParametre() : false;
+            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getValue() : false;
 
             if ($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
                 $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
-                $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getParametre() : false;
+                $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
                 $demande = $demandeLivraisonService->newDemande($data);
@@ -1755,7 +1755,7 @@ class ReceptionController extends AbstractController
                     'refReference' => $refArticle ? $refArticle->getReference() : '',
                     'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
                     'artLabel' => $createdArticle->getLabel(),
-                    'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                    'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                         ? $articleArray['bl']
                         : null)
                 ]);
