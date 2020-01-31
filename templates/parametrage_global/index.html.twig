@@ -136,13 +136,15 @@
     </div>
 
     <div class="row">
-        {% include 'parametrage_global/paramReceptions.html.twig' %}
+        {% include 'parametrage_global/paramReceptions.html.twig' with paramReceptions %}
     </div>
     <div class="row">
         <a data-toggle="collapse" href="#paramArrivage" role="button" aria-expanded="false"
            aria-controls="paramArrivage" class="col-12 mb-4">
-            <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage arrivage<i
-                    class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+                Paramétrage arrivage
+                <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+            </h1>
         </a>
         <div class="collapse col-12" id="paramArrivage">
             <div class="row p-3">

@@ -366,10 +366,13 @@ class ReceptionController extends AbstractController
                 $reception
                     ->setTransporteur($transporteur);
             }
-            if ($data['location'] != null) {
-				$location = $this->emplacementRepository->find(intval($data['location']));
-                $reception
-                    ->setLocation($location);
+
+            if (isset($data['location'])) {
+                $location = $this->emplacementRepository->find($data['location']);
+                $reception->setLocation($location);
+            }
+            else {
+                $reception->setLocation(null);
             }
 
             $reception

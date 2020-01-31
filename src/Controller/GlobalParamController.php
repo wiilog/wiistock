@@ -8,7 +8,6 @@ use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 
@@ -59,8 +58,7 @@ class GlobalParamController extends AbstractController
                           DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
-						  GlobalParamService $globalParamService
-	): response
+						  GlobalParamService $globalParamService): Response
     {
         if (!$userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
@@ -75,9 +73,11 @@ class GlobalParamController extends AbstractController
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
-                'parametrageG' => $paramGlo,
-                'redirect' => $redirect,
-                'parametrageGPrepa' => $paramGloPrepa,
+                'paramReceptions' => [
+                    'parametrageG' => $paramGlo,
+                    'redirect' => $redirect,
+                    'parametrageGPrepa' => $paramGloPrepa
+                ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
 				'translations' => $translationRepository->findAll(),
@@ -102,7 +102,7 @@ class GlobalParamController extends AbstractController
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  UserService $userService,
                                                  ParametrageGlobalRepository $parametrageGlobalRepository,
-                                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): response
+                                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM)) {
@@ -152,7 +152,7 @@ class GlobalParamController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function updatePrefixDemand(Request $request,
-                                       PrefixeNomDemandeRepository $prefixeNomDemandeRepository): response
+                                       PrefixeNomDemandeRepository $prefixeNomDemandeRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $prefixeDemande =  $prefixeNomDemandeRepository->findOneByTypeDemande($data['typeDemande']);
@@ -315,8 +315,7 @@ class GlobalParamController extends AbstractController
      */
     public function ajaxMailerServer(Request $request,
                                      UserService $userService,
-                                     MailerServerRepository $mailerServerRepository): response
-    {
+                                     MailerServerRepository $mailerServerRepository): Response {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
