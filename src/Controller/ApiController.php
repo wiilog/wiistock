@@ -1076,7 +1076,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
                 $this->successDataMsg['data']['anomalies'] = array_merge(
                     $this->inventoryEntryRepository->getAnomaliesOnRef($newAnomalies),
-                    $this->inventoryEntryRepository->getAnomaliesOnArt($newAnomalies)
+                    $this->inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
                 );
             } else {
                 $this->successDataMsg['success'] = false;
@@ -1092,7 +1092,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private function getDataArray($user)
     {
         $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
-        $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt();
+        $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
 
         /// livraisons
         $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
@@ -1130,8 +1130,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'manutentions' => $manutentions,
+            'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
 
             'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),

@@ -43,7 +43,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getAnomaliesOnRef($anomaliesIds = []) {
+    public function getAnomaliesOnRef(bool $forceValidLocation = false, $anomaliesIds = []) {
 		$queryBuilder = $this->createQueryBuilder('ie')
             ->select('ie.id')
             ->addSelect('ra.reference')
@@ -57,6 +57,10 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->leftJoin('ra.emplacement', 'e')
             ->andWhere('ie.anomaly = 1');
 
+		if ($forceValidLocation) {
+            $queryBuilder->andWhere('e IS NOT NULL');
+        }
+
         if (!empty($anomaliesIds)) {
             $queryBuilder
                 ->andWhere('ie.id IN (:inventoryEntries)')
@@ -68,7 +72,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->getScalarResult();
 	}
 
-    public function getAnomaliesOnArt($anomaliesIds = []) {
+    public function getAnomaliesOnArt(bool $forceValidLocation = false, $anomaliesIds = []) {
         $queryBuilder = $this->createQueryBuilder('ie')
             ->select('ie.id')
             ->addSelect('a.reference')
@@ -81,6 +85,10 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->join('ie.article', 'a')
             ->leftJoin('a.emplacement', 'e')
             ->andWhere('ie.anomaly = 1');
+
+        if ($forceValidLocation) {
+            $queryBuilder->andWhere('e IS NOT NULL');
+        }
 
         if (!empty($anomaliesIds)) {
             $queryBuilder
