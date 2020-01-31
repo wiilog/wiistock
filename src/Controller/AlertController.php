@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,21 +38,14 @@ class AlertController extends AbstractController
      * @param UserService $userService
      * @return Response
      */
-    public function indexAlerte(UserService $userService): Response
+    public function indexAlerte(UserService $userService, TypeRepository $typeRepository): Response
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
         return $this->render('alerte_reference/index.html.twig', [
-            'types' => [
-                [
-                    'label' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
-                ],
-                [
-                    'label' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
-                ]
-            ]
+            'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE)
         ]);
     }
 
