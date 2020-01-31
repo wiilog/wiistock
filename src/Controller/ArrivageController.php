@@ -835,10 +835,10 @@ class ArrivageController extends AbstractController
             foreach ($arrivages as $arrivage) {
                 $arrivageData = [];
 
-                $arrivageData[] = $arrivage->getNumeroArrivage();
-                $arrivageData[] = $arrivage->getDestinataire()->getUsername();
-                $arrivageData[] = $arrivage->getFournisseur()->getNom();
-                $arrivageData[] = $arrivage->getTransporteur()->getLabel();
+                $arrivageData[] = $arrivage->getNumeroArrivage() ?? ' ';
+                $arrivageData[] = $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : ' ';
+                $arrivageData[] = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : ' ';
+                $arrivageData[] = $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : ' ';
                 $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
                 $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
                 $arrivageData[] = $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '';
