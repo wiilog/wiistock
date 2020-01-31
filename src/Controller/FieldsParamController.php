@@ -54,16 +54,18 @@ class FieldsParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrayFields = $fieldsParamRepository->getByEntityForEntity($entityCode);
+            $arrayFields = $fieldsParamRepository->findByEntityForEntity($entityCode);
             $rows = [];
             foreach ($arrayFields as $field) {
                 $url['edit'] = $this->generateUrl('fields_api_edit', ['id' => $field->getId()]);
 
                 $rows[] =
                     [
-                        'entityCode' => $field->getEntityCode(),
                         'fieldCode' => $field->getFieldLabel(),
-                        'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
+						'displayed' => $field->getDisplayed() ? 'oui' : 'non',
+						'mustCreate' => $field->getMustToCreate() ? 'oui' : 'non',
+						'mustEdit' => $field->getMustToModify() ? 'oui' : 'non',
+						'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
                             'url' => $url,
                             'fieldId' => $field->getId(),
                         ]),
@@ -124,17 +126,17 @@ class FieldsParamController extends AbstractController
 
             if (!$field->getFieldRequiredHidden()) {
                 $field
-                    ->setMustToCreate($data['mustToCreate'])
-                    ->setDisplayed($data['displayed']);
+                    ->setMustToModify($data['mustToModify'])
+                    ->setMustToCreate($data['mustToCreate']);
             }
-            $field->setDisplayed($data['displayed']);
+            $field->setDisplayed($data['displayed'] ?? true);
 
             $entityManager->persist($field);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le champs fixe "' . $fieldName . '" dans "' . $fieldEntity . '" a bien été modifié.'
+                'msg' => 'Le champ fixe "' . $fieldName . '" dans "' . $fieldEntity . '" a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException('404');

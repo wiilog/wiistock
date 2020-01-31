@@ -9,6 +9,7 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
@@ -271,6 +272,12 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
+            if (!empty($data['location'])) {
+                $location = $this->emplacementRepository->find(intval($data['location']));
+                $reception
+                    ->setLocation($location);
+            }
+
             if (!empty($data['transporteur'])) {
                 $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
                 $reception
@@ -358,6 +365,11 @@ class ReceptionController extends AbstractController
                 $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
                 $reception
                     ->setTransporteur($transporteur);
+            }
+            if ($data['location'] != null) {
+				$location = $this->emplacementRepository->find(intval($data['location']));
+                $reception
+                    ->setLocation($location);
             }
 
             $reception
@@ -1314,35 +1326,58 @@ class ReceptionController extends AbstractController
     	$em = $this->getDoctrine()->getManager();
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+		$receptionLocation = $reception->getLocation();
+		$currentUser = $this->getUser();
 
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
 
                 $mouvementStock = new MouvementStock();
                 $mouvementStock
-					->setUser($this->getUser())
-					->setEmplacementTo($referenceArticle->getEmplacement())
+					->setUser($currentUser)
+					->setEmplacementTo($receptionLocation)
 					->setQuantity($receptionRA->getQuantite())
 					->setRefArticle($referenceArticle)
 					->setType(MouvementStock::TYPE_ENTREE)
 					->setReceptionOrder($reception)
 					->setDate($now);
 				$em->persist($mouvementStock);
+
+				$mouvementTraca = new MouvementTraca();
+				$mouvementTraca
+					->setType(MouvementTraca::TYPE_DEPOSE)
+					->setEmplacement($receptionLocation)
+					->setOperateur($currentUser)
+					->setDatetime($now)
+					->setColis($referenceArticle->getBarCode())
+					->setMouvementStock($mouvementStock);
+				$em->persist($mouvementTraca);
+
             } else {
 				$articles = $receptionRA->getArticles();
 				foreach ($articles as $article) {
 					$mouvementStock = new MouvementStock();
 					$mouvementStock
-						->setUser($this->getUser())
-						->setEmplacementTo($article->getEmplacement())
+						->setUser($currentUser)
+						->setEmplacementTo($receptionLocation)
 						->setQuantity($article->getQuantite())
 						->setArticle($article)
 						->setType(MouvementStock::TYPE_ENTREE)
 						->setReceptionOrder($reception)
 						->setDate($now);
 					$em->persist($mouvementStock);
+
+					$mouvementTraca = new MouvementTraca();
+					$mouvementTraca
+						->setType(MouvementTraca::TYPE_DEPOSE)
+						->setEmplacement($receptionLocation)
+						->setOperateur($currentUser)
+						->setDatetime($now)
+						->setColis($article->getBarCode())
+						->setMouvementStock($mouvementStock);
+					$em->persist($mouvementTraca);
 				}
 			}
         }
