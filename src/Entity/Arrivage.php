@@ -361,29 +361,6 @@ class Arrivage
         return $this;
     }
 
-    public function addColi(Colis $coli): self
-    {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removeColi(Colis $coli): self
-    {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
-            // set the owning side to null (unless already changed)
-            if ($coli->getArrivage() === $this) {
-                $coli->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function addPiecesJointe(PieceJointe $piecesJointe): self
     {
         if (!$this->attachements->contains($piecesJointe)) {
