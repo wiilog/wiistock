@@ -26,32 +26,32 @@ class ArticleQuantityNotifier
      * @param Article $article
      * @throws Exception
      */
-    public function postUpdate(Article $article)
-    {
-        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $referenceArticle->treatAlert();
-        $this->entityManager->flush();
+    public function postUpdate(Article $article) {
+        $this->treatAlert($article);
     }
 
     /**
      * @param Article $article
      * @throws Exception
      */
-    public function postPersist(Article $article)
-    {
-        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $referenceArticle->treatAlert();
-        $this->entityManager->flush();
+    public function postPersist(Article $article) {
+        $this->treatAlert($article);
     }
 
     /**
      * @param Article $article
      * @throws Exception
      */
-    public function postRemove(Article $article)
-    {
-        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $referenceArticle->treatAlert();
-        $this->entityManager->flush();
+    public function postRemove(Article $article) {
+        $this->treatAlert($article);
+    }
+
+    private function treatAlert(Article $article) {
+        $articleFournisseur = $article->getArticleFournisseur();
+        if (isset($articleFournisseur)) {
+            $referenceArticle = $articleFournisseur->getReferenceArticle();
+            $referenceArticle->treatAlert();
+            $this->entityManager->flush();
+        }
     }
 }

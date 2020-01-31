@@ -7,7 +7,6 @@ use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
@@ -115,10 +114,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
 				case 'emplacement':
+                    $value = explode(':', $filter['value']);
 					$qb
 						->join('ie.location', 'l')
 						->andWhere('l.label = :location')
-						->setParameter('location', $filter['value']);
+						->setParameter('location', $value[1] ?? $filter['value']);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);

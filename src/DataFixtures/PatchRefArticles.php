@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Article;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;

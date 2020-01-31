@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
+use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -177,6 +178,8 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('empl', $empl);;
         return $query->execute();
     }
+
+
 
     public function findByStatut($statut)
     {
@@ -710,8 +713,7 @@ class ArticleRepository extends ServiceEntityRepository
                          ra.reference as reference_article_reference
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.demande d
-			JOIN d.preparation p
+			JOIN a.preparation p
 			JOIN p.statut s
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
@@ -722,35 +724,38 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getRefArticleByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT
-                    DISTINCT a.reference,
-                    a.label,
-                    e.label as location,
-                    a.quantite as quantity,
-                    ra.reference as reference_article,
-                    a.barCode
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			JOIN ra.ligneArticles la
-			JOIN la.demande d
-			JOIN d.preparation p
-			JOIN p.statut s
-			WHERE a.quantite > 0
-			  AND a.demande IS NULL
-			  AND (s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))"
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
-            'user' => $user
-        ]);
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
+        $queryBuilder = $this->createQueryBuilder('a')
+            ->select('DISTINCT a.reference')
+            ->addSelect('a.label')
+            ->addSelect('e.label as location')
+            ->addSelect('a.quantite as quantity')
+            ->addSelect('ra.reference as reference_article')
+            ->addSelect('a.barCode')
+            ->leftJoin('a.emplacement', 'e')
+            ->join('a.articleFournisseur', 'af')
+            ->join('af.referenceArticle', 'ra')
+            ->join('ra.ligneArticlePreparations', 'la')
+            ->join('la.preparation', 'p')
+            ->join('p.statut', 's')
+            ->andWhere('a.quantite > 0')
+            ->andWhere('a.preparation IS NULL')
+            ->andWhere('(s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))')
+            ->setParameters([
+                'statutLabel' => Preparation::STATUT_A_TRAITER,
+                'enCours' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
+                'user' => $user
+            ]);
 
-        return $query->execute();
+        if (!empty($preparationIdsFilter)) {
+            $queryBuilder
+                ->andWhere('p.id IN (:preparationIdsFilter)')
+                ->setParameter('preparationIdsFilter', $preparationIdsFilter, Connection::PARAM_STR_ARRAY);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     public function getByLivraisonsIds($livraisonsIds)
@@ -761,8 +766,8 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
 			FROM App\Entity\Article a
 			LEFT JOIN a.emplacement e
-			JOIN a.demande d
-			JOIN d.livraison l
+			JOIN a.preparation p
+			JOIN p.livraison l
 			JOIN l.statut s
 			WHERE l.id IN (:livraisonsIds)
 			  AND a.quantite > 0"
@@ -825,6 +830,60 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByDemandeAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @param string $reference
+     * @return Article|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByAndArticle(Demande $demande, Article $article)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			WHERE a.demande = :demande
+			AND a.label = :label
+			AND artf = :af
+			AND artf.referenceArticle = :ar"
+        )->setParameters([
+            'demande' => $demande,
+            'label' => $article->getLabel(),
+            'af' => $article->getArticleFournisseur(),
+            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
 
 	/**
 	 * @param string $reference

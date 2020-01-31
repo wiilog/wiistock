@@ -226,19 +226,20 @@ class LitigeRepository extends ServiceEntityRepository
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
-				case 'providers':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('a.fournisseur', 'f2')
-						->andWhere("f2.id in (:fournisseurId)")
-						->setParameter('fournisseurId', $value);
-					break;
-				case 'carriers':
-					$qb
-						->join('a.transporteur', 't2')
-						->andWhere('t2.id = :transporteur')
-						->setParameter('transporteur', $filter['value']);
-					break;
+				//TODO à remettre en place en requêtant sur arrivages + réceptions
+//				case 'providers':
+//					$value = explode(',', $filter['value']);
+//					$qb
+//						->join('a.fournisseur', 'f2')
+//						->andWhere("f2.id in (:fournisseurId)")
+//						->setParameter('fournisseurId', $value);
+//					break;
+//				case 'carriers':
+//					$qb
+//						->join('a.transporteur', 't2')
+//						->andWhere('t2.id = :transporteur')
+//						->setParameter('transporteur', $filter['value']);
+//					break;
 				case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb

@@ -3,11 +3,13 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
+use App\Entity\Litige;
 use App\Repository\FiltreSupRepository;
 use App\Repository\LitigeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Error\LoaderError;
@@ -44,6 +46,7 @@ class LitigeService
     private $filtreSupRepository;
 
     private $em;
+    private $translator;
 
     public function __construct(UserService $userService,
                                 LitigeRepository $litigeRepository,
@@ -51,10 +54,12 @@ class LitigeService
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
+                                TranslatorInterface $translator,
                                 Security $security)
     {
         $this->templating = $templating;
         $this->em = $em;
+        $this->translator = $translator;
         $this->router = $router;
         $this->litigeRepository = $litigeRepository;
         $this->userService = $userService;
@@ -119,5 +124,12 @@ class LitigeService
 			'status' => $litige['status'] ?? '',
 		];
         return $row;
+    }
+
+    public function getLitigeOrigin(): array {
+        return [
+            Litige::ORIGIN_ARRIVAGE => $this->translator->trans('arrivage.arrivage'),
+            Litige::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
+        ];
     }
 }

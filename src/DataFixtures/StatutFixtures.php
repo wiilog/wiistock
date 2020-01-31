@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
-use App\Entity\Litige;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -75,7 +74,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Demande::STATUT_A_TRAITER,
 				Demande::STATUT_PREPARE,
 				Demande::STATUT_LIVRE,
-				Demande::STATUT_INCOMPLETE
+				Demande::STATUT_INCOMPLETE,
+                Demande::STATUT_LIVRE_INCOMPLETE
 			],
 			CategorieStatut::ORDRE_LIVRAISON => [
 				Livraison::STATUT_A_TRAITER,

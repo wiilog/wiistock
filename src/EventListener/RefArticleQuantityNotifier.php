@@ -7,7 +7,6 @@ namespace App\EventListener;
 use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 
 class RefArticleQuantityNotifier
 {

@@ -2,8 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Action;
-use App\Entity\Menu;
 use App\Repository\ActionRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

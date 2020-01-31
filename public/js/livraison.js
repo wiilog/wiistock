@@ -1,19 +1,30 @@
 $('.select2').select2();
 
-let $submitSearchLivraison = $('#submitSearchLivraison');
-
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Statut');
-
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);;
-    $.post(path, params, function(data) {
-        displayFiltersSup(data);
-    }, 'json');
-
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
+
+    // cas d'un filtre par demande de collecte
+    let $filterDemand = $('.filters-container .filter-demand');
+    $filterDemand.attr('name', 'demande');
+    $filterDemand.attr('id', 'demande');
+    let filterDemandId = $('#filterDemandId').val();
+    let filterDemandValue = $('#filterDemandValue').val();
+
+    if (filterDemandId && filterDemandValue) {
+        let option = new Option(filterDemandValue, filterDemandId, true, true);
+        $filterDemand.append(option).trigger('change');
+    }
+    else {
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
 });
 
 let pathLivraison = Routing.generate('livraison_api');
@@ -23,9 +34,14 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[3, "desc"]],
+    order: [
+        [3, "desc"]
+    ],
     ajax: {
         'url': pathLivraison,
+        'data': {
+            'filterDemand': $('#filterDemandId').val()
+        },
         "type": "POST"
     },
     'drawCallback': function() {
@@ -71,25 +87,6 @@ $.fn.dataTable.ext.search.push(
         return false;
     }
 );
-
-$submitSearchLivraison.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ORDRE_LIVRAISON,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        type: $('#type').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableLivraison);
-});
 
 let pathArticle = Routing.generate('livraison_article_api', {'id': id});
 let tableArticle = $('#tableArticle_id').DataTable({

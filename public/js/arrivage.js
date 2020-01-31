@@ -5,6 +5,7 @@ $('.select2').select2();
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
+    initSelect2('#carriers', 'Transporteurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -165,25 +166,3 @@ function initNewArrivageEditor(modal) {
     $('.list-multiple').select2();
 }
 
-let $submitSearchArrivage = $('#submitSearchArrivage');
-$submitSearchArrivage.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_ARRIVAGE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        urgence: $('#urgence-filter').is(':checked'),
-        providers: $('#providers').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    clicked = true;
-
-    saveFilters(filters, tableArrivage);
-});

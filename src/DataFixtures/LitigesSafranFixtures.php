@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
-use App\Entity\Litige;
 use App\Entity\Type;
 use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;

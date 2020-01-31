@@ -32,7 +32,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
@@ -127,12 +126,12 @@ class LitigeController extends AbstractController
 		$this->litigeService = $litigeService;
 	}
 
-	/**
-	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
-	 * @param TranslatorInterface $translator
-	 * @return Response
-	 */
-    public function index(TranslatorInterface $translator)
+    /**
+     * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+     * @param LitigeService $litigeService
+     * @return Response
+     */
+    public function index(LitigeService $litigeService)
     {
         if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -142,10 +141,7 @@ class LitigeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-			'litigeOrigins' => [
-				Litige::ORIGIN_ARRIVAGE => $translator->trans('arrivage.arrivage'),
-				Litige::ORIGIN_RECEPTION => $translator->trans('réception.réception')
-			],
+			'litigeOrigins' => $litigeService->getLitigeOrigin()
 		]);
     }
 

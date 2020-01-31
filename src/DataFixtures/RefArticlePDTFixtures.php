@@ -4,8 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
-use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Type;

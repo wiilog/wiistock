@@ -36,32 +36,6 @@ let table = $('#tableCollecte_id').DataTable({
     ]
 });
 
-let $submitSearchCollecte = $('#submitSearchCollecte');
-$submitSearchCollecte.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_DEM_COLLECTE,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        type: $('#type').val()
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, table);
-
-    // supprime le filtre de l'url
-    let str = window.location.href.split('/');
-    if (str[5]) {
-        window.location.href = Routing.generate('collecte_index');
-    }
-});
-
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
 let urlNewCollecte = Routing.generate('collecte_new', true)
@@ -229,9 +203,10 @@ let ajaxEditArticle = function (select) {
     }, 'json');
 }
 
-//TODO MH utilisé ?
-$submitSearchCollecte.on('keypress', function (e) {
-    if (e.which === 13) {
-        $submitSearchCollecte.click();
+function callbackSaveFilter() {
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('collecte_index');
     }
-});
+}

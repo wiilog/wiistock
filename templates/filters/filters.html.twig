@@ -1,99 +1,17 @@
-{% set disabled = disabled is defined and disabled == true ? 'disabled' : '' %}
-<div class="filterService filters form-row justify-content-center">
-    {% block dateFilter %}
-    <div class="minw-450px">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <div class="input-group-text">Du</div>
-            </div>
-            <input type="text" class="form-control cursor-default" name="dateMin" id="dateMin" placeholder="jj/mm/aaaa" {{ disabled }}>
-
-            <div class="input-group-prepend">
-                <div class="input-group-text">Au</div>
-            </div>
-            <input type="text" class="form-control cursor-default" name="dateMax" id="dateMax" placeholder="jj/mm/aaaa" {{ disabled }}>
-        </div>
-    </div>
+{% set disabled = (((disabled is defined) and (disabled == true)) ? 'disabled' : '') %}
+<div class="filterService filters form-row justify-content-center filters-container">
+    {% block filters %}
     {% endblock %}
-
-    {% block moreFilters %}
-    {% endblock %}
-
-    {% block emplacementFilter %}
-        <div>
-            <div class="input-group minw-200px">
-                <select class="form-control data select2 cursor-default" name="emplacement" id="emplacement" {{ disabled }}>
-                    <option value="">&nbsp;</option>
-                    {% for emplacement in emplacements %}
-                        <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-    {% endblock %}
-
-    {% block statusFilter %}
-    <div class="minw-150px select2-overflow">
-        <div class="input-group cursor-default">
-            <select class="form-control data select2" name="statut" id="statut" multiple="multiple" {{ disabled }}>
-                {% for statut in statuts %}
-                    {% if filterStatus is defined and statut.nom == filterStatus%}
-                        {% set selected = 'selected' %}
-                    {% else %}
-                        {% set selected = '' %}
-                    {% endif %}
-                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">
-    </div>
-    {% endblock %}
-
-    {% block userFilter %}
-    <div class="minw-150px select2-overflow">
-        <div class="input-group w-100 cursor-default">
-            <select class="form-control data ajax-autocomplete-user" name="utilisateur" id="utilisateur" multiple="multiple" {{ disabled }}>
-            </select>
-        </div>
-    </div>
-    {% endblock %}
-
-    {% block typeFilter %}
-    {% if types is defined %}
-    <div class="minw-100px">
-        <div class="input-group">
-            <select type="text" class="form-control data cursor-default" name="type" {{ disabled }}
-                    id="type">
-                <option value>Type</option>
-                {% for type in types %}
-                    <option value="{{ type.label }}">
-                        {{ type.label }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <input class="current-username" hidden value="{{ app.user.username }}">
-    </div>
-    {% endif %}
-    {% endblock %}
-
-    {% block urgence %}
-    {% endblock %}
-
-    {% block providerFilter %}
-        <div class="minw-150px select2-overflow">
-            <div class="input-group w-100 cursor-default">
-                <select id="providers" name="providers" class="form-control data ajax-autocomplete-fournisseur min-150px" multiple="multiple" {{ disabled }}>
-                </select>
-            </div>
-        </div>
-    {% endblock %}
-
     <div>
-        <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
+        <button class="btn btn-primary minw-105px"
+             tabindex="0"
+             onclick="saveFilters(
+                 {{ page }},
+                 {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }}
+                 {{ callback is defined ? (', ' ~ callback) }}
+             )">
             <i class="fas fa-filter mr-2"></i>
             Filtrer
-        </div>
+        </button>
     </div>
 </div>

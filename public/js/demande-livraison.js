@@ -83,32 +83,6 @@ let tableDemande = $('#table_demande').DataTable({
     ],
 });
 
-let $submitSearchDemande = $('#submitSearchDemandeLivraison');
-$submitSearchDemande.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_DEM_LIVRAISON,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-        type: $('#type').val(),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableDemande);
-
-    // supprime le filtre de l'url
-    let str = window.location.href.split('/');
-    if (str[5]) {
-        window.location.href = Routing.generate('demande_index');
-    }
-});
-
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         let dateMin = $('#dateMin').val();
@@ -264,7 +238,7 @@ function validateLivraison(livraisonId, elem) {
     });
 }
 
-let ajaxEditArticle = function (select) {
+function ajaxEditArticle (select) {
     let path = Routing.generate('article_api_edit', true);
     let params = {id: select.val(), isADemand: 1};
 
@@ -282,8 +256,10 @@ let ajaxEditArticle = function (select) {
     });
 }
 
-$submitSearchDemandeLivraison.on('keypress', function (e) {
-    if (e.which === 13) {
-        $submitSearchDemandeLivraison.click();
+function callbackSaveFilter() {
+    // supprime le filtre de l'url
+    let str = window.location.href.split('/');
+    if (str[5]) {
+        window.location.href = Routing.generate('demande_index');
     }
-});
+}

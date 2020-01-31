@@ -126,16 +126,3 @@ function printSingleEmplacementBarcode(button) {
         );
     });
 }
-
-function reloadDatatableforActif() {
-    let input = $('#actifInactif');
-    let filterInput = input.prop('checked');
-    input.attr('value', filterInput);
-    let params = {
-      page: PAGE_EMPLACEMENT
-    };
-    if (filterInput !== null && filterInput !== undefined) {
-        params.statut = filterInput;
-    }
-    saveFilters(params, tableEmplacement);
-}

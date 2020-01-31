@@ -13,7 +13,6 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 use App\Entity\Type;

@@ -7,8 +7,6 @@ use App\Entity\AlerteExpiry;
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Component\Routing\RouterInterface;
 
 class AlerteService
 {

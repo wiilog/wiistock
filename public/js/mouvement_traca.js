@@ -1,7 +1,5 @@
 $('.select2').select2();
 
-let $submitSearchMvt = $('#submitSearchMvt');
-
 $(function() {
     initDateTimePicker();
     initSelect2('#statut', 'Type');
@@ -88,26 +86,6 @@ let modalDeleteArrivage = $('#modalDeleteMvtTraca');
 let submitDeleteArrivage = $('#submitDeleteMvtTraca');
 let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
-
-$submitSearchMvt.on('click', function () {
-    $('#dateMin').data("DateTimePicker").format('YYYY-MM-DD');
-    $('#dateMax').data("DateTimePicker").format('YYYY-MM-DD');
-
-    let filters = {
-        page: PAGE_MVT_TRACA,
-        dateMin: $('#dateMin').val(),
-        dateMax: $('#dateMax').val(),
-        colis: $('#colis').val(),
-        location: $('#emplacement').val(),
-        statut: $('#statut').val(),
-        users: $('#utilisateur').select2('data'),
-    };
-
-    $('#dateMin').data("DateTimePicker").format('DD/MM/YYYY');
-    $('#dateMax').data("DateTimePicker").format('DD/MM/YYYY');
-
-    saveFilters(filters, tableMvt);
-});
 
 let editorNewMvtTracaAlreadyDone = false;
 

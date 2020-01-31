@@ -1,18 +1,8 @@
 {% extends 'filters/filters.html.twig' %}
 
-{% block moreFilters %}
-
-    <div class="input-group maxw-250px">
-        <select class="ajax-autocomplete-inv-entries data form-control" id="reference" name="reference"></select>
-    </div>
-
-{% endblock %}
-
-{% block statusFilter %}
-{% endblock %}
-
-{% block typeFilter %}
-{% endblock %}
-
-{% block providerFilter %}
+{% block filters %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterReference.html.twig' %}
+    {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

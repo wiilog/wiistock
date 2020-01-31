@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
@@ -14,8 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -75,18 +74,28 @@ class LivraisonService
         $this->demandeRepository = $demandeRepository;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    public function getDataForDatatable($params = null)
+    /**
+     * @param array|null $params
+     * @param int|null $filterDemandId
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getDataForDatatable($params = null, $filterDemandId = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
-
+        if ($filterDemandId) {
+            $filters = [
+                [
+                    'field' => FiltreSup::FIELD_DEMANDE,
+                    'value' => $filterDemandId
+                ]
+            ];
+        }
+        else {
+            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
+        }
 		$queryResult = $this->livraisonRepository->findByParamsAndFilters($params, $filters);
 
 		$livraisons = $queryResult['data'];
@@ -114,9 +123,9 @@ class LivraisonService
     {
 		$url['show'] = $this->router->generate('livraison_show', ['id' => $livraison->getId()]);
 
-		$demande = $this->demandeRepository->findOneByLivraison($livraison);
+		$demande = $livraison->getDemande();
 
-		$row = [
+        return [
 			'id' => $livraison->getId() ?? '',
 			'Numéro' => $livraison->getNumero() ?? '',
 			'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
@@ -125,7 +134,5 @@ class LivraisonService
 			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
 			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
 		];
-
-        return $row;
     }
 }
