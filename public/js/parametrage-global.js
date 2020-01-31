@@ -33,16 +33,14 @@ InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEdi
 $(function() {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     let $receptionLocationSelect = $('#receptionLocation');
-    $receptionLocationSelect.on('change', editDefaultLocationValue);
 
     // initialise valeur champs select2 ajax
     let dataReceptionLocation = $('#receptionLocationValue').data();
     if (dataReceptionLocation.id && dataReceptionLocation.text) {
-        $receptionLocationSelect.off('change');
         let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
         $receptionLocationSelect.append(option).trigger('change');
-        $receptionLocationSelect.on('change', editDefaultLocationValue);
     }
+    $receptionLocationSelect.on('change', editDefaultLocationValue);
 });
 
 function errorEditDays(data) {
@@ -164,8 +162,9 @@ function ajaxEncodage() {
 
 function editDefaultLocationValue() {
     let path = Routing.generate('edit_reception_location',true);
+    const locationValue = $(this).val();
     let param = {
-        value: $(this).val()
+        value: locationValue
     };
 
     $.post(path, param, (resp) => {

@@ -76,15 +76,17 @@ class GlobalParamController extends AbstractController
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
+                'redirect' => $redirect ? $redirect->getValue() : true,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
-                    'redirect' => $redirect ? $redirect->getValue() : true,
                     'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false
                 ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
-				'translations' => $translationRepository->findAll(),
-				'menusTranslations' => array_column($translationRepository->getMenus(), '1'),
+                'paramTranslations' => [
+                    'translations' => $translationRepository->findAll(),
+                    'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+                ],
                 'paramCodeENC' => $paramCodeENC ? $paramCodeENC->getValue() : true,
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
