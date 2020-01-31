@@ -244,7 +244,7 @@ class Litige
         return $this->colis;
     }
 
-    public function addColi(Colis $coli): self
+    public function addColis(Colis $coli): self
     {
         if (!$this->colis->contains($coli)) {
             $this->colis[] = $coli;
@@ -253,7 +253,7 @@ class Litige
         return $this;
     }
 
-    public function removeColi(Colis $coli): self
+    public function removeColis(Colis $coli): self
     {
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);

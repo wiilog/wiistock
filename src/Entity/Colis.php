@@ -82,7 +82,7 @@ class Colis
     {
         if (!$this->litiges->contains($litige)) {
             $this->litiges[] = $litige;
-            $litige->addColi($this);
+            $litige->addColis($this);
         }
 
         return $this;
@@ -92,7 +92,7 @@ class Colis
     {
         if ($this->litiges->contains($litige)) {
             $this->litiges->removeElement($litige);
-            $litige->removeColi($this);
+            $litige->removeColis($this);
         }
 
         return $this;
