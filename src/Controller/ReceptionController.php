@@ -568,7 +568,8 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
+			'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
         ]);
     }
 
