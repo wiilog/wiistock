@@ -8,7 +8,7 @@
         </div>
         <div>
             <div class="btn btn-col-action" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
-                 onclick="deleteRow($(this), $('#modalDeleteRole'), $('#submitDeleteRole'))">
+                 onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
                 <i class='fas fa-trash'></i>
             </div>
         </div>

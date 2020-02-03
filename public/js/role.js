@@ -17,7 +17,7 @@ let tableRoles = $('#tableRoles').DataTable({
 let modalNewRole = $("#modalNewRole");
 let submitNewRole = $("#submitNewRole");
 let urlNewRole = Routing.generate('role_new', true);
-InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErrorRole, false);
+InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErrorExistingRole, false);
 
 let modalEditRole = $('#modalEditRole');
 let submitEditRole = $('#submitEditRole');
@@ -29,7 +29,7 @@ let SubmitDeleteRole = $("#submitDeleteRole");
 let urlDeleteRole = Routing.generate('role_delete', true)
 InitialiserModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, tableRoles);
 
-function displayErrorRole(data) {
+function displayErrorExistingRole(data) {
     let modal = $("#modalNewRole");
     let msg = 'Ce nom de rôle existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);

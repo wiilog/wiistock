@@ -299,6 +299,32 @@ class RoleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+	/**
+	 * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST")
+	 */
+	public function checkRoleCanBeDeleted(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
+
+			if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$nbUsers = $this->utilisateurRepository->countByRoleId($roleId);
+
+			if ($nbUsers > 0 ) {
+				$delete = false;
+				$html = $this->renderView('role/modalDeleteRoleWrong.html.twig', ['nbUsers' => $nbUsers]);
+			} else {
+				$delete = true;
+				$html = $this->renderView('role/modalDeleteRoleRight.html.twig');
+			}
+
+			return new JsonResponse(['delete' => $delete, 'html' => $html]);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
     /**
      * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
@@ -308,24 +334,23 @@ class RoleController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+			$entityManager = $this->getDoctrine()->getManager();
+            $resp = false;
 
             if ($roleId = (int)$data['role']) {
-
                 $role = $this->roleRepository->find($roleId);
 
-                // on vérifie que le rôle n'est plus attribué à aucun utilisateur
-                $usedRole = $this->utilisateurRepository->countByRoleId($roleId);
+                if ($role) {
+                	$nbUsers = $this->utilisateurRepository->countByRoleId($roleId);
 
-                if ($usedRole > 0) {
-                    return new JsonResponse(false); //TODO gérer retour msg erreur (rôle attribué ne peut pas être supprimé)
-                }
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($role);
-                $entityManager->flush();
-                return new JsonResponse();
+                	if ($nbUsers == 0) {
+						$entityManager->remove($role);
+						$entityManager->flush();
+						$resp = true;
+					}
+				}
             }
-            return new JsonResponse();
+            return new JsonResponse($resp);
         }
         throw new NotFoundHttpException("404");
     }

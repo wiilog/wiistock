@@ -393,7 +393,7 @@ class UtilisateurController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
-			return new JsonResponse();
+			return new JsonResponse(true);
 		}
         throw new NotFoundHttpException('404');
     }

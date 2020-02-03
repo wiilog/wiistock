@@ -18,7 +18,7 @@ class ParametreRole
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Role", inversedBy="parametreRoles")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="role_id", referencedColumnName="id", onDelete="CASCADE", nullable=false)
      */
     private $role;
 
