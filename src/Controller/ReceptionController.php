@@ -272,7 +272,7 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
-            if (!empty($data['location'])) {
+			if (!empty($data['location'])) {
                 $location = $this->emplacementRepository->find(intval($data['location']));
                 $reception
                     ->setLocation($location);
@@ -346,37 +346,25 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statut = $this->statutRepository->find(intval($data['statut']));
             $reception = $this->receptionRepository->find($data['receptionId']);
 
-            if ($data['fournisseur'] != null) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                $reception
-                    ->setFournisseur($fournisseur);
-            }
+            $statut = $this->statutRepository->find(intval($data['statut']));
+            $reception->setStatut($statut);
 
-            if ($data['utilisateur'] != null) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-                $reception
-                    ->setUtilisateur($utilisateur);
-            }
+			$fournisseur = isset($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+            $reception->setFournisseur($fournisseur);
 
-            if ($data['transporteur'] != null) {
-                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-                $reception
-                    ->setTransporteur($transporteur);
-            }
+			$utilisateur = isset($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
+            $reception->setUtilisateur($utilisateur);
 
-            if (isset($data['location'])) {
-                $location = $this->emplacementRepository->find($data['location']);
-                $reception->setLocation($location);
-            }
-            else {
-                $reception->setLocation(null);
-            }
+			$transporteur = isset($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
+            $reception->setTransporteur($transporteur);
+
+            $location = isset($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
+            $reception->setLocation($location);
 
             $reception
-                ->setReference($data['numeroCommande'])
+                ->setReference(isset($data['numeroCommande']) ? $data['numeroCommande'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ?
@@ -389,9 +377,8 @@ class ReceptionController extends AbstractController
                         new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         :
                         null)
-                ->setNumeroReception($data['numeroReception'])
-                ->setStatut($statut)
-                ->setCommentaire($data['commentaire']);
+                ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
+                ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
