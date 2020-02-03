@@ -73,12 +73,12 @@ class Fournisseur
         return $this;
     }
 
-    public function getNom() : ? string
+    public function getNom() : ?string
     {
         return $this->nom;
     }
 
-    public function setNom(? string $nom) : self
+    public function setNom(?string $nom) : self
     {
         $this->nom = $nom;
 

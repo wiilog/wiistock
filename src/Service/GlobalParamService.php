@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\ParametrageGlobal;
 use App\Repository\DimensionsEtiquettesRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\ParametrageGlobalRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -13,14 +14,17 @@ Class GlobalParamService
 {
 	private $parametrageGlobalRepository;
 	private $dimensionsEtiquettesRepository;
+	private $emplacementRepository;
 
 	public function __construct(
 		ParametrageGlobalRepository $parametrageGlobalRepository,
-		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
+		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
+		EmplacementRepository $emplacementRepository
 	)
 	{
 		$this->parametrageGlobalRepository = $parametrageGlobalRepository;
 		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+		$this->emplacementRepository = $emplacementRepository;
 	}
 
 	/**
@@ -48,6 +52,27 @@ Class GlobalParamService
 		$typeBarcode = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 		$response['isCode128'] = $typeBarcode === '1';
 		return $response;
+	}
+
+	/**
+	 * @return array|null
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+	public function getReceptionDefaultLocation() {
+		$locationId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+
+		if ($locationId) {
+			$location = $this->emplacementRepository->find($locationId);
+
+			if ($location) {
+				$resp = [
+					'id' => $locationId,
+					'text' => $location->getLabel()
+				];
+			}
+		}
+		return $resp ?? null;
 	}
 
 }
