@@ -38,6 +38,7 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
+use App\Service\PDFBarcodeGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
@@ -59,6 +60,7 @@ use App\Repository\FournisseurRepository;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
 
 /**
@@ -1419,5 +1421,24 @@ class ReferenceArticleController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/{reference}/etiquette", name="ref_article_etiquette", options={"expose"=true}, methods="GET")
+     * @param ReferenceArticle $reference
+     * @return PdfResponse
+     */
+    public function getBarcode(ReferenceArticle $reference,
+                               PDFBarcodeGeneratorService $PDFBarcodeGeneratorService) {
+        return new PdfResponse(
+            $PDFBarcodeGeneratorService->generatePDFBarcode(
+                $reference->getBarCode(),
+                [
+                    $reference->getReference() ? ('L/R : ' . $reference->getReference()) : '',
+                    $reference->getLibelle() ? ('C/R : ' . $reference->getLibelle()) : ''
+                ]
+            ),
+            'ETK-' . $reference->getBarCode() . '.pdf'
+        );
     }
 }

@@ -66,7 +66,7 @@ class AppExtension extends AbstractExtension
 	{
 		return [
 			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
-            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
+            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction'])
 		];
 	}
 

@@ -1,0 +1,63 @@
+<style>
+    .barcode-container {
+        width: {{ barcodeWidth }}mm;
+        height: {{ barcodeHeight }}mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+        background-color: white;
+        padding: 2px;
+    }
+
+    .barcode {
+        min-height: 30%;
+    }
+
+    .barcode svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .labels {
+        margin-top: 3px;
+    }
+    .labels p {
+        overflow-wrap: break-word;
+        text-align: center;
+        margin: 0;
+        font-size: {{labelsFontSize}};
+    }
+
+    body {
+        background-color: grey;
+    }
+</style>
+
+<div class="barcode-container">
+    <div class="barcode">
+{#        {{ printBarcode({#}
+{#            code: code,#}
+{#            type: barcodeType,#}
+{#            format: 'svg',#}
+{#            width: 1,#}
+{#            height: 1#}
+{#        })|domAttribute('viewBox', '0 0 21 21')|raw }}#}
+
+        {{ printBarcode({
+            code: code,
+            type: barcodeType,
+            format: 'svg',
+            width: 1,
+            height: 45
+        })|raw
+        }}
+    </div>
+    <div class="labels">
+        {% if labels is defined %}
+            {% for label in labels %}
+                <p>{{ label|trim }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
