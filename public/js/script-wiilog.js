@@ -153,7 +153,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
 
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        if (close == true) modal.find('.close').click();
+        if (close == true) {
+            modal.find('.close').click();
+        }
 
         $.post(path, JSON.stringify(Data), function (data) {
             if (data.redirect) {
@@ -172,9 +174,13 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 }, false);
             }
 
-            if (clear) clearModal(modal);
+            if (clear) {
+                clearModal(modal);
+            }
 
-            if (callback !== null) callback(data);
+            if (callback !== null) {
+                callback(data);
+            }
         }, 'json');
 
     } else {

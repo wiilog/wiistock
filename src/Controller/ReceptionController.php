@@ -657,6 +657,9 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function addArticle(Request $request): Response
     {
@@ -665,65 +668,79 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find($contentData['referenceArticle']);
+            $refArticleId = $refArticle->getId();
             $reception = $this->receptionRepository->find($contentData['reception']);
-//            $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
-            $anomalie = $contentData['anomalie'];
-            if ($anomalie) {
-                $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
-                $reception->setStatut($statutRecep);
-            }
+            $commande = $contentData['commande'];
 
-            $receptionReferenceArticle = new ReceptionReferenceArticle;
-            $receptionReferenceArticle
-                ->setCommande($contentData['commande'])
-                ->setAnomalie($contentData['anomalie'])
-                ->setCommentaire($contentData['commentaire'])
-//                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($refArticle)
-                ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
-                ->setReception($reception);
+            $receptionReferenceArticle = $reception->getReceptionReferenceArticles();
 
-            if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
-                $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
-            }
+            // On vérifie que le couple (référence, commande) n'est pas déjà utilisé dans la réception
+            $refAlreadyExists = $receptionReferenceArticle->filter(function (ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
+                return (
+                    ($commande === $receptionReferenceArticle->getCommande()) &&
+                    ($refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId())
+                );
+            });
 
-//            if (array_key_exists('articleFournisseur', $contentData) && $contentData['articleFournisseur']) {
-//                $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
-//                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
-//            }
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($receptionReferenceArticle);
-            $em->flush();
-
-            $type = $reception->getType();
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-            foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
+            if ($refAlreadyExists->count() === 0) {
+                $anomalie = $contentData['anomalie'];
+                if ($anomalie) {
+                    $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                    $reception->setStatut($statutRecep);
                 }
-            }
 
-            $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
-            ];
+                $receptionReferenceArticle = new ReceptionReferenceArticle;
+                $receptionReferenceArticle
+                    ->setCommande($commande)
+                    ->setAnomalie($contentData['anomalie'])
+                    ->setCommentaire($contentData['commentaire'])
+                    ->setReferenceArticle($refArticle)
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
+                    ->setReception($reception);
+
+                if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
+                    $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
+                }
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($receptionReferenceArticle);
+                $em->flush();
+
+                $type = $reception->getType();
+                $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+
+                $champsLibres = [];
+                $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+                foreach ($listTypes as $oneType) {
+                    $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
+
+                    foreach ($listChampLibreReception as $champLibre) {
+                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+                        $champsLibres[] = [
+                            'id' => $champLibre->getId(),
+                            'label' => $champLibre->getLabel(),
+                            'typage' => $champLibre->getTypage(),
+                            'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+                            'defaultValue' => $champLibre->getDefaultValue(),
+                            'valeurChampLibre' => $valeurChampLibre,
+                        ];
+                    }
+                }
+
+                $json = [
+                    'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                        'reception' => $reception,
+                        'valeurChampLibreTab' => $valeurChampLibreTab,
+                        'typeChampsLibres' => $champsLibres
+                    ])
+                ];
+            }
+            else {
+                $json = [
+                    'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception'
+                ];
+            }
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
