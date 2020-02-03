@@ -19,8 +19,8 @@ class Action
 
     // menu accueil
 	const DISPLAY_INDI = 'afficher indicateurs';
-	const INDIC_INV_REFERENCE = 'afficher indicateur fiabilité par réference';
-	const INDIC_INV_MONETAIRE = 'afficher indicateur fiabilité monétaire';
+	const DISPLAY_INDIC_INV_REFERENCE = 'afficher indicateur fiabilité par réference';
+	const DISPLAY_INDIC_INV_MONETAIRE = 'afficher indicateur fiabilité monétaire';
 
 	// menu traça
 	const DISPLAY_ARRI = 'afficher arrivages';
@@ -54,7 +54,6 @@ class Action
 	const DISPLAY_MOUV_STOC = 'afficher mouvements de stock';
 	const DISPLAY_INVE = 'afficher inventaires';
 	const DISPLAY_ALER = 'afficher alertes';
-	const SEE_REAL_QUANTITY = 'voir quantité stock réelle';
 	const INVENTORY_MANAGER = "gestionnaire d'inventaire";
 
 	// menu référentiel
@@ -73,8 +72,6 @@ class Action
 	const DISPLAY_STATU_LITI = 'afficher statuts litiges';
 	const DISPLAY_NATU_COLI = 'afficher nature colis';
 	const DISPLAY_CF = 'afficher champs fixes';
-
-
 
     /**
      * @ORM\Id()

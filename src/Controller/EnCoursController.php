@@ -3,6 +3,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\EmplacementRepository;
@@ -68,17 +70,22 @@ class EnCoursController extends AbstractController
      */
     public function index(): Response
     {
+		if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
+			return $this->redirectToRoute('access_denied');
+		}
+
         return $this->render('en_cours/index.html.twig', [
             'emplacements' => $this->emplacementRepository->findWhereArticleIs()
         ]);
     }
 
-    /**
-     * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function apiForEmplacement(Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
         	$success = true;
