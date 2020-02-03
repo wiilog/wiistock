@@ -254,7 +254,7 @@ class ReceptionController extends AbstractController
             $type = $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
-            $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
+            $statutLabel = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -285,7 +285,7 @@ class ReceptionController extends AbstractController
             }
 
             $reception
-                ->setReference($data['reference'])
+                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ?
@@ -298,14 +298,14 @@ class ReceptionController extends AbstractController
                         new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         :
                         null)
-                ->setCommentaire($data['commentaire'])
+                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setReference($data['reference'])
+                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);

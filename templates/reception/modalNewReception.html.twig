@@ -9,74 +9,87 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-
                 <div class='row'>
-                    <div class="form-group col-6">
-                        <label for="dateCommande">Date
-                            commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
-                        <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
-                               name="dateCommande"
-                               id="dateCommande"
-                               required="true"
-                               value=""
-                               placeholder="jj/mm/aaaa">
-                    </div>
+                    {% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
+                        <div class="form-group col-6">
+                            <label for="dateCommande">Date
+                                commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
+                            <input type="text"
+                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="dateCommande"
+                                   id="dateCommande"
+                                   required="true"
+                                   value=""
+                                   placeholder="jj/mm/aaaa">
+                        </div>
+                    {% endif %}
 
-                    <div class="form-group col-6">
-                        <label for="dateAttendue">Date
-                            attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
-                        <input type="text"
-                               class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
-                               name="dateAttendue"
-                               id="dateAttendue"
-                               required="true"
-                               value=""
-                               placeholder="jj/mm/aaaa">
-                    </div>
+                    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
+                        <div class="form-group col-6">
+                            <label for="dateAttendue">Date
+                                attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
+                            <input type="text"
+                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="dateAttendue"
+                                   id="dateAttendue"
+                                   required="true"
+                                   value=""
+                                   placeholder="jj/mm/aaaa">
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-6">
-                        <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
-                        <input type="text"
-                               class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? 'needed' : '' }}"
-                               name="reference">
-                    </div>
-                    <div class="form-group col-6 w-100">
-                        <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? '*' : '' }}</label>
-                        <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location">
-                        </select>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
+                        <div class="form-group col-6">
+                            <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
+                            <input type="text"
+                                   class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="reference">
+                        </div>
+                    {% endif %}
+
+                    {% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
+                        <div class="form-group col-6 w-100">
+                            <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? '*' : '' }}</label>
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location">
+                            </select>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="row fly-form">
-                    <div class="form-group w-100 col-5">
-                        <label
-                            for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
-                        <select
-                            class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
-                            name="fournisseur" id="fournisseur">
-                        </select>
-                    </div>
-                    <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                            <i class="fa fa-plus"></i>
-                        </span>
-                    </div>
-                    <div class="form-group w-100 col-5">
-                        <label
-                            for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
-                        <select
-                            class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
-                            name="transporteur" id="transporteur">
-                        </select>
-                    </div>
-                    <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary"
-                              onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
-                                class="fa fa-plus"></i></span>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                        <div class="form-group w-100 col-5">
+                            <label
+                                for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
+                            <select
+                                class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="fournisseur" id="fournisseur">
+                            </select>
+                        </div>
+                        <div class="form-group col-1 toggle-button-container">
+                            <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                <i class="fa fa-plus"></i>
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                        <div class="form-group w-100 col-5">
+                            <label
+                                for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
+                            <select
+                                class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="transporteur" id="transporteur">
+                            </select>
+                        </div>
+                        <div class="form-group col-1 toggle-button-container">
+                            <span class="btn btn-primary"
+                                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
+                                    class="fa fa-plus"></i></span>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="row new-on-fly-form-container">
                     <div class="row col-6 formulaire fly-form">
@@ -113,14 +126,16 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label
-                        for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
-                    <input id='commentaire'
-                           class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
-                           name="commentaire" type="hidden">
-                    <div class="editor-container" id='editor-container'></div>
-                </div>
+                {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+                    <div class="form-group">
+                        <label
+                            for="NumeroReception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                        <input id='commentaire'
+                               class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
+                               name="commentaire" type="hidden">
+                        <div class="editor-container" id='editor-container'></div>
+                    </div>
+                {% endif %}
 
                 <div class="row mt-4">
                     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
@@ -203,13 +218,15 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-6 pt-4">
-                        <label>Anomalie</label>
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" name="anomalie">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('anomalie', 'displayed') %}
+                        <div class="form-group col-6 pt-4">
+                            <label>Anomalie</label>
+                            <label class="switch">
+                                <input class="checkbox" type="checkbox" name="anomalie">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 

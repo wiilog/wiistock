@@ -1,11 +1,13 @@
 <div class="row">
-    <div class="form-group col-6">
-        <label for="numeroReception">Numéro {{ 'réception.réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
-        <input type="text"
-               class="form-control data Numéro Réception{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? 'needed' : '' }}"
-               name="numeroReception" id='numeroReception'
-               value="{{ reception.numeroReception }}">
-    </div>
+    {% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
+        <div class="form-group col-6">
+            <label for="numeroReception">Numéro {{ 'réception.réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
+            <input type="text"
+                   class="form-control data Numéro Réception{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? 'needed' : '' }}"
+                   name="numeroReception" id='numeroReception'
+                   value="{{ reception.numeroReception }}">
+        </div>
+    {% endif %}
     <div class="form-group col-6">
         <label for="statut">Statut*</label>
         <select class="form-control data" name="statut">
@@ -18,73 +20,85 @@
 </div>
 
 <div class="row">
-    <div class="form-group col-6">
-        <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? '*' : '' }}</label>
-        <input type="text" class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? 'needed' : '' }}"
-               name="dateCommande" id="dateCommande"
-               placeholder="jj/mm/aaaa"
-               value="{{ reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d') }}"
-               required="true">
-    </div>
+    {% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
+        <div class="form-group col-6">
+            <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? '*' : '' }}</label>
+            <input type="text" class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? 'needed' : '' }}"
+                   name="dateCommande" id="dateCommande"
+                   placeholder="jj/mm/aaaa"
+                   value="{{ reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d') }}"
+                   required="true">
+        </div>
+    {% endif %}
 
-    <div class="form-group col-6">
-        <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? '*' : '' }}</label>
-        <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? 'needed' : '' }}"
-               name="dateAttendue" id='dateAttendue'
-               value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d') }}"
-               placeholder="jj/mm/aaaa"
-               required="true">
-    </div>
+    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
+        <div class="form-group col-6">
+            <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? '*' : '' }}</label>
+            <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? 'needed' : '' }}"
+                   name="dateAttendue" id='dateAttendue'
+                   value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d') }}"
+                   placeholder="jj/mm/aaaa"
+                   required="true">
+        </div>
+    {% endif %}
 </div>
 
 <div class="row">
-    <div class="form-group col-6">
-        <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
-        <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"
-               name="numeroCommande" id='numeroCommande'
-               value="{{ reception.reference }}">
-    </div>
-    <div class="form-group col-6 w-100">
-        <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? '*' : '' }}</label>
-        <select class="ajax-autocompleteEmplacement-edit data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? 'needed' : '' }}" name="location">
-            {% if reception.location != null %}
-                <option value="{{ reception.location.id}}">{{ reception.location.label}}</option>
-            {% endif %}
-        </select>
-    </div>
+    {% if fieldsParam|isFieldRequired('numeroCommande', 'displayed') %}
+        <div class="form-group col-6">
+            <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
+            <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"
+                   name="numeroCommande" id='numeroCommande'
+                   value="{{ reception.reference }}">
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
+        <div class="form-group col-6 w-100">
+            <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? '*' : '' }}</label>
+            <select class="ajax-autocompleteEmplacement-edit data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToModify') ? 'needed' : '' }}" name="location">
+                {% if reception.location != null %}
+                    <option value="{{ reception.location.id}}">{{ reception.location.label}}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
 </div>
 
 <div class="row fly-form">
-    <div class="form-group w-100 col-5">
-        <label for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
-        <select
-            class="form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}"
-            name="fournisseur" id='fournisseur'>
-            <option
-                value="{{ reception.fournisseur ? reception.fournisseur.id : '' }}">{{ reception.fournisseur ? reception.fournisseur.nom : '' }}</option>
-        </select>
-    </div>
-    <div class="form-group col-1 toggle-button-container">
-        <span class="btn btn-primary"
-              onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-            <i class="fa fa-plus"></i>
-        </span>
-    </div>
-    <div class="form-group w-100 col-5">
-        <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
-        <select
-            class="form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}"
-            name="transporteur" id="transporteur">
-            <option
-                value="{{ reception.transporteur ? reception.transporteur.id : '' }}">{{ reception.transporteur ? reception.transporteur.label : '' }}</option>
-        </select>
-    </div>
-    <div class="form-group col-1 toggle-button-container">
-        <span class="btn btn-primary"
-              onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-            <i class="fa fa-plus"></i>
-        </span>
-    </div>
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+        <div class="form-group w-100 col-5">
+            <label for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
+            <select
+                class="form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}"
+                name="fournisseur" id='fournisseur'>
+                <option
+                    value="{{ reception.fournisseur ? reception.fournisseur.id : '' }}">{{ reception.fournisseur ? reception.fournisseur.nom : '' }}</option>
+            </select>
+        </div>
+        <div class="form-group col-1 toggle-button-container">
+            <span class="btn btn-primary"
+                  onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                <i class="fa fa-plus"></i>
+            </span>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+        <div class="form-group w-100 col-5">
+            <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
+            <select
+                class="form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}"
+                name="transporteur" id="transporteur">
+                <option
+                    value="{{ reception.transporteur ? reception.transporteur.id : '' }}">{{ reception.transporteur ? reception.transporteur.label : '' }}</option>
+            </select>
+        </div>
+        <div class="form-group col-1 toggle-button-container">
+            <span class="btn btn-primary"
+                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                <i class="fa fa-plus"></i>
+            </span>
+        </div>
+    {% endif %}
 </div>
 
 <div class="row new-on-fly-form-container align-items-start align-items-start">
@@ -123,26 +137,29 @@
 </div>
 
 <div class="row">
-    <div class="form-group w-100 col-6">
-        <label for="utilisateur">Utilisateur{{ fieldsParam|isFieldRequired('utilisateur', 'mustToModify') ? '*' : '' }}</label>
-        <select
-            class="form-control ajax-autocomplete-user-edit data {{ fieldsParam|isFieldRequired('utilisateur', 'mustToModify') ? 'needed' : '' }}"
-            name="utilisateur">
-            <option
-                value="{{ reception.utilisateur ? reception.utilisateur.id : '' }}">{{ reception.utilisateur ? reception.utilisateur.username : ' ' }}</option>
-        </select>
-    </div>
+    {% if fieldsParam|isFieldRequired('utilisateur', 'displayed') %}
+        <div class="form-group w-100 col-6">
+            <label for="utilisateur">Utilisateur{{ fieldsParam|isFieldRequired('utilisateur', 'mustToModify') ? '*' : '' }}</label>
+            <select
+                class="form-control ajax-autocomplete-user-edit data {{ fieldsParam|isFieldRequired('utilisateur', 'mustToModify') ? 'needed' : '' }}"
+                name="utilisateur">
+                <option
+                    value="{{ reception.utilisateur ? reception.utilisateur.id : '' }}">{{ reception.utilisateur ? reception.utilisateur.username : ' ' }}</option>
+            </select>
+        </div>
+    {% endif %}
 </div>
-<div class="form-group">
-    <label for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
-    <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}"
-           name="commentaire" type="hidden"
-           value="{{ reception.commentaire }}">
-    <div class="editor-container-edit" id="editor-container"
-         value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
+{% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+    <div class="form-group">
+        <label for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
+        <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}"
+               name="commentaire" type="hidden"
+               value="{{ reception.commentaire }}">
+        <div class="editor-container-edit" id="editor-container"
+             value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
+        </div>
     </div>
-</div>
-
+{% endif %}
 
 <!-- CHAMPS LIBRES -->
 <div class="row">
