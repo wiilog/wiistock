@@ -884,7 +884,7 @@ class ArticleController extends AbstractController
                 'refReference' => $article['refRef'],
                 'refLabel' => $article['refLabel'],
                 'artLabel' => $article['artLabel'],
-                'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                'artBL' => (($wantBL && $wantBL->getValue() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                     ? $article['bl']
                     : null)
             ]);
@@ -1009,7 +1009,7 @@ class ArticleController extends AbstractController
                     'refReference' => $article['refRef'],
                     'refLabel' => $article['refLabel'],
                     'artLabel' => $article['artLabel'],
-                    'artBL' => (($wantBL && $wantBL->getParametre() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                    'artBL' => (($wantBL && $wantBL->getValue() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                         ? $article['bl']
                         : null)
                 ]);

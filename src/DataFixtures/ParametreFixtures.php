@@ -92,6 +92,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],
+			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [
+				'default' => null
+			]
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
@@ -106,7 +109,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				$globalParam = new ParametrageGlobal();
 				$globalParam
 					->setLabel($globalParameterLabel)
-					->setParametre($value);
+					->getValue($value);
 				$manager->persist($globalParam);
 				dump("création du paramètre " . $globalParameterLabel);
 			}

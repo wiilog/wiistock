@@ -1,8 +1,6 @@
 {% extends "layout.html.twig" %}
 {% block title %}{{  'réception.réception'|trans|capitalize }}{% endblock %}
 {% block page_content %}
-
-
     <div class="row">
         <div class="col">
             <h1>{{ 'réception.réception'|trans|capitalize }}</h1>
@@ -48,7 +46,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="zone-entete col-6 row">
+        <div class="zone-entete col-12 row">
             {% include "reception/enteteReception.html.twig" %}
         </div>
     </div>
@@ -112,7 +110,7 @@
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
-    {% include 'reception/modalNewLigneReception.html.twig' %}
+    {% include 'reception/modalNewLigneReception.html.twig' with {createDL: createDL} %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
     {% include 'reception/modalFinishReception.html.twig' %}
 

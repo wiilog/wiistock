@@ -207,7 +207,7 @@
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array"
-                                           name="nature" data-id="{{ nature.id }}" min="0">
+                                           name="nature" data-id="{{ nature.id }}" min="0" value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                 </div>
                             {% endfor %}
                         </div>

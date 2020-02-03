@@ -2,6 +2,8 @@
     <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
     <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
     <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? reception.fournisseur.nom : '' }}</p>
+    <p><strong>Transporteur :</strong> {{ reception.transporteur ? reception.transporteur.label : '' }}</p>
+    <p><strong>Emplacement :</strong> {{ reception.location ? reception.location.label : '' }}</p>
 </div>
 <div class="col-6">
     <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>

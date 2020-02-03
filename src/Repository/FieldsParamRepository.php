@@ -46,7 +46,11 @@ class FieldsParamRepository extends ServiceEntityRepository
             []);
     }
 
-    function getByEntityForEntity($entity) {
+	/**
+	 * @param $entity
+	 * @return FieldsParam[]
+	 */
+    function findByEntityForEntity($entity) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */

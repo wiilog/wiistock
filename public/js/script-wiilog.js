@@ -518,7 +518,6 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
                 return 'Aucun résultat.';
             }
         },
-        allowClear: true,
         minimumInputLength: lengthMin,
         placeholder: {
             text: placeholder,

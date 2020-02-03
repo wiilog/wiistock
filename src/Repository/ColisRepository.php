@@ -37,26 +37,4 @@ class ColisRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param string $prefix
-	 * @return mixed
-	 */
-	public function getHighestCodeByPrefix($prefix)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT c.code
-			FROM App\Entity\Colis c
-			WHERE c.code LIKE :prefix
-			ORDER BY c.code DESC
-			")
-			->setParameter('prefix', $prefix . '%')
-			->setMaxResults(1);
-
-		$result = $query->execute();
-
-		return $result ? $result[0]['code'] : null;;
-	}
-
 }

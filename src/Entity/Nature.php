@@ -85,7 +85,7 @@ class Nature
         return $this->colis;
     }
 
-    public function addColi(Colis $coli): self
+    public function addColis(Colis $coli): self
     {
         if (!$this->colis->contains($coli)) {
             $this->colis[] = $coli;
@@ -95,7 +95,7 @@ class Nature
         return $this;
     }
 
-    public function removeColi(Colis $coli): self
+    public function removeColis(Colis $coli): self
     {
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);

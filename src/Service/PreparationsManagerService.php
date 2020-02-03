@@ -17,7 +17,6 @@ use App\Entity\Utilisateur;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -249,6 +248,9 @@ class PreparationsManagerService
                 $newQuantity = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE
                     ? $ligneArticlePreparation->getQuantite() - $selectedQuantityForPreviousLigne
                     : $ligneArticlePreparation->getQuantite();
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $ligneArticlePreparation->setQuantite($ligneArticlePreparation->getQuantitePrelevee());
+                }
                 $newLigneArticle
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
@@ -279,8 +281,7 @@ class PreparationsManagerService
                                              $article,
                                              Preparation $preparation,
                                              bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null
-    )
+                                             Emplacement $emplacementFrom = null)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
