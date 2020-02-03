@@ -55,14 +55,14 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 			'Manutention/créer' => [Menu::DEM => [Action::CREATE]],
 			'Manutention/modifier+supprimer' => [Menu::DEM => [Action::EDIT, Action::DELETE]],
 			'Manutention/exporter' => [Menu::DEM => [Action::EXPORT]],
-			'Paramétrage/oui' => [Menu::PARAM => [Action::DISPLAY_GLOB, Action::DISPLAY_CL, Action::DISPLAY_STATU_LITI, Action::DISPLAY_ROLE, Action::DISPLAY_EXPO, Action::DISPLAY_NATU_COLI, Action::DISPLAY_UTIL, Action::DISPLAY_TYPE, Action::DISPLAY_CF]],
+			'Paramétrage/oui' => [Menu::PARAM => [Action::DISPLAY_GLOB, Action::DISPLAY_CL, Action::DISPLAY_STATU_LITI, Action::DISPLAY_ROLE, Action::DISPLAY_EXPO, Action::DISPLAY_NATU_COLI, Action::DISPLAY_UTIL, Action::DISPLAY_TYPE, Action::DISPLAY_CF, Action::EDIT, Action::DELETE]],
 			'Stock/lister' => [Menu::STOCK => [Action::DISPLAY_ARTI, Action::DISPLAY_REFE, Action::DISPLAY_ARTI_FOUR, Action::DISPLAY_MOUV_STOC, Action::DISPLAY_ALER]],
 			'Stock/créer+modifier' => [Menu::STOCK => [Action::CREATE, Action::EDIT]],
 			'Stock/supprimer' => [Menu::STOCK => [Action::DELETE]],
 			'Stock/exporter' => [Menu::STOCK => [Action::EXPORT]],
 			'Indicateurs accueil/oui' => [Menu::ACCUEIL => [Action::DISPLAY_INDI]],
 			'Indicateurs accueil/fiabilité par référence' => [Menu::ACCUEIL => [Action::DISPLAY_INDIC_INV_REFERENCE]],
-			'Indicateurs accueil/fiabilité monétaire' => [Menu::ACCUEIL => [Action::DISPLAY_INDIC_INV_MONETAIRE]],
+			'Indicateurs accueil/fiabilité par monétaire' => [Menu::ACCUEIL => [Action::DISPLAY_INDIC_INV_MONETAIRE]],
 			'Arrivage/lister' => [Menu::TRACA => [Action::DISPLAY_ARRI, Action::DISPLAY_MOUV, Action::DISPLAY_ACHE, Action::DISPLAY_ASSO, Action::DISPLAY_ENCO, Action::DISPLAY_URGE]],
 			'Arrivage/créer+modifier' => [Menu::TRACA => [Action::CREATE, Action::EDIT]],
 			'Arrivage/supprimer' => [Menu::TRACA => [Action::DELETE]],
@@ -75,7 +75,7 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 			"Inventaire/gestionnaire d'inventaire" => [Menu::STOCK => [Action::INVENTORY_MANAGER]],
 			'Litige/lister' => [Menu::QUALI => [Action::DISPLAY_LITI]],
 			'Litige/créer' => [Menu::QUALI => [Action::CREATE]],
-			'Litige/modifier' => [Menu::QUALI => [Action::EDIT]],
+			'Litige/modifer' => [Menu::QUALI => [Action::EDIT]],
 			'Litige/supprimer' => [Menu::QUALI => [Action::DELETE]],
 			'Litige/traiter litige' => [Menu::QUALI => [Action::TREAT_LITIGE]]
 		];
@@ -87,7 +87,6 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 			$formerActionObj = $this->actionRepository->findOneByMenuLabelAndActionLabel($formerActionArr[0], $formerActionArr[1]);
 
 			foreach ($newMenuAndActions as $newMenu => $newActions) {
-
 				foreach ($roles as $role) {
 
 					if ($role->getActions()->contains($formerActionObj)) {
@@ -99,30 +98,33 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 					}
 				}
 			}
+
 			$manager->remove($formerActionObj);
 		}
 
+		$manager->flush();
 
 		// suppression des anciens menus
-		$menusToRemove = $this->menuRepository->findBy(['label' =>
-			[
-				'Réception',
-				'Préparation',
-				'Livraison',
-				'Demande de livraison',
-				'Demande de collecte',
-				'Collecte',
-				'Manutention',
-				'Paramétrage',
-				'Stock',
-				'Indicateurs accueil',
-				'Arrivage',
-				'Référentiel',
-				'Inventaire',
-				'Litige'
-			]
-		]);
-		foreach ($menusToRemove as $menuToRemove) {
+		$labelMenusToRemove = [
+			'Réception',
+			'Préparation',
+			'Livraison',
+			'Demande de livraison',
+			'Demande de collecte',
+			'Collecte',
+			'Manutention',
+			'Paramétrage',
+			'Stock',
+			'Indicateurs accueil',
+			'Arrivage',
+			'Référentiel',
+			'Inventaire',
+			'Litige'
+		];
+
+		foreach ($labelMenusToRemove as $labelMenuToRemove) {
+			$menuToRemove = $this->menuRepository->findOneBy(['label' => $labelMenuToRemove]);
+
 			$manager->remove($menuToRemove);
 		}
 

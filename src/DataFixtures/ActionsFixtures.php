@@ -37,8 +37,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     	$menus = [
     		Menu::ACCUEIL => [
     			Action::DISPLAY_INDI,
-    			Action::INDIC_INV_MONETAIRE,
-				Action::INDIC_INV_REFERENCE
+    			Action::DISPLAY_INDIC_INV_MONETAIRE,
+				Action::DISPLAY_INDIC_INV_REFERENCE
 			],
 			Menu::TRACA => [
 				Action::DISPLAY_ARRI,
@@ -91,7 +91,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::EDIT,
 				Action::DELETE,
 				Action::EXPORT,
-				Action::SEE_REAL_QUANTITY,
 				Action::INVENTORY_MANAGER
 			],
 			Menu::REFERENTIEL => [

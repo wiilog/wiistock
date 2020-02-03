@@ -23,7 +23,7 @@ class ActionRepository extends ServiceEntityRepository
     /**
      * @param string $menuLabel
      * @param string $actionLabel
-     * @return mixed
+     * @return Action
      * @throws NonUniqueResultException
      */
     public function findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel)
