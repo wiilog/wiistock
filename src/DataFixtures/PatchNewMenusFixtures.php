@@ -99,36 +99,17 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 				}
 			}
 
-			$manager->remove($formerActionObj);
+			if ($formerActionObj) $manager->remove($formerActionObj);
 		}
 
 		$manager->flush();
 
 		// suppression des anciens menus
-		$labelMenusToRemove = [
-			'Réception',
-			'Préparation',
-			'Livraison',
-			'Demande de livraison',
-			'Demande de collecte',
-			'Collecte',
-			'Manutention',
-			'Paramétrage',
-			'Stock',
-			'Indicateurs accueil',
-			'Arrivage',
-			'Référentiel',
-			'Inventaire',
-			'Litige'
-		];
-
-		foreach ($labelMenusToRemove as $labelMenuToRemove) {
-			$menuToRemove = $this->menuRepository->findOneBy(['label' => $labelMenuToRemove]);
-
-			$manager->remove($menuToRemove);
-		}
-
-		$manager->flush();
+		$query = $manager->createQuery(
+		/** @lang DQL */
+			"DELETE FROM App\Entity\Menu m
+			 WHERE (SELECT count(a) FROM App\Entity\Action a WHERE a.menu = m) = 0");
+		$query->execute();
     }
 
     public static function getGroups(): array
