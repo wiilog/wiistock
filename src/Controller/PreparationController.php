@@ -321,7 +321,7 @@ class PreparationController extends AbstractController
                     $ligneArticleFromDemande = $this->ligneArticleRepository->findOneByRefArticleAndDemande($articleRef, $demande);
                     if ($ligneArticle->getQuantitePrelevee() > 0 ||
                         ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                        $qttForCurrentLine = $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : null;
+                        $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
                         $qttForDemandLine = $ligneArticleFromDemande && $ligneArticleFromDemande->getQuantite() ? $ligneArticleFromDemande->getQuantite() : null;
                         $qttAlreadyPicked = array_reduce($demande->getPreparations()->toArray(), function (int $carry, Preparation $preparationReduced) use ($preparation) {
                             // return counted quantites picked for previous preparations
