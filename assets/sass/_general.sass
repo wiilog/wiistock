@@ -12,6 +12,19 @@
   src: url('../../public/font/Montserrat-Italic.ttf')
   font-style: italic
 
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Regular.ttf')
+
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Bold.ttf')
+  font-weight: bold
+
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Italic.ttf')
+  font-style: italic
 
 *, *::after, *::before
   box-sizing: border-box
@@ -25,7 +38,7 @@ html
 
 
 body
-  font-family: "Montserrat", Helvetica, Arial, sans-serif
+  font-family: $mainFont, Helvetica, Arial, sans-serif
   line-height: 20px
   font-weight: 400
   -webkit-font-smoothing: antialiased
@@ -86,6 +99,12 @@ input:-webkit-autofill
 
 .font-size-100
   font-size: 100% !important
+
+.tahoma
+  font-family: Tahoma !important
+
+.montserrat
+  font-family: Montserrat !important
 
 a
   color: unset
@@ -215,7 +234,7 @@ a
 
 .progress-bar
   background-color: $blueGT
-  font-family: "Montserrat", Helvetica, Arial, sans-serif
+  font-family: $mainFont, Helvetica, Arial, sans-serif
 
 .sizeLoader
   width: 5rem

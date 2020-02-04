@@ -14,7 +14,7 @@ class ParametrageGlobal
     const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';
     const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
     const DEFAULT_LOCATION_RECEPTION = 'DEFAULT LOCATION RECEPTION';
-
+    const FONT_FAMILY = 'FONT FAMILY';
 
     const BARCODE_TYPE_IS_128 = 'barcode type';
     const QR_CODE = [
@@ -35,8 +35,11 @@ class ParametrageGlobal
         'value'=> false,
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
+	const DEFAULT_FONT_FAMILY = 'Montserrat';
+	const FONT_MONTSERRAT = 'Montserrat';
+	const FONT_TAHOMA = 'Tahoma';
 
-    /**
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
