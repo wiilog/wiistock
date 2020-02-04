@@ -19,7 +19,7 @@ function InitiliserPageModals() {
     let modal = $("#modalAddLigneArticle");
     let submit = $("#addArticleLigneSubmit");
     let url = Routing.generate('reception_article_add', true);
-    InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false, );
+    InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");

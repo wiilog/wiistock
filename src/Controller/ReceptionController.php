@@ -670,8 +670,9 @@ class ReceptionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find($contentData['referenceArticle']);
-            $refArticleId = $refArticle->getId();
+            $refArticleId = (int)$contentData['referenceArticle'];
+            $refArticle = $this->referenceArticleRepository->find($refArticleId);
+
             $reception = $this->receptionRepository->find($contentData['reception']);
             $commande = $contentData['commande'];
 
@@ -679,9 +680,9 @@ class ReceptionController extends AbstractController
 
             // On vérifie que le couple (référence, commande) n'est pas déjà utilisé dans la réception
             $refAlreadyExists = $receptionReferenceArticle->filter(function (ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
-                return (
-                    ($commande === $receptionReferenceArticle->getCommande()) &&
-                    ($refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId())
+            	return (
+                    $commande === $receptionReferenceArticle->getCommande() &&
+                    $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
                 );
             });
 
@@ -741,7 +742,7 @@ class ReceptionController extends AbstractController
             }
             else {
                 $json = [
-                    'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception'
+                    'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
                 ];
             }
             return new JsonResponse($json);
