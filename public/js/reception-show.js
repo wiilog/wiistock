@@ -388,6 +388,9 @@ function clearModalLigneReception(modal) {
         .find('#packing-package-number, #packing-number-in-package')
         .val('');
 
+    let $submitNewReceptionButton = $modal.find("#submitNewReceptionButton");
+    $submitNewReceptionButton.off('click');
+
     const $select2 = $modal.find('select[name="refArticleCommande"]');
     if ($select2.hasClass("select2-hidden-accessible")) {
         $select2
@@ -459,13 +462,13 @@ function initNewLigneReception(modal) {
     initSelect2Ajax($('.select2-user'), 'get_user');
     initSelect2Ajax($('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
 
+    let $modalNewLigneReception = $(modal);
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
-        {reception: $(modal).find('input[type="hidden"][name="reception"]').val()},
+        {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
         true
     );
-    let $modalNewLigneReception = $("#modalNewLigneReception");
-    let $submitNewReceptionButton = $("#submitNewReceptionButton");
+    let $submitNewReceptionButton = $modalNewLigneReception.find("#submitNewReceptionButton");
 
     $submitNewReceptionButton.click(function () {
         const error = getErrorModalNewLigneReception();

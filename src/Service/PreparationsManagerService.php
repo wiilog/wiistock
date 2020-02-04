@@ -248,6 +248,9 @@ class PreparationsManagerService
                 $newQuantity = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE
                     ? $ligneArticlePreparation->getQuantite() - $selectedQuantityForPreviousLigne
                     : $ligneArticlePreparation->getQuantite();
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $ligneArticlePreparation->setQuantite($ligneArticlePreparation->getQuantitePrelevee());
+                }
                 $newLigneArticle
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
@@ -278,7 +281,8 @@ class PreparationsManagerService
                                              $article,
                                              Preparation $preparation,
                                              bool $isSelectedByArticle,
-                                             Emplacement $emplacementFrom = null) {
+                                             Emplacement $emplacementFrom = null)
+    {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);

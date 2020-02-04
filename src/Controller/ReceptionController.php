@@ -9,6 +9,7 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ValeurChampLibre;
@@ -271,6 +272,12 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
+			if (!empty($data['location'])) {
+                $location = $this->emplacementRepository->find(intval($data['location']));
+                $reception
+                    ->setLocation($location);
+            }
+
             if (!empty($data['transporteur'])) {
                 $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
                 $reception
@@ -339,29 +346,25 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statut = $this->statutRepository->find(intval($data['statut']));
             $reception = $this->receptionRepository->find($data['receptionId']);
 
-            if ($data['fournisseur'] != null) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                $reception
-                    ->setFournisseur($fournisseur);
-            }
+            $statut = $this->statutRepository->find(intval($data['statut']));
+            $reception->setStatut($statut);
 
-            if ($data['utilisateur'] != null) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-                $reception
-                    ->setUtilisateur($utilisateur);
-            }
+			$fournisseur = isset($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+            $reception->setFournisseur($fournisseur);
 
-            if ($data['transporteur'] != null) {
-                $transporteur = $this->transporteurRepository->find(intval($data['transporteur']));
-                $reception
-                    ->setTransporteur($transporteur);
-            }
+			$utilisateur = isset($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
+            $reception->setUtilisateur($utilisateur);
+
+			$transporteur = isset($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
+            $reception->setTransporteur($transporteur);
+
+            $location = isset($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
+            $reception->setLocation($location);
 
             $reception
-                ->setReference($data['numeroCommande'])
+                ->setReference(isset($data['numeroCommande']) ? $data['numeroCommande'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ?
@@ -374,9 +377,8 @@ class ReceptionController extends AbstractController
                         new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         :
                         null)
-                ->setNumeroReception($data['numeroReception'])
-                ->setStatut($statut)
-                ->setCommentaire($data['commentaire']);
+                ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
+                ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -566,7 +568,8 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION)
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
+			'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
         ]);
     }
 
@@ -895,6 +898,8 @@ class ReceptionController extends AbstractController
             ];
         }
 
+        $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
@@ -907,7 +912,7 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)->getParametre()
+            'createDL' => $createDL ? $createDL->getValue() : false
         ]);
     }
 
@@ -1331,35 +1336,59 @@ class ReceptionController extends AbstractController
     	$em = $this->getDoctrine()->getManager();
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+		$receptionLocation = $reception->getLocation();
+		$currentUser = $this->getUser();
 
+        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
 
                 $mouvementStock = new MouvementStock();
                 $mouvementStock
-					->setUser($this->getUser())
-					->setEmplacementTo($referenceArticle->getEmplacement())
+					->setUser($currentUser)
+					->setEmplacementTo($receptionLocation)
 					->setQuantity($receptionRA->getQuantite())
 					->setRefArticle($referenceArticle)
 					->setType(MouvementStock::TYPE_ENTREE)
 					->setReceptionOrder($reception)
 					->setDate($now);
 				$em->persist($mouvementStock);
+
+				$mouvementTraca = new MouvementTraca();
+				$mouvementTraca
+					->setType($typeMouvementTraca)
+					->setEmplacement($receptionLocation)
+					->setOperateur($currentUser)
+					->setDatetime($now)
+					->setColis($referenceArticle->getBarCode())
+					->setMouvementStock($mouvementStock);
+				$em->persist($mouvementTraca);
+
             } else {
 				$articles = $receptionRA->getArticles();
 				foreach ($articles as $article) {
 					$mouvementStock = new MouvementStock();
 					$mouvementStock
-						->setUser($this->getUser())
-						->setEmplacementTo($article->getEmplacement())
+						->setUser($currentUser)
+						->setEmplacementTo($receptionLocation)
 						->setQuantity($article->getQuantite())
 						->setArticle($article)
 						->setType(MouvementStock::TYPE_ENTREE)
 						->setReceptionOrder($reception)
 						->setDate($now);
 					$em->persist($mouvementStock);
+
+					$mouvementTraca = new MouvementTraca();
+					$mouvementTraca
+						->setType($typeMouvementTraca)
+						->setEmplacement($receptionLocation)
+						->setOperateur($currentUser)
+						->setDatetime($now)
+						->setColis($article->getBarCode())
+						->setMouvementStock($mouvementStock);
+					$em->persist($mouvementTraca);
 				}
 			}
         }
@@ -1511,7 +1540,7 @@ class ReceptionController extends AbstractController
                             'refReference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
                             'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
                             'artLabel' => $article->getLabel(),
-                            'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                            'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                                 ? $articleArray['bl']
                                 : null)
                         ]);
@@ -1740,12 +1769,12 @@ class ReceptionController extends AbstractController
             }
             // optionnel : crée la demande de livraison
             $paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getParametre() : false;
+            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getValue() : false;
 
             if ($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
                 $paramCreatePrepa = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
-                $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getParametre() : false;
+                $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
                 $demande = $demandeLivraisonService->newDemande($data);
@@ -1754,7 +1783,13 @@ class ReceptionController extends AbstractController
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $response['barcodes'] = $response['barcodesLabel'] = [];
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $receptionLocation = $reception->getLocation();
+            $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
+            dump($receptionLocationId);
             foreach ($articles as $article) {
+                if (isset($receptionLocationId)) {
+                    $article['emplacement'] = $receptionLocationId;
+                }
                 $createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
                 $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
                 $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
@@ -1772,7 +1807,7 @@ class ReceptionController extends AbstractController
                     'refReference' => $refArticle ? $refArticle->getReference() : '',
                     'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
                     'artLabel' => $createdArticle->getLabel(),
-                    'artBL' => (($wantBL && $wantBL->getParametre() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+                    'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
                         ? $articleArray['bl']
                         : null)
                 ]);

@@ -107,6 +107,11 @@ class Reception
 	 */
 	private $mouvements;
 
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
+	 */
+	private $location;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -387,6 +392,18 @@ class Reception
                 $mouvement->setReceptionOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLocation(): ?Emplacement
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?Emplacement $location): self
+    {
+        $this->location = $location;
 
         return $this;
     }
