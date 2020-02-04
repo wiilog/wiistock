@@ -425,8 +425,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+			])
             ];
             return new JsonResponse($json);
         }
@@ -496,6 +497,9 @@ class ReceptionController extends AbstractController
             }
 
             $data = $this->receptionService->getDataForDatatable($request->request);
+
+            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+			$data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
         }
@@ -649,8 +653,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+				])
             ];
             $entityManager->flush();
             return new JsonResponse($json);
@@ -724,8 +729,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+				])
             ];
             return new JsonResponse($json);
         }
@@ -826,8 +832,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+				])
             ];
             return new JsonResponse($json);
         }
@@ -895,8 +902,9 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $createDL ? $createDL->getValue() : false
-        ]);
+            'createDL' => $createDL ? $createDL->getValue() : false,
+			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+		]);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -84,11 +85,12 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countColisByArrivage($arrivage)
     {
         $em = $this->getEntityManager();
@@ -115,11 +117,12 @@ class ArrivageRepository extends ServiceEntityRepository
         return $query->getScalarResult();
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return int
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function countLitigesUnsolvedByArrivage($arrivage)
     {
         $em = $this->getEntityManager();
