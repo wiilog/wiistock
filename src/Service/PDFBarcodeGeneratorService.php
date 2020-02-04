@@ -44,34 +44,34 @@ Class PDFBarcodeGeneratorService
         $width = $barcodeConfig['width'];
         $isCode128 = $barcodeConfig['isCode128'];
 
-        return $this->PDFGenerator->getOutputFromHtml(
-             $this->templating->render('barcodes/print.html.twig', [
+//        return $this->PDFGenerator->getOutputFromHtml(
+             return $this->templating->render('barcodes/print.html.twig', [
                 'height' => $height,
                 'width' => $width,
                 'barcode' => [
                     'code' => $code,
                     'type' => $isCode128 ? 'c128' : 'qrcode',
                     'width' => $isCode128 ? 1 : 48,
-                    'height' => $isCode128 ? 1 : 48,
-                    'sizeProperty' => $isCode128 ? 'width' : 'height'
+                    'height' => 48
                 ],
                 'labelsFontSize' => $labelsFontSize . '%',
                 'labels' => array_filter($labels, function ($label) {
                     return !empty($label);
                 })
-            ]),
-            [
-                'page-height' => "${height}mm",
-                'page-width' => "${width}mm",
-                'margin-top' => '0in',
-                'margin-right' => '0in',
-                'margin-bottom' => '0in',
-                'margin-left' => '0in',
-                'encoding' => 'UTF-8',
-                'no-outline' => true,
-                'disable-smart-shrinking' => true,
-            ]
-        );
+            ]);
+//        ,
+//            [
+//                'page-height' => "${height}mm",
+//                'page-width' => "${width}mm",
+//                'margin-top' => 0,
+//                'margin-right' => 0,
+//                'margin-bottom' => 0,
+//                'margin-left' => 0,
+//                'encoding' => 'UTF-8',
+//                'no-outline' => true,
+//                'disable-smart-shrinking' => true,
+//            ]
+//        );
     }
 
 }

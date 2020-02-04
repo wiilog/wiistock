@@ -1431,8 +1431,8 @@ class ReferenceArticleController extends AbstractController
      */
     public function getBarcode(ReferenceArticle $reference,
                                PDFBarcodeGeneratorService $PDFBarcodeGeneratorService) {
-        return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarcode(
+//        return new PdfResponse(
+            return new Response($PDFBarcodeGeneratorService->generatePDFBarcode(
                 $reference->getBarCode(),
                 [
                     $reference->getReference() ? ('L/R : ' . $reference->getReference()) : '',
