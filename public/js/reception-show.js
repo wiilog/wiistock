@@ -56,8 +56,6 @@ function InitiliserPageModals() {
     let SubmitDeleteLitige = $("#submitDeleteLitige");
     let urlDeleteLitige = Routing.generate('litige_delete_reception', true);
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesReception);
-
-    initNewLigneReception("#modalNewLigneReception");
 }
 
 function InitiliaserPageDataTable() {
