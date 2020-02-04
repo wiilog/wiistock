@@ -519,16 +519,13 @@ function saveRapidSearch() {
     });
 }
 
-function getDataAndPrintLabels() {
-    let path = Routing.generate('reference_article_get_data_to_print', true);
-    $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
-            printBarcodes(
-                response.barcodes,
-                response.tags,
-                'Etiquettes-references.pdf',
-                response.barcodeLabels
-            );
-    });
+function printReferenceArticleBarCode() {
+    let path = Routing.generate(
+        'reference_article_bar_codes_print',
+        {length: tableRefArticle.page.info().length, start: tableRefArticle.page.info().start},
+        true
+    );
+    window.open(path, '_blank');
 }
 
 function displayActifOrInactif(select){

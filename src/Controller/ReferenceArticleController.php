@@ -1284,40 +1284,55 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="reference_article_get_data_to_print", options={"expose"=true})
+     * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
+     * @param Request $request
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getDataToPrintLabels(Request $request, $params = null) : Response
-    {
+    public function getBarCodes(Request $request,
+                                PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, null, $this->user);
         $refs = $queryResult['data'];
-        $data = json_decode($request->getContent(), true);
 
         /** @var ReferenceArticle[] $refs */
-        $refs = array_slice($refs, $data['start'] ,$data['length']);
+        $refs = array_slice($refs, $request->query->get('start'), $request->query->get('length'));
 
-        $refArticleDataService = $this->refArticleDataService;
-        $barcodeInformations = array_reduce(
-            $refs,
-            function (array $acc, ReferenceArticle $referenceArticle) use ($refArticleDataService) {
-                $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
-                $acc['barcodes'][] = $refBarcodeInformations['barcode'];
-                $acc['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
-                return $acc;
+        $barcodeConfigs = array_map(
+            function (ReferenceArticle $reference) {
+                return [
+                    'code' => $reference->getBarCode(),
+                    'labels' => [
+                        $reference->getReference() ? ('L/R : ' . $reference->getReference()) : '',
+                        $reference->getLibelle() ? ('C/R : ' . $reference->getLibelle()) : ''
+                    ]
+                ];
             },
-            ['barcodes' => [], 'barcodeLabels' => []]
+            $refs
         );
+        $barcodeCounter = count($barcodeConfigs);
 
-        if ($request->isXmlHttpRequest()) {
-            $data = [
-            	'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
-				'barcodes' => $barcodeInformations['barcodes'],
-				'barcodeLabels' => $barcodeInformations['barcodeLabels'],
-			];
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
+        if ($barcodeCounter > 0) {
+            $fileName = (
+                PDFBarcodeGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+                'reference' . ($barcodeCounter > 1 ? 's' : '') .
+                ($barcodeCounter === 1 ? ('_' . $barcodeConfigs[0]['code']) : '') .
+                '.pdf'
+            );
+
+            return new PdfResponse(
+                $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $fileName
+            );
+        }
+        else {
+            throw new NotFoundHttpException('Aucune référence à imprimer');
         }
     }
 
@@ -1421,25 +1436,5 @@ class ReferenceArticleController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/{reference}/etiquette", name="ref_article_etiquette", options={"expose"=true}, methods="GET")
-     * @param ReferenceArticle $reference
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
-     * @return PdfResponse
-     */
-    public function getBarcode(ReferenceArticle $reference,
-                               PDFBarcodeGeneratorService $PDFBarcodeGeneratorService) {
-//        return new PdfResponse(
-            return new Response($PDFBarcodeGeneratorService->generatePDFBarcode(
-                $reference->getBarCode(),
-                [
-                    $reference->getReference() ? ('L/R : ' . $reference->getReference()) : '',
-                    $reference->getLibelle() ? ('C/R : ' . $reference->getLibelle()) : ''
-                ]
-            ),
-            'ETQ-' . $reference->getBarCode() . '.pdf'
-        );
     }
 }

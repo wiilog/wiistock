@@ -2,11 +2,13 @@
     <head>
         <style>
             .barcode-container {
-                padding: 1mm;
-                width: 100%;
-                height: 100%;
+                padding: .7mm;
                 overflow: hidden;
                 box-sizing: border-box;
+
+                width: {{ width }}mm;
+                height: {{ height }}mm;
+                background-color: blue;
             }
 
             .barcode {
@@ -28,52 +30,45 @@
                 overflow-wrap: break-word;
                 text-align: center;
                 margin: 0;
-                font-size: {{labelsFontSize}};
             }
-            body {
-                margin: 0 !important;
-                padding: 0 !important;
-                position: relative;
-                overflow: hidden;
-                height: 100%;
-                width: 100%;
+
+            html, body {
+                margin: 0;
+                padding: 0;
             }
-            html {
-                width: {{ width }}mm;
-                height: {{ height }}mm;
-                overflow: hidden;
+
+            @media print {
+                .page-breaker {
+                    page-break-before: always;
+                    height: 0;
+                }
             }
         </style>
-        <title>Etiquette {{ barcode.code }}</title>
+        <title>{{title}}</title>
     </head>
     <body>
-        <div class="barcode-container">
-            <div class="barcode">
-        {#        {{ printBarcode({#}
-        {#            code: code,#}
-        {#            type: barcodeType,#}
-        {#            format: 'svg',#}
-        {#            width: 1,#}
-        {#            height: 1#}
-        {#        })|domAttribute('viewBox', '0 0 21 21')|raw }}#}
-
-                {{
-                    printBarcode({
-                        code: barcode.code,
-                        type: barcode.type,
-                        format: 'svg',
-                        height: barcode.height,
-                        width: barcode.width
-                    })|raw
-                }}
+        {% for config in barcodeConfigs %}
+            {% if not loop.first %}<div class="page-breaker"></div>{% endif %}
+            <div class="barcode-container">
+                <div class="barcode">
+                    {{
+                        printBarcode({
+                            code: config.barcode.code,
+                            type: config.barcode.type,
+                            format: 'svg',
+                            height: config.barcode.height,
+                            width: config.barcode.width
+                        })|raw
+                    }}
+                </div>
+                <div class="labels" style="font-size: {{config.labelsFontSize}};">
+                    {% if config.labels is defined %}
+                        {% for label in config.labels %}
+                            <p>{{ label|trim }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
             </div>
-            <div class="labels">
-                {% if labels is defined %}
-                    {% for label in labels %}
-                        <p>{{ label|trim }}</p>
-                    {% endfor %}
-                {% endif %}
-            </div>
-        </div>
+        {% endfor %}
     </body>
 </html>
