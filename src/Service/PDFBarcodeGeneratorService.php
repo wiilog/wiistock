@@ -35,23 +35,43 @@ Class PDFBarcodeGeneratorService
             return strlen($label) > $carry ? $currentLen : $carry;
         }, 0);
 
-        dump($longestLabels);
         $labelsFontSize = ($barcodeConfig['width'] < 28)
             ? ($longestLabels < 25 ? 50 : ($longestLabels < 35 ? 40 : 35))
             : ( $longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 50)
         );
 
-        return $this->PDFGenerator->getOutputFromHtml($this->templating->render('barcodes/print.html.twig', [
-            'isCode128' => $barcodeConfig['isCode128'],
-            'code' => $code,
-            'barcodeHeight' => $barcodeConfig['height'],
-            'barcodeWidth' => $barcodeConfig['width'],
-            'barcodeType' => $barcodeConfig['isCode128'] ? 'c128' : 'qrcode',
-            'labelsFontSize' => $labelsFontSize . '%',
-            'labels' => array_filter($labels, function ($label) {
-                return !empty($label);
-            })
-        ]));
+        $height = $barcodeConfig['height'];
+        $width = $barcodeConfig['width'];
+        $isCode128 = $barcodeConfig['isCode128'];
+
+        return $this->PDFGenerator->getOutputFromHtml(
+             $this->templating->render('barcodes/print.html.twig', [
+                'height' => $height,
+                'width' => $width,
+                'barcode' => [
+                    'code' => $code,
+                    'type' => $isCode128 ? 'c128' : 'qrcode',
+                    'width' => $isCode128 ? 1 : 48,
+                    'height' => $isCode128 ? 1 : 48,
+                    'sizeProperty' => $isCode128 ? 'width' : 'height'
+                ],
+                'labelsFontSize' => $labelsFontSize . '%',
+                'labels' => array_filter($labels, function ($label) {
+                    return !empty($label);
+                })
+            ]),
+            [
+                'page-height' => "${height}mm",
+                'page-width' => "${width}mm",
+                'margin-top' => '0in',
+                'margin-right' => '0in',
+                'margin-bottom' => '0in',
+                'margin-left' => '0in',
+                'encoding' => 'UTF-8',
+                'no-outline' => true,
+                'disable-smart-shrinking' => true,
+            ]
+        );
     }
 
 }

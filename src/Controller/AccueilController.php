@@ -10,7 +10,6 @@ use App\Entity\MouvementStock;
 
 use App\Service\DashboardService;
 
-use App\Service\PDFBarcodeGeneratorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -244,17 +243,5 @@ class AccueilController extends AbstractController
         }
         $data = $value;
         return new JsonResponse($data);
-    }
-
-    /**
-     * @Route("/testETQ", name="graph_ref", options={"expose"=true}, methods="GET|POST")
-     */
-    public function testETQ(PDFBarcodeGeneratorService $PDFGenerator): Response
-    {
-        return new Response($PDFGenerator->generatePDFBarcode(
-            '123456789126789123698',
-            [
-            ]
-        ));
     }
 }

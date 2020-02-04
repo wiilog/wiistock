@@ -1426,6 +1426,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/{reference}/etiquette", name="ref_article_etiquette", options={"expose"=true}, methods="GET")
      * @param ReferenceArticle $reference
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
      * @return PdfResponse
      */
     public function getBarcode(ReferenceArticle $reference,
@@ -1438,7 +1439,7 @@ class ReferenceArticleController extends AbstractController
                     $reference->getLibelle() ? ('C/R : ' . $reference->getLibelle()) : ''
                 ]
             ),
-            'ETK-' . $reference->getBarCode() . '.pdf'
+            'ETQ-' . $reference->getBarCode() . '.pdf'
         );
     }
 }

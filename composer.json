@@ -16,6 +16,7 @@
         "sensiolabs/security-checker": "5.0",
         "symfony/asset": "^4.4",
         "symfony/console": "^4.4",
+        "symfony/dom-crawler": "^4.4",
         "symfony/expression-language": "^4.4",
         "symfony/finder": "^4.4",
         "symfony/flex": "^1.0",

@@ -1,63 +1,88 @@
-<style>
-    .barcode-container {
-        width: {{ barcodeWidth }}mm;
-        height: {{ barcodeHeight }}mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        overflow: hidden;
-        background-color: white;
-        padding: 2px;
-    }
+<html lang="fr">
+    <head>
+        <style>
+            .barcode-container {
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                background-color: white;
+                flex: 1;
 
-    .barcode {
-        min-height: 30%;
-    }
+                padding: 1mm;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
 
-    .barcode svg {
-        width: 100%;
-        height: 100%;
-    }
+            .barcode {
+                flex: 1;
+                max-width: 100%;
+                max-height: 40%;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: flex-end;
+            }
 
-    .labels {
-        margin-top: 3px;
-    }
-    .labels p {
-        overflow-wrap: break-word;
-        text-align: center;
-        margin: 0;
-        font-size: {{labelsFontSize}};
-    }
+            .barcode svg {
+                {{barcode.sizeProperty}}: 100%;
+            }
+            .labels {
+                margin-top: 3px;
+            }
+            .labels p {
+                overflow-wrap: break-word;
+                text-align: center;
+                margin: 0;
+                font-size: {{labelsFontSize}};
+            }
+            body {
+                display: flex;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: relative;
+                overflow: hidden;
+                height: 100%;
+                width: 100%;
+            }
+            html {
+                width: {{ width }}mm;
+                height: {{ height }}mm;
+            }
+        </style>
+        <title>Etiquette {{ barcode.code }}</title>
+    </head>
+    <body>
+        <div class="barcode-container">
+            <div class="barcode">
+        {#        {{ printBarcode({#}
+        {#            code: code,#}
+        {#            type: barcodeType,#}
+        {#            format: 'svg',#}
+        {#            width: 1,#}
+        {#            height: 1#}
+        {#        })|domAttribute('viewBox', '0 0 21 21')|raw }}#}
 
-    body {
-        background-color: grey;
-    }
-</style>
-
-<div class="barcode-container">
-    <div class="barcode">
-{#        {{ printBarcode({#}
-{#            code: code,#}
-{#            type: barcodeType,#}
-{#            format: 'svg',#}
-{#            width: 1,#}
-{#            height: 1#}
-{#        })|domAttribute('viewBox', '0 0 21 21')|raw }}#}
-
-        {{ printBarcode({
-            code: code,
-            type: barcodeType,
-            format: 'svg',
-            width: 1,
-            height: 45
-        })|raw
-        }}
-    </div>
-    <div class="labels">
-        {% if labels is defined %}
-            {% for label in labels %}
-                <p>{{ label|trim }}</p>
-            {% endfor %}
-        {% endif %}
-    </div>
-</div>
+                {{
+                    printBarcode({
+                        code: barcode.code,
+                        type: barcode.type,
+                        format: 'svg',
+                        height: barcode.height,
+                        width: barcode.width
+                    })|raw
+                }}
+            </div>
+            <div class="labels">
+                {% if labels is defined %}
+                    {% for label in labels %}
+                        <p>{{ label|trim }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>
