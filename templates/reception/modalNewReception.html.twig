@@ -45,8 +45,10 @@
                     </div>
                     <div class="form-group col-6 w-100">
                         <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? '*' : '' }}</label>
-                        <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location">
+                        <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location"
+                                id="receptionLocation">
                         </select>
+                        <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
                     </div>
                 </div>
 

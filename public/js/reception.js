@@ -87,3 +87,13 @@ function initDateTimePickerReception() {
     initDateTimePicker('#dateCommande, #dateAttendue');
     initDateTimePickerCL();
 }
+
+function initReceptionLocation() {
+    // initialise valeur champs select2 ajax
+    let $receptionLocationSelect = $('#receptionLocation');
+    let dataReceptionLocation = $('#receptionLocationValue').data();
+    if (dataReceptionLocation.id && dataReceptionLocation.text) {
+        let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
+        $receptionLocationSelect.append(option).trigger('change');
+    }
+}
