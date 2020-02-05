@@ -18,9 +18,12 @@
                         <span class="fa fa-plus mr-2"></span>Ajouter {{ 'arrivage.colis'|trans }}
                     </div>
                 {% endif %}
-                <div class="btn btn-primary" onclick="getDataAndPrintLabels({{ arrivage.id }})">
+                <a class="btn btn-primary"
+                   id="printColisBtn"
+                   target="_blank"
+                   href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id}) }}">
                     <span class="fa fa-print mr-2"></span>Imprimer {{ 'arrivage.colis'|trans }}
-                </div>
+                </a>
             </div>
             <div>
                 <table id="tableColis" class="table table-striped table-bordered w-100"></table>

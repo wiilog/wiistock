@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\ChampLibre;
 use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
@@ -1562,36 +1561,6 @@ class ReceptionController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/obtenir-ligne", name="get_ligne_from_id", options={"expose"=true}, methods={"GET", "POST"})
-	 * @param Request $request
-	 * @param RefArticleDataService $refArticleDataService
-	 * @return JsonResponse
-	 * @throws LoaderError
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 * @throws NoResultException
-	 */
-    public function getLignes(Request $request,
-                              RefArticleDataService $refArticleDataService)
-    {
-        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $articleRef = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle();
-                $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
-                $barcodeInformations = $refArticleDataService->getBarcodeInformations($articleRef);
-                $data['barcode'] = $barcodeInformations['barcode'];
-                $data['barcodeLabel'] = $barcodeInformations['barcodeLabel'];
-            } else {
-                $data = [];
-                $data['article'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
     /**
      * @Route("/ajouter_lot", name="add_lot", options={"expose"=true}, methods={"GET", "POST"})
      */
@@ -1788,43 +1757,18 @@ class ReceptionController extends AbstractController
             }
 
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
-            $response['barcodes'] = $response['barcodesLabel'] = [];
-            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $receptionLocation = $reception->getLocation();
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
             foreach ($articles as $article) {
                 if (isset($receptionLocationId)) {
                     $article['emplacement'] = $receptionLocationId;
                 }
-                $createdArticle = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
-                $refArticle = $createdArticle->getArticleFournisseur() ? $createdArticle->getArticleFournisseur()->getReferenceArticle() : null;
-                $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($createdArticle->getId());
-                $wantedIndex = 0;
-                foreach ($articles as $key => $articleWithCL) {
-                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
-                        $wantedIndex = $key;
-                        break;
-                    }
-                }
-                $articleArray = $articles[$wantedIndex];
-
-                $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
-                    'barcode' => $createdArticle->getBarCode(),
-                    'refReference' => $refArticle ? $refArticle->getReference() : '',
-                    'refLabel' => $refArticle ? $refArticle->getLibelle() : '',
-                    'artLabel' => $createdArticle->getLabel(),
-                    'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
-                        ? $articleArray['bl']
-                        : null)
-                ]);
-
-                $response['barcodes'][] = $articleBarcodeInformations['barcode'];
-                $response['barcodesLabel'][] = $articleBarcodeInformations['barcodeLabel'];
+                $this->articleDataService->newArticle($article, $demande ?? null, $reception);
             }
 
             $em->flush();
 
-            return new JsonResponse($response);
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException('404');
     }

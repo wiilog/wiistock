@@ -931,63 +931,40 @@ class ArticleController extends AbstractController
         return implode(';', $refData);
     }
 
-	/**
-	 * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
-	 * @param Request $request
-	 * @param ArticleDataService $articleDataService
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 * @throws NoResultException
-	 */
-    public function getDataToPrintLabels(Request $request,
-                                         ArticleDataService $articleDataService): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    /**
+     * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param ArticleDataService $articleDataService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printArticlesBarCodes(Request $request,
+                                          PDFBarcodeGeneratorService $PDFBarcodeGeneratorService,
+                                          ArticleDataService $articleDataService): Response {
+        $listArticles = explode(',', $request->query->get('listArticles') ?? '');
+        $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
-			if (empty($data['listArticles'])) return new JsonResponse(false);
+        $barcodeConfigs = array_slice(
+            array_map(
+                function (Article $article) use ($articleDataService, $wantBL) {
+                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                },
+                $this->articleRepository->findByIds($listArticles)
+            ),
+            $request->query->get('start'),
+            $request->query->get('length')
+        );
+        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
-            $listArticles = explode(',', $data['listArticles']);
-            $barcodes = $barcodeLabels = [];
-
-            for ($i = 0; $i < count($listArticles); $i++) {
-                $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($listArticles[$i]);
-                $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                $wantedIndex = 0;
-                foreach($articles as $key => $articleWithCL) {
-                    if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
-                        $wantedIndex = $key;
-                        break;
-                    }
-                }
-
-                $article = $articles[$wantedIndex];
-
-                $barcodeInformations = $articleDataService->getBarcodeInformations([
-                    'barcode' => $article['barcode'],
-                    'refReference' => $article['refRef'],
-                    'refLabel' => $article['refLabel'],
-                    'artLabel' => $article['artLabel'],
-                    'artBL' => (($wantBL && $wantBL->getValue() && ($article['cl'] === ChampLibre::SPECIC_COLLINS_BL))
-                        ? $article['bl']
-                        : null)
-                ]);
-
-                $barcodes[] = $barcodeInformations['barcode'];
-                $barcodeLabels[] = $barcodeInformations['barcodeLabel'];
-            }
-            $barcodes = array_slice($barcodes, $data['start'], $data['length']);
-            $data = [
-                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
-                'barcodes' => $barcodes,
-                'barcodesLabels' => $barcodeLabels
-            ];
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
-        }
+        return new PdfResponse(
+            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $fileName
+        );
     }
 
     /**
@@ -1003,10 +980,10 @@ class ArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getSingleBarCodes(Article $article,
-                                      ArticleDataService $articleDataService,
-                                      ParametrageGlobalRepository $parametrageGlobalRepository,
-                                      PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+    public function getSingleArticleBarCode(Article $article,
+                                            ArticleDataService $articleDataService,
+                                            ParametrageGlobalRepository $parametrageGlobalRepository,
+                                            PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue())];
         $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');

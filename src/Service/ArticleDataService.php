@@ -758,25 +758,6 @@ class ArticleDataService
 		return $newBarcode;
 	}
 
-    /**
-     * @param array $article
-     * @return array Field barcode, refReference, refLabel, artLabel, artBL
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    public function getBarcodeInformations(array $article): array {
-        return [
-            'barcode' => $article['barcode'],
-            'barcodeLabel' => $this->templating->render('article/barcodeLabel.html.twig', [
-                'refRef' => trim($article['refReference']),
-                'refLabel' => trim($article['refLabel']),
-                'artLabel' => trim($article['artLabel']),
-                'artBL' => isset($article['artBL']) ? trim($article['artBL']) : null
-            ])
-        ];
-    }
-
     public function getBarcodeConfig(Article $article, bool $wantBL = false): array {
         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
         $wantedIndex = 0;

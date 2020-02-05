@@ -12,10 +12,13 @@
         <a href="" class="btn btn-primary btn-action ml-auto" data-target='#modalNewAssociation' data-toggle='modal'>
             <i class="fa fa-bullseye mr-2"></i>Association/BR
         </a>
-        <div class = "btn btn-success" onclick="printBarcode('{{ arrivage.numeroArrivage }}')">
+        <a class="btn btn-success"
+           id="printArrivageBtn"
+           target="_blank"
+           href="{{ path('print_arrivage_bar_code', {arrivage: arrivage.id}) }}">
             <i class='fas fa-print pointer'></i>
             Imprimer {{ 'arrivage.arrivage'|trans }}
-        </div>
+        </a>
         {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
             <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
                onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
