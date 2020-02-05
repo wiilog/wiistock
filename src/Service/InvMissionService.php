@@ -3,9 +3,11 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryMission;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\FiltreSupRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -14,9 +16,14 @@ use App\Repository\InventoryMissionRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Twig_Error_Loader;
 use Twig_Error_Runtime;
 use Twig_Error_Syntax;
@@ -117,9 +124,9 @@ class InvMissionService
 	/**
 	 * @param InventoryMission $mission
 	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
 	 */
 	public function dataRowMission($mission)
 	{
@@ -174,31 +181,65 @@ class InvMissionService
         ];
     }
 
+	/**
+	 * @param ReferenceArticle $ref
+	 * @param InventoryMission $mission
+	 * @return array
+	 * @throws NonUniqueResultException
+	 */
     public function dataRowRefMission($ref, $mission)
     {
         $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref);
+
+        if ($ref->getEmplacement()) {
+        	$location = $ref->getEmplacement()->getLabel();
+        	$emptyLocation = false;
+		} else {
+        	$location = '<i class="fas fa-exclamation-triangle red"></i>';
+			$emptyLocation = true;
+		}
 
         $row =
             [
                 'Ref' => $ref->getReference(),
                 'Label' => $ref->getLibelle(),
+                'Location' => $location,
                 'Date' => $refDate ? $refDate['date']->format('d/m/Y') : '',
-                'Anomaly' => $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
+                'Anomaly' => $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-'),
+				'EmptyLocation' => $emptyLocation
             ];
+
         return $row;
     }
 
+	/**
+	 * @param Article $art
+	 * @param InventoryMission $mission
+	 * @return array
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
     public function dataRowArtMission($art, $mission)
     {
         $artDate = $this->articleRepository->getEntryDateByMission($mission, $art);
+
+		if ($art->getEmplacement()) {
+			$location = $art->getEmplacement()->getLabel();
+			$emptyLocation = false;
+		} else {
+			$location = '<i class="fas fa-exclamation-triangle red"></i>';
+			$emptyLocation = true;
+		}
 
         $row =
             [
                 'Ref' => $art->getReference(),
                 'Label' => $art->getlabel(),
-                'Date' => $artDate ? $artDate['date']->format('d/m/Y') : '',
-                'Anomaly' => $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
-            ];
+				'Location' => $location,
+				'Date' => $artDate ? $artDate['date']->format('d/m/Y') : '',
+                'Anomaly' => $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-'),
+				'EmptyLocation' => $emptyLocation
+			];
         return $row;
     }
 }
