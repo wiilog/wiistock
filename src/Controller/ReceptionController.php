@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Litige;
@@ -41,6 +42,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MouvementStockService;
+use App\Service\PDFBarcodeGeneratorService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
@@ -52,6 +54,7 @@ use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -1478,64 +1481,56 @@ class ReceptionController extends AbstractController
         }
     }
 
+
     /**
-     * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
      * @param Request $request
+     * @param Reception $reception
      * @param RefArticleDataService $refArticleDataService
      * @param ArticleDataService $articleDataService
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
      * @return Response
      * @throws LoaderError
+     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getAllReferences(Request $request,
-                                     RefArticleDataService $refArticleDataService,
-                                     ArticleDataService $articleDataService): Response
-    {
-        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
-            $data['refs'] = [];
-            $data['barcodeLabel'] = [];
+    public function getReceptionBarCodes(Reception $reception,
+                                         RefArticleDataService $refArticleDataService,
+                                         ArticleDataService $articleDataService,
+                                         PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+        $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
+        $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
-            $reception = $this->receptionRepository->find($dataContent['reception']);
-            $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
-            $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-            foreach ($listReceptionReferenceArticle as $recepRef) {
+        $barcodeConfigs = array_reduce(
+            $listReceptionReferenceArticle,
+            function (array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $wantBL): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
-                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
-                    $data['refs'][] = $refBarcodeInformations['barcode'];
-                    $data['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
-                } else {
-                    foreach ($recepRef->getArticles() as $article) {
-                        $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
-                        $wantedIndex = 0;
-                        foreach ($articles as $key => $articleWithCL) {
-                            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
-                                $wantedIndex = $key;
-                                break;
-                            }
-                        }
-                        $articleArray = $articles[$wantedIndex];
-                        $articleBarcodeInformations = $articleDataService->getBarcodeInformations([
-                            'barcode' => $article->getBarCode(),
-                            'refReference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                            'refLabel' => $article->getArticleFournisseur()->getReferenceArticle()->getLibelle(),
-                            'artLabel' => $article->getLabel(),
-                            'artBL' => (($wantBL && $wantBL->getValue() && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
-                                ? $articleArray['bl']
-                                : null)
-                        ]);
-                        $data['refs'][] = $articleBarcodeInformations['barcode'];
-                        $data['barcodeLabel'][] = $articleBarcodeInformations['barcodeLabel'];
-                    }
-                }
-            }
 
-            return new JsonResponse($data);
+                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
+                }
+                else {
+                    array_push(
+                        $carry,
+                        ...array_map(function (Article $article) use ($articleDataService, $wantBL) {
+                            return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                        }, $recepRef->getArticles()->toArray())
+                    );
+                }
+                return $carry;
+            },
+            []);
+
+        if (!empty($barcodeConfigs)) {
+            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
+            $pdf = $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            return new PdfResponse($pdf, $fileName);
         }
-        throw new NotFoundHttpException("404");
+        else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+        }
     }
 
 	/**

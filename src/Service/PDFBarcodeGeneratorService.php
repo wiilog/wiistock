@@ -54,16 +54,28 @@ Class PDFBarcodeGeneratorService
 
 	    $barcodeConfigsToTwig = array_map(function ($config) use ($isCode128, $width) {
             $code = $config['code'];
-            $labels = array_merge([$code], $config['labels'] ?? []);
+            $labels = array_merge(
+                [$code],
+                array_filter($config['labels'] ?? [], function ($label) {
+                    return !empty($label);
+                })
+            );
 
             $longestLabels = array_reduce($labels, function ($carry, $label) {
                 $currentLen = strlen($label);
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
-
-            $labelsFontSize = ($width < 28)
-                ? ($longestLabels < 25 ? 50 : ($longestLabels < 35 ? 40 : 35))
-                : ( $longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 50)
+            $lineCounter = count($labels);
+            $labelsFontSize = (
+                $lineCounter > 4
+                    ?(($width < 28)
+                        ? ($longestLabels < 25 ? 43 : ($longestLabels < 50 ? 35 : 22))
+                        : ($longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 45))
+                    )
+                    : (($width < 28)
+                        ? ($longestLabels < 25 ? 50 : ($longestLabels < 35 ? 40 : 35))
+                        : ($longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 50))
+                    )
             );
 	        return [
                 'barcode' => [
@@ -73,9 +85,7 @@ Class PDFBarcodeGeneratorService
                     'height' => 48
                 ],
                 'labelsFontSize' => $labelsFontSize . '%',
-                'labels' => array_filter($labels, function ($label) {
-                    return !empty($label);
-                })
+                'labels' => $labels
             ];
         }, $barcodeConfigs);
 
@@ -97,6 +107,23 @@ Class PDFBarcodeGeneratorService
                 'no-outline' => true,
                 'disable-smart-shrinking' => true,
             ]
+        );
+    }
+
+
+    /**
+     * @param array $barcodeConfigs ['code' => string][]
+     * @param string $name
+     * @return string
+     */
+    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
+        $barcodeCounter = count($barcodeConfigs);
+
+        return (
+            PDFBarcodeGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            $name .
+            ($barcodeCounter === 1 ? ('_' . $barcodeConfigs[0]['code']) : '') .
+            '.pdf'
         );
     }
 }

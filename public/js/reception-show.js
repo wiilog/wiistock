@@ -560,25 +560,3 @@ function getQuantityErrorModalNewLigneReception() {
 function removePackingItem($button) {
     $button.closest('.conditionnement-article').remove();
 }
-
-function printBarcode(button) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let params = {
-        'reception': button.data('id')
-    };
-    $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            if (response.refs.length > 0) {
-                printBarcodes(
-                    response.refs,
-                    response,
-                    'Etiquettes du ' + date + '.pdf',
-                    response.barcodeLabel);
-            } else {
-                alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
-            }
-        }
-    });
-}

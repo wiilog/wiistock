@@ -905,7 +905,7 @@ function printBarcodes(barcodes, apiResponse, fileName, barcodesLabel = null) {
                     : 2);
 
                 if (barcodesLabel) {
-                    let toPrint = (barcodesLabel[index]
+                    let toPrint = ((barcodesLabel[index] || '')
                         .split('\n')
                         .map((line) => he.decode(line).trim())
                         .filter(Boolean)
@@ -957,7 +957,7 @@ function printSingleArticleBarcode(button) {
 }
 
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
-    let texts = text.split("\n");
+    let texts = (text||'').split("\n");
 
     let maxLength = texts[0].length;
     texts.map(v => maxLength = Math.max(maxLength, v.length));

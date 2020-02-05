@@ -1313,8 +1313,13 @@ class ReferenceArticleController extends AbstractController
             $refs
         );
 
-        if (!empty($barcodeConfigs)) {
-            $fileName = $refArticleDataService->getBarcodeFileName($barcodeConfigs);
+        $barcodeCounter = count($barcodeConfigs);
+
+        if ($barcodeCounter > 0) {
+            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName(
+                $barcodeConfigs,
+                'reference' . ($barcodeCounter > 1 ? 's' : '')
+            );
 
             return new PdfResponse(
                 $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
@@ -1322,7 +1327,7 @@ class ReferenceArticleController extends AbstractController
             );
         }
         else {
-            throw new NotFoundHttpException('Aucune référence à imprimer');
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
 
@@ -1342,7 +1347,7 @@ class ReferenceArticleController extends AbstractController
                                       RefArticleDataService $refArticleDataService,
                                       PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
         $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($reference)];
-        $fileName = $refArticleDataService->getBarcodeFileName($barcodeConfigs);
+        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'reference');
 
         return new PdfResponse(
             $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
