@@ -5,9 +5,6 @@
     background-repeat: no-repeat
     background-size: cover
 
-.big-font
-    font-size: 3rem
-
 #alerts
     position: absolute
     z-index: 10000
@@ -23,9 +20,6 @@
     height: 75px
     width: 300px
 
-.dashboard-container
-    height: 90vh
-
 .dashboard-item
     min-width: 50%
     min-height: 40%
@@ -38,6 +32,17 @@
     display: flex
     flex-direction: column
     height: 45vh
+    .arrow-chart
+      color: $blueGT
+      font-weight: bold
+      display: inline-block
+      margin: 0 10px
+    .range-buttons
+      text-align: center
+      span
+        font-size: .8em
+    .dataTables_wrapper, span
+      font-size: .8em
 
 .home-card
     background-color: rgba(255, 255, 255, 0.7) !important
@@ -52,16 +57,9 @@
 .page-link
     color: #130078 !important
 
-
-.retard
-    padding: 10px
-
 .chart
     height: 70%
     width: 99%
-
-.range-buttons
-    text-align: center
 
 #chart-assoc
     height: 70%

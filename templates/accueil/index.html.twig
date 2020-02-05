@@ -6,12 +6,30 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="row">
-        <div class="col-9 row dashboard-container mt-2">
-            {% include 'accueil/dashboard.html.twig' %}
-        </div>
-        <div class="col-3 mt-2">
-            {% include 'accueil/dashboardLinks.html.twig' %}
+    <div id="carouselIndicators" class="carousel slide">
+        <ol class="carousel-indicators">
+            <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
+            <li data-target="#carouselIndicators" data-slide-to="1"></li>
+            <li data-target="#carouselIndicators" data-slide-to="2"></li>
+        </ol>
+
+        <div class="carousel-inner h-90">
+            <div class="carousel-item active">
+                <div class="row">
+                    <div class="col-9 row mt-2">
+                        {% include 'accueil/dashboard.html.twig' %}
+                    </div>
+                    <div class="col-3 mt-2" id="dashboardLinks">
+                        {% include 'accueil/dashboardLinks.html.twig' %}
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div>2è page indicateurs ici</div>
+            </div>
+            <div class="carousel-item">
+                <div>3è page indicateurs là</div>
+            </div>
         </div>
     </div>
 
@@ -26,6 +44,5 @@
     <script>
         const id = 0;
     </script>
-    <script src="{{ asset('js/accueil.js') }}?{{ date().timestamp }}"></script>
     <script src = "{{ asset('js/dashboard.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}
