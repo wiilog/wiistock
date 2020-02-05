@@ -526,6 +526,15 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
     });
 }
 
+
+function initDisplaySelect2(select, inputValue) {
+    let data = $(inputValue).data();
+    if (data.id && data.text) {
+        let option = new Option(data.text, data.id, true, true);
+        $(select).append(option).trigger('change');
+    }
+}
+
 function ajaxAutoCompleteEmplacementInit(select) {
     initSelect2Ajax(select, 'get_emplacement');
 }

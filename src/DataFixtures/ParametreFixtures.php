@@ -92,15 +92,13 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],
-			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [
-				'default' => null
-			],
-			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [
-				'default' => ''
-			],
-			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [
-				'default' => ''
-			],
+			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
+			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
+			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
@@ -110,7 +108,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 $appClient = $this->specificService->getAppClient();
                 $value = isset($values[$appClient])
                     ? $values[$appClient]
-                    : $values['default'];
+                    : ($values['default'] ?? null);
 
 				$globalParam = new ParametrageGlobal();
 				$globalParam

@@ -99,7 +99,8 @@ class ParametrageGlobalController extends AbstractController
 				'paramDashboard' => [
 					'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
 					'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
-					'natures' => $natureRepository->findAll()
+					'natures' => $natureRepository->findAll(),
+					'locations' => $globalParamService->getDashboardLocations()
 				],
         ]);
     }
@@ -601,14 +602,25 @@ class ParametrageGlobalController extends AbstractController
 		if ($request->isXmlHttpRequest()) {
 			$post = $request->request;
 
-			$natureColisId = $post->get('nature-colis');
-			$paramNature = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS);
-			$paramNature->setValue($natureColisId);
-
-			$listNaturesColisId = $post->get('list-natures-colis');
+			$listNaturesColisId = $post->get('listNaturesColis');
 			$listNaturesColisIdStr = $listNaturesColisId ? implode(',', $listNaturesColisId) : null;
 			$paramNatures = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
 			$paramNatures->setValue($listNaturesColisIdStr);
+
+			$paramNature = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS);
+			$paramNature->setValue($post->get('natureColis'));
+
+			$paramToTreat = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT);
+			$paramToTreat->setValue($post->get('locationToTreat'));
+
+			$paramWaiting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE);
+			$paramWaiting->setValue($post->get('locationWaiting'));
+
+			$paramAvailable = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE);
+			$paramAvailable->setValue($post->get('locationAvailable'));
+
+			$paramDropZones = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
+			$paramDropZones->setValue($post->get('locationDropZone'));
 
 			$this->getDoctrine()->getManager()->flush();
 

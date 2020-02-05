@@ -84,6 +84,37 @@ Class GlobalParamService
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
 	 */
+	public function getDashboardLocations() {
+
+		$paramLabels = [
+			ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT,
+			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE,
+			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
+			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+		];
+
+		$resp = [];
+		foreach ($paramLabels as $paramLabel) {
+			$locationId = $this->parametrageGlobalRepository->getOneParamByLabel($paramLabel);
+			if ($locationId) {
+				$location = $this->emplacementRepository->find($locationId);
+
+				$resp[] = [
+					'id' => $location ? $locationId : '',
+					'text' => $location ? $location->getLabel() : ''
+				];
+			} else {
+				$resp[] = ['id' => '', 'text' => ''];
+			}
+		}
+		return $resp;
+	}
+
+	/**
+	 * @return array
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
 	public function getDashboardListNatures() {
 		$listNatureId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
 

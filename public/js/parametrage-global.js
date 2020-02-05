@@ -33,15 +33,12 @@ InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEdi
 $(function() {
     initSelect2($('.select2'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
-    let $receptionLocationSelect = $('#receptionLocation');
-
-    // initialise valeur champs select2 ajax
-    let dataReceptionLocation = $('#receptionLocationValue').data();
-    if (dataReceptionLocation.id && dataReceptionLocation.text) {
-        let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
-        $receptionLocationSelect.append(option).trigger('change');
-    }
-    $receptionLocationSelect.on('change', editDefaultLocationValue);
+    initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
+    $('#receptionLocation').on('change', editDefaultLocationValue);
+    initDisplaySelect2('#locationToTreat', '#locationToTreatValue');
+    initDisplaySelect2('#locationWaiting', '#locationWaitingValue');
+    initDisplaySelect2('#locationAvailable', '#locationAvailableValue');
+    initDisplaySelect2('#locationDropZone', '#locationDropZoneValue');
 });
 
 function errorEditDays(data) {
@@ -184,7 +181,7 @@ function editDashboardParams() {
     let param = {};
     data.each(function () {
         let val = $(this).val();
-        let name = $(this).attr("name");
+        let name = $(this).attr("id");
         param[name] = val;
     })
 
