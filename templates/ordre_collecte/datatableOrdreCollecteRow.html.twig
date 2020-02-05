@@ -7,7 +7,7 @@
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>
-        {% endif %}pr
+        {% endif %}
     {% endif %}
 
     {% if refArticleId is defined %}
@@ -26,16 +26,20 @@
         </div>
     {% else %}
         <div>
-            <div class="btn btn-col-action" data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal'
-            onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+            <div class="btn btn-col-action"
+                 data-id='{{ id }}'
+                 data-target='#modalShowArticle'
+                 data-toggle='modal'
+                 onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
                 <i class='fas fa-eye'></i>
             </div>
         </div>
         <div>
-            <div class="btn btn-col-action" data-id='{{ id }}'
-                 onclick='printSingleArticleBarcode($(this))'>
+            <a class="btn btn-col-action"
+               href="{{ path('article_single_bar_code_print', {article: id}) }}"
+               target="_blank">
                 <i class="fas fa-print"></i>
-            </div>
+            </a>
         </div>
     {% endif %}
 

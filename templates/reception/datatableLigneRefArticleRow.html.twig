@@ -19,9 +19,20 @@
         {% endif %}
     {% endif %}
 
-    <div>
-        <div class="btn btn-col-action" data-id='{{ligneId}}'  onclick='printSingleBarcode($(this))'>
-            <i class="fas fa-{{type}}"></i>
+    {% if showPrint %}
+        <div>
+            <a class="btn btn-col-action"
+               target="_blank"
+               href="{{ path('reception_ligne_article_bar_code_print', {reception: receptionId, ligneArticle: ligneId}) }}">
+                <i class="fas fa-print"></i>
+            </a>
         </div>
-    </div>
+    {% else %}
+        <div>
+            <div class="btn btn-col-action"
+                 onclick='openModalArticlesFromLigneArticle({{ligneId}})'>
+                <i class="fas fa-list"></i>
+            </div>
+        </div>
+    {% endif %}
 </div>

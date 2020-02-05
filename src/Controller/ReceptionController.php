@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
+use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
@@ -531,11 +532,10 @@ class ReceptionController extends AbstractController
                             'reception/datatableLigneRefArticleRow.html.twig',
                             [
                                 'ligneId' => $ligneArticle->getId(),
-                                'type' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ? 'list' : 'print',
-                                'refArticle' => $ligneArticle->getReferenceArticle()->getReference(),
-                                'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
+                                'receptionId' => $reception->getId(),
+                                'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                                'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE))
                             ]
-
                         ),
                     ];
             }
@@ -1524,6 +1524,35 @@ class ReceptionController extends AbstractController
             []);
 
         if (!empty($barcodeConfigs)) {
+            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
+            $pdf = $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            return new PdfResponse($pdf, $fileName);
+        }
+        else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+        }
+    }
+
+
+    /**
+     * @Route("/{reception}/ligne-article/{ligneArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
+     * @param Reception $reception
+     * @param LigneArticle $ligneArticle
+     * @param RefArticleDataService $refArticleDataService
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getReceptionLigneArticleBarCode(Reception $reception,
+                                                    ReceptionReferenceArticle $ligneArticle,
+                                                    RefArticleDataService $refArticleDataService,
+                                                    PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+        if ($reception->getReceptionReferenceArticles()->contains($ligneArticle) && $ligneArticle->getReferenceArticle()) {
+            $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($ligneArticle->getReferenceArticle())];
             $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
             $pdf = $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
             return new PdfResponse($pdf, $fileName);

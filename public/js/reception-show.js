@@ -262,29 +262,10 @@ function initNewArticleEditor(modal) {
     clearAddRefModal();
 }
 
-function printSingleBarcode(button) {
-    let params = {
-        'ligne': button.data('id')
-    };
-    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
-        if (!response.article) {
-            printBarcodes(
-                [response.barcode],
-                response,
-                'Etiquette concernant l\'article ' + response.barcode + '.pdf',
-                [response.barcodeLabel]
-            );
-        } else {
-            $('#ligneSelected').val(button.data('id'));
-            $('#chooseConditionnement').click();
-            let $submit = $('#submitConditionnement');
-            $submit.attr('data-ref', response.article);
-            $submit.attr('data-id', button.data('id'));
-            initDatatableConditionnement();
-            $submit.addClass('d-none');
-            $('#reference-list').html(response.article);
-        }
-    });
+function openModalArticlesFromLigneArticle(ligneArticleId) {
+    $('#ligneSelected').val(ligneArticleId);
+    $('#chooseConditionnement').click();
+    initDatatableConditionnement();
 }
 
 function articleChanged(select) {
