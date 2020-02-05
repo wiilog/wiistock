@@ -31,6 +31,7 @@ let urlEditDays = Routing.generate('days_edit', true);
 InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
 
 $(function() {
+    initSelect2($('.select2'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     let $receptionLocationSelect = $('#receptionLocation');
 
@@ -172,6 +173,26 @@ function editDefaultLocationValue() {
             alertSuccessMsg("L'emplacement de réception a bien été mis à jour.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.");
+        }
+    });
+}
+
+function editDashboardParams() {
+    let path = Routing.generate('edit_dashboard_params',true);
+    let data = $('#paramDashboard').find('.data');
+
+    let param = {};
+    data.each(function () {
+        let val = $(this).val();
+        let name = $(this).attr("name");
+        param[name] = val;
+    })
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("La configuration des tableaux de bord a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.");
         }
     });
 }

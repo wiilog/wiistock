@@ -11,6 +11,7 @@ use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 
+use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
@@ -29,7 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage-global")
  */
-class GlobalParamController extends AbstractController
+class ParametrageGlobalController extends AbstractController
 {
     private $engDayToFr = [
         'monday' => 'Lundi',
@@ -49,16 +50,19 @@ class GlobalParamController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param NatureRepository $natureRepository
 	 * @return Response
-	 * @throws NonUniqueResultException
 	 * @throws NoResultException
+	 * @throws NonUniqueResultException
 	 */
     public function index(TranslationRepository $translationRepository,
                           UserService $userService,
                           DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
-						  GlobalParamService $globalParamService): Response
+						  GlobalParamService $globalParamService,
+						  NatureRepository $natureRepository
+	): Response
     {
         if (!$userService->hasRightFunction(Menu::PARAM)) {
             return $this->redirectToRoute('access_denied');
@@ -91,7 +95,12 @@ class GlobalParamController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation()
+				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+				'paramDashboard' => [
+					'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
+					'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
+					'natures' => $natureRepository->findAll()
+				],
         ]);
     }
 
@@ -578,5 +587,35 @@ class GlobalParamController extends AbstractController
         }
 		throw new NotFoundHttpException("404");
 	}
+
+
+	/**
+	 * @Route("/modifier-parametres-tableau-de-bord", name="edit_dashboard_params",  options={"expose"=true},  methods="GET|POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+	public function editDashboardParams(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$post = $request->request;
+
+			$natureColisId = $post->get('nature-colis');
+			$paramNature = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS);
+			$paramNature->setValue($natureColisId);
+
+			$listNaturesColisId = $post->get('list-natures-colis');
+			$listNaturesColisIdStr = $listNaturesColisId ? implode(',', $listNaturesColisId) : null;
+			$paramNatures = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
+			$paramNatures->setValue($listNaturesColisIdStr);
+
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
+		}
+		throw new NotFoundHttpException("404");
+	}
+
 
 }

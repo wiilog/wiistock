@@ -6,6 +6,7 @@ namespace App\Service;
 use App\Entity\ParametrageGlobal;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -15,16 +16,19 @@ Class GlobalParamService
 	private $parametrageGlobalRepository;
 	private $dimensionsEtiquettesRepository;
 	private $emplacementRepository;
+	private $natureRepository;
 
 	public function __construct(
 		ParametrageGlobalRepository $parametrageGlobalRepository,
 		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
-		EmplacementRepository $emplacementRepository
+		EmplacementRepository $emplacementRepository,
+		NatureRepository $natureRepository
 	)
 	{
 		$this->parametrageGlobalRepository = $parametrageGlobalRepository;
 		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
 		$this->emplacementRepository = $emplacementRepository;
+		$this->natureRepository = $natureRepository;
 	}
 
 	/**
@@ -73,6 +77,28 @@ Class GlobalParamService
 			}
 		}
 		return $resp ?? null;
+	}
+
+	/**
+	 * @return array
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+	public function getDashboardListNatures() {
+		$listNatureId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
+
+		$listNatureIdArray = explode(',', $listNatureId);
+		$resp = [];
+
+		foreach ($listNatureIdArray as $natureId) {
+			$nature = $this->natureRepository->find($natureId);
+
+			if ($nature) {
+				$resp[] = $natureId;
+			}
+		}
+
+		return $resp;
 	}
 
 }

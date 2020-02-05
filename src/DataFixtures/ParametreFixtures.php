@@ -94,7 +94,13 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ],
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [
 				'default' => null
-			]
+			],
+			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [
+				'default' => ''
+			],
+			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [
+				'default' => ''
+			],
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
