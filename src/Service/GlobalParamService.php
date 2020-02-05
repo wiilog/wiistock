@@ -90,7 +90,7 @@ Class GlobalParamService
 	 */
 	public function generateSassFile() {
 		$projectDir = $this->kernel->getProjectDir();
-		$sassFile = $projectDir . '/assets/sass/customFont.sass';
+		$sassFile = $projectDir . '/assets/sass/_customFont.sass';
 
 		$param = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 		$font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
