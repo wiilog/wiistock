@@ -8,7 +8,6 @@
 
                 width: {{ width }}mm;
                 height: {{ height }}mm;
-                background-color: blue;
             }
 
             .barcode {
@@ -23,13 +22,13 @@
             .barcode svg {
                 height: 100%;
             }
-            .labels {
-                margin-top: 3px;
-            }
             .labels p {
                 overflow-wrap: break-word;
                 text-align: center;
                 margin: 0;
+            }
+            .labels p:first-child {
+                margin-top: 3px;
             }
 
             html, body {

@@ -586,4 +586,32 @@ class RefArticleDataService
             ])
         ];
     }
+
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
+        $labels = [
+            $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
+            $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
+        ];
+        return [
+            'code' => $referenceArticle->getBarCode(),
+            'labels' => array_filter($labels, function (string $label) {
+                return !empty($label);
+            })
+        ];
+    }
+
+    /**
+     * @param array $barcodeConfigs ['code' => string][]
+     * @return string
+     */
+    public function getBarcodeFileName(array $barcodeConfigs): string {
+        $barcodeCounter = count($barcodeConfigs);
+
+        return (
+            PDFBarcodeGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            'reference' . ($barcodeCounter > 1 ? 's' : '') .
+            ($barcodeCounter === 1 ? ('_' . $barcodeConfigs[0]['code']) : '') .
+            '.pdf'
+        );
+    }
 }

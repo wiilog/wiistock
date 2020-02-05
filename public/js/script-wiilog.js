@@ -956,20 +956,6 @@ function printSingleArticleBarcode(button) {
     });
 }
 
-function printSingleReferenceArticleBarcode(button) {
-    let params = {
-        'article': button.data('id')
-    };
-    $.post(Routing.generate('get_reference_article_from_id'), JSON.stringify(params), function (response) {
-        printBarcodes(
-            response.barcodes,
-            response.tags,
-            'Etiquette référence ' + response.barcodes[0] + '.pdf',
-            response.barcodeLabels,
-    );
-    });
-}
-
 function getFontSizeByText(text, docWidth, docHeight, imageHeight, doc) {
     let texts = text.split("\n");
 
