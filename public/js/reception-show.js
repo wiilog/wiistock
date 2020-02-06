@@ -29,8 +29,7 @@ function InitiliserPageModals() {
     let modalEditArticle = $("#modalEditLigneArticle");
     let submitEditArticle = $("#submitEditLigneArticle");
     let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
-
+    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle, displayWarningReception);
 
     let ModalDelete = $("#modalDeleteReception");
     let SubmitDelete = $("#submitDeleteReception");
@@ -126,7 +125,11 @@ function InitiliaserPageDataTable() {
     };
 }
 
-
+function displayWarningReception(data) {
+    if(data.overQuantity) {
+        alertErrorMsg('Attention, la quantité reçue est supérieure à la quantité à recevoir. Est-ce normal ?');
+    }
+}
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
@@ -447,6 +450,7 @@ function validatePacking($button) {
                     .append($containerArticle);
 
                 $packingContainer.find('.packing-title').removeClass('d-none');
+                $packingContainer.find('.list-multiple').select2();
             }
         })
     }
@@ -457,12 +461,12 @@ function initNewLigneReception(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initSelect2Ajax($('.ajax-autocompleteEmplacement'), 'get_emplacement');
-    initSelect2('.select2-type');
-    initSelect2Ajax($('.select2-user'), 'get_user');
-    initSelect2Ajax($('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
-
     let $modalNewLigneReception = $(modal);
+    initSelect2Ajax($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), 'get_emplacement');
+    initSelect2('.select2-type');
+    initSelect2Ajax($modalNewLigneReception.find('.select2-user'), 'get_user');
+    initSelect2Ajax($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -477,7 +481,8 @@ function initNewLigneReception(modal) {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function() {
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
+                displayWarningReception(data);
                 $('#button-for-id-ref').click();
             });
         }

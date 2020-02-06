@@ -792,21 +792,24 @@ class ReceptionController extends AbstractController
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
             $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
-//            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
 
             $receptionReferenceArticle
                 ->setCommande($data['commande'])
                 ->setAnomalie($data['anomalie'])
-//                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
                 ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
+            $overQuantity = false;
             if ($typeQuantite == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $receptionReferenceArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
+				$quantite = $data['quantite'];
+				if ($quantite > $receptionReferenceArticle->getQuantite()) {
+					$overQuantity = true;
+				}
+				$receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
             }
 
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
@@ -852,7 +855,8 @@ class ReceptionController extends AbstractController
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
 					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-				])
+				]),
+				'overQuantity' => $overQuantity
             ];
             return new JsonResponse($json);
         }
@@ -1753,8 +1757,10 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $articles = $data['conditionnement'];
+
             // protection quantité réceptionnée < quantité attendue
             $totalQuantities = [];
+            $response['overQuantity'] = false;
             foreach ($articles as $article) {
                 $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId(
                     $reception,
@@ -1770,11 +1776,10 @@ class ReceptionController extends AbstractController
             foreach ($totalQuantities as $rraId => $totalQuantity) {
                 $rra = $this->receptionReferenceArticleRepository->find($rraId);
                 if ($totalQuantity > $rra->getQuantiteAR()) {
-                    return new JsonResponse(false);
-                } else {
-                    $rra->setQuantite($totalQuantity);
-                    $em->flush();
-                }
+					$response['overQuantity'] = true;
+				}
+                $rra->setQuantite($totalQuantity);
+                $em->flush();
             }
             // optionnel : crée la demande de livraison
             $paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
@@ -1794,7 +1799,7 @@ class ReceptionController extends AbstractController
             $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $receptionLocation = $reception->getLocation();
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
-            dump($receptionLocationId);
+
             foreach ($articles as $article) {
                 if (isset($receptionLocationId)) {
                     $article['emplacement'] = $receptionLocationId;

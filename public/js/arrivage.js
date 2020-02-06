@@ -157,6 +157,7 @@ let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
 function initNewArrivageEditor(modal) {
+    let $modal = $(modal);
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
@@ -165,10 +166,10 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($(modal).find('.ajax-autocomplete-fournisseur'));
-    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
-    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
-    ajaxAutoChauffeurInit($(modal).find('.ajax-autocomplete-chauffeur'));
-    $('.list-multiple').select2();
+    ajaxAutoFournisseurInit($modal.find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoUserInit($modal.find('.ajax-autocomplete-user'));
+    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
+    ajaxAutoChauffeurInit($modal.find('.ajax-autocomplete-chauffeur'));
+    $modal.find('.list-multiple').select2();
 }
 
