@@ -57,7 +57,7 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 			'Manutention/modifier+supprimer' => [Menu::DEM => [Action::EDIT, Action::DELETE]],
 			'Manutention/exporter' => [Menu::DEM => [Action::EXPORT]],
 			'Paramétrage/oui' => [Menu::PARAM => [Action::DISPLAY_GLOB, Action::DISPLAY_CL, Action::DISPLAY_STATU_LITI, Action::DISPLAY_ROLE, Action::DISPLAY_EXPO, Action::DISPLAY_NATU_COLI, Action::DISPLAY_UTIL, Action::DISPLAY_TYPE, Action::DISPLAY_CF, Action::EDIT, Action::DELETE]],
-			'Stock/lister' => [Menu::STOCK => [Action::DISPLAY_ARTI, Action::DISPLAY_REFE, Action::DISPLAY_ARTI_FOUR, Action::DISPLAY_MOUV_STOC, Action::DISPLAY_ALER]],
+			'Stock/lister' => [Menu::STOCK => [Action::DISPLAY_ARTI, Action::DISPLAY_REFE, Action::DISPLAY_ARTI_FOUR, Action::DISPLAY_MOUV_STOC, Action::DISPLAY_INVE, Action::DISPLAY_ALER]],
 			'Stock/créer+modifier' => [Menu::STOCK => [Action::CREATE, Action::EDIT]],
 			'Stock/supprimer' => [Menu::STOCK => [Action::DELETE]],
 			'Stock/exporter' => [Menu::STOCK => [Action::EXPORT]],
