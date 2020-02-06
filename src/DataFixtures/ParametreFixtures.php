@@ -94,6 +94,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ],
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [
 				'default' => null
+			],
+			ParametrageGlobal::FONT_FAMILY => [
+				'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
 			]
 		];
 
@@ -109,7 +112,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				$globalParam = new ParametrageGlobal();
 				$globalParam
 					->setLabel($globalParameterLabel)
-					->getValue($value);
+					->setValue($value);
 				$manager->persist($globalParam);
 				dump("création du paramètre " . $globalParameterLabel);
 			}
