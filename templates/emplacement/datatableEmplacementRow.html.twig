@@ -10,16 +10,20 @@
 
     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
         <div>
-            <div class="btn btn-col-action" onclick="checkAndDeleteRowEmplacement($(this))"
-            data-id='{{ emplacementId }}' data-target='#modalDeleteEmplacement' data-toggle='modal'>
+            <div class="btn btn-col-action"
+                 onclick="checkAndDeleteRowEmplacement($(this))"
+                 data-id='{{ emplacementId }}'
+                 data-target='#modalDeleteEmplacement'
+                 data-toggle='modal'>
                 <i class='fas fa-trash'></i>
             </div>
         </div>
     {% endif %}
     <div>
-        <div class="btn btn-col-action" data-id='{{emplacementId}}'
-             onclick='printSingleEmplacementBarcode($(this))'>
+        <a class="btn btn-col-action"
+           href="{{ path('print_single_location_bar_code', {location: emplacementId}) }}"
+           target="_blank">
             <i class="fas fa-print"></i>
-        </div>
+        </a>
     </div>
 </div>

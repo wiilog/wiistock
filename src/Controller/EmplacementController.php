@@ -17,9 +17,13 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use App\Service\GlobalParamService;
+use App\Service\PDFBarcodeGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +31,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Repository\ArticleRepository;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/emplacement")
@@ -176,22 +183,6 @@ class EmplacementController extends AbstractController
 
         throw new NotFoundHttpException("404");
     }
-
-    //    /**
-    //     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
-    //     */
-    //    public function show(Request $request): Response
-    //    {
-    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-    //            $emplacement = $this->emplacementRepository->find($data);
-    //
-    //            $json = $this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
-    //                'emplacement' => $emplacement,
-    //            ]);
-    //            return new JsonResponse($json);
-    //        }
-    //        throw new NotFoundHttpException("404");
-    //    }
 
     /**
      * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
@@ -356,27 +347,63 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="emplacement_get_data_to_print", options={"expose"=true})
+     * @Route("/etiquettes", name="print_locations_bar_codes", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getDataToPrintLabels(Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function printLocationsBarCodes(Request $request,
+                                           PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): PdfResponse {
+        $listEmplacements = explode(',', $request->query->get('listEmplacements') ?? '');
+        $start = $request->query->get('start');
+        $length = $request->query->get('length');
 
-            $listEmplacements = explode(',', $data['listEmplacements']);
-
-            $emplacementsString = [];
-            for ($i = 0; $i < count($listEmplacements); $i++) {
-                $emplacementsString[] = $this->emplacementRepository->find($listEmplacements[$i])->getLabel();
-            }
-            $emplacementsString = array_slice($emplacementsString, $data['start'], $data['length']);
-            $data = array(
-                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
-                'emplacements' => $emplacementsString
+        if (!empty($listEmplacements) && isset($start) && isset($length)) {
+            $barCodeConfigs = array_map(
+                function (Emplacement $location) {
+                    return ['code' => $location->getLabel()];
+                },
+                array_slice($this->emplacementRepository->findByIds($listEmplacements), $start, $length)
             );
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
+
+            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
+
+            return new PdfResponse(
+                $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
+                $fileName
+            );
         }
+        else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+        }
+    }
+
+    /**
+     * @Route("/{location}/etiquette", name="print_single_location_bar_code", options={"expose"=true}, methods={"GET"})
+     * @param Emplacement $location
+     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printSingleLocationBarCode(Emplacement $location,
+                                               PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): PdfResponse {
+        $barCodeConfigs = [['code' => $location->getLabel()]];
+
+        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
+
+        return new PdfResponse(
+            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
+            $fileName
+        );
     }
 
     /**

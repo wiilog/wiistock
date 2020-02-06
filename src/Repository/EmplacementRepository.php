@@ -2,8 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -207,9 +209,18 @@ class EmplacementRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			/** @lang DQL */
-			"SELECT e 
+			"SELECT e
 			FROM App\Entity\Emplacement e
 			ORDER BY e.label ASC"
 		);
-		return $query->execute();	}
+		return $query->execute();
+	}
+
+    public function findByIds(array $ids): array {
+	    return $this->createQueryBuilder('location')
+            ->where('location.id IN (:ids)')
+            ->setParameter('ids', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
+	}
 }
