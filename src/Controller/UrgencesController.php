@@ -161,7 +161,7 @@ class UrgencesController extends AbstractController
                          UtilisateurRepository $utilisateurRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
