@@ -144,6 +144,7 @@ function createCallback(response) {
     if (!response.redirect) {
         $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
         $('.list-multiple').select2();
+        $modalNewArrivage.find('#statut').val(response.statutConformeId);
     }
     if (response.printColis) {
         getDataAndPrintLabels(response.arrivageId);
