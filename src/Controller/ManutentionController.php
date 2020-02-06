@@ -83,7 +83,7 @@ class ManutentionController extends AbstractController
     {
 		if ($request->isXmlHttpRequest()) {
 
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -104,7 +104,7 @@ class ManutentionController extends AbstractController
      */
     public function index($filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -121,7 +121,7 @@ class ManutentionController extends AbstractController
     public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -141,7 +141,7 @@ class ManutentionController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -175,7 +175,7 @@ class ManutentionController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $manutention = $this->manutentionRepository->find($data['id']);
@@ -198,7 +198,7 @@ class ManutentionController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $manutention = $this->manutentionRepository->find($data['id']);
@@ -238,7 +238,7 @@ class ManutentionController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

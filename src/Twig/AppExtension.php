@@ -58,7 +58,8 @@ class AppExtension extends AbstractExtension
     {
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
-            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction'])
+            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
+			new TwigFunction('displayMenu', [$this, 'displayMenuFunction'])
         ];
     }
 
@@ -70,7 +71,7 @@ class AppExtension extends AbstractExtension
 		];
 	}
 
-	public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
+	public function hasRightFunction(string $menuCode, string $actionLabel)
     {
 		return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }

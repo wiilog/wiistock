@@ -1,5 +1,5 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
         {% if modifiable %}
             <div>
                 <div class="btn btn-col-action" data-id='{{ id }}' data-ref='{{refArticleId is defined ? 1 : 0}}' data-target='#modalEditArticle' data-toggle='modal'

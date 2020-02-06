@@ -12,7 +12,7 @@
 {% block page_content %}
     <h1>Missions d'inventaire</h1>
     <div class="row justify-content-end">
-            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewMission" class="btn btn-primary">
                     <span class="fa fa-plus mr-2"></span>Nouvelle mission
                 </a>

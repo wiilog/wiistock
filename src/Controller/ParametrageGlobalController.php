@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -11,6 +12,7 @@ use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 
+use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
@@ -29,7 +31,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage-global")
  */
-class GlobalParamController extends AbstractController
+class ParametrageGlobalController extends AbstractController
 {
     private $engDayToFr = [
         'monday' => 'Lundi',
@@ -49,18 +51,21 @@ class GlobalParamController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param NatureRepository $natureRepository
 	 * @return Response
-	 * @throws NonUniqueResultException
 	 * @throws NoResultException
+	 * @throws NonUniqueResultException
 	 */
     public function index(TranslationRepository $translationRepository,
                           UserService $userService,
                           DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
-						  GlobalParamService $globalParamService): Response
+						  GlobalParamService $globalParamService,
+						  NatureRepository $natureRepository
+	): Response
     {
-        if (!$userService->hasRightFunction(Menu::PARAM)) {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -72,6 +77,7 @@ class GlobalParamController extends AbstractController
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
         $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
         $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+        $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -91,7 +97,16 @@ class GlobalParamController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation()
+				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
+				'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
+				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+				'paramDashboard' => [
+					'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
+					'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
+					'natures' => $natureRepository->findAll(),
+					'locations' => $globalParamService->getDashboardLocations()
+				],
         ]);
     }
 
@@ -110,7 +125,7 @@ class GlobalParamController extends AbstractController
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -210,7 +225,7 @@ class GlobalParamController extends AbstractController
                         DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -249,7 +264,7 @@ class GlobalParamController extends AbstractController
                             DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -277,7 +292,7 @@ class GlobalParamController extends AbstractController
                          DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -322,7 +337,7 @@ class GlobalParamController extends AbstractController
                                      UserService $userService,
                                      MailerServerRepository $mailerServerRepository): Response {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -451,7 +466,6 @@ class GlobalParamController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
      * @param Request $request
@@ -547,6 +561,39 @@ class GlobalParamController extends AbstractController
     }
 
 	/**
+	 * @Route("/police", name="edit_font", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param GlobalParamService $globalParamService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editFont(Request $request,
+							 ParametrageGlobalRepository $parametrageGlobalRepository,
+							 GlobalParamService $globalParamService
+	): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $post = $request->request;
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+            $em = $this->getDoctrine()->getManager();
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+                $parametrageGlobal->setLabel(ParametrageGlobal::FONT_FAMILY);
+                $em->persist($parametrageGlobal);
+            }
+            $parametrageGlobal->setValue($post->get('value'));
+            $em->flush();
+
+			$globalParamService->generateSassFile();
+
+			return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+	/**
 	 * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
 	 * @param Request $request
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
@@ -578,5 +625,54 @@ class GlobalParamController extends AbstractController
         }
 		throw new NotFoundHttpException("404");
 	}
+
+
+	/**
+	 * @Route("/modifier-parametres-tableau-de-bord", name="edit_dashboard_params",  options={"expose"=true},  methods="GET|POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+	public function editDashboardParams(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$post = $request->request;
+
+			$listMultipleSelect = [
+				ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
+				ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
+				ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
+			];
+
+			foreach ($listMultipleSelect as $labelParam => $selectId) {
+				$listId = $post->get($selectId);
+				$listIdStr = $listId ? implode(',', $listId) : null;
+				$param = $parametrageGlobalRepository->findOneByLabel($labelParam);
+				$param->setValue($listIdStr);
+			}
+
+			$listSelect = [
+				ParametrageGlobal::DASHBOARD_NATURE_COLIS => 'natureColis',
+				ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
+				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE => 'locationWaiting',
+				ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
+				ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
+				ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
+				ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
+			];
+
+			foreach ($listSelect as $labelParam => $selectId) {
+				$param = $parametrageGlobalRepository->findOneByLabel($labelParam);
+				$param->setValue($post->get($selectId));
+			}
+
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
+		}
+		throw new NotFoundHttpException("404");
+	}
+
 
 }

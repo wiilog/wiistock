@@ -168,7 +168,7 @@ class LivraisonController extends AbstractController
     public function index(DemandeRepository $demandeRepository,
                           string $demandId = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -201,7 +201,7 @@ class LivraisonController extends AbstractController
     public function finish(Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface $entityManager): Response {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -232,7 +232,7 @@ class LivraisonController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -249,7 +249,7 @@ class LivraisonController extends AbstractController
     public function apiArticle(Request $request, Livraison $livraison): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -299,7 +299,7 @@ class LivraisonController extends AbstractController
      */
     public function show(Livraison $livraison): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -318,7 +318,7 @@ class LivraisonController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

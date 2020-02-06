@@ -15,14 +15,14 @@
     </div>
 
     <div class="col-12">
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
                onclick="initNewMvtTracaEditor('#modalNewMvtTraca'), clearModal('#modalNewMvtTraca'), fillDateInNewModal()">
                 <span class="fa fa-plus mr-2"></span>Nouveau mouvement
             </a>
         {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
         <div class="btn btn-primary" onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>

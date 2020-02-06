@@ -1,5 +1,5 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
+    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT'))%}
         <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
              class='btn btn-col-action'
              onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">

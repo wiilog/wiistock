@@ -1,14 +1,12 @@
 <div class="d-flex">
     {% if modifiable %}
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
             <div>
                 <div class="btn btn-col-action" data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle'
                      onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <div>
                 <div class="btn btn-col-action"
                      onclick="checkAndDeleteRow($(this), '#modalDeleteLigneArticle', 'ligne_recep_check_delete', '#submitDeleteLigneArticle')"

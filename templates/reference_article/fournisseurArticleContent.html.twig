@@ -14,7 +14,7 @@
         <label for="reference">Label</label>
         <input class="form-control needed" type="text" disabled value="{{articleF.label}}">
     </div>
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
     <div class="col-1">
         <span class="btn btn-primary mt-3" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
             data-title="{{articleRef.id}}" onclick="passArgsToModal(this)">

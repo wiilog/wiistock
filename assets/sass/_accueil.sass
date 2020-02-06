@@ -5,9 +5,6 @@
     background-repeat: no-repeat
     background-size: cover
 
-.big-font
-    font-size: 3rem
-
 #alerts
     position: absolute
     z-index: 10000
@@ -23,29 +20,47 @@
     height: 75px
     width: 300px
 
-#range-buttons-assoc
-    text-align: center
-
-.dashboardBR
-    background-color: white
-
 .dashboard-container
-    display: flex
-    flex-wrap: wrap
-    min-height: 100vh
-
+    height: 90vh
 
 .dashboard-item
     min-width: 50%
     min-height: 40%
 
 .dashboard-box
-    margin: 5px
-    height: 450px
-    border: 1px solid black
-    background-color: white
+    background-color: rgba(255, 255, 255, 0.7) !important
     text-align: center
-    width: 44%
+    border-radius: 8px
+    margin: 0px 10px 10px 10px
+    display: flex
+    flex-direction: column
+    height: 45vh
+    .arrow-chart
+      color: $blueGT
+      font-weight: bold
+      display: inline-block
+      margin: 0 10px
+    .range-buttons
+      text-align: center
+      span
+        font-size: .8em
+    .dataTables_wrapper, span
+      font-size: .8em
+    .dashboard-box-content
+        flex: 1
+        .spinner-container
+            position: absolute
+            top: 0
+            bottom: 0
+            left: 0
+            right: 0
+            align-items: center
+            display: flex
+            justify-content: center
+
+.home-card
+    background-color: rgba(255, 255, 255, 0.7) !important
+    border-radius: 8px
 
 .page-item.active .page-link
     background-color: #130078 !important
@@ -56,16 +71,9 @@
 .page-link
     color: #130078 !important
 
-
-.retard
-    padding: 10px
-
 .chart
     height: 70%
     width: 99%
-
-.range-buttons
-    text-align: center
 
 #chart-assoc
     height: 70%
@@ -76,9 +84,5 @@
 .fournisseurFilterContainer
     .select2-selection
         overflow: auto
-
-.home-card
-    background-color: rgba(255, 255, 255, 0.7) !important
-    border-radius: 8px
 
 

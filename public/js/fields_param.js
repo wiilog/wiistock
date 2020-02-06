@@ -15,9 +15,10 @@ $(function() {
                 { "data": 'mustEdit', 'title' : 'Obligatoire à la modification' },
                 { "data": 'fieldCode', 'title' : 'Champ fixe' },
             ],
-            order: [[1, "desc"]],
-            "pageLength": 5,
-            "lengthMenu": [ 5, 10 ],
+            order: [[4, "asc"]],
+            info: false,
+            filter: false,
+            paging: false,
             columnDefs: [
                 {orderable:false, targets:0}
             ]

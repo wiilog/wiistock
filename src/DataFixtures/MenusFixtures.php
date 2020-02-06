@@ -26,42 +26,34 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $menusInfos = [
-            ['Réception', Menu::RECEPTION],
-            ['Préparation', Menu::PREPA],
-            ['Livraison', Menu::LIVRAISON],
-            ['Demande de livraison', Menu::DEM_LIVRAISON],
-            ['Demande de collecte', Menu::DEM_COLLECTE],
-            ['Collecte', Menu::COLLECTE],
-            ['Manutention', Menu::MANUT],
-            ['Paramétrage', Menu::PARAM],
-            ['Stock', Menu::STOCK],
-            ['Indicateurs accueil', Menu::INDICS_ACCUEIL],
-			['Référentiel', Menu::REFERENTIEL],
-            ['Inventaire', Menu::INVENTAIRE],
-            ['Litige', Menu::LITIGE],
-            ['Arrivage', Menu::ARRIVAGE],
-        ];
-        foreach ($menusInfos as $menuInfos) {
-            $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
+		$menuLabels = [
+			Menu::ACCUEIL,
+			Menu::TRACA,
+			Menu::QUALI,
+			Menu::DEM,
+			Menu::ORDRE,
+			Menu::STOCK,
+			Menu::REFERENTIEL,
+			Menu::PARAM
+		];
 
-            if (empty($menu)) {
-                $menu = new Menu();
-                $menu
-                    ->setLabel($menuInfos[0])
-                    ->setCode($menuInfos[1]);
+		foreach ($menuLabels as $menuLabel) {
+			$menu = $this->menuRepository->findOneBy(['label' => $menuLabel]);
 
-                $manager->persist($menu);
-                dump("création du menu " . $menuInfos[1]);
-            }
-            $this->addReference('menu-' . $menuInfos[1], $menu);
-        }
+			if (empty($menu)) {
+				$menu = new Menu();
+				$menu->setLabel($menuLabel);
+				$manager->persist($menu);
+				dump('création du menu ' . $menuLabel);
+			}
+			$this->addReference('menu-' . $menuLabel, $menu);
+		}
 
         $manager->flush();
     }
 
     public static function getGroups(): array
     {
-        return ['actions', 'fixtures'];
+        return ['fixtures', 'patch-menus'];
     }
 }

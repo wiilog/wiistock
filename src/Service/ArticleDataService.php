@@ -451,7 +451,7 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
@@ -459,7 +459,7 @@ class ArticleDataService
         $price = max(0, $data['prix']);
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 $article
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
@@ -653,7 +653,7 @@ class ArticleDataService
 		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
 
 		// l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
-		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 			$filters = [[
 				'field' => FiltreSup::FIELD_STATUT,
 				'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
@@ -697,7 +697,7 @@ class ArticleDataService
             $rowCL[$row['label']] = $row['valeur'];
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
 			$status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
 		} else {
         	$status = '';

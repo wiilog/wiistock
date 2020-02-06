@@ -269,7 +269,7 @@ class ReferenceArticleController extends AbstractController
     public function apiColumns(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -376,7 +376,7 @@ class ReferenceArticleController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
@@ -391,7 +391,7 @@ class ReferenceArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -545,7 +545,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -710,7 +710,7 @@ class ReferenceArticleController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find((int)$data['id']);
@@ -731,7 +731,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refId = intval($data['idRefArticle']);
@@ -828,7 +828,7 @@ class ReferenceArticleController extends AbstractController
     public function getQuantityByRefArticleId(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1037,7 +1037,7 @@ class ReferenceArticleController extends AbstractController
     public function saveColumnVisible(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $champs = array_keys($data);
@@ -1058,7 +1058,7 @@ class ReferenceArticleController extends AbstractController
     public function isUrgent(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $referenceArticle = $this->referenceArticleRepository->find($id);
@@ -1073,7 +1073,7 @@ class ReferenceArticleController extends AbstractController
     public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle  = $this->referenceArticleRepository->find($data);

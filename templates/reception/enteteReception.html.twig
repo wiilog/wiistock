@@ -1,21 +1,51 @@
-<div class='col-6'>
+<div class='col-4'>
     <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
-    <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
-    <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? reception.fournisseur.nom : '' }}</p>
-    <p><strong>Transporteur :</strong> {{ reception.transporteur ? reception.transporteur.label : '' }}</p>
-    <p><strong>Emplacement :</strong> {{ reception.location ? reception.location.label : '' }}</p>
 </div>
-<div class="col-6">
-    <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>
-    <p><strong>Numéro de commande :</strong> {{ reception.reference ? reception.reference : ' ' }}</p>
-    <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
+{% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? reception.fournisseur.nom : '' }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Transporteur :</strong> {{ reception.transporteur ? reception.transporteur.label : '' }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Emplacement :</strong> {{ reception.location ? reception.location.label : '' }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Numéro de commande :</strong> {{ reception.reference ? reception.reference : ' ' }}</p>
+    </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
+    <div class="col-4">
+        <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
+    </div>
+{% endif %}
+<div class="col-4">
     <p><strong>Date de création :</strong>
         {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+</div>
+<div class="col-4">
     <p><strong>Date de fin {{ 'réception.de réception'|trans }}
             :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
 </div>
 {% for typeChampLibre in typeChampsLibres %}
-    <div class="col-6">
+    <div class="col-4">
         {% set value = null %}
             {% if typeChampLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                 {% set value = (typeChampLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
@@ -31,8 +61,10 @@
 {% endfor %}
 
 <div class="col-12">
-    <p><strong>Commentaire :</strong></p>
-    <div class="commentOverflow">
-        <p>{{ reception.commentaire|raw }}</p>
-    </div>
+    {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+        <p><strong>Commentaire :</strong></p>
+        <div class="commentOverflow">
+            <p>{{ reception.commentaire|raw }}</p>
+        </div>
+    {% endif %}
 </div>

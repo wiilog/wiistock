@@ -10,24 +10,24 @@
         </div>
         <div class="col text-right" id='boutonCollecteSup'>
             {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
                        class="btn btn-danger btn-action ml-auto">
                         Supprimer</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="#" data-id='{{ collecte.id }}' data-target='#modalEditCollecte' data-toggle='modal'
                        onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
                        class="btn btn-primary btn-action ml-auto">
                         Modifier</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="#" onclick="validateCollecte({{ collecte.id }})"
                        class="btn btn-primary btn-action ml-auto">Valider</a>
                 {% endif %}
             {% else %}
-                {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
                     <div class="col text-right">
                         <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                            class="btn btn-primary btn-action">
@@ -54,7 +54,7 @@
                     Chercher une référence
                 {% endif %}
             </a>
-            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewArticle"
                    onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
                    class="btn btn-primary btn-action ml-auto">

@@ -71,7 +71,7 @@ class InventoryAnomalyController extends AbstractController
 	 */
     public function showAnomalies()
 	{
-		if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER)) {
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER)) {
 			return $this->redirectToRoute('access_denied');
 		}
 
@@ -84,7 +84,7 @@ class InventoryAnomalyController extends AbstractController
 	public function apiAnomalies(Request $request)
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -122,7 +122,7 @@ class InventoryAnomalyController extends AbstractController
 	public function treatAnomaly(Request $request)
 	{
 		if ($request->isXmlHttpRequest()  && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER)) {
 				return $this->redirectToRoute('access_denied');
 			}
 

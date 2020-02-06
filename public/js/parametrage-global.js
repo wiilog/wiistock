@@ -31,16 +31,18 @@ let urlEditDays = Routing.generate('days_edit', true);
 InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
 
 $(function() {
+    initSelect2($('.select2'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
-    let $receptionLocationSelect = $('#receptionLocation');
-
-    // initialise valeur champs select2 ajax
-    let dataReceptionLocation = $('#receptionLocationValue').data();
-    if (dataReceptionLocation.id && dataReceptionLocation.text) {
-        let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
-        $receptionLocationSelect.append(option).trigger('change');
-    }
-    $receptionLocationSelect.on('change', editDefaultLocationValue);
+    initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
+    $('#receptionLocation').on('change', editDefaultLocationValue);
+    initDisplaySelect2('#locationToTreat', '#locationToTreatValue');
+    initDisplaySelect2('#locationWaiting', '#locationWaitingValue');
+    initDisplaySelect2('#locationAvailable', '#locationAvailableValue');
+    initDisplaySelect2('#locationDropZone', '#locationDropZoneValue');
+    initDisplaySelect2('#locationLitiges', '#locationLitigesValue');
+    initDisplaySelect2('#locationUrgences', '#locationUrgencesValue');
+    initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
+    initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
 });
 
 function errorEditDays(data) {
@@ -172,6 +174,42 @@ function editDefaultLocationValue() {
             alertSuccessMsg("L'emplacement de réception a bien été mis à jour.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour de l'emplacement de réception.");
+        }
+    });
+}
+
+function editDashboardParams() {
+    let path = Routing.generate('edit_dashboard_params',true);
+    let data = $('#paramDashboard').find('.data');
+
+    let param = {};
+    data.each(function () {
+        let val = $(this).val();
+        let name = $(this).attr("id");
+        param[name] = val;
+    })
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("La configuration des tableaux de bord a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la configuration des tableaux de bord.");
+        }
+    });
+}
+function editFont() {
+    let path = Routing.generate('edit_font',true);
+    let param = {
+        value: $('select[name="param-font-family"]').val()
+    };
+
+
+    alertSuccessMsg("Mise à jour de la police en cours. Veuillez patienter.");
+    $.post(path, param, (resp) => {
+        if (resp) {
+            location.reload();
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
         }
     });
 }

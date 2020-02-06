@@ -1,5 +1,5 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE'))%}
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))%}
         <div>
             <div class="btn btn-col-action" data-id='{{ manut.id }}' data-target='#modalEditManutention' data-toggle='modal'
                  onclick="editRow($(this), Routing.generate('manutention_edit_api', true), $('#modalEditManutention'), $('#submitEditManutention'), true, '.editor-container-edit', false, toggleManutQuill)">

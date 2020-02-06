@@ -46,14 +46,14 @@
     <div class="col text-right">
         {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
             {% if not finished %}
-                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                     <a class="btn btn-danger btn-action" href=""
                           onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
                           data-id='{{livraison.id}}' data-target='#modalDeleteLivraison' data-toggle='modal'>
                         Supprimer
                     </a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>
                         Finir la livraison
                     </a>

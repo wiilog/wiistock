@@ -19,7 +19,7 @@
             <i class='fas fa-print pointer'></i>
             Imprimer {{ 'arrivage.arrivage'|trans }}
         </a>
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT'))%}
             <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
                onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
                data-toggle='modal' class="btn btn-primary btn-action ml-auto">
@@ -28,7 +28,7 @@
         {% endif %}
 
         {% if (canBeDeleted) %}
-            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE'))%}
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE'))%}
                 <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
                    class="btn btn-danger btn-action ml-auto" onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
                     Supprimer</a>

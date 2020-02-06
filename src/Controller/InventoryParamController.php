@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\InventoryCategoryRepository;
@@ -66,7 +67,7 @@ class InventoryParamController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -83,7 +84,7 @@ class InventoryParamController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -116,7 +117,7 @@ class InventoryParamController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -150,7 +151,7 @@ class InventoryParamController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -173,7 +174,7 @@ class InventoryParamController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -208,7 +209,7 @@ class InventoryParamController extends AbstractController
     public function checkUserCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $categoryId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -233,7 +234,7 @@ class InventoryParamController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -253,7 +254,7 @@ class InventoryParamController extends AbstractController
     public function newFrequency(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -285,7 +286,7 @@ class InventoryParamController extends AbstractController
     public function apiFrequencies(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -317,7 +318,7 @@ class InventoryParamController extends AbstractController
     public function apiEditFrequency(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -338,7 +339,7 @@ class InventoryParamController extends AbstractController
     public function editFrequency(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -372,7 +373,7 @@ class InventoryParamController extends AbstractController
     public function checkFrequencyCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $frequencyId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -397,7 +398,7 @@ class InventoryParamController extends AbstractController
     public function deleteFrequency(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

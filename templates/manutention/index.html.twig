@@ -14,13 +14,13 @@
     <h1>Demandes de manutention</h1>
 
     <div class="row">
-        {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewManutention" class="btn btn-primary"
                onclick='initNewManutentionEditor("#modalNewManutention")'>
                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
             </a>
         {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
             <div class="btn btn-primary" onclick="generateCSV('get_manutentions_for_csv', 'manutentions')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>

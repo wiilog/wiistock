@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Utilisateur;
@@ -75,7 +76,7 @@ class UtilisateurController extends AbstractController
      */
     public function index(UtilisateurRepository $utilisateurRepository): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_UTIL)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -109,7 +110,7 @@ class UtilisateurController extends AbstractController
     public function newUser(Request $request, EmplacementRepository $emplacementRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -189,7 +190,7 @@ class UtilisateurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -228,7 +229,7 @@ class UtilisateurController extends AbstractController
     public function edit(Request $request, EmplacementRepository $emplacementRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -309,7 +310,7 @@ class UtilisateurController extends AbstractController
     public function editRole(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -335,7 +336,7 @@ class UtilisateurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_UTIL)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->userService->getDataForDatatable($request->request);
@@ -351,7 +352,7 @@ class UtilisateurController extends AbstractController
 	public function checkUserCanBeDeleted(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $userId = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+			if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -376,7 +377,7 @@ class UtilisateurController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -392,7 +393,7 @@ class UtilisateurController extends AbstractController
 			$entityManager = $this->getDoctrine()->getManager();
 			$entityManager->remove($user);
 			$entityManager->flush();
-			return new JsonResponse();
+			return new JsonResponse(true);
 		}
         throw new NotFoundHttpException('404');
     }
