@@ -1,0 +1,18 @@
+<a data-toggle="collapse" href="#appearance" role="button" aria-expanded="false"
+   aria-controls="appearance" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Apparence du site<i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+
+<div class="collapse col-12" id="appearance">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="editFont()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="param-type-encodage">Choix de la police</label>
+        <select name="param-font-family" class="data form-control">
+            {% for font in fonts %}
+                <option value="{{ font }}" {{ font == fontFamily ? 'selected' : '' }} class="{{ font|lower }}">{{ font }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

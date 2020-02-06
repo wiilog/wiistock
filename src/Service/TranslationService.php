@@ -48,21 +48,22 @@ class TranslationService {
 
             $this->translationRepository->clearUpdate();
 
-            $this->cacheWarmUp();
+            $this->cacheClearWarmUp();
         }
     }
 
     /**
      * @throws Exception
      */
-    private function cacheWarmUp() {
+    public function cacheClearWarmUp() {
         $env = $this->kernel->getEnvironment();
+		$command = $env == 'dev' ? 'warmup' : 'clear';
 
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
 
-        $input = new ArrayInput(array(
-            'command' => 'cache:clear',
+		$input = new ArrayInput(array(
+			'command' => 'cache:' . $command,
             '--env' => $env
         ));
 
