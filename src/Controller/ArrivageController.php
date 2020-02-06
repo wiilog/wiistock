@@ -215,7 +215,7 @@ class ArrivageController extends AbstractController
 	 */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARRI)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
