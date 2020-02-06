@@ -38,7 +38,7 @@ use App\Service\AttachmentService;
 use App\Service\ColisService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
-use App\Service\PDFBarcodeGeneratorService;
+use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -1267,7 +1267,7 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/{arrivage}/etiquette", name="print_arrivage_bar_code", options={"expose"=true}, methods="GET")
      * @param Arrivage $arrivage
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NonUniqueResultException
@@ -1276,15 +1276,15 @@ class ArrivageController extends AbstractController
      * @throws NoResultException
      */
     public function printArrivageBarCode(Arrivage $arrivage,
-                                         PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                         PDFGeneratorService $PDFGeneratorService): Response {
         $barcodeConfigs = [[
             'code' => $arrivage->getNumeroArrivage()
         ]];
 
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }
@@ -1299,7 +1299,7 @@ class ArrivageController extends AbstractController
      * )
      * @Entity("colis", expr="colisId ? repository.find(colisId) : colisId")
      *
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @param ColisRepository $colisRepository
      * @param Request $request
      * @param Arrivage $arrivage
@@ -1311,7 +1311,7 @@ class ArrivageController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function printArrivageColisBarCodes(PDFBarcodeGeneratorService $PDFBarcodeGeneratorService,
+    public function printArrivageColisBarCodes(PDFGeneratorService $PDFGeneratorService,
                                                ColisRepository $colisRepository,
                                                Request $request,
                                                Arrivage $arrivage,
@@ -1355,10 +1355,10 @@ class ArrivageController extends AbstractController
                 : $arrivage->getColis()->toArray()
         );
 
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'colis_arrivage');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'colis_arrivage');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }

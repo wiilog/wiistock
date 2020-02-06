@@ -17,7 +17,7 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use App\Service\GlobalParamService;
-use App\Service\PDFBarcodeGeneratorService;
+use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
@@ -349,7 +349,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/etiquettes", name="print_locations_bar_codes", options={"expose"=true}, methods={"GET"})
      * @param Request $request
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return PdfResponse
      * @throws LoaderError
      * @throws NoResultException
@@ -358,7 +358,7 @@ class EmplacementController extends AbstractController
      * @throws SyntaxError
      */
     public function printLocationsBarCodes(Request $request,
-                                           PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): PdfResponse {
+                                           PDFGeneratorService $PDFGeneratorService): PdfResponse {
         $listEmplacements = explode(',', $request->query->get('listEmplacements') ?? '');
         $start = $request->query->get('start');
         $length = $request->query->get('length');
@@ -371,10 +371,10 @@ class EmplacementController extends AbstractController
                 array_slice($this->emplacementRepository->findByIds($listEmplacements), $start, $length)
             );
 
-            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
+            $fileName = $PDFGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
 
             return new PdfResponse(
-                $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
                 $fileName
             );
         }
@@ -386,7 +386,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{location}/etiquette", name="print_single_location_bar_code", options={"expose"=true}, methods={"GET"})
      * @param Emplacement $location
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return PdfResponse
      * @throws LoaderError
      * @throws NoResultException
@@ -395,13 +395,13 @@ class EmplacementController extends AbstractController
      * @throws SyntaxError
      */
     public function printSingleLocationBarCode(Emplacement $location,
-                                               PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): PdfResponse {
+                                               PDFGeneratorService $PDFGeneratorService): PdfResponse {
         $barCodeConfigs = [['code' => $location->getLabel()]];
 
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barCodeConfigs, 'emplacements');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
             $fileName
         );
     }

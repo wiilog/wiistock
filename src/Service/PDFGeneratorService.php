@@ -11,7 +11,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-Class PDFBarcodeGeneratorService
+Class PDFGeneratorService
 {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
@@ -90,7 +90,7 @@ Class PDFBarcodeGeneratorService
         }, $barcodeConfigs);
 
         return $this->PDFGenerator->getOutputFromHtml(
-             $this->templating->render('barcodes/print.html.twig', [
+             $this->templating->render('prints/barcode-template.html.twig', [
                  'title' => $title,
                  'height' => $height,
                  'width' => $width,
@@ -110,6 +110,37 @@ Class PDFBarcodeGeneratorService
         );
     }
 
+    /**
+     * @param string $title
+     * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
+     * @return string
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+	public function generatePDFStateSheet(string $title, array $sheetConfigs): string {
+        $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
+
+        $isCode128 = $barcodeConfig['isCode128'];
+
+        return $this->PDFGenerator->getOutputFromHtml(
+             $this->templating->render('prints/state-sheet-template.html.twig', [
+                 'title' => $title,
+                 'sheetConfigs' => $sheetConfigs,
+
+                 'barcodeType' => $isCode128 ? 'c128' : 'qrcode',
+                 'barcodeWidth' => $isCode128 ? 1 : 48,
+                 'barcodeHeight' => 48
+            ]),
+            [
+                'page-size' => "A4",
+                'encoding' => 'UTF-8'
+            ]
+        );
+    }
+
 
     /**
      * @param array $barcodeConfigs ['code' => string][]
@@ -120,7 +151,7 @@ Class PDFBarcodeGeneratorService
         $barcodeCounter = count($barcodeConfigs);
 
         return (
-            PDFBarcodeGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            PDFGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
             $name .
             ($barcodeCounter === 1 ? ('_' . $barcodeConfigs[0]['code']) : '') .
             '.pdf'

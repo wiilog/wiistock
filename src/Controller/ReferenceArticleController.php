@@ -38,7 +38,7 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
-use App\Service\PDFBarcodeGeneratorService;
+use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
@@ -1287,7 +1287,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
      * @param Request $request
      * @param RefArticleDataService $refArticleDataService
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -1297,7 +1297,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function getBarCodes(Request $request,
                                 RefArticleDataService $refArticleDataService,
-                                PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                PDFGeneratorService $PDFGeneratorService): Response {
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, null, $this->user);
@@ -1316,13 +1316,13 @@ class ReferenceArticleController extends AbstractController
         $barcodeCounter = count($barcodeConfigs);
 
         if ($barcodeCounter > 0) {
-            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName(
+            $fileName = $PDFGeneratorService->getBarcodeFileName(
                 $barcodeConfigs,
                 'reference' . ($barcodeCounter > 1 ? 's' : '')
             );
 
             return new PdfResponse(
-                $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
                 $fileName
             );
         }
@@ -1335,7 +1335,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/{reference}/etiquette", name="reference_article_single_bar_code_print", options={"expose"=true})
      * @param ReferenceArticle $reference
      * @param RefArticleDataService $refArticleDataService
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -1345,12 +1345,12 @@ class ReferenceArticleController extends AbstractController
      */
     public function getSingleBarCodes(ReferenceArticle $reference,
                                       RefArticleDataService $refArticleDataService,
-                                      PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                      PDFGeneratorService $PDFGeneratorService): Response {
         $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($reference)];
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'reference');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'reference');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }

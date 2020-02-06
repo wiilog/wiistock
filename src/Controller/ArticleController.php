@@ -30,7 +30,7 @@ use App\Repository\CategorieCLRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
-use App\Service\PDFBarcodeGeneratorService;
+use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
@@ -934,7 +934,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
      * @param Request $request
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
      * @return Response
      * @throws LoaderError
@@ -944,7 +944,7 @@ class ArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function printArticlesBarCodes(Request $request,
-                                          PDFBarcodeGeneratorService $PDFBarcodeGeneratorService,
+                                          PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $listArticles = explode(',', $request->query->get('listArticles') ?? '');
         $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
@@ -959,10 +959,10 @@ class ArticleController extends AbstractController
             $request->query->get('start'),
             $request->query->get('length')
         );
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }
@@ -972,7 +972,7 @@ class ArticleController extends AbstractController
      * @param Article $article
      * @param ArticleDataService $articleDataService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -983,13 +983,13 @@ class ArticleController extends AbstractController
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,
                                             ParametrageGlobalRepository $parametrageGlobalRepository,
-                                            PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                            PDFGeneratorService $PDFGeneratorService): Response {
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue())];
-        $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
         return new PdfResponse(
-            $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
     }

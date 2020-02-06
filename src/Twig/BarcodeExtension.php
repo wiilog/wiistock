@@ -43,17 +43,6 @@ class BarcodeExtension extends AbstractExtension
         $svgNode->removeAttribute('width');
         $svgNode->removeAttribute('height');
 
-
-
-//        $matches = [];
-//        preg_match('/^<svg [^>]*width="([^"]+)"/', $svg, $matches);
-//        $svgWidth = count($matches) === 2 ? $matches[1] : 0;
-//
-//        $matches = [];
-//        preg_match('/^<svg [^>]*height="([^"]+)"/', $svg, $matches);
-//        $svgHeight = count($matches) === 2 ? $matches[1] : 0;
-//
-//        return $this->addDomAttribute($svg, 'viewBox', "0 0 $svgWidth $svgHeight");
         return $crawler->html();
     }
 

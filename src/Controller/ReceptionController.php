@@ -42,7 +42,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MouvementStockService;
-use App\Service\PDFBarcodeGeneratorService;
+use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
@@ -1513,7 +1513,7 @@ class ReceptionController extends AbstractController
      * @param Reception $reception
      * @param RefArticleDataService $refArticleDataService
      * @param ArticleDataService $articleDataService
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -1524,7 +1524,7 @@ class ReceptionController extends AbstractController
     public function getReceptionBarCodes(Reception $reception,
                                          RefArticleDataService $refArticleDataService,
                                          ArticleDataService $articleDataService,
-                                         PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                         PDFGeneratorService $PDFGeneratorService): Response {
         $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
         $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
@@ -1549,8 +1549,8 @@ class ReceptionController extends AbstractController
             []);
 
         if (!empty($barcodeConfigs)) {
-            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
-            $pdf = $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
+            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
             return new PdfResponse($pdf, $fileName);
         }
         else {
@@ -1564,7 +1564,7 @@ class ReceptionController extends AbstractController
      * @param Reception $reception
      * @param LigneArticle $ligneArticle
      * @param RefArticleDataService $refArticleDataService
-     * @param PDFBarcodeGeneratorService $PDFBarcodeGeneratorService
+     * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -1575,11 +1575,11 @@ class ReceptionController extends AbstractController
     public function getReceptionLigneArticleBarCode(Reception $reception,
                                                     ReceptionReferenceArticle $ligneArticle,
                                                     RefArticleDataService $refArticleDataService,
-                                                    PDFBarcodeGeneratorService $PDFBarcodeGeneratorService): Response {
+                                                    PDFGeneratorService $PDFGeneratorService): Response {
         if ($reception->getReceptionReferenceArticles()->contains($ligneArticle) && $ligneArticle->getReferenceArticle()) {
             $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($ligneArticle->getReferenceArticle())];
-            $fileName = $PDFBarcodeGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
-            $pdf = $PDFBarcodeGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
+            $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
+            $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
             return new PdfResponse($pdf, $fileName);
         }
         else {
