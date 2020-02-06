@@ -10,9 +10,10 @@
     "license": "UNLICENSED",
     "private": true,
     "scripts": {
-        "dev-server": "encore dev-server",
-        "dev": "encore dev",
+        "generate-custom-font": "php bin/console app:update:custom-font",
+        "dev-server": "yarn generate-custom-font && encore dev-server",
+        "dev": "yarn generate-custom-font && encore dev",
         "watch": "yarn dev --watch",
-        "build": "encore production"
+        "build": "yarn generate-custom-font && encore production"
     }
 }

@@ -33,4 +33,6 @@ yarn-error.log
 /public/uploads/attachements/
 /deployment/db*
 /deployment/pass*
+/SnoreToast.lnk
+/assets/sass/_customFont.sass
 ###< wiistock ###
