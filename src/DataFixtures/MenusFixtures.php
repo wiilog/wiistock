@@ -54,6 +54,6 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['fixtures'];
+        return ['fixtures', 'patch-menus'];
     }
 }
