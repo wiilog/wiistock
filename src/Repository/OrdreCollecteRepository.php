@@ -83,13 +83,13 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 
 	private function createOrdreCollecteQueryBuilder(): QueryBuilder  {
 	    return $this->createQueryBuilder('oc')
-            ->leftJoin('oc.demandeCollecte', 'dc')
-            ->leftJoin('dc.pointCollecte', 'pc')
-            ->leftJoin('oc.statut', 's')
-            ->addSelect('oc.id')
+            ->select('oc.id')
             ->addSelect('oc.numero as number')
             ->addSelect('pc.label as location_from')
-            ->addSelect('dc.stockOrDestruct as forStock');
+            ->addSelect('dc.stockOrDestruct as forStock')
+            ->leftJoin('oc.demandeCollecte', 'dc')
+            ->leftJoin('dc.pointCollecte', 'pc')
+            ->leftJoin('oc.statut', 's');
     }
 
     public function findByParamsAndFilters($params, $filters)

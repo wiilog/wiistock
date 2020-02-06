@@ -171,19 +171,10 @@ class AccueilController extends AbstractController
 				'DLprepared'=> $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
 				'DCToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
 				'MToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
-			]
+			],
+			'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
+			'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
 		]);
-    }
-
-    /**
-     * @Route("/dashboard", name="accueil_dashboard", options={"expose"=true}, methods="GET|POST")
-     */
-    public function dashboard(): Response
-    {
-        return $this->render('accueil/dashboard.html.twig', [
-            'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
-            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
-        ]);
     }
 
     /**

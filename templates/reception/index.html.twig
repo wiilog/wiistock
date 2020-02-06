@@ -17,7 +17,7 @@
     <div class='col-12'>
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
-               onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception')">
+               onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                 <span class="fa fa-plus mr-2"></span>{{ 'réception.nouvelle réception'|trans|capitalize }}
             </a>
         {% endif %}

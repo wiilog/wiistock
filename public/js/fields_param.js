@@ -10,7 +10,9 @@ $(function() {
             },
             columns:[
                 { "data": 'Actions', 'title' : 'Actions' },
-                { "data": 'entityCode', 'title' : 'Catégorie' },
+                { "data": 'displayed', 'title' : 'Affiché' },
+                { "data": 'mustCreate', 'title' : 'Obligatoire à la création' },
+                { "data": 'mustEdit', 'title' : 'Obligatoire à la modification' },
                 { "data": 'fieldCode', 'title' : 'Champ fixe' },
             ],
             order: [[1, "desc"]],
@@ -19,7 +21,7 @@ $(function() {
             columnDefs: [
                 {orderable:false, targets:0}
             ]
-        })
+        });
     });
 });
 
@@ -34,6 +36,10 @@ function displayErrorFields(data) {
         displayError(modal, data.msg, data.success);
     } else {
         modal.find('.close').click();
+        $('.table').each(function() {
+            let table = $(this).DataTable();
+            table.ajax.reload();
+        });
         alertSuccessMsg(data.msg);
     }
 }

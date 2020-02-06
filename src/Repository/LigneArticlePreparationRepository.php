@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;

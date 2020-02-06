@@ -1,4 +1,4 @@
-{% set version = '2.4.2' %}
+{% set version = '2.5.0' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -34,16 +34,6 @@
                         <h4>Accueil</h4>
                     </a>
                 </li>
-{#                <li class="menu-item has-submenu">#}
-{#                    <a href="#">#}
-{#                        <i class="fas fa-home"></i>#}
-{#                        <h4>Accueil</h4>#}
-{#                    </a>#}
-{#                    <ul class="sidemenu-sub">#}
-{#                        <li><a href="{{ path('check_last_login') }}" class="sub-item">• Indicateurs</a></li>#}
-{#                        <li><a href="{{ path('accueil_dashboard') }}" class="sub-item">• Tableau de bord</a></li>#}
-{#                    </ul>#}
-{#                </li>#}
 
                 <!-- ARRIVAGE   -->
                 {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
