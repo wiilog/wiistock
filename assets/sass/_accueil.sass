@@ -19,41 +19,51 @@
 .dashboard-item
     min-width: 50%
     min-height: 40%
-
-.dashboard-box
-    background-color: $lightGrey
-    text-align: center
-    border-radius: 8px
-    margin: 0px 10px 10px 10px
-    display: flex
-    flex-direction: column
-    height: 45vh
-    .arrow-chart
-      color: $blueGT
-      font-weight: bold
-      display: inline-block
-      margin: 0 10px
-    .range-buttons
-      text-align: center
-      span
-        font-size: .8em
-    .dataTables_wrapper, span
-      font-size: .8em
-    .dashboard-box-content
-        flex: 1
-        .spinner-container
-            position: absolute
-            top: 0
-            bottom: 0
-            left: 0
-            right: 0
-            align-items: center
-            display: flex
-            justify-content: center
+.dashboard-box-wrapper
+    margin-top: 8px
+    margin-bottom: 8px
+    &:not(:first-child)
+        padding-left: 16px
+    .dashboard-box
+        background-color: $lightGrey
+        text-align: center
+        border-radius: 8px
+        display: flex
+        flex-direction: column
+        height: 45vh
+        .arrow-chart
+          color: $blueGT
+          font-weight: bold
+          display: inline-block
+          margin: 0 10px
+        .range-buttons
+          text-align: center
+          span
+            font-size: .8em
+        .dataTables_wrapper, span
+          font-size: .8em
+        .dashboard-box-content
+            padding: 10px
+            flex: 1
+            .spinner-container
+                position: absolute
+                top: 0
+                bottom: 0
+                left: 0
+                right: 0
+                align-items: center
+                display: flex
+                justify-content: center
 
 .home-card
     background-color: $lightGrey
     border-radius: 8px
+    display: flex
+    margin: 8px 0
+    .home-card-content
+        margin-bottom: 9px
+    h2
+        margin: 9px 0
 
 .page-item.active .page-link
     background-color: #130078 !important
