@@ -133,14 +133,18 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
-let modalNewArrivage = $("#modalNewArrivage");
+let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 function createCallback(response) {
     alertSuccessMsg('Votre arrivage a bien été créé.');
+    if (!response.redirect) {
+        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
+        $('.list-multiple').select2();
+    }
     if (response.printColis) {
         getDataAndPrintLabels(response.arrivageId);
     } if (response.printArrivage) {

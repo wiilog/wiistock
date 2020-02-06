@@ -386,6 +386,9 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
+				'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [
+					'champsLibres' => $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
+				])
             ];
             return new JsonResponse($data);
         }
