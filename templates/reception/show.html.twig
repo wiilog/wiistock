@@ -74,7 +74,7 @@
         </div>
         <div class="col-6">
             <div class="text-right">
-                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::CREATE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalNewLitige' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">
                         <i class="fa fa-plus mr-2"></i>
