@@ -61,7 +61,25 @@
                 <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteReferenceOfThisMonth|number_format(2, ',') }}%</span>
                 <span>mois courant</span><br>
             </p>
-            <div class="curve_chart_line" id="curve_chart_reference"></div>
+{#            <div class="curve_chart_line" id="curve_chart_reference"></div>#}
         </div>
     {% endif %}
+    {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::MONETAIRE')) %}
+        <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card">
+            <h2 class="bold col-12">Fiabilité monétaire</h2>
+            <p class="col-6">
+                <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaire|round }}€</span>
+                <span>totale</span><br>
+            </p>
+            <p class="col-6">
+                <span class="badge badge-secondary font-size-100">{{ nbrFiabiliteMonetaireOfThisMonth|round }}€</span>
+                <span>mois courant</span><br>
+            </p>
+{#            <div class="curve_chart_line" id="curve_chart"></div>#}
+        </div>
+    {% endif %}
+
+    <div class="col-12 mt-1 little-font text-center">
+        Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}
+    </div>
 </div>

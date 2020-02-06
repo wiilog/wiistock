@@ -25,6 +25,9 @@
     </div>
     {% include "reception_traca/modalDeleteRecepTraca.html.twig" %}
     {% include "reception_traca/association.html.twig" %}
+
+    <input hidden id="arrTranslation" value="{{ "arrivage.arrivage"|trans|capitalize }}">
+    <input hidden id="recTranslation" value="{{ "réception.réception"|trans|capitalize }}">
 {% endblock %}
 
 {% block javascripts %}
