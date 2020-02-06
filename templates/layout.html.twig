@@ -36,27 +36,51 @@
                 </li>
 
                 <!-- ARRIVAGE   -->
-                {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
+                {% set rightTracaArri = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ARRI')) %}
+                {% set rightTracaMouv = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_MOUV')) %}
+                {% set rightTracaAche = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ACHE'))  %}
+                {% set rightTracaAsso = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ASSO'))  %}
+                {% set rightTracaEnco = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ENCO'))  %}
+                {% set rightTracaUrge = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_URGE'))  %}
+
+                {% if rightTracaArri or rightTracaMouv or rightTracaAche or rightTracaAsso or rightTracaEnco or rightTracaUrge %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-truck"></i>
                             <h4>Traçabilité</h4>
                         </a>
                         <ul class="sidemenu-sub">
+                        {% if rightTracaArri %}
                             <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Flux - {{ 'arrivage.arrivages'|trans|capitalize }}</a></li>
+                        {% endif %}
+
+                        {% if rightTracaMouv %}
                             <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvements</a></li>
+                        {% endif %}
+
+                        {% if rightTracaAche %}
                             <li><a href="{{ path('acheminements_index') }}" class="sub-item">• Acheminements</a></li>
+                        {% endif %}
+
+                        {% if rightTracaAsso %}
                             <li><a href="{{ path('reception_traca_index') }}" class="sub-item">• Association BR</a></li>
-                            <li>
-                                <a href="{{ path('en_cours') }}" class="sub-item">• Encours</a>
-                            </li>
+                        {% endif %}
+
+                        {% if rightTracaEnco %}
+                            <li><a href="{{ path('en_cours') }}" class="sub-item">• Encours</a></li>
+                        {% endif %}
+
+                        {% if rightTracaUrge %}
                             <li><a href="{{ path('urgence_index') }}" class="sub-item">• Urgences</a></li>
+                        {% endif %}
                         </ul>
                     </li>
                 {% endif %}
 
                 <!-- QUALITÉ   -->
-                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::LIST')) %}
+                {% set rightQualiLiti = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
+
+                {% if rightQualiLiti %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-check-square"></i>
@@ -69,51 +93,53 @@
                 {% endif %}
 
                 <!-- DEMANDE   -->
-                {% if
-                    hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
+                {% set hasRightDemColl = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+                {% set hasRightDemLivr = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
+                {% set hasRightDemManut = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_MANU')) %}
+
+                {% if hasRightDemLivr or hasRightDemColl or hasRightDemManut %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-shopping-cart"></i>
                             <h4>Demande</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                                <li><a href="{{ path("collecte_index") }}" class="sub-item">• Collecte</a></li>
-                            {% endif %}
-                            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
-                            {% endif %}
-                            {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
-                                <li><a href="{{ path('manutention_index') }}" class="sub-item">• Manutention</a></li>
-                            {% endif %}
+                        {% if hasRightDemColl %}
+                            <li><a href="{{ path("collecte_index") }}" class="sub-item">• Collecte</a></li>
+                        {% endif %}
+                        {% if hasRightDemLivr %}
+                            <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                        {% endif %}
+                        {% if hasRightDemManut %}
+                            <li><a href="{{ path('manutention_index') }}" class="sub-item">• Manutention</a></li>
+                        {% endif %}
                         </ul>
                     </li>
                 {% endif %}
+
                 <!-- ORDRE -->
-                {% if
-                    hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) or
-                    hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST'))
-                %}
+                {% set hasRightOrdreColl = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
+                {% set hasRightOrdreLivr = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
+                {% set hasRightOrdrePrepa = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
+                {% set hasRightOrdreRecep = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
+
+                {% if hasRightOrdrePrepa or hasRightOrdreLivr or hasRightOrdreColl or hasRightOrdreRecep %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-network-wired"></i>
                             <h4>Ordre</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                            {% if hasRightOrdreColl %}
                                 <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
                             {% endif %}
-                            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                            {% if hasRightOrdreLivr %}
                                 <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
                             {% endif %}
-                            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                            {% if hasRightOrdrePrepa %}
                                 <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
                             {% endif %}
-                            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                            {% if hasRightOrdreRecep %}
                                 <li><a href="{{ path("reception_index") }}" class="sub-item">• {{ 'réception.réception'|trans|capitalize }}</a></li>
                             {% endif %}
                         </ul>
@@ -121,108 +147,169 @@
                 {% endif %}
 
                 <!-- STOCK -->
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
+                {% set hasRightStockArti = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_ARTI')) %}
+                {% set hasRightStockRefe = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_REFE')) %}
+                {% set hasRightStockArtiFourn = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_ARTI_FOUR')) %}
+                {% set hasRightStockMouvStoc = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_MOUV_STOC')) %}
+                {% set hasRightStockInve = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_INVE')) %}
+                {% set hasRightStockAler = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DISPLAY_ALER')) %}
+
+                {% if hasRightStockArti or hasRightStockRefe or hasRightStockArtiFourn or hasRightStockMouvStoc or hasRightStockInve or hasRightStockAler %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-box"></i>
                             <h4>Stock</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            <li>
-                                <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('reference_article_index') }}" class="sub-item">
-                                    {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                                        • Référence CEA
-                                    {% else %}
-                                        • Référence
-                                    {% endif %}
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('mouvement_stock_index') }}" class="sub-item">• Mouvement de stock</a>
-                            </li>
-                            {% if hasRight(constant('App\\Entity\\Menu::INVENTAIRE'), constant('App\\Entity\\Action::LIST')) %}
-                            <li>
-                                <a href="{{ path('inventory_mission_index') }}" class="sub-item">• Inventaire</a>
-                            </li>
+                            {% if hasRightStockArti %}
+                                <li>
+                                    <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
+                                </li>
                             {% endif %}
-                            <li>
-                                <a href="{{ path('alerte_index') }}" class="sub-item">• Alerte</a>
-                            </li>
+                            {% if hasRightStockRefe %}
+                                <li>
+                                    <a href="{{ path('reference_article_index') }}" class="sub-item">
+                                        {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                                            • Référence CEA
+                                        {% else %}
+                                            • Référence
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightStockArtiFourn %}
+                                <li>
+                                    <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightStockMouvStoc %}
+                                <li>
+                                    <a href="{{ path('mouvement_stock_index') }}" class="sub-item">• Mouvement de stock</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightStockInve %}
+                                <li>
+                                    <a href="{{ path('inventory_mission_index') }}" class="sub-item">• Inventaire</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightStockAler %}
+                                <li>
+                                    <a href="{{ path('alerte_index') }}" class="sub-item">• Alerte</a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </li>
                 {% endif %}
 
                 <!-- REFERENTIEL -->
-                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
+                {% set hasRightRefFourn = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DISPLAY_FOUR')) %}
+                {% set hasRightRefEmpl = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DISPLAY_EMPL')) %}
+                {% set hasRightRefChau = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DISPLAY_CHAU')) %}
+                {% set hasRightRefTran = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DISPLAY_TRAN')) %}
+
+                {% if hasRightRefFourn or hasRightRefEmpl or hasRightRefChau or hasRightRefTran %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-file"></i>
                             <h4>Référentiel</h4>
                         </a>
                         <ul class="sidemenu-sub">
-                            <li>
-                                <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('chauffeur_index') }}" class="sub-item">• Chauffeur</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('transporteur_index') }}" class="sub-item">• Transporteur</a>
-                            </li>
+                            {% if hasRightRefFourn %}
+                                <li>
+                                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightRefEmpl %}
+                                <li>
+                                    <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightRefChau %}
+                                <li>
+                                    <a href="{{ path('chauffeur_index') }}" class="sub-item">• Chauffeur</a>
+                                </li>
+                            {% endif %}
+                            {% if hasRightRefTran %}
+                                <li>
+                                    <a href="{{ path('transporteur_index') }}" class="sub-item">• Transporteur</a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </li>
                 {% endif %}
 
 
                 <!-- PARAMETRAGE -->
-                {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
-                    <li class="menu-item has-submenu">
-                        <a href="#">
-                            <i class="fas fa-gear"></i>
-                            <h4>Paramétrage</h4>
-                        </a>
-                        <ul class="sidemenu-sub">
+                {% set hasRightRefGlobal = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_GLOB')) %}
+                {% set hasRightRefRole = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_ROLE')) %}
+                {% set hasRightRefUtil = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_UTIL')) %}
+                {% set hasRightRefCl = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_CL')) %}
+                {% set hasRightRefExpo = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_EXPO')) %}
+                {% set hasRightRefInve = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_INVE')) %}
+                {% set hasRightRefType = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_TYPE')) %}
+                {% set hasRightRefStatuLiti = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_STATU_LITI')) %}
+                {% set hasRightRefNatuColi = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_NATU_COLI')) %}
+                {% set hasRightRefCf = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_CF')) %}
+
+                {% if hasRightRefGlobal or hasRightRefRole or hasRightRefUtil or hasRightRefCl or hasRightRefExpo or hasRightRefType or hasRightRefStatuLiti or hasRightRefNatuColi or hasRightRefCf %}
+                <li class="menu-item has-submenu">
+                    <a href="#">
+                        <i class="fas fa-gear"></i>
+                        <h4>Paramétrage</h4>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        {% if hasRightRefGlobal %}
                             <li>
                                 <a href="{{ path('global_param_index') }}" class="sub-item">• Paramétrage global</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefRole %}
                             <li>
                                 <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefUtil %}
                             <li>
                                 <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefCl %}
                             <li>
                                 <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefExpo %}
                             <li>
                                 <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefInve %}
                             <li>
                                 <a href="{{ path('inventaire_param_index') }}" class="sub-item">• Inventaire</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefType %}
                             <li>
                                 <a href="{{ path('types_param_index') }}" class="sub-item">• Types</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefStatuLiti %}
                             <li>
                                 <a href="{{ path('status_param_index') }}" class="sub-item">• Statuts litiges</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefNatuColi %}
                             <li>
                                 <a href="{{ path('nature_param_index') }}" class="sub-item">• Nature des colis</a>
                             </li>
+                        {% endif %}
+                        {% if hasRightRefCf %}
                             <li>
                                 <a href="{{ path('fields_param_index') }}" class="sub-item">• Champs fixes</a>
                             </li>
-                        </ul>
-                    </li>
+                        {% endif %}
+                    </ul>
+                </li>
                 {% endif %}
 
                 <li class="menu-item">

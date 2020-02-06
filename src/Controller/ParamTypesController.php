@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Menu;
 
 use App\Entity\Type;
@@ -57,7 +58,7 @@ class ParamTypesController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -74,7 +75,7 @@ class ParamTypesController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -107,7 +108,7 @@ class ParamTypesController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -147,7 +148,7 @@ class ParamTypesController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -170,7 +171,7 @@ class ParamTypesController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -211,7 +212,7 @@ class ParamTypesController extends AbstractController
     public function checkTypeCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -236,7 +237,7 @@ class ParamTypesController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

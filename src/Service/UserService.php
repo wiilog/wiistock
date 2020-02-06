@@ -140,14 +140,14 @@ class UserService
         return $role;
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES, $user = null)
+    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null)
     {
         if (!$user) $user = $this->user;
 
         $role = $this->getUserRole($user);
 		$actions = $role ? $role->getActions() : [];
 
-        $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
+        $thisAction = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
         if ($thisAction) {
             foreach ($actions as $action) {

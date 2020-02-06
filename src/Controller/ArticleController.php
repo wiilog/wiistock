@@ -199,7 +199,7 @@ class ArticleController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
         }
         /**
@@ -393,7 +393,7 @@ class ArticleController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -409,7 +409,7 @@ class ArticleController extends AbstractController
     public function apiColumns(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -509,7 +509,7 @@ class ArticleController extends AbstractController
     public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -642,7 +642,7 @@ class ArticleController extends AbstractController
     public function checkArticleCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -752,7 +752,7 @@ class ArticleController extends AbstractController
     public function saveColumnVisible(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
             $champs = array_keys($data);

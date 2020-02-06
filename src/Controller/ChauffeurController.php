@@ -57,7 +57,7 @@ class ChauffeurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_CHAU)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -88,7 +88,7 @@ class ChauffeurController extends AbstractController
      */
     public function index(): Response
     {
-		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_CHAU)) {
 			return $this->redirectToRoute('access_denied');
 		}
 
@@ -134,7 +134,7 @@ class ChauffeurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_CHAU)) {
                 return $this->redirectToRoute('access_denied');
             }
 

@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
@@ -107,6 +109,12 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->getOneOrNullResult();
 	}
 
+	/**
+	 * @param $roleId
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
 	public function countByRoleId($roleId)
 	{
 		$entityManager = $this->getEntityManager();
@@ -149,7 +157,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
     /**
      * @param $key
      * @return Utilisateur | null
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
 	public function findOneByApiKey($key)
 	{

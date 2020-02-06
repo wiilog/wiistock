@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -64,7 +65,7 @@ class ParametrageGlobalController extends AbstractController
 						  NatureRepository $natureRepository
 	): Response
     {
-        if (!$userService->hasRightFunction(Menu::PARAM)) {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -124,7 +125,7 @@ class ParametrageGlobalController extends AbstractController
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -224,7 +225,7 @@ class ParametrageGlobalController extends AbstractController
                         DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -263,7 +264,7 @@ class ParametrageGlobalController extends AbstractController
                             DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -291,7 +292,7 @@ class ParametrageGlobalController extends AbstractController
                          DaysWorkedRepository $daysWorkedRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -336,7 +337,7 @@ class ParametrageGlobalController extends AbstractController
                                      UserService $userService,
                                      MailerServerRepository $mailerServerRepository): Response {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM)) {
+            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -464,7 +465,6 @@ class ParametrageGlobalController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
 
     /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")

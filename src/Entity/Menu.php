@@ -11,21 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Menu
 {
-    const RECEPTION = 'REC';
-    const PREPA = 'PREPA';
-    const LIVRAISON = 'LIVR';
-    const DEM_LIVRAISON = 'DEMLIVR';
-    const DEM_COLLECTE = 'DEMCOL';
-    const COLLECTE = 'COL';
-    const MANUT = 'MANUT';
-    const NOMAD = 'NOMAD';
-    const PARAM = 'PARAM';
-    const STOCK = 'STOCK';
-    const INDICS_ACCUEIL = 'INDICAC';
-    const ARRIVAGE = 'ARRIVAGE';
-    const REFERENTIEL = 'REFERENTIEL';
-    const INVENTAIRE = 'INVENTAIRE';
-    const LITIGE = 'LITIGE';
+	const ACCUEIL = 'accueil';
+	const TRACA = 'tracabilité';
+	const QUALI = 'qualité';
+	const DEM = 'demande';
+	const ORDRE = 'ordre';
+	const STOCK = 'stock';
+	const REFERENTIEL = 'référentiel';
+	const PARAM = 'paramétrage';
 
     /**
      * @ORM\Id()
@@ -38,11 +31,6 @@ class Menu
      * @ORM\Column(type="string", length=32)
      */
     private $label;
-
-    /**
-     * @ORM\Column(type="string", length=16)
-     */
-    private $code;
 
     /**
      * @ORM\OneToMany(targetEntity="Action", mappedBy="menu")
@@ -103,15 +91,4 @@ class Menu
         return $this;
     }
 
-    public function getCode(): ?string
-    {
-        return $this->code;
-    }
-
-    public function setCode(string $code): self
-    {
-        $this->code = $code;
-
-        return $this;
-    }
 }

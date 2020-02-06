@@ -35,7 +35,7 @@
     <table class="table table-striped table-bordered retards-table w-100"></table>
 </div>
 
-{% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::MONETAIRE')) %}
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::ACCUEIL')) %}
     <div id="dashboard-monetary" class="col-5 offset-1 dashboard-box">
         <h2 class="bold">Fiabilité monétaire</h2>
         <div class="curve_chart_line " id="curve_chart"></div>

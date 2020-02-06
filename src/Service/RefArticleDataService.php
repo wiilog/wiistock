@@ -516,7 +516,7 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ALER)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 

@@ -77,7 +77,7 @@ class FournisseurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->fournisseurDataService->getDataForDatatable($request->request);
@@ -92,7 +92,7 @@ class FournisseurController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -179,7 +179,7 @@ class FournisseurController extends AbstractController
     public function checkFournisseurCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $fournisseurId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
                 return $this->redirectToRoute('access_denied');
             }
 

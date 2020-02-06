@@ -14,7 +14,7 @@
                        onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
                         Supprimer</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) and reception.demandes|length > 0 %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0 %}
                     <a href="{{path('demande_index', {'reception': reception.id }) }}"class="btn btn-primary btn-action ml-auto">
                         Voir les demandes</a>
                 {% endif %}

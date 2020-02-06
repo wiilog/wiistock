@@ -97,7 +97,7 @@ class MouvementStockController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -113,7 +113,7 @@ class MouvementStockController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
                 return $this->redirectToRoute('access_denied');
             }
 

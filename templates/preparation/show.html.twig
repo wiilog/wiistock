@@ -9,14 +9,14 @@
             <h1>Préparation</h1>
         </div>
         <div class="col text-right">
-            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
                 {% if demande %}
                     <a href="{{path('demande_show', {'id': demande.id})}}"
                        class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison
                     </a>
                 {% endif %}
             {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
                 {% if livraison is not empty %}
                     <a href="{{path('livraison_show', {'id': livraison.id})}}"
                        class="btn btn-primary btn-action ml-auto">Aller vers l'ordre de livraison</a>

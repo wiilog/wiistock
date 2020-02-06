@@ -3,7 +3,7 @@
         <h1>Ordre de collecte n°{{ collecte.numero }}</h1>
     </div>
 
-{% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+{% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
     <div class="col text-right">
         <a href="{{path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
             Aller vers la demande de collecte

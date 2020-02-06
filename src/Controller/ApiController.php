@@ -273,7 +273,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
 
-                    $isInventoryManager = $this->userService->hasRightFunction(Menu::INVENTAIRE, Action::INVENTORY_MANAGER, $user);
+                    $isInventoryManager = $this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user);
 
                     $this->successDataMsg['success'] = true;
                     $this->successDataMsg['data'] = [

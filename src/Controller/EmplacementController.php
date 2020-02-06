@@ -115,7 +115,7 @@ class EmplacementController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->emplacementDataService->getDataForDatatable($request->request);
@@ -130,7 +130,7 @@ class EmplacementController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
             return $this->redirectToRoute('access_denied');
         }
         $filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
@@ -254,7 +254,7 @@ class EmplacementController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
 
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -345,10 +345,7 @@ class EmplacementController extends AbstractController
      */
     public function getRefArticles(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
-//            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
-//                return new JsonResponse(['results' => []]);
-//            }
+    	if ($request->isXmlHttpRequest()) {
 
             $search = $request->query->get('term');
 

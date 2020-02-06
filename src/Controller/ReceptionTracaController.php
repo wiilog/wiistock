@@ -68,7 +68,7 @@ class ReceptionTracaController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -84,7 +84,7 @@ class ReceptionTracaController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
                 return $this->redirectToRoute('access_denied');
             }
 

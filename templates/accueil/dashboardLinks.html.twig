@@ -1,5 +1,5 @@
 <div class="row justify-content-end">
-    {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::YES')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
         <div class="col-12 mb-1 home-card">
             <a href="#"
                onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
@@ -50,7 +50,7 @@
             </a>
         </div>
     {% endif %}
-    {% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::REFERENCE')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_REFERENCE')) %}
         <div class="col-12 row ml-0 mr-0 mb-1 mt-1 home-card">
             <p class="bold col-12">Fiabilité par référence</p>
             <p class="col-6">

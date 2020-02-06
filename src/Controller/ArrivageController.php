@@ -215,7 +215,7 @@ class ArrivageController extends AbstractController
 	 */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
@@ -247,11 +247,11 @@ class ArrivageController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
+            $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
 
@@ -277,7 +277,7 @@ class ArrivageController extends AbstractController
                         ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -405,7 +405,7 @@ class ArrivageController extends AbstractController
 							ValeurChampLibreRepository $valeurChampLibreRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
             $arrivage = $this->arrivageRepository->find($data['id']);
@@ -432,7 +432,7 @@ class ArrivageController extends AbstractController
 				];
 			}
 
-            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+			if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
@@ -461,7 +461,7 @@ class ArrivageController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
@@ -588,7 +588,7 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $this->arrivageRepository->find($data['arrivage']);
 
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -734,8 +734,8 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $arrivage = $data;
-            $arrivage = $this->arrivageRepository->find($arrivage);
+            	//TODO CG
+            $arrivage = $this->arrivageRepository->find($data);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
                 'response' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
@@ -878,7 +878,8 @@ class ArrivageController extends AbstractController
 	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
+			&& !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -929,7 +930,7 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -993,7 +994,7 @@ class ArrivageController extends AbstractController
     public function deleteLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1017,7 +1018,7 @@ class ArrivageController extends AbstractController
     public function addColis(Request $request, ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1098,7 +1099,7 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
@@ -1120,7 +1121,7 @@ class ArrivageController extends AbstractController
     public function editLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
@@ -1136,7 +1137,7 @@ class ArrivageController extends AbstractController
             $litige->setUpdateDate(new DateTime('now'));
 
             $newStatus = $this->statutRepository->find($statutAfter);
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
             if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
                 $litige->setStatus($newStatus);
             }

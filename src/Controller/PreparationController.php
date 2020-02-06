@@ -254,7 +254,7 @@ class PreparationController extends AbstractController
      */
     public function index(string $demandId = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -276,7 +276,7 @@ class PreparationController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -299,7 +299,7 @@ class PreparationController extends AbstractController
     public function apiLignePreparation(Request $request, $prepaId): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -397,7 +397,7 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -417,7 +417,7 @@ class PreparationController extends AbstractController
      */
     public function delete(Preparation $preparation): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
         }
 

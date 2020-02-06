@@ -162,7 +162,7 @@ class CollecteController extends AbstractController
 	 */
     public function index($filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -195,7 +195,7 @@ class CollecteController extends AbstractController
 	 */
     public function show(Collecte $collecte): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -215,7 +215,7 @@ class CollecteController extends AbstractController
     public function api(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -235,7 +235,7 @@ class CollecteController extends AbstractController
     public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -669,7 +669,7 @@ class CollecteController extends AbstractController
 	public function getDemandCollectAutoComplete(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
