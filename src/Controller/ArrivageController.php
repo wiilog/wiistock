@@ -45,6 +45,7 @@ use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -170,16 +171,17 @@ class ArrivageController extends AbstractController
     /**
      * @var FieldsParamRepository
      */
-    private $fieldsParamsRepository;
+    private $fieldsParamRepository;
 
 	/**
 	 * @var ValeurChampLibreRepository
 	 */
     private $valeurChampLibreRepository;
 
+
     public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
-        $this->fieldsParamsRepository = $fieldsParamRepository;
+        $this->fieldsParamRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
@@ -213,10 +215,10 @@ class ArrivageController extends AbstractController
 	 */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('arrivage/index.html.twig', [
@@ -245,13 +247,16 @@ class ArrivageController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $canSeeAll = $this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL);
+            $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
+
+			$fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+			$data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
         }
@@ -272,7 +277,7 @@ class ArrivageController extends AbstractController
                         ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -372,6 +377,7 @@ class ArrivageController extends AbstractController
 			}
 
 			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
             $data = [
                 "redirect" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
@@ -381,6 +387,10 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
+				'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [
+					'champsLibres' => $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
+				]),
+				'statutConformeId' => $statutConforme ? $statutConforme->getId() : '',
             ];
             return new JsonResponse($data);
         }
@@ -400,7 +410,7 @@ class ArrivageController extends AbstractController
 							ValeurChampLibreRepository $valeurChampLibreRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
             $arrivage = $this->arrivageRepository->find($data['id']);
@@ -410,7 +420,7 @@ class ArrivageController extends AbstractController
             foreach ($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
-            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
 			$champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
 			$champsLibresArray = [];
@@ -427,7 +437,7 @@ class ArrivageController extends AbstractController
 				];
 			}
 
-            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+			if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
@@ -456,7 +466,7 @@ class ArrivageController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
@@ -561,7 +571,7 @@ class ArrivageController extends AbstractController
 				}
 			}
 
-            $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
@@ -583,7 +593,7 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $this->arrivageRepository->find($data['arrivage']);
 
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -729,8 +739,8 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $arrivage = $data;
-            $arrivage = $this->arrivageRepository->find($arrivage);
+            	//TODO CG
+            $arrivage = $this->arrivageRepository->find($data);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
                 'response' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
@@ -862,17 +872,19 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @param bool $printColis
-     * @param bool $printArrivage
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @param bool $printColis
+	 * @param bool $printArrivage
+	 * @return JsonResponse
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+	 */
     public function show(Arrivage $arrivage, bool $printColis = false, bool $printArrivage = false): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL) && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
+			&& !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -880,7 +892,7 @@ class ArrivageController extends AbstractController
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
-        $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
 		$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
 		$champsLibres = [];
@@ -923,7 +935,7 @@ class ArrivageController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -987,7 +999,7 @@ class ArrivageController extends AbstractController
     public function deleteLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1011,7 +1023,7 @@ class ArrivageController extends AbstractController
     public function addColis(Request $request, ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1092,7 +1104,7 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
@@ -1114,7 +1126,7 @@ class ArrivageController extends AbstractController
     public function editLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
@@ -1130,7 +1142,7 @@ class ArrivageController extends AbstractController
             $litige->setUpdateDate(new DateTime('now'));
 
             $newStatus = $this->statutRepository->find($statutAfter);
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::LITIGE, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
             if ($hasRightToTreatLitige || !$newStatus->getTreated()) {
                 $litige->setStatus($newStatus);
             }
@@ -1139,14 +1151,14 @@ class ArrivageController extends AbstractController
                 $litige->setType($this->typeRepository->find($typeAfter));
             }
 
-            if (!empty($colis = $post->get('colis'))) {
+            if (!empty($newColis = $post->get('colis'))) {
                 // on détache les colis existants...
                 $existingColis = $litige->getColis();
-                foreach ($existingColis as $colis) {
-                    $litige->removeColis($colis);
+                foreach ($existingColis as $existingColi) {
+                    $litige->removeColis($existingColi);
                 }
                 // ... et on ajoute ceux sélectionnés
-                $listColis = explode(',', $colis);
+                $listColis = explode(',', $newColis);
                 foreach ($listColis as $colisId) {
                     $litige->addColis($this->colisRepository->find($colisId));
                 }
@@ -1304,13 +1316,33 @@ class ArrivageController extends AbstractController
         if (isset($reloadArrivageId)) {
             $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
-                $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+                $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+				$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+				$champsLibres = [];
+				foreach ($listTypes as $type) {
+					$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+					foreach ($listChampsLibres as $champLibre) {
+						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivageToReload, $champLibre);
+
+						$champsLibres[] = [
+							'id' => $champLibre->getId(),
+							'label' => $champLibre->getLabel(),
+							'typage' => $champLibre->getTypage(),
+							'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+							'defaultValue' => $champLibre->getDefaultValue(),
+							'valeurChampLibre' => $valeurChampLibre,
+						];
+					}
+				}
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
-                        'fieldsParam' => $fieldsParam
-                    ]),
+                        'fieldsParam' => $fieldsParam,
+						'champsLibres' => $champsLibres
+					]),
                 ];
             }
         }

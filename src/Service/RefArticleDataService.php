@@ -318,7 +318,7 @@ class RefArticleDataService
      */
     public function editRefArticle($refArticle, $data)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
@@ -516,7 +516,7 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ALER)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 

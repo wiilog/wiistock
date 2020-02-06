@@ -93,13 +93,13 @@ class ReceptionService
         ];
     }
 
-    /**
-     * @param Reception $reception
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param Reception $reception
+	 * @return array
+	 * @throws \Twig\Error\LoaderError
+	 * @throws \Twig\Error\RuntimeError
+	 * @throws \Twig\Error\SyntaxError
+	 */
     public function dataRowReception(Reception $reception)
     {
         $row =

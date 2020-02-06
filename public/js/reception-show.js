@@ -19,7 +19,7 @@ function InitiliserPageModals() {
     let modal = $("#modalAddLigneArticle");
     let submit = $("#addArticleLigneSubmit");
     let url = Routing.generate('reception_article_add', true);
-    InitialiserModal(modal, submit, url, tableArticle);
+    InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -581,4 +581,17 @@ function printBarcode(button) {
             }
         }
     });
+}
+
+function createHandlerAddLigneArticleResponse($modal) {
+    return (data) => {
+        if (data.errorMsg) {
+            alertErrorMsg(data.errorMsg, true);
+        }
+        else {
+            alertSuccessMsg('La référence a été ajoutée à la réception', true);
+            $modal.find('.close').click();
+            clearModal($modal);
+        }
+    }
 }

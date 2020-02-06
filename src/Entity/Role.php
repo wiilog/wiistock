@@ -12,8 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Role
 {
     const NO_ACCESS_USER = 'aucun accès';
+    const SUPER_ADMIN = 'super admin';
     const CLIENT_UTIL = 'Client utilisation';
-    const DEM_SAFRAN = 'Demandeur Safran';
 
     /**
      * @ORM\Id()

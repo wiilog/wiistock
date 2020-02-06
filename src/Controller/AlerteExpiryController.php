@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\AlerteExpiry;
 
 use App\Entity\Menu;
@@ -9,6 +10,7 @@ use App\Repository\AlerteExpiryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\AlerteService;
 use App\Service\UserService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -148,7 +150,7 @@ class AlerteExpiryController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -190,12 +192,12 @@ class AlerteExpiryController extends AbstractController
 	 * @Route("/voir", name="show_alerte", options={"expose"=true})
 	 * @param Request $request
 	 * @return Response
-	 * @throws \Exception
+	 * @throws Exception
 	 */
     public function show(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -217,7 +219,7 @@ class AlerteExpiryController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -237,7 +239,7 @@ class AlerteExpiryController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -278,7 +280,7 @@ class AlerteExpiryController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

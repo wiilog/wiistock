@@ -1,14 +1,31 @@
-let resizeTimer;
-$('.range-buttons').hide();
-google.charts.load('current', {packages: ['corechart']});
-google.charts.setOnLoadCallback(function () {
-    drawAnnotations('dashboard-assoc');
-    drawAnnotations('dashboard-arrival');
-});
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawAllCharts);
 
-function drawAnnotations(parent, after = true, fromStart = true) {
+function drawAllCharts() {
+    drawChart('dashboard-assoc');
+    drawChart('dashboard-arrival');
+    drawChartMonetary();
+    reloadDashboardLinks();
+}
+
+let reloadFrequency = 1000 * 60 * 15;
+setInterval(reloadPage, reloadFrequency);
+
+function reloadPage() {
+    drawAllCharts();
+    datatableColis.ajax.reload();
+    reloadDashboardLinks();
+}
+
+function reloadDashboardLinks() {
+    $.post(Routing.generate('get_dashboard', true), function(resp) {
+        $('#dashboardLinks').html(resp);
+    });
+}
+
+function drawChart(parent, after = true, fromStart = true) {
     $('#' + parent + ' > .range-buttons').hide();
-    $('#' + parent + ' > .spinner-border').show();
+    $('#' + parent + ' .spinner-border').show();
     let data = new google.visualization.DataTable();
     let currentWeekRoute = Routing.generate(parent, true);
     let params = {
@@ -78,6 +95,9 @@ function drawAnnotations(parent, after = true, fromStart = true) {
                 }
             },
             colors: ['#130078', 'Red'],
+            backgroundColor: {
+                fill: 'transparent'
+            }
         };
         let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
         chart.draw(data, options);
@@ -86,13 +106,44 @@ function drawAnnotations(parent, after = true, fromStart = true) {
         $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDay);
         $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
         $('#' + parent + ' > .range-buttons').show();
-        $('#' + parent + ' > .spinner-border').hide();
+        $('#' + parent + ' .spinner-border').hide();
     }, 'json');
+}
+
+function drawChartMonetary() {
+    let path = Routing.generate('graph_monetaire', true);
+    $.ajax({
+        url: path,
+        dataType: "json",
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            let tdata = new google.visualization.DataTable();
+
+            tdata.addColumn('string', 'Month');
+            tdata.addColumn('number', 'Fiabilité monétaire');
+
+            $.each(data, function (index, value) {
+                tdata.addRow([value.mois, value.nbr]);
+            });
+
+            let options = {
+                curveType: 'function',
+                backdropColor: 'transparent',
+                legend: 'none',
+                backgroundColor: 'transparent',
+            };
+
+            let chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart.draw(tdata, options);
+            $('#dashboard-monetary > .spinner-border').hide();
+        }
+    });
 }
 
 let routeForLate = Routing.generate('api_retard', true);
 
-$('.retards-table').DataTable({
+let datatableColis = $('.retards-table').DataTable({
     responsive: true,
     dom: 'tipr',
     pageLength: 5,
@@ -106,16 +157,26 @@ $('.retards-table').DataTable({
     },
     columns: [
         {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-        {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
+        {"data": 'date', 'name': 'date', 'title': 'Dépose'},
         {"data": 'time', 'name': 'delai', 'title': 'Délai'},
         {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
     ]
 });
 
-$(window).resize(function () {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () {
-        drawAnnotations('dashboard-assoc');
-        drawAnnotations('dashboard-arrival');
-    }, 250);
-});
+function goToFilteredDemande(type, filter){
+    let path = '';
+    if (type === 'livraison'){
+        path = 'demande_index';
+    } else if (type === 'collecte') {
+        path = 'collecte_index';
+    } else if (type === 'manutention'){
+        path = 'manutention_index';
+    }
+
+    let params = {
+        reception: 0,
+        filter: filter
+    };
+    let route = Routing.generate(path, params);
+    window.location.href = route;
+}

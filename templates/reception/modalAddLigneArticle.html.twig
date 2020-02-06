@@ -22,7 +22,7 @@
                                 id="reference" name="referenceArticle">
                         </select>
                     </div>
-                    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
                     <div class="form-group col-1 row">
                         <span class="btn btn-primary m-0 align-self-end" onclick="addArticle()">
                             <i class="fa fa-plus"></i>
@@ -66,7 +66,12 @@
 
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button type="button"
+                        class="btn"
+                        data-dismiss="modal"
+                        onclick="clearModal($(this).parents('#modalAddLigneArticle'))">
+                    Annuler
+                </button>
                 <button type="button" id="addArticleLigneSubmit" class="btn btn-success data"
                         name="reception" value="{{ reception.id }}"
                         onclick="setCommentaire('.editor-container')">

@@ -35,30 +35,95 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     public function load(ObjectManager $manager)
     {
     	$menus = [
-			Menu::LITIGE => [Action::LIST, Action::CREATE, Action::EDIT, Action::DELETE, Action::TREAT_LITIGE],
-			Menu::RECEPTION => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::CREATE_REF_FROM_RECEP, Action::EXPORT],
-			Menu::DEM_LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
-			Menu::DEM_COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
-			Menu::STOCK => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::EXPORT],
-			Menu::REFERENTIEL => [Action::LIST, Action::CREATE_EDIT, Action::DELETE],
-			Menu::MANUT => [Action::LIST, Action::CREATE, Action::EDIT_DELETE, Action::EXPORT],
-			Menu::PREPA => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
-			Menu::LIVRAISON => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
-			Menu::COLLECTE => [Action::LIST, Action::CREATE_EDIT, Action::EXPORT],
-			Menu::PARAM => [Action::YES],
-			Menu::INVENTAIRE => [Action::LIST, Action::INVENTORY_MANAGER],
-			Menu::INDICS_ACCUEIL => [Action::REFERENCE, Action::MONETAIRE],
-			Menu::ARRIVAGE => [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::LIST_ALL, Action::EXPORT],
+    		Menu::ACCUEIL => [
+    			Action::DISPLAY_INDI,
+    			Action::DISPLAY_INDIC_INV_MONETAIRE,
+				Action::DISPLAY_INDIC_INV_REFERENCE
+			],
+			Menu::TRACA => [
+				Action::DISPLAY_ARRI,
+				Action::DISPLAY_MOUV,
+				Action::DISPLAY_ACHE,
+				Action::DISPLAY_ASSO,
+				Action::DISPLAY_ENCO,
+				Action::DISPLAY_URGE,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE,
+				Action::EXPORT,
+				Action::LIST_ALL
+			],
+			Menu::QUALI => [
+				Action::DISPLAY_LITI,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE,
+				Action::TREAT_LITIGE
+			],
+			Menu::DEM => [
+				Action::DISPLAY_DEM_COLL,
+				Action::DISPLAY_DEM_LIVR,
+				Action::DISPLAY_MANU,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE,
+				Action::EXPORT
+			],
+			Menu::ORDRE => [
+				Action::DISPLAY_ORDRE_COLL,
+				Action::DISPLAY_ORDRE_LIVR,
+				Action::DISPLAY_PREPA,
+				Action::DISPLAY_RECE,
+				Action::CREATE_REF_FROM_RECEP,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE,
+				Action::EXPORT
+			],
+			Menu::STOCK => [
+				Action::DISPLAY_ARTI,
+				Action::DISPLAY_REFE,
+				Action::DISPLAY_ARTI_FOUR,
+				Action::DISPLAY_MOUV_STOC,
+				Action::DISPLAY_INVE,
+				Action::DISPLAY_ALER,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE,
+				Action::EXPORT,
+				Action::INVENTORY_MANAGER
+			],
+			Menu::REFERENTIEL => [
+				Action::DISPLAY_FOUR,
+				Action::DISPLAY_EMPL,
+				Action::DISPLAY_CHAU,
+				Action::DISPLAY_TRAN,
+				Action::CREATE,
+				Action::EDIT,
+				Action::DELETE
+			],
+			Menu::PARAM => [
+				Action::DISPLAY_GLOB,
+				Action::DISPLAY_ROLE,
+				Action::DISPLAY_UTIL,
+				Action::DISPLAY_CL,
+				Action::DISPLAY_EXPO,
+				Action::DISPLAY_TYPE,
+				Action::DISPLAY_STATU_LITI,
+				Action::DISPLAY_NATU_COLI,
+				Action::DISPLAY_CF,
+				Action::EDIT,
+				Action::DELETE,
+			]
 		];
 
     	$selectedByDefault = [
-    		Menu::LITIGE . Action::TREAT_LITIGE
+    		Menu::QUALI . Action::TREAT_LITIGE
 		];
 
 		foreach ($menus as $menuCode => $actionLabels) {
 			foreach ($actionLabels as $actionLabel) {
-
-				$action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
+				$action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
 
 				if (empty($action)) {
 					$action = new Action();
@@ -92,6 +157,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
     public static function getGroups(): array
     {
-        return ['actions', 'fixtures'];
+        return ['fixtures', 'patch-menus'];
     }
 }

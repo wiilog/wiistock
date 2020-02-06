@@ -1,0 +1,32 @@
+<a data-toggle="collapse" href="#prefixeForm" role="button" aria-expanded="false"
+   aria-controls="prefixeForm" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Préfixage des noms de demandes<i
+                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+<div class="collapse col-12" id="prefixeForm">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="updatePrefixDemand()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="typeDemande">Type de demande</label>
+        <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande"
+                onchange="getPrefixDemand($(this))">
+            <option value="aucunPrefixe">Type demande à choisir...</option>
+            <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_LIVRAISON') }}">Demande de
+                livraison
+            </option>
+            <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_COLLECTE') }}" hidden>Demande
+                de collecte
+            </option>
+            <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_MANUT') }}" hidden>Demande de
+                manutention
+            </option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="">Préfixe</label>
+        <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
+               value="">
+    </div>
+    <div class="error-msg p-4"></div>
+</div>

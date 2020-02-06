@@ -8,23 +8,23 @@
         </div>
         <div class="col text-right">
             {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
                        class="btn btn-danger btn-action ml-auto"
                        onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
                         Supprimer</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) and reception.demandes|length > 0 %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0 %}
                     <a href="{{path('demande_index', {'reception': reception.id }) }}"class="btn btn-primary btn-action ml-auto">
                         Voir les demandes</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception")'
                        class="btn btn-primary btn-action ml-auto">
                         {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto"
                        onclick="editRow(
@@ -45,17 +45,15 @@
             {% endif %}
         </div>
     </div>
-    <div class="row">
-        <div class="zone-entete col-12 row">
-            {% include "reception/enteteReception.html.twig" %}
-        </div>
+    <div class="row zone-entete">
+        {% include "reception/enteteReception.html.twig" %}
     </div>
 
     <div class="row mt-2">
         <div class="col-6">
             <div class="text-right">
                 {% if modifiable %}
-                    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
                            class="btn btn-primary btn-action ml-auto"
                            onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
@@ -76,7 +74,7 @@
         </div>
         <div class="col-6">
             <div class="text-right">
-                {% if hasRight(constant('App\\Entity\\Menu::LITIGE'), constant('App\\Entity\\Action::CREATE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalNewLitige' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">
                         <i class="fa fa-plus mr-2"></i>

@@ -1,0 +1,18 @@
+<a data-toggle="collapse" href="#encForm" role="button" aria-expanded="false"
+   aria-controls="encForm" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des exports CSV<i
+                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+<div class="collapse col-12" id="encForm">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxEncodage()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="param-type-encodage">Encodage des exports CSV</label>
+        <select name="param-type-encodage" class="data form-control">
+            {% for encoding in encodings %}
+                <option value="{{ encoding.value }}" {{ encoding.value == paramCodeENC ? 'selected' : '' }}>{{ encoding.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

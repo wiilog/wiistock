@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ArrivalHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -22,7 +23,7 @@ class ArrivalHistoryRepository extends ServiceEntityRepository
     /**
      * @param $date
      * @return ArrivalHistory | null
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function getByDate($date)
     {

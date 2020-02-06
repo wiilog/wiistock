@@ -109,7 +109,7 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-        $role = $this->roleRepository->findByLabel(Role::DEM_SAFRAN);
+        $role = $this->roleRepository->findByLabel('Demandeur Safran');
         foreach($rows as $row) {
             $utilisateur = new Utilisateur();
             $password = $this->encoder->encodePassword($utilisateur, 'DemSafran&123');

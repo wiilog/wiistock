@@ -21,7 +21,7 @@
 
     <div class="col-12">
         <div class="row">
-            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::EXPORT')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
                 <div class="btn btn-primary" onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
                     <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                 </div>

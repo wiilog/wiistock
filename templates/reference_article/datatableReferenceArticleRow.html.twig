@@ -1,6 +1,6 @@
 <div class="d-flex">
 
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
     <div id='edit{{idRefArticle}}'>
         <div class="btn btn-col-action" data-id='{{ idRefArticle }}' data-target='#modalEditRefArticle' data-toggle='modal'
         onclick="clearDiv(),

@@ -45,8 +45,8 @@ let tableRecep = $('#tableRecepts').DataTable({
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "Arrivage", 'name': 'Arrivage', 'title': "Arrivage"},
-        {"data": 'Réception', 'name': 'Réception', 'title': 'Réception'},
+        {"data": "Arrivage", 'name': 'Arrivage', 'title': $('#arrTranslation').val()},
+        {"data": 'Réception', 'name': 'Réception', 'title': $('#recTranslation').val()},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
 });

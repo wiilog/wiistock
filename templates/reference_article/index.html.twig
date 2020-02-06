@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
         <div data-toggle="modal" data-target="#modalNewRefArticle" class="btn btn-action btn-primary"
                    onclick='initNewReferenceArticleEditor("#modalNewRefArticle")'>
             <i class="fa fa-plus mr-2"></i>Nouvel article de référence

@@ -9,23 +9,23 @@
             <h1>Demande de livraison n° {{ demande.numero }}</h1>
         </div>
         <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
-
+{#TODO CG#}
         <div class="col text-right" id='boutonCollecteSup'>
             {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
                        class="btn btn-danger btn-action ml-auto">
                         Supprimer</a>
                 {% endif %}
                 {% if demande.reception is not empty %}
-                    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
                         <a href="{{ path('reception_show', {'id': demande.reception.id }) }}"
                            class="btn btn-primary btn-action ml-auto">
                             Aller vers la réception
                         </a>
                     {% endif %}
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href=""
                        data-id='{{ demande.id }}'
                        data-target='#modalEditDemande'
@@ -35,7 +35,7 @@
                         Modifier
                     </a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="#"
                        onclick="validateLivraison({{ demande.id }}, $(this))"
                        data-id='{{ demande.id }}'
@@ -45,7 +45,7 @@
                 {% endif %}
 
             {% elseif demande.preparations is not empty %}
-                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
                     <div class=" text-right">
                         {% if demande.preparations|length > 1 %}
                             <a href="{{ path('preparation_index', {'demandId': demande.id }) }}"
@@ -61,7 +61,7 @@
                     </div>
                 {% endif %}
                 {% if demande.livraisons is not empty %}
-                    {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
                         <div class=" text-right">
                             {# Si on a plusieurs prerations, on affiche une liste pour les livraisons #}
                             {% if demande.preparations|length > 1 %}
@@ -98,7 +98,7 @@
                     Chercher une référence
                 {% endif %}
             </a>
-            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearModal('#modalNewArticle')"
                    class="btn btn-primary btn-action ml-auto">
                     <span class="fa fa-plus mr-2"></span>Ajouter article

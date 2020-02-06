@@ -68,7 +68,7 @@ class ReceptionTracaController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -84,7 +84,7 @@ class ReceptionTracaController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -101,7 +101,7 @@ class ReceptionTracaController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -120,6 +120,10 @@ class ReceptionTracaController extends AbstractController
      */
     public function new(Request $request): Response
     {
+		if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
+			return $this->redirectToRoute('access_denied');
+		}
+
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $entityManager = $this->getDoctrine()->getManager();
             if (isset($data['numero_arrivage']) && strpos($data['numero_arrivage'], ';')) {
@@ -142,10 +146,6 @@ class ReceptionTracaController extends AbstractController
                 $entityManager->persist($recep);
             }
 
-
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $entityManager->flush();
             return new JsonResponse();
         }

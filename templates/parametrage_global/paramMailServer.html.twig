@@ -1,0 +1,35 @@
+<a data-toggle="collapse" href="#mailerServerForm" role="button" aria-expanded="false"
+   aria-controls="mailerServerForm" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration du serveur mail<i
+                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+<div class="collapse col-12" id="mailerServerForm">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxMailerServer()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="">Serveur SMTP</label>
+        <input type="text" class="form-control data" name="smtp"
+               value="{{ mailerServer.smtp is defined ? mailerServer.smtp :'' }}">
+    </div>
+    <div class="form-group">
+        <label for="">Nom d'utilisateur</label>
+        <input type="text" class="form-control data" name="user"
+               value="{{ mailerServer.user is defined ? mailerServer.user : '' }}">
+    </div>
+    <div class="form-group">
+        <label for="">Mot de passe</label>
+        <input type="password" class="form-control data" name="password"
+               value="{{ mailerServer.password is defined ? mailerServer.password : '' }}">
+    </div>
+    <div class="form-group">
+        <label for="">Port</label>
+        <input type='number' class="form-control data" name="port"
+               value="{{ mailerServer.port is defined ? mailerServer.port : '' }}">
+    </div>
+    <div class="form-group">
+        <label for="">Protocol</label>
+        <input type="text" class="form-control data" name="protocol"
+               value="{{ mailerServer.protocol is defined ? mailerServer.protocol : '' }}">
+    </div>
+</div>

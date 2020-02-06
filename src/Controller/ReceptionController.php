@@ -246,7 +246,7 @@ class ReceptionController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -254,7 +254,7 @@ class ReceptionController extends AbstractController
             $type = $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
-            $statutLabel = $data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
+            $statutLabel = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -285,7 +285,7 @@ class ReceptionController extends AbstractController
             }
 
             $reception
-                ->setReference($data['reference'])
+                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
                         ?
@@ -298,14 +298,14 @@ class ReceptionController extends AbstractController
                         new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
                         :
                         null)
-                ->setCommentaire($data['commentaire'])
+                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
                 ->setDate($date)
-                ->setReference($data['reference'])
+                ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -342,7 +342,7 @@ class ReceptionController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -425,8 +425,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+			])
             ];
             return new JsonResponse($json);
         }
@@ -440,7 +441,7 @@ class ReceptionController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $reception = $this->receptionRepository->find($data['id']);
@@ -491,11 +492,14 @@ class ReceptionController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $data = $this->receptionService->getDataForDatatable($request->request);
+
+            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+			$data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
         }
@@ -508,7 +512,7 @@ class ReceptionController extends AbstractController
     public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -547,7 +551,7 @@ class ReceptionController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -579,7 +583,7 @@ class ReceptionController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -606,7 +610,7 @@ class ReceptionController extends AbstractController
     public function removeArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -649,8 +653,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+				])
             ];
             $entityManager->flush();
             return new JsonResponse($json);
@@ -660,73 +665,92 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function addArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find($contentData['referenceArticle']);
+            $refArticleId = (int)$contentData['referenceArticle'];
+            $refArticle = $this->referenceArticleRepository->find($refArticleId);
+
             $reception = $this->receptionRepository->find($contentData['reception']);
-//            $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
-            $anomalie = $contentData['anomalie'];
-            if ($anomalie) {
-                $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
-                $reception->setStatut($statutRecep);
-            }
+            $commande = $contentData['commande'];
 
-            $receptionReferenceArticle = new ReceptionReferenceArticle;
-            $receptionReferenceArticle
-                ->setCommande($contentData['commande'])
-                ->setAnomalie($contentData['anomalie'])
-                ->setCommentaire($contentData['commentaire'])
-//                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($refArticle)
-                ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
-                ->setReception($reception);
+            $receptionReferenceArticle = $reception->getReceptionReferenceArticles();
 
-            if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
-                $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
-            }
+            // On vérifie que le couple (référence, commande) n'est pas déjà utilisé dans la réception
+            $refAlreadyExists = $receptionReferenceArticle->filter(function (ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
+            	return (
+                    $commande === $receptionReferenceArticle->getCommande() &&
+                    $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
+                );
+            });
 
-//            if (array_key_exists('articleFournisseur', $contentData) && $contentData['articleFournisseur']) {
-//                $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
-//                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
-//            }
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($receptionReferenceArticle);
-            $em->flush();
-
-            $type = $reception->getType();
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-            foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
+            if ($refAlreadyExists->count() === 0) {
+                $anomalie = $contentData['anomalie'];
+                if ($anomalie) {
+                    $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                    $reception->setStatut($statutRecep);
                 }
-            }
 
-            $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
-                    'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
-            ];
+                $receptionReferenceArticle = new ReceptionReferenceArticle;
+                $receptionReferenceArticle
+                    ->setCommande($commande)
+                    ->setAnomalie($contentData['anomalie'])
+                    ->setCommentaire($contentData['commentaire'])
+                    ->setReferenceArticle($refArticle)
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 0))// protection contre quantités négatives
+                    ->setReception($reception);
+
+                if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
+                    $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
+                }
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($receptionReferenceArticle);
+                $em->flush();
+
+                $type = $reception->getType();
+                $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+
+                $champsLibres = [];
+                $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+                foreach ($listTypes as $oneType) {
+                    $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
+
+                    foreach ($listChampLibreReception as $champLibre) {
+                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+
+                        $champsLibres[] = [
+                            'id' => $champLibre->getId(),
+                            'label' => $champLibre->getLabel(),
+                            'typage' => $champLibre->getTypage(),
+                            'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+                            'defaultValue' => $champLibre->getDefaultValue(),
+                            'valeurChampLibre' => $valeurChampLibre,
+                        ];
+                    }
+                }
+
+				$json = [
+					'entete' => $this->renderView('reception/enteteReception.html.twig', [
+						'reception' => $reception,
+						'valeurChampLibreTab' => $valeurChampLibreTab,
+						'typeChampsLibres' => $champsLibres,
+						'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+					])
+				];
+			}
+			else {
+				$json = [
+					'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
+				];
+			}
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -738,7 +762,7 @@ class ReceptionController extends AbstractController
     public function apiEditArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -762,7 +786,7 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -826,8 +850,9 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres
-                ])
+                    'typeChampsLibres' => $champsLibres,
+					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+				])
             ];
             return new JsonResponse($json);
         }
@@ -839,7 +864,7 @@ class ReceptionController extends AbstractController
      */
     public function show(Reception $reception): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -895,8 +920,9 @@ class ReceptionController extends AbstractController
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
-            'createDL' => $createDL ? $createDL->getValue() : false
-        ]);
+            'createDL' => $createDL ? $createDL->getValue() : false,
+			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+		]);
     }
 
     /**
@@ -1000,7 +1026,7 @@ class ReceptionController extends AbstractController
     public function editLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
@@ -1100,7 +1126,7 @@ class ReceptionController extends AbstractController
     public function newLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1212,7 +1238,7 @@ class ReceptionController extends AbstractController
     public function deleteLitige(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1282,7 +1308,7 @@ class ReceptionController extends AbstractController
      */
     public function finish(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1389,7 +1415,7 @@ class ReceptionController extends AbstractController
      */
     public function getArticleStock(Request $request)
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1405,7 +1431,7 @@ class ReceptionController extends AbstractController
     public function getArticleFournisseur(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $json = null;
@@ -1436,7 +1462,7 @@ class ReceptionController extends AbstractController
     public function checkIfQuantityArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_REF_FROM_RECEP)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE_REF_FROM_RECEP)) {
                 return $this->redirectToRoute('access_denied');
             }
             $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
@@ -1585,7 +1611,7 @@ class ReceptionController extends AbstractController
     public function apiArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $ligne = $request->request->get('ligne')) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -1603,7 +1629,7 @@ class ReceptionController extends AbstractController
     public function checkReceptionCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

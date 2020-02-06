@@ -41,20 +41,21 @@ let tableArrivage = $('#tableArrivages').DataTable({
             'clicked': () => clicked,
         }
     },
-    'drawCallback': function() {
+    drawCallback: function(resp) {
         overrideSearch($('#tableArrivages_filter input'), tableArrivage);
+        hideColumns(tableArrivage, resp.json.columnsToHide);
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
-        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
-        {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'date', 'title': 'Date'},
+        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': "N° " + $('#dArrTranslation').val()},
+        {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
+        {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
+        {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
+        {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
+        {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'Destinataire'},
+        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': 'Acheteurs'},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
@@ -132,14 +133,19 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
 
-let modalNewArrivage = $("#modalNewArrivage");
+let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
 
 function createCallback(response) {
     alertSuccessMsg('Votre arrivage a bien été créé.');
+    if (!response.redirect) {
+        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
+        $('.list-multiple').select2();
+        $modalNewArrivage.find('#statut').val(response.statutConformeId);
+    }
     if (response.printColis) {
         getDataAndPrintLabels(response.arrivageId);
     } if (response.printArrivage) {
