@@ -25,7 +25,7 @@ function reloadDashboardLinks() {
 
 function drawChart(parent, after = true, fromStart = true) {
     $('#' + parent + ' > .range-buttons').hide();
-    $('#' + parent + ' > .spinner-border').show();
+    $('#' + parent + ' .spinner-border').show();
     let data = new google.visualization.DataTable();
     let currentWeekRoute = Routing.generate(parent, true);
     let params = {
@@ -106,7 +106,7 @@ function drawChart(parent, after = true, fromStart = true) {
         $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDay);
         $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
         $('#' + parent + ' > .range-buttons').show();
-        $('#' + parent + ' > .spinner-border').hide();
+        $('#' + parent + ' .spinner-border').hide();
     }, 'json');
 }
 
