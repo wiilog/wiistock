@@ -128,7 +128,7 @@ class MouvementTracaController extends AbstractController
 	public function new(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -183,7 +183,7 @@ class MouvementTracaController extends AbstractController
 	public function editApi(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -208,7 +208,7 @@ class MouvementTracaController extends AbstractController
 	public function edit(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -257,7 +257,7 @@ class MouvementTracaController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mvt = $this->mouvementRepository->find($data['mvt']);
 
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

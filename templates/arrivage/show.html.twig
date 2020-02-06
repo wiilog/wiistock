@@ -13,7 +13,7 @@
     <div class="row mt-5">
         <div class="col-6">
             <div class="d-flex justify-content-between h-54px">
-                {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                     <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
                         <span class="fa fa-plus mr-2"></span>Ajouter {{ 'arrivage.colis'|trans }}
                     </div>

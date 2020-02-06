@@ -85,7 +85,7 @@ class UrgencesController extends AbstractController
                         UtilisateurRepository $utilisateurRepository): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
@@ -118,7 +118,7 @@ class UrgencesController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -138,7 +138,7 @@ class UrgencesController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $urgence = $this->urgenceRepository->find($data['id']);

@@ -18,14 +18,14 @@
     <h1>{{ 'arrivage.arrivages'|trans|capitalize }}</h1>
 
     <div class="row">
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
                onclick="initNewArrivageEditor('#modalNewArrivage')">
                 <span class="fa fa-plus mr-2"></span>{{ 'arrivage.nouvel arrivage'|trans|capitalize }}
             </a>
         {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
             <div class="btn btn-primary" onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
