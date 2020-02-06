@@ -1,31 +1,39 @@
-<div id="dashboard-arrival" class="dashboard-box col-6">
+<div class="dashboard-box col-6">
     <h2 class="bold">Arrivage (UM)</h2>
-    <div class="chart"></div>
-    <div class="spinner-border"></div>
-    <div class="range-buttons">
-        <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
-            <i class="fas fa-chevron-left pointer"></i>
+    <div class="dashboard-box-content" id="dashboard-arrival">
+        <div class="chart"></div>
+        <div class="spinner-container">
+            <div class="spinner-border"></div>
         </div>
-        <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-        <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-        <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">
-            <i class="fas fa-chevron-right pointer"></i>
+        <div class="range-buttons">
+            <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
+                <i class="fas fa-chevron-left pointer"></i>
+            </div>
+            <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+            <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+            <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">
+                <i class="fas fa-chevron-right pointer"></i>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="dashboard-assoc" class="dashboard-box col-5 offset-1">
     <h2 class="bold">Réceptions (nombre d'associations)</h2>
-    <div class="chart"></div>
-    <div class="spinner-border"></div>
-    <div class="range-buttons">
-        <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
-            <i class="fas fa-chevron-left pointer"></i>
+    <div class="dashboard-box-content" id="dashboard-assoc">
+        <div class="chart"></div>
+        <div class="spinner-container">
+            <div class="spinner-border"></div>
         </div>
-        <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-        <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-        <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">
-            <i class="fas fa-chevron-right pointer"></i>
+        <div class="range-buttons">
+            <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
+                <i class="fas fa-chevron-left pointer"></i>
+            </div>
+            <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+            <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+            <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">
+                <i class="fas fa-chevron-right pointer"></i>
+            </div>
         </div>
     </div>
 </div>
@@ -38,8 +46,12 @@
 {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
     <div id="dashboard-monetary" class="col-5 offset-1 dashboard-box">
         <h2 class="bold">Fiabilité monétaire</h2>
-        <div class="curve_chart_line " id="curve_chart"></div>
-        <div class="spinner-border"></div>
+        <div class="dashboard-box-content">
+            <div class="curve_chart_line " id="curve_chart"></div>
+            <div class="spinner-container">
+                <div class="spinner-border"></div>
+            </div>
+        </div>
     </div>
 {% endif %}
 
