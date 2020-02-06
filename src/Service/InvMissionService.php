@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryMission;
 
@@ -14,6 +15,7 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\InventoryMissionRepository;
 
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Doctrine\ORM\NonUniqueResultException;
@@ -24,9 +26,6 @@ use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use Twig_Error_Loader;
-use Twig_Error_Runtime;
-use Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class InvMissionService
@@ -94,13 +93,13 @@ class InvMissionService
         $this->inventoryEntryRepository = $inventoryEntryRepository;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
+    /**
+     * @param array|null $params
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function getDataForMissionsDatatable($params = null)
 	{
 		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_MISSIONS, $this->security->getUser());
@@ -191,25 +190,13 @@ class InvMissionService
     {
         $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref);
 
-        if ($ref->getEmplacement()) {
-        	$location = $ref->getEmplacement()->getLabel();
-        	$emptyLocation = false;
-		} else {
-        	$location = '<i class="fas fa-exclamation-triangle red"></i>';
-			$emptyLocation = true;
-		}
-
-        $row =
-            [
-                'Ref' => $ref->getReference(),
-                'Label' => $ref->getLibelle(),
-                'Location' => $location,
-                'Date' => $refDate ? $refDate['date']->format('d/m/Y') : '',
-                'Anomaly' => $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-'),
-				'EmptyLocation' => $emptyLocation
-            ];
-
-        return $row;
+        return $this->dataRowMissionArtRef(
+            $ref->getEmplacement(),
+            $ref->getReference(),
+            $ref->getLibelle(),
+            (!empty($refDate) && isset($refDate['date'])) ? $refDate['date'] : null,
+            $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
+        );
     }
 
 	/**
@@ -219,27 +206,45 @@ class InvMissionService
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
 	 */
-    public function dataRowArtMission($art, $mission)
-    {
+    public function dataRowArtMission($art, $mission) {
         $artDate = $this->articleRepository->getEntryDateByMission($mission, $art);
+        return $this->dataRowMissionArtRef(
+            $art->getEmplacement(),
+            $art->getReference(),
+            $art->getlabel(),
+            !empty($artDate) ? $artDate['date'] : null,
+            $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
+        );
+    }
 
-		if ($art->getEmplacement()) {
-			$location = $art->getEmplacement()->getLabel();
-			$emptyLocation = false;
-		} else {
-			$location = '<i class="fas fa-exclamation-triangle red"></i>';
-			$emptyLocation = true;
-		}
+    /**
+     * @param Emplacement|null $emplacement
+     * @param string|null $reference
+     * @param string|null $label
+     * @param DateTimeInterface|null $date
+     * @param string|null $anomaly
+     * @return array
+     */
+    private function dataRowMissionArtRef(?Emplacement $emplacement,
+                                          ?string $reference,
+                                          ?string $label,
+                                          ?DateTimeInterface $date,
+                                          ?string $anomaly): array {
+        if ($emplacement) {
+            $location = $emplacement->getLabel();
+            $emptyLocation = false;
+        } else {
+            $location = '<i class="fas fa-exclamation-triangle red" title="Aucun emplacement défini : n\'apparaîtra sur le nomade."></i>';
+            $emptyLocation = true;
+        }
 
-        $row =
-            [
-                'Ref' => $art->getReference(),
-                'Label' => $art->getlabel(),
-				'Location' => $location,
-				'Date' => $artDate ? $artDate['date']->format('d/m/Y') : '',
-                'Anomaly' => $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-'),
-				'EmptyLocation' => $emptyLocation
-			];
-        return $row;
+        return [
+            'Ref' => $reference,
+            'Label' => $label,
+            'Location' => $location,
+            'Date' => isset($date) ? $date->format('d/m/Y') : '',
+            'Anomaly' => $anomaly,
+            'EmptyLocation' => $emptyLocation
+        ];
     }
 }
