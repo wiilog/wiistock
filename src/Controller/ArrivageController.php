@@ -1139,14 +1139,14 @@ class ArrivageController extends AbstractController
                 $litige->setType($this->typeRepository->find($typeAfter));
             }
 
-            if (!empty($colis = $post->get('colis'))) {
+            if (!empty($newColis = $post->get('colis'))) {
                 // on détache les colis existants...
                 $existingColis = $litige->getColis();
-                foreach ($existingColis as $colis) {
-                    $litige->removeColis($colis);
+                foreach ($existingColis as $existingColi) {
+                    $litige->removeColis($existingColi);
                 }
                 // ... et on ajoute ceux sélectionnés
-                $listColis = explode(',', $colis);
+                $listColis = explode(',', $newColis);
                 foreach ($listColis as $colisId) {
                     $litige->addColis($this->colisRepository->find($colisId));
                 }
@@ -1305,12 +1305,32 @@ class ArrivageController extends AbstractController
             $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
                 $fieldsParam = $this->fieldsParamsRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+				$listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
+				$champsLibres = [];
+				foreach ($listTypes as $type) {
+					$listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+
+					foreach ($listChampsLibres as $champLibre) {
+						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivageToReload, $champLibre);
+
+						$champsLibres[] = [
+							'id' => $champLibre->getId(),
+							'label' => $champLibre->getLabel(),
+							'typage' => $champLibre->getTypage(),
+							'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
+							'defaultValue' => $champLibre->getDefaultValue(),
+							'valeurChampLibre' => $valeurChampLibre,
+						];
+					}
+				}
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
-                        'fieldsParam' => $fieldsParam
-                    ]),
+                        'fieldsParam' => $fieldsParam,
+						'champsLibres' => $champsLibres
+					]),
                 ];
             }
         }
