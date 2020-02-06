@@ -1,6 +1,6 @@
-{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
-{% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+{% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
     {% set needed = 'needed' %}
 {% else %}
     {% set needed = '' %}
@@ -108,7 +108,7 @@
             <div class="row mt-2">
                 {% for champLibre in typeChampsLibres.champsLibres %}
                     {# cas général #}
-                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
                         {% set needed = 'needed' %}
                         {% set star = '*' %}
                     {% else %}

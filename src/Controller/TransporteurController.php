@@ -88,7 +88,7 @@ class TransporteurController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -115,7 +115,7 @@ class TransporteurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -135,7 +135,7 @@ class TransporteurController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $transporteur = $this->transporteurRepository->find($data['id']);

@@ -37,7 +37,7 @@
 <div class="row">
     <div class="col text-right">
         {% if not finished %}
-            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                 <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
                    data-id='{{collecte.id}}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
                    class="btn btn-danger btn-action ml-auto">

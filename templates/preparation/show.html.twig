@@ -45,9 +45,11 @@
     <div class="row">
         <div class="col text-right">
             {% if isPrepaEditable %}
-                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
                        data-toggle='modal'>Supprimer</a>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <button hidden id="btnFinishPrepa" data-toggle="modal" data-target="#modalSubmitPreparation"></button>
                         <button onclick="finishPrepa()" class="btn btn-primary btn-action ml-auto">
                             Finir la préparation

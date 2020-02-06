@@ -147,7 +147,7 @@ class EmplacementController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -199,7 +199,7 @@ class EmplacementController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -219,7 +219,7 @@ class EmplacementController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 

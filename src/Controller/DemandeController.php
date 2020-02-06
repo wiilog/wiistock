@@ -242,7 +242,7 @@ class DemandeController extends AbstractController
     public function finish(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
@@ -307,7 +307,7 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -354,7 +354,7 @@ class DemandeController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -425,7 +425,7 @@ class DemandeController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
             return new JsonResponse($this->demandeLivraisonService->newDemande($data));
@@ -475,7 +475,7 @@ class DemandeController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $demande = $this->demandeRepository->find($data['demandeId']);
@@ -625,7 +625,7 @@ class DemandeController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -648,7 +648,7 @@ class DemandeController extends AbstractController
     public function removeArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $entityManager = $this->getDoctrine()->getManager();
@@ -675,7 +675,7 @@ class DemandeController extends AbstractController
     public function editArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
@@ -693,7 +693,7 @@ class DemandeController extends AbstractController
     public function articleEditApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -934,7 +934,7 @@ class DemandeController extends AbstractController
                                             DemandeRepository $demandeRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 

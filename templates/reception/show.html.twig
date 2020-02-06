@@ -8,7 +8,7 @@
         </div>
         <div class="col text-right">
             {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
                        class="btn btn-danger btn-action ml-auto"
                        onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
@@ -18,13 +18,13 @@
                     <a href="{{path('demande_index', {'reception': reception.id }) }}"class="btn btn-primary btn-action ml-auto">
                         Voir les demandes</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception")'
                        class="btn btn-primary btn-action ml-auto">
                         {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
                        class="btn btn-primary btn-action ml-auto"
                        onclick="editRow(
@@ -53,7 +53,7 @@
         <div class="col-6">
             <div class="text-right">
                 {% if modifiable %}
-                    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
                            class="btn btn-primary btn-action ml-auto"
                            onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">

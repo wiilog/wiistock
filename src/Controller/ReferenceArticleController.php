@@ -389,7 +389,7 @@ class ReferenceArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -708,7 +708,7 @@ class ReferenceArticleController extends AbstractController
     public function editApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refArticle = $this->referenceArticleRepository->find((int)$data['id']);
@@ -729,7 +729,7 @@ class ReferenceArticleController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refId = intval($data['idRefArticle']);
@@ -826,7 +826,7 @@ class ReferenceArticleController extends AbstractController
     public function getQuantityByRefArticleId(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 

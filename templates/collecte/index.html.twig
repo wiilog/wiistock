@@ -14,7 +14,7 @@
     <h1>Demandes de collecte</h1>
 
     <div class='row'>
-        {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary"
                 onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
                 <span class="fa fa-plus mr-2"></span>Nouvelle collecte

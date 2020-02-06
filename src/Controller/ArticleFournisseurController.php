@@ -94,7 +94,7 @@ class ArticleFournisseurController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -122,7 +122,7 @@ class ArticleFournisseurController extends AbstractController
     public function displayEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['id']));
@@ -140,7 +140,7 @@ class ArticleFournisseurController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 

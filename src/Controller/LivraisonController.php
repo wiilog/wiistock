@@ -201,7 +201,7 @@ class LivraisonController extends AbstractController
     public function finish(Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface $entityManager): Response {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -318,7 +318,7 @@ class LivraisonController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 

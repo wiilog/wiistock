@@ -246,7 +246,7 @@ class ReceptionController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -342,7 +342,7 @@ class ReceptionController extends AbstractController
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -441,7 +441,7 @@ class ReceptionController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $reception = $this->receptionRepository->find($data['id']);
@@ -583,7 +583,7 @@ class ReceptionController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -610,7 +610,7 @@ class ReceptionController extends AbstractController
     public function removeArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -672,7 +672,7 @@ class ReceptionController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refArticleId = (int)$contentData['referenceArticle'];
@@ -762,7 +762,7 @@ class ReceptionController extends AbstractController
     public function apiEditArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -786,7 +786,7 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1308,7 +1308,7 @@ class ReceptionController extends AbstractController
      */
     public function finish(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -1462,7 +1462,7 @@ class ReceptionController extends AbstractController
     public function checkIfQuantityArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_REF_FROM_RECEP)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE_REF_FROM_RECEP)) {
                 return $this->redirectToRoute('access_denied');
             }
             $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);

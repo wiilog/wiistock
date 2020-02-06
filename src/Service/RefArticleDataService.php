@@ -318,7 +318,7 @@ class RefArticleDataService
      */
     public function editRefArticle($refArticle, $data)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
