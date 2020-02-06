@@ -324,7 +324,7 @@ class LitigeController extends AbstractController
 	public function editLitige(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::LITIGE, Action::EDIT)) {
+			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
