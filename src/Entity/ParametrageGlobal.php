@@ -35,10 +35,10 @@ class ParametrageGlobal
         'value'=> false,
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
-	const DEFAULT_FONT_FAMILY = 'Montserrat';
 	const FONT_MONTSERRAT = 'Montserrat';
 	const FONT_TAHOMA = 'Tahoma';
 	const FONT_MYRIAD = 'Myriad';
+    const DEFAULT_FONT_FAMILY = self::FONT_MONTSERRAT;
 
 	/**
      * @ORM\Id()
