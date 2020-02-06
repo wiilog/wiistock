@@ -108,8 +108,8 @@ Class GlobalParamService
 	private function compileSass() {
 		$env = $this->kernel->getEnvironment();
 
-		$command = $env == 'dev' ? 'dev' : 'build';
-		$process = Process::fromShellCommandline('yarn ' . $command);
+		$command = $env == 'dev' ? 'dev' : 'production';
+		$process = Process::fromShellCommandline('yarn build:only:' . $command);
 		$process->run();
 	}
 }
