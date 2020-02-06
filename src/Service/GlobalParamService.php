@@ -87,26 +87,40 @@ Class GlobalParamService
 	public function getDashboardLocations() {
 
 		$paramLabels = [
-			ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT,
+			ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE,
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
+			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
+			ParametrageGlobal::DASHBOARD_LOCATIONS_1,
+			ParametrageGlobal::DASHBOARD_LOCATIONS_2
 		];
+
+
 
 		$resp = [];
 		foreach ($paramLabels as $paramLabel) {
-			$locationId = $this->parametrageGlobalRepository->getOneParamByLabel($paramLabel);
-			if ($locationId) {
-				$location = $this->emplacementRepository->find($locationId);
+			$locationIds = $this->parametrageGlobalRepository->getOneParamByLabel($paramLabel);
+
+			if ($locationIds) {
+				$locationIdsArr = explode(',', $locationIds);
+
+				$text = [];
+				foreach ($locationIdsArr as $locationId) {
+					$location = $this->emplacementRepository->find($locationId);
+					$text[] = $location ? $location->getLabel() : '';
+				}
 
 				$resp[] = [
-					'id' => $location ? $locationId : '',
-					'text' => $location ? $location->getLabel() : ''
+					'id' => $locationIds,
+					'text' => implode(',', $text)
 				];
 			} else {
 				$resp[] = ['id' => '', 'text' => ''];
 			}
 		}
+
 		return $resp;
 	}
 

@@ -602,25 +602,33 @@ class ParametrageGlobalController extends AbstractController
 		if ($request->isXmlHttpRequest()) {
 			$post = $request->request;
 
-			$listNaturesColisId = $post->get('listNaturesColis');
-			$listNaturesColisIdStr = $listNaturesColisId ? implode(',', $listNaturesColisId) : null;
-			$paramNatures = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
-			$paramNatures->setValue($listNaturesColisIdStr);
+			$listMultipleSelect = [
+				ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
+				ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
+				ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
+			];
 
-			$paramNature = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS);
-			$paramNature->setValue($post->get('natureColis'));
+			foreach ($listMultipleSelect as $labelParam => $selectId) {
+				$listId = $post->get($selectId);
+				$listIdStr = $listId ? implode(',', $listId) : null;
+				$param = $parametrageGlobalRepository->findOneByLabel($labelParam);
+				$param->setValue($listIdStr);
+			}
 
-			$paramToTreat = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT);
-			$paramToTreat->setValue($post->get('locationToTreat'));
+			$listSelect = [
+				ParametrageGlobal::DASHBOARD_NATURE_COLIS => 'natureColis',
+				ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
+				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE => 'locationWaiting',
+				ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
+				ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
+				ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
+				ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
+			];
 
-			$paramWaiting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE);
-			$paramWaiting->setValue($post->get('locationWaiting'));
-
-			$paramAvailable = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE);
-			$paramAvailable->setValue($post->get('locationAvailable'));
-
-			$paramDropZones = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
-			$paramDropZones->setValue($post->get('locationDropZone'));
+			foreach ($listSelect as $labelParam => $selectId) {
+				$param = $parametrageGlobalRepository->findOneByLabel($labelParam);
+				$param->setValue($post->get($selectId));
+			}
 
 			$this->getDoctrine()->getManager()->flush();
 

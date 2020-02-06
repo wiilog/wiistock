@@ -95,10 +95,14 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
 			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
 			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
-			ParametrageGlobal::DASHBOARD_LOCATION_TO_TREAT => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_DOCK => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => [],
+			ParametrageGlobal::DASHBOARD_LOCATIONS_1 => [],
+			ParametrageGlobal::DASHBOARD_LOCATIONS_2 => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
+			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {

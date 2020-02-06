@@ -39,6 +39,10 @@ $(function() {
     initDisplaySelect2('#locationWaiting', '#locationWaitingValue');
     initDisplaySelect2('#locationAvailable', '#locationAvailableValue');
     initDisplaySelect2('#locationDropZone', '#locationDropZoneValue');
+    initDisplaySelect2('#locationLitiges', '#locationLitigesValue');
+    initDisplaySelect2('#locationUrgences', '#locationUrgencesValue');
+    initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
+    initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
 });
 
 function errorEditDays(data) {
