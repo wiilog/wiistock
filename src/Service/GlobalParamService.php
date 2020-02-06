@@ -28,8 +28,7 @@ Class GlobalParamService
 		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
 		EmplacementRepository $emplacementRepository,
 		KernelInterface $kernel,
-		TranslationService $translationService
-		EmplacementRepository $emplacementRepository,
+		TranslationService $translationService,
 		NatureRepository $natureRepository
 	)
 	{
