@@ -94,7 +94,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ],
 			ParametrageGlobal::FONT_FAMILY => [
 				'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
-			]
+			],
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
 			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
 			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
