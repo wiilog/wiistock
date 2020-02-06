@@ -35,6 +35,7 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
                 ['code' => FieldsParam::FIELD_CODE_NUM_RECEPTION, 'label' => FieldsParam::FIELD_LABEL_NUM_RECEPTION, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_TRANSPORTEUR, 'label' => FieldsParam::FIELD_LABEL_TRANSPORTEUR, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMPLACEMENT, 'label' => FieldsParam::FIELD_LABEL_EMPLACEMENT, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_ANOMALIE, 'label' => FieldsParam::FIELD_LABEL_ANOMALIE, 'displayed' => true],
             ],
 
             FieldsParam::ENTITY_CODE_ARRIVAGE => [
@@ -71,8 +72,6 @@ class ChampsFixesReceptionFixtures extends Fixture implements FixtureGroupInterf
                     $manager->persist($field);
                     $manager->flush();
                     dump('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
-                } else {
-                    $field->setDisplayed(true);
                 }
             }
         }
