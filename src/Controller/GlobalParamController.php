@@ -72,6 +72,7 @@ class GlobalParamController extends AbstractController
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
         $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
         $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+        $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -91,7 +92,9 @@ class GlobalParamController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation()
+				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
+				'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY
         ]);
     }
 
@@ -542,6 +545,39 @@ class GlobalParamController extends AbstractController
             $em->flush();
 
             return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+	/**
+	 * @Route("/police", name="edit_font", options={"expose"=true}, methods="POST")
+	 * @param Request $request
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param GlobalParamService $globalParamService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editFont(Request $request,
+							 ParametrageGlobalRepository $parametrageGlobalRepository,
+							 GlobalParamService $globalParamService
+	): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $post = $request->request;
+            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+            $em = $this->getDoctrine()->getManager();
+            if (empty($parametrageGlobal)) {
+                $parametrageGlobal = new ParametrageGlobal();
+                $parametrageGlobal->setLabel(ParametrageGlobal::FONT_FAMILY);
+                $em->persist($parametrageGlobal);
+            }
+            $parametrageGlobal->setValue($post->get('value'));
+            $em->flush();
+
+			$globalParamService->generateSassFile();
+
+			return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
