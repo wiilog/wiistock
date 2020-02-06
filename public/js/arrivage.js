@@ -41,20 +41,21 @@ let tableArrivage = $('#tableArrivages').DataTable({
             'clicked': () => clicked,
         }
     },
-    'drawCallback': function() {
+    drawCallback: function(resp) {
         overrideSearch($('#tableArrivages_filter input'), tableArrivage);
+        hideColumns(tableArrivage, resp.json.columnsToHide);
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° " + $('#dArrTranslation').val()},
-        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
-        {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'Date', 'name': 'date', 'title': 'Date'},
+        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': "N° " + $('#dArrTranslation').val()},
+        {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
+        {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
+        {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
+        {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
+        {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'Destinataire'},
+        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': 'Acheteurs'},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},

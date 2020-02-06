@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -23,7 +24,7 @@ class ActionRepository extends ServiceEntityRepository
      * @param string $menuCode
      * @param string $label
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function findOneByMenuCodeAndLabel($menuCode, $label)
     {

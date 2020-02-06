@@ -31,18 +31,19 @@ $(function () {
             "url": pathTableReception,
             "type": "POST",
         },
-        'drawCallback': function () {
+        drawCallback: function (resp) {
             overrideSearch($('#tableReception_id_filter input'), tableReception);
+            hideColumns(tableReception, resp.json.columnsToHide);
         },
         columns: [
-            {"data": 'Actions', 'title': 'Actions'},
-            {"data": 'Date', 'title': 'Date création'},
-            {"data": 'DateFin', 'title': 'Date fin'},
-            {"data": 'Numéro de commande', 'title': 'Numéro commande'},
-            {"data": 'Fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'title': 'Référence'},
-            {"data": 'Statut', 'title': 'Statut'},
-            {"data": 'Commentaire', 'title': 'Commentaire'},
+            {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+            {"data": 'Date', 'name': 'date', 'title': 'Date création'},
+            {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
+            {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
+            {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
+            {"data": 'Référence', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
+            {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
     });
 

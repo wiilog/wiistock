@@ -1395,3 +1395,9 @@ function extendsDateSort(name) {
         }
     });
 }
+
+function hideColumns(table, data) {
+    data.forEach(function(col) {
+        table.column(col+':name').visible(false);
+    })
+}
