@@ -25,38 +25,53 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 	 */
     public function load(ObjectManager $manager)
     {
-    	$databaseFilled = $this->translationRepository->findAll();
+		$translations = [
+			'arrivage' => [
+				'arrivages' => 'arrivages',
+				'arrivage' => 'arrivage',
+				'cet arrivage' => 'cet arrivage',
+				"d'arrivage" => "d'arrivage",
+				'nouvel arrivage' => 'nouvel arrivage',
+				'de colis' => 'de colis',
+				'colis' => 'colis'
+			],
+			'réception' => [
+				'réceptions' => 'réceptions',
+				'réception' => 'réception',
+				'de réception' => 'de réception',
+				'cette réception' => 'cette réception',
+				'nouvelle réception' => 'nouvelle réception',
+				'la' => 'la',
+				'une réception' => 'une réception',
+				'la réception' => 'la réception',
+				'article' => 'article',
+				'articles' => 'articles',
+				"l'article" => "l'article",
+				"d'article" => "d'article",
+				"d'articles" => "d'articles"
+			],
+			'urgences' => [
+				'urgence' => 'urgence',
+				'nouvelle urgence' => 'nouvelle urgence',
+				'cette urgence' => 'cette urgence',
+				"l'urgence" => "l'urgence",
+				'urgences' => 'urgences',
+				'acheteur' => 'acheteur',
+				'date de début' => 'date de début',
+				'date de fin' => 'date de fin',
+				'numéro de commande' => 'numéro de commande',
+			]
+		];
 
-    	if (!$databaseFilled) {
-			$translations = [
-				'arrivage' => [
-					'arrivages' => 'arrivages',
-					'arrivage' => 'arrivage',
-					'cet arrivage' => 'cet arrivage',
-					"d'arrivage" => "d'arrivage",
-					'nouvel arrivage' => 'nouvel arrivage',
-					'de colis' => 'de colis',
-					'colis' => 'colis'
-				],
-				'réception' => [
-					'réceptions' => 'réceptions',
-					'réception' => 'réception',
-					'de réception' => 'de réception',
-					'cette réception' => 'cette réception',
-					'nouvelle réception' => 'nouvelle réception',
-					'la' => 'la',
-					'une réception' => 'une réception',
-					'la réception' => 'la réception',
-					'article' => 'article',
-					'articles' => 'articles',
-					"l'article" => "l'article",
-					"d'article" => "d'article",
-					"d'articles" => "d'articles"
-				]
-			];
+		foreach ($translations as $menu => $translation) {
+			foreach ($translation as $label => $translatedLabel) {
 
-			foreach ($translations as $menu => $translation) {
-				foreach ($translation as $label => $translatedLabel) {
+				$translationObject = $this->translationRepository->findOneBy([
+					'menu' => $menu,
+					'label' => $label
+				]);
+
+				if (empty($translationObject)) {
 					$translationObject = new Translation();
 					$translationObject
 						->setMenu($menu)
@@ -66,8 +81,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 					$manager->persist($translationObject);
 				}
 			}
-			$manager->flush();
 		}
+		$manager->flush();
     }
 
     public static function getGroups(): array

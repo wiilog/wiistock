@@ -47,7 +47,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
+        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° " + $('#dArrTranslation').val()},
         {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
         {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},

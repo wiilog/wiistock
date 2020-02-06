@@ -197,3 +197,19 @@ function editDashboardParams() {
         }
     });
 }
+function editFont() {
+    let path = Routing.generate('edit_font',true);
+    let param = {
+        value: $('select[name="param-font-family"]').val()
+    };
+
+
+    alertSuccessMsg("Mise à jour de la police en cours. Veuillez patienter.");
+    $.post(path, param, (resp) => {
+        if (resp) {
+            location.reload();
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+        }
+    });
+}

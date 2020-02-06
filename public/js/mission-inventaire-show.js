@@ -19,7 +19,7 @@ let tableMission = $('#tableMissionInv').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[2, 'desc']],
+    order: [[3, 'desc']],
     ajax:{
         "url": pathMission,
         "type": "POST",
@@ -27,9 +27,13 @@ let tableMission = $('#tableMissionInv').DataTable({
     'drawCallback': function() {
         overrideSearch($('#tableMissionInv_filter input'), tableMission);
     },
+    'rowCallback': function(row, data) {
+        if (data.EmptyLocation) alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+    },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence' },
         { "data": 'Label', 'title' : 'Libellé' },
+        { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
         { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
         { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
     ],

@@ -29,6 +29,12 @@ class ParametrageGlobal
     const DASHBOARD_LOCATION_LITIGES = 'DASHBOARD_LOCATION_LITIGE';
     const DASHBOARD_LOCATION_URGENCES = 'DASHBOARD_LOCATION_URGENCES';
 
+    // apparence
+    const FONT_FAMILY = 'FONT FAMILY';
+	const FONT_MONTSERRAT = 'Montserrat';
+	const FONT_TAHOMA = 'Tahoma';
+	const FONT_MYRIAD = 'Myriad';
+	const DEFAULT_FONT_FAMILY = self::FONT_MONTSERRAT;
 
 	// étiquettes
 	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
@@ -53,7 +59,8 @@ class ParametrageGlobal
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
 
-    /**
+
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")

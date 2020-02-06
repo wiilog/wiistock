@@ -92,6 +92,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],
+			ParametrageGlobal::FONT_FAMILY => [
+				'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
+			]
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
 			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
 			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
@@ -117,7 +120,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				$globalParam = new ParametrageGlobal();
 				$globalParam
 					->setLabel($globalParameterLabel)
-					->getValue($value);
+					->setValue($value);
 				$manager->persist($globalParam);
 				dump("création du paramètre " . $globalParameterLabel);
 			}
