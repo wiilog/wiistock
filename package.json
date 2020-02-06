@@ -12,8 +12,11 @@
     "scripts": {
         "generate-custom-font": "php bin/console app:update:custom-font",
         "dev-server": "yarn generate-custom-font && encore dev-server",
-        "dev": "yarn generate-custom-font && encore dev",
-        "watch": "yarn dev --watch",
-        "build": "yarn generate-custom-font && encore production"
+        "build:dev": "yarn generate-custom-font && yarn build:only:dev",
+        "build:dev:watch": "yarn build:dev --watch",
+        "build": "yarn generate-custom-font && yarn build:only:production",
+
+        "build:only:dev": "encore dev",
+        "build:only:production": "encore production"
     }
 }
