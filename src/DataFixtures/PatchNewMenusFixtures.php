@@ -9,9 +9,10 @@ use App\Repository\MenuRepository;
 use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
-class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
+class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $actionRepository;
     private $roleRepository;
@@ -111,6 +112,11 @@ class PatchNewMenusFixtures extends Fixture implements FixtureGroupInterface
 			 WHERE (SELECT count(a) FROM App\Entity\Action a WHERE a.menu = m) = 0");
 		$query->execute();
     }
+
+	public function getDependencies()
+	{
+		return [MenusFixtures::class, ActionsFixtures::class];
+	}
 
     public static function getGroups(): array
     {
