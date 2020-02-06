@@ -504,32 +504,55 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
 }
 
 function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
-    let isMultiple = $select.attr('multiple') === 'multiple';
+    $select.each(function() {
+        let isMultiple = $(this).attr('multiple') === 'multiple';
 
-    $select.select2({
-        ajax: {
-            url: Routing.generate(route, params, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                let s = lengthMin > 1 ? 's' : '';
-                return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
+        $select.select2({
+            ajax: {
+                url: Routing.generate(route, params, true),
+                dataType: 'json',
+                delay: 250,
             },
-            searching: function () {
-                return 'Recherche en cours...';
+            language: {
+                inputTooShort: function () {
+                    let s = lengthMin > 1 ? 's' : '';
+                    return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
+                },
+                searching: function () {
+                    return 'Recherche en cours...';
+                },
+                noResults: function () {
+                    return 'Aucun résultat.';
+                }
             },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: lengthMin,
-        placeholder: {
-            text: placeholder,
-        },
-        allowClear: !isMultiple
+            minimumInputLength: lengthMin,
+            placeholder: {
+                text: placeholder,
+            },
+            allowClear: !isMultiple
+        });
     });
+}
+
+function initDisplaySelect2(select, inputValue) {
+    let data = $(inputValue).data();
+    if (data.id && data.text) {
+        let option = new Option(data.text, data.id, true, true);
+        $(select).append(option).trigger('change');
+    }
+}
+
+function initDisplaySelect2Multiple(select, inputValues) {
+    let data = $(inputValues).data();
+    if (data.id && data.text) {
+        let idArr = data.id.toString().split(',');
+        let textArr = data.text.split(',');
+
+        for (let i = 0; i < idArr.length; i++) {
+            let option = new Option(textArr[i], idArr[i], true, true);
+            $(select).append(option).trigger('change');
+        }
+    }
 }
 
 function ajaxAutoCompleteEmplacementInit(select) {
@@ -681,6 +704,7 @@ function alertErrorMsg(data, remove = false) {
             $alertDanger.delay(2000).fadeOut(2000);
         }
         $alertDanger.find('.error-msg').html(data);
+        $('html,body').animate({scrollTop: 0});
     }
 }
 
@@ -692,6 +716,7 @@ function alertSuccessMsg(data) {
         .css('opacity', '1');
     $alertSuccess.delay(2000).fadeOut(2000);
     $alertSuccess.find('.confirm-msg').html(data);
+    $('html,body').animate({scrollTop: 0});
 }
 
 function saveFilters(page, tableSelector, callback) {
@@ -1375,4 +1400,10 @@ function extendsDateSort(name) {
             return ((a < b) ? 1 : ((a > b) ? -1 : 0));
         }
     });
+}
+
+function hideColumns(table, data) {
+    data.forEach(function(col) {
+        table.column(col+':name').visible(false);
+    })
 }

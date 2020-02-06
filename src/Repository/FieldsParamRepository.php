@@ -46,6 +46,23 @@ class FieldsParamRepository extends ServiceEntityRepository
             []);
     }
 
+    /**
+     * @param string $entity
+     * @return array
+     */
+    function getHiddenByEntity($entity): array {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "SELECT f.fieldCode
+                FROM App\Entity\FieldsParam f
+                WHERE f.entityCode = :entity AND f.displayed = 0"
+            )
+            ->setParameter('entity', $entity);
+
+		return array_column($query->execute(), 'fieldCode');
+	}
+
 	/**
 	 * @param $entity
 	 * @return FieldsParam[]

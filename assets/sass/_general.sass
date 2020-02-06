@@ -12,6 +12,28 @@
   src: url('../../public/font/Montserrat-Italic.ttf')
   font-style: italic
 
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Regular.ttf')
+
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Bold.ttf')
+  font-weight: bold
+
+@font-face
+  font-family: "Tahoma"
+  src: url('../../public/font/Tahoma-Italic.ttf')
+  font-style: italic
+
+@font-face
+  font-family: "Myriad"
+  src: url('../../public/font/MyriadPro-Regular.otf')
+
+@font-face
+  font-family: "Myriad"
+  src: url('../../public/font/MyriadPro-Bold.otf')
+  font-weight: bold
 
 *, *::after, *::before
   box-sizing: border-box
@@ -25,7 +47,7 @@ html
 
 
 body
-  font-family: "Montserrat", Helvetica, Arial, sans-serif
+  font-family: $mainFont, Helvetica, Arial, sans-serif
   line-height: 20px
   font-weight: 400
   -webkit-font-smoothing: antialiased
@@ -87,6 +109,21 @@ input:-webkit-autofill
 .font-size-100
   font-size: 100% !important
 
+.tahoma
+  font-family: Tahoma !important
+
+.montserrat
+  font-family: Montserrat !important
+
+.myriad
+  font-family: "Myriad" !important
+
+.big-font
+  font-size: 3rem
+
+.little-font
+  font-size: .8rem
+
 a
   color: unset
   &:hover
@@ -146,6 +183,9 @@ a
 
 .h-fit-content
   height: fit-content
+
+.h-90
+  height: 90%
 
 //// WIDTH ////
 .minw-105px
@@ -215,7 +255,7 @@ a
 
 .progress-bar
   background-color: $blueGT
-  font-family: "Montserrat", Helvetica, Arial, sans-serif
+  font-family: $mainFont, Helvetica, Arial, sans-serif
 
 .sizeLoader
   width: 5rem
@@ -233,8 +273,12 @@ a
   padding: 25px
 
 #modalShowRefArticle #input-group-nomenclature
-    height: 150px
+  height: 150px
 
-#paramReceptions
-    #receptionLocation + .select2
-        width: 450px !important
+.w-450px
+  .select2-container
+    width: 450px !important
+
+.w-211px
+  .select2-container
+    width: 211px !important

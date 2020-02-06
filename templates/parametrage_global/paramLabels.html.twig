@@ -1,0 +1,36 @@
+<a data-toggle="collapse" href="#dimsForm" role="button" aria-expanded="false"
+   aria-controls="dimsForm" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i
+                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+<div class="collapse col-12" id="dimsForm">
+    <div class="float-right btn btn-col-action btn-check-reverse" onclick="ajaxDims()">
+        <i class='fas fa-check'></i>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="">Hauteur (mm)</label>
+        <input type="text" class="form-control data" name="height"
+               value="{{ dimensions_etiquettes.height is defined ? dimensions_etiquettes.height :'' }}">
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="">Largeur (mm)</label>
+        <input type="text" class="form-control data" name="width"
+               value="{{ dimensions_etiquettes.width is defined ? dimensions_etiquettes.width : '' }}">
+    </div>
+    <div class="form-group">
+        <label for="param-bl-etiquette">Numéro BL sur l'étiquette</label>
+        <label class="switch">
+            <input type="checkbox" class="checkbox col-3 data"
+                   name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="param-type-etiquette">Type d'étiquette</label>
+        <select name="param-type-etiquette" class="data form-control">
+            {% for type in typesETQ %}
+                <option value="{{ type.value }}" {{ type.value == paramCodeETQ ? 'selected' : '' }}>{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

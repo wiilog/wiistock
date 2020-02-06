@@ -10,6 +10,8 @@ use App\Entity\MouvementStock;
 
 use App\Service\DashboardService;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -106,85 +108,85 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-    	$nbAlerts = $this->refArticleRepository->countAlert();
-//    	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
-//			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
-    	$types = [
-    	    MouvementStock::TYPE_INVENTAIRE_ENTREE,
-            MouvementStock::TYPE_INVENTAIRE_SORTIE
-        ];
-        $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
-    	$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+		$data = $this->getDashboardData();
+        return $this->render('accueil/index.html.twig', $data);
+    }
 
-        $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
+	/**
+	 * @return array
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    private function getDashboardData()
+	{
+		$nbAlerts = $this->refArticleRepository->countAlert();
 
-        $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
-        $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
-        $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
+		$types = [
+			MouvementStock::TYPE_INVENTAIRE_ENTREE,
+			MouvementStock::TYPE_INVENTAIRE_SORTIE
+		];
+		$nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
+		$nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+		$nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
+
+		$firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
+
+		$nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
+		$nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+		$nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
 			(1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
 
-        $totalEntryRefArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
-        $totalExitRefArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
-        $totalRefArticleCurrent = $totalEntryRefArticleCurrent - $totalExitRefArticleCurrent;
-        $totalEntryArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceArticle();
-        $totalExitArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceArticle();
-        $totalArticleCurrent = $totalEntryArticleCurrent - $totalExitArticleCurrent;
-        $nbrFiabiliteMonetaire = $totalRefArticleCurrent + $totalArticleCurrent;
+		$totalEntryRefArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceRefArticle();
+		$totalExitRefArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceRefArticle();
+		$totalRefArticleCurrent = $totalEntryRefArticleCurrent - $totalExitRefArticleCurrent;
+		$totalEntryArticleCurrent = $this->mouvementStockRepository->countTotalEntryPriceArticle();
+		$totalExitArticleCurrent = $this->mouvementStockRepository->countTotalExitPriceArticle();
+		$totalArticleCurrent = $totalEntryArticleCurrent - $totalExitArticleCurrent;
+		$nbrFiabiliteMonetaire = $totalRefArticleCurrent + $totalArticleCurrent;
 
-        $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
-        $totalEntryRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($firstDayOfCurrentMonth);
-        $totalExitRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceRefArticle($firstDayOfCurrentMonth);
-        $totalRefArticleOfThisMonth = $totalEntryRefArticleOfThisMonth - $totalExitRefArticleOfThisMonth;
-        $totalEntryArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceArticle($firstDayOfCurrentMonth);
-        $totalExitArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceArticle($firstDayOfCurrentMonth);
-        $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
-        $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
+		$firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
+		$totalEntryRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($firstDayOfCurrentMonth);
+		$totalExitRefArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceRefArticle($firstDayOfCurrentMonth);
+		$totalRefArticleOfThisMonth = $totalEntryRefArticleOfThisMonth - $totalExitRefArticleOfThisMonth;
+		$totalEntryArticleOfThisMonth = $this->mouvementStockRepository->countTotalEntryPriceArticle($firstDayOfCurrentMonth);
+		$totalExitArticleOfThisMonth = $this->mouvementStockRepository->countTotalExitPriceArticle($firstDayOfCurrentMonth);
+		$totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
+		$nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
 
+		$statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
+		$nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
 
-        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
-        $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
+		$statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+		$nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
 
-        $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-        $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
+		$listStatutDemandeP = $this->statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
+		$nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $listStatutDemandeP = $this->statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
-        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
+		$statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+		$nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
-        $statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
-        $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
-
-        return $this->render('accueil/index.html.twig', [
-            'nbAlerts' => $nbAlerts,
-            'nbDemandeCollecte' => $nbrDemandeCollecte,
-            'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
-            'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
-            'emplacements' => $this->emplacementRepository->findAll(),
-            'nbrFiabiliteReference' => $nbrFiabiliteReference,
-            'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
-            'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
-            'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
+		return [
+			'nbAlerts' => $nbAlerts,
+			'nbDemandeCollecte' => $nbrDemandeCollecte,
+			'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
+			'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
+			'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
+			'emplacements' => $this->emplacementRepository->findAll(),
+			'nbrFiabiliteReference' => $nbrFiabiliteReference,
+			'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
+			'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
+			'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
 			'status' => [
 				'DLtoTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
 				'DLincomplete' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
 				'DLprepared'=> $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
 				'DCToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
 				'MToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
-			]
-		]);
-    }
-
-    /**
-     * @Route("/dashboard", name="accueil_dashboard", options={"expose"=true}, methods="GET|POST")
-     */
-    public function dashboard(): Response
-    {
-        return $this->render('accueil/dashboard.html.twig', [
-            'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
-            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
-        ]);
-    }
+			],
+			'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
+			'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
+		];
+	}
 
     /**
      * @Route("/graphique-monetaire", name="graph_monetaire", options={"expose"=true}, methods="GET|POST")
@@ -226,7 +228,6 @@ class AccueilController extends AbstractController
      */
     public function graphiqueReference(): Response
     {
-
         $fiabiliteRef = $this->fiabilityByReferenceRepository->findAll();
         $value[] = [];
         foreach ($fiabiliteRef as $reference)
@@ -244,4 +245,18 @@ class AccueilController extends AbstractController
         $data = $value;
         return new JsonResponse($data);
     }
+
+	/**
+	 * @Route("/tableau-de-bord", name="get_dashboard", options={"expose"=true}, methods="GET|POST")
+	 * @return Response
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function getDashboard(): Response
+	{
+		$data = $this->getDashboardData();
+		$html = $this->renderView('accueil/dashboardLinks.html.twig', $data);
+
+		return new JsonResponse($html);
+	}
 }
