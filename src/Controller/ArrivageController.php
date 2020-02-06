@@ -379,6 +379,7 @@ class ArrivageController extends AbstractController
 			}
 
 			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
             $data = [
                 "redirect" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
@@ -386,7 +387,12 @@ class ArrivageController extends AbstractController
                     : null,
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
-                'arrivageId' => $arrivage->getId()
+                'arrivageId' => $arrivage->getId(),
+                'numeroArrivage' => $arrivage->getNumeroArrivage(),
+				'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [
+					'champsLibres' => $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
+				]),
+				'statutConformeId' => $statutConforme ? $statutConforme->getId() : '',
             ];
             return new JsonResponse($data);
         }

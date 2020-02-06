@@ -111,6 +111,7 @@ function drawChart(parent, after = true, fromStart = true) {
 }
 
 function drawChartMonetary() {
+    $('#dashboard-monetary > .spinner-border').show();
     let path = Routing.generate('graph_monetaire', true);
     $.ajax({
         url: path,
