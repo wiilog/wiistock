@@ -20,7 +20,6 @@ $(function () {
                 drawAllCharts();
             }
 
-
             const $dashboardBoxContent = $('.dashboard-box-content');
             const clientHeight = document.body.clientHeight;
             if (clientHeight < 800) {
@@ -48,7 +47,7 @@ function drawAllCharts() {
 }
 
 
-function reloadPage(forceDataTableDestroy) {
+function reloadPage() {
     drawAllCharts();
     reloadDashboardLinks();
     if (datatableColis) {
