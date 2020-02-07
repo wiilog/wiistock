@@ -163,6 +163,4 @@ class ReceptionTracaController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
-
 }

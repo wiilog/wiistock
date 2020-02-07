@@ -1,5 +1,44 @@
-google.charts.load('current', {'packages':['corechart']});
-google.charts.setOnLoadCallback(drawAllCharts);
+const chartsLoading = {};
+let datatableColis;
+let datatableLoading = false;
+let timeoutResize;
+
+$(function () {
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawAllCharts);
+
+    loadRetards();
+
+    $(window).on('resize', () => {
+        if (timeoutResize) {
+            clearTimeout(timeoutResize);
+        }
+        timeoutResize = setTimeout(() => {
+            // si aucun diagramme ne charge on relance le drawAll
+            if (Object.keys(chartsLoading).every((key) => !chartsLoading[key])) {
+                drawAllCharts();
+            }
+
+
+            const $dashboardBoxContent = $('.dashboard-box-content');
+            const clientHeight = document.body.clientHeight;
+            if (clientHeight < 800) {
+                $dashboardBoxContent.addClass('dashboard-box-content-small');
+            }
+            else {
+                $dashboardBoxContent.removeClass('dashboard-box-content-small');
+            }
+
+            loadRetards();
+            timeoutResize = undefined;
+        });
+    });
+
+    let reloadFrequency = 1000 * 60 * 15;
+    setInterval(reloadPage, reloadFrequency);
+});
+
 
 function drawAllCharts() {
     drawChart('dashboard-assoc');
@@ -8,13 +47,13 @@ function drawAllCharts() {
     reloadDashboardLinks();
 }
 
-let reloadFrequency = 1000 * 60 * 15;
-setInterval(reloadPage, reloadFrequency);
 
-function reloadPage() {
+function reloadPage(forceDataTableDestroy) {
     drawAllCharts();
-    datatableColis.ajax.reload();
     reloadDashboardLinks();
+    if (datatableColis) {
+        datatableColis.ajax.reload();
+    }
 }
 
 function reloadDashboardLinks() {
@@ -25,7 +64,7 @@ function reloadDashboardLinks() {
 
 function drawChart(parent, after = true, fromStart = true) {
     $('#' + parent + ' > .range-buttons').hide();
-    $('#' + parent + ' .spinner-border').show();
+    $('#' + parent + ' .spinner-container').show();
     let data = new google.visualization.DataTable();
     let currentWeekRoute = Routing.generate(parent, true);
     let params = {
@@ -33,22 +72,31 @@ function drawChart(parent, after = true, fromStart = true) {
         'lastDay': $('#' + parent + ' > .range-buttons > .lastDay').data('day'),
         'after': (fromStart ? 'now' : after)
     };
+
+    $('#' + parent + ' > .chart').empty();
+
+    chartsLoading[parent] = true;
     $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
         chartData.columns.forEach(column => {
             if (column.annotation) {
                 data.addColumn({type: column.type, role: column.role});
-            } else {
+            }
+            else {
                 data.addColumn(column.type, column.value);
             }
         });
         for (const [key, value] of Object.entries(chartData.rows)) {
-            if (value.conform !== undefined) data.addRow(
-                [
+            if (value.conform !== undefined) {
+                data.addRow([
                     key,
                     Number(value.count) !== 0 ? Number(value.count) : null,
                     value.conform,
-                    key + ' : ' + String(value.conform) + '%']);
-            else data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
+                    key + ' : ' + String(value.conform) + '%'
+                ]);
+            }
+            else {
+                data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
+            }
         }
         let options = {
             vAxes: {
@@ -101,18 +149,25 @@ function drawChart(parent, after = true, fromStart = true) {
         };
         let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
         chart.draw(data, options);
-        $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDay);
+
+        $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDayData);
         $('#' + parent + ' > .range-buttons > .firstDay').text(chartData.firstDay + ' - ');
-        $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDay);
+        $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDayData);
         $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
         $('#' + parent + ' > .range-buttons').show();
-        $('#' + parent + ' .spinner-border').hide();
+        $('#' + parent + ' .spinner-container').hide();
+
+        chartsLoading[parent] = false;
     }, 'json');
 }
 
 function drawChartMonetary() {
     $('#dashboard-monetary .spinner-border').show();
     let path = Routing.generate('graph_monetaire', true);
+
+    $('#curve_chart').empty();
+
+    chartsLoading['monetary'] = true;
     $.ajax({
         url: path,
         dataType: "json",
@@ -135,34 +190,15 @@ function drawChartMonetary() {
                 backgroundColor: 'transparent',
             };
 
-            let chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            let chart = new google.visualization.LineChart($('#curve_chart')[0]);
             chart.draw(tdata, options);
+
+            chartsLoading['monetary'] = false;
+
             $('#dashboard-monetary .spinner-border').hide();
         }
     });
 }
-
-let routeForLate = Routing.generate('api_retard', true);
-
-let datatableColis = $('.retards-table').DataTable({
-    responsive: true,
-    dom: 'tipr',
-    pageLength: 5,
-    processing: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax: {
-        "url": routeForLate,
-        "type": "POST",
-    },
-    columns: [
-        {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-        {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-        {"data": 'time', 'name': 'delai', 'title': 'Délai'},
-        {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-    ]
-});
 
 function goToFilteredDemande(type, filter){
     let path = '';
@@ -180,4 +216,46 @@ function goToFilteredDemande(type, filter){
     };
     let route = Routing.generate(path, params);
     window.location.href = route;
+}
+
+function loadRetards() {
+    let routeForLate = Routing.generate('api_retard', true);
+
+    const $retardsTable = $('.retards-table');
+
+    if (!datatableLoading) {
+        const clientHeight = document.body.clientHeight;
+        datatableLoading = true;
+        if (datatableColis) {
+            datatableColis.destroy();
+        }
+        datatableColis = $retardsTable.DataTable({
+            responsive: true,
+            dom: 'tipr',
+            pagingType: 'simple',
+            pageLength: (
+                clientHeight < 800 ? 2 :
+                clientHeight < 900 ? 3 :
+                clientHeight < 1000 ? 4 :
+                6
+            ),
+            processing: true,
+            "language": {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            ajax: {
+                "url": routeForLate,
+                "type": "POST",
+            },
+            initComplete: () => {
+                datatableLoading = false;
+            },
+            columns: [
+                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
+                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+            ]
+        });
+    }
 }
