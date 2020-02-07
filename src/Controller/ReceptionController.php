@@ -794,6 +794,7 @@ class ReceptionController extends AbstractController
             $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
+			$quantite = $data['quantite'];
 
             $receptionReferenceArticle
                 ->setCommande($data['commande'])
@@ -803,11 +804,11 @@ class ReceptionController extends AbstractController
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
-            $overQuantity = false;
             if ($typeQuantite == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-				$quantite = $data['quantite'];
+
+            	// protection quantité reçue <= quantité à recevoir
 				if ($quantite > $receptionReferenceArticle->getQuantite()) {
-					$overQuantity = true;
+					return new JsonResponse(false);
 				}
 				$receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
             }
@@ -855,9 +856,8 @@ class ReceptionController extends AbstractController
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
 					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-				]),
-				'overQuantity' => $overQuantity
-            ];
+				])
+			];
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -1758,9 +1758,7 @@ class ReceptionController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $articles = $data['conditionnement'];
 
-            // protection quantité réceptionnée < quantité attendue
             $totalQuantities = [];
-            $response['overQuantity'] = false;
             foreach ($articles as $article) {
                 $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId(
                     $reception,
@@ -1775,8 +1773,10 @@ class ReceptionController extends AbstractController
             }
             foreach ($totalQuantities as $rraId => $totalQuantity) {
                 $rra = $this->receptionReferenceArticleRepository->find($rraId);
-                if ($totalQuantity > $rra->getQuantiteAR()) {
-					$response['overQuantity'] = true;
+
+				// protection quantité reçue <= quantité à recevoir
+				if ($totalQuantity > $rra->getQuantiteAR()) {
+					return new JsonResponse(false);
 				}
                 $rra->setQuantite($totalQuantity);
                 $em->flush();

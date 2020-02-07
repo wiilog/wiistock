@@ -20,7 +20,7 @@
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
-                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception")'
+                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
                        class="btn btn-primary btn-action ml-auto">
                         {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
@@ -61,7 +61,7 @@
                         </a>
                     {% endif %}
                 {% endif %}
-                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" id="button-for-id-ref"
+                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" id="buttonPrintBarcode"
                    data-ref="{{ reception.numeroReception }}"
                    class="btn btn-primary btn-action ml-auto">
                     <span class="fa"></span>Générer les étiquettes

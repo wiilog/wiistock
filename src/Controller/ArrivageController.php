@@ -739,7 +739,6 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            	//TODO CG
             $arrivage = $this->arrivageRepository->find($data);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(

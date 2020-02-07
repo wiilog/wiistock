@@ -9,7 +9,6 @@
             <h1>Demande de livraison n° {{ demande.numero }}</h1>
         </div>
         <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
-{#TODO CG#}
         <div class="col text-right" id='boutonCollecteSup'>
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}

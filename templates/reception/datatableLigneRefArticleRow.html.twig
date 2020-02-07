@@ -3,7 +3,8 @@
         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
             <div>
                 <div class="btn btn-col-action" data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle'
-                     onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
+                     onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article'),
+                        clearModal('#modalEditLigneArticle')">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>

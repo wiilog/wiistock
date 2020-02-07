@@ -112,7 +112,7 @@
                     </select>
 
                     {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
-                        <select id="{{ champLibre.id ~ 'create' }}" class="list-multiple form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                        <select id="" class="list-multiple form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
                                 name="{{ champLibre.id }}" multiple="multiple">
                             {% for elem in champLibre.elements %}
                                 <option value="{{ elem }}">{{ elem }}</option>

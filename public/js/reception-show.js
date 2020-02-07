@@ -3,6 +3,9 @@ let editorNewReferenceArticleAlreadyDone = false;
 let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
+let modalNewLigneReception = "#modalNewLigneReception";
+let $modalNewLigneReception = $(modalNewLigneReception);
+
 $(function () {
     const dataTableInitRes = InitiliaserPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
@@ -29,7 +32,7 @@ function InitiliserPageModals() {
     let modalEditArticle = $("#modalEditLigneArticle");
     let submitEditArticle = $("#submitEditLigneArticle");
     let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle, displayWarningReception);
+    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle, displayErrorReception, false, false);
 
     let ModalDelete = $("#modalDeleteReception");
     let SubmitDelete = $("#submitDeleteReception");
@@ -125,10 +128,10 @@ function InitiliaserPageDataTable() {
     };
 }
 
-function displayWarningReception(data) {
-    if(data.overQuantity) {
-        alertErrorMsg('Attention, la quantité reçue est supérieure à la quantité à recevoir. Est-ce normal ?');
-    }
+function displayErrorReception(data) {
+    let $modal = $("#modalEditLigneArticle");
+    let msg = 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !';
+    displayError($modal, msg, data);
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
@@ -450,18 +453,19 @@ function validatePacking($button) {
                     .append($containerArticle);
 
                 $packingContainer.find('.packing-title').removeClass('d-none');
-                $packingContainer.find('.list-multiple').select2();
             }
+
+            let $listMultiple = $packingContainer.find('.list-multiple');
+            $listMultiple.select2();
         })
     }
 }
 
-function initNewLigneReception(modal) {
+function initNewLigneReception() {
     if (!editorNewLivraisonAlreadyDoneForDL) {
-        initEditorInModal(modal);
+        initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    let $modalNewLigneReception = $(modal);
     initSelect2Ajax($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), 'get_emplacement');
     initSelect2('.select2-type');
     initSelect2Ajax($modalNewLigneReception.find('.select2-user'), 'get_user');
@@ -482,8 +486,8 @@ function initNewLigneReception(modal) {
         } else {
             $errorContainer.text('');
             submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
-                displayWarningReception(data);
-                $('#button-for-id-ref').click();
+                displayErrorReception(data);
+                $('#buttonPrintBarcode').click();
             });
         }
     });
@@ -495,31 +499,33 @@ function initNewLigneReception(modal) {
 
 
 function getErrorModalNewLigneReception() {
-    let $modalNewLigneReception = $("#modalNewLigneReception");
-    // On check si au moins un conditionnement a été fait
-    const articlesCondtionnement = $modalNewLigneReception
+    // on vérifie qu'au moins un conditionnement a été fait
+    const articlesConditionnement = $modalNewLigneReception
         .find('.articles-conditionnement-container')
         .children();
 
+    // on vérifie que les quantités sont correctes
     const quantityError = getQuantityErrorModalNewLigneReception();
 
-    return (articlesCondtionnement.length === 0)
-        ? 'Veuillez effectuer un conditionnement.'
-        : (quantityError && quantityError)
-            ? `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article(s) pour cette référence ${quantityError.reference} – ${quantityError.commande}.`
-            : undefined;
+    let msg = undefined;
+    if (articlesConditionnement.length === 0) {
+        msg = 'Veuillez effectuer un conditionnement.';
+    } else if (quantityError) {
+        let s = quantityError.quantity > 1 ? 's' : '';
+        msg = `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article${s} pour cette référence ${quantityError.reference} – ${quantityError.commande}.`;
+    }
+
+    return msg;
 }
 
-
 function getQuantityErrorModalNewLigneReception() {
-    let $modalNewLigneReception = $("#modalNewLigneReception");
-    const conditionnementArticleArray$ = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
+    const $conditionnementArticleArray = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
     const quantityByConditionnementArray = [];
 
-    conditionnementArticleArray$.each(function () {
+    $conditionnementArticleArray.each(function () {
         const $conditionnement = $(this);
 
-        const referenceConditionnement = $conditionnement.find('input[name="refArticle"]').val();
+        const referenceConditionnement = $conditionnement.find('input[name="refRefArticle"]').val();
         const noCommandeConditionnement = $conditionnement.find('input[name="noCommande"]').val();
         const quantityConditionnement = Number($conditionnement.find('input[name="quantite"]').val());
         const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
@@ -599,4 +605,8 @@ function createHandlerAddLigneArticleResponse($modal) {
             clearModal($modal);
         }
     }
+}
+
+function updateQuantityToReceive($input) {
+    $input.closest('.modal').find('#quantite').attr('max', $input.val());
 }
