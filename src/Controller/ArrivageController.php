@@ -478,13 +478,24 @@ class ArrivageController extends AbstractController
 
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
-                ->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')))
-                ->setTransporteur($this->transporteurRepository->find($post->get('transporteur')))
-                ->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')))
-                ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-                ->setStatut($this->statutRepository->find($post->get('statut')))
-                ->setNumeroBL(substr($post->get('noBL'), 0, 64))
-                ->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+			->setNoTracking(substr($post->get('noTracking'), 0, 64))
+				->setNumeroBL(substr($post->get('noBL'), 0, 64));
+
+            if ($post->get('fournisseur')) {
+				$arrivage->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')));
+			}
+            if ($post->get('transporteur')) {
+            	$arrivage->setTransporteur($this->transporteurRepository->find($post->get('transporteur')));
+			}
+            if ($post->get('chauffeur')) {
+            	$arrivage->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')));
+			}
+            if ($post->get('statut')) {
+            	$arrivage->setStatut($this->statutRepository->find($post->get('statut')));
+			}
+            if ($post->get('destinatire')) {
+            	$arrivage->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+			}
 
             $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...
@@ -739,7 +750,6 @@ class ArrivageController extends AbstractController
     public function getDataToPrintLabels(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            	//TODO CG
             $arrivage = $this->arrivageRepository->find($data);
             $codeColis = $this->arrivageRepository->getColisByArrivage($arrivage);
             $responseData = array(
@@ -765,6 +775,8 @@ class ArrivageController extends AbstractController
 	 * @Route("/api-etiquettes", name="get_print_data", options={"expose"=true})
 	 * @param Request $request
 	 * @return JsonResponse
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
 	 */
     public function getPrintData(Request $request)
     {
