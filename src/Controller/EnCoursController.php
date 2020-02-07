@@ -152,19 +152,19 @@ class EnCoursController extends AbstractController
             foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacementArray) {
                 $emplacement = $this->emplacementRepository->find($emplacementArray['id']);
                 foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
-//                    if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
+                    if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                         $dateMvt = $mvt->getDatetime();
                         $minutesBetween = $this->getMinutesBetween($dateMvt);
                         $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-//                        if ($dataForTable['late']) {
+                        if ($dataForTable['late']) {
                             $retards[] = [
                                 'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
                                 'date' => $dateMvt->format('d/m/Y H:i'),
                                 'emp' => $emplacement->getLabel(),
                             ];
-//                        }
-//                    }
+                        }
+                    }
                 }
             }
             return new JsonResponse([
