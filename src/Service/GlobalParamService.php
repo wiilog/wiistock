@@ -105,7 +105,6 @@ Class GlobalParamService
 		$this->compileSass();
 	}
 
-
 	/**
 	 * @throws Exception
 	 */
@@ -116,6 +115,7 @@ Class GlobalParamService
 		$process = Process::fromShellCommandline('yarn build:only:' . $command);
 		$process->run();
 	}
+
 	/**
 	 * @return array
 	 * @throws NoResultException
