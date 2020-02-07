@@ -9,6 +9,7 @@ $(function () {
     google.charts.setOnLoadCallback(drawAllCharts);
 
     loadRetards();
+    setSmallBoxContent();
 
     $(window).on('resize', () => {
         if (timeoutResize) {
@@ -20,16 +21,8 @@ $(function () {
                 drawAllCharts();
             }
 
-            const $dashboardBoxContent = $('.dashboard-box-content');
-            const clientHeight = document.body.clientHeight;
-            if (clientHeight < 800) {
-                $dashboardBoxContent.addClass('dashboard-box-content-small');
-            }
-            else {
-                $dashboardBoxContent.removeClass('dashboard-box-content-small');
-            }
-
             loadRetards();
+            setSmallBoxContent();
             timeoutResize = undefined;
         });
     });
@@ -38,7 +31,16 @@ $(function () {
     setInterval(reloadPage, reloadFrequency);
 });
 
-
+function setSmallBoxContent() {
+    const $dashboardBoxContent = $('.dashboard-box-content');
+    const clientHeight = document.body.clientHeight;
+    if (clientHeight < 800) {
+        $dashboardBoxContent.addClass('dashboard-box-content-small');
+    }
+    else {
+        $dashboardBoxContent.removeClass('dashboard-box-content-small');
+    }
+}
 function drawAllCharts() {
     drawChart('dashboard-assoc');
     drawChart('dashboard-arrival');
