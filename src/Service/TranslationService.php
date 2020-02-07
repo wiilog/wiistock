@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
 
@@ -49,6 +50,7 @@ class TranslationService {
             $this->translationRepository->clearUpdate();
 
             $this->cacheClearWarmUp();
+            $this->chmod($translationFile, 'w');
         }
     }
 
@@ -70,4 +72,13 @@ class TranslationService {
         $output = new BufferedOutput();
         $application->run($input, $output);
     }
+
+	/**
+	 * @param string $file
+	 * @param string $right
+	 */
+	private function chmod($file, $right) {
+		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
+		$process->run();
+	}
 }

@@ -212,14 +212,18 @@ class AccueilController extends AbstractController
             $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
 
             $value[] = [
-                'mois' => $month,
+                'mois' => str_replace(
+                    array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+                    array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
+                    $month
+                ),
                 'nbr' => $nbrFiabiliteMonetaireOfPrecedentMonth];
             $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
             $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
             $idx += 1;
         }
 
-        $data = $value;
+        $data = array_reverse($value);
         return new JsonResponse($data);
     }
 

@@ -789,7 +789,7 @@ class ReferenceArticleController extends AbstractController
     public function addFournisseur(Request $request): Response
     {
         if (!$request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 

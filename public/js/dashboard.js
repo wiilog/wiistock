@@ -111,6 +111,7 @@ function drawChart(parent, after = true, fromStart = true) {
 }
 
 function drawChartMonetary() {
+    $('#dashboard-monetary .spinner-border').show();
     let path = Routing.generate('graph_monetaire', true);
     $.ajax({
         url: path,
@@ -136,7 +137,7 @@ function drawChartMonetary() {
 
             let chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
             chart.draw(tdata, options);
-            $('#dashboard-monetary > .spinner-border').hide();
+            $('#dashboard-monetary .spinner-border').hide();
         }
     });
 }
