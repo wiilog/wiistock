@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;

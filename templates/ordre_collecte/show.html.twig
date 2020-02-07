@@ -12,7 +12,6 @@
 
     <a href="{{ path('ordre_collecte_index') }}" class='btn'>Retour à la liste</a>
     <input id="collecte-id" hidden value="{{ collecte.id }}">
-    <div class="d-none" id="barcodes"></div>
 
     {% include 'ordre_collecte/modalEditArticle.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}

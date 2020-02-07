@@ -405,17 +405,4 @@ class EmplacementController extends AbstractController
             $fileName
         );
     }
-
-    /**
-     * @Route("/ajax-article-depuis-id", name="get_emplacement_from_id", options={"expose"=true}, methods="GET|POST")
-     */
-    public function getEmplacementLabelFromId(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = $this->globalParamService->getDimensionAndTypeBarcodeArray(false);
-            $data['emplacementLabel'] = $this->emplacementRepository->find(intval($dataContent['emplacement']))->getLabel();
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
 }

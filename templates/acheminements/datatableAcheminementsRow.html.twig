@@ -1,6 +1,7 @@
 <div class="d-flex">
     <div>
         <a class="btn btn-col-action"
+           id="print-btn-acheminement-{{ acheminement.id }}"
            href="{{ path('print_acheminement_state_sheet', {acheminement: acheminement.id}) }}"
            target="_blank">
             <i class='fas fa-print'></i>

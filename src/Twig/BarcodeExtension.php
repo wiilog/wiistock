@@ -8,7 +8,6 @@
 
 namespace App\Twig;
 
-use DOMNode;
 use Symfony\Component\DomCrawler\Crawler;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;

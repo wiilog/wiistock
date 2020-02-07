@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;

@@ -12,7 +12,6 @@ use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
-use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\AcheminementsService;
@@ -94,6 +93,8 @@ Class AcheminementsController extends AbstractController
 
     /**
      * @Route("/api", name="acheminements_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -113,12 +114,10 @@ Class AcheminementsController extends AbstractController
 	/**
 	 * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
 	 * @param Request $request
-	 * @param GlobalParamService $globalParamService
 	 * @return Response
 	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function new(Request $request, GlobalParamService $globalParamService): Response
+     */
+    public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $status = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ACHEMINEMENT, Acheminements::STATUT_A_TRAITER);
@@ -140,20 +139,7 @@ Class AcheminementsController extends AbstractController
 
             $em->flush();
 
-            $requester = $this->utilisateurRepository->find($data['demandeur']);
-            $receiver = $this->utilisateurRepository->find($data['destinataire']);
-
-            $response['exists'] = true;
-
-            $response['codes'] = $data['colis'];
-            $response['date'] = $date->format('d/m/Y H:i');
-            $response['demandeur'] = $requester->getUsername();
-            $response['destinataire'] = $receiver->getUsername();
-            $response['depose'] = $data['depose'];
-            $response['prise'] = $data['prise'];
-            $response['acheminements'] = (string)$acheminements->getId();
-			$paramTypeBarcode = $globalParamService->getDimensionAndTypeBarcodeArray();
-            $response['isCode128'] = $paramTypeBarcode['isCode128'];
+            $response['acheminement'] = $acheminements->getId();
             return new JsonResponse($response);
         }
         throw new XmlHttpException('404 not found');
@@ -163,10 +149,10 @@ Class AcheminementsController extends AbstractController
      * @Route("/{acheminement}/etat", name="print_acheminement_state_sheet", options={"expose"=true}, methods="GET")
      * @param Acheminements $acheminement
      * @param PDFGeneratorService $PDFGenerator
-     * @return Response
+     * @return PdfResponse
+     * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -196,7 +182,8 @@ Class AcheminementsController extends AbstractController
                     },
                     $colis
                 )
-            )
+            ),
+            $fileName
         );
     }
 
@@ -205,15 +192,18 @@ Class AcheminementsController extends AbstractController
      */
     public function newApi(): Response
     {
-            $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-                'utilisateurs' => $this->utilisateurRepository->findAll(),
-            ]);
+        $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->findAll(),
+        ]);
 
-            return new JsonResponse($json);
+        return new JsonResponse($json);
     }
 
     /**
      * @Route("/modifier", name="acheminement_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function edit(Request $request): Response
     {
@@ -234,29 +224,7 @@ Class AcheminementsController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
-//            if ($statutLabel == Acheminements::STATUT_TRAITE) {
-//                $this->mailerService->sendMail(
-//                    'FOLLOW GT // Acheminement effectuée',
-//                    $this->renderView('mails/mailAcheminementDone.html.twig', [
-//                        'manut' => $acheminement,
-//                        'title' => 'Votre demande d\'acheminement a bien été effectuée.',
-//                    ]),
-//                    $acheminement->getRequester()->getEmail()
-//                );
-//            }
-
-            $requester = $this->utilisateurRepository->find($data['demandeur']);
-            $receiver = $this->utilisateurRepository->find($data['destinataire']);
-
-            $response['exists'] = true;
-
-            $response['codes'] = $data['colis'];
-            $response['date'] = $date->format('Y-m-d H:i:s');
-            $response['demandeur'] = $requester->getUsername();
-            $response['destinataire'] = $receiver->getUsername();
-            $response['depose'] = $data['depose'];
-            $response['prise'] = $data['prise'];
-            $response['acheminements'] = (string)$acheminement->getId();
+            $response['acheminement'] = $acheminement->getId();
 
             return new JsonResponse($response);
         }
