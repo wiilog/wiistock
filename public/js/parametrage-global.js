@@ -143,7 +143,7 @@ function saveTranslations() {
 
     let path = Routing.generate('save_translations');
     const $spinner = $('#spinnerSaveTranslations');
-    alertSuccessMsg('Mise à jour de votre personnalisation des libellés : merci de patienter.');
+    alertSuccessMsg('Mise à jour de votre personnalisation des libellés : merci de patienter.', false);
     loadSpinner($spinner);
     $.post(path, JSON.stringify(data), (resp) => {
         $('html,body').animate({scrollTop: 0});
