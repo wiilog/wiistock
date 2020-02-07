@@ -12,31 +12,33 @@
 
             .barcode {
                 max-width: 100%;
-                height: 40%;
+                height: 50%;
                 margin: 0;
                 padding: 0;
                 position: relative;
                 text-align: center;
             }
 
-            .barcode svg {
+            svg {
+                max-width: 100%;
                 height: 100%;
             }
             .labels {
-                height: 60%;
-            }
-            .labels p {
-                overflow-wrap: break-word;
-                text-align: center;
-                margin: 0;
-            }
-            .labels p:first-child {
-                margin-top: 3px;
+                height: 50%;
             }
 
             html, body {
                 margin: 0;
                 padding: 0;
+            }
+
+            .labels {
+                padding-top: .7mm;
+                text-align: center;
+            }
+
+            .labels svg {
+                font-family: Arial, sans-serif;
             }
 
             .page-breaker {
@@ -61,12 +63,17 @@
                         })|raw
                     }}
                 </div>
-                <div class="labels" style="font-size: {{config.labelsFontSize}};">
-                    {% if config.labels is defined %}
+                <div class="labels">
+                    {# 0.65 = multiplicateur en fonction de la police = largeur d'un caractère a peu près #}
+                    {% set widthFontScale = 0.65 %}
+                    {# 1.3 = multiplicateur en fonction de la police = hauteur d'un caractère a peu près #}
+                    {% set heightFontScale = 1.3 %}
+                    <svg viewBox="0 0 {{ config.barcode.longestLabel * widthFontScale }} {{ ((config.labels|length) + 1) * heightFontScale }}"
+                         xmlns="http://www.w3.org/2000/svg" >
                         {% for label in config.labels %}
-                            <p>{{ label|trim }}</p>
+                            <text y="{{ loop.index * heightFontScale }}" x="50%" text-anchor="middle" font-size="1">{{ label|trim }}</text>
                         {% endfor %}
-                    {% endif %}
+                    </svg>
                 </div>
             </div>
         {% endfor %}

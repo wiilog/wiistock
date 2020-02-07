@@ -61,30 +61,19 @@ Class PDFGeneratorService
                 })
             );
 
-            $longestLabels = array_reduce($labels, function ($carry, $label) {
+            $longestLabel = array_reduce($labels, function ($carry, $label) {
                 $currentLen = strlen($label);
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
-            $lineCounter = count($labels);
-            $labelsFontSize = (
-                $lineCounter > 4
-                    ?(($width < 28)
-                        ? ($longestLabels < 25 ? 43 : ($longestLabels < 50 ? 35 : 22))
-                        : ($longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 45))
-                    )
-                    : (($width < 28)
-                        ? ($longestLabels < 25 ? 50 : ($longestLabels < 35 ? 40 : 35))
-                        : ($longestLabels <= 45 ? 65 : ($longestLabels <= 85 ? 55 : 50))
-                    )
-            );
+
 	        return [
                 'barcode' => [
                     'code' => $code,
                     'type' => $isCode128 ? 'c128' : 'qrcode',
                     'width' => $isCode128 ? 1 : 48,
-                    'height' => 48
+                    'height' => 48,
+                    'longestLabel' => $longestLabel
                 ],
-                'labelsFontSize' => $labelsFontSize . '%',
                 'labels' => $labels
             ];
         }, $barcodeConfigs);
