@@ -99,36 +99,6 @@ function listColis(elem) {
     }, 'json');
 }
 
-function getDataAndPrintLabels(codes) {
-    let path = Routing.generate('arrivage_get_data_to_print', true);
-    let param = codes;
-
-    $.post(path, JSON.stringify(param), function (response) {
-        let codeColis = [];
-        let dropZones = [];
-        if (response.response.exists) {
-            if (response.codeColis.length === 0) {
-                alertErrorMsg("Il n'y a aucun colis à imprimer.");
-            } else {
-                for (const code of response.codeColis) {
-                    codeColis.push(code.code);
-                    dropZones.push(response.dropzone);
-                }
-                if (!response.dropzone) dropZones = null;
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
-            }
-        }
-    });
-}
-
-function printBarcode(code) {
-    let path = Routing.generate('get_print_data', true);
-
-    $.post(path, function (response) {
-        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
-    });
-}
-
 tableArrivage.on('responsive-resize', function (e, datatable) {
     datatable.columns.adjust().responsive.recalc();
 });
@@ -147,9 +117,14 @@ function createCallback(response) {
         $modalNewArrivage.find('#statut').val(response.statutConformeId);
     }
     if (response.printColis) {
-        getDataAndPrintLabels(response.arrivageId);
-    } if (response.printArrivage) {
-        printBarcode(response.numeroArrivage);
+        let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: response.arrivageId }, true);
+        window.open(path, '_blank');
+    }
+    if (response.printArrivage) {
+        setTimeout(function() {
+            let path = Routing.generate('print_arrivage_bar_code', { arrivage: response.arrivageId }, true);
+            window.open(path, '_blank');
+        }, 500);
     }
 }
 

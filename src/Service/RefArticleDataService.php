@@ -582,4 +582,21 @@ class RefArticleDataService
             ])
         ];
     }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return array ['code' => string, 'labels' => string[]]
+     */
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
+        $labels = [
+            $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
+            $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
+        ];
+        return [
+            'code' => $referenceArticle->getBarCode(),
+            'labels' => array_filter($labels, function (string $label) {
+                return !empty($label);
+            })
+        ];
+    }
 }

@@ -21,24 +21,12 @@ $(function () {
     let printColis = $('#printColis').val();
     let printArrivage = $('#printArrivage').val();
     if (printColis) {
-        getDataAndPrintLabels($('#arrivageId').val());
+        $('#printColisBtn')[0].click();
     }
     if (printArrivage) {
-        printBarcode($('#numeroArrivage').val());
+        $('#printArrivageBtn')[0].click();
     }
 });
-
-function printBarcode(code) {
-    let path = Routing.generate('get_print_data', true);
-
-    $.post(path, function (response) {
-        printBarcodes([code], response, ('Etiquette_' + code + '.pdf'));
-    });
-}
-
-function printLabels(data) {
-    printBarcodes(data.codes, data, ('Colis arrivage ' + data.arrivage + '.pdf'));
-}
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
 let tableColis = $('#tableColis').DataTable({
@@ -65,7 +53,6 @@ let tableColis = $('#tableColis').DataTable({
 });
 let tableHistoLitige;
 function openTableHisto() {
-
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
     tableHistoLitige = $('#tableHistoLitige').DataTable({
         language: {
@@ -96,7 +83,17 @@ let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
 InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
-    printLabels(data);
+    if (data.colisIds && data.colisIds.length > 0) {
+        let path = Routing.generate(
+            'print_arrivage_colis_bar_codes',
+            {
+                arrivage: data.arrivageId,
+                colisList: data.colisIds.join(',')
+            },
+            true);
+        window.open(path, '_blank');
+    }
+
     window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
 });
 
@@ -197,35 +194,6 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
     } else {
         hasLitigeText.addClass('d-none');
     }
-}
-
-function getDataAndPrintLabels(codes) {
-    let path = Routing.generate('arrivage_get_data_to_print', true);
-    let param = codes;
-    $.post(path, JSON.stringify(param), function (response) {
-        let codeColis = [];
-        let dropZones = [];
-        if (response.response.exists) {
-            if (response.codeColis.length === 0) {
-                alertErrorMsg("Il n'y a aucun colis à imprimer.");
-            } else {
-                for (const code of response.codeColis) {
-                    codeColis.push(code.code);
-                    dropZones.push(response.dropzone);
-                }
-                if (!response.dropzone) dropZones = null;
-                printBarcodes(codeColis, response.response, ('Etiquettes.pdf'), dropZones);
-            }
-        }
-    });
-}
-
-function printColisBarcode(codeColis, dropzone) {
-    let path = Routing.generate('get_print_data', true);
-
-    $.post(path, function (response) {
-        printBarcodes([codeColis], response, ('Etiquette colis ' + codeColis + '.pdf'), dropzone ? [dropzone] : dropzone);
-    });
 }
 
 function getCommentAndAddHisto()

@@ -62,8 +62,9 @@
                         </a>
                     {% endif %}
                 {% endif %}
-                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" id="buttonPrintBarcode"
-                   data-ref="{{ reception.numeroReception }}"
+                <a href="{{path('reception_bar_codes_print', {reception: reception.id})}}"
+                   target="_blank"
+                   id="buttonPrintBarcode"
                    class="btn btn-primary btn-action ml-auto">
                     <span class="fa"></span>Générer les étiquettes
                 </a>
