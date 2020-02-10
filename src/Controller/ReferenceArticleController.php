@@ -1165,19 +1165,20 @@ class ReferenceArticleController extends AbstractController
             $data['total'] = $this->referenceArticleRepository->countAll();
             $data['headers'] = [
                 'reference',
-                'libelle',
-                'quantite',
+                'libellé',
+                'quantité',
                 'type',
-                'type_quantite',
+                'type quantité',
                 'statut',
                 'commentaire',
                 'emplacement',
                 'fournisseurs',
                 'articles fournisseurs',
-                'seuil securite',
+                'seuil sécurite',
                 'seuil alerte',
                 'prix unitaire',
-                'code barre'
+                'code barre',
+				'catégorie inventaire'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1221,6 +1222,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
