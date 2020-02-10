@@ -103,27 +103,11 @@ function overrideSearchEmplacement() {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function getDataAndPrintLabels() {
-    let path = Routing.generate('emplacement_get_data_to_print', true);
-    let listEmplacements = $("#listEmplacementIdToPrint").val();
-    let params = JSON.stringify({
-        listEmplacements: listEmplacements,
+function printLocationsBarCodes() {
+    let path = Routing.generate('print_locations_bar_codes', {
+        listEmplacements: $("#listEmplacementIdToPrint").val(),
         length: tableEmplacement.page.info().length,
         start: tableEmplacement.page.info().start
-    });
-    $.post(path, params, function (response) {
-            printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf', response.emplacements);
-    });
-}
-
-function printSingleEmplacementBarcode(button) {
-    const params = {'emplacement': button.data('id')};
-    $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
-        printBarcodes(
-            [response.emplacementLabel],
-            response,
-            'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf',
-            [response.emplacementLabel]
-        );
-    });
+    }, true);
+    window.open(path, '_blank');
 }

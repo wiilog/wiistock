@@ -299,12 +299,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
-                $searchValue = $params->get('search')['value'];
+                $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
                 if (!empty($searchValue)) {
                     $ids = [];
                     $query = [];
                     foreach ($user->getRecherche() as $key => $searchField) {
-
                         switch ($searchField) {
                             case 'Fournisseur':
                                 $subqb = $em->createQueryBuilder();

@@ -25,6 +25,11 @@
         <env name="JWT_PUBLIC_KEY" value="%kernel.project_dir%/config/jwt/public.pem"/>
         <env name="JWT_PASSPHRASE" value="e9d9d5f1d5f28f6fa3b4299e41c502c1"/>
         <!-- ###- lexik/jwt-authentication-bundle ### -->
+
+        <!-- ###+ knplabs/knp-snappy-bundle ### -->
+        <env name="WKHTMLTOPDF_PATH" value="/usr/local/bin/wkhtmltopdf"/>
+        <env name="WKHTMLTOIMAGE_PATH" value="/usr/local/bin/wkhtmltoimage"/>
+        <!-- ###- knplabs/knp-snappy-bundle ### -->
     </php>
 
     <testsuites>

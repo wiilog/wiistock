@@ -12,6 +12,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -757,22 +758,37 @@ class ArticleDataService
 		return $newBarcode;
 	}
 
-    /**
-     * @param array $article
-     * @return array Field barcode, refReference, refLabel, artLabel, artBL
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    public function getBarcodeInformations(array $article): array {
+    public function getBarcodeConfig(Article $article, bool $wantBL = false): array {
+        $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
+        $wantedIndex = 0;
+        foreach ($articles as $key => $articleWithCL) {
+            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+                $wantedIndex = $key;
+                break;
+            }
+        }
+        $articleArray = $articles[$wantedIndex];
+
+        $articleFournisseur = $article->getArticleFournisseur();
+        $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
+        $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
+        $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+        $labelArticle = $article->getLabel();
+        $blLabel = (($wantBL && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+            ? $articleArray['bl']
+            : '');
+
+        $labels = [
+            !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
+            !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
+            !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
+            !empty($blLabel) ? ('BL : ' . $blLabel) : ''
+        ];
         return [
-            'barcode' => $article['barcode'],
-            'barcodeLabel' => $this->templating->render('article/barcodeLabel.html.twig', [
-                'refRef' => trim($article['refReference']),
-                'refLabel' => trim($article['refLabel']),
-                'artLabel' => trim($article['artLabel']),
-                'artBL' => isset($article['artBL']) ? trim($article['artBL']) : null
-            ])
+            'code' => $article->getBarCode(),
+            'labels' => array_filter($labels, function (string $label) {
+                return !empty($label);
+            })
         ];
     }
 }
