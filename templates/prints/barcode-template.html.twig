@@ -46,7 +46,7 @@
             }
 
             * {
-                color: black;
+                color: black !important;
                 font-family: Arial, sans-serif;
             }
         </style>
@@ -93,9 +93,8 @@
                          ">
                         <svg viewBox="0 0 {{ config.barcode.code|length }} 2"
                              xmlns="http://www.w3.org/2000/svg" >
-                            <text y="50%"
+                            <text y="1"
                                   x="50%"
-                                  dominant-baseline="middle"
                                   text-anchor="middle"
                                   font-size="1">
                                 {{ config.barcode.code }}

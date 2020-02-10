@@ -16,22 +16,23 @@ Class PDFGeneratorService
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
 
-    /** @var GlobalParamService  */
-	private $globalParamService;
+    /** @var GlobalParamService */
+    private $globalParamService;
 
-	/** @var Twig_Environment */
-	private $templating;
+    /** @var Twig_Environment */
+    private $templating;
 
-	/** @var $PDFGenerator */
-	private $PDFGenerator;
+    /** @var $PDFGenerator */
+    private $PDFGenerator;
 
-	public function __construct(GlobalParamService $globalParamService,
+    public function __construct(GlobalParamService $globalParamService,
                                 PDFGenerator $PDFGenerator,
-                                Twig_Environment $templating) {
-	    $this->globalParamService = $globalParamService;
-	    $this->templating = $templating;
-	    $this->PDFGenerator = $PDFGenerator;
-	}
+                                Twig_Environment $templating)
+    {
+        $this->globalParamService = $globalParamService;
+        $this->templating = $templating;
+        $this->PDFGenerator = $PDFGenerator;
+    }
 
     // TODO throw error if dimension do not exists
 
@@ -45,14 +46,15 @@ Class PDFGeneratorService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-	public function generatePDFBarCodes(string $title, array $barcodeConfigs): string {
+    public function generatePDFBarCodes(string $title, array $barcodeConfigs): string
+    {
         $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
 
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
         $isCode128 = $barcodeConfig['isCode128'];
 
-	    $barcodeConfigsToTwig = array_map(function ($config) use ($isCode128, $width) {
+        $barcodeConfigsToTwig = array_map(function ($config) use ($isCode128, $width) {
             $code = $config['code'];
             $labels = array_filter($config['labels'] ?? [], function ($label) {
                 return !empty($label);
@@ -63,7 +65,7 @@ Class PDFGeneratorService
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
 
-	        return [
+            return [
                 'barcode' => [
                     'code' => $code,
                     'type' => $isCode128 ? 'c128' : 'qrcode',
@@ -76,11 +78,11 @@ Class PDFGeneratorService
         }, $barcodeConfigs);
 
         return $this->PDFGenerator->getOutputFromHtml(
-             $this->templating->render('prints/barcode-template.html.twig', [
-                 'title' => $title,
-                 'height' => $height,
-                 'width' => $width,
-                 'barcodeConfigs' => $barcodeConfigsToTwig
+            $this->templating->render('prints/barcode-template.html.twig', [
+                'title' => $title,
+                'height' => $height,
+                'width' => $width,
+                'barcodeConfigs' => $barcodeConfigsToTwig
             ]),
             [
                 'page-height' => "${height}mm",
@@ -106,19 +108,20 @@ Class PDFGeneratorService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-	public function generatePDFStateSheet(string $title, array $sheetConfigs): string {
+    public function generatePDFStateSheet(string $title, array $sheetConfigs): string
+    {
         $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
 
         $isCode128 = $barcodeConfig['isCode128'];
 
         return $this->PDFGenerator->getOutputFromHtml(
-             $this->templating->render('prints/state-sheet-template.html.twig', [
-                 'title' => $title,
-                 'sheetConfigs' => $sheetConfigs,
+            $this->templating->render('prints/state-sheet-template.html.twig', [
+                'title' => $title,
+                'sheetConfigs' => $sheetConfigs,
 
-                 'barcodeType' => $isCode128 ? 'c128' : 'qrcode',
-                 'barcodeWidth' => $isCode128 ? 1 : 48,
-                 'barcodeHeight' => 48
+                'barcodeType' => $isCode128 ? 'c128' : 'qrcode',
+                'barcodeWidth' => $isCode128 ? 1 : 48,
+                'barcodeHeight' => 48
             ]),
             [
                 'page-size' => "A4",
@@ -133,7 +136,8 @@ Class PDFGeneratorService
      * @param string $name
      * @return string
      */
-    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
+    public function getBarcodeFileName(array $barcodeConfigs, string $name): string
+    {
         $barcodeCounter = count($barcodeConfigs);
 
         return (
