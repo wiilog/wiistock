@@ -957,11 +957,14 @@ let addArrivalAssociation = function(span) {
     $arrivalInput.clone().appendTo($parent);
 };
 
-function overrideSearch($input, table) {
+function overrideSearch($input, table, callback = null) {
     $input.off();
     $input.on('keyup', function(e) {
         if (e.key === 'Enter'){
             table.search(this.value).draw();
+            if (callback) {
+                callback($input);
+            }
         }
     });
     $input.attr('placeholder', 'entrée pour valider');

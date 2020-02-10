@@ -1300,11 +1300,8 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response {
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, null, $this->user);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
-
-        /** @var ReferenceArticle[] $refs */
-        $refs = array_slice($refs, $request->query->get('start'), $request->query->get('length'));
 
         $barcodeConfigs = array_map(
             function (ReferenceArticle $reference) use ($refArticleDataService) {
