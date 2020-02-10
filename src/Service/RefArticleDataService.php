@@ -516,10 +516,6 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ALER)) {
-            return new RedirectResponse($this->router->generate('access_denied'));
-        }
-
         $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser( FiltreSup::PAGE_ALERTE, $user);
 
         $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);

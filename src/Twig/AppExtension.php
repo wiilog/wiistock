@@ -8,8 +8,6 @@
 
 namespace App\Twig;
 
-use App\Entity\Action;
-
 use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 
