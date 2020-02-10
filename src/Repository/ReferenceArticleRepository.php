@@ -1193,6 +1193,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             JOIN ra.receptionReferenceArticles rra
             JOIN rra.reception r
             WHERE r.id = :id
+              AND rra.quantiteAR > rra.quantite
               AND ra.typeQuantite = :typeQty"
 		)->setParameters([
 			'id' => $id,
