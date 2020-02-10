@@ -56,7 +56,8 @@
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
                            class="btn btn-primary btn-action ml-auto"
-                           onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+                           onclick="initNewArticleEditor('#modalAddLigneArticle'),
+                           ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
                             <span class="fa fa-plus mr-2"></span>Ajouter {{ 'réception.article'|trans }}
                         </a>
                     {% endif %}
