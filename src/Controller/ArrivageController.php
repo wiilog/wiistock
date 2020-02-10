@@ -480,13 +480,24 @@ class ArrivageController extends AbstractController
 
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
-                ->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')))
-                ->setTransporteur($this->transporteurRepository->find($post->get('transporteur')))
-                ->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')))
                 ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-                ->setStatut($this->statutRepository->find($post->get('statut')))
-                ->setNumeroBL(substr($post->get('noBL'), 0, 64))
-                ->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+                ->setNumeroBL(substr($post->get('noBL'), 0, 64));
+
+            if ($post->get('fournisseur')) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')));
+            }
+            if ($post->get('transporteur')) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($post->get('transporteur')));
+            }
+            if ($post->get('chauffeur')) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')));
+            }
+            if ($post->get('statut')) {
+                $arrivage->setStatut($this->statutRepository->find($post->get('statut')));
+            }
+            if ($post->get('destinatire')) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+            }
 
             $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...
