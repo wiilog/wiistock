@@ -54,12 +54,9 @@ Class PDFGeneratorService
 
 	    $barcodeConfigsToTwig = array_map(function ($config) use ($isCode128, $width) {
             $code = $config['code'];
-            $labels = array_merge(
-                [$code],
-                array_filter($config['labels'] ?? [], function ($label) {
-                    return !empty($label);
-                })
-            );
+            $labels = array_filter($config['labels'] ?? [], function ($label) {
+                return !empty($label);
+            });
 
             $longestLabel = array_reduce($labels, function ($carry, $label) {
                 $currentLen = strlen($label);
