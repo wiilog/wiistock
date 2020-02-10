@@ -266,6 +266,7 @@ function initNewArticleEditor(modal) {
         editorNewArticleAlreadyDone = true;
     }
     clearAddRefModal();
+    clearModal(modal);
 }
 
 function printSingleBarcode(button) {
