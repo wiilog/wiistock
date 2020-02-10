@@ -151,7 +151,16 @@ function initTableRefArticle() {
                     loadSpinnerAR($('#spinner'));
                     initRemove();
                     hideAndShowColumns(columns);
-                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle);
+                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function($input) {
+                        let $printBtn = $('.justify-content-end').find('#printTag');
+                        if ($input.val() === '') {
+                            $printBtn.addClass('btn-disabled');
+                            $printBtn.removeClass('btn-primary');
+                        } else {
+                            $printBtn.removeClass('btn-disabled');
+                            $printBtn.addClass('btn-primary');
+                        }
+                    });
                 },
                 length: 10,
                 columns: columns.map((column) => ({
@@ -519,16 +528,13 @@ function saveRapidSearch() {
     });
 }
 
-function getDataAndPrintLabels() {
-    let path = Routing.generate('reference_article_get_data_to_print', true);
-    $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
-            printBarcodes(
-                response.barcodes,
-                response.tags,
-                'Etiquettes-references.pdf',
-                response.barcodeLabels
-            );
-    });
+function printReferenceArticleBarCode() {
+    let path = Routing.generate(
+        'reference_article_bar_codes_print',
+        {length: tableRefArticle.page.info().length, start: tableRefArticle.page.info().start, search: $('#tableRefArticle_id_filter input').val()},
+        true
+    );
+    window.open(path, '_blank');
 }
 
 function displayActifOrInactif(select){

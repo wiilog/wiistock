@@ -30,6 +30,12 @@ services:
     App\Service\FileUploader:
         arguments:
             $targetDirectory: '%cards_directory%'
+    App\Twig\BarcodeExtension:
+        arguments:
+            $barcodeGenerator: '@sgk_barcode.generator'
+    App\Service\PDFGeneratorService:
+        arguments:
+            $PDFGenerator: '@knp_snappy.pdf'
 
     wiistock.specific_service:
         class: App\Service\SpecificService

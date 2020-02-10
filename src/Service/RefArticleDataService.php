@@ -516,10 +516,6 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ALER)) {
-            return new RedirectResponse($this->router->generate('access_denied'));
-        }
-
         $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser( FiltreSup::PAGE_ALERTE, $user);
 
         $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
@@ -584,6 +580,23 @@ class RefArticleDataService
                 'refRef' => $referenceArticle->getReference(),
                 'refLabel' =>$referenceArticle->getLibelle(),
             ])
+        ];
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return array ['code' => string, 'labels' => string[]]
+     */
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
+        $labels = [
+            $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
+            $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
+        ];
+        return [
+            'code' => $referenceArticle->getBarCode(),
+            'labels' => array_filter($labels, function (string $label) {
+                return !empty($label);
+            })
         ];
     }
 }

@@ -18,12 +18,15 @@
     </div>
     <div class="form-group col-6">
         <label for="">Quantité à recevoir*</label>
-        <input id="stock" type="number" class="form-control data needed" value="{{ligneArticle.quantiteAR}}" name="quantiteAR" min="0">
+        <input id="stock" type="number" class="form-control data needed" value="{{ligneArticle.quantiteAR}}" name="quantiteAR" min="0"
+               onchange="updateQuantityToReceive($(this))"
+        >
     </div>
     <div class="form-group col-6">
         <label for="">Quantité reçue*</label>
         {% set disabled = canUpdateQuantity ? '' : 'disabled' %}
-        <input {{ disabled }} type="number" class="form-control data needed" name="quantite" value="{{ligneArticle.quantite}}" id="quantite" min=0>
+        <input {{ disabled }} type="number" class="form-control data needed" name="quantite"
+                              value="{{ligneArticle.quantite}}" id="quantite" min=0 max="{{ligneArticle.quantiteAR}}">
     </div>
     <div class="form-group col-6">
         <label>Anomalie</label>

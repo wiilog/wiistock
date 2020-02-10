@@ -25,10 +25,11 @@
     </div>
     {% endif %}
     <div>
-        <div class="btn btn-col-action" data-id='{{articleId}}'
-             onclick='printSingleArticleBarcode($(this))'>
+        <a class="btn btn-col-action"
+           target="_blank"
+           href="{{ path('article_single_bar_code_print', {article: articleId}) }}">
             <i class="fas fa-print"></i>
-        </div>
+        </a>
     </div>
     {% if demandeId is not null %}
     <div>

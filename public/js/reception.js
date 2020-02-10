@@ -63,6 +63,7 @@ $(function () {
 });
 
 function initNewReceptionEditor(modal) {
+    let $modal = $(modal);
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
@@ -72,10 +73,10 @@ function initNewReceptionEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
-    ajaxAutoCompleteTransporteurInit($(modal).find('.ajax-autocomplete-transporteur'));
+    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
     initDateTimePicker('#dateCommande, #dateAttendue');
     initDateTimePickerCL();
-    $('.list-multiple').select2();
+    $modal.find('.list-multiple').select2();
 }
 
 function initDateTimePickerCL() {

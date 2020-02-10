@@ -1,0 +1,103 @@
+<html lang="fr">
+    <head>
+        <style>
+            .barcode-container .barcode-label {
+                text-align: center;
+                display: table-row;
+                height: 30%;
+            }
+            .barcode-container .barcode-wrapper {
+                text-align: center;
+                display: table-row;
+            }
+            .barcode-container .barcode-wrapper svg {
+                height: 100%;
+                max-width: 100%;
+            }
+            .barcode-container {
+                display: table;
+                height: {{barcodeType == 'c128' ? '2cm' : '5cm'}};
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+                position: relative;
+
+                margin-top: 1cm;
+            }
+
+            .content-container {
+                display: block;
+                margin-top: 1cm;
+            }
+
+            .content-container table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .content-container table td {
+                border: 1px solid black;
+                padding: 5mm;
+            }
+
+            .sheet-container {
+                width: 210mm;
+                display: block;
+            }
+
+            html, body {
+                width: 100%;
+                height: 100%;
+            }
+
+            * {
+                font-family: Arial, sans-serif;
+            }
+
+            .page-breaker {
+                page-break-before: always;
+                height: 0;
+            }
+        </style>
+        <title>{{title}}</title>
+    </head>
+    <body>
+        {% for config in sheetConfigs %}
+            {% if not loop.first %}<div class="page-breaker"></div>{% endif %}
+            <div class="sheet-container">
+                <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/>
+                <h2>{{ config.title }}</h2>
+                <div class="barcode-container">
+                    <div class="barcode-wrapper">
+                        {{
+                            printBarcode({
+                                code: config.code,
+                                type: barcodeType,
+                                format: 'svg',
+                                height: barcodeHeight,
+                                width: barcodeWidth
+                            })|raw
+                        }}
+                    </div>
+                    <div class="barcode-label">
+                        {{config.code}}
+                    </div>
+
+                </div>
+                {% if config.content is not empty %}
+                    <div class="content-container">
+                        <table>
+                            <tbody>
+                                {% for label, value in config.content %}
+                                    <tr>
+                                        <td>{{ label }}</td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </body>
+</html>
