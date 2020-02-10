@@ -9,7 +9,7 @@ $(function () {
     google.charts.setOnLoadCallback(drawAllCharts);
 
     loadRetards();
-    setSmallBoxContent();
+    // setSmallBoxContent();
 
     $(window).on('resize', () => {
         if (timeoutResize) {
@@ -22,7 +22,7 @@ $(function () {
             }
 
             loadRetards();
-            setSmallBoxContent();
+            // setSmallBoxContent();
             timeoutResize = undefined;
         });
     });
@@ -31,23 +31,23 @@ $(function () {
     setInterval(reloadPage, reloadFrequency);
 });
 
-function setSmallBoxContent() {
-    const $dashboardBoxContent = $('.dashboard-box-content');
-    const clientHeight = document.body.clientHeight;
-    if (clientHeight < 800) {
-        $dashboardBoxContent.addClass('dashboard-box-content-small');
-    }
-    else {
-        $dashboardBoxContent.removeClass('dashboard-box-content-small');
-    }
-}
+// function setSmallBoxContent() {
+//     const $dashboardBoxContent = $('.dashboard-box-content');
+//     const clientHeight = document.body.clientHeight;
+//     if (clientHeight < 800) {
+//         $dashboardBoxContent.addClass('dashboard-box-content-small');
+//     }
+//     else {
+//         $dashboardBoxContent.removeClass('dashboard-box-content-small');
+//     }
+// }
+
 function drawAllCharts() {
     drawChart('dashboard-assoc');
     drawChart('dashboard-arrival');
     drawChartMonetary();
     reloadDashboardLinks();
 }
-
 
 function reloadPage() {
     drawAllCharts();
@@ -276,12 +276,12 @@ let chartDailyArrival = new Chart($('#chartDailyArrival'), {
                 'rgba(163,209,255, 1)',
                 'rgba(163,209,255, 1)',
                 'rgba(163,209,255, 1)',
-                'rgb(0,204,0, 1)',
+                'rgba(57,181,74, 1)',
                 ],
-            fontFamily: "Myriad"
         }]
     },
     options: {
+        fontFamily: "Myriad Pro",
         legend: {
           display: false,
         },
@@ -302,11 +302,11 @@ let chartWeeklyArrival = new Chart($('#chartWeeklyArrival'), {
         datasets: [{
             data: [1050, 997, 1115, 1200, 700],
             backgroundColor: [
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgb(17,120,38)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(57,181,74, 1)',
                 ],
             borderWidth: 1
         }]
@@ -332,14 +332,14 @@ let chartColis = new Chart($('#chartColis'), {
         datasets: [{
             data: [66, 59, 62, 65, 82, 81, 79, 26],
             backgroundColor: [
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgba(19, 0, 120, 1)',
-                'rgb(17,120,38)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(57,181,74, 1)',
                 ],
             borderWidth: 1
         }]
