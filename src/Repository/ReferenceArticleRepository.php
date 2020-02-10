@@ -297,7 +297,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         }
 
         // prise en compte des paramètres issus du datatable
-        dump(gettype($params));
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
