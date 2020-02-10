@@ -11,6 +11,7 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\EnCoursService;
 
+use App\Service\UserService;
 use DateInterval;
 use DatePeriod;
 use DateTime as DateTimeAlias;
@@ -18,6 +19,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 
+use http\Client\Curl\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -49,18 +51,23 @@ class EnCoursController extends AbstractController
      */
     private $enCoursService;
 
-    /**
-     * EnCoursController constructor.
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param EmplacementRepository $emplacementRepository
-     * @param DaysWorkedRepository $daysRepository
-     */
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository, EnCoursService $enCoursService)
+    private $userService;
+
+	/**
+	 * EnCoursController constructor.
+	 * @param UserService $userService
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param DaysWorkedRepository $daysRepository
+	 * @param EnCoursService $enCoursService
+	 */
+    public function __construct(UserService $userService, MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository, EnCoursService $enCoursService)
     {
         $this->enCoursService = $enCoursService;
         $this->daysRepository = $daysRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->userService = $userService;
     }
 
 
@@ -146,11 +153,9 @@ class EnCoursController extends AbstractController
                 $emplacement = $this->emplacementRepository->find($emplacementArray['id']);
                 foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                     if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                        //VERIFCECILE
                         $dateMvt = $mvt->getDatetime();
                         $minutesBetween = $this->getMinutesBetween($dateMvt);
                         $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-                        //VERIFCECILE
                         if ($dataForTable['late']) {
                             $retards[] = [
                                 'colis' => $mvt->getColis(),

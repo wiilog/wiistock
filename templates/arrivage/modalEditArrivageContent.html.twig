@@ -3,7 +3,7 @@
         <div class="form-group col">
             <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
-                <option disabled selected></option>
+                <option {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'disabled' }} selected></option>
                 {% for fournisseur in fournisseurs %}
                     {% set selected = (((arrivage.fournisseur is not empty) and (fournisseur.id == arrivage.fournisseur.id)) ? 'selected' : '') %}
                     <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
@@ -15,7 +15,7 @@
     <div class="form-group col">
         <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
         <select class="form-control data {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
-            <option disabled selected></option>
+            <option {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'disabled' }} selected></option>
             {% for transporteur in transporteurs %}
                 {% set selected = (((arrivage.transporteur is not empty) and (transporteur.id == arrivage.transporteur.id)) ? 'selected' : '') %}
                 <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
@@ -27,7 +27,7 @@
     <div class="form-group col">
         <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? '*' : '' }}</label>
         <select class="form-control data {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
-            <option disabled selected></option>
+            <option {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'disabled' }} selected></option>
             {% for chauffeur in chauffeurs %}
                 {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
                 <option

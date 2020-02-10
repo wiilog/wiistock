@@ -75,25 +75,28 @@ class DashboardService
                 $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
             }
         }
-        $firstDayStr = date("d", strtotime(str_replace("/", "-", $firstDay)));
-        $lastDayStr = date("d", strtotime(str_replace("/", "-", $lastDay)));
+        $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
+        $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
+
         $rows = [];
-        $rows[$firstDayStr] = [];
-        $rows[$firstDayStr]['count'] = 0;
-        foreach (['1', '2', '3', '4', '5'] as $dayIncrement) {
-            $rows[date("d", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))] = [];
-            $rows[date("d", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['count'] = 0;
+        $secondInADay = 60*60*24;
+
+        for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
+            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
+            $rows[$dayCounterKey] = ['count' => 0];
         }
-        $rows[$lastDayStr] = [];
-        $rows[$lastDayStr]['count'] = 0;
+
         foreach ($this->receptionTracaRepository->countByDays($firstDay, $lastDay) as $qttPerDay) {
-            $rows[$qttPerDay['date']->format('d')]['count'] += $qttPerDay['count'];
+            $dayCounterKey = $qttPerDay['date']->format('d');
+            $rows[$dayCounterKey]['count'] += $qttPerDay['count'];
         }
         return [
             'columns' => $this->columnsForAssoc,
             'rows' => $rows,
-            'firstDay' => date("d/m/y", strtotime(str_replace("/", "-", $firstDay))),
-            'lastDay' => date("d/m/y", strtotime(str_replace("/", "-", $lastDay)))
+            'firstDay' => date("d/m/y", $firstDayTime),
+            'firstDayData' => date("d/m/Y", $firstDayTime),
+            'lastDay' => date("d/m/y", $lastDayTime),
+            'lastDayData' => date("d/m/Y", $lastDayTime)
         ];
     }
 
@@ -108,24 +111,31 @@ class DashboardService
                 $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
             }
         }
-        $firstDayStr = date("d", strtotime(str_replace("/", "-", $firstDay)));
-        $lastDayStr = date("d", strtotime(str_replace("/", "-", $lastDay)));
+        $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
+        $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
+
         $rows = [];
-        $rows[$firstDayStr] = [];
-        $rows[$firstDayStr]['count'] = 0;
-        $rows[$firstDayStr]['conform'] = null;
-        foreach (['1', '2', '3', '4', '5'] as $dayIncrement) {
-            $rows[date("d", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))] = [];
-            $rows[date("d", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['count'] = 0;
-            $rows[date("d", strtotime(str_replace("/", "-", $firstDay) . ' + ' . $dayIncrement . ' days'))]['conform'] = null;
+        $secondInADay = 60 * 60 * 24;
+
+        for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
+            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
+            $rows[$dayCounterKey] = [
+                'count' => 0,
+                'conform' => null
+            ];
         }
-        $rows[$lastDayStr] = [];
-        $rows[$lastDayStr]['count'] = 0;
-        $rows[$lastDayStr]['conform'] = null;
+
         foreach ($this->arrivageRepository->countByDays($firstDay, $lastDay) as $qttPerDay) {
-            $rows[$qttPerDay['date']->format('d')]['count'] += $qttPerDay['count'];
+
+            $dayCounterKey = $qttPerDay['date']->format('d');
+            if (!isset($rows[$dayCounterKey])) {
+                $rows[$dayCounterKey] = ['count' => 0];
+            }
+
+            $rows[$dayCounterKey]['count'] += $qttPerDay['count'];
+
             $dateHistory = $qttPerDay['date']->setTime(0, 0);
-            $rows[$qttPerDay['date']->format('d')]['conform'] =
+            $rows[$dayCounterKey]['conform'] =
                 $this->arrivalHistoryRepository->getByDate($dateHistory)
                     ? $this->arrivalHistoryRepository->getByDate($dateHistory)->getConformRate()
                     : null;
@@ -133,8 +143,10 @@ class DashboardService
         return [
             'columns' => $this->columnsForArrival,
             'rows' => $rows,
-            'firstDay' => date("d/m/y", strtotime(str_replace("/", "-", $firstDay))),
-            'lastDay' => date("d/m/y", strtotime(str_replace("/", "-", $lastDay)))
+            'firstDay' => date("d/m/y", $firstDayTime),
+            'firstDayData' => date("d/m/Y", $firstDayTime),
+            'lastDay' => date("d/m/y", $lastDayTime),
+            'lastDayData' => date("d/m/Y", $lastDayTime)
         ];
     }
 
