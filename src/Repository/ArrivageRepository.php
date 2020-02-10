@@ -7,6 +7,7 @@ use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -42,22 +43,45 @@ class ArrivageRepository extends ServiceEntityRepository
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @return Arrivage[]|null
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDates($dateMin, $dateMax)
+    {
+		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+            ->select('COUNT(arrivage)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Arrivage[]|null
      */
     public function findByDates($dateMin, $dateMax)
+    {
+		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return QueryBuilder
+     */
+    public function createQueryBuilderByDates($dateMin, $dateMax): QueryBuilder
     {
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Arrivage a
-            WHERE a.date BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+        return $this->createQueryBuilder('arrivage')
+            ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
     }
 
     public function countByFournisseur($fournisseurId)

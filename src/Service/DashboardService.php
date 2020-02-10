@@ -64,8 +64,7 @@ class DashboardService
         ],
     ];
 
-    public function getWeekAssoc($firstDay, $lastDay, $after)
-    {
+    public function getWeekAssoc($firstDay, $lastDay, $after) {
         if ($after !== 'now') {
             if ($after) {
                 $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
