@@ -8,14 +8,19 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
 
 use App\Repository\StatutRepository;
+use App\Repository\UtilisateurRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -179,5 +184,40 @@ class MouvementTracaService
         } while (!empty($existingMouvements));
 
         return $uniqueId;
+    }
+
+    /**
+     * @param ParameterBag $post
+     * @param ObjectManager $em
+     * @param Request $request
+     * @param string $colis
+     * @param Emplacement $emplacement
+     * @param Statut $type
+     * @param UtilisateurRepository $utilisateurRepository
+     * @param AttachmentService $attachmentService
+     * @throws Exception
+     */
+    public function newMvt(
+        ParameterBag $post,
+        ObjectManager $em,
+        Request $request,
+        string $colis,
+        Emplacement $emplacement,
+        Statut $type,
+        UtilisateurRepository $utilisateurRepository,
+        AttachmentService $attachmentService)
+    {
+        $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
+        $operator = $utilisateurRepository->find($post->get('operator'));
+        $mvtTraca = new MouvementTraca();
+        $mvtTraca
+            ->setDatetime($date)
+            ->setOperateur($operator)
+            ->setColis($colis)
+            ->setType($type)
+            ->setEmplacement($emplacement)
+            ->setCommentaire($post->get('commentaire') ?? null);
+        $em->persist($mvtTraca);
+        $attachmentService->addAttachements($request->files, null, null, $mvtTraca);
     }
 }

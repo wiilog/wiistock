@@ -112,7 +112,7 @@ function getDataAndPrintLabels() {
         start: tableEmplacement.page.info().start
     });
     $.post(path, params, function (response) {
-            printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf');
+            printBarcodes(response.emplacements, response.tags, 'Etiquettes-emplacements.pdf', response.emplacements);
     });
 }
 
@@ -122,7 +122,8 @@ function printSingleEmplacementBarcode(button) {
         printBarcodes(
             [response.emplacementLabel],
             response,
-            'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf'
+            'Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf',
+            [response.emplacementLabel]
         );
     });
 }
