@@ -36,7 +36,8 @@ $(function() {
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
     initDisplaySelect2('#locationToTreat', '#locationToTreatValue');
-    initDisplaySelect2('#locationWaiting', '#locationWaitingValue');
+    initDisplaySelect2('#locationWaitingDock', '#locationWaitingDockValue');
+    initDisplaySelect2('#locationWaitingAdmin', '#locationWaitingAdminValue');
     initDisplaySelect2('#locationAvailable', '#locationAvailableValue');
     initDisplaySelect2('#locationDropZone', '#locationDropZoneValue');
     initDisplaySelect2('#locationLitiges', '#locationLitigesValue');

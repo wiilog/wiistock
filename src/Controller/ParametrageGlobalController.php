@@ -62,9 +62,7 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
-						  NatureRepository $natureRepository
-	): Response
-    {
+						  NatureRepository $natureRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -655,7 +653,8 @@ class ParametrageGlobalController extends AbstractController
 			$listSelect = [
 				ParametrageGlobal::DASHBOARD_NATURE_COLIS => 'natureColis',
 				ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
-				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE => 'locationWaiting',
+				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
+				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
 				ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
 				ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
 				ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',

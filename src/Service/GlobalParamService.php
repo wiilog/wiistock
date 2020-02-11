@@ -125,7 +125,8 @@ Class GlobalParamService
 
 		$paramLabels = [
 			ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
-			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE,
+			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
+			ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN,
 			ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
 			ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
@@ -149,12 +150,12 @@ Class GlobalParamService
 					$text[] = $location ? $location->getLabel() : '';
 				}
 
-				$resp[] = [
+				$resp[$paramLabel] = [
 					'id' => $locationIds,
 					'text' => implode(',', $text)
 				];
 			} else {
-				$resp[] = ['id' => '', 'text' => ''];
+				$resp[$paramLabel] = ['id' => '', 'text' => ''];
 			}
 		}
 
