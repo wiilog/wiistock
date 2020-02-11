@@ -79,7 +79,6 @@ class EnCoursController extends AbstractController
 		if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
 			return $this->redirectToRoute('access_denied');
 		}
-
         return $this->render('en_cours/index.html.twig', [
             'emplacements' => $this->emplacementRepository->findWhereArticleIs()
         ]);
@@ -94,45 +93,8 @@ class EnCoursController extends AbstractController
 	 */
     public function apiForEmplacement(Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-        	$success = true;
-            $emplacementInfo = [];
             $emplacement = $this->emplacementRepository->find($data['id']);
-            $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
-            $mvtGrouped = [];
-
-            foreach ($mvtArray as $mvt) {
-				if (isset($mvtGrouped[$mvt->getColis()])
-                    && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
-                    $mvtGrouped[$mvt->getColis()] = $mvt;
-                } else if (!isset($mvtGrouped[$mvt->getColis()])) {
-                    $mvtGrouped[$mvt->getColis()] = $mvt;
-                }
-            }
-
-            foreach ($mvtGrouped as $mvt) {
-                if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                	$dateMvt = new DateTimeAlias($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
-                    $minutesBetween = $this->getMinutesBetween($dateMvt);
-
-                    if (empty($minutesBetween)) {
-                    	$success = false;
-					} else {
-						$dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-						$emplacementInfo[] = [
-							'colis' => $mvt->getColis(),
-							'time' => $dataForTable['time'],
-							'date' => $dateMvt->format('d/m/Y H:i:s'),
-							'max' => $emplacement->getDateMaxTime(),
-							'late' => $dataForTable['late']
-						];
-					}
-                }
-            }
-
-            return new JsonResponse([
-                'data' => $emplacementInfo,
-				'sucess' => $success
-            ]);
+            return new JsonResponse($this->enCoursService->getEnCoursForEmplacement($emplacement));
         }
         throw new NotFoundHttpException("404");
     }
@@ -153,9 +115,9 @@ class EnCoursController extends AbstractController
                 foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
                     if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
                         $dateMvt = $mvt->getDatetime();
-                        $minutesBetween = $this->getMinutesBetween($dateMvt);
+                        $minutesBetween = $this->enCoursService->getMinutesBetween($dateMvt);
                         $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-                        if ($dataForTable['late']) {
+                        if ($dataForTable && $dataForTable['late']) {
                             $retards[] = [
                                 'colis' => $mvt->getColis(),
                                 'time' => $dataForTable['time'],
@@ -171,31 +133,6 @@ class EnCoursController extends AbstractController
             ]);
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @param $dateMvt DateTimeAlias
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    private function getMinutesBetween($dateMvt): int
-    {
-        $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
-        $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
-            ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
-
-        $interval = DateInterval::createFromDateString('1 day');
-        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
-        $minutesBetween = 0;
-        /**
-         * @var $day DateTimeAlias
-         */
-        foreach ($period as $day) {
-        	$minutesBetween += $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
-        }
-
-        return $minutesBetween;
     }
 
 	/**

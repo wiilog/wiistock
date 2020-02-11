@@ -6,12 +6,16 @@ namespace App\Service;
 
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Repository\ColisRepository;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
+use DateInterval;
+use DatePeriod;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Symfony\Component\Validator\Constraints\Date;
 
 class EnCoursService
 {
@@ -30,6 +34,11 @@ class EnCoursService
      */
     private $daysRepository;
 
+    /**
+     * @var ColisRepository
+     */
+    private $colisRepository;
+
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
     private const AFTERNOON_FIRST_MINUTE_INDEX = 5;
@@ -41,12 +50,18 @@ class EnCoursService
 
     /**
      * EnCoursService constructor.
+     * @param ColisRepository $colisRepository
      * @param MouvementTracaRepository $mouvementTracaRepository
      * @param EmplacementRepository $emplacementRepository
      * @param DaysWorkedRepository $daysRepository
      */
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, EmplacementRepository $emplacementRepository, DaysWorkedRepository $daysRepository)
+    public function __construct(
+        ColisRepository $colisRepository,
+        MouvementTracaRepository $mouvementTracaRepository,
+        EmplacementRepository $emplacementRepository,
+        DaysWorkedRepository $daysRepository)
     {
+        $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->daysRepository = $daysRepository;
@@ -91,7 +106,8 @@ class EnCoursService
      * @param DaysWorked $daysWorked the day to get total time on
      * @return int the total day time including the break;
      */
-    public function getTotalTimeInDay(DaysWorked $daysWorked): int {
+    public function getTotalTimeInDay(DaysWorked $daysWorked): int
+    {
         $timeArray = $this->getTimeArrayForDayWorked($daysWorked);
         return (empty($timeArray) ? 0 : (
                 ($timeArray[self::AFTERNOON_LAST_HOUR_INDEX] * 60) + $timeArray[self::AFTERNOON_LAST_MINUTE_INDEX])
@@ -235,13 +251,11 @@ class EnCoursService
                 // Excluding the whole break is the mvt is before the break
                 if ($dateMvtTimeInMinutes <= $dayWorkedBeginOfBreakInMinutes) {
                     $minutesWorked -= $this->getTimeBreakThisDayForDayWorked($dayWorked);
-                }
-                // Or excluding the time between the mvt and the end of the break if the mvt is in the break
+                } // Or excluding the time between the mvt and the end of the break if the mvt is in the break
                 else if ($dateMvtTimeInMinutes <= $dayWorkedEndOfBreakInMinutes) {
                     $minutesWorked -= ($dayWorkedEndOfBreakInMinutes - $dateMvtTimeInMinutes);
                 }
-            }
-            // If the day tested is neither the mvt's day or today, we can count the whole day, excluding the break;
+            } // If the day tested is neither the mvt's day or today, we can count the whole day, excluding the break;
             else {
                 $minutesWorked += $this->getTimeWorkedDuringThisDayForDayWorked($dayWorked);
             }
@@ -258,28 +272,131 @@ class EnCoursService
      */
     public function buildDataForDatatable(int $minutesBetween, Emplacement $emplacement)
     {
-        $timeHours = floor($minutesBetween / 60);
-        $timeMinutes = $minutesBetween % 60;
-        $time =
-            (($timeHours > 0)
-                ? (($timeHours < 10 ? '0' : '') . $timeHours . ' h ')
-                : '')
-            . (($timeHours === 0 && $timeMinutes < 0)
-                ? '< 1 min'
-                : ((($timeHours > 0 && $timeMinutes < 10) ? '0' : '') . $timeMinutes . ' min'));
-            ($timeMinutes < 10 ? ('0' . $timeMinutes) : ($timeMinutes));
         $maxTime = $emplacement->getDateMaxTime();
-        $maxTimeHours = intval(explode(':', $maxTime)[0]);
-        $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
-        $late = false;
-        if ($timeHours > $maxTimeHours) {
-            $late = true;
-        } else if (intval($timeHours) === $maxTimeHours) {
-            $late = $timeMinutes > $maxTimeMinutes;
+        if ($maxTime) {
+            $timeHours = floor($minutesBetween / 60);
+            $timeMinutes = $minutesBetween % 60;
+            $time =
+                (($timeHours > 0)
+                    ? (($timeHours < 10 ? '0' : '') . $timeHours . ' h ')
+                    : '')
+                . (($timeHours === 0 && $timeMinutes < 0)
+                    ? '< 1 min'
+                    : ((($timeHours > 0 && $timeMinutes < 10) ? '0' : '') . $timeMinutes . ' min'));
+            $maxTimeHours = intval(explode(':', $maxTime)[0]);
+            $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
+            $late = false;
+            if ($timeHours > $maxTimeHours) {
+                $late = true;
+            } else if (intval($timeHours) === $maxTimeHours) {
+                $late = $timeMinutes > $maxTimeMinutes;
+            }
+            return [
+                'time' => $time,
+                'late' => $late,
+            ];
         }
+        return null;
+    }
+
+    /**
+     * @param Emplacement $emplacement
+     * @throws NonUniqueResultException
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Exception
+     */
+    public function getEnCoursForEmplacement(Emplacement $emplacement)
+    {
+        $success = true;
+        $emplacementInfo = [];
+        $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
+        $mvtGrouped = [];
+
+        foreach ($mvtArray as $mvt) {
+            if (isset($mvtGrouped[$mvt->getColis()])
+                && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
+                $mvtGrouped[$mvt->getColis()] = $mvt;
+            } else if (!isset($mvtGrouped[$mvt->getColis()])) {
+                $mvtGrouped[$mvt->getColis()] = $mvt;
+            }
+        }
+
+        foreach ($mvtGrouped as $mvt) {
+            if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
+                $dateMvt = new DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
+                $minutesBetween = $this->getMinutesBetween($dateMvt);
+                if (empty($minutesBetween)) {
+                    $success = false;
+                } else {
+                    $dataForTable = $this->buildDataForDatatable($minutesBetween, $emplacement);
+                    if ($dataForTable) {
+                        $emplacementInfo[] = [
+                            'colis' => $mvt->getColis(),
+                            'time' => $dataForTable['time'],
+                            'date' => $dateMvt->format('d/m/Y H:i:s'),
+                            'max' => $emplacement->getDateMaxTime(),
+                            'late' => $dataForTable['late']
+                        ];
+                    }
+                }
+            }
+        }
+
         return [
-            'time' => $time,
-            'late' => $late
+            'data' => $emplacementInfo,
+            'sucess' => $success
         ];
+    }
+
+    /**
+     * @param array $enCours
+     * @param int $spanBegin
+     * @param int $spanEnd
+     * @return array
+     * @throws NonUniqueResultException
+     */
+    public function getCountByNatureForEnCoursForTimeSpan(array $enCours, int $spanBegin, int $spanEnd, array $wantedNatures): array
+    {
+        $countByNature = [];
+        foreach ($wantedNatures as $wantedNature) {
+            $countByNature[$wantedNature->getLabel()] = 0;
+        }
+        foreach ($enCours as $enCour) {
+            $hourOfEnCours  = strpos($enCour['time'], 'h') ? intval(substr($enCour['time'], 0, 2)) : 0;
+            if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
+                $entityColisForThisEnCour = $this->colisRepository->findOneByCode($enCour['colis']);
+                if ($entityColisForThisEnCour) {
+                    $key = $entityColisForThisEnCour->getNature()->getLabel();
+                    if (array_key_exists($key, $countByNature)) {
+                        $countByNature[$key] ++;
+                    }
+                }
+            }
+        }
+        return $countByNature;
+    }
+
+    /**
+     * @param $dateMvt
+     * @return int
+     * @throws \Exception
+     */
+    public function getMinutesBetween($dateMvt): int
+    {
+        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $nowIncluding = (new DateTime("now", new \DateTimeZone("Europe/Paris")))
+            ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
+
+        $interval = DateInterval::createFromDateString('1 day');
+        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
+        $minutesBetween = 0;
+        /**
+         * @var $day DateTime
+         */
+        foreach ($period as $day) {
+            $minutesBetween += $this->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
+        }
+
+        return $minutesBetween;
     }
 }

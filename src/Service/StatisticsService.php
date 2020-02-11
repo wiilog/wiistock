@@ -9,11 +9,13 @@ use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 
 
-class StatisticsService {
+class StatisticsService
+{
 
     private $daysWorkedRepository;
 
-    public function __construct(DaysWorkedRepository $daysWorkedRepository) {
+    public function __construct(DaysWorkedRepository $daysWorkedRepository)
+    {
         $this->daysWorkedRepository = $daysWorkedRepository;
     }
 
@@ -26,7 +28,8 @@ class StatisticsService {
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function getDailyObjectsStatistics(callable $getCounter): array {
+    public function getDailyObjectsStatistics(callable $getCounter): array
+    {
         $dayToReturn = [];
         $nbDaysToReturn = 8;
         $dayIndex = 0;
@@ -71,7 +74,8 @@ class StatisticsService {
      * @return array [('S' . weekNumber) => integer]
      * @throws NonUniqueResultException
      */
-    public function getWeeklyObjectsStatistics(callable $getCounter): array {
+    public function getWeeklyObjectsStatistics(callable $getCounter): array
+    {
         $weekCountersToReturn = [];
         $nbWeeksToReturn = 5;
 
@@ -91,5 +95,25 @@ class StatisticsService {
         return $weekCountersToReturn;
     }
 
-
+    /**
+     * @param callable $getObject
+     * @return array
+     */
+    public function getObjectForTimeSpan(callable $getObject): array
+    {
+        $timeSpanToObject = [];
+        $timeSpans = [
+            -1 => -1,
+            0 => 1,
+            1 => 6,
+            6 => 12,
+            12 => 24,
+            24 => 36,
+            36 => 48,
+        ];
+        foreach ($timeSpans as $timeBegin => $timeEnd) {
+            $timeSpanToObject[$timeBegin === -1 ? "Retard" : ($timeBegin . "h-" . $timeEnd . 'h')] = $getObject($timeBegin, $timeEnd);
+        }
+        return $timeSpanToObject;
+    }
 }
