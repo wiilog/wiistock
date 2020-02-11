@@ -298,25 +298,32 @@ class ArrivageController extends AbstractController
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire'] ?? null);
 
-            if (!empty($fournisseur = $data['fournisseur'])) {
+            $fournisseur = $data['fournisseur'] ?? null;
+            if ($fournisseur) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseur));
             }
-            if (!empty($transporteur = $data['transporteur'])) {
+			$transporteur = $data['transporteur'] ?? null;
+            if ($transporteur) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($transporteur));
             }
-            if (!empty($chauffeur = $data['chauffeur'])) {
+            $chauffeur = $data['chauffeur'] ?? null;
+            if ($chauffeur) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeur));
             }
-            if (!empty($noTracking = $data['noTracking'])) {
+            $noTracking = $data['noTracking'];
+            if ($noTracking) {
                 $arrivage->setNoTracking(substr($noTracking, 0, 64));
             }
-            if (!empty($noBL = $data['noBL'])) {
+            $noBL = $data['noBL'];
+            if ($noBL) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            if (!empty($destinataire = $data['destinataire'])) {
+            $destinataire = $data['destinataire'];
+            if ($destinataire) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($destinataire));
             }
-            if (!empty($data['acheteurs'])) {
+            $acheteurs = $data['acheteurs'];
+            if ($acheteurs) {
                 $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($this->utilisateurRepository->find($acheteurId));
