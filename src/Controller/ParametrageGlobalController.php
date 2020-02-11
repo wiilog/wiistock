@@ -645,7 +645,7 @@ class ParametrageGlobalController extends AbstractController
 
 			foreach ($listMultipleSelect as $labelParam => $selectId) {
 				$listId = $post->get($selectId);
-				$listIdStr = $listId ? implode(',', $listId) : null;
+				$listIdStr = $listId ? is_array($listId) ? implode(',', $listId) : $listId : null;
 				$param = $parametrageGlobalRepository->findOneByLabel($labelParam);
 				$param->setValue($listIdStr);
 			}
