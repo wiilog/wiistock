@@ -350,25 +350,38 @@ class AccueilController extends AbstractController
         $naturesForGraph = array_map(function(int $natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
-        $emplacementWanted = $emplacementRepository->find($parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue());
-        $enCoursOnThisEmp = $enCoursService->getEnCoursForEmplacement($emplacementWanted);
-        $enCoursCountForTimeSpanAndNature = $statisticsService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) use (
-            $enCoursService,
-            $naturesForGraph,
-            $enCoursOnThisEmp
-        ) {
-            return $enCoursService->getCountByNatureForEnCoursForTimeSpan($enCoursOnThisEmp['data'], $beginSpan, $endSpan, $naturesForGraph);
-        });
-        $total = 0;
-        foreach ($enCoursCountForTimeSpanAndNature as $timeSpan => $natures) {
-            foreach ($natures as $nature => $count) {
-                if ($timeSpan !== "Retard") $total += $count;
+        $emplacementsWanted = explode(',', $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue());
+        $emplacementsWanted = array_map(function(int $emplacementId) use ($emplacementRepository) {
+            return $emplacementRepository->find($emplacementId);
+        }, $emplacementsWanted);
+        $highestTotal = -1;
+        $enCoursToMonitor = null;
+        $empToKeep = null;
+        foreach ($emplacementsWanted as $emplacementWanted) {
+            $enCoursOnThisEmp = $enCoursService->getEnCoursForEmplacement($emplacementWanted);
+            $enCoursCountForTimeSpanAndNature = $statisticsService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) use (
+                $enCoursService,
+                $naturesForGraph,
+                $enCoursOnThisEmp
+            ) {
+                return $enCoursService->getCountByNatureForEnCoursForTimeSpan($enCoursOnThisEmp['data'], $beginSpan, $endSpan, $naturesForGraph);
+            });
+            $total = 0;
+            foreach ($enCoursCountForTimeSpanAndNature as $timeSpan => $natures) {
+                foreach ($natures as $nature => $count) {
+                    if ($timeSpan !== "Retard") $total += $count;
+                }
+            }
+            if ($total >= $highestTotal) {
+                $enCoursToMonitor = $enCoursCountForTimeSpanAndNature;
+                $highestTotal = $total;
+                $empToKeep = $emplacementWanted;
             }
         }
         return new JsonResponse([
-            "data" => $enCoursCountForTimeSpanAndNature,
-            'total' => $total,
-            "location" => $emplacementWanted->getLabel()
+            "data" => $enCoursToMonitor,
+            'total' => $highestTotal,
+            "location" => $empToKeep->getLabel()
         ]);
     }
 }
