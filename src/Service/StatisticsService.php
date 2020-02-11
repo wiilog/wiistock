@@ -44,7 +44,7 @@ class StatisticsService {
 		}
 
 		return array_reduce(
-			$daysToReturn,
+			array_reverse($daysToReturn),
 			function (array $carry, DateTime $dateToCheck) use ($getCounter) {
 				$dateMin = clone $dateToCheck;
 				$dateMin->setTime(0, 0, 0);

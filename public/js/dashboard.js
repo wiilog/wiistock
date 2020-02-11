@@ -278,6 +278,9 @@ $.get(Routing.generate('get_daily_arrivals_statistics'), function(data) {
         'rgba(163,209,255, 1)',
         'rgba(163,209,255, 1)',
         'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
         'rgba(57,181,74, 1)',
     ];
     let chartDailyArrival = newChart('#chartDailyArrival', labelsDailyArrival, dataDailyArrival, bgColorsDailyArrival);
