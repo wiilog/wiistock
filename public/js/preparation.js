@@ -149,7 +149,7 @@ function submitSplitting(submit) {
         const inputValue = $input.val();
 
         if (inputValue !== '' && inputValue > 0) {
-            if (inputValue <= $input.attr('max')) {
+            if (inputValue <= Number($input.attr('max'))) {
                 let id = $input.data('id');
                 articlesChosen[id] = inputValue;
             }
