@@ -729,10 +729,13 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/livraison-infos", name="get_livraisons_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 */
-	public function getLivraisonIntels(Request $request): Response
+    /**
+     * @Route("/demandes-infos", name="get_demandes_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+	public function getDemandesIntels(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$dateMin = $data['dateMin'] . ' 00:00:00';
@@ -741,7 +744,7 @@ class DemandeController extends AbstractController
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-			$livraisons = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
+			$demandes = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             // en-têtes champs fixes
             $headers = [
@@ -783,10 +786,10 @@ class DemandeController extends AbstractController
 				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
 			}
 
-			foreach ($livraisons as $livraison) {
-			    $infosDemand = $this->getCSVExportFromDemand($livraison);
-				foreach ($livraison->getLigneArticle() as $ligneArticle) {
-					$livraisonData = [];
+			foreach ($demandes as $demande) {
+			    $infosDemand = $this->getCSVExportFromDemand($demande);
+				foreach ($demande->getLigneArticle() as $ligneArticle) {
+					$demandeData = [];
 					$articleRef = $ligneArticle->getReference();
 
 					$quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
@@ -795,30 +798,14 @@ class DemandeController extends AbstractController
 
 					$availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
-                    $livraisonOrders = $livraison
-                        ->getLivraisons()
-                        ->map(function (Livraison $livraison) {
-                            return $livraison->getNumero();
-                        })
-                        ->toArray();
-                    $preparationOrders = $livraison->getPreparations();
-                    $preparationOrdersNumeros = $preparationOrders
-                        ->map(function (Preparation $preparation) {
-                            return $preparation->getNumero();
-                        })
-                        ->toArray();
-
-					// TODO prepaPartielle attention pas le meme nombre de colonne comparé aux articles ???????  ????? $preparationOrdersNumeros & $livraisonOrders pour les articles aussi
-                    array_push($livraisonData, ...$infosDemand);
-					$livraisonData[] = !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND';
-					$livraisonData[] = !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND';
-					$livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-					$livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
-					$livraisonData[] = $availableQuantity;
-					$livraisonData[] = $ligneArticle->getQuantite();
+                    array_push($demandeData, ...$infosDemand);
+					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+					$demandeData[] = $availableQuantity;
+					$demandeData[] = $ligneArticle->getQuantite();
 
 					// champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
+					$this->addChampsLibresDL($demande, $listChampsLibresDL, $clDL, $demandeData);
 
 					// champs libres de l'article de référence
 					$categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
@@ -835,25 +822,25 @@ class DemandeController extends AbstractController
 					}
 					foreach ($clAR as $type) {
 						if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-							$livraisonData[] = $champsLibresArt[$type->getLabel()];
+							$demandeData[] = $champsLibresArt[$type->getLabel()];
 						} else {
-							$livraisonData[] = '';
+							$demandeData[] = '';
 						}
 					}
 
-					$data[] = $livraisonData;
+					$data[] = $demandeData;
 				}
-				foreach ($this->articleRepository->findByDemande($livraison) as $article) {
-					$livraisonData = [];
+				foreach ($this->articleRepository->findByDemande($demande) as $article) {
+					$demandeData = [];
 
-                    // TODO prepaPartielle attention pas le meme nombre de colonne comparé aux articles ???????  ????? $preparationOrdersNumeros & $livraisonOrders pour les articles aussi
-                    array_push($livraisonData, ...$infosDemand);
-					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-					$livraisonData[] = $article->getLabel();
-					$livraisonData[] = $article->getQuantite();
+                    array_push($demandeData, ...$infosDemand);
+					$demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+					$demandeData[] = $article->getLabel();
+					$demandeData[] = $article->getQuantite();
+					$demandeData[] = $article->getQuantiteAPrelever();
 
 					// champs libres de la demande
-					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
+					$this->addChampsLibresDL($demande, $listChampsLibresDL, $clDL, $demandeData);
 
 					// champs libres de l'article
 					$champsLibresArt = [];
@@ -868,13 +855,13 @@ class DemandeController extends AbstractController
 					}
 					foreach ($clAR as $type) {
 						if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-							$livraisonData[] = $champsLibresArt[$type->getLabel()];
+							$demandeData[] = $champsLibresArt[$type->getLabel()];
 						} else {
-							$livraisonData[] = '';
+							$demandeData[] = '';
 						}
 					}
 
-					$data[] = $livraisonData;
+					$data[] = $demandeData;
 				}
 			}
 			return new JsonResponse($data);
@@ -887,10 +874,10 @@ class DemandeController extends AbstractController
 	 * @param Demande $livraison
 	 * @param ChampLibre[] $listChampsLibresDL
 	 * @param ChampLibre[] $cls
-	 * @param array $livraisonData
+	 * @param array $demandeData
 	 * @throws NonUniqueResultException
 	 */
-	private function addChampsLibresDL($livraison, $listChampsLibresDL, $cls, &$livraisonData)
+	private function addChampsLibresDL($livraison, $listChampsLibresDL, $cls, &$demandeData)
 	{
 		$champsLibresDL = [];
 		foreach ($listChampsLibresDL as $champLibre) {
@@ -902,15 +889,29 @@ class DemandeController extends AbstractController
 
 		foreach ($cls as $cl) {
 			if (array_key_exists($cl->getLabel(), $champsLibresDL)) {
-				$livraisonData[] = $champsLibresDL[$cl->getLabel()];
+                $demandeData[] = $champsLibresDL[$cl->getLabel()];
 			} else {
-				$livraisonData[] = '';
+                $demandeData[] = '';
 			}
 		}
 	}
 
     private function getCSVExportFromDemand(Demande $demande): array {
         $preparationOrders = $demande->getPreparations();
+
+        $livraisonOrders = $demande
+            ->getLivraisons()
+            ->map(function (Livraison $livraison) {
+                return $livraison->getNumero();
+            })
+            ->toArray();
+
+        $preparationOrdersNumeros = $preparationOrders
+            ->map(function (Preparation $preparation) {
+                return $preparation->getNumero();
+            })
+            ->toArray();
+
         return [
             $demande->getUtilisateur()->getUsername(),
             $demande->getStatut()->getNom(),
@@ -919,7 +920,9 @@ class DemandeController extends AbstractController
             $demande->getDate()->format('Y/m/d-H:i:s'),
             $preparationOrders->count() > 0 ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
             $demande->getNumero(),
-            $demande->getType() ? $demande->getType()->getLabel() : ''
+            $demande->getType() ? $demande->getType()->getLabel() : '',
+            !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
+            !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND'
         ];
     }
 

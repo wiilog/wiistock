@@ -1007,7 +1007,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    public function addInventoryEntries(Request $request)
+    public function addInventoryEntries(Request $request,
+                                        InventoryEntryRepository $inventoryEntryRepository)
     {
         if (!$request->isXmlHttpRequest()) {
             $response = new Response();
@@ -1025,57 +1026,70 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $newAnomalies = [];
 
                 foreach ($entries as $entry) {
-                    $newEntry = new InventoryEntry();
-
                     $mission = $this->inventoryMissionRepository->find($entry['id_mission']);
                     $location = $this->emplacementRepository->findOneByLabel($entry['location']);
 
-                    if ($mission && $location) {
+                    $articleToInventory = $entry['is_ref']
+                        ? $this->referenceArticleRepository->findOneByReference($entry['reference'])
+                        : $this->articleRepository->findOneByReference($entry['reference']);
+
+                    $criteriaInventoryEntry = ['mission' => $mission];
+
+                    if (isset($articleToInventory)) {
+                        if ($articleToInventory instanceof ReferenceArticle) {
+                            $criteriaInventoryEntry['refArticle'] = $articleToInventory;
+                        }
+                        else { // ($articleToInventory instanceof Article)
+                            $criteriaInventoryEntry['article'] = $articleToInventory;
+                        }
+                    }
+
+                    $inventoryEntry = $inventoryEntryRepository->findOneBy($criteriaInventoryEntry);
+
+                    // On inventorie l'article seulement si les infos sont valides et si aucun inventaire de l'article
+                    // n'a encore été fait sur cette mission
+                    if (isset($mission) &&
+                        isset($location) &&
+                        isset($articleToInventory) &&
+                        !isset($inventoryEntry)) {
                         $newDate = new DateTime($entry['date']);
-                        $newEntry
+                        $inventoryEntry = new InventoryEntry();
+                        $inventoryEntry
                             ->setMission($mission)
                             ->setDate($newDate)
                             ->setQuantity($entry['quantity'])
                             ->setOperator($nomadUser)
                             ->setLocation($location);
 
-                        if ($entry['is_ref']) {
-                            $refArticle = $this->referenceArticleRepository->findOneByReference($entry['reference']);
-                            $newEntry->setRefArticle($refArticle);
-                            if ($newEntry->getQuantity() !== $refArticle->getQuantiteStock()) {
-                                $newEntry->setAnomaly(true);
-                            } else {
-                                $refArticle->setDateLastInventory($newDate);
-                                $newEntry->setAnomaly(false);
-                            }
-                            $em->flush();
-                        } else {
-                            $article = $this->articleRepository->findOneByReference($entry['reference']);
-                            $newEntry->setArticle($article);
+                        if ($articleToInventory instanceof ReferenceArticle) {
+                            $inventoryEntry->setRefArticle($articleToInventory);
+                            $isAnomaly = ($inventoryEntry->getQuantity() !== $articleToInventory->getQuantiteStock());
+                            $inventoryEntry->setAnomaly($isAnomaly);
 
-                            if ($newEntry->getQuantity() !== $article->getQuantite()) {
-                                $newEntry->setAnomaly(true);
-                            } else {
-                                $newEntry->setAnomaly(false);
+                            if (!$isAnomaly) {
+                                $articleToInventory->setDateLastInventory($newDate);
                             }
-                            $em->flush();
                         }
-                        $em->persist($newEntry);
-                        $em->flush();
+                        else {
+                            $inventoryEntry->setArticle($articleToInventory);
+                            $inventoryEntry->setAnomaly($inventoryEntry->getQuantity() !== $articleToInventory->getQuantite());
+                        }
+                        $em->persist($inventoryEntry);
 
-                        if ($newEntry->getAnomaly()) {
-                            $newAnomalies[] = $newEntry->getId();
+                        if ($inventoryEntry->getAnomaly()) {
+                            $newAnomalies[] = $inventoryEntry->getId();
                         }
+                        $numberOfRowsInserted++;
                     }
-                    $numberOfRowsInserted++;
                 }
+
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
                     ? "Aucune saisie d'inventaire à synchroniser."
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
                 $this->successDataMsg['data']['anomalies'] = array_merge(
-                    $this->inventoryEntryRepository->getAnomaliesOnRef($newAnomalies),
+                    $this->inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomalies),
                     $this->inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
                 );
             } else {
@@ -1091,7 +1105,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     private function getDataArray($user)
     {
-        $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef();
+        $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
         $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
 
         /// livraisons
