@@ -12,12 +12,13 @@ use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
-use App\Service\GlobalParamService;
+use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\AcheminementsService;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/acheminements")
@@ -89,6 +93,8 @@ Class AcheminementsController extends AbstractController
 
     /**
      * @Route("/api", name="acheminements_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -108,12 +114,10 @@ Class AcheminementsController extends AbstractController
 	/**
 	 * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
 	 * @param Request $request
-	 * @param GlobalParamService $globalParamService
 	 * @return Response
 	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function new(Request $request, GlobalParamService $globalParamService): Response
+     */
+    public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $status = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ACHEMINEMENT, Acheminements::STATUT_A_TRAITER);
@@ -135,55 +139,52 @@ Class AcheminementsController extends AbstractController
 
             $em->flush();
 
-            $requester = $this->utilisateurRepository->find($data['demandeur']);
-            $receiver = $this->utilisateurRepository->find($data['destinataire']);
-
-            $response['exists'] = true;
-
-            $response['codes'] = $data['colis'];
-            $response['date'] = $date->format('d/m/Y H:i');
-            $response['demandeur'] = $requester->getUsername();
-            $response['destinataire'] = $receiver->getUsername();
-            $response['depose'] = $data['depose'];
-            $response['prise'] = $data['prise'];
-            $response['acheminements'] = (string)$acheminements->getId();
-			$paramTypeBarcode = $globalParamService->getDimensionAndTypeBarcodeArray();
-            $response['isCode128'] = $paramTypeBarcode['isCode128'];
+            $response['acheminement'] = $acheminements->getId();
             return new JsonResponse($response);
         }
         throw new XmlHttpException('404 not found');
     }
 
-	/**
-	 * @Route("/get-info", name="get_info_to_print", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @param GlobalParamService $globalParamService
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function getInfo(Request $request, GlobalParamService $globalParamService) : Response
+    /**
+     * @Route("/{acheminement}/etat", name="print_acheminement_state_sheet", options={"expose"=true}, methods="GET")
+     * @param Acheminements $acheminement
+     * @param PDFGeneratorService $PDFGenerator
+     * @return PdfResponse
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printAcheminementStateSheet(Acheminements $acheminement,
+                                                PDFGeneratorService $PDFGenerator): PdfResponse
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $colis = $acheminement->getColis();
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            $acheminement = $this->acheminementsRepository->find($data['id']);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-
-            $response['exists'] = true;
-
-            $response['codes'] = $acheminement->getColis();
-            $response['date'] = $date->format('d/m/Y H:i');
-            $response['demandeur'] = $acheminement->getRequester()->getUsername();
-            $response['destinataire'] = $acheminement->getReceiver()->getUsername();
-            $response['depose'] = $acheminement->getLocationDrop();
-            $response['prise'] = $acheminement->getLocationTake();
-            $response['acheminements'] = (string)$acheminement->getId();
-			$paramTypeBarcode = $globalParamService->getDimensionAndTypeBarcodeArray();
-			$response['isCode128'] = $paramTypeBarcode['isCode128'];
-
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException('404');
+        $fileName = 'Etat_acheminement_' . $acheminement->getId() . '.pdf';
+        return new PdfResponse(
+            $PDFGenerator->generatePDFStateSheet(
+                $fileName,
+                array_map(
+                    function (string $colis) use ($acheminement, $now) {
+                        return [
+                            'title' => 'Acheminement n°' . $acheminement->getId(),
+                            'code' => $colis,
+                            'content' => [
+                                'Date d\'acheminement' => $now->format('d/m/Y H:i'),
+                                'Demandeur' => $acheminement->getRequester()->getUsername(),
+                                'Destinataire' => $acheminement->getReceiver()->getUsername(),
+                                'Emplacement de dépose' => $acheminement->getLocationDrop(),
+                                'Emplacement de prise' => $acheminement->getLocationTake()
+                            ]
+                        ];
+                    },
+                    $colis
+                )
+            ),
+            $fileName
+        );
     }
 
     /**
@@ -191,15 +192,18 @@ Class AcheminementsController extends AbstractController
      */
     public function newApi(): Response
     {
-            $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-                'utilisateurs' => $this->utilisateurRepository->findAll(),
-            ]);
+        $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->findAll(),
+        ]);
 
-            return new JsonResponse($json);
+        return new JsonResponse($json);
     }
 
     /**
      * @Route("/modifier", name="acheminement_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function edit(Request $request): Response
     {
@@ -220,29 +224,7 @@ Class AcheminementsController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
-//            if ($statutLabel == Acheminements::STATUT_TRAITE) {
-//                $this->mailerService->sendMail(
-//                    'FOLLOW GT // Acheminement effectuée',
-//                    $this->renderView('mails/mailAcheminementDone.html.twig', [
-//                        'manut' => $acheminement,
-//                        'title' => 'Votre demande d\'acheminement a bien été effectuée.',
-//                    ]),
-//                    $acheminement->getRequester()->getEmail()
-//                );
-//            }
-
-            $requester = $this->utilisateurRepository->find($data['demandeur']);
-            $receiver = $this->utilisateurRepository->find($data['destinataire']);
-
-            $response['exists'] = true;
-
-            $response['codes'] = $data['colis'];
-            $response['date'] = $date->format('Y-m-d H:i:s');
-            $response['demandeur'] = $requester->getUsername();
-            $response['destinataire'] = $receiver->getUsername();
-            $response['depose'] = $data['depose'];
-            $response['prise'] = $data['prise'];
-            $response['acheminements'] = (string)$acheminement->getId();
+            $response['acheminement'] = $acheminement->getId();
 
             return new JsonResponse($response);
         }

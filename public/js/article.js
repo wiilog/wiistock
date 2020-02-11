@@ -220,25 +220,25 @@ function overrideSearchArticle() {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function getDataAndPrintLabels() {
-    let path = Routing.generate('article_get_data_to_print', true);
+function printArticlesBarCodes() {
     let listArticles = $("#listArticleIdToPrint").val();
-    let params = JSON.stringify({
-        listArticles: listArticles,
-        start: tableArticle.page.info().start,
-        length: tableArticle.page.info().length
-    });
-    $.post(path, params, function (response) {
-        if (response === false) {
-            alertErrorMsg("Il n'y a aucun article à imprimer.");
-        } else {
-            printBarcodes(
-                response.barcodes,
-                response.tags,
-                'Etiquettes-articles.pdf',
-                response.barcodesLabels);
-        }
-    });
+    const length = tableArticle.page.info().length;
+
+    if (length > 0) {
+        let path = Routing.generate(
+            'article_print_bar_codes',
+            {
+                length,
+                listArticles: listArticles,
+                start: tableArticle.page.info().start
+            },
+            true
+        );
+        window.open(path, '_blank');
+    }
+    else {
+        alertErrorMsg("Il n'y a aucun article à imprimer");
+    }
 }
 
 function saveRapidSearch() {

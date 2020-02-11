@@ -38,6 +38,7 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
+use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\SpecificService;
@@ -59,6 +60,7 @@ use App\Repository\FournisseurRepository;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
 
 /**
@@ -1165,19 +1167,20 @@ class ReferenceArticleController extends AbstractController
             $data['total'] = $this->referenceArticleRepository->countAll();
             $data['headers'] = [
                 'reference',
-                'libelle',
-                'quantite',
+                'libellé',
+                'quantité',
                 'type',
-                'type_quantite',
+                'type quantité',
                 'statut',
                 'commentaire',
                 'emplacement',
                 'fournisseurs',
                 'articles fournisseurs',
-                'seuil securite',
+                'seuil sécurite',
                 'seuil alerte',
                 'prix unitaire',
-                'code barre'
+                'code barre',
+				'catégorie inventaire'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1221,6 +1224,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1282,66 +1286,72 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-etiquettes", name="reference_article_get_data_to_print", options={"expose"=true})
+     * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
+     * @param Request $request
+     * @param RefArticleDataService $refArticleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getDataToPrintLabels(Request $request, $params = null) : Response
-    {
+    public function getBarCodes(Request $request,
+                                RefArticleDataService $refArticleDataService,
+                                PDFGeneratorService $PDFGeneratorService): Response {
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
-        $data = json_decode($request->getContent(), true);
 
-        /** @var ReferenceArticle[] $refs */
-        $refs = array_slice($refs, $data['start'] ,$data['length']);
-
-        $refArticleDataService = $this->refArticleDataService;
-        $barcodeInformations = array_reduce(
-            $refs,
-            function (array $acc, ReferenceArticle $referenceArticle) use ($refArticleDataService) {
-                $refBarcodeInformations = $refArticleDataService->getBarcodeInformations($referenceArticle);
-                $acc['barcodes'][] = $refBarcodeInformations['barcode'];
-                $acc['barcodeLabels'][] = $refBarcodeInformations['barcodeLabel'];
-                return $acc;
+        $barcodeConfigs = array_map(
+            function (ReferenceArticle $reference) use ($refArticleDataService) {
+                return $refArticleDataService->getBarcodeConfig($reference);
             },
-            ['barcodes' => [], 'barcodeLabels' => []]
+            $refs
         );
 
-        if ($request->isXmlHttpRequest()) {
-            $data = [
-            	'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
-				'barcodes' => $barcodeInformations['barcodes'],
-				'barcodeLabels' => $barcodeInformations['barcodeLabels'],
-			];
-            return new JsonResponse($data);
-        } else {
-            throw new NotFoundHttpException('404');
+        $barcodeCounter = count($barcodeConfigs);
+
+        if ($barcodeCounter > 0) {
+            $fileName = $PDFGeneratorService->getBarcodeFileName(
+                $barcodeConfigs,
+                'reference' . ($barcodeCounter > 1 ? 's' : '')
+            );
+
+            return new PdfResponse(
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $fileName
+            );
+        }
+        else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
 
-	/**
-	 * @Route("/ajax-reference_article-depuis-id", name="get_reference_article_from_id", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 * @throws NoResultException
-	 */
-    public function getArticleRefFromId(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $ref = $this->referenceArticleRepository->find(intval($dataContent['article']));
-            $barcodeInformations = $this->refArticleDataService->getBarcodeInformations($ref);
-            $data  = [
-                'tags' => $this->globalParamService->getDimensionAndTypeBarcodeArray(),
-                'barcodes' => [$barcodeInformations['barcode']],
-                'barcodeLabels' => [$barcodeInformations['barcodeLabel']],
-            ];
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
+    /**
+     * @Route("/{reference}/etiquette", name="reference_article_single_bar_code_print", options={"expose"=true})
+     * @param ReferenceArticle $reference
+     * @param RefArticleDataService $refArticleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getSingleBarCodes(ReferenceArticle $reference,
+                                      RefArticleDataService $refArticleDataService,
+                                      PDFGeneratorService $PDFGeneratorService): Response {
+        $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($reference)];
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'reference');
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $fileName
+        );
     }
 
     /**

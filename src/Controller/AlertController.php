@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -64,6 +63,7 @@ class AlertController extends AbstractController
             if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
                 return $this->redirectToRoute('access_denied');
             }
+
             $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
             return new JsonResponse($data);
         }

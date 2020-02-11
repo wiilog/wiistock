@@ -112,7 +112,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
              FROM App\Entity\Article a
              JOIN a.collectes c
-             WHERE c.id =:id
+             WHERE c.id = :id
             "
         )->setParameter('id', $id);
         return $query->getResult();
@@ -1093,5 +1093,13 @@ class ArticleRepository extends ServiceEntityRepository
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('statusNom', Article::STATUT_ACTIF);
+    }
+
+    public function findByIds(array $ids): array {
+        return $this->createQueryBuilder('article')
+            ->where('article.id IN (:ids)')
+            ->setParameter("ids", $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
     }
 }

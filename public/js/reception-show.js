@@ -3,6 +3,9 @@ let editorNewReferenceArticleAlreadyDone = false;
 let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
+let modalNewLigneReception = "#modalNewLigneReception";
+let $modalNewLigneReception = $(modalNewLigneReception);
+
 $(function () {
     const dataTableInitRes = InitiliaserPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
@@ -29,8 +32,7 @@ function InitiliserPageModals() {
     let modalEditArticle = $("#modalEditLigneArticle");
     let submitEditArticle = $("#submitEditLigneArticle");
     let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
-
+    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle, displayErrorReception, false, false);
 
     let ModalDelete = $("#modalDeleteReception");
     let SubmitDelete = $("#submitDeleteReception");
@@ -126,7 +128,11 @@ function InitiliaserPageDataTable() {
     };
 }
 
-
+function displayErrorReception(data) {
+    let $modal = $("#modalEditLigneArticle");
+    let msg = 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !';
+    displayError($modal, msg, data);
+}
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
@@ -260,31 +266,13 @@ function initNewArticleEditor(modal) {
         editorNewArticleAlreadyDone = true;
     }
     clearAddRefModal();
+    clearModal(modal);
 }
 
-function printSingleBarcode(button) {
-    let params = {
-        'ligne': button.data('id')
-    };
-    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
-        if (!response.article) {
-            printBarcodes(
-                [response.barcode],
-                response,
-                'Etiquette concernant l\'article ' + response.barcode + '.pdf',
-                [response.barcodeLabel]
-            );
-        } else {
-            $('#ligneSelected').val(button.data('id'));
-            $('#chooseConditionnement').click();
-            let $submit = $('#submitConditionnement');
-            $submit.attr('data-ref', response.article);
-            $submit.attr('data-id', button.data('id'));
-            initDatatableConditionnement();
-            $submit.addClass('d-none');
-            $('#reference-list').html(response.article);
-        }
-    });
+function openModalArticlesFromLigneArticle(ligneArticleId) {
+    $('#ligneSelected').val(ligneArticleId);
+    $('#chooseConditionnement').click();
+    initDatatableConditionnement();
 }
 
 function articleChanged(select) {
@@ -448,21 +436,23 @@ function validatePacking($button) {
 
                 $packingContainer.find('.packing-title').removeClass('d-none');
             }
+
+            let $listMultiple = $packingContainer.find('.list-multiple');
+            $listMultiple.select2();
         })
     }
 }
 
-function initNewLigneReception(modal) {
+function initNewLigneReception() {
     if (!editorNewLivraisonAlreadyDoneForDL) {
-        initEditorInModal(modal);
+        initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initSelect2Ajax($('.ajax-autocompleteEmplacement'), 'get_emplacement');
+    initSelect2Ajax($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), 'get_emplacement');
     initSelect2('.select2-type');
-    initSelect2Ajax($('.select2-user'), 'get_user');
-    initSelect2Ajax($('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
+    initSelect2Ajax($modalNewLigneReception.find('.select2-user'), 'get_user');
+    initSelect2Ajax($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
 
-    let $modalNewLigneReception = $(modal);
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -477,8 +467,9 @@ function initNewLigneReception(modal) {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function() {
-                $('#button-for-id-ref').click();
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
+                displayErrorReception(data);
+                $('#buttonPrintBarcode').click();
             });
         }
     });
@@ -490,31 +481,33 @@ function initNewLigneReception(modal) {
 
 
 function getErrorModalNewLigneReception() {
-    let $modalNewLigneReception = $("#modalNewLigneReception");
-    // On check si au moins un conditionnement a été fait
-    const articlesCondtionnement = $modalNewLigneReception
+    // on vérifie qu'au moins un conditionnement a été fait
+    const articlesConditionnement = $modalNewLigneReception
         .find('.articles-conditionnement-container')
         .children();
 
+    // on vérifie que les quantités sont correctes
     const quantityError = getQuantityErrorModalNewLigneReception();
 
-    return (articlesCondtionnement.length === 0)
-        ? 'Veuillez effectuer un conditionnement.'
-        : (quantityError && quantityError)
-            ? `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article(s) pour cette référence ${quantityError.reference} – ${quantityError.commande}.`
-            : undefined;
+    let msg = undefined;
+    if (articlesConditionnement.length === 0) {
+        msg = 'Veuillez effectuer un conditionnement.';
+    } else if (quantityError) {
+        let s = quantityError.quantity > 1 ? 's' : '';
+        msg = `Vous ne pouvez pas conditionner plus de ${quantityError.quantity} article${s} pour cette référence ${quantityError.reference} – ${quantityError.commande}.`;
+    }
+
+    return msg;
 }
 
-
 function getQuantityErrorModalNewLigneReception() {
-    let $modalNewLigneReception = $("#modalNewLigneReception");
-    const conditionnementArticleArray$ = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
+    const $conditionnementArticleArray = $modalNewLigneReception.find('.articles-conditionnement-container .conditionnement-article');
     const quantityByConditionnementArray = [];
 
-    conditionnementArticleArray$.each(function () {
+    $conditionnementArticleArray.each(function () {
         const $conditionnement = $(this);
 
-        const referenceConditionnement = $conditionnement.find('input[name="refArticle"]').val();
+        const referenceConditionnement = $conditionnement.find('input[name="refRefArticle"]').val();
         const noCommandeConditionnement = $conditionnement.find('input[name="noCommande"]').val();
         const quantityConditionnement = Number($conditionnement.find('input[name="quantite"]').val());
         const quantityByConditionnement = quantityByConditionnementArray.find(({reference, noCommande}) => (
@@ -561,28 +554,6 @@ function removePackingItem($button) {
     $button.closest('.conditionnement-article').remove();
 }
 
-function printBarcode(button) {
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let params = {
-        'reception': button.data('id')
-    };
-    $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            if (response.refs.length > 0) {
-                printBarcodes(
-                    response.refs,
-                    response,
-                    'Etiquettes du ' + date + '.pdf',
-                    response.barcodeLabel);
-            } else {
-                alertErrorMsg('Il n\'y a aucune étiquette à imprimer.');
-            }
-        }
-    });
-}
-
 function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
         if (data.errorMsg) {
@@ -594,4 +565,8 @@ function createHandlerAddLigneArticleResponse($modal) {
             clearModal($modal);
         }
     }
+}
+
+function updateQuantityToReceive($input) {
+    $input.closest('.modal').find('#quantite').attr('max', $input.val());
 }

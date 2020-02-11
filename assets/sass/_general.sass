@@ -51,7 +51,9 @@ body
   -webkit-font-smoothing: antialiased
   font-size: 1em
   color: $bodyColor
-  background-color: $backgroundBodyColor
+  background-image: linear-gradient(to right, $backgroundBodyColorLight, $backgroundBodyColorDark)
+  background-repeat: no-repeat
+  background-size: 100% 40%
   overflow-x: hidden
   height: 100%
 
@@ -120,9 +122,6 @@ input:-webkit-autofill
 .myriad
   font-family: "Myriad" !important
 
-.font-size-mini
-  font-size: .9rem
-
 .big-font
   font-size: 3rem
 
@@ -172,10 +171,13 @@ a
   background-color: $greyFormLight !important
 
 .red
-  color: $red
+  color: $red !important
 
 .green
   color: $green
+
+.white
+  color: $white
 
 .no-padding
   p

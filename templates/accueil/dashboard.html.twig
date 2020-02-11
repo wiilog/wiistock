@@ -1,12 +1,21 @@
-<div class="row no-gutters">
-    <div class="col-6 dashboard-box-wrapper">
+<div class="row">
+    <p class="col-12 white">
+        Dashboard | RÉCEPTION ARRIVAGE
+    </p>
+</div>
+<div class="row mt-4">
+    {% include 'svg/cross.svg.twig' %}
+    <div class="col-6 dashboard-box-wrapper half-height">
         <div class="dashboard-box">
-            <h2 class="bold">Arrivage (UM)</h2>
+            <p class="title">
+                Arrivage (UM)<br>
+                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+            </p>
+            <div class="points">
+                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+            </div>
             <div class="dashboard-box-content" id="dashboard-arrival">
                 <div class="chart"></div>
-                <div class="spinner-container">
-                    <div class="spinner-border"></div>
-                </div>
                 <div class="range-buttons">
                     <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
                         <i class="fas fa-chevron-left pointer"></i>
@@ -20,14 +29,17 @@
             </div>
         </div>
     </div>
-    <div class="col-6 dashboard-box-wrapper">
-        <div id="dashboard-assoc" class="dashboard-box">
-            <h2 class="bold">Réceptions (nombre d'associations)</h2>
+    <div class="col-6 dashboard-box-wrapper half-height">
+        <div class="dashboard-box">
+            <p class="title">
+                Réceptions (nombre d'associations)<br>
+                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+            </p>
+            <div class="points">
+                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+            </div>
             <div class="dashboard-box-content" id="dashboard-assoc">
                 <div class="chart"></div>
-                <div class="spinner-container">
-                    <div class="spinner-border"></div>
-                </div>
                 <div class="range-buttons">
                     <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
                         <i class="fas fa-chevron-left pointer"></i>
@@ -41,12 +53,15 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="row no-gutters">
-    <div class="col-6 dashboard-box-wrapper">
+    <div class="col-6 dashboard-box-wrapper half-height">
         <div class="dashboard-box">
-            <h2 class="bold">Colis en retard</h2>
+            <p class="title">
+                Colis en retard<br>
+                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+            </p>
+            <div class="points">
+                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+            </div>
             <div class="dashboard-box-content">
                 <table class="table table-striped table-bordered retards-table w-100"></table>
             </div>
@@ -54,9 +69,15 @@
     </div>
 
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
-        <div class="col-6 dashboard-box-wrapper">
+        <div class="col-6 dashboard-box-wrapper half-height">
             <div id="dashboard-monetary" class="dashboard-box">
-                <h2 class="bold">Fiabilité monétaire</h2>
+                <p class="title">
+                    Fiabilité monétaire<br>
+                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                </p>
+                <div class="points">
+                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                </div>
                 <div class="dashboard-box-content">
                     <div class="curve_chart_line " id="curve_chart"></div>
                     <div class="spinner-container">
