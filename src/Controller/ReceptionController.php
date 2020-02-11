@@ -806,10 +806,10 @@ class ReceptionController extends AbstractController
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
-            if ($typeQuantite == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
 
             	// protection quantité reçue <= quantité à recevoir
-				if ($quantite > $receptionReferenceArticle->getQuantite()) {
+				if ($receptionReferenceArticle->getQuantite() && $quantite > $receptionReferenceArticle->getQuantite()) {
 					return new JsonResponse(false);
 				}
 				$receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
