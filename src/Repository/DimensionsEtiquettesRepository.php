@@ -17,11 +17,8 @@ class DimensionsEtiquettesRepository extends ServiceEntityRepository
 {
 	private $parametrageGlobalRepository;
 
-    public function __construct(
-    	ManagerRegistry $registry,
-		ParametrageGlobalRepository $parametrageGlobalRepository
-	)
-    {
+    public function __construct(ManagerRegistry $registry,
+                                ParametrageGlobalRepository $parametrageGlobalRepository) {
         parent::__construct($registry, DimensionsEtiquettes::class);
         $this->parametrageGlobalRepository = $parametrageGlobalRepository;
     }
@@ -30,8 +27,7 @@ class DimensionsEtiquettesRepository extends ServiceEntityRepository
 	 * @return DimensionsEtiquettes|null
 	 * @throws NonUniqueResultException
 	 */
-    public function findOneDimension()
-    {
+    public function findOneDimension() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT de

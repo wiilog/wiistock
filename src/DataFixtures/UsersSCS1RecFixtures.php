@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;

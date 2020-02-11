@@ -64,141 +64,143 @@ function reloadDashboardLinks() {
 }
 
 function drawChart(parent, after = true, fromStart = true) {
-    $('#' + parent + ' > .range-buttons').hide();
-    $('#' + parent + ' .spinner-container').show();
-    let data = new google.visualization.DataTable();
-    let currentWeekRoute = Routing.generate(parent, true);
-    let params = {
-        'firstDay': $('#' + parent + ' > .range-buttons > .firstDay').data('day'),
-        'lastDay': $('#' + parent + ' > .range-buttons > .lastDay').data('day'),
-        'after': (fromStart ? 'now' : after)
-    };
-
-    $('#' + parent + ' > .chart').empty();
-
-    chartsLoading[parent] = true;
-    $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
-        chartData.columns.forEach(column => {
-            if (column.annotation) {
-                data.addColumn({type: column.type, role: column.role});
-            }
-            else {
-                data.addColumn(column.type, column.value);
-            }
-        });
-        for (const [key, value] of Object.entries(chartData.rows)) {
-            if (value.conform !== undefined) {
-                data.addRow([
-                    key,
-                    Number(value.count) !== 0 ? Number(value.count) : null,
-                    value.conform,
-                    key + ' : ' + String(value.conform) + '%'
-                ]);
-            }
-            else {
-                data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
-            }
-        }
-        let options = {
-            vAxes: {
-                0: {
-                    minValue: 1,
-                    format: '#',
-                    textStyle: {
-                        color: 'black',
-                        fontName: 'Montserrat',
-                    }
-                },
-                1: {
-                    maxValue: 100,
-                    minValue: 0,
-                    format: '#',
-                    gridlines: {color: 'transparent'},
-                    textStyle: {
-                        color: 'black',
-                        fontName: 'Montserrat',
-                    }
-                },
-            },
-            hAxis: {
-                textStyle: {
-                    color: 'black',
-                    fontName: 'Montserrat',
-                }
-            },
-            interpolateNulls: true,
-            seriesType: 'bars',
-            pointSize: 5,
-            series: {
-                1: {
-                    pointShape: 'circle',
-                    type: 'line',
-                    targetAxisIndex: 1,
-                }
-            },
-            legend: {
-                position: 'top',
-                textStyle: {
-                    color: 'black',
-                    fontName: 'Montserrat',
-                }
-            },
-            colors: ['#130078', 'Red'],
-            backgroundColor: {
-                fill: 'transparent'
-            }
+    if ($('#' + parent).length) {
+        $('#' + parent + ' > .range-buttons').hide();
+        $('#' + parent + ' .spinner-container').show();
+        let data = new google.visualization.DataTable();
+        let currentWeekRoute = Routing.generate(parent, true);
+        let params = {
+            'firstDay': $('#' + parent + ' > .range-buttons > .firstDay').data('day'),
+            'lastDay': $('#' + parent + ' > .range-buttons > .lastDay').data('day'),
+            'after': (fromStart ? 'now' : after)
         };
-        let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
-        chart.draw(data, options);
 
-        $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDayData);
-        $('#' + parent + ' > .range-buttons > .firstDay').text(chartData.firstDay + ' - ');
-        $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDayData);
-        $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
-        $('#' + parent + ' > .range-buttons').show();
-        $('#' + parent + ' .spinner-container').hide();
+        $('#' + parent + ' > .chart').empty();
 
-        chartsLoading[parent] = false;
-    }, 'json');
+        chartsLoading[parent] = true;
+        $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
+            chartData.columns.forEach(column => {
+                if (column.annotation) {
+                    data.addColumn({type: column.type, role: column.role});
+                } else {
+                    data.addColumn(column.type, column.value);
+                }
+            });
+            for (const [key, value] of Object.entries(chartData.rows)) {
+                if (value.conform !== undefined) {
+                    data.addRow([
+                        key,
+                        Number(value.count) !== 0 ? Number(value.count) : null,
+                        value.conform,
+                        key + ' : ' + String(value.conform) + '%'
+                    ]);
+                } else {
+                    data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
+                }
+            }
+            let options = {
+                vAxes: {
+                    0: {
+                        minValue: 1,
+                        format: '#',
+                        textStyle: {
+                            color: 'black',
+                            fontName: 'Montserrat',
+                        }
+                    },
+                    1: {
+                        maxValue: 100,
+                        minValue: 0,
+                        format: '#',
+                        gridlines: {color: 'transparent'},
+                        textStyle: {
+                            color: 'black',
+                            fontName: 'Montserrat',
+                        }
+                    },
+                },
+                hAxis: {
+                    textStyle: {
+                        color: 'black',
+                        fontName: 'Montserrat',
+                    }
+                },
+                interpolateNulls: true,
+                seriesType: 'bars',
+                pointSize: 5,
+                series: {
+                    1: {
+                        pointShape: 'circle',
+                        type: 'line',
+                        targetAxisIndex: 1,
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    textStyle: {
+                        color: 'black',
+                        fontName: 'Montserrat',
+                    }
+                },
+                colors: ['#130078', 'Red'],
+                backgroundColor: {
+                    fill: 'transparent'
+                }
+            };
+            let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
+            chart.draw(data, options);
+
+            $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDayData);
+            $('#' + parent + ' > .range-buttons > .firstDay').text(chartData.firstDay + ' - ');
+            $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDayData);
+            $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
+            $('#' + parent + ' > .range-buttons').show();
+            $('#' + parent + ' .spinner-container').hide();
+
+            chartsLoading[parent] = false;
+        }, 'json');
+    }
 }
 
 function drawChartMonetary() {
-    $('#dashboard-monetary .spinner-border').show();
-    let path = Routing.generate('graph_monetaire', true);
+    if ($('#dashboard-monetary').length) {
+        $('#dashboard-monetary .spinner-border').show();
+        let path = Routing.generate('graph_monetaire', true);
 
-    $('#curve_chart').empty();
+        $('#curve_chart').empty();
 
-    chartsLoading['monetary'] = true;
-    $.ajax({
-        url: path,
-        dataType: "json",
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            let tdata = new google.visualization.DataTable();
+        chartsLoading['monetary'] = true;
+        $.ajax({
+            url: path,
+            dataType: "json",
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                let tdata = new google.visualization.DataTable();
 
-            tdata.addColumn('string', 'Month');
-            tdata.addColumn('number', 'Fiabilité monétaire');
+                tdata.addColumn('string', 'Month');
+                tdata.addColumn('number', 'Fiabilité monétaire');
 
-            $.each(data, function (index, value) {
-                tdata.addRow([value.mois, value.nbr]);
-            });
+                $.each(data, function (index, value) {
+                    tdata.addRow([value.mois, value.nbr]);
+                });
 
-            let options = {
-                curveType: 'function',
-                backdropColor: 'transparent',
-                legend: 'none',
-                backgroundColor: 'transparent',
-            };
+                let options = {
+                    curveType: 'function',
+                    backdropColor: 'transparent',
+                    legend: 'none',
+                    backgroundColor: 'transparent',
+                };
 
-            let chart = new google.visualization.LineChart($('#curve_chart')[0]);
-            chart.draw(tdata, options);
+                let chart = new google.visualization.LineChart($('#curve_chart')[0]);
+                chart.draw(tdata, options);
 
-            chartsLoading['monetary'] = false;
+                chartsLoading['monetary'] = false;
 
-            $('#dashboard-monetary .spinner-border').hide();
-        }
-    });
+                $('#dashboard-monetary .spinner-border').hide();
+            }
+        });
+    }
 }
 
 function goToFilteredDemande(type, filter){

@@ -8,8 +8,6 @@
 
 namespace App\Twig;
 
-use App\Entity\Action;
-
 use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 
@@ -67,7 +65,7 @@ class AppExtension extends AbstractExtension
 	{
 		return [
 			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
-            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
+            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction'])
 		];
 	}
 

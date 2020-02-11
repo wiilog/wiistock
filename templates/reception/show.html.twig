@@ -20,7 +20,7 @@
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
-                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception("#modalNewLigneReception")'
+                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
                        class="btn btn-primary btn-action ml-auto">
                         {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
@@ -56,13 +56,15 @@
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
                            class="btn btn-primary btn-action ml-auto"
-                           onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+                           onclick="initNewArticleEditor('#modalAddLigneArticle'),
+                           ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
                             <span class="fa fa-plus mr-2"></span>Ajouter {{ 'réception.article'|trans }}
                         </a>
                     {% endif %}
                 {% endif %}
-                <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" id="button-for-id-ref"
-                   data-ref="{{ reception.numeroReception }}"
+                <a href="{{path('reception_bar_codes_print', {reception: reception.id})}}"
+                   target="_blank"
+                   id="buttonPrintBarcode"
                    class="btn btn-primary btn-action ml-auto">
                     <span class="fa"></span>Générer les étiquettes
                 </a>
