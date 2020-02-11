@@ -1,57 +1,62 @@
+{% set hasRightDisplayArrivals = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ARRI')) %}
 <div class="row no-gutters">
-    <div class="col-6 dashboard-box-wrapper">
-        <div class="dashboard-box">
-            <h2 class="bold">Arrivage (UM)</h2>
-            <div class="dashboard-box-content" id="dashboard-arrival">
-                <div class="chart"></div>
-                <div class="spinner-container">
-                    <div class="spinner-border"></div>
-                </div>
-                <div class="range-buttons">
-                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
-                        <i class="fas fa-chevron-left pointer"></i>
+    {% if hasRightDisplayArrivals %}
+        <div class="col-6 dashboard-box-wrapper">
+            <div class="dashboard-box">
+                <h2 class="bold">Arrivage (UM)</h2>
+                <div class="dashboard-box-content" id="dashboard-arrival">
+                    <div class="chart"></div>
+                    <div class="spinner-container">
+                        <div class="spinner-border"></div>
                     </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">
-                        <i class="fas fa-chevron-right pointer"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 dashboard-box-wrapper">
-        <div id="dashboard-assoc" class="dashboard-box">
-            <h2 class="bold">Réceptions (nombre d'associations)</h2>
-            <div class="dashboard-box-content" id="dashboard-assoc">
-                <div class="chart"></div>
-                <div class="spinner-container">
-                    <div class="spinner-border"></div>
-                </div>
-                <div class="range-buttons">
-                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
-                        <i class="fas fa-chevron-left pointer"></i>
-                    </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">
-                        <i class="fas fa-chevron-right pointer"></i>
+                    <div class="range-buttons">
+                        <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
+                            <i class="fas fa-chevron-left pointer"></i>
+                        </div>
+                        <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+                        <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+                        <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">
+                            <i class="fas fa-chevron-right pointer"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        <div class="col-6 dashboard-box-wrapper">
+            <div id="dashboard-assoc" class="dashboard-box">
+                <h2 class="bold">Réceptions (nombre d'associations)</h2>
+                <div class="dashboard-box-content" id="dashboard-assoc">
+                    <div class="chart"></div>
+                    <div class="spinner-container">
+                        <div class="spinner-border"></div>
+                    </div>
+                    <div class="range-buttons">
+                        <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
+                            <i class="fas fa-chevron-left pointer"></i>
+                        </div>
+                        <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
+                        <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
+                        <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">
+                            <i class="fas fa-chevron-right pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 <div class="row no-gutters">
-    <div class="col-6 dashboard-box-wrapper">
-        <div class="dashboard-box">
-            <h2 class="bold">Colis en retard</h2>
-            <div class="dashboard-box-content">
-                <table class="table table-striped table-bordered retards-table w-100"></table>
+    {% if hasRightDisplayArrivals %}
+        <div class="col-6 dashboard-box-wrapper">
+            <div class="dashboard-box">
+                <h2 class="bold">Colis en retard</h2>
+                <div class="dashboard-box-content">
+                    <table class="table table-striped table-bordered retards-table w-100"></table>
+                </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
         <div class="col-6 dashboard-box-wrapper">
