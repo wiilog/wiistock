@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\DaysWorked;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -41,7 +42,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
      * @return DaysWorked
      * @throws NonUniqueResultException
      */
-    public function findByDayAndWorked($day)
+    public function findOneByDayAndWorked($day)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -57,6 +58,7 @@ class DaysWorkedRepository extends ServiceEntityRepository
 	/**
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
     public function countEmptyTimes()
     {
@@ -71,18 +73,36 @@ class DaysWorkedRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @return int
-	 * @throws NonUniqueResultException
+	 * @return string[]
 	 */
-    public function countDaysWorked()
+    public function getLabelWorkedDays()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(dw)
+            "SELECT dw.day
             FROM App\Entity\DaysWorked dw
             WHERE dw.times IS NOT NULL AND dw.worked = 1
             ");
-        return $query->getSingleScalarResult();
-    }
+		return array_column($query->execute(), 'day');
+
+	}
+
+	/**
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+	public function countDaysWorked()
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(dw)
+            FROM App\Entity\DaysWorked dw
+            WHERE dw.times IS NOT NULL AND dw.worked = 1
+            ");
+		return $query->getSingleScalarResult();
+	}
+
 }

@@ -8,9 +8,9 @@ $(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
 
     google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawAllCharts);
+    // google.charts.setOnLoadCallback(drawAllCharts);
 
-    loadRetards();
+    // loadRetards();
     // setSmallBoxContent();
 
     $(window).on('resize', () => {
@@ -20,10 +20,10 @@ $(function () {
         timeoutResize = setTimeout(() => {
             // si aucun diagramme ne charge on relance le drawAll
             if (Object.keys(chartsLoading).every((key) => !chartsLoading[key])) {
-                drawAllCharts();
+                // drawAllCharts();
             }
 
-            loadRetards();
+            // loadRetards();
             // setSmallBoxContent();
             timeoutResize = undefined;
         });
@@ -45,15 +45,15 @@ $(function () {
 // }
 
 function drawAllCharts() {
-    drawChart('dashboard-assoc');
-    drawChart('dashboard-arrival');
-    drawChartMonetary();
-    reloadDashboardLinks();
+    // drawChart('dashboard-assoc');
+    // drawChart('dashboard-arrival');
+    // drawChartMonetary();
+    // reloadDashboardLinks();
 }
 
 function reloadPage() {
-    drawAllCharts();
-    reloadDashboardLinks();
+    // drawAllCharts();
+    // reloadDashboardLinks();
     if (datatableColis) {
         datatableColis.ajax.reload();
     }
@@ -270,47 +270,51 @@ function loadRetards() {
 //// charts monitoring réception quai
 
 // chart arrivages quotidiens
-let labelsDailyArrival = ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'];
-let dataDailyArrival = [212, 197, 205, 219, 262, 251, 249, 71];
-let bgColorsDailyArrival = [
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(57,181,74, 1)',
-];
-let chartDailyArrival = newChart('#chartDailyArrival', labelsDailyArrival, dataDailyArrival, bgColorsDailyArrival);
+$.get(Routing.generate('get_daily_arrivals_statistics'), function(data) {
+    let labelsDailyArrival = Object.keys(data);
+    let dataDailyArrival = Object.values(data);
+    let bgColorsDailyArrival = [
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(57,181,74, 1)',
+    ];
+    let chartDailyArrival = newChart('#chartDailyArrival', labelsDailyArrival, dataDailyArrival, bgColorsDailyArrival);
+});
+
 
 // chart arrivages hebdomadaires
-let labelsWeeklyArrival = ['S45', 'S46', 'S47', 'S48', 'S49'];
-let dataWeeklyArrival = [1050, 997, 1115, 1200, 700];
-let bgColorsWeeklyArrival = [
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(57,181,74, 1)',
-];
-let chartWeeklyArrival = newChart('#chartWeeklyArrival', labelsWeeklyArrival, dataWeeklyArrival, bgColorsWeeklyArrival);
+$.get(Routing.generate('get_weekly_arrivals_statistics'), function (data) {
+    let labelsWeeklyArrival = Object.keys(data);
+    console.log(labelsWeeklyArrival);
+    let dataWeeklyArrival = Object.values(data);
+    let bgColorsWeeklyArrival = [
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(57,181,74, 1)',
+    ];
+    let chartWeeklyArrival = newChart('#chartWeeklyArrival', labelsWeeklyArrival, dataWeeklyArrival, bgColorsWeeklyArrival);
+});
 
 // chart colis
-let labelsColis = ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'];
-let dataColis= [66, 59, 62, 65, 82, 81, 79, 26];
-let bgColorsColis = [
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(163,209,255, 1)',
-    'rgba(57,181,74, 1)',
-];
-let chartColis = newChart('#chartColis', labelsColis, dataColis, bgColorsColis);
-
+$.get(Routing.generate('get_daily_packs_statistics'), function (data) {
+    let labelsColis = Object.keys(data);
+    let dataColis = Object.values(data);
+    let bgColorsColis = [
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(163,209,255, 1)',
+        'rgba(57,181,74, 1)',
+    ];
+    let chartColis = newChart('#chartColis', labelsColis, dataColis, bgColorsColis);
+});
 
 function newChart(canvasId, labels, data, bgColors) {
     return new Chart($(canvasId), {

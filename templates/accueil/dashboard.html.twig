@@ -4,7 +4,7 @@
     </p>
 </div>
 <div class="row mt-4">
-    {% include 'svg/cross.svg.twig' %}
+{#    {% include 'svg/cross.svg.twig' %}#}
     <div class="col-6 dashboard-box-wrapper half-height">
         <div class="dashboard-box">
             <p class="title">
@@ -17,12 +17,14 @@
             <div class="dashboard-box-content" id="dashboard-arrival">
                 <div class="chart"></div>
                 <div class="range-buttons">
-                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">
+{#                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">#}
+                    <div class="arrow-chart">
                         <i class="fas fa-chevron-left pointer"></i>
                     </div>
                     <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
                     <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">
+{#                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">#}
+                    <div class="arrow-chart">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
                 </div>
@@ -41,12 +43,14 @@
             <div class="dashboard-box-content" id="dashboard-assoc">
                 <div class="chart"></div>
                 <div class="range-buttons">
-                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">
+{#                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">#}
+                    <div class="arrow-chart">
                         <i class="fas fa-chevron-left pointer"></i>
                     </div>
                     <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
                     <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">
+{#                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">#}
+                    <div class="arrow-chart">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
                 </div>
@@ -80,9 +84,9 @@
                 </div>
                 <div class="dashboard-box-content">
                     <div class="curve_chart_line " id="curve_chart"></div>
-                    <div class="spinner-container">
-                        <div class="spinner-border"></div>
-                    </div>
+{#                    <div class="spinner-container">#}
+{#                        <div class="spinner-border"></div>#}
+{#                    </div>#}
                 </div>
             </div>
         </div>

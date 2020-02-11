@@ -16,6 +16,7 @@ use App\Service\StatisticsService;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -268,13 +269,13 @@ class AccueilController extends AbstractController
 		return new JsonResponse($html);
 	}
 
-    /**
-     * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
-     * @param StatisticsService $statisticsService
-     * @param ArrivageRepository $arrivageRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
+	 * @param StatisticsService $statisticsService
+	 * @param ArrivageRepository $arrivageRepository
+	 * @return Response
+	 * @throws Exception
+	 */
 	public function getDailyArrivalsStatistics(StatisticsService $statisticsService,
                                                ArrivageRepository $arrivageRepository): Response {
 
@@ -285,13 +286,13 @@ class AccueilController extends AbstractController
 	    return new JsonResponse($arrivalCountByDays);
     }
 
-    /**
-     * @Route("/statistiques-colis-jour", name="get_daily_packs_statistics", options={"expose"=true}, methods="GET")
-     * @param StatisticsService $statisticsService
-     * @param ColisRepository $colisRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/statistiques-colis-jour", name="get_daily_packs_statistics", options={"expose"=true}, methods="GET")
+	 * @param StatisticsService $statisticsService
+	 * @param ColisRepository $colisRepository
+	 * @return Response
+	 * @throws Exception
+	 */
 	public function getDailyPacksStatistics(StatisticsService $statisticsService,
                                             ColisRepository $colisRepository): Response {
 
@@ -302,13 +303,13 @@ class AccueilController extends AbstractController
 	    return new JsonResponse($packsCountByDays);
     }
 
-    /**
-     * @Route("/statistiques-arrivages-semaine", name="get_weekly_arrivals_statistics", options={"expose"=true}, methods="GET")
-     * @param StatisticsService $statisticsService
-     * @param ArrivageRepository $arrivageRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/statistiques-arrivages-semaine", name="get_weekly_arrivals_statistics", options={"expose"=true}, methods="GET")
+	 * @param StatisticsService $statisticsService
+	 * @param ArrivageRepository $arrivageRepository
+	 * @return Response
+	 * @throws Exception
+	 */
 	public function getWeeklyArrivalsStatistics(StatisticsService $statisticsService,
                                                 ArrivageRepository $arrivageRepository): Response {
 

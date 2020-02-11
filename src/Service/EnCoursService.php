@@ -140,7 +140,7 @@ class EnCoursService
          * @var $nowTimeInMinutes int now time in minutes
          * @var $dateMvtTimeInMinutes int mvt's time in minutes
          */
-        $dayWorked = $this->daysRepository->findByDayAndWorked(strtolower($day->format('l')));
+        $dayWorked = $this->daysRepository->findOneByDayAndWorked(strtolower($day->format('l')));
         $isToday = ($day->format('Ymd') === $now->format('Ymd'));
         $isMvtDay = ($day->format('Ymd') === $dateMvt->format('Ymd'));
         $minutesWorked = 0;
