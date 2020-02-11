@@ -90,4 +90,6 @@ class StatisticsService {
 
         return $weekCountersToReturn;
     }
+
+
 }

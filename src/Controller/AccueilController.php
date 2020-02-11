@@ -264,7 +264,6 @@ class AccueilController extends AbstractController
 	{
 		$data = $this->getDashboardData();
 		$html = $this->renderView('accueil/dashboardLinks.html.twig', $data);
-
 		return new JsonResponse($html);
 	}
 
@@ -317,5 +316,15 @@ class AccueilController extends AbstractController
         });
 
 	    return new JsonResponse($arrivalsCountByWeek);
+    }
+
+    /**
+     * @Route("/statistiques-encours-par-duree-et-nature", name="get_encours_count_by_nature_and_timespan", options={"expose"=true}, methods="GET")
+     * @param StatisticsService $statisticsService
+     * @param ColisRepository $colisRepository
+     * @return Response
+     */
+    public function getEnCoursCountByNatureAndTimespan(StatisticsService $statisticsService, ColisRepository $colisRepository): Response{
+
     }
 }
