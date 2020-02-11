@@ -37,13 +37,19 @@
                                     <span class="slider round"></span>
                                 </label>
                                 <label class="pr-2 pl-2">Quantité : </label>
-                                <input id="{{ article.id }}" class="input w-25" data-ref="{{ reference }}"
+                                <input id="{{ article.id }}"
+                                       class="input w-25"
+                                       data-ref="{{ reference }}"
                                        value="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : '' }}"
                                        data-value-init="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : 0 }}"
                                        data-total="{{ quantiteArt }}"
-                                       data-quantite="{{ quantiteArt }}" type="number"
-                                       data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                       min=0 max="{{ quantiteArt }}" onclick="limitInput($(this)), updateRemainingQuantity($(this))"
+                                       data-quantite="{{ quantiteArt }}"
+                                       type="number"
+                                       data-name="{{ article.label }}"
+                                       data-id="{{ article.id }}"
+                                       min=1
+                                       max="{{ quantiteArt }}"
+                                       onclick="limitInput($(this)), updateRemainingQuantity($(this))"
                                        onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
                                 <div class="row-error-msg pl-2 bold text-center"></div>
                             </td>
