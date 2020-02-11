@@ -464,6 +464,10 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function edit(Request $request): Response
     {
@@ -476,6 +480,12 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($post->get('id'));
 
+            $fournisseurId = $post->get('fournisseur');
+            $transporteurId = $post->get('transporteur');
+            $destinataireId = $post->get('destinataire');
+            $statutId = $post->get('statut');
+            $chauffeurId = $post->get('chauffeur');
+
             $oldNumeroBL = $arrivage->getNumeroBL();
 
             $arrivage
@@ -483,20 +493,20 @@ class ArrivageController extends AbstractController
                 ->setNoTracking(substr($post->get('noTracking'), 0, 64))
                 ->setNumeroBL(substr($post->get('noBL'), 0, 64));
 
-            if ($post->get('fournisseur')) {
-                $arrivage->setFournisseur($this->fournisseurRepository->find($post->get('fournisseur')));
+            if ($fournisseurId) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseurId));
             }
-            if ($post->get('transporteur')) {
-                $arrivage->setTransporteur($this->transporteurRepository->find($post->get('transporteur')));
+            if ($transporteurId) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($transporteurId));
             }
-            if ($post->get('chauffeur')) {
-                $arrivage->setChauffeur($this->chauffeurRepository->find($post->get('chauffeur')));
+            if ($chauffeurId) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeurId));
             }
-            if ($post->get('statut')) {
-                $arrivage->setStatut($this->statutRepository->find($post->get('statut')));
+            if ($statutId) {
+                $arrivage->setStatut($this->statutRepository->find($statutId));
             }
-            if ($post->get('destinatire')) {
-                $arrivage->setDestinataire($this->utilisateurRepository->find($post->get('destinataire')));
+            if ($destinataireId) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($destinataireId));
             }
 
             $acheteurs = $post->get('acheteurs');
