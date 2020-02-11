@@ -1,12 +1,12 @@
 <div class="row">
-    <p class="text-center col-12">
-        Monitoring Réception Quai
+    <p class="col-12 white">
+        Dashboard | RÉCEPTION QUAI
     </p>
 </div>
-<div class="row">
+<div class="row mt-4">
     <div class="col-10 row">
         <div class="col-7 dashboard-box-wrapper">
-            <div class="dashboard-box p-3">
+            <div class="dashboard-box">
                 <p class="title">
                     Arrivages quotidiens<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
@@ -14,11 +14,11 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <canvas id="chartDailyArrival" width="300" height="150"></canvas>
+                <canvas id="chartDailyArrival" width="300" height="90"></canvas>
             </div>
         </div>
         <div class="col-5 dashboard-box-wrapper">
-            <div class="dashboard-box p-3">
+            <div class="dashboard-box">
                 <p class="title">
                     Arrivages hebdomadaires<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
@@ -26,11 +26,11 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <canvas id="chartWeeklyArrival" width="300" height="150"></canvas>
+                <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
             </div>
         </div>
         <div class="col-6 dashboard-box-wrapper">
-            <div class="dashboard-box p-3">
+            <div class="dashboard-box">
                 <p class="title">
                     Réception quai<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class="col-6 dashboard-box-wrapper">
-            <div class="dashboard-box p-3">
+            <div class="dashboard-box">
                 <p class="title">
                     Colis<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
@@ -71,14 +71,14 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <canvas id="chartColis" width="300" height="150"></canvas>
+                <canvas id="chartColis" width="300" height="90"></canvas>
             </div>
         </div>
     </div>
 
     <div class="col-2">
         <div class="dashboard-box-wrapper">
-            <div class="dashboard-box p-3">
+            <div class="dashboard-box">
                 <p class="title">
                     Suivi des transporteurs<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>

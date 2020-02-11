@@ -51,7 +51,9 @@ body
   -webkit-font-smoothing: antialiased
   font-size: 1em
   color: $bodyColor
-  background-color: $backgroundBodyColor
+  background-image: linear-gradient(to right, $backgroundBodyColorLight, $backgroundBodyColorDark)
+  background-repeat: no-repeat
+  background-size: 100% 40%
   overflow-x: hidden
   height: 100%
 
@@ -173,6 +175,9 @@ a
 
 .green
   color: $green
+
+.white
+  color: $white
 
 .no-padding
   p

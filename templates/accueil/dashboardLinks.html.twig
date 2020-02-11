@@ -1,64 +1,82 @@
-<div class="row justify-content-end">
-    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-        <div class="col-12">
-            <div class="home-card">
-                <a href="#"
-                   onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
-                    <h2 class="col-12">
-                        <span class="badge badge-secondary font-size-100">{{ nbDemandeCollecte }}</span>
-                        {% set s = nbDemandeCollecte > 1 ? 's' : '' %}
-                        <span class="bold"> demande{{ s }} de collecte à traiter</span>
-                    </h2>
-                </a>
+{#TODO CG réintégrer dans nouveau design#}
+<div class="dashboard-box">
+    <p class="title">
+        Réception arrivage<br>
+        <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+    </p>
+    <p class="points">
+        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+    </p>
+
+    <div class="row">
+        {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
+        <div class="col-12 d-flex align-items-center">
+            {% set s = nbDemandeCollecte > 1 ? 's' : '' %}
+            <p class="little-font">Demande{{ s }} de collecte à traiter</p>
+            <span class="figure">{{ nbDemandeCollecte }}</span>
+            <div>
+                <a href="#" onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
+                {% include 'svg/ordre.svg.twig' %}
+            </a>
             </div>
+            {#                #}
+            {#                <a href="#"#}
+            {#                   onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">#}
+            {#                    <h2 class="col-12">#}
+            {#                        <span class="badge badge-secondary font-size-100">{{ nbDemandeCollecte }}</span>#}
+            {#                        {% set s = nbDemandeCollecte > 1 ? 's' : '' %}#}
+            {#                        <span class="bold"> demande{{ s }} de collecte à traiter</span>#}
+            {#                    </h2>#}
+            {#                </a>#}
         </div>
-        <div class="col-12">
-            <div class="home-card">
-                <a href="#"
-                   onclick="goToFilteredDemande('livraison', '{{ status.DLtoTreat }}')">
-                    <h2 class="col-12">
-                        <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonAT }}</span>
-                        {% set s = nbDemandeLivraisonAT > 1 ? 's' : '' %}
-                        <span class="bold"> demande{{ s }} de livraison à traiter</span>
-                    </h2>
-                </a>
-            </div>
+    </div>
+    <div class="col-12">
+        <div class="home-card">
+            <a href="#"
+               onclick="goToFilteredDemande('livraison', '{{ status.DLtoTreat }}')">
+                <h2 class="col-12">
+                    <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonAT }}</span>
+                    {% set s = nbDemandeLivraisonAT > 1 ? 's' : '' %}
+                    <span class="bold"> demande{{ s }} de livraison à traiter</span>
+                </h2>
+            </a>
         </div>
-        <div class="col-12">
-            <div class="home-card">
-                <a href="#"
-                   onclick="goToFilteredDemande('livraison', '{{ status.DLincomplete }}, {{ status.DLprepared }}')">
-                    <h2 class="col-12">
-                        <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonP }}</span>
-                        {% set s = nbDemandeLivraisonP > 1 ? 's' : '' %}
-                        <span class="bold"> demande{{ s }} de livraison préparée{{ s }}</span>
-                    </h2>
-                </a>
-            </div>
+    </div>
+    <div class="col-12">
+        <div class="home-card">
+            <a href="#"
+               onclick="goToFilteredDemande('livraison', '{{ status.DLincomplete }}, {{ status.DLprepared }}')">
+                <h2 class="col-12">
+                    <span class="badge badge-secondary font-size-100">{{ nbDemandeLivraisonP }}</span>
+                    {% set s = nbDemandeLivraisonP > 1 ? 's' : '' %}
+                    <span class="bold"> demande{{ s }} de livraison préparée{{ s }}</span>
+                </h2>
+            </a>
         </div>
-        <div class="col-12">
-            <div class="home-card">
-                <a href="#"
-                   onclick="goToFilteredDemande('manutention', '{{ status.MToTreat }}')">
-                    <h2 class="col-12">
-                        <span class="badge badge-secondary font-size-100">{{ nbDemandeManutentionAT }}</span>
-                        {% set s = nbDemandeManutentionAT > 1 ? 's' : '' %}
-                        <span class="bold"> demande{{ s }} de manutention à traiter</span>
-                    </h2>
-                </a>
-            </div>
+    </div>
+    <div class="col-12">
+        <div class="home-card">
+            <a href="#"
+               onclick="goToFilteredDemande('manutention', '{{ status.MToTreat }}')">
+                <h2 class="col-12">
+                    <span class="badge badge-secondary font-size-100">{{ nbDemandeManutentionAT }}</span>
+                    {% set s = nbDemandeManutentionAT > 1 ? 's' : '' %}
+                    <span class="bold"> demande{{ s }} de manutention à traiter</span>
+                </h2>
+            </a>
         </div>
-        {% set s = nbAlerts > 1 ? 's' : '' %}
-        <div class="col-12">
-            <div class="home-card">
-                <a href={{ path('alerte_index', {'filter': 'active'}) }}>
-                    <h2 class="col-12">
-                        <span class="badge badge-secondary font-size-100">{{ nbAlerts }}</span>
-                        <span class="bold"> alerte{{ s }} de seuil</span>
-                    </h2>
-                </a>
-            </div>
+    </div>
+    {% set s = nbAlerts > 1 ? 's' : '' %}
+    <div class="col-12">
+        <div class="home-card">
+            <a href={{ path('alerte_index', {'filter': 'active'}) }}>
+                <h2 class="col-12">
+                    <span class="badge badge-secondary font-size-100">{{ nbAlerts }}</span>
+                    <span class="bold"> alerte{{ s }} de seuil</span>
+                </h2>
+            </a>
         </div>
+    </div>
     {% endif %}
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_REFERENCE')) %}
         <div class="col-12">
