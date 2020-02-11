@@ -25,11 +25,20 @@
     &:not(:first-child)
         padding-left: 16px
     .dashboard-box
-        background-color: $lightGrey
-        text-align: center
         border-radius: 8px
         display: flex
         flex-direction: column
+        box-shadow: 2px 2px 5px grey
+        .title
+          margin-bottom: .5rem
+          color: $blackDashboard
+        .label
+          color: $greyDashboard
+          font-size: .8em
+        .points
+          position: absolute
+          right: 28px
+          top: 15px
         .arrow-chart
           color: $blueGT
           font-weight: bold
@@ -44,8 +53,10 @@
         .dashboard-box-content
             height: 325px
             padding: 10px
-            &.dashboard-box-content-small
-                height: 220px
+            @media (max-width: $breakpointSmallScreen)
+              height: 220px
+            //&.dashboard-box-content-small
+            //    height: 220px
             .range-buttons
                 position: absolute
                 margin-left: auto
@@ -63,6 +74,11 @@
                 display: flex
                 justify-content: center
 
+.figure
+  font-weight: bold
+  font-size: 1.2em !important
+  color: $blueNeon
+
 .home-card
     background-color: $lightGrey
     border-radius: 8px
@@ -77,7 +93,6 @@
     background-color: #130078 !important
     border-color: #130078 !important
     color: #fff !important
-
 
 .page-link
     color: #130078 !important
@@ -95,5 +110,3 @@
 .fournisseurFilterContainer
     .select2-selection
         overflow: auto
-
-

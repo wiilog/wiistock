@@ -2,7 +2,7 @@
     "devDependencies": {
         "@symfony/webpack-encore": "^0.28.2",
         "core-js": "^3.0.0",
-        "node-sass": "^4.13.0",
+        "node-sass": "^4.13.1",
         "regenerator-runtime": "^0.13.2",
         "sass-loader": "7.0.1",
         "webpack-notifier": "^1.6.0"
@@ -15,8 +15,10 @@
         "build:dev": "yarn generate-custom-font && yarn build:only:dev",
         "build:dev:watch": "yarn build:dev --watch",
         "build": "yarn generate-custom-font && yarn build:only:production",
-
         "build:only:dev": "encore dev",
         "build:only:production": "encore production"
+    },
+    "dependencies": {
+        "chart.js": "^2.9.3"
     }
 }

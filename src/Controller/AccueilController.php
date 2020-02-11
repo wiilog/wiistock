@@ -8,10 +8,14 @@ use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 
+use App\Repository\ArrivageRepository;
+use App\Repository\DaysWorkedRepository;
 use App\Service\DashboardService;
 
+use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -263,4 +267,50 @@ class AccueilController extends AbstractController
 
 		return new JsonResponse($html);
 	}
+
+    /**
+     * @Route("/statistiques-arrivages-jour", name="get_daily_arrival_statistics", options={"expose"=true}, methods="GET")
+     * @param DaysWorkedRepository $daysWorkedRepository
+     * @param ArrivageRepository $arrivageRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+	public function getDailyArrivalStatistics(DaysWorkedRepository $daysWorkedRepository,
+                                              ArrivageRepository $arrivageRepository): Response {
+        $dayToReturn = [];
+        $nbDaysToReturn = 7;
+        $dayIndex = 0;
+
+        $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
+        if ($daysWorkedInWeek > 0) {
+            while (count($dayToReturn) < $nbDaysToReturn) {
+                $dateToCheck = new DateTime("now - $dayIndex days", new \DateTimeZone('Europe/Paris'));
+                $dayDateLabelStr = $dateToCheck->format('l');
+                $dayWorked = $daysWorkedRepository->findByDayAndWorked($dayDateLabelStr);
+                if ($dayWorked->getWorked() && !empty($dayWorked->getTimes())) {
+                    $dayToReturn[] = $dateToCheck;
+                }
+
+                $dayIndex++;
+            }
+        }
+
+        $arrivalCountByDays = array_reduce(
+            $dayToReturn,
+            function (array $carry, DateTime $dateToCheck) use ($arrivageRepository) {
+                $dateMin = clone $dateToCheck;
+                $dateMin->setTime(0, 0, 0);
+                $dateMax = clone $dateToCheck;
+                $dateMax->setTime(23, 59, 59);
+                $dateToCheck->setTime(0, 0);
+
+                $dayKey = $dateToCheck->format('d/m');
+                $carry[$dayKey] = $arrivageRepository->countByDates($dateMin, $dateMax);
+                return $carry;
+            },
+            []);
+
+	    return new JsonResponse($arrivalCountByDays);
+    }
 }

@@ -9,7 +9,7 @@ $(function () {
     google.charts.setOnLoadCallback(drawAllCharts);
 
     loadRetards();
-    setSmallBoxContent();
+    // setSmallBoxContent();
 
     $(window).on('resize', () => {
         if (timeoutResize) {
@@ -22,7 +22,7 @@ $(function () {
             }
 
             loadRetards();
-            setSmallBoxContent();
+            // setSmallBoxContent();
             timeoutResize = undefined;
         });
     });
@@ -31,16 +31,17 @@ $(function () {
     setInterval(reloadPage, reloadFrequency);
 });
 
-function setSmallBoxContent() {
-    const $dashboardBoxContent = $('.dashboard-box-content');
-    const clientHeight = document.body.clientHeight;
-    if (clientHeight < 800) {
-        $dashboardBoxContent.addClass('dashboard-box-content-small');
-    }
-    else {
-        $dashboardBoxContent.removeClass('dashboard-box-content-small');
-    }
-}
+// function setSmallBoxContent() {
+//     const $dashboardBoxContent = $('.dashboard-box-content');
+//     const clientHeight = document.body.clientHeight;
+//     if (clientHeight < 800) {
+//         $dashboardBoxContent.addClass('dashboard-box-content-small');
+//     }
+//     else {
+//         $dashboardBoxContent.removeClass('dashboard-box-content-small');
+//     }
+// }
+
 function drawAllCharts() {
     drawChart('dashboard-assoc');
     drawChart('dashboard-arrival');
@@ -261,3 +262,101 @@ function loadRetards() {
         });
     }
 }
+
+// charts monitoring réception quai
+let chartDailyArrival = new Chart($('#chartDailyArrival'), {
+    type: 'bar',
+    data: {
+        labels: ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'],
+        datasets: [{
+            data: [212, 197, 205, 219, 262, 251, 249, 71],
+            backgroundColor: [
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(57,181,74, 1)',
+                ],
+        }]
+    },
+    options: {
+        fontFamily: "Myriad Pro",
+        legend: {
+          display: false,
+        },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        }
+    }
+});
+
+let chartWeeklyArrival = new Chart($('#chartWeeklyArrival'), {
+    type: 'bar',
+    data: {
+        labels: ['S45', 'S46', 'S47', 'S48', 'S49'],
+        datasets: [{
+            data: [1050, 997, 1115, 1200, 700],
+            backgroundColor: [
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(57,181,74, 1)',
+                ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        legend: {
+          display: false,
+        },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        }
+    }
+});
+
+let chartColis = new Chart($('#chartColis'), {
+    type: 'bar',
+    data: {
+        labels: ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'],
+        datasets: [{
+            data: [66, 59, 62, 65, 82, 81, 79, 26],
+            backgroundColor: [
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(163,209,255, 1)',
+                'rgba(57,181,74, 1)',
+                ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        legend: {
+          display: false,
+        },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        }
+    }
+});
+

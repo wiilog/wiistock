@@ -69,4 +69,20 @@ class DaysWorkedRepository extends ServiceEntityRepository
             ");
         return $query->getSingleScalarResult();
     }
+
+	/**
+	 * @return int
+	 * @throws NonUniqueResultException
+	 */
+    public function countDaysWorked()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(dw)
+            FROM App\Entity\DaysWorked dw
+            WHERE dw.times IS NOT NULL AND dw.worked = 1
+            ");
+        return $query->getSingleScalarResult();
+    }
 }
