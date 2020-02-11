@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 
-{% block classbody %}
+{#{% block classbody %}#}
 {#    style='background-image: url({{ asset('img/GTXBackAccueil2red.png') }})'#}
 {#    class='accueil-back'#}
-{% endblock %}
+{#{% endblock %}#}
 
 {% block page_content %}
     <div id="carouselIndicators" class="carousel slide">
@@ -14,17 +14,10 @@
         </ol>
 
         <div class="carousel-inner">
-            <div class="carousel-item">
-                <div class="row">
-                    <div class="col-9 mt-2">
-                        {% include 'accueil/dashboard.html.twig' %}
-                    </div>
-                    <div class="col-3 mt-2" id="dashboardLinks">
-                        {% include 'accueil/dashboardLinks.html.twig' %}
-                    </div>
-                </div>
-            </div>
             <div class="carousel-item active">
+                {% include 'accueil/dashboard.html.twig' %}
+            </div>
+            <div class="carousel-item">
                 {% include 'accueil/dashboardDockReception.html.twig' %}
             </div>
             <div class="carousel-item">

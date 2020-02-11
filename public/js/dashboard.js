@@ -4,6 +4,8 @@ let datatableLoading = false;
 let timeoutResize;
 
 $(function () {
+    // config chart js
+    Chart.defaults.global.defaultFontFamily = 'Myriad';
 
     google.charts.load('current', {'packages':['corechart']});
     google.charts.setOnLoadCallback(drawAllCharts);
@@ -262,101 +264,99 @@ function loadRetards() {
         });
     }
 }
+//// charts monitoring réception arrivage
 
-// charts monitoring réception quai
-let chartDailyArrival = new Chart($('#chartDailyArrival'), {
-    type: 'bar',
-    data: {
-        labels: ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'],
-        datasets: [{
-            data: [212, 197, 205, 219, 262, 251, 249, 71],
-            backgroundColor: [
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(57,181,74, 1)',
-                ],
-        }]
-    },
-    options: {
-        fontFamily: "Myriad Pro",
-        legend: {
-          display: false,
-        },
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
+
+//// charts monitoring réception quai
+
+// chart arrivages quotidiens
+let labelsDailyArrival = ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'];
+let dataDailyArrival = [212, 197, 205, 219, 262, 251, 249, 71];
+let bgColorsDailyArrival = [
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(57,181,74, 1)',
+];
+let chartDailyArrival = newChart('#chartDailyArrival', labelsDailyArrival, dataDailyArrival, bgColorsDailyArrival);
+
+// chart arrivages hebdomadaires
+let labelsWeeklyArrival = ['S45', 'S46', 'S47', 'S48', 'S49'];
+let dataWeeklyArrival = [1050, 997, 1115, 1200, 700];
+let bgColorsWeeklyArrival = [
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(57,181,74, 1)',
+];
+let chartWeeklyArrival = newChart('#chartWeeklyArrival', labelsWeeklyArrival, dataWeeklyArrival, bgColorsWeeklyArrival);
+
+// chart colis
+let labelsColis = ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'];
+let dataColis= [66, 59, 62, 65, 82, 81, 79, 26];
+let bgColorsColis = [
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(163,209,255, 1)',
+    'rgba(57,181,74, 1)',
+];
+let chartColis = newChart('#chartColis', labelsColis, dataColis, bgColorsColis);
+
+
+function newChart(canvasId, labels, data, bgColors) {
+    return new Chart($(canvasId), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: bgColors
             }]
-        }
-    }
-});
-
-let chartWeeklyArrival = new Chart($('#chartWeeklyArrival'), {
-    type: 'bar',
-    data: {
-        labels: ['S45', 'S46', 'S47', 'S48', 'S49'],
-        datasets: [{
-            data: [1050, 997, 1115, 1200, 700],
-            backgroundColor: [
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(57,181,74, 1)',
-                ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        legend: {
-          display: false,
         },
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
+        options: {
+            tooltips: false,
+            responsive: true,
+            legend: {
+                display: false,
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+            animation: {
+                onComplete: displayFiguresOnChart
+            }
         }
-    }
-});
+    });
+}
 
-let chartColis = new Chart($('#chartColis'), {
-    type: 'bar',
-    data: {
-        labels: ['25/11', '26/11', '27/11', '28/11', '29/11', '2/12', '3/12', '4/12'],
-        datasets: [{
-            data: [66, 59, 62, 65, 82, 81, 79, 26],
-            backgroundColor: [
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(163,209,255, 1)',
-                'rgba(57,181,74, 1)',
-                ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        legend: {
-          display: false,
-        },
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
+function displayFiguresOnChart() {
+    let ctx = (this.chart.ctx);
+    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
+    ctx.fillStyle = "white";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+
+    this.data.datasets.forEach(function (dataset)
+    {
+        for (let i = 0; i < dataset.data.length; i++) {
+            for(let key in dataset._meta)
+            {
+                let model = dataset._meta[key].data[i]._model;
+                ctx.fillText(dataset.data[i], model.x, model.y + 5);
+            }
         }
-    }
-});
-
+    });
+}

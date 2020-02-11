@@ -22,22 +22,29 @@
 .dashboard-box-wrapper
     margin-top: 8px
     margin-bottom: 8px
+    &.half-height
+      height: 40vh
     &:not(:first-child)
         padding-left: 16px
     .dashboard-box
         border-radius: 8px
         display: flex
         flex-direction: column
-        box-shadow: 2px 2px 5px grey
+        box-shadow: 2px 2px 3px grey
+        height: 100%
+        position: relative
+        background: $white
+        padding: .6rem
         .title
           margin-bottom: .5rem
           color: $blackDashboard
+          padding: 8px
         .label
           color: $greyDashboard
           font-size: .8em
         .points
           position: absolute
-          right: 28px
+          right: 15px
           top: 15px
         .arrow-chart
           color: $blueGT
