@@ -143,13 +143,20 @@ function submitSplitting(submit) {
 
     let articlesChosen = {};
     let quantityToZero = false;
+    let maxExceeded = false;
     for(const input of $inputs) {
         const $input = $(input);
         const inputValue = $input.val();
 
         if (inputValue !== '' && inputValue > 0) {
-            let id = $input.data('id');
-            articlesChosen[id] = inputValue;
+            if (inputValue <= $input.attr('max')) {
+                let id = $input.data('id');
+                articlesChosen[id] = inputValue;
+            }
+            else {
+                maxExceeded = true;
+                $input.addClass('is-invalid');
+            }
         }
         else if ($input.data('value-init') > 0) {
             quantityToZero = true;
@@ -157,7 +164,11 @@ function submitSplitting(submit) {
             break;
         }
     }
-    if (quantityToZero) {
+
+    if (maxExceeded) {
+        $('#modalSplitting').find('.error-msg').html("Vous avez trop sélectionné pour un article.");
+    }
+    else if (quantityToZero) {
         $('#modalSplitting').find('.error-msg').html("Vous ne pouvez pas renseigner de quantité inférieure à 1.");
     }
     else if (Object.keys(articlesChosen).length > 0) {
