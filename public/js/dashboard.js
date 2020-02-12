@@ -29,7 +29,7 @@ $(function () {
     });
 
     let reloadFrequency = 1000 * 60 * 15;
-    setInterval(reloadPage, reloadFrequency);
+    setInterval(reloadDashboards, reloadFrequency);
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -40,13 +40,24 @@ $(function () {
     });
 });
 
-function reloadPage() {
+function reloadDashboards() {
     if (datatableColis) {
         datatableColis.ajax.reload();
     }
+    updateCharts();
+    let now = new Date();
+    $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
 
-function drawChartWithHisto($button, path, beforeAfter = 'now', chart) {
+function updateCharts() {
+    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm);
+    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep);
+    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', 'now', chartDailyArrival);
+    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', 'now', chartWeeklyArrival);
+    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', 'now', chartColis);
+}
+
+function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
     return new Promise(function (resolve) {
         let $dashboardBox = $button.closest('.dashboard-box');
         let $rangeBtns = $dashboardBox.find('.range-buttons');
@@ -108,15 +119,17 @@ function updateData(chart, data) {
 }
 
 function drawSimpleChart($canvas, path) {
-    $.get(Routing.generate(path), function (data) {
-        let labels = Object.keys(data);
-        let datas = Object.values(data);
-        let bgColors = [];
-        for (let i = 0; i < labels.length - 1; i++) {
-            bgColors.push('rgba(163,209,255, 1)');
-        }
-        bgColors.push('rgba(57,181,74, 1)');
-        return newChart($canvas, labels, datas, bgColors);
+    return new Promise(function (resolve) {
+        $.get(Routing.generate(path), function (data) {
+            let labels = Object.keys(data);
+            let datas = Object.values(data);
+            let bgColors = [];
+            for (let i = 0; i < labels.length - 1; i++) {
+                bgColors.push('rgba(163,209,255, 1)');
+            }
+            bgColors.push('rgba(57,181,74, 1)');
+            resolve(newChart($canvas, labels, datas, bgColors));
+        });
     });
 }
 
