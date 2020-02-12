@@ -4,13 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 use App\Entity\PieceJointe;
 
-use App\Entity\Statut;
-use App\Entity\Type;
 use App\Repository\ColisRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
@@ -22,13 +19,10 @@ use App\Service\AttachmentService;
 use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Entity;
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -126,13 +120,16 @@ class MouvementTracaController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function new(Request $request): Response
+    /**
+     * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UtilisateurRepository $utilisateurRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+	public function new(Request $request,
+                        UtilisateurRepository $utilisateurRepository): Response
 	{
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -141,48 +138,71 @@ class MouvementTracaController extends AbstractController
 
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
+
+            $operator = $utilisateurRepository->find($post->get('operator'));
+			$colisStr = $post->get('colis');
+            $commentaire = $post->get('commentaire');
+            $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
+            $fromNomade = false;
+            $fileBag = $request->files->count() > 0 ? $request->files : null;
+
+            $createdMouvements = [];
+
 			if (empty($post->get('is-mass'))) {
-                $statut = $this->statutRepository->find($post->get('type'));
                 $emplacement = $this->emplacementRepository->find($post->get('emplacement'));
-			    $this->mouvementTracaService->newMvt(
-			        $post,
-                    $em,
-                    $request,
-                    $post->get('colis'),
+                $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $colisStr,
                     $emplacement,
-                    $statut,
-                    $this->utilisateurRepository,
-                    $this->attachmentService
+                    $operator,
+                    $date,
+                    $fromNomade,
+			        null,
+                    $post->get('type'),
+                    $commentaire
                 );
-            } else {
-			    $colis = explode(',', $post->get('colis'));
-			    foreach ($colis as $coli) {
-                    $statutPrise = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE);
-                    $statutDepose = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
+            }
+			else {
+			    $colisArray = explode(',', $colisStr);
+			    foreach ($colisArray as $colis) {
                     $emplacementPrise = $this->emplacementRepository->find($post->get('emplacement-prise'));
                     $emplacementDepose = $this->emplacementRepository->find($post->get('emplacement-depose'));
-                    $this->mouvementTracaService->newMvt(
-                        $post,
-                        $em,
-                        $request,
-                        $coli,
+
+                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                        $colis,
                         $emplacementPrise,
-                        $statutPrise,
-                        $this->utilisateurRepository,
-                        $this->attachmentService
+                        $operator,
+                        $date,
+                        $fromNomade,
+                        true,
+                        MouvementTraca::TYPE_PRISE,
+                        $commentaire
                     );
-                    $this->mouvementTracaService->newMvt(
-                        $post,
-                        $em,
-                        $request,
-                        $coli,
+                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                        $colis,
                         $emplacementDepose,
-                        $statutDepose,
-                        $this->utilisateurRepository,
-                        $this->attachmentService
+                        $operator,
+                        $date,
+                        $fromNomade,
+                        true,
+                        MouvementTraca::TYPE_DEPOSE,
+                        $commentaire
                     );
                 }
             }
+
+			if (isset($fileBag)) {
+			    $fileNames = [];
+                foreach ($fileBag->all() as $file) {
+                    $fileNames = array_merge(
+                        $fileNames,
+                        $this->attachmentService->saveFile($file)
+                    );
+                }
+                foreach ($createdMouvements as $mouvement) {
+                    $this->attachmentService->addAttachements($fileNames, null, null, $mouvement);
+                }
+            }
+
             $em->flush();
 
 			return new JsonResponse(true);

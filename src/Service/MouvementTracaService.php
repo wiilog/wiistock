@@ -19,6 +19,7 @@ use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
+use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
@@ -60,6 +61,7 @@ class MouvementTracaService
 
     private $em;
     private $statutRepository;
+    private $attachmentService;
 
     public function __construct(UserService $userService,
                                 MouvementTracaRepository $mouvementTracaRepository,
@@ -68,8 +70,8 @@ class MouvementTracaService
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
-                                Security $security)
-    {
+                                Security $security,
+                                AttachmentService $attachmentService) {
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -78,6 +80,7 @@ class MouvementTracaService
         $this->statutRepository = $statutRepository;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
+        $this->attachmentService = $attachmentService;
     }
 
 	/**
@@ -131,25 +134,28 @@ class MouvementTracaService
 
     /**
      * @param string $colis
-     * @param Emplacement $locationFrom
+     * @param Emplacement $location
      * @param Utilisateur $user
      * @param DateTime $date
      * @param bool $fromNomade
      * @param bool|null $finished
      * @param string $typeMouvementTraca
+     * @param string|null $commentaire
      * @param MouvementStock|null $mouvementStock
+     * @param FileBag|null $fileBag
      * @return MouvementTraca
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function persistMouvementTraca(string $colis,
-                                          Emplacement $locationFrom,
+                                          Emplacement $location,
                                           Utilisateur $user,
                                           DateTime $date,
                                           bool $fromNomade,
                                           ?bool $finished,
                                           string $typeMouvementTraca,
-                                          MouvementStock $mouvementStock = null): MouvementTraca {
+                                          string $commentaire = null,
+                                          MouvementStock $mouvementStock = null,
+                                          FileBag $fileBag = null): MouvementTraca {
 
         if ($typeMouvementTraca !== MouvementTraca::TYPE_PRISE &&
             $typeMouvementTraca !== MouvementTraca::TYPE_DEPOSE) {
@@ -161,14 +167,20 @@ class MouvementTracaService
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($colis)
-            ->setEmplacement($locationFrom)
+            ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($date) : null)
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
-            ->setMouvementStock($mouvementStock);
+            ->setMouvementStock($mouvementStock)
+            ->setCommentaire($commentaire);
         $this->em->persist($mouvementTraca);
+
+        if (isset($fileBag)) {
+            $this->attachmentService->addAttachements($fileBag, null, null, $mouvementTraca);
+        }
+
         return $mouvementTraca;
     }
 
@@ -184,40 +196,5 @@ class MouvementTracaService
         } while (!empty($existingMouvements));
 
         return $uniqueId;
-    }
-
-    /**
-     * @param ParameterBag $post
-     * @param ObjectManager $em
-     * @param Request $request
-     * @param string $colis
-     * @param Emplacement $emplacement
-     * @param Statut $type
-     * @param UtilisateurRepository $utilisateurRepository
-     * @param AttachmentService $attachmentService
-     * @throws Exception
-     */
-    public function newMvt(
-        ParameterBag $post,
-        ObjectManager $em,
-        Request $request,
-        string $colis,
-        Emplacement $emplacement,
-        Statut $type,
-        UtilisateurRepository $utilisateurRepository,
-        AttachmentService $attachmentService)
-    {
-        $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
-        $operator = $utilisateurRepository->find($post->get('operator'));
-        $mvtTraca = new MouvementTraca();
-        $mvtTraca
-            ->setDatetime($date)
-            ->setOperateur($operator)
-            ->setColis($colis)
-            ->setType($type)
-            ->setEmplacement($emplacement)
-            ->setCommentaire($post->get('commentaire') ?? null);
-        $em->persist($mvtTraca);
-        $attachmentService->addAttachements($request->files, null, null, $mvtTraca);
     }
 }
