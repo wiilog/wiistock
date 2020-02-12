@@ -154,11 +154,11 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/dashboard_assoc", name="dashboard-assoc", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/dashboard_assoc", name="dashboard-assoc", options={"expose"=true}, methods={"GET","POST"})
      */
     public function dashboard_assoc(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             return new JsonResponse($this->dashboardService->getWeekAssoc($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
         }
         throw new NotFoundHttpException("404");
