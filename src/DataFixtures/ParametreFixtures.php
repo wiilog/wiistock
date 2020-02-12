@@ -107,6 +107,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATIONS_2 => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
+			ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
 		];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {

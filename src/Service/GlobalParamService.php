@@ -135,8 +135,6 @@ Class GlobalParamService
 			ParametrageGlobal::DASHBOARD_LOCATIONS_2
 		];
 
-
-
 		$resp = [];
 		foreach ($paramLabels as $paramLabel) {
 			$locationIds = $this->parametrageGlobalRepository->getOneParamByLabel($paramLabel);
