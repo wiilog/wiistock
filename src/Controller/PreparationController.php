@@ -429,6 +429,7 @@ class PreparationController extends AbstractController
         }
 
         foreach ($preparation->getArticles() as $article) {
+            $article->setPreparation(null);
             $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
             if ($article->getQuantiteAPrelever()) {
                 $article->setQuantite($article->getQuantiteAPrelever());
