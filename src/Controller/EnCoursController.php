@@ -183,8 +183,8 @@ class EnCoursController extends AbstractController
     {
         $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
         $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
-            ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
-
+            ->add(new DateInterval('PT' . (23 - intval($now->format('H'))) . 'H'));
+        // Get days between now and date mvt including now
         $interval = DateInterval::createFromDateString('1 day');
         $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;
