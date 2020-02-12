@@ -361,6 +361,7 @@ class ArticleRepository extends ServiceEntityRepository
 			  AND ra = :refArticle
 			  AND a.quantite IS NOT NULL
 			  AND a.quantite > 0
+			  AND a.preparation IS NULL
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
