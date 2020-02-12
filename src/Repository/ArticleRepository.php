@@ -357,7 +357,10 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle
+			WHERE a.statut = :statut
+			  AND ra = :refArticle
+			  AND a.quantite IS NOT NULL
+			  AND a.quantite > 0
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([

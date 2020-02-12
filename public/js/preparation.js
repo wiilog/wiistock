@@ -142,29 +142,60 @@ function submitSplitting(submit) {
     let $inputs = $('#tableSplittingArticles').find('.input');
 
     let articlesChosen = {};
-    $inputs.each(function() {
-        if ($(this).val() !== '' && $(this).val() > 0) {
-            let id = $(this).data('id');
-            articlesChosen[id] = $(this).val();
-        }
-    });
+    let quantityToZero = false;
+    let maxExceeded = false;
+    for(const input of $inputs) {
+        const $input = $(input);
+        const inputValue = $input.val() !== '' ? Number($input.val()) : '';
+        const inputMax = $input.attr('max') !== '' ? Number($input.attr('max')) : 0;
+        const inputValueInit = $input.data('value-init') !== '' ? Number($input.data('value-init')) : 0;
 
-    let path = Routing.generate('submit_splitting', true);
-    let params = {
-        'articles': articlesChosen,
-        'quantite': submit.data('qtt'),
-        'demande': submit.data('demande'),
-        'refArticle': submit.data('ref'),
-        'preparation': submit.data('prep')
-    };
-    $.post(path, JSON.stringify(params), function (resp) {
-        if (resp == true) {
-            $('#modalSplitting').find('.close').click();
-                tableArticle.ajax.reload();
-            } else {
-                $('#modalSplitting').find('.error-msg').html("Vous avez prélevé une quantité supérieure à celle demandée.")
+        if (inputValue !== '' && inputValue > 0) {
+            if (inputValue <= inputMax) {
+                let id = $input.data('id');
+                articlesChosen[id] = inputValue;
+                $input.removeClass('is-invalid');
             }
-    });
+            else {
+                maxExceeded = true;
+                $input.addClass('is-invalid');
+            }
+        }
+        else if (inputValueInit > 0) {
+            quantityToZero = true;
+            $input.addClass('is-invalid');
+            break;
+        }
+    }
+
+    if (maxExceeded) {
+        $('#modalSplitting').find('.error-msg').html("Vous avez trop sélectionné pour un article.");
+    }
+    else if ($('#remainingQuantity').val() < 0) {
+        $('#modalSplitting').find('.error-msg').html("Vous avez prélevé une quantité supérieure à celle demandée.");
+    }
+    else if (quantityToZero) {
+        $('#modalSplitting').find('.error-msg').html("Vous ne pouvez pas renseigner de quantité inférieure à 1 pour cet article.");
+    }
+    else if (Object.keys(articlesChosen).length > 0) {
+        let path = Routing.generate('submit_splitting', true);
+        let params = {
+            'articles': articlesChosen,
+            'quantite': submit.data('qtt'),
+            'demande': submit.data('demande'),
+            'refArticle': submit.data('ref'),
+            'preparation': submit.data('prep')
+        };
+        $.post(path, JSON.stringify(params), function (resp) {
+            if (resp == true) {
+                $('#modalSplitting').find('.close').click();
+                tableArticle.ajax.reload();
+            }
+        });
+    }
+    else {
+        $('#modalSplitting').find('.error-msg').html("Vous devez sélectionner une quantité pour enregistrer.");
+    }
 }
 
 function updateRemainingQuantity() {
@@ -182,6 +213,7 @@ function updateRemainingQuantity() {
     let quantityToTake = $('#scissionTitle').data('quantity-to-take');
     let remainingQuantity = quantityToTake - totalQuantityTaken;
     $('#quantiteRestante').html(String(Math.max(0, remainingQuantity)));
+    $('#remainingQuantity').val(remainingQuantity);
 
     if (remainingQuantity < 0) {
         let s = remainingQuantity < -1 ? 's' : '';
@@ -232,8 +264,9 @@ function limitInput($input) {
     //
 
     // vérification quantité disponible référence
-    let value = $input.val();
-    let thisMax = $input.attr('max');
+    let value = Number($input.val());
+    let thisMax = Number($input.attr('max'));
+
     if (value > thisMax) {
         $input.parent().find('.row-error-msg').html('max : ' + thisMax);
     } else {

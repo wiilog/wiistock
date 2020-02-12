@@ -99,8 +99,8 @@ function askForDeleteConfirmation(data) {
     }
 }
 
-function defaultValueForTypage($select = $('#modalEditChampLibre .typageModif')) {
-    let $modal = $select.closest('.modal');
+function defaultValueForTypage($select) {
+    const $modal = $select.closest('.modal');
     let valueDefault = $modal.find('.valueDefault');
     let typage = $select.val();
     let inputDefaultBlock;

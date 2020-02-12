@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div>
         <div class="btn btn-col-action" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditChampLibre'
-             onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampLibre'), false, '', false, defaultValueForTypage)">
+             onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditChampLibre .typageModif'))})">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
