@@ -82,16 +82,15 @@ class DashboardService
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
             $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[$dayCounterKey] = ['count' => 0];
+            $rows[$dayCounterKey] = 0;
         }
 
         foreach ($this->receptionTracaRepository->countByDays($firstDay, $lastDay) as $qttPerDay) {
             $dayCounterKey = $qttPerDay['date']->format('d');
-            $rows[$dayCounterKey]['count'] += $qttPerDay['count'];
+            $rows[$dayCounterKey] += $qttPerDay['count'];
         }
         return [
-            'columns' => $this->columnsForAssoc,
-            'rows' => $rows,
+            'data' => $rows,
             'firstDay' => date("d/m/y", $firstDayTime),
             'firstDayData' => date("d/m/Y", $firstDayTime),
             'lastDay' => date("d/m/y", $lastDayTime),
@@ -140,8 +139,7 @@ class DashboardService
                     : null;
         }
         return [
-            'columns' => $this->columnsForArrival,
-            'rows' => $rows,
+            'data' => $rows,
             'firstDay' => date("d/m/y", $firstDayTime),
             'firstDayData' => date("d/m/Y", $firstDayTime),
             'lastDay' => date("d/m/y", $lastDayTime),
