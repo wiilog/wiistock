@@ -1,0 +1,64 @@
+<div class="row indicator-row" onclick="goToFilteredDemande('collecte', '{{ status.DCToTreat }}')">
+    <div class="col-8">
+        <p>Collectes à traiter</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbDemandeCollecte }}</p>
+    </div>
+</div>
+
+<div class="row indicator-row" onclick="goToFilteredDemande('livraison', '{{ status.DLtoTreat }}')">
+    <div class="col-8">
+        <p>Livraisons à traiter</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbDemandeLivraisonAT }}</p>
+    </div>
+</div>
+
+<div class="row indicator-row" onclick="goToFilteredDemande('livraison', '{{ status.DLincomplete }}, {{ status.DLprepared }}')">
+    <div class="col-8">
+        <p>Livraisons préparées</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbDemandeLivraisonP }}</p>
+    </div>
+</div>
+
+<div class="row indicator-row" onclick="goToFilteredDemande('manutention', '{{ status.MToTreat }}')">
+    <div class="col-8">
+        <p>Manutentions à traiter</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbDemandeManutentionAT }}</p>
+    </div>
+</div>
+
+<a href={{ path('alerte_index', {'filter': 'active'}) }}>
+    <div class="row indicator-row">
+        <div class="col-8">
+            <p>Alertes de seuil</p>
+        </div>
+        <div class="col-4 text-center">
+            <p>{{ nbAlerts }}</p>
+        </div>
+    </div>
+</a>
+
+<div class="row indicator-row">
+    <div class="col-8">
+        <p>Fiabilité par référence</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbrFiabiliteReference|number_format(2, ',') }}%</p>
+    </div>
+</div>
+
+<div class="row indicator-row">
+    <div class="col-8">
+        <p>Fiabilité monétaire</p>
+    </div>
+    <div class="col-4 text-center">
+        <p>{{ nbrFiabiliteMonetaireOfThisMonth|round }}€</p>
+    </div>
+</div>

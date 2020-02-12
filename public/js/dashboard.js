@@ -31,6 +31,14 @@ $(function () {
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadPage, reloadFrequency);
+
+    let $indicators = $('#indicators');
+    $('#btnIndicators').mouseenter(function () {
+        $indicators.fadeIn();
+    });
+    $('#blocIndicators').mouseleave(function() {
+        $indicators.fadeOut();
+    });
 });
 
 // function setSmallBoxContent() {
@@ -290,7 +298,6 @@ $.get(Routing.generate('get_daily_arrivals_statistics'), function(data) {
 // chart arrivages hebdomadaires
 $.get(Routing.generate('get_weekly_arrivals_statistics'), function (data) {
     let labelsWeeklyArrival = Object.keys(data);
-    console.log(labelsWeeklyArrival);
     let dataWeeklyArrival = Object.values(data);
     let bgColorsWeeklyArrival = [
         'rgba(163,209,255, 1)',
