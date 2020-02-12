@@ -34,7 +34,7 @@ class StatisticsService
 
 		$workedDaysLabels = $this->daysWorkedRepository->getLabelWorkedDays();
 
-		while (count($daysToReturn) <= $nbDaysToReturn) {
+		while (count($daysToReturn) < $nbDaysToReturn) {
 			$dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
 			$dateDayLabel = strtolower($dateToCheck->format('l'));
 

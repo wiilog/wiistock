@@ -211,9 +211,10 @@ class AccueilController extends AbstractController
         $precedentMonthLast = $lastDayOfCurrentMonth;
         $idx = 0;
         $value = [];
+        $value['data'] = [];
         while ($idx !== 6) {
             $month = date("m", strtotime($precedentMonthFirst));
-            $month = date("F", mktime(0, 0, 0, $month, 10));
+            $month = date("F", mktime(0,0,0, $month, 10));
             $totalEntryRefArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
             $totalExitRefArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
             $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
@@ -222,21 +223,18 @@ class AccueilController extends AbstractController
             $totalArticleOfPrecedentMonth = $totalEntryArticleOfPrecedentMonth - $totalExitArticleOfPrecedentMonth;
 
             $nbrFiabiliteMonetaireOfPrecedentMonth = $totalRefArticleOfPrecedentMonth + $totalArticleOfPrecedentMonth;
-
-            $value[] = [
-                'mois' => str_replace(
-                    array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
-                    array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
-                    $month
-                ),
-                'nbr' => $nbrFiabiliteMonetaireOfPrecedentMonth];
+            $month = str_replace(
+                array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+                array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
+                $month
+            );
+            $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
             $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
             $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
             $idx += 1;
         }
-
-        $data = array_reverse($value);
-        return new JsonResponse($data);
+        $value['data'] = array_reverse($value['data']);
+        return new JsonResponse($value);
     }
 
     /**

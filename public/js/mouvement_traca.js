@@ -96,6 +96,8 @@ function initNewMvtTracaEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    $('.new-mvt-common-body').addClass('d-none');
+    $('.more-body-new-mvt-traca').html('');
 };
 
 let editorEditMvtTracaAlreadyDone = false;
@@ -112,4 +114,22 @@ function initEditMvtTracaEditor(modal) {
 function fillDateInNewModal() {
     const date = moment().format();
     $('#modalNewMvtTraca').find('.datetime').val(date.slice(0,16));
+}
+
+function switchMvtCreationType($input) {
+    let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
+    let paramsToGetAppropriateHtml = $input.val();
+    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(appropriateHtml) {
+        if (appropriateHtml) {
+            $input.closest('.modal').find('.more-body-new-mvt-traca').html(appropriateHtml);
+            $input.closest('.modal').find('.new-mvt-common-body').removeClass('d-none');
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+            $('.select2-colis').select2(({
+                tags: true,
+                "language":{
+                    "noResults" : function () { return 'Ajoutez des éléments'; }
+                },
+            }))
+        }
+    });
 }

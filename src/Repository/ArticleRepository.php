@@ -349,7 +349,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
+	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut, $preparation = null, $demande = null)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -357,12 +357,19 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle
+			WHERE a.statut = :statut
+			  AND ra = :refArticle
+			  AND a.quantite IS NOT NULL
+			  AND a.quantite > 0
+			  AND(a.preparation IS NULL OR a.preparation = :prepa)
+			  AND(a.demande IS NULL OR a.demande = :dem)
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
 			'refArticle' => $refArticle,
-			'statut' => $statut
+            'statut' => $statut,
+            'prepa' => $preparation,
+            'dem' => $demande,
 		]);
 
 		return $query->execute();

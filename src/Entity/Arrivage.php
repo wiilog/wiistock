@@ -338,52 +338,6 @@ class Arrivage
         return $this->attachements;
     }
 
-    public function addPieceJointe(PieceJointe $pieceJointe): self
-    {
-        if (!$this->attachements->contains($pieceJointe)) {
-            $this->attachements[] = $pieceJointe;
-            $pieceJointe->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removePieceJointe(PieceJointe $pieceJointe): self
-    {
-        if ($this->attachements->contains($pieceJointe)) {
-            $this->attachements->removeElement($pieceJointe);
-            // set the owning side to null (unless already changed)
-            if ($pieceJointe->getArrivage() === $this) {
-                $pieceJointe->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addPiecesJointe(PieceJointe $piecesJointe): self
-    {
-        if (!$this->attachements->contains($piecesJointe)) {
-            $this->attachements[] = $piecesJointe;
-            $piecesJointe->setArrivage($this);
-        }
-
-        return $this;
-    }
-
-    public function removePiecesJointe(PieceJointe $piecesJointe): self
-    {
-        if ($this->attachements->contains($piecesJointe)) {
-            $this->attachements->removeElement($piecesJointe);
-            // set the owning side to null (unless already changed)
-            if ($piecesJointe->getArrivage() === $this) {
-                $piecesJointe->setArrivage(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function addAttachement(PieceJointe $attachement): self
     {
         if (!$this->attachements->contains($attachement)) {

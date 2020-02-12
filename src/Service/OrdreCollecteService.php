@@ -427,6 +427,7 @@ class OrdreCollecteService
             $fromNomade,
             !$fromNomade,
             MouvementTraca::TYPE_PRISE,
+            null,
             $mouvementStock
         );
 
@@ -443,6 +444,7 @@ class OrdreCollecteService
                 $fromNomade,
                 !$fromNomade,
                 MouvementTraca::TYPE_DEPOSE,
+                null,
                 $mouvementStock
             );
 

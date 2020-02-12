@@ -390,12 +390,14 @@ class PreparationsManagerService
                 $article->setQuantiteAPrelever(0);
                 $article->setQuantitePrelevee(0);
             }
+
             $article->setPreparation($ligneArticle->getPreparation());
-            if ($quantite <= $article->getQuantitePrelevee()) {
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
-            } else {
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() - ($quantite - $article->getQuantitePrelevee()));
-            }
+
+            // si on a enlevé de la quantité à l'article : on enlève la difference à la quantité de la ligne article
+            // si on a ajouté de la quantité à l'article : on enlève la ajoute à la quantité de la ligne article
+            // si rien a changé on touche pas à la quantité de la ligne article
+            $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
+
             $article->setQuantiteAPrelever($quantite);
             $article->setQuantitePrelevee($quantite);
         }

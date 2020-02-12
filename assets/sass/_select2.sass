@@ -4,8 +4,9 @@
     &:not(.select2-selection--multiple) .select2-selection__rendered
         line-height: calc(2.25rem + 2px) !important
     &.select2-selection--multiple
-        overflow-y: auto
+        min-height: calc(2.25rem + 2px)
         max-height: 60px
+        overflow-y: auto
         .select2-selection__rendered
             display: flex
             flex-wrap: wrap
@@ -16,6 +17,10 @@
                 margin-top: .340rem
             .select2-search.select2-search--inline
                 margin-top: .1rem
+
+.select2-fit-content + .select2 .select2-selection--multiple
+    max-height: none
+    overflow-y: hidden
 
 .select2-container--default
     .select2-selection--single
