@@ -152,15 +152,4 @@ class ReceptionTracaController extends AbstractController
 
         throw new NotFoundHttpException("404");
     }
-
-    /**
-     * @Route("/dashboard_assoc", name="dashboard-assoc", options={"expose"=true}, methods={"GET","POST"})
-     */
-    public function dashboard_assoc(Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            return new JsonResponse($this->dashboardService->getWeekAssoc($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
-        }
-        throw new NotFoundHttpException("404");
-    }
 }

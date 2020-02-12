@@ -22,10 +22,11 @@
     <div class="form-group col-6">
         <label for="type">Action*</label>
         <select class="form-control data needed" id="type" name="type">
-            <option disabled selected></option>
             {% for statut in statuts %}
-                {% set selected = (statut.nom == mvt.type.nom) ? 'selected' : ''%}
-                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                {% if statut.nom != constant('App\\Entity\\MouvementTraca::TYPE_PRISE_DEPOSE') %}
+                    {% set selected = (statut.nom == mvt.type.nom) ? 'selected' : ''%}
+                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                {% endif %}
             {% endfor %}
         </select>
     </div>

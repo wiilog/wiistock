@@ -10,6 +10,7 @@ use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -240,6 +241,11 @@ class MouvementTracaRepository extends ServiceEntityRepository
                         $qb
                             ->orderBy('m.' . $column, $order);
                     }
+
+                    $orderId = ($column === 'datetime')
+                        ? $order
+                        : 'DESC';
+                    $qb->addOrderBy('m.id', $orderId);
                 }
             }
         }

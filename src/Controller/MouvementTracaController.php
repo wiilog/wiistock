@@ -19,6 +19,7 @@ use App\Service\AttachmentService;
 use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -119,13 +120,16 @@ class MouvementTracaController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function new(Request $request): Response
+    /**
+     * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UtilisateurRepository $utilisateurRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+	public function new(Request $request,
+                        UtilisateurRepository $utilisateurRepository): Response
 	{
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -135,24 +139,70 @@ class MouvementTracaController extends AbstractController
 			$post = $request->request;
 			$em = $this->getDoctrine()->getManager();
 
-			$date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
-			$type = $this->statutRepository->find($post->get('type'));
-			$location = $this->emplacementRepository->find($post->get('emplacement'));
-			$operator = $this->utilisateurRepository->find($post->get('operator'));
+            $operator = $utilisateurRepository->find($post->get('operator'));
+			$colisStr = $post->get('colis');
+            $commentaire = $post->get('commentaire');
+            $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
+            $fromNomade = false;
+            $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-			$mvtTraca = new MouvementTraca();
-			$mvtTraca
-				->setDatetime($date)
-				->setOperateur($operator)
-				->setColis($post->get('colis'))
-				->setType($type)
-				->setEmplacement($location)
-				->setCommentaire($post->get('commentaire') ?? null);
+            $createdMouvements = [];
 
-			$em->persist($mvtTraca);
-			$em->flush();
+			if (empty($post->get('is-mass'))) {
+                $emplacement = $this->emplacementRepository->find($post->get('emplacement'));
+                $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $colisStr,
+                    $emplacement,
+                    $operator,
+                    $date,
+                    $fromNomade,
+			        null,
+                    $post->getInt('type'),
+                    $commentaire
+                );
+            }
+			else {
+			    $colisArray = explode(',', $colisStr);
+			    foreach ($colisArray as $colis) {
+                    $emplacementPrise = $this->emplacementRepository->find($post->get('emplacement-prise'));
+                    $emplacementDepose = $this->emplacementRepository->find($post->get('emplacement-depose'));
 
-			$this->attachmentService->addAttachements($request->files, null, null, $mvtTraca);
+                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                        $colis,
+                        $emplacementPrise,
+                        $operator,
+                        $date,
+                        $fromNomade,
+                        true,
+                        MouvementTraca::TYPE_PRISE,
+                        $commentaire
+                    );
+                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                        $colis,
+                        $emplacementDepose,
+                        $operator,
+                        $date,
+                        $fromNomade,
+                        true,
+                        MouvementTraca::TYPE_DEPOSE,
+                        $commentaire
+                    );
+                }
+            }
+
+			if (isset($fileBag)) {
+			    $fileNames = [];
+                foreach ($fileBag->all() as $file) {
+                    $fileNames = array_merge(
+                        $fileNames,
+                        $this->attachmentService->saveFile($file)
+                    );
+                }
+                foreach ($createdMouvements as $mouvement) {
+                    $this->attachmentService->addAttachements($fileNames, null, null, $mouvement);
+                }
+            }
+
             $em->flush();
 
 			return new JsonResponse(true);
@@ -235,7 +285,7 @@ class MouvementTracaController extends AbstractController
 
 			$attachments = $mvt->getAttachements()->toArray();
 			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
-				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+				if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
 					$this->attachmentService->removeAndDeleteAttachment($attachment, null, null, $mvt);
 				}
 			}
@@ -352,4 +402,27 @@ class MouvementTracaController extends AbstractController
 		}
 		throw new NotFoundHttpException('404');
 	}
+
+    /**
+     * @Route("/obtenir-corps-modal-nouveau", name="mouvement_traca_get_appropriate_html", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
+     */
+    public function getAppropriateHtml(Request $request, StatutRepository $statutRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $appropriateType = $statutRepository->find($typeId);
+            $fileToRender = 'mouvement_traca/' . (
+                $appropriateType
+                    ? $appropriateType->getNom() === MouvementTraca::TYPE_PRISE_DEPOSE
+                        ? 'newMassMvtTraca.html.twig'
+                    : 'newSingleMvtTraca.html.twig'
+                : '');
+            return new JsonResponse($fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []));
+        }
+        throw new NotFoundHttpException('404');
+    }
 }

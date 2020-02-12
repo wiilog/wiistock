@@ -1,32 +1,31 @@
-const chartsLoading = {};
 let datatableColis;
-let datatableLoading = false;
-let timeoutResize;
+
+let chartArrivalUm;
+let chartAssoRecep;
+let chartDailyArrival;
+let chartWeeklyArrival;
+let chartColis;
 
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
 
-    google.charts.load('current', {'packages':['corechart']});
-    // google.charts.setOnLoadCallback(drawAllCharts);
-
-    // loadRetards();
-    // setSmallBoxContent();
-
-    $(window).on('resize', () => {
-        if (timeoutResize) {
-            clearTimeout(timeoutResize);
-        }
-        timeoutResize = setTimeout(() => {
-            // si aucun diagramme ne charge on relance le drawAll
-            if (Object.keys(chartsLoading).every((key) => !chartsLoading[key])) {
-                // drawAllCharts();
-            }
-
-            // loadRetards();
-            // setSmallBoxContent();
-            timeoutResize = undefined;
-        });
+    //// charts monitoring réception arrivage
+    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
+        chartArrivalUm = chart;
+    });
+    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics').then((chart) => {
+        chartAssoRecep = chart;
+    });
+    //// charts monitoring réception quai
+    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics').then((chart) => {
+        chartDailyArrival = chart;
+    })
+    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics').then((chart) => {
+        chartWeeklyArrival = chart;
+    });
+    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
+        chartColis = chart;
     });
 
     let reloadFrequency = 1000 * 60 * 15;
@@ -41,176 +40,84 @@ $(function () {
     });
 });
 
-// function setSmallBoxContent() {
-//     const $dashboardBoxContent = $('.dashboard-box-content');
-//     const clientHeight = document.body.clientHeight;
-//     if (clientHeight < 800) {
-//         $dashboardBoxContent.addClass('dashboard-box-content-small');
-//     }
-//     else {
-//         $dashboardBoxContent.removeClass('dashboard-box-content-small');
-//     }
-// }
-
-function drawAllCharts() {
-    // drawChart('dashboard-assoc');
-    // drawChart('dashboard-arrival');
-    // drawChartMonetary();
-    // reloadDashboardLinks();
-}
-
 function reloadPage() {
-    // drawAllCharts();
-    // reloadDashboardLinks();
     if (datatableColis) {
         datatableColis.ajax.reload();
     }
 }
 
-function reloadDashboardLinks() {
-    $.post(Routing.generate('get_dashboard', true), function(resp) {
-        $('#dashboardLinks').html(resp);
+function drawChartWithHisto($button, path, beforeAfter = 'now', chart) {
+    return new Promise(function (resolve) {
+        let $dashboardBox = $button.closest('.dashboard-box');
+        let $rangeBtns = $dashboardBox.find('.range-buttons');
+        let $firstDay = $rangeBtns.find('.firstDay');
+        let $lastDay = $rangeBtns.find('.lastDay');
+
+        let $canvas = $dashboardBox.find('canvas');
+
+        let params = {
+            'firstDay': $firstDay.data('day'),
+            'lastDay': $lastDay.data('day'),
+            'beforeAfter' : beforeAfter
+        };
+        $.post(Routing.generate(path), params, function(data) {
+            let labels = Object.keys(data.data);
+            let datas = Object.values(data.data).map((value) => {
+                if (typeof value == 'object' && 'count' in value) {
+                    return value['count'];
+                } else {
+                    return value;
+                }
+            });
+
+            $firstDay.text(data.firstDay);
+            $firstDay.data('day', data.firstDayData);
+            $lastDay.text(data.lastDay);
+            $lastDay.data('day', data.lastDayData);
+
+            let bgColors = [];
+            for (let i = 0; i < labels.length - 1; i++) {
+                bgColors.push('rgba(163,209,255, 1)');
+            }
+            bgColors.push('rgba(57,181,74, 1)');
+
+            $rangeBtns.removeClass('d-none');
+
+            // cas rafraîchissement
+            if (chart) {
+                updateData(chart, data);
+                resolve();
+            // cas initialisation
+            } else {
+                resolve(newChart($canvas, labels, datas, bgColors));
+            }
+        });
     });
 }
 
-function drawChart(parent, after = true, fromStart = true) {
-    if ($('#' + parent).length) {
-        $('#' + parent + ' > .range-buttons').hide();
-        $('#' + parent + ' .spinner-container').show();
-        let data = new google.visualization.DataTable();
-        let currentWeekRoute = Routing.generate(parent, true);
-        let params = {
-            'firstDay': $('#' + parent + ' > .range-buttons > .firstDay').data('day'),
-            'lastDay': $('#' + parent + ' > .range-buttons > .lastDay').data('day'),
-            'after': (fromStart ? 'now' : after)
-        };
-
-        $('#' + parent + ' > .chart').empty();
-
-        chartsLoading[parent] = true;
-        $.post(currentWeekRoute, JSON.stringify(params), function (chartData) {
-            chartData.columns.forEach(column => {
-                if (column.annotation) {
-                    data.addColumn({type: column.type, role: column.role});
-                } else {
-                    data.addColumn(column.type, column.value);
-                }
-            });
-            for (const [key, value] of Object.entries(chartData.rows)) {
-                if (value.conform !== undefined) {
-                    data.addRow([
-                        key,
-                        Number(value.count) !== 0 ? Number(value.count) : null,
-                        value.conform,
-                        key + ' : ' + String(value.conform) + '%'
-                    ]);
-                } else {
-                    data.addRow([key, Number(value.count) !== 0 ? Number(value.count) : null]);
-                }
-            }
-            let options = {
-                vAxes: {
-                    0: {
-                        minValue: 1,
-                        format: '#',
-                        textStyle: {
-                            color: 'black',
-                            fontName: 'Montserrat',
-                        }
-                    },
-                    1: {
-                        maxValue: 100,
-                        minValue: 0,
-                        format: '#',
-                        gridlines: {color: 'transparent'},
-                        textStyle: {
-                            color: 'black',
-                            fontName: 'Montserrat',
-                        }
-                    },
-                },
-                hAxis: {
-                    textStyle: {
-                        color: 'black',
-                        fontName: 'Montserrat',
-                    }
-                },
-                interpolateNulls: true,
-                seriesType: 'bars',
-                pointSize: 5,
-                series: {
-                    1: {
-                        pointShape: 'circle',
-                        type: 'line',
-                        targetAxisIndex: 1,
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    textStyle: {
-                        color: 'black',
-                        fontName: 'Montserrat',
-                    }
-                },
-                colors: ['#130078', 'Red'],
-                backgroundColor: {
-                    fill: 'transparent'
-                }
-            };
-            let chart = new google.visualization.ColumnChart($('#' + parent + ' > .chart')[0]);
-            chart.draw(data, options);
-
-            $('#' + parent + ' > .range-buttons > .firstDay').data('day', chartData.firstDayData);
-            $('#' + parent + ' > .range-buttons > .firstDay').text(chartData.firstDay + ' - ');
-            $('#' + parent + ' > .range-buttons > .lastDay').data('day', chartData.lastDayData);
-            $('#' + parent + ' > .range-buttons > .lastDay').text(chartData.lastDay);
-            $('#' + parent + ' > .range-buttons').show();
-            $('#' + parent + ' .spinner-container').hide();
-
-            chartsLoading[parent] = false;
-        }, 'json');
-    }
+function updateData(chart, data) {
+    chart.data.labels = Object.keys(data.data);
+    chart.data.datasets[0].data = Object.values(data.data).map((value) => {
+        if (typeof value == 'object' && 'count' in value) {
+            return value['count'];
+        } else {
+            return value;
+        }
+    });
+    chart.update();
 }
 
-function drawChartMonetary() {
-    if ($('#dashboard-monetary').length) {
-        $('#dashboard-monetary .spinner-border').show();
-        let path = Routing.generate('graph_monetaire', true);
-
-        $('#curve_chart').empty();
-
-        chartsLoading['monetary'] = true;
-        $.ajax({
-            url: path,
-            dataType: "json",
-            type: "GET",
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                let tdata = new google.visualization.DataTable();
-
-                tdata.addColumn('string', 'Month');
-                tdata.addColumn('number', 'Fiabilité monétaire');
-
-                $.each(data, function (index, value) {
-                    tdata.addRow([value.mois, value.nbr]);
-                });
-
-                let options = {
-                    curveType: 'function',
-                    backdropColor: 'transparent',
-                    legend: 'none',
-                    backgroundColor: 'transparent',
-                };
-
-                let chart = new google.visualization.LineChart($('#curve_chart')[0]);
-                chart.draw(tdata, options);
-
-                chartsLoading['monetary'] = false;
-
-                $('#dashboard-monetary .spinner-border').hide();
-            }
-        });
-    }
+function drawSimpleChart($canvas, path) {
+    $.get(Routing.generate(path), function (data) {
+        let labels = Object.keys(data);
+        let datas = Object.values(data);
+        let bgColors = [];
+        for (let i = 0; i < labels.length - 1; i++) {
+            bgColors.push('rgba(163,209,255, 1)');
+        }
+        bgColors.push('rgba(57,181,74, 1)');
+        return newChart($canvas, labels, datas, bgColors);
+    });
 }
 
 function goToFilteredDemande(type, filter){
@@ -231,129 +138,38 @@ function goToFilteredDemande(type, filter){
     window.location.href = route;
 }
 
-function loadRetards() {
-    let routeForLate = Routing.generate('api_retard', true);
-
-    const $retardsTable = $('.retards-table');
-
-    if (!datatableLoading) {
-        const clientHeight = document.body.clientHeight;
-        datatableLoading = true;
-        if (datatableColis) {
-            datatableColis.destroy();
-        }
-        datatableColis = $retardsTable.DataTable({
-            responsive: true,
-            dom: 'tipr',
-            pagingType: 'simple',
-            pageLength: (
-                clientHeight < 800 ? 2 :
-                clientHeight < 900 ? 3 :
-                clientHeight < 1000 ? 4 :
-                6
-            ),
-            processing: true,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            ajax: {
-                "url": routeForLate,
-                "type": "POST",
-            },
-            initComplete: () => {
-                datatableLoading = false;
-            },
-            columns: [
-                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
-                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-            ]
-        });
-    }
-}
-//// charts monitoring réception arrivage
-
-
-//// charts monitoring réception quai
-
-// chart arrivages quotidiens
-$.get(Routing.generate('get_daily_arrivals_statistics'), function(data) {
-    let labelsDailyArrival = Object.keys(data);
-    let dataDailyArrival = Object.values(data);
-    let bgColorsDailyArrival = [
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(57,181,74, 1)',
-    ];
-    let chartDailyArrival = newChart('#chartDailyArrival', labelsDailyArrival, dataDailyArrival, bgColorsDailyArrival);
-});
-
-
-// chart arrivages hebdomadaires
-$.get(Routing.generate('get_weekly_arrivals_statistics'), function (data) {
-    let labelsWeeklyArrival = Object.keys(data);
-    let dataWeeklyArrival = Object.values(data);
-    let bgColorsWeeklyArrival = [
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(57,181,74, 1)',
-    ];
-    let chartWeeklyArrival = newChart('#chartWeeklyArrival', labelsWeeklyArrival, dataWeeklyArrival, bgColorsWeeklyArrival);
-});
-
-// chart colis
-$.get(Routing.generate('get_daily_packs_statistics'), function (data) {
-    let labelsColis = Object.keys(data);
-    let dataColis = Object.values(data);
-    let bgColorsColis = [
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(163,209,255, 1)',
-        'rgba(57,181,74, 1)',
-    ];
-    let chartColis = newChart('#chartColis', labelsColis, dataColis, bgColorsColis);
-});
-
-function newChart(canvasId, labels, data, bgColors) {
-    return new Chart($(canvasId), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: bgColors
-            }]
-        },
-        options: {
-            tooltips: false,
-            responsive: true,
-            legend: {
-                display: false,
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
+function newChart($canvasId, labels, data, bgColors) {
+    if ($canvasId.length) {
+        return new Chart($canvasId, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: bgColors
                 }]
             },
-            animation: {
-                onComplete: displayFiguresOnChart
+            options: {
+                tooltips: false,
+                responsive: true,
+                legend: {
+                    display: false,
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                },
+                animation: {
+                    onComplete: displayFiguresOnChart
+                }
             }
-        }
-    });
+        });
+    } else {
+        return null;
+    }
 }
 
 function displayFiguresOnChart() {
@@ -368,8 +184,10 @@ function displayFiguresOnChart() {
         for (let i = 0; i < dataset.data.length; i++) {
             for(let key in dataset._meta)
             {
-                let model = dataset._meta[key].data[i]._model;
-                ctx.fillText(dataset.data[i], model.x, model.y + 5);
+                if (parseInt(dataset.data[i]) > 0){
+                    let model = dataset._meta[key].data[i]._model;
+                    ctx.fillText(dataset.data[i], model.x, model.y + 5);
+                }
             }
         }
     });

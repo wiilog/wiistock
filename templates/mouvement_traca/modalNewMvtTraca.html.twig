@@ -24,32 +24,19 @@
                             <option value="{{ app.user.id }}">{{ app.user.username }}</option>>
                         </select>
                     </div>
-
-                    <div class="form-group col-6">
-                        <label for="colis">Colis*</label>
-                        <input type="text" class="form-control data needed" id="colis" name="colis">
-                    </div>
-
-                    <div class="form-group col-6">
+                    <div class="form-group col-12">
                         <label for="type">Action*</label>
-                        <select class="form-control data needed" id="type" name="type">
+                        <select class="form-control data needed" id="type" name="type" onchange="switchMvtCreationType($(this))">
                             <option disabled selected></option>
                             {% for statut in statuts %}
                                 <option value="{{ statut.id }}">{{ statut.nom }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
-                    <div class="form-group col-12 w-100">
-                        <label class="mtb-auto mr-2">Emplacement*</label>
-                        <select name="emplacement" class="form-control ajax-autocompleteEmplacement data needed">
-                            <option value=" "></option>>
-                        </select>
-                    </div>
-
+                    <div class="more-body-new-mvt-traca col-12 form-group"></div>
                 </div>
 
-                <div class="row">
+                <div class="row d-none new-mvt-common-body">
                     <div class="form-group col-12 h-fit-content">
                         <label for="commentaire">Commentaire</label>
                         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">

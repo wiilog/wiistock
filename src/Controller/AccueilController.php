@@ -24,7 +24,9 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
@@ -256,19 +258,19 @@ class AccueilController extends AbstractController
         $data = $value;
         return new JsonResponse($data);
     }
-
-    /**
-     * @Route("/tableau-de-bord", name="get_dashboard", options={"expose"=true}, methods="GET|POST")
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function getDashboard(): Response
-    {
-        $data = $this->getDashboardData();
-        $html = $this->renderView('accueil/dashboardLinks.html.twig', $data);
-        return new JsonResponse($html);
-    }
+//
+//    /**
+//     * @Route("/tableau-de-bord", name="get_dashboard", options={"expose"=true}, methods="GET|POST")
+//     * @return Response
+//     * @throws NoResultException
+//     * @throws NonUniqueResultException
+//     */
+//    public function getDashboard(): Response
+//    {
+//        $data = $this->getDashboardData();
+//        $html = $this->renderView('accueil/dashboardLinks.html.twig', $data);
+//        return new JsonResponse($html);
+//    }
 
     /**
      * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
@@ -505,4 +507,28 @@ class AccueilController extends AbstractController
         ];
         return new JsonResponse($response);
     }
+
+	/**
+	 * @Route("/statistiques-receptions-associations", name="get_asso_recep_statistics", options={"expose"=true}, methods={"GET|POST"})
+	 */
+	public function getAssoRecepStatistics(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$post = $request->request;
+			return new JsonResponse($this->dashboardService->getWeekAssoc($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
+		}
+		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/statistiques-arrivages-um", name="get_arrival_um_statistics", options={"expose"=true},methods={"GET|POST"})
+	 */
+	public function getArrivalUmStatistics(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest()) {
+			$post = $request->request;
+			return new JsonResponse($this->dashboardService->getWeekArrival($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
+		}
+		throw new NotFoundHttpException("404");
+	}
 }

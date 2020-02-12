@@ -28,24 +28,21 @@
             <div class="points">
                 {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
             </div>
-            <div class="dashboard-box-content" id="dashboard-arrival">
-                <div class="chart"></div>
-                <div class="range-buttons">
-{#                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', false, false)">#}
-                    <div class="arrow-chart">
-                        <i class="fas fa-chevron-left pointer"></i>
-                    </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-{#                    <div class="arrow-chart" onclick="drawChart('dashboard-arrival', true, false)">#}
-                    <div class="arrow-chart">
-                        <i class="fas fa-chevron-right pointer"></i>
-                    </div>
+            <canvas id="chartArrivalUm" width="300" height="90"></canvas>
+
+            <div class="range-buttons d-none">
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
+                    <i class="fas fa-chevron-left pointer"></i>
+                </div>
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
+                    <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-6 dashboard-box-wrapper half-height">
+    <div class="col-6 dashboard-box-wrapper half-height mt-0">
         <div class="dashboard-box">
             <p class="title">
                 Réceptions (nombre d'associations)<br>
@@ -54,19 +51,16 @@
             <div class="points">
                 {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
             </div>
-            <div class="dashboard-box-content" id="dashboard-assoc">
-                <div class="chart"></div>
-                <div class="range-buttons">
-{#                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', false, false)">#}
-                    <div class="arrow-chart">
-                        <i class="fas fa-chevron-left pointer"></i>
-                    </div>
-                    <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                    <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-{#                    <div class="arrow-chart" onclick="drawChart('dashboard-assoc', true, false)">#}
-                    <div class="arrow-chart">
-                        <i class="fas fa-chevron-right pointer"></i>
-                    </div>
+            <canvas id="chartAssocRecep" width="300" height="90"></canvas>
+
+            <div class="range-buttons d-none">
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
+                    <i class="fas fa-chevron-left pointer"></i>
+                </div>
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
+                    <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>
         </div>

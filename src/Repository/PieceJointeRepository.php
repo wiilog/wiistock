@@ -29,19 +29,7 @@ class PieceJointeRepository extends ServiceEntityRepository
            WHERE pj.fileName = :filename"
 		)->setParameter('filename', $filename);
 		;
-		return $query->getOneOrNullResult();
-	}
-
-	public function findOneByFileNameAndArrivageId($filename, $arrivageId)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT pj
-           FROM App\Entity\PieceJointe pj
-           WHERE pj.fileName = :filename AND pj.arrivage = :arrivageId"
-		)->setParameters(['filename' => $filename, 'arrivageId' => $arrivageId]);
-
-		return $query->getOneOrNullResult();
+		return $query->getResult();
 	}
 
 	public function findOneByFileNameAndLitigeId($filename, $litigeId)
@@ -54,7 +42,7 @@ class PieceJointeRepository extends ServiceEntityRepository
            WHERE pj.fileName = :filename AND pj.litige = :litigeId"
 		)->setParameters(['filename' => $filename, 'litigeId' => $litigeId]);
 
-		return $query->getOneOrNullResult();
+		return $query->getResult();
 	}
 
 }

@@ -251,9 +251,11 @@ class LitigeController extends AbstractController
 
 			$litigeId = (int)$data['litigeId'];
 
-			$attachement = $this->pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
-			if ($attachement) {
-				$em->remove($attachement);
+			$attachements = $this->pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			if (!empty($attachements)) {
+			    foreach ($attachements as $attachement) {
+                    $em->remove($attachement);
+                }
 				$em->flush();
 				$response = true;
 			} else {
