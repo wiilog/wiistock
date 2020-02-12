@@ -77,10 +77,7 @@ security:
 #        - { path: ^/tests, roles: ROLE_API }
         - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/accueil, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/receptions_traca, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/arrivage, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/oubli, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/change-password, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/change-password-in-bdd, role: IS_AUTHENTICATED_ANONYMOUSLY }
