@@ -209,7 +209,8 @@ class AccueilController extends AbstractController
         $precedentMonthLast = $lastDayOfCurrentMonth;
         $idx = 0;
         $value = [];
-        while ($idx !== 6 ) {
+        $value['data'] = [];
+        while ($idx !== 6) {
             $month = date("m", strtotime($precedentMonthFirst));
             $month = date("F", mktime(0,0,0, $month, 10));
             $totalEntryRefArticleOfPrecedentMonth = $this->mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
@@ -225,16 +226,13 @@ class AccueilController extends AbstractController
                 array('Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'),
                 $month
             );
-            $value[$month] = [
-                $nbrFiabiliteMonetaireOfPrecedentMonth
-            ];
+            $value['data'][$month] = $nbrFiabiliteMonetaireOfPrecedentMonth;
             $precedentMonthFirst = date("Y-m-d", strtotime("-1 month", strtotime($precedentMonthFirst)));
             $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
             $idx += 1;
         }
-
-        $data = array_reverse($value);
-        return new JsonResponse($data);
+        $value['data'] = array_reverse($value['data']);
+        return new JsonResponse($value);
     }
 
     /**
