@@ -8,14 +8,20 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
 
 use App\Repository\StatutRepository;
+use App\Repository\UtilisateurRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
+use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -55,6 +61,7 @@ class MouvementTracaService
 
     private $em;
     private $statutRepository;
+    private $attachmentService;
 
     public function __construct(UserService $userService,
                                 MouvementTracaRepository $mouvementTracaRepository,
@@ -63,8 +70,8 @@ class MouvementTracaService
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
-                                Security $security)
-    {
+                                Security $security,
+                                AttachmentService $attachmentService) {
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -73,6 +80,7 @@ class MouvementTracaService
         $this->statutRepository = $statutRepository;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
+        $this->attachmentService = $attachmentService;
     }
 
 	/**
@@ -126,44 +134,54 @@ class MouvementTracaService
 
     /**
      * @param string $colis
-     * @param Emplacement $locationFrom
+     * @param Emplacement $location
      * @param Utilisateur $user
      * @param DateTime $date
      * @param bool $fromNomade
      * @param bool|null $finished
-     * @param string $typeMouvementTraca
+     * @param string|int $typeMouvementTraca label ou id du mouvement traca
+     * @param string|null $commentaire
      * @param MouvementStock|null $mouvementStock
+     * @param FileBag|null $fileBag
      * @return MouvementTraca
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function persistMouvementTraca(string $colis,
-                                          Emplacement $locationFrom,
+                                          Emplacement $location,
                                           Utilisateur $user,
                                           DateTime $date,
                                           bool $fromNomade,
                                           ?bool $finished,
-                                          string $typeMouvementTraca,
-                                          MouvementStock $mouvementStock = null): MouvementTraca {
+                                          $typeMouvementTraca,
+                                          string $commentaire = null,
+                                          MouvementStock $mouvementStock = null,
+                                          FileBag $fileBag = null): MouvementTraca {
 
-        if ($typeMouvementTraca !== MouvementTraca::TYPE_PRISE &&
-            $typeMouvementTraca !== MouvementTraca::TYPE_DEPOSE) {
+        $type = is_string($typeMouvementTraca)
+            ? $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            : $this->statutRepository->find($typeMouvementTraca);
+
+        if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
         }
-
-        $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca);
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($colis)
-            ->setEmplacement($locationFrom)
+            ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($date) : null)
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
-            ->setMouvementStock($mouvementStock);
+            ->setMouvementStock($mouvementStock)
+            ->setCommentaire($commentaire);
         $this->em->persist($mouvementTraca);
+
+        if (isset($fileBag)) {
+            $this->attachmentService->addAttachements($fileBag, null, null, $mouvementTraca);
+        }
+
         return $mouvementTraca;
     }
 

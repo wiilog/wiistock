@@ -14,6 +14,7 @@ class MouvementTraca
 
     const TYPE_PRISE = 'prise';
     const TYPE_DEPOSE = 'depose';
+    const TYPE_PRISE_DEPOSE = 'prises et deposes';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

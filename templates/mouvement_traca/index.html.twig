@@ -18,7 +18,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
-               onclick="initNewMvtTracaEditor('#modalNewMvtTraca'), clearModal('#modalNewMvtTraca'), fillDateInNewModal()">
+               onclick="clearModal('#modalNewMvtTraca'), initNewMvtTracaEditor('#modalNewMvtTraca'), fillDateInNewModal()">
                 <span class="fa fa-plus mr-2"></span>Nouveau mouvement
             </a>
         {% endif %}
