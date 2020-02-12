@@ -13,6 +13,7 @@ use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
 use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
+use App\Repository\UrgenceRepository;
 use App\Service\DashboardService;
 
 use App\Service\EnCoursService;
@@ -271,15 +272,16 @@ class AccueilController extends AbstractController
         return new JsonResponse($html);
     }
 
-	/**
-	 * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
-	 * @param StatisticsService $statisticsService
-	 * @param ArrivageRepository $arrivageRepository
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function getDailyArrivalsStatistics(StatisticsService $statisticsService,
-                                               ArrivageRepository $arrivageRepository): Response {
+    /**
+     * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
+     * @param StatisticsService $statisticsService
+     * @param ArrivageRepository $arrivageRepository
+     * @return Response
+     * @throws Exception
+     */
+    public function getDailyArrivalsStatistics(StatisticsService $statisticsService,
+                                               ArrivageRepository $arrivageRepository): Response
+    {
 
         $arrivalCountByDays = $statisticsService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
@@ -288,15 +290,16 @@ class AccueilController extends AbstractController
         return new JsonResponse($arrivalCountByDays);
     }
 
-	/**
-	 * @Route("/statistiques-colis-jour", name="get_daily_packs_statistics", options={"expose"=true}, methods="GET")
-	 * @param StatisticsService $statisticsService
-	 * @param ColisRepository $colisRepository
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function getDailyPacksStatistics(StatisticsService $statisticsService,
-                                            ColisRepository $colisRepository): Response {
+    /**
+     * @Route("/statistiques-colis-jour", name="get_daily_packs_statistics", options={"expose"=true}, methods="GET")
+     * @param StatisticsService $statisticsService
+     * @param ColisRepository $colisRepository
+     * @return Response
+     * @throws Exception
+     */
+    public function getDailyPacksStatistics(StatisticsService $statisticsService,
+                                            ColisRepository $colisRepository): Response
+    {
 
         $packsCountByDays = $statisticsService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
             return $colisRepository->countByDates($dateMin, $dateMax);
@@ -305,15 +308,16 @@ class AccueilController extends AbstractController
         return new JsonResponse($packsCountByDays);
     }
 
-	/**
-	 * @Route("/statistiques-arrivages-semaine", name="get_weekly_arrivals_statistics", options={"expose"=true}, methods="GET")
-	 * @param StatisticsService $statisticsService
-	 * @param ArrivageRepository $arrivageRepository
-	 * @return Response
-	 * @throws Exception
-	 */
-	public function getWeeklyArrivalsStatistics(StatisticsService $statisticsService,
-                                                ArrivageRepository $arrivageRepository): Response {
+    /**
+     * @Route("/statistiques-arrivages-semaine", name="get_weekly_arrivals_statistics", options={"expose"=true}, methods="GET")
+     * @param StatisticsService $statisticsService
+     * @param ArrivageRepository $arrivageRepository
+     * @return Response
+     * @throws Exception
+     */
+    public function getWeeklyArrivalsStatistics(StatisticsService $statisticsService,
+                                                ArrivageRepository $arrivageRepository): Response
+    {
 
         $arrivalsCountByWeek = $statisticsService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
@@ -345,11 +349,11 @@ class AccueilController extends AbstractController
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
         $naturesForGraph = explode(',', $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue());
-        $naturesForGraph = array_map(function(int $natureId) use ($natureRepository) {
+        $naturesForGraph = array_map(function (int $natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
         $emplacementsWanted = explode(',', $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue());
-        $emplacementsWanted = array_map(function(int $emplacementId) use ($emplacementRepository) {
+        $emplacementsWanted = array_map(function (int $emplacementId) use ($emplacementRepository) {
             return $emplacementRepository->find($emplacementId);
         }, $emplacementsWanted);
         $highestTotal = -1;
@@ -381,5 +385,126 @@ class AccueilController extends AbstractController
             'total' => $highestTotal,
             "location" => $empToKeep->getLabel()
         ]);
+    }
+
+    /**
+     * @Route("/statistiques-urgences-et-encours-admin", name="get_encours_and_emergencies_admin", options={"expose"=true}, methods="GET")
+     * @param EmplacementRepository $emplacementRepository
+     * @param UrgenceRepository $urgenceRepository
+     * @param EnCoursService $enCoursService
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getEmergenciesAndAndEnCoursForAdmin(
+        EmplacementRepository $emplacementRepository,
+        UrgenceRepository $urgenceRepository,
+        EnCoursService $enCoursService,
+        ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $empIdForLitige =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES)->getValue()
+                :
+                null;
+        $empIdForUrgence =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES)->getValue()
+                :
+                null;
+        $empIdForClearance =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN)->getValue()
+                :
+                null;
+        $empForLitige = $empIdForLitige ? $emplacementRepository->find($empIdForLitige) : null;
+        $empForUrgence = $empIdForUrgence ? $emplacementRepository->find($empIdForUrgence) : null;
+        $empForClearance = $empIdForClearance ? $emplacementRepository->find($empIdForClearance) : null;
+        $response = [
+            'enCoursLitige' => $empForLitige ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForLitige)['data']),
+                'label' => $empForLitige->getLabel()
+            ] : null,
+            'enCoursClearance' => $empForClearance ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
+                'label' => $empForClearance->getLabel()
+            ] : null,
+            'enCoursUrgence' => $empForUrgence ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForUrgence)['data']),
+                'label' => $empForUrgence->getLabel()
+            ] : null,
+            'urgenceCount' => $urgenceRepository->countUnsolved(),
+        ];
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route("/statistiques-urgences-et-encours-quai", name="get_encours_and_emergencies_dock", options={"expose"=true}, methods="GET")
+     * @param EmplacementRepository $emplacementRepository
+     * @param UrgenceRepository $urgenceRepository
+     * @param EnCoursService $enCoursService
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getEmergenciesAndAndEnCoursForQuai(
+        EmplacementRepository $emplacementRepository,
+        UrgenceRepository $urgenceRepository,
+        EnCoursService $enCoursService,
+        ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $empIdForDock =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)->getValue()
+                :
+                null;
+        $empIdForClearance =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)->getValue()
+                :
+                null;
+        $empIdForCleared =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)->getValue()
+                :
+                null;
+        $empIdForDropZone =
+            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)
+                ?
+                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)->getValue()
+                :
+                null;
+        $empForDock = $empIdForDock ? $emplacementRepository->find($empIdForDock) : null;
+        $empForClearance = $empIdForClearance ? $emplacementRepository->find($empIdForClearance) : null;
+        $empForCleared = $empIdForCleared ? $emplacementRepository->find($empIdForCleared) : null;
+        $empForDropZone = $empIdForDropZone ? $emplacementRepository->find($empIdForDropZone) : null;
+        $response = [
+            'enCoursDock' => $empForDock ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForDock)['data']),
+                'label' => $empForDock->getLabel()
+            ] : null,
+            'enCoursClearance' => $empForClearance ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
+                'label' => $empForClearance->getLabel()
+            ] : null,
+            'enCoursCleared' => $empForCleared ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForCleared)['data']),
+                'label' => $empForCleared->getLabel()
+            ] : null,
+            'enCoursDropzone' => $empForDropZone ? [
+                'count' => count($enCoursService->getEnCoursForEmplacement($empForDropZone)['data']),
+                'label' => $empForDropZone->getLabel()
+            ] : null,
+            'urgenceCount' => $urgenceRepository->countUnsolved(),
+        ];
+        return new JsonResponse($response);
     }
 }

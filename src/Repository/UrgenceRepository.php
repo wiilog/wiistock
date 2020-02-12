@@ -46,8 +46,29 @@ class UrgenceRepository extends ServiceEntityRepository
         ]);
 
         $res = $query->getResult();
-
         return $res;
+    }
+
+    /**
+     * @return mixed
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countUnsolved() {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "
+            SELECT COUNT(u)
+            FROM App\Entity\Urgence AS u
+            WHERE
+            (
+                SELECT COUNT(a)
+                FROM App\Entity\Arrivage AS a
+                WHERE (a.date BETWEEN u.dateStart AND u.dateEnd) AND a.numeroBL LIKE u.commande
+            ) > 0"
+        );
+        return $query->getSingleScalarResult();
     }
 
     public function findByParamsAndFilters($params, $filters)
