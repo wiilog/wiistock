@@ -154,6 +154,7 @@ function submitSplitting(submit) {
             if (inputValue <= inputMax) {
                 let id = $input.data('id');
                 articlesChosen[id] = inputValue;
+                $input.removeClass('is-invalid');
             }
             else {
                 maxExceeded = true;
