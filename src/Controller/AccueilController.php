@@ -398,7 +398,7 @@ class AccueilController extends AbstractController
 	}
 
 	/**
-	 * @Route("/statistiques-arrivages-um", name="get_arrival_um_statistics", options={"expose"=true},methods={"GET","POST"})
+	 * @Route("/statistiques-arrivages-um", name="get_arrival_um_statistics", options={"expose"=true},methods={"GET|POST"})
 	 */
 	public function getArrivalUmStatistics(Request $request): Response
 	{
