@@ -146,19 +146,22 @@ function submitSplitting(submit) {
     let maxExceeded = false;
     for(const input of $inputs) {
         const $input = $(input);
-        const inputValue = $input.val();
+        const inputValue = $input.val() !== '' ? Number($input.val()) : '';
+        const inputMax = $input.attr('max') !== '' ? Number($input.attr('max')) : 0;
+        const inputValueInit = $input.data('value-init') !== '' ? Number($input.data('value-init')) : 0;
 
         if (inputValue !== '' && inputValue > 0) {
-            if (inputValue <= $input.attr('max')) {
+            if (inputValue <= inputMax) {
                 let id = $input.data('id');
                 articlesChosen[id] = inputValue;
+                $input.removeClass('is-invalid');
             }
             else {
                 maxExceeded = true;
                 $input.addClass('is-invalid');
             }
         }
-        else if ($input.data('value-init') > 0) {
+        else if (inputValueInit > 0) {
             quantityToZero = true;
             $input.addClass('is-invalid');
             break;
