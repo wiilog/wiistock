@@ -157,7 +157,7 @@ class MouvementTracaController extends AbstractController
                     $date,
                     $fromNomade,
 			        null,
-                    $post->get('type'),
+                    $post->getInt('type'),
                     $commentaire
                 );
             }
