@@ -285,7 +285,7 @@ class MouvementTracaController extends AbstractController
 
 			$attachments = $mvt->getAttachements()->toArray();
 			foreach ($attachments as $attachment) { /** @var PieceJointe $attachment */
-				if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+				if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
 					$this->attachmentService->removeAndDeleteAttachment($attachment, null, null, $mvt);
 				}
 			}
