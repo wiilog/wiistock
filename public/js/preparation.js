@@ -264,8 +264,9 @@ function limitInput($input) {
     //
 
     // vérification quantité disponible référence
-    let value = $input.val();
-    let thisMax = $input.attr('max');
+    let value = Number($input.val());
+    let thisMax = Number($input.attr('max'));
+
     if (value > thisMax) {
         $input.parent().find('.row-error-msg').html('max : ' + thisMax);
     } else {
