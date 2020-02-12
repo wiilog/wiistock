@@ -6,6 +6,8 @@ use App\Entity\Arrivage;
 use App\Entity\Urgence;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -51,8 +53,8 @@ class UrgenceRepository extends ServiceEntityRepository
 
     /**
      * @return mixed
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function countUnsolved() {
         $em = $this->getEntityManager();

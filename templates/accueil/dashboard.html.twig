@@ -30,13 +30,13 @@
             </div>
             <canvas id="chartArrivalUm" width="300" height="90"></canvas>
 
-            <div class="range-buttons">
-                <div class="arrow-chart" onclick="drawChartArrival($(this), 'get_arrival_um_statistics', false, false)">
+            <div class="range-buttons d-none">
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
                     <i class="fas fa-chevron-left pointer"></i>
                 </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                <div class="arrow-chart" onclick="drawChartArrival($(this), 'get_arrival_um_statistics', false, true)">
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
                     <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>
@@ -53,13 +53,13 @@
             </div>
             <canvas id="chartAssocRecep" width="300" height="90"></canvas>
 
-            <div class="range-buttons">
-                <div class="arrow-chart" onclick="drawChartArrival($(this), 'get_asso_recep_statistics', false, false)">
+            <div class="range-buttons d-none">
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
                     <i class="fas fa-chevron-left pointer"></i>
                 </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}">{{ firstDayOfWeek }} - </span>
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}">{{ lastDayOfWeek }}</span>
-                <div class="arrow-chart" onclick="drawChartArrival($(this), 'get_asso_recep_statistics', false, true)">
+                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
                     <i class="fas fa-chevron-right pointer"></i>
                 </div>
             </div>

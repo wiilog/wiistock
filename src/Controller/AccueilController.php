@@ -517,7 +517,7 @@ class AccueilController extends AbstractController
 	{
 		if ($request->isXmlHttpRequest()) {
 			$post = $request->request;
-			return new JsonResponse($this->dashboardService->getWeekAssoc($post->get('firstDay'), $post->get('lastDay'), $post->get('after') ?? 'now'));
+			return new JsonResponse($this->dashboardService->getWeekAssoc($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
 		}
 		throw new NotFoundHttpException("404");
 	}
@@ -529,7 +529,7 @@ class AccueilController extends AbstractController
 	{
 		if ($request->isXmlHttpRequest()) {
 			$post = $request->request;
-			return new JsonResponse($this->dashboardService->getWeekArrival($post->get('firstDay'), $post->get('lastDay'), $post->get('after') ?? 'now'));
+			return new JsonResponse($this->dashboardService->getWeekArrival($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
 		}
 		throw new NotFoundHttpException("404");
 	}

@@ -64,16 +64,14 @@ class DashboardService
         ],
     ];
 
-    public function getWeekAssoc($firstDay, $lastDay, $after) {
-        if ($after !== 'now') {
-            if ($after) {
-                $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
-                $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
-            } else {
-                $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
-                $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
-            }
-        }
+    public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {
+		if ($beforeAfter == 'after') {
+			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
+			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
+		} elseif ($beforeAfter == 'before') {
+			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
+			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
+		}
         $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
         $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
 
@@ -89,6 +87,7 @@ class DashboardService
             $dayCounterKey = $qttPerDay['date']->format('d');
             $rows[$dayCounterKey] += $qttPerDay['count'];
         }
+
         return [
             'data' => $rows,
             'firstDay' => date("d/m/y", $firstDayTime),
@@ -98,17 +97,16 @@ class DashboardService
         ];
     }
 
-    public function getWeekArrival($firstDay, $lastDay, $after)
+    public function getWeekArrival($firstDay, $lastDay, $beforeAfter)
     {
-        if ($after !== 'now') {
-            if ($after) {
-                $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
-                $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
-            } else {
-                $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
-                $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
-            }
-        }
+		if ($beforeAfter == 'after') {
+			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
+			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
+		} else if ($beforeAfter == 'before') {
+			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
+			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
+		}
+
         $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
         $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
 
