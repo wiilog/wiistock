@@ -139,7 +139,7 @@ class MouvementTracaService
      * @param DateTime $date
      * @param bool $fromNomade
      * @param bool|null $finished
-     * @param string $typeMouvementTraca
+     * @param string|int $typeMouvementTraca label ou id du mouvement traca
      * @param string|null $commentaire
      * @param MouvementStock|null $mouvementStock
      * @param FileBag|null $fileBag
@@ -152,17 +152,18 @@ class MouvementTracaService
                                           DateTime $date,
                                           bool $fromNomade,
                                           ?bool $finished,
-                                          string $typeMouvementTraca,
+                                          $typeMouvementTraca,
                                           string $commentaire = null,
                                           MouvementStock $mouvementStock = null,
                                           FileBag $fileBag = null): MouvementTraca {
 
-        if ($typeMouvementTraca !== MouvementTraca::TYPE_PRISE &&
-            $typeMouvementTraca !== MouvementTraca::TYPE_DEPOSE) {
+        $type = is_string($typeMouvementTraca)
+            ? $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            : $this->statutRepository->find($typeMouvementTraca);
+
+        if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
         }
-
-        $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca);
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
