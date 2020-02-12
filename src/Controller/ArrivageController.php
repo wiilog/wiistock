@@ -1431,15 +1431,4 @@ class ArrivageController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/dashboard_arrivage", name="dashboard-arrival", options={"expose"=true},methods={"GET","POST"})
-     */
-    public function dashboard_assoc(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            return new JsonResponse($this->dashboardService->getWeekArrival($data['firstDay'], $data['lastDay'], isset($data['after']) ? $data['after'] : 'now'));
-        }
-        throw new NotFoundHttpException("404");
-    }
-
 }
