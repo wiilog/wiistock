@@ -33,6 +33,7 @@ InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEdi
 $(function() {
     initSelect2($('.select2'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
+    ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
     initDisplaySelect2('#locationToTreat', '#locationToTreatValue');
@@ -44,6 +45,7 @@ $(function() {
     initDisplaySelect2('#locationUrgences', '#locationUrgencesValue');
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
+    initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
 
 function errorEditDays(data) {

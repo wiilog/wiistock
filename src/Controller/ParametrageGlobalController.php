@@ -16,6 +16,7 @@ use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -62,6 +63,7 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
+						  TransporteurRepository $transporteurRepository,
 						  NatureRepository $natureRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -76,6 +78,27 @@ class ParametrageGlobalController extends AbstractController
         $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
         $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
         $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+
+        $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
+        $carriersIds = empty($carriersParams)
+            ? []
+            : explode(',', $carriersParams);
+
+        $carriers = array_reduce(
+            $carriersIds,
+            function (array $carry, $id) use ($transporteurRepository) {
+                $transporteur = $transporteurRepository->find($id);
+                if (isset($transporteur)) {
+                    $carry['id'][] = $transporteur->getId();
+                    $carry['text'][] = $transporteur->getLabel();
+                }
+                return $carry;
+            },
+            ['id' => [], 'text' => []]
+        );
+
+        $carriers['id'] = implode(',', $carriers['id']);
+        $carriers['text'] = implode(',', $carriers['text']);
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -98,12 +121,12 @@ class ParametrageGlobalController extends AbstractController
 				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
 				'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'paramDashboard' => [
 					'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
 					'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
 					'natures' => $natureRepository->findAll(),
-					'locations' => $globalParamService->getDashboardLocations()
+					'locations' => $globalParamService->getDashboardLocations(),
+                    'valueCarriers' =>  $carriers
 				],
         ]);
     }
@@ -641,6 +664,7 @@ class ParametrageGlobalController extends AbstractController
 				ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
 				ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
 				ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
+                ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
 			];
 
 			foreach ($listMultipleSelect as $labelParam => $selectId) {

@@ -23,6 +23,16 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
+                        <label for="carrierDock" class="d-block">Suivi des transporteurs</label>
+                        <select class="form-control ajax-autocomplete-transporteur d-block data" id="carrierDock" multiple>
+                        </select>
+                    </div>
+                </div>
+                <input hidden id="carrierDockValue" data-id="{{ valueCarriers.id }}" data-text="{{ valueCarriers.text }}">
+            </div>
+            <div class="form-group w-fit-content">
+                <div class="form-group w-450px">
+                    <div class="w-100">
                         <label for="locationToTreat" class="d-block">Emplacement quai</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationToTreat">
                         </select>
