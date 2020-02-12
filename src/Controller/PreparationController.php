@@ -459,9 +459,8 @@ class PreparationController extends AbstractController
 
             $refArticle = $ligneArticle->getReference();
             $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
             $preparation = $ligneArticle->getPreparation();
-
+            $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif, $preparation, $preparation->getDemande());
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
@@ -495,7 +494,7 @@ class PreparationController extends AbstractController
                 foreach ($data['articles'] as $idArticle => $quantite) {
                     $article = $this->articleRepository->find($idArticle);
                     $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
-                }
+            }
                 $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
                 $em->flush();
                 $resp = true;
