@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\InventoryEntry;
+use App\Entity\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\Manutention;
 use App\Entity\Menu;
@@ -1007,8 +1008,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function addInventoryEntries(Request $request,
-                                        InventoryEntryRepository $inventoryEntryRepository)
+    public function addInventoryEntries(Request $request, EntityManagerInterface $entityManager)
     {
         if (!$request->isXmlHttpRequest()) {
             $response = new Response();
@@ -1018,20 +1018,23 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $apiKey = $request->request->get('apiKey');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
-
-                $em = $this->getDoctrine()->getManager();
+                $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+                $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+                $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+                $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+                $articleRepository = $entityManager->getRepository(Emplacement::class);
                 $numberOfRowsInserted = 0;
 
                 $entries = json_decode($request->request->get('entries'), true);
                 $newAnomalies = [];
 
                 foreach ($entries as $entry) {
-                    $mission = $this->inventoryMissionRepository->find($entry['id_mission']);
-                    $location = $this->emplacementRepository->findOneByLabel($entry['location']);
+                    $mission = $inventoryMissionRepository->find($entry['id_mission']);
+                    $location = $emplacementRepository->findOneByLabel($entry['location']);
 
                     $articleToInventory = $entry['is_ref']
-                        ? $this->referenceArticleRepository->findOneByReference($entry['reference'])
-                        : $this->articleRepository->findOneByReference($entry['reference']);
+                        ? $referenceArticleRepository->findOneByReference($entry['reference'])
+                        : $articleRepository->findOneByReference($entry['reference']);
 
                     $criteriaInventoryEntry = ['mission' => $mission];
 
@@ -1079,7 +1082,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $articleToInventory->setDateLastInventory($newDate);
                             }
                         }
-                        $em->persist($inventoryEntry);
+                        $entityManager->persist($inventoryEntry);
 
                         if ($inventoryEntry->getAnomaly()) {
                             $newAnomalies[] = $inventoryEntry->getId();
@@ -1087,7 +1090,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $numberOfRowsInserted++;
                     }
                 }
-                $em->flush();
+                $entityManager->flush();
 
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
@@ -1095,8 +1098,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     ? "Aucune saisie d'inventaire à synchroniser."
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
                 $this->successDataMsg['data']['anomalies'] = array_merge(
-                    $this->inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomalies),
-                    $this->inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
+                    $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomalies),
+                    $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
                 );
             } else {
                 $this->successDataMsg['success'] = false;

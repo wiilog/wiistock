@@ -69,7 +69,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
 		return $queryBuilder
             ->getQuery()
-            ->getScalarResult();
+            ->getArrayResult();
 	}
 
     public function getAnomaliesOnArt(bool $forceValidLocation = false, $anomaliesIds = []) {
