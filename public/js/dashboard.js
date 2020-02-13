@@ -55,6 +55,15 @@ $(function () {
     $('#blocIndicators').mouseleave(function () {
         $indicators.fadeOut();
     });
+
+    $(document).on('keydown', function(e) {
+        let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
+        if (e.which === 37) {
+            activeBtn.prev('li').click()
+        } else if (e.which === 39) {
+            activeBtn.next('li').click()
+        }
+    })
 });
 
 function reloadDashboards() {
@@ -344,7 +353,7 @@ function refreshIndicatorsReceptionDock() {
         $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
         $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
         $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
-        $('#empForClearedDock').text(data.encoursCleared ? data.encoursCleared.label : '-');
+        $('#empForClearedDock').text(data.enCoursCleared ? data.enCoursCleared.label : '-');
         $('#empForPackDock').text(data.enCoursDock ? data.enCoursDock.label : '-');
         $('#empForClearanceDock').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
         $('#empForDropZoneDock').text(data.enCoursDropzone ? data.enCoursDropzone.label : '-');
