@@ -5,6 +5,7 @@
 {% endblock  %}
 
 {% block page_content %}
+    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
     <div id="carouselIndicators" class="carousel slide">
         <ol class="carousel-indicators">
             <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
@@ -29,6 +30,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
         {% include "accueil/linkToAddArticleForm.html.twig" %}
