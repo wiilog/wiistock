@@ -123,20 +123,14 @@ function defaultValueForTypage($select) {
     } else {
         if (typage === 'date' || typage === 'datetime') {
             typeInput = 'text';
-        } else if (typage === 'list') {
+        } else if (typage === 'list' || typage === 'list multiple') {
             label = "Éléments (séparés par ';')";
             name = 'elem';
             existingValue = existingElem ? existingElem : '';
         }
-        if (typage === 'list multiple') {
-            label = "Éléments";
-            existingValue = existingElem ? existingElem : '';
-            inputDefaultBlock =
-                `<select class="form-control cursor-default data" name="Elements" multiple="multiple"></select>`;
-        } else {
-            inputDefaultBlock =
-                `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
-        }
+
+        inputDefaultBlock =
+            `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
     }
 
     let defaultBlock =
@@ -147,25 +141,6 @@ function defaultValueForTypage($select) {
 
     valueDefault.html(defaultBlock);
     if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
-    if (typage === 'list multiple') {
-        let data = [];
-        existingValue.split(';').forEach((value) => {
-            if (value !== '') {
-                data.push({
-                    id: value,
-                    text: value,
-                    selected: true
-                })
-            }
-        });
-        $('.data[name="Elements"]').select2({
-            tags: true,
-            "language":{
-                "noResults" : function () { return 'Ajoutez des éléments'; }
-            },
-            data: data
-        });
-    }
 }
 
 function displayErrorCL(data) {
