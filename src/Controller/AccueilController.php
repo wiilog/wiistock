@@ -201,9 +201,9 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/graphique-monetaire", name="graph_monetaire", options={"expose"=true}, methods="GET|POST")
+     * @Route("/statistiques-fiabilite-monetaire", name="get_monetary_fiability_statistics", options={"expose"=true}, methods="GET|POST")
      */
-    public function graphiqueMonetaire(): Response
+    public function getMonetaryFiabilityStatistics(): Response
     {
         $firstDayOfCurrentMonth = date("Y-m-d", strtotime("first day of this month"));
         $lastDayOfCurrentMonth = date("Y-m-d", strtotime("last day of this month", strtotime($firstDayOfCurrentMonth)));
@@ -233,7 +233,7 @@ class AccueilController extends AbstractController
             $precedentMonthLast = date("Y-m-d", strtotime("last day of -1 month", strtotime($precedentMonthLast)));
             $idx += 1;
         }
-        $value['data'] = array_reverse($value['data']);
+        $value = array_reverse($value['data']);
         return new JsonResponse($value);
     }
 

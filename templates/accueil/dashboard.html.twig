@@ -90,11 +90,17 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <div class="dashboard-box-content">
-                    <div class="curve_chart_line " id="curve_chart"></div>
-{#                    <div class="spinner-container">#}
-{#                        <div class="spinner-border"></div>#}
-{#                    </div>#}
+                <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
+
+                <div class="range-buttons d-none">
+                    <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'before', chartMonetaryFiability)">
+                        <i class="fas fa-chevron-left pointer"></i>
+                    </div>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'after', chartMonetaryFiability)">
+                        <i class="fas fa-chevron-right pointer"></i>
+                    </div>
                 </div>
             </div>
         </div>

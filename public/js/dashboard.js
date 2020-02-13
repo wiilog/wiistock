@@ -1,10 +1,12 @@
 let datatableColis;
+let datatableLoading = false;
 
 let chartArrivalUm;
 let chartAssoRecep;
 let chartDailyArrival;
 let chartWeeklyArrival;
 let chartColis;
+let chartMonetaryFiability;
 
 $(function () {
     // config chart js
@@ -27,6 +29,10 @@ $(function () {
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
         chartColis = chart;
     });
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics').then((chart) => {
+        chartMonetaryFiability = chart;
+    });
+    loadRetards();
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
@@ -45,6 +51,7 @@ function reloadDashboards() {
         datatableColis.ajax.reload();
     }
     updateCharts();
+    loadRetards();
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
@@ -55,6 +62,7 @@ function updateCharts() {
     drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', 'now', chartDailyArrival);
     drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', 'now', chartWeeklyArrival);
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', 'now', chartColis);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', 'now', chartMonetaryFiability);
 }
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
@@ -204,4 +212,46 @@ function displayFiguresOnChart() {
             }
         }
     });
+}
+
+function loadRetards() {
+    let routeForLate = Routing.generate('api_retard', true);
+
+    const $retardsTable = $('.retards-table');
+
+    if (!datatableLoading) {
+        const clientHeight = document.body.clientHeight;
+        datatableLoading = true;
+        if (datatableColis) {
+            datatableColis.destroy();
+        }
+        datatableColis = $retardsTable.DataTable({
+            responsive: true,
+            dom: 'tipr',
+            pagingType: 'simple',
+            pageLength: (
+                clientHeight < 800 ? 2 :
+                    clientHeight < 900 ? 3 :
+                        clientHeight < 1000 ? 4 :
+                            6
+            ),
+            processing: true,
+            "language": {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            ajax: {
+                "url": routeForLate,
+                "type": "POST",
+            },
+            initComplete: () => {
+                datatableLoading = false;
+            },
+            columns: [
+                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
+                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+            ]
+        });
+    }
 }
