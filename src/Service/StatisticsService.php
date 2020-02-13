@@ -44,15 +44,17 @@ class StatisticsService
 
 		$workedDaysLabels = $this->daysWorkedRepository->getLabelWorkedDays();
 
-		while (count($daysToReturn) < $nbDaysToReturn) {
-			$dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
-			$dateDayLabel = strtolower($dateToCheck->format('l'));
+		if (!empty($workedDaysLabels)) {
+			while (count($daysToReturn) < $nbDaysToReturn) {
+				$dateToCheck = new DateTime("now - $dayIndex days", new DateTimeZone('Europe/Paris'));
+				$dateDayLabel = strtolower($dateToCheck->format('l'));
 
-			if (in_array($dateDayLabel, $workedDaysLabels)) {
-				$daysToReturn[] = $dateToCheck;
+				if (in_array($dateDayLabel, $workedDaysLabels)) {
+					$daysToReturn[] = $dateToCheck;
+				}
+
+				$dayIndex++;
 			}
-
-			$dayIndex++;
 		}
 
 		return array_reduce(
