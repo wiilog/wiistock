@@ -196,7 +196,8 @@ class AccueilController extends AbstractController
                 'MToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
-            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
+            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week')),
+			'indicatorsReceptionDock' => $this->dashboardService->getDataForReceptionDashboard()
         ];
     }
 
@@ -443,68 +444,12 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-urgences-et-encours-quai", name="get_encours_and_emergencies_dock", options={"expose"=true}, methods="GET")
-     * @param EmplacementRepository $emplacementRepository
-     * @param UrgenceRepository $urgenceRepository
-     * @param EnCoursService $enCoursService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @Route("/statistiques-receoption-quai", name="get_indicators_reception_dock", options={"expose"=true}, methods="GET")
      */
-    public function getEmergenciesAndAndEnCoursForQuai(
-        EmplacementRepository $emplacementRepository,
-        UrgenceRepository $urgenceRepository,
-        EnCoursService $enCoursService,
-        ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function getIndicatorsDockReception(): Response
     {
-        $empIdForDock =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)->getValue()
-                :
-                null;
-        $empIdForClearance =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)->getValue()
-                :
-                null;
-        $empIdForCleared =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)->getValue()
-                :
-                null;
-        $empIdForDropZone =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)->getValue()
-                :
-                null;
-        $empForDock = $empIdForDock ? $emplacementRepository->find($empIdForDock) : null;
-        $empForClearance = $empIdForClearance ? $emplacementRepository->find($empIdForClearance) : null;
-        $empForCleared = $empIdForCleared ? $emplacementRepository->find($empIdForCleared) : null;
-        $empForDropZone = $empIdForDropZone ? $emplacementRepository->find($empIdForDropZone) : null;
-        $response = [
-            'enCoursDock' => $empForDock ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForDock)['data']),
-                'label' => $empForDock->getLabel()
-            ] : null,
-            'enCoursClearance' => $empForClearance ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
-                'label' => $empForClearance->getLabel()
-            ] : null,
-            'enCoursCleared' => $empForCleared ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForCleared)['data']),
-                'label' => $empForCleared->getLabel()
-            ] : null,
-            'enCoursDropzone' => $empForDropZone ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForDropZone)['data']),
-                'label' => $empForDropZone->getLabel()
-            ] : null,
-            'urgenceCount' => $urgenceRepository->countUnsolved(),
-        ];
+    	$response = $this->dashboardService->getDataForReceptionDashboard();
+
         return new JsonResponse($response);
     }
 

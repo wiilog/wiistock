@@ -529,7 +529,7 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
             placeholder: {
                 text: placeholder,
             },
-            allowClear: !isMultiple
+            allowClear: true
         });
     });
 }

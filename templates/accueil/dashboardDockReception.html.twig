@@ -5,7 +5,7 @@
 </div>
 <div class="row mt-4">
     <div class="col-10 row">
-        <div class="col-7 dashboard-box-wrapper">
+        <div class="col-7 dashboard-box-wrapper half-height">
             <div class="dashboard-box">
                 <p class="title">
                     Arrivages quotidiens<br>
@@ -17,7 +17,7 @@
                 <canvas id="chartDailyArrival" width="300" height="90"></canvas>
             </div>
         </div>
-        <div class="col-5 dashboard-box-wrapper">
+        <div class="col-5 dashboard-box-wrapper half-height">
             <div class="dashboard-box">
                 <p class="title">
                     Arrivages hebdomadaires<br>
@@ -29,9 +29,8 @@
                 <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
             </div>
         </div>
-        <div class="col-6 dashboard-box-wrapper">
+        <div class="col-6 dashboard-box-wrapper half-height">
             <div class="dashboard-box">
-{#                TODO CG données dynamiques #}
                 <p class="title">
                     Réception quai<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
@@ -39,31 +38,31 @@
                 <p class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </p>
-                <div class="row">
+                <div class="row pr-4">
                     <div class="col-6 d-flex align-items-center">
                         <p class="little-font">Colis restants à traiter</p>
-                        <span class="figure">18</span>
+                        <span class="figure" id="enCoursDock">{{ indicatorsReceptionDock.enCoursDock.count is defined ? indicatorsReceptionDock.enCoursDock.count : '-' }}</span>
                     </div>
                     <div class="col-6 d-flex align-items-center">
                         <p class="little-font">Colis en attente dédouanement</p>
-                        <span class="figure">11</span>
+                        <span class="figure" id="enCoursClearance">{{ indicatorsReceptionDock.enCoursClearance.count is defined ? indicatorsReceptionDock.enCoursClearance.count : '-' }}</span>
                     </div>
                     <div class="col-6 d-flex align-items-center">
                         <p class="little-font">Urgences restant à recevoir</p>
-                        <span class="figure red">1</span>
+                        <span class="figure red" id="enCoursCleared">{{ indicatorsReceptionDock.urgenceCount }}</span>
                     </div>
                     <div class="col-6 d-flex align-items-center">
                         <p class="little-font">Colis à déposer en Drop Zones</p>
-                        <span class="figure">23</span>
+                        <span class="figure" id="enCoursDropzone">{{ indicatorsReceptionDock.enCoursDropzone.count is defined ? indicatorsReceptionDock.enCoursDropzone.count : '-' }}</span>
                     </div>
                     <div class="col-6 d-flex align-items-center">
                         <p class="little-font">Colis dédouanés et dispo</p>
-                        <span class="figure">11</span>
+                        <span class="figure" id="urgenceCount">{{ indicatorsReceptionDock.encoursCleared.count is defined ? indicatorsReceptionDock.encoursCleared.count : '-' }}</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-6 dashboard-box-wrapper">
+        <div class="col-6 dashboard-box-wrapper half-height">
             <div class="dashboard-box">
                 <p class="title">
                     Colis<br>
