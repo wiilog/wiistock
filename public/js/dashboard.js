@@ -40,6 +40,9 @@ $(function () {
         chartSecondForAdmin = chart;
     });
 
+    loadRetards();
+    updateIndicBoxAdmin();
+
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
     updateIndicBoxAdmin();
