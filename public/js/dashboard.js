@@ -13,7 +13,6 @@ let chartSecondForAdmin;
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
-
     //// charts monitoring réception arrivage
     drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
         chartArrivalUm = chart;
@@ -34,8 +33,6 @@ $(function () {
     drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics').then((chart) => {
         chartMonetaryFiability = chart;
     });
-    loadRetards();
-
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
         chartFirstForAdmin = chart;
     });
@@ -53,7 +50,6 @@ $(function () {
     $('#blocIndicators').mouseleave(function () {
         $indicators.fadeOut();
     });
-    updateIndicBoxAdmin();
 });
 
 function reloadDashboards() {
@@ -61,10 +57,8 @@ function reloadDashboards() {
         datatableColis.ajax.reload();
     }
     updateCharts();
-    loadRetards();
     updateCarriers();
     refreshIndicatorsReceptionDock();
-
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
@@ -301,10 +295,7 @@ function displayFiguresOnChart() {
     });
 }
 
-
 function loadRetards() {
-    let routeForLate = Routing.generate('api_retard', true);
-
     const $retardsTable = $('.retards-table');
 
     if (!datatableLoading) {
@@ -323,7 +314,7 @@ function loadRetards() {
                 url: "/js/i18n/dataTableLanguage.json",
             },
             ajax: {
-                "url": routeForLate,
+                "url": Routing.generate('api_retard', true),
                 "type": "GET",
             },
             initComplete: () => {
