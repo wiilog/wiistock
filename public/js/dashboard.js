@@ -52,6 +52,8 @@ function reloadDashboards() {
     }
     updateCharts();
     loadRetards();
+    refreshIndicatorsReceptionDock();
+
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
@@ -254,4 +256,14 @@ function loadRetards() {
             ]
         });
     }
+}
+
+function refreshIndicatorsReceptionDock() {
+    $.get(Routing.generate('get_indicators_reception_dock'), function(data) {
+        $('#enCoursDock').text(data.enCoursDock.count);
+        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
+        $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
+        $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
+        $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
+    });
 }

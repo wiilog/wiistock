@@ -4,9 +4,13 @@
 namespace App\Service;
 
 
+use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ArrivalHistoryRepository;
+use App\Repository\EmplacementRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionTracaRepository;
+use App\Repository\UrgenceRepository;
 
 class DashboardService
 {
@@ -26,11 +30,40 @@ class DashboardService
      */
     private $arrivalHistoryRepository;
 
-    public function __construct(ArrivalHistoryRepository $arrivalHistoryRepository, ArrivageRepository $arrivageRepository, ReceptionTracaRepository $receptionTracaRepository)
+	/**
+	 * @var ParametrageGlobalRepository
+	 */
+    private $parametrageGlobalRepository;
+
+	/**
+	 * @var EmplacementRepository
+	 */
+    private $emplacementRepository;
+	/**
+	 * @var EnCoursService
+	 */
+    private $enCoursService;
+	/**
+	 * @var UrgenceRepository;
+	 */
+    private $urgenceRepository;
+
+    public function __construct(EmplacementRepository $emplacementRepository,
+								ParametrageGlobalRepository $parametrageGlobalRepository,
+								ArrivalHistoryRepository $arrivalHistoryRepository,
+								ArrivageRepository $arrivageRepository,
+								ReceptionTracaRepository $receptionTracaRepository,
+								EnCoursService $enCoursService,
+								UrgenceRepository $urgenceRepository
+	)
     {
         $this->arrivalHistoryRepository = $arrivalHistoryRepository;
         $this->arrivageRepository = $arrivageRepository;
         $this->receptionTracaRepository = $receptionTracaRepository;
+        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
+        $this->emplacementRepository = $emplacementRepository;
+        $this->enCoursService = $enCoursService;
+        $this->urgenceRepository = $urgenceRepository;
     }
 
     private $columnsForArrival = [
@@ -144,5 +177,57 @@ class DashboardService
             'lastDayData' => date("d/m/Y", $lastDayTime)
         ];
     }
+
+    public function getDataForReceptionDashboard()
+	{
+		$empIdForDock =
+			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)
+				?
+				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)->getValue()
+				:
+				null;
+		$empIdForClearance =
+			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)
+				?
+				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)->getValue()
+				:
+				null;
+		$empIdForCleared =
+			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)
+				?
+				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)->getValue()
+				:
+				null;
+		$empIdForDropZone =
+			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)
+				?
+				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)->getValue()
+				:
+				null;
+		$empForDock = $empIdForDock ? $this->emplacementRepository->find($empIdForDock) : null;
+		$empForClearance = $empIdForClearance ? $this->emplacementRepository->find($empIdForClearance) : null;
+		$empForCleared = $empIdForCleared ? $this->emplacementRepository->find($empIdForCleared) : null;
+		$empForDropZone = $empIdForDropZone ? $this->emplacementRepository->find($empIdForDropZone) : null;
+
+		return [
+			'enCoursDock' => $empForDock ? [
+				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForDock)['data']),
+				'label' => $empForDock->getLabel()
+			] : null,
+			'enCoursClearance' => $empForClearance ? [
+				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
+				'label' => $empForClearance->getLabel()
+			] : null,
+			'enCoursCleared' => $empForCleared ? [
+				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForCleared)['data']),
+				'label' => $empForCleared->getLabel()
+			] : null,
+			'enCoursDropzone' => $empForDropZone ? [
+				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForDropZone)['data']),
+				'label' => $empForDropZone->getLabel()
+			] : null,
+			'urgenceCount' => $this->urgenceRepository->countUnsolved(),
+		];
+	}
 
 }
