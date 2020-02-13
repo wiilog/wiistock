@@ -25,7 +25,7 @@ $(function () {
     //// charts monitoring réception quai
     drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics').then((chart) => {
         chartDailyArrival = chart;
-    })
+    });
     drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics').then((chart) => {
         chartWeeklyArrival = chart;
     });
@@ -47,7 +47,6 @@ $(function () {
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
-    updateIndicBoxAdmin();
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -345,6 +344,10 @@ function refreshIndicatorsReceptionDock() {
         $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
         $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
         $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
+        $('#empForClearedDock').text(data.encoursCleared ? data.encoursCleared.label : '-');
+        $('#empForPackDock').text(data.enCoursDock ? data.enCoursDock.label : '-');
+        $('#empForClearanceDock').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
+        $('#empForDropZoneDock').text(data.enCoursDropzone ? data.enCoursDropzone.label : '-');
     });
 }
 
