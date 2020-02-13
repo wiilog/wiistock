@@ -8,79 +8,85 @@
 </div>
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-    <div class="col-12" id="blocIndicators">
-        <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators" aria-expanded="false" aria-controls="indicators">
-            {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
-        </div>
-        <div class="collapse indicators" id="indicators">
-            <div class="card card-body">
-                {% include 'accueil/dashboardIndicatorsList.html.twig' %}
+        <div class="col-12" id="blocIndicators">
+            <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
+                 aria-expanded="false" aria-controls="indicators">
+                {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
+            </div>
+            <div class="collapse indicators" id="indicators">
+                <div class="card card-body">
+                    {% include 'accueil/dashboardIndicatorsList.html.twig' %}
+                </div>
             </div>
         </div>
-    </div>
+        <div class="col-6 dashboard-box-wrapper half-height">
+            <div class="dashboard-box">
+                <p class="title">
+                    Arrivage (UM)<br>
+                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                </p>
+                <div class="points">
+                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                </div>
+                <div class="h-100">
+                    <canvas id="chartArrivalUm" width="300" height="90"></canvas>
+                </div>
+                <div class="range-buttons d-none">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
+                        <i class="fas fa-chevron-left pointer"></i>
+                    </div>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
+                        <i class="fas fa-chevron-right pointer"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 dashboard-box-wrapper half-height">
+            <div class="dashboard-box">
+                <p class="title">
+                    Réceptions (nombre d'associations)<br>
+                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                </p>
+                <div class="points">
+                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                </div>
+                <div class="h-100">
+                    <canvas id="chartAssocRecep" width="300" height="90"></canvas>
+                </div>
+                <div class="range-buttons d-none">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
+                        <i class="fas fa-chevron-left pointer"></i>
+                    </div>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
+                        <i class="fas fa-chevron-right pointer"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 dashboard-box-wrapper half-height">
+            <div class="dashboard-box">
+                <p class="title mb-0 pb-0">
+                    Colis en retard<br>
+                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                </p>
+                <div class="points">
+                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                </div>
+                <div class="dashboard-box-content pt-0 pb-0">
+                    <table class="table retards-table w-100">
+                    </table>
+                </div>
+            </div>
+        </div>
     {% endif %}
-    <div class="col-6 dashboard-box-wrapper half-height">
-        <div class="dashboard-box">
-            <p class="title">
-                Arrivage (UM)<br>
-                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-            </p>
-            <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-            </div>
-            <canvas id="chartArrivalUm" width="300" height="90"></canvas>
-
-            <div class="range-buttons d-none">
-                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
-                    <i class="fas fa-chevron-left pointer"></i>
-                </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
-                    <i class="fas fa-chevron-right pointer"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 dashboard-box-wrapper half-height">
-        <div class="dashboard-box">
-            <p class="title">
-                Réceptions (nombre d'associations)<br>
-                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-            </p>
-            <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-            </div>
-            <canvas id="chartAssocRecep" width="300" height="90"></canvas>
-
-            <div class="range-buttons d-none">
-                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
-                    <i class="fas fa-chevron-left pointer"></i>
-                </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
-                    <i class="fas fa-chevron-right pointer"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 dashboard-box-wrapper half-height">
-        <div class="dashboard-box">
-            <p class="title mb-0 pb-0">
-                Colis en retard<br>
-                <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-            </p>
-            <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-            </div>
-            <div class="dashboard-box-content pt-0 pb-0">
-                <table class="table retards-table w-100">
-                </table>
-            </div>
-        </div>
-    </div>
-
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
         <div class="col-6 dashboard-box-wrapper half-height">
             <div id="dashboard-monetary" class="dashboard-box">
@@ -91,15 +97,18 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
-
+                <div class="h-100">
+                    <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
+                </div>
                 <div class="range-buttons d-none">
-                    <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'before', chartMonetaryFiability)">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'before', chartMonetaryFiability)">
                         <i class="fas fa-chevron-left pointer"></i>
                     </div>
                     <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
                     <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                    <div class="arrow-chart" onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'after', chartMonetaryFiability)">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'after', chartMonetaryFiability)">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
                 </div>

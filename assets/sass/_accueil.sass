@@ -19,13 +19,23 @@
 .dashboard-item
     min-width: 50%
     min-height: 40%
+
 .dashboard-box-wrapper
     margin-top: 0px
     margin-bottom: 8px
+
+    &.fourth-height
+        height: 18vh
+
+    &.third-height
+        height: 33vh
+
     &.half-height
-      height: 41vh
+        height: 41vh
+
     &:not(:first-child)
         padding-left: 16px
+
     .dashboard-box
         border-radius: 8px
         display: flex
@@ -35,33 +45,41 @@
         position: relative
         background: $white
         padding: .6rem
+
         .title
-          margin-bottom: .5rem
-          color: $blackDashboard
-          padding: 8px
+            margin-bottom: .5rem
+            color: $blackDashboard
+            padding: 8px
+
         .label
-          color: $greyDashboard
-          font-size: .8em
-        .points
-          position: absolute
-          right: 15px
-          top: 15px
-        .arrow-chart
-          color: $blueGT
-          font-weight: bold
-          display: inline-block
-          margin: 0 10px
-        .range-buttons
-          text-align: center
-          span
+            color: $greyDashboard
             font-size: .8em
+
+        .points
+            position: absolute
+            right: 15px
+            top: 15px
+
+        .arrow-chart
+            color: $blueGT
+            font-weight: bold
+            display: inline-block
+            margin: 0 10px
+
+        .range-buttons
+            text-align: center
+
+            span
+                font-size: .8em
+
         .dataTables_wrapper, span
-          font-size: .8em
+            font-size: .8em
+
         .dashboard-box-content
             height: 325px
             padding: 10px
             @media (max-width: $breakpointSmallScreen)
-              height: 220px
+                height: 220px
             //&.dashboard-box-content-small
             //    height: 220px
             .range-buttons
@@ -71,6 +89,7 @@
                 left: 0
                 right: 0
                 bottom: 20px
+
             .spinner-container
                 position: absolute
                 top: 0
@@ -82,17 +101,19 @@
                 justify-content: center
 
 .figure
-  font-weight: bold
-  font-size: 1.2em !important
-  color: $blueNeon
+    font-weight: bold
+    font-size: 1.2em !important
+    color: $blueNeon
 
 .home-card
     background-color: $lightGrey
     border-radius: 8px
     display: flex
     margin: 8px 0
+
     .home-card-content
         margin-bottom: 9px
+
     h2
         margin: 9px 0
 
@@ -119,29 +140,33 @@
         overflow: auto
 
 .plus-btn
-  display: inline-block
-  padding: 8px
-  border-radius: 5px
-  cursor: pointer
-  &:hover
-    background-color: $white
-    svg > path
-      fill: $backgroundBodyColorDark
+    display: inline-block
+    padding: 8px
+    border-radius: 5px
+    cursor: pointer
+
+    &:hover
+        background-color: $white
+
+        svg > path
+            fill: $backgroundBodyColorDark
 
 .indicators
-  position: absolute
-  z-index: 1
-  width: 25vw
-  font-weight: bold
-  .card-body
-    padding: .2rem 1.2rem !important
+    position: absolute
+    z-index: 1
+    width: 25vw
+    font-weight: bold
+
+    .card-body
+        padding: .2rem 1.2rem !important
 
 .indicator-row
-  padding: 0.2rem
-  font-size: .8rem
-  &:hover
-    background-image: linear-gradient(to right, #2e3192, #1b1464)
-    border-radius: 5px
-    color: white
-    cursor: pointer !important
+    padding: 0.2rem
+    font-size: .8rem
+
+    &:hover
+        background-image: linear-gradient(to right, #2e3192, #1b1464)
+        border-radius: 5px
+        color: white
+        cursor: pointer !important
 

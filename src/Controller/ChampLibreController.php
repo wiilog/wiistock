@@ -151,13 +151,9 @@ class ChampLibreController extends AbstractController
                     ->setType($type)
                     ->settypage($data['typage']);
 
-                if ($champLibre->getTypage() === 'list') {
+                if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
                     $champLibre
                         ->setElements(array_filter(explode(';', $data['elem'])))
-                        ->setDefaultValue(null);
-                } else if ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
-                    $champLibre
-                        ->setElements($data['Elements'])
                         ->setDefaultValue(null);
                 } else {
                     $champLibre
@@ -213,13 +209,9 @@ class ChampLibreController extends AbstractController
                 ->setRequiredEdit($data['requiredEdit'])
                 ->setTypage($data['typage']);
 
-            if ($champLibre->getTypage() === 'list') {
+            if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
                 $champLibre
                     ->setElements(array_filter(explode(';', $data['elem'])))
-                    ->setDefaultValue(null);
-            } else if ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) {
-                $champLibre
-                    ->setElements($data['Elements'])
                     ->setDefaultValue(null);
             } else {
                 $champLibre

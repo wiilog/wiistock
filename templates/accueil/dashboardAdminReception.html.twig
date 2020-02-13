@@ -3,94 +3,134 @@
         Dashboard | RÉCEPTION ADMINISTRATIVE
     </p>
 </div>
-<div class="row mt-4">
-    <div class="col-7">
-        <div class="dashboard-box-wrapper">
-            <div class="dashboard-box">
-                <div class="row">
-                    <div class="col-8">
-                        <p class="title">
-                            Entrées à effectuer<br>
-                        </p>
-                        <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
-                    </div>
-                    <div class="col-4 text-center align-self-center">
-                        <p class="little-font">
-                            Nombres de lignes restantes à traiter&nbsp;:
-                        </p>
-                        <p class="little-font">
-                            <strong id="totalForChart1" class="figure"></strong>
-                            {#                {{ totalForChart1 }}#}
-                        </p>
-                        <p class="little-font">
-                            Prochaine bac/palette à traiter&nbsp;:
-                        </p>
-                        <p class="little-font">
-                            <strong id="empForChart1" class="figure"></strong>
-                            {#                {{ empForChart1 }}#}
-                        </p>
-                    </div>
-                    <div class="points">
-                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-5">
-        <div class="dashboard-box-wrapper">
-            <div class="dashboard-box">
-                <p class="little-font">
-                    Nombres d'urgences restantes à recevoir&nbsp;: <strong class="figure" id="urgenceCountCount"></strong>
-                </p>
-                <p class="little-font">
-                    Nombres d'urgences restantes à traiter (<span id="enCoursUrgenceLabel"></span>)&nbsp;: <strong
-                        class="figure" id="enCoursUrgenceCount"></strong>
-                </p>
-                <p class="little-font">
-                    Nombres de lignes en litiges (<span id="enCoursLitigeLabel"></span>)&nbsp;: <strong class="figure"
-                                                                                                   id="enCoursLitigeCount"></strong>
-                </p>
-                <p class="little-font">
-                    Nombres de colis en attente de dédouanement (<span id="enCoursClearanceLabel"></span>)&nbsp;: <strong
-                        class="figure" id="enCoursClearanceCount"></strong>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
 <div class="row mt-2">
     <div class="col-12">
-        <div class="dashboard-box-wrapper">
-            <div class="dashboard-box">
-                <div class="row">
-                    <div class="col-8">
-                        <p class="title">
-                            Entrées à effectuer<br>
-                        </p>
-                        <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
-                    </div>
-                    <div class="col-4 text-center align-self-center">
-                        <p class="little-font">
-                            Nombres de lignes restantes à traiter&nbsp;:
-                        </p>
-                        <p class="little-font">
-                            <strong id="totalForChart2" class="figure"></strong>
-                            {#                {{ totalForChart1 }}#}
-                        </p>
-                        <p class="little-font">
-                            Prochaine palette à traiter&nbsp;:
-                        </p>
-                        <p class="little-font">
-                            <strong id="empForChart2" class="figure"></strong>
-                            {#                {{ empForChart1 }}#}
-                        </p>
-                    </div>
+        <div class="row">
+            <div class="col-8 dashboard-box-wrapper third-height">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Entrées à effectuer<br>
+                    </p>
                     <div class="points">
                         {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
+                    <div class="h-100">
+                        <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 align-self-center">
+                <div>
+                    <div class="dashboard-box-wrapper">
+                        <div class="dashboard-box text-center">
+                            <p class="little-font">
+                                Nombres de lignes restantes à traiter&nbsp;:
+                            </p>
+                            <p class="little-font">
+                                <strong id="totalForChart1" class="figure"></strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="dashboard-box-wrapper">
+                        <div class="dashboard-box text-center">
+                            <p class="little-font">
+                                Prochaine bac/palette à traiter&nbsp;:
+                            </p>
+                            <p class="little-font">
+                                <strong id="empForChart1" class="figure"></strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="row">
+            <div class="col-8 dashboard-box-wrapper third-height">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Entrées à effectuer<br>
+                    </p>
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
+                    <div class="h-100">
+                        <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 align-self-center">
+                <div>
+                    <div class="dashboard-box-wrapper">
+                        <div class="dashboard-box text-center">
+                            <p class="little-font">
+                                Nombres de lignes restantes à traiter&nbsp;:
+                            </p>
+                            <p class="little-font">
+                                <strong id="totalForChart2" class="figure"></strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="dashboard-box-wrapper">
+                        <div class="dashboard-box text-center">
+                            <p class="little-font">
+                                Prochaine palette à traiter&nbsp;:
+                            </p>
+                            <p class="little-font">
+                                <strong id="empForChart2" class="figure"></strong>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<div class="row justify-content-center">
+    <div class="col-3">
+        <div class="dashboard-box-wrapper fourth-height">
+            <div class="dashboard-box text-center">
+                <p class="little-font">
+                    Nombres d'urgences restantes à recevoir&nbsp;: <p class="figure"
+                                                                           id="urgenceCountCount"></p>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="dashboard-box-wrapper fourth-height">
+            <div class="dashboard-box text-center">
+                <p class="little-font">
+                    Nombres d'urgences restantes à traiter (<span id="enCoursUrgenceLabel"></span>)&nbsp;: <p
+                        class="figure" id="enCoursUrgenceCount"></p>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="dashboard-box-wrapper fourth-height">
+            <div class="dashboard-box text-center">
+                <p class="little-font">
+                    Nombres de lignes en litiges (<span id="enCoursLitigeLabel"></span>)&nbsp;: <p class="figure"
+                                                                                                        id="enCoursLitigeCount"></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="dashboard-box-wrapper fourth-height">
+            <div class="dashboard-box text-center">
+                <p class="little-font">
+                    Nombres de colis en attente de dédouanement (<span id="enCoursClearanceLabel"></span>)&nbsp;:
+                    <p
+                        class="figure" id="enCoursClearanceCount"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

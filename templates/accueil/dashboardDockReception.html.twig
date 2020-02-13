@@ -3,95 +3,109 @@
         Dashboard | RÉCEPTION QUAI
     </p>
 </div>
-<div class="row mt-4">
-    <div class="col-10 row">
-        <div class="col-7 dashboard-box-wrapper half-height">
-            <div class="dashboard-box">
-                <p class="title">
-                    Arrivages quotidiens<br>
-                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-                </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
-                <canvas id="chartDailyArrival" width="300" height="90"></canvas>
-            </div>
-        </div>
-        <div class="col-5 dashboard-box-wrapper half-height">
-            <div class="dashboard-box">
-                <p class="title">
-                    Arrivages hebdomadaires<br>
-                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-                </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
-                <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
-            </div>
-        </div>
-        <div class="col-6 dashboard-box-wrapper half-height">
-            <div class="dashboard-box">
-                <p class="title">
-                    Réception quai<br>
-                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-                </p>
-                <p class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </p>
-                <div class="row pr-4">
-                    <div class="col-6 d-flex align-items-center">
-                        <p class="little-font">Colis restants à traiter</p>
-                        <span class="figure" id="enCoursDock">{{ indicatorsReceptionDock.enCoursDock.count is defined ? indicatorsReceptionDock.enCoursDock.count : '-' }}</span>
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
+    <div class="row mt-2">
+        <div class="col-10 row">
+            <div class="col-7 dashboard-box-wrapper third-height">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Arrivages quotidiens<br>
+                        <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                    </p>
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                     </div>
-                    <div class="col-6 d-flex align-items-center">
-                        <p class="little-font">Colis en attente dédouanement</p>
-                        <span class="figure" id="enCoursClearance">{{ indicatorsReceptionDock.enCoursClearance.count is defined ? indicatorsReceptionDock.enCoursClearance.count : '-' }}</span>
-                    </div>
-                    <div class="col-6 d-flex align-items-center">
-                        <p class="little-font">Urgences restant à recevoir</p>
-                        <span class="figure red" id="enCoursCleared">{{ indicatorsReceptionDock.urgenceCount }}</span>
-                    </div>
-                    <div class="col-6 d-flex align-items-center">
-                        <p class="little-font">Colis à déposer en Drop Zones</p>
-                        <span class="figure" id="enCoursDropzone">{{ indicatorsReceptionDock.enCoursDropzone.count is defined ? indicatorsReceptionDock.enCoursDropzone.count : '-' }}</span>
-                    </div>
-                    <div class="col-6 d-flex align-items-center">
-                        <p class="little-font">Colis dédouanés et dispo</p>
-                        <span class="figure" id="urgenceCount">{{ indicatorsReceptionDock.encoursCleared.count is defined ? indicatorsReceptionDock.encoursCleared.count : '-' }}</span>
+                    <div class="h-100">
+                        <canvas id="chartDailyArrival" width="300" height="90"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-6 dashboard-box-wrapper half-height">
-            <div class="dashboard-box">
-                <p class="title">
-                    Colis<br>
-                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-                </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+            <div class="col-5 dashboard-box-wrapper third-height">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Arrivages hebdomadaires<br>
+                        <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                    </p>
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
+                    <div class="h-100">
+                        <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
+                    </div>
                 </div>
-                <canvas id="chartColis" width="300" height="90"></canvas>
+            </div>
+            <div class="col-3 dashboard-box-wrapper fourth-height">
+                <div class="dashboard-box text-center">
+                    <p class="little-font">Colis restants à traiter (<span id="empForPackDock">{{
+                            indicatorsReceptionDock.enCoursDock.label is defined ? indicatorsReceptionDock.enCoursDock.label : '-'
+                            }}</span>)</p>
+                    <span class="figure"
+                          id="enCoursDock">{{ indicatorsReceptionDock.enCoursDock.count is defined ? indicatorsReceptionDock.enCoursDock.count : '-' }}</span>
+                </div>
+            </div>
+            <div class="col-3 dashboard-box-wrapper fourth-height">
+                <div class="dashboard-box text-center">
+                    <p class="little-font">Colis en attente dédouanement (<span id="empForClearanceDock">{{
+                            indicatorsReceptionDock.enCoursClearance.label is defined ? indicatorsReceptionDock.enCoursClearance.label : '-'
+                            }}</span>)</p>
+                    <span class="figure"
+                          id="enCoursClearance">{{ indicatorsReceptionDock.enCoursClearance.count is defined ? indicatorsReceptionDock.enCoursClearance.count : '-' }}</span>
+                </div>
+            </div>
+            <div class="col-3 dashboard-box-wrapper fourth-height">
+                <div class="dashboard-box text-center">
+                    <p class="little-font">Colis dédouanés et dispo (<span id="empForClearedDock">{{ indicatorsReceptionDock.encoursCleared.label is defined ? indicatorsReceptionDock.encoursCleared.label : '-' }}</span>)</p>
+                    <span class="figure"
+                          id="urgenceCount">{{ indicatorsReceptionDock.encoursCleared.count is defined ? indicatorsReceptionDock.encoursCleared.count : '-' }}</span>
+                </div>
+            </div>
+            <div class="col-3 dashboard-box-wrapper fourth-height">
+                <div class="dashboard-box text-center">
+                    <p class="little-font">Urgences restant à recevoir</p>
+                    <span class="figure red"
+                          id="enCoursCleared">{{ indicatorsReceptionDock.urgenceCount }}</span>
+                </div>
+            </div>
+            <div class="col-3 dashboard-box-wrapper fourth-height align-self-center">
+                <div class="dashboard-box text-center">
+                    <p class="little-font">Colis à déposer en Drop Zones (<span id="empForDropZoneDock">{{ indicatorsReceptionDock.enCoursDropzone.label is defined ? indicatorsReceptionDock.enCoursDropzone.label : '-' }}</span>)</p>
+                    <span class="figure"
+                          id="enCoursDropzone">{{ indicatorsReceptionDock.enCoursDropzone.count is defined ? indicatorsReceptionDock.enCoursDropzone.count : '-' }}</span>
+                </div>
+            </div>
+            <div class="col-9 dashboard-box-wrapper third-height">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Colis<br>
+                        <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                    </p>
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
+                    <div class="h-100">
+                        <canvas id="chartColis" width="300" height="90"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-2">
-        <div class="dashboard-box-wrapper">
-            <div class="dashboard-box">
-                <p class="title">
-                    Suivi des transporteurs<br>
-                    <span class="label">{{ 'now'|date('d/m/Y') }}</span>
-                </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
-                <div class="little-font" id="statistics-arrival-carriers">
-                    {% for carrierLabel in carriers %}
-                        <p>{{carrierLabel}}</p>
-                    {% endfor %}
+        <div class="col-2">
+            <div class="dashboard-box-wrapper">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Suivi des transporteurs<br>
+                        <span class="label">{{ 'now'|date('d/m/Y') }}</span>
+                    </p>
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
+                    <div class="little-font" id="statistics-arrival-carriers">
+                        {% for carrierLabel in carriers %}
+                            <p>{{ carrierLabel }}</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+{% endif %}
