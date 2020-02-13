@@ -222,21 +222,16 @@ function loadRetards() {
     const $retardsTable = $('.retards-table');
 
     if (!datatableLoading) {
-        const clientHeight = document.body.clientHeight;
         datatableLoading = true;
         if (datatableColis) {
             datatableColis.destroy();
         }
         datatableColis = $retardsTable.DataTable({
             responsive: true,
-            dom: 'tipr',
-            pagingType: 'simple',
-            pageLength: (
-                clientHeight < 800 ? 2 :
-                    clientHeight < 900 ? 3 :
-                        clientHeight < 1000 ? 4 :
-                            6
-            ),
+            dom: 'tr',
+            paging: false,
+            scrollCollapse: true,
+            scrollY: '18vh',
             processing: true,
             "language": {
                 url: "/js/i18n/dataTableLanguage.json",
