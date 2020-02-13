@@ -423,7 +423,7 @@ class AccueilController extends AbstractController
         return new JsonResponse([
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
-            "location" => $empToKeep && $highestTotal === -1 ? $empToKeep->getLabel() : '-'
+            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-'
         ]);
     }
 
