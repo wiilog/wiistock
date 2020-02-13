@@ -67,15 +67,16 @@
     </div>
     <div class="col-6 dashboard-box-wrapper half-height">
         <div class="dashboard-box">
-            <p class="title">
+            <p class="title mb-0 pb-0">
                 Colis en retard<br>
                 <span class="label">{{ 'now'|date('d/m/Y') }}</span>
             </p>
             <div class="points">
                 {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
             </div>
-            <div class="dashboard-box-content">
-                <table class="table table-striped table-bordered retards-table w-100"></table>
+            <div class="dashboard-box-content pt-0 pb-0">
+                <table class="table retards-table w-100">
+                </table>
             </div>
         </div>
     </div>
@@ -105,9 +106,4 @@
             </div>
         </div>
     {% endif %}
-</div>
-<div class="row">
-    <div class="col-12 little-font text-right">
-        Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
-    </div>
 </div>
