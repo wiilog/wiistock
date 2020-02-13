@@ -1022,7 +1022,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
                 $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                 $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-                $articleRepository = $entityManager->getRepository(Emplacement::class);
+                $articleRepository = $entityManager->getRepository(Article::class);
                 $numberOfRowsInserted = 0;
 
                 $entries = json_decode($request->request->get('entries'), true);
