@@ -3,6 +3,7 @@
         Dashboard | RÉCEPTION ADMINISTRATIVE
     </p>
 </div>
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
 <div class="row mt-4">
     <div class="col-7">
         <div class="dashboard-box-wrapper">
@@ -94,3 +95,4 @@
         </div>
     </div>
 </div>
+{% endif %}

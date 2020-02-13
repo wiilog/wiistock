@@ -18,7 +18,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
     <div class="col-6 dashboard-box-wrapper half-height">
         <div class="dashboard-box">
             <p class="title">
@@ -80,7 +79,7 @@
             </div>
         </div>
     </div>
-
+    {% endif %}
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
         <div class="col-6 dashboard-box-wrapper half-height">
             <div id="dashboard-monetary" class="dashboard-box">
