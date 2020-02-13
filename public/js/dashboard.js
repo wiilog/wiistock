@@ -95,7 +95,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
             'lastDay': $lastDay.data('day'),
             'beforeAfter': beforeAfter
         };
-        $.post(Routing.generate(path), params, function (data) {
+        $.get(Routing.generate(path), params, function (data) {
             let labels = Object.keys(data.data);
             let datas = Object.values(data.data).map((value) => {
                 if (typeof value == 'object' && 'count' in value) {
@@ -324,7 +324,7 @@ function loadRetards() {
             },
             ajax: {
                 "url": routeForLate,
-                "type": "POST",
+                "type": "GET",
             },
             initComplete: () => {
                 datatableLoading = false;
