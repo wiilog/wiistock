@@ -9,7 +9,7 @@
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
     <div class="col-12" id="blocIndicators">
-        <div type="button" class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators" aria-expanded="false" aria-controls="indicators">
+        <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators" aria-expanded="false" aria-controls="indicators">
             {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
         </div>
         <div class="collapse indicators" id="indicators">

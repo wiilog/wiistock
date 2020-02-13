@@ -64,7 +64,6 @@ function reloadDashboards() {
     loadRetards();
     updateCarriers();
     refreshIndicatorsReceptionDock();
-
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
@@ -300,7 +299,6 @@ function displayFiguresOnChart() {
         }
     });
 }
-
 
 function loadRetards() {
     let routeForLate = Routing.generate('api_retard', true);
