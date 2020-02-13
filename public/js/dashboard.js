@@ -55,6 +55,15 @@ $(function () {
     $('#blocIndicators').mouseleave(function () {
         $indicators.fadeOut();
     });
+
+    $(document).on('keydown', function(e) {
+        let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
+        if (e.which === 37) {
+            activeBtn.prev('li').click()
+        } else if (e.which === 39) {
+            activeBtn.next('li').click()
+        }
+    })
 });
 
 function reloadDashboards() {
