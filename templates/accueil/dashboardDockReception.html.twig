@@ -3,6 +3,7 @@
         Dashboard | RÉCEPTION QUAI
     </p>
 </div>
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
 <div class="row mt-4">
     <div class="col-10 row">
         <div class="col-7 dashboard-box-wrapper half-height">
@@ -95,3 +96,4 @@
         </div>
     </div>
 </div>
+{% endif %}

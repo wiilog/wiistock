@@ -88,12 +88,11 @@ class StatisticsService
 		$daysWorkedInWeek = $this->daysWorkedRepository->countDaysWorked();
 
         if ($daysWorkedInWeek > 0) {
-            for ($weekIndex = ($nbWeeksToReturn - 1); $weekIndex >= 0; $weekIndex--) {
+            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
                 $dateMin = new DateTime("monday $weekIndex weeks ago");
                 $dateMin->setTime(0, 0, 0);
                 $dateMax = new DateTime("sunday $weekIndex weeks ago");
                 $dateMax->setTime(23, 59, 59);
-
                 $dayKey = ('S' . $dateMin->format('W'));
                 $weekCountersToReturn[$dayKey] = $getCounter($dateMin, $dateMax);
             }
