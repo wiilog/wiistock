@@ -43,8 +43,7 @@ $(function () {
     loadRetards();
     updateIndicBoxAdmin();
 
-    let reloadFrequency = 1000 * 10;
-    // let reloadFrequency = 1000 * 60 * 15;
+    let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
 
     let $indicators = $('#indicators');
