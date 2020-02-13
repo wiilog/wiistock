@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\Urgence;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -58,18 +60,27 @@ class UrgenceRepository extends ServiceEntityRepository
      */
     public function countUnsolved() {
         $em = $this->getEntityManager();
+
         $query = $em->createQuery(
         /** @lang DQL */
             "
             SELECT COUNT(u)
             FROM App\Entity\Urgence AS u
-            WHERE
+            WHERE u.dateStart < :now
+            AND
             (
                 SELECT COUNT(a)
                 FROM App\Entity\Arrivage AS a
-                WHERE (a.date BETWEEN u.dateStart AND u.dateEnd) AND a.numeroBL LIKE u.commande
-            ) > 0"
+                WHERE (a.date BETWEEN u.dateStart AND u.dateEnd) AND a.numeroBL = u.commande
+            ) = 0"
         );
+
+		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+		$now->setTime(0,0);
+		$now = $now->format('Y-m-d H:i:s');
+
+		$query->setParameter('now', $now);
+
         return $query->getSingleScalarResult();
     }
 
