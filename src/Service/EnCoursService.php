@@ -174,7 +174,6 @@ class EnCoursService
              * @var $dayWorkedEndOfBreakInMinutes (ex : 14:00 -> 840)
              **/
             $timeArray = $this->getTimeArrayForDayWorked($dayWorked);
-
             if (empty($timeArray)) return 0;
 
             $dayWorkedBeginOfDayInMinutes = (($timeArray[self::MORNING_FIRST_HOUR_INDEX]) * 60) + $timeArray[self::MORNING_FIRST_MINUTE_INDEX];
@@ -311,7 +310,6 @@ class EnCoursService
         $emplacementInfo = [];
         $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
         $mvtGrouped = [];
-
         foreach ($mvtArray as $mvt) {
             if (isset($mvtGrouped[$mvt->getColis()])
                 && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {

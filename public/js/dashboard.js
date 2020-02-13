@@ -7,6 +7,8 @@ let chartDailyArrival;
 let chartWeeklyArrival;
 let chartColis;
 let chartMonetaryFiability;
+let chartFirstForAdmin;
+let chartSecondForAdmin;
 
 $(function () {
     // config chart js
@@ -34,16 +36,24 @@ $(function () {
     });
     loadRetards();
 
-    let reloadFrequency = 1000 * 60 * 15;
+    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
+        chartFirstForAdmin = chart;
+    });
+    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2).then((chart) => {
+        chartSecondForAdmin = chart;
+    });
+
+    let reloadFrequency = 1000 * 60;
     setInterval(reloadDashboards, reloadFrequency);
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
         $indicators.fadeIn();
     });
-    $('#blocIndicators').mouseleave(function() {
+    $('#blocIndicators').mouseleave(function () {
         $indicators.fadeOut();
     });
+    updateIndicBoxAdmin();
 });
 
 function reloadDashboards() {
@@ -62,10 +72,13 @@ function reloadDashboards() {
 function updateCharts() {
     drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm);
     drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep);
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', 'now', chartDailyArrival);
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', 'now', chartWeeklyArrival);
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', 'now', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', 'now', chartMonetaryFiability);
+    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
+    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
+    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
+    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
+    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
+    updateIndicBoxAdmin();
 }
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
@@ -80,9 +93,9 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
         let params = {
             'firstDay': $firstDay.data('day'),
             'lastDay': $lastDay.data('day'),
-            'beforeAfter' : beforeAfter
+            'beforeAfter': beforeAfter
         };
-        $.get(Routing.generate(path), params, function(data) {
+        $.post(Routing.generate(path), params, function (data) {
             let labels = Object.keys(data.data);
             let datas = Object.values(data.data).map((value) => {
                 if (typeof value == 'object' && 'count' in value) {
@@ -109,7 +122,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
             if (chart) {
                 updateData(chart, data);
                 resolve();
-            // cas initialisation
+                // cas initialisation
             } else {
                 resolve(newChart($canvas, labels, datas, bgColors));
             }
@@ -118,10 +131,13 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
 }
 
 function updateData(chart, data) {
-    chart.data.labels = Object.keys(data.data);
-    chart.data.datasets[0].data = Object.values(data.data).map((value) => {
+    let dataToParse = data.data ? data.data : data;
+    chart.data.labels = Object.keys(dataToParse);
+    chart.data.datasets[0].data = Object.values(dataToParse).map((value) => {
         if (typeof value == 'object' && 'count' in value) {
             return value['count'];
+        } else if (typeof value == 'object') {
+            return Object.values(value)[0];
         } else {
             return value;
         }
@@ -129,7 +145,13 @@ function updateData(chart, data) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path) {
+function updateDataForMultiple(chart, data, labels) {
+    chart.data.labels = labels;
+    chart.data.datasets = data;
+    chart.update();
+}
+
+function drawSimpleChart($canvas, path, chart = null) {
     return new Promise(function (resolve) {
         $.get(Routing.generate(path), function (data) {
             let labels = Object.keys(data);
@@ -139,18 +161,82 @@ function drawSimpleChart($canvas, path) {
                 bgColors.push('rgba(163,209,255, 1)');
             }
             bgColors.push('rgba(57,181,74, 1)');
-            resolve(newChart($canvas, labels, datas, bgColors));
+            // cas rafraîchissement
+            if (chart) {
+                updateData(chart, data);
+                resolve();
+            } else {
+                resolve(newChart($canvas, labels, datas, bgColors));
+            }
         });
     });
 }
 
-function goToFilteredDemande(type, filter){
+function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) {
+    return new Promise(function (resolve) {
+        $.get(Routing.generate(path, params), function (data) {
+            $('#empForChart' + chartNumber).text(data.location);
+            $('#totalForChart' + chartNumber).text(data.total);
+            let datas = [];
+            let labels = Object.keys(data.data);
+            if (chartNumber === 1) {
+                datas = Object.values(data.data).map((valueArray) => {
+                    return Object.values(valueArray)[0];
+                });
+            } else {
+                let datasets = [];
+                Object.values(data.data).forEach((data) => {
+                    Object.keys(data).forEach((key) => {
+                        if (!datasets[key]) datasets[key] = [];
+                        datasets[key].push(data[key]);
+                    });
+                });
+                Object.keys(Object.values(data.data)[0]).forEach((key) => {
+                    datas.push({
+                        label: key,
+                        backgroundColor: "#"+((1<<24)*Math.random()|0).toString(16),
+                        data: datasets[key]
+                    })
+                });
+            }
+            let bgColors = [];
+            for (let i = 0; i < labels.length - 1; i++) {
+                bgColors.push('rgba(163,209,255, 1)');
+            }
+            bgColors.push('rgba(57,181,74, 1)');
+            if (chart) {
+                if (chartNumber === 1) {
+                    updateData(chart, data);
+                } else {
+                    updateDataForMultiple(chart, datas, labels);
+                }
+                resolve();
+            } else {
+                resolve(newChart($canvas, labels, datas, bgColors, chartNumber === 2));
+            }
+        });
+    });
+}
+
+function updateIndicBoxAdmin() {
+    $.get(Routing.generate('get_encours_and_emergencies_admin', true), function(data) {
+        $('#urgenceCountCount').text(data.urgenceCount);
+        $('#enCoursUrgenceCount').text(data.enCoursUrgence.count);
+        $('#enCoursLitigeCount').text(data.enCoursLitige.count);
+        $('#enCoursClearanceCount').text(data.enCoursClearance.count);
+        $('#enCoursLitigeLabel').text(data.enCoursLitige.label);
+        $('#enCoursClearanceLabel').text(data.enCoursClearance.label);
+        $('#enCoursUrgenceLabel').text(data.enCoursUrgence.label);
+    });
+}
+
+function goToFilteredDemande(type, filter) {
     let path = '';
-    if (type === 'livraison'){
+    if (type === 'livraison') {
         path = 'demande_index';
     } else if (type === 'collecte') {
         path = 'collecte_index';
-    } else if (type === 'manutention'){
+    } else if (type === 'manutention') {
         path = 'manutention_index';
     }
 
@@ -162,22 +248,22 @@ function goToFilteredDemande(type, filter){
     window.location.href = route;
 }
 
-function newChart($canvasId, labels, data, bgColors) {
+function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
     if ($canvasId.length) {
         return new Chart($canvasId, {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
+                datasets: !isMultiple ? [{
                     data: data,
                     backgroundColor: bgColors
-                }]
+                }] : data
             },
             options: {
                 tooltips: false,
                 responsive: true,
                 legend: {
-                    display: false,
+                    display: isMultiple,
                 },
                 scales: {
                     yAxes: [{
@@ -203,12 +289,10 @@ function displayFiguresOnChart() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    this.data.datasets.forEach(function (dataset)
-    {
+    this.data.datasets.forEach(function (dataset) {
         for (let i = 0; i < dataset.data.length; i++) {
-            for(let key in dataset._meta)
-            {
-                if (parseInt(dataset.data[i]) > 0){
+            for (let key in dataset._meta) {
+                if (parseInt(dataset.data[i]) > 0) {
                     let model = dataset._meta[key].data[i]._model;
                     ctx.fillText(dataset.data[i], model.x, model.y + 5);
                 }
@@ -216,6 +300,7 @@ function displayFiguresOnChart() {
         }
     });
 }
+
 
 function loadRetards() {
     let routeForLate = Routing.generate('api_retard', true);
