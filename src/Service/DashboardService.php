@@ -208,7 +208,6 @@ class DashboardService
 		$empForClearance = $empIdForClearance ? $this->emplacementRepository->find($empIdForClearance) : null;
 		$empForCleared = $empIdForCleared ? $this->emplacementRepository->find($empIdForCleared) : null;
 		$empForDropZone = $empIdForDropZone ? $this->emplacementRepository->find($empIdForDropZone) : null;
-
 		return [
 			'enCoursDock' => $empForDock ? [
 				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForDock)['data']),
