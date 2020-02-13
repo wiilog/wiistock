@@ -8,20 +8,15 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
 
 use App\Repository\StatutRepository;
-use App\Repository\UtilisateurRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ObjectManager;
 use Exception;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 

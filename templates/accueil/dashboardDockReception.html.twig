@@ -81,7 +81,6 @@
         <div class="dashboard-box-wrapper">
             <div class="dashboard-box">
                 <p class="title">
-                    {#                TODO CG données dynamiques #}
                     Suivi des transporteurs<br>
                     <span class="label">{{ 'now'|date('d/m/Y') }}</span>
                 </p>
@@ -89,13 +88,9 @@
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
                 <div class="little-font">
-                    <p>CHRONOPOST</p>
-                    <p>DACHSER</p>
-                    <p>DB SCHENKER</p>
-                    <p>DHL</p>
-                    <p>DPD</p>
-                    <p>FEDEX</p>
-                    <p>UPS</p>
+                    {% for carrierLabel in carriers %}
+                        <p>carrierLabel</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -696,6 +696,4 @@ class ParametrageGlobalController extends AbstractController
 		}
 		throw new NotFoundHttpException("404");
 	}
-
-
 }

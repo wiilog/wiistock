@@ -3,8 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Transporteur;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method Transporteur|null find($id, $lockMode = null, $lockVersion = null)
@@ -43,6 +46,36 @@ class TransporteurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param array $filterIds
+     * @return array
+     * @throws Exception
+     */
+    public function getDailyArrivalCarriersLabel(array $filterIds = []) {
+        $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $beginDayDate = clone $now;
+        $beginDayDate->setTime(0, 0, 0);
+        $endDayDate = clone $now;
+        $endDayDate->setTime(23, 59, 59);
+        $queryBuilder = $this->createQueryBuilder('carrier')
+            ->join('carrier.arrivages', 'arrival')
+            ->where('arrival.date BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $beginDayDate)
+            ->setParameter('dateMax', $endDayDate)
+            ->select('carrier.id AS id')
+            ->addSelect('carrier.label AS label')
+            ->addSelect('COUNT(arrival.id) AS arrivalsCounter')
+            ->groupBy('carrier.id')
+            ->having('arrivalsCounter > 0')
+            ->orderBy('arrivalsCounter', 'DESC')
+            ->addOrderBy('carrier.id', 'DESC');
 
+        if (!empty($filterIds)) {
+            $queryBuilder
+                ->andWhere('carrier.id IN (:filterCarrierIds)')
+                ->setParameter('filterCarrierIds', $filterIds, Connection::PARAM_STR_ARRAY);
+        }
 
+        return $queryBuilder->getQuery()->getArrayResult();
+    }
 }

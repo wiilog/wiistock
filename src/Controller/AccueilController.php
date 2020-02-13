@@ -26,7 +26,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
@@ -99,8 +98,20 @@ class AccueilController extends AbstractController
      * @var DashboardService
      */
     private $dashboardService;
+    private $statisticsService;
 
-    public function __construct(DashboardService $dashboardService, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, EmplacementRepository $emplacementRepository, MouvementStockRepository $mouvementStockRepository, FiabilityByReferenceRepository $fiabilityByReferenceRepository)
+    public function __construct(DashboardService $dashboardService,
+                                ArticleRepository $articleRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                AlerteExpiryRepository $alerteExpiryRepository,
+                                ManutentionRepository $manutentionRepository,
+                                DemandeRepository $demandeRepository,
+                                StatutRepository $statutRepository,
+                                CollecteRepository $collecteRepository,
+                                EmplacementRepository $emplacementRepository,
+                                MouvementStockRepository $mouvementStockRepository,
+                                StatisticsService $statisticsService,
+                                FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
         $this->dashboardService = $dashboardService;
         $this->emplacementRepository = $emplacementRepository;
@@ -113,6 +124,7 @@ class AccueilController extends AbstractController
         $this->refArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
+        $this->statisticsService = $statisticsService;
     }
 
     /**
@@ -188,6 +200,7 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
+            'carriers' => $this->statisticsService->getDailyArrivalCarriers(),
             'status' => [
                 'DLtoTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
                 'DLincomplete' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
@@ -201,7 +214,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-fiabilite-monetaire", name="get_monetary_fiability_statistics", options={"expose"=true}, methods="GET|POST")
+     * @Route(
+     *     "/statistiques-fiabilite-monetaire",
+     *     name="get_monetary_fiability_statistics",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      */
     public function getMonetaryFiabilityStatistics(): Response
     {
@@ -238,7 +257,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET|POST")
+     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
     public function graphiqueReference(): Response
     {
@@ -258,22 +277,15 @@ class AccueilController extends AbstractController
         $data = $value;
         return new JsonResponse($data);
     }
-//
-//    /**
-//     * @Route("/tableau-de-bord", name="get_dashboard", options={"expose"=true}, methods="GET|POST")
-//     * @return Response
-//     * @throws NoResultException
-//     * @throws NonUniqueResultException
-//     */
-//    public function getDashboard(): Response
-//    {
-//        $data = $this->getDashboardData();
-//        $html = $this->renderView('accueil/dashboardLinks.html.twig', $data);
-//        return new JsonResponse($html);
-//    }
 
     /**
-     * @Route("/statistiques-arrivages-jour", name="get_daily_arrivals_statistics", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-arrivages-jour",
+     *     name="get_daily_arrivals_statistics",
+     *     options={"expose"=true},
+     *      methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param StatisticsService $statisticsService
      * @param ArrivageRepository $arrivageRepository
      * @return Response
@@ -291,7 +303,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-colis-jour", name="get_daily_packs_statistics", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-colis-jour",
+     *     name="get_daily_packs_statistics",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param StatisticsService $statisticsService
      * @param ColisRepository $colisRepository
      * @return Response
@@ -309,7 +327,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-arrivages-semaine", name="get_weekly_arrivals_statistics", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-arrivages-semaine",
+     *     name="get_weekly_arrivals_statistics",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param StatisticsService $statisticsService
      * @param ArrivageRepository $arrivageRepository
      * @return Response
@@ -327,7 +351,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-encours-par-duree-et-nature/{graph}", name="get_encours_count_by_nature_and_timespan", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-encours-par-duree-et-nature/{graph}",
+     *     name="get_encours_count_by_nature_and_timespan",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param StatisticsService $statisticsService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param EnCoursService $enCoursService
@@ -388,7 +418,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-urgences-et-encours-admin", name="get_encours_and_emergencies_admin", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-urgences-et-encours-admin",
+     *     name="get_encours_and_emergencies_admin",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param EmplacementRepository $emplacementRepository
      * @param UrgenceRepository $urgenceRepository
      * @param EnCoursService $enCoursService
@@ -443,7 +479,13 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/statistiques-urgences-et-encours-quai", name="get_encours_and_emergencies_dock", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/statistiques-urgences-et-encours-quai",
+     *     name="get_encours_and_emergencies_dock",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param EmplacementRepository $emplacementRepository
      * @param UrgenceRepository $urgenceRepository
      * @param EnCoursService $enCoursService
@@ -509,26 +551,65 @@ class AccueilController extends AbstractController
     }
 
 	/**
-	 * @Route("/statistiques-receptions-associations", name="get_asso_recep_statistics", options={"expose"=true}, methods={"GET|POST"})
+	 * @Route(
+     *     "/statistiques-receptions-associations",
+     *     name="get_asso_recep_statistics",
+     *     options={"expose"=true},
+     *     methods={"GET"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
 	 */
 	public function getAssoRecepStatistics(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-			$post = $request->request;
-			return new JsonResponse($this->dashboardService->getWeekAssoc($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
-		}
-		throw new NotFoundHttpException("404");
+        $query = $request->query;
+        $data = $this->dashboardService->getWeekAssoc(
+            $query->get('firstDay'),
+            $query->get('lastDay'),
+            $query->get('beforeAfter')
+        );
+        return new JsonResponse($data);
 	}
 
-	/**
-	 * @Route("/statistiques-arrivages-um", name="get_arrival_um_statistics", options={"expose"=true},methods={"GET|POST"})
-	 */
+    /**
+     * @Route(
+     *     "/statistiques-arrivages-um",
+     *     name="get_arrival_um_statistics",
+     *     options={"expose"=true},
+     *     methods={"GET"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @return Response
+     */
 	public function getArrivalUmStatistics(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-			$post = $request->request;
-			return new JsonResponse($this->dashboardService->getWeekArrival($post->get('firstDay'), $post->get('lastDay'), $post->get('beforeAfter')));
-		}
-		throw new NotFoundHttpException("404");
+        $query = $request->query;
+        $data = $this->dashboardService->getWeekArrival(
+            $query->get('firstDay'),
+            $query->get('lastDay'),
+            $query->get('beforeAfter')
+        );
+        return new JsonResponse($data);
+	}
+
+    /**
+     * @Route(
+     *     "/statistiques-transporteurs-jour",
+     *     name="get_daily_carriers_statistics",
+     *     options={"expose"=true},
+     *     methods={"GET"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     *
+     * @param StatisticsService $statisticsService
+     *
+     * @return Response
+     *
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+	public function getDailyCarriersStatistics(StatisticsService $statisticsService): Response {
+        $carriersLabels = $statisticsService->getDailyArrivalCarriers();
+        return new JsonResponse($carriersLabels);
 	}
 }

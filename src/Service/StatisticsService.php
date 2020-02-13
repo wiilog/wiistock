@@ -2,10 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\ParametrageGlobal;
 use App\Repository\DaysWorkedRepository;
+use App\Repository\ParametrageGlobalRepository;
+use App\Repository\TransporteurRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 
 
@@ -13,10 +17,16 @@ class StatisticsService
 {
 
     private $daysWorkedRepository;
+    private $parametrageGlobalRepository;
+    private $transporteurRepository;
 
-    public function __construct(DaysWorkedRepository $daysWorkedRepository)
+    public function __construct(DaysWorkedRepository $daysWorkedRepository,
+                                ParametrageGlobalRepository $parametrageGlobalRepository,
+                                TransporteurRepository $transporteurRepository)
     {
         $this->daysWorkedRepository = $daysWorkedRepository;
+        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
+        $this->transporteurRepository = $transporteurRepository;
     }
 
     /**
@@ -110,5 +120,25 @@ class StatisticsService
             $timeSpanToObject[$timeBegin === -1 ? "Retard" : ($timeBegin . "h-" . $timeEnd . 'h')] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
+    }
+
+    /**
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     * @throws Exception
+     */
+    public function getDailyArrivalCarriers(): array {
+        $carriersParams = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
+        $carriersIds = empty($carriersParams)
+            ? []
+            : explode(',', $carriersParams);
+
+        return array_map(
+            function ($carrier) {
+                return $carrier['label'];
+            },
+            $this->transporteurRepository->getDailyArrivalCarriersLabel($carriersIds)
+        );
     }
 }
