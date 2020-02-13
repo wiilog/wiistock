@@ -379,12 +379,16 @@ class AccueilController extends AbstractController
     {
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
-        $naturesForGraph = explode(',', $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue());
-        $naturesForGraph = array_map(function (int $natureId) use ($natureRepository) {
+
+        $paramNatureForGraph = $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue();
+        $naturesForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
+        $naturesForGraph = array_map(function ($natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
-        $emplacementsWanted = explode(',', $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue());
-        $emplacementsWanted = array_map(function (int $emplacementId) use ($emplacementRepository) {
+
+        $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
+        $emplacementsWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
+        $emplacementsWanted = array_map(function ($emplacementId) use ($emplacementRepository) {
             return $emplacementRepository->find($emplacementId);
         }, $emplacementsWanted);
         $highestTotal = -1;
