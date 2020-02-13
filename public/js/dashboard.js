@@ -43,7 +43,7 @@ $(function () {
         chartSecondForAdmin = chart;
     });
 
-    let reloadFrequency = 1000 * 60;
+    let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
 
     let $indicators = $('#indicators');
