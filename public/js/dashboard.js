@@ -218,13 +218,15 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
 
 function updateIndicBoxAdmin() {
     $.get(Routing.generate('get_encours_and_emergencies_admin', true), function(data) {
+        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
+
         $('#urgenceCountCount').text(data.urgenceCount);
-        $('#enCoursUrgenceCount').text(data.enCoursUrgence.count);
-        $('#enCoursLitigeCount').text(data.enCoursLitige.count);
-        $('#enCoursClearanceCount').text(data.enCoursClearance.count);
-        $('#enCoursLitigeLabel').text(data.enCoursLitige.label);
-        $('#enCoursClearanceLabel').text(data.enCoursClearance.label);
-        $('#enCoursUrgenceLabel').text(data.enCoursUrgence.label);
+        $('#enCoursUrgenceCount').text(data.enCoursUrgence ? data.enCoursUrgence.count : '-');
+        $('#enCoursLitigeCount').text(data.enCoursLitige ? data.enCoursLitige.count : '-');
+        $('#enCoursClearanceCount').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
+        $('#enCoursLitigeLabel').text(data.enCoursLitige ? data.enCoursLitige.label : '-');
+        $('#enCoursClearanceLabel').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
+        $('#enCoursUrgenceLabel').text(data.enCoursUrgence ? data.enCoursUrgence.label : '-');
     });
 }
 
