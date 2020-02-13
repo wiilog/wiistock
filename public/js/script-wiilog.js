@@ -506,8 +506,7 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
 function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
     $select.each(function() {
         let isMultiple = $(this).attr('multiple') === 'multiple';
-
-        $select.select2({
+        $(this).select2({
             ajax: {
                 url: Routing.generate(route, params, true),
                 dataType: 'json',
@@ -529,7 +528,7 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
             placeholder: {
                 text: placeholder,
             },
-            allowClear: true
+            allowClear: !isMultiple
         });
     });
 }

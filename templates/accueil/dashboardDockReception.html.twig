@@ -86,10 +86,10 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <div class="little-font">
+                <div class="little-font" id="statistics-arrival-carriers">
                     {% for carrierLabel in carriers %}
                         <p>carrierLabel</p>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>

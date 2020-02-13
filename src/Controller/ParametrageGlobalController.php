@@ -324,15 +324,29 @@ class ParametrageGlobalController extends AbstractController
             $day->setWorked($data['worked']);
 
             if (isset($data['times'])) {
-                $arrayTimes = explode(';', $data['times']);
+                if ($day->getWorked()){
+                    $matchHours = '((0[0-9])|(1[0-9])|(2[0-3]))';
+                    $matchMinutes = '([0-5][0-9])';
+                    $matchHoursMinutes = "$matchHours:$matchMinutes";
+                    $matchPeriod = "$matchHoursMinutes-$matchHoursMinutes";
+                    // return 0 if it's not match or false
+                    $resultFormat = preg_match(
+                        "/^($matchPeriod(;$matchPeriod)*)?$/",
+                            $data['times']
+                    );
 
-                if ($day->getWorked() && count($arrayTimes) % 2 != 0) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Le format des horaires est incorrect.'
-                    ]);
+                    if(!$resultFormat) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'Le format des horaires est incorrect.'
+                        ]);
+                    }
+
+                    $day->setTimes($data['times']);
                 }
-                $day->setTimes($data['times']);
+                else {
+                    $day->setTimes(null);
+                }
             }
 
             $em->persist($day);

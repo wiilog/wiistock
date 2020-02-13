@@ -89,7 +89,7 @@ function ajaxDims() {
         if (this.readyState == 4 && this.status == 200) {
             alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.');
         }
-    }
+    };
     let data = $('#dimsForm').find('.data');
     let json = {};
     data.each(function () {

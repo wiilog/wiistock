@@ -52,6 +52,7 @@ function reloadDashboards() {
     }
     updateCharts();
     loadRetards();
+    updateCarriers();
     refreshIndicatorsReceptionDock();
 
     let now = new Date();
@@ -265,5 +266,15 @@ function refreshIndicatorsReceptionDock() {
         $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
         $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
         $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
+    });
+}
+
+function updateCarriers() {
+    $.get(Routing.generate('get_daily_carriers_statistics'), function(data) {
+        const $container = $('#statistics-arrival-carriers');
+        $container.empty();
+        $container.append(
+            ...((data || []).map((carrier) => ($('<p/>', {text: carrier}))))
+        );
     });
 }
