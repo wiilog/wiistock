@@ -353,7 +353,7 @@ function refreshIndicatorsReceptionDock() {
         $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
         $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
         $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
-        $('#empForClearedDock').text(data.encoursCleared ? data.encoursCleared.label : '-');
+        $('#empForClearedDock').text(data.enCoursCleared ? data.enCoursCleared.label : '-');
         $('#empForPackDock').text(data.enCoursDock ? data.enCoursDock.label : '-');
         $('#empForClearanceDock').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
         $('#empForDropZoneDock').text(data.enCoursDropzone ? data.enCoursDropzone.label : '-');

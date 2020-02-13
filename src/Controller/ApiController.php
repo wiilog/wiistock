@@ -1003,9 +1003,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
      * @param Request $request
+     * @param InventoryEntryRepository $inventoryEntryRepository
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function addInventoryEntries(Request $request,
                                         InventoryEntryRepository $inventoryEntryRepository)
@@ -1072,7 +1072,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                         else {
                             $inventoryEntry->setArticle($articleToInventory);
-                            $inventoryEntry->setAnomaly($inventoryEntry->getQuantity() !== $articleToInventory->getQuantite());
+                            $isAnomaly = ($inventoryEntry->getQuantity() !== $articleToInventory->getQuantite());
+                            $inventoryEntry->setAnomaly($isAnomaly);
+
+                            if (!$isAnomaly) {
+                                $articleToInventory->setDateLastInventory($newDate);
+                            }
                         }
                         $em->persist($inventoryEntry);
 
@@ -1082,6 +1087,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $numberOfRowsInserted++;
                     }
                 }
+                $em->flush();
 
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
