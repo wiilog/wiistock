@@ -45,6 +45,7 @@
     </div>
 </a>
 
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_REFERENCE')) %}
 <div class="row indicator-row">
     <div class="col-8">
         <p>Fiabilité par référence</p>
@@ -53,7 +54,9 @@
         <p>{{ nbrFiabiliteReference|number_format(2, ',') }}%</p>
     </div>
 </div>
+{% endif %}
 
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) %}
 <div class="row indicator-row">
     <div class="col-8">
         <p>Fiabilité monétaire</p>
@@ -62,3 +65,4 @@
         <p>{{ nbrFiabiliteMonetaireOfThisMonth|round }}€</p>
     </div>
 </div>
+{% endif %}
