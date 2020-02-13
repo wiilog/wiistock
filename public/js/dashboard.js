@@ -42,6 +42,7 @@ $(function () {
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
+    updateIndicBoxAdmin();
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {

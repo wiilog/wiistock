@@ -4,7 +4,7 @@
     </p>
 </div>
 <div class="row mt-4">
-    <div class="col-8">
+    <div class="col-7">
         <div class="dashboard-box-wrapper">
             <div class="dashboard-box">
                 <div class="row">
@@ -15,46 +15,51 @@
                         <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
                     </div>
                     <div class="col-4 text-center align-self-center">
-                        <p class="title">
-                            Nombres de lignes restantes à traiter :
+                        <p class="little-font">
+                            Nombres de lignes restantes à traiter&nbsp;:
                         </p>
-                        <p class="title">
-                            <strong id="totalForChart1"></strong>
+                        <p class="little-font">
+                            <strong id="totalForChart1" class="figure"></strong>
                             {#                {{ totalForChart1 }}#}
                         </p>
-                        <p class="title">
-                            Prochain bac/palette à traiter :
+                        <p class="little-font">
+                            Prochain bac/palette à traiter&nbsp;:
                         </p>
-                        <p class="title">
-                            <strong id="empForChart1"></strong>
+                        <p class="little-font">
+                            <strong id="empForChart1" class="figure"></strong>
                             {#                {{ empForChart1 }}#}
                         </p>
                     </div>
-                </div>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-4 dashboard-box-wrapper align-self-center">
-        <div class="dashboard-box">
-            <h4 class="title">
-                Nombres d'urgences restantes à recevoir : <strong id="urgenceCountCount"></strong>
-            </h4>
-            <h4 class="title">
-                Nombres d'urgences restantes à traiter (<span id="enCoursUrgenceLabel"></span>) : <strong id="enCoursUrgenceCount"></strong>
-            </h4>
-            <h4 class="title">
-                Nombres de lignes en litiges (<span id="enCoursLitigeLabel"></span>) : <strong id="enCoursLitigeCount"></strong>
-            </h4>
-            <h4 class="title">
-                Nombres de colis en attente de dédouanement (<span id="enCoursClearanceLabel"></span>) : <strong id="enCoursClearanceCount"></strong>
-            </h4>
+    <div class="col-5">
+        <div class="dashboard-box-wrapper">
+            <div class="dashboard-box">
+                <p class="little-font">
+                    Nombres d'urgences restantes à recevoir&nbsp;: <strong class="figure" id="urgenceCountCount"></strong>
+                </p>
+                <p class="little-font">
+                    Nombres d'urgences restantes à traiter (<span id="enCoursUrgenceLabel"></span>)&nbsp;: <strong
+                        class="figure" id="enCoursUrgenceCount"></strong>
+                </p>
+                <p class="little-font">
+                    Nombres de lignes en litiges (<span id="enCoursLitigeLabel"></span>)&nbsp;: <strong class="figure"
+                                                                                                   id="enCoursLitigeCount"></strong>
+                </p>
+                <p class="little-font">
+                    Nombres de colis en attente de dédouanement (<span id="enCoursClearanceLabel"></span>)&nbsp;: <strong
+                        class="figure" id="enCoursClearanceCount"></strong>
+                </p>
+            </div>
         </div>
     </div>
 </div>
-<div class="row mt-4">
+<div class="row mt-2">
     <div class="col-12">
         <div class="dashboard-box-wrapper">
             <div class="dashboard-box">
@@ -66,24 +71,24 @@
                         <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
                     </div>
                     <div class="col-4 text-center align-self-center">
-                        <p class="title">
-                            Nombres de lignes restantes à traiter :
+                        <p class="little-font">
+                            Nombres de lignes restantes à traiter&nbsp;:
                         </p>
-                        <p class="title">
-                            <strong id="totalForChart2"></strong>
+                        <p class="little-font">
+                            <strong id="totalForChart2" class="figure"></strong>
                             {#                {{ totalForChart1 }}#}
                         </p>
-                        <p class="title">
-                            Prochain palette à traiter :
+                        <p class="little-font">
+                            Prochain palette à traiter&nbsp;:
                         </p>
-                        <p class="title">
-                            <strong id="empForChart2"></strong>
+                        <p class="little-font">
+                            <strong id="empForChart2" class="figure"></strong>
                             {#                {{ empForChart1 }}#}
                         </p>
                     </div>
-                </div>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <div class="points">
+                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    </div>
                 </div>
             </div>
         </div>
