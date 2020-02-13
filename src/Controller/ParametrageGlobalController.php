@@ -329,7 +329,7 @@ class ParametrageGlobalController extends AbstractController
                     $matchMinutes = '([0-5][0-9])';
                     $matchHoursMinutes = "$matchHours:$matchMinutes";
                     $matchPeriod = "$matchHoursMinutes-$matchHoursMinutes";
-                    // return 0 if it's not match or false
+                    // return 0 if it's not match or false if error
                     $resultFormat = preg_match(
                         "/^($matchPeriod(;$matchPeriod)*)?$/",
                             $data['times']
