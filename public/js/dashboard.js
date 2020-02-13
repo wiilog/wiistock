@@ -13,6 +13,8 @@ let chartSecondForAdmin;
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
+    Chart.defaults.global.responsive = true;
+    Chart.defaults.global.maintainAspectRatio = false;
     //// charts monitoring réception arrivage
     drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
         chartArrivalUm = chart;
