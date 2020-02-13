@@ -415,10 +415,15 @@ class AccueilController extends AbstractController
                 $empToKeep = $emplacementWanted;
             }
         }
+        if ($highestTotal === -1) {
+            $enCoursToMonitor = $statisticsService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) {
+                return 0;
+            });
+        }
         return new JsonResponse([
             "data" => $enCoursToMonitor,
-            'total' => $highestTotal,
-            "location" => $empToKeep ? $empToKeep->getLabel() : ''
+            'total' => $highestTotal === -1 ? '-' : $highestTotal,
+            "location" => $empToKeep && $highestTotal === -1 ? $empToKeep->getLabel() : '-'
         ]);
     }
 
