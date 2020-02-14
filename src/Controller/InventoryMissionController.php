@@ -12,6 +12,7 @@ use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,7 +61,20 @@ class InventoryMissionController extends AbstractController
      */
     private $invMissionService;
 
-    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, InvMissionService $invMissionService)
+	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
+
+    public function __construct(
+    	InventoryMissionRepository $inventoryMissionRepository,
+		UserService $userService,
+		InventoryEntryRepository $inventoryEntryRepository,
+		ReferenceArticleRepository $referenceArticleRepository,
+		ArticleRepository $articleRepository,
+		InvMissionService $invMissionService,
+		InventoryService $inventoryService
+	)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -68,6 +82,7 @@ class InventoryMissionController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->invMissionService = $invMissionService;
+        $this->inventoryService = $inventoryService;
     }
 
     /**
@@ -220,6 +235,10 @@ class InventoryMissionController extends AbstractController
 
             foreach ($data['articles'] as $articleId) {
                 $article = $this->articleRepository->find($articleId);
+
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
+				if ($alreadyInMission) return new JsonResponse(false);
+
                 $article->addInventoryMission($mission);
                 $em->persist($mission);
                 $em->flush();
@@ -227,7 +246,11 @@ class InventoryMissionController extends AbstractController
 
             foreach ($data['refArticles'] as $refArticleId) {
                 $refArticle = $this->referenceArticleRepository->find($refArticleId);
-                $refArticle->addInventoryMission($mission);
+
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
+				if ($alreadyInMission) return new JsonResponse(false);
+
+				$refArticle->addInventoryMission($mission);
                 $em->persist($mission);
                 $em->flush();
             }

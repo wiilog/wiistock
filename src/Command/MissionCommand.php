@@ -14,6 +14,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\InventoryMissionRepository;
+use App\Service\InventoryService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -59,8 +60,22 @@ class MissionCommand extends Command
 	 */
     private $statutRepository;
 
+	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
 
-    public function __construct(StatutRepository $statutRepository, UtilisateurRepository $userRepository, EntityManagerInterface $entityManager, ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, InventoryMissionRepository $inventoryMissionRepository)
+
+    public function __construct(
+    	StatutRepository $statutRepository,
+		UtilisateurRepository $userRepository,
+		EntityManagerInterface $entityManager,
+		ArticleRepository $articleRepository,
+		ReferenceArticleRepository $referenceArticleRepository,
+		InventoryFrequencyRepository $inventoryFrequencyRepository,
+		InventoryMissionRepository $inventoryMissionRepository,
+		InventoryService $inventoryService
+	)
     {
         parent::__construct();
         $this->userRepository= $userRepository;
@@ -70,6 +85,7 @@ class MissionCommand extends Command
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->statutRepository = $statutRepository;
+        $this->inventoryService = $inventoryService;
     }
 
     protected function configure()
@@ -132,8 +148,12 @@ class MissionCommand extends Command
             }
 
             foreach ($refsAndArtToInv as $refOrArt) { /** @var ReferenceArticle|Article $refOrArt */
-                $refOrArt->addInventoryMission($mission);
-                $this->entityManager->flush();
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, $refOrArt instanceof ReferenceArticle);
+
+				if (!$alreadyInMission) {
+					$refOrArt->addInventoryMission($mission);
+					$this->entityManager->flush();
+				}
             }
 
 			// lissage des réf et articles jamais inventoriés
@@ -146,10 +166,16 @@ class MissionCommand extends Command
 			$listArtNextMission = $this->articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 
 			foreach ($listRefNextMission as $ref) {
-				$ref->addInventoryMission($mission);
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($ref, $mission, true);
+				if (!$alreadyInMission) {
+					$ref->addInventoryMission($mission);
+				}
 			}
 			foreach ($listArtNextMission as $art) {
-				$art->addInventoryMission($mission);
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($art, $mission, false);
+				if (!$alreadyInMission) {
+					$art->addInventoryMission($mission);
+				}
 			}
 
 			$this->entityManager->flush();

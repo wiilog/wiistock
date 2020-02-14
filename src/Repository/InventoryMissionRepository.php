@@ -2,8 +2,14 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\InventoryMission;
+use App\Entity\ReferenceArticle;
+use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\ObjectType;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -338,4 +344,58 @@ class InventoryMissionRepository extends ServiceEntityRepository
         $result = $query->execute();
         return $result ? $result[0] : null;
     }
+
+	/**
+	 * @param ReferenceArticle $ref
+	 * @param DateTimeInterface $startDate
+	 * @param DateTimeInterface $endDate
+	 * @return InventoryMission[]
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function countByRefAndDates($ref, $startDate, $endDate)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(m)
+			FROM App\Entity\InventoryMission m
+			JOIN m.refArticles ra
+			WHERE (m.startPrevDate <= :startDate OR m.endPrevDate >= :endDate)
+			AND ra = :ref"
+		)->setParameters([
+			'ref' => $ref,
+			'startDate' => $startDate->format('Y-m-d H:i:s'),
+			'endDate' => $endDate->format('Y-m-d H:i:s')
+		]);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param Article $art
+	 * @param DateTimeInterface $startDate
+	 * @param ObjectType $endDate
+	 * @return InventoryMission[]
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function countByArtAndDates($art, $startDate, $endDate)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(m)
+			FROM App\Entity\InventoryMission m
+			JOIN m.articles a
+			WHERE (m.startPrevDate <= :startDate OR m.endPrevDate >= :endDate)
+			AND a = :art"
+		)->setParameters([
+			'art' => $art,
+			'startDate' => $startDate->format('Y-m-d H:i:s'),
+			'endDate' => $endDate->format('Y-m-d H:i:s')
+		]);
+
+		return $query->getSingleScalarResult();
+	}
 }
