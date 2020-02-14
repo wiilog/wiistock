@@ -1321,7 +1321,7 @@ class ReferenceArticleController extends AbstractController
             );
 
             return new PdfResponse(
-                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $PDFGeneratorService-> generatePDFBarCodes($fileName, $barcodeConfigs),
                 $fileName
             );
         }
