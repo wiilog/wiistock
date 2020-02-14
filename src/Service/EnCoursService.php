@@ -15,6 +15,8 @@ use DatePeriod;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Exception;
 
 
 class EnCoursService
@@ -298,12 +300,13 @@ class EnCoursService
         return null;
     }
 
-    /**
-     * @param Emplacement $emplacement
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Exception
-     */
+	/**
+	 * @param Emplacement $emplacement
+	 * @return array
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 * @throws Exception
+	 */
     public function getEnCoursForEmplacement(Emplacement $emplacement)
     {
         $success = true;
@@ -377,16 +380,14 @@ class EnCoursService
     /**
      * @param $dateMvt
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     public function getMinutesBetween($dateMvt): int
     {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
-        $nowIncluding = (new DateTime("now", new \DateTimeZone("Europe/Paris")))
-            ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
 
         $interval = DateInterval::createFromDateString('1 day');
-        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
+        $period = new DatePeriod($dateMvt, $interval, $now);
         $minutesBetween = 0;
         /**
          * @var $day DateTime
