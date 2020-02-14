@@ -35,41 +35,57 @@
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div class="dashboard-box text-center">
-                <p class="little-font">Colis restants à traiter (<span id="empForPackDock">{{
+                <p class="little-font">Colis restant à traiter<br>
+                    (<span id="empForPackDock">{{
                         indicatorsReceptionDock.enCoursDock.label is defined ? indicatorsReceptionDock.enCoursDock.label : '-'
-                        }}</span>)</p>
-                <span class="figure"
-                      id="enCoursDock">{{ indicatorsReceptionDock.enCoursDock.count is defined ? indicatorsReceptionDock.enCoursDock.count : '-' }}</span>
+                        }}</span>)<br>
+                    <span class="figure" id="enCoursDock">
+                        {{ indicatorsReceptionDock.enCoursDock.count is defined ? indicatorsReceptionDock.enCoursDock.count : '-' }}
+                    </span>
+                </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div class="dashboard-box text-center">
-                <p class="little-font">Colis en attente dédouanement (<span id="empForClearanceDock">{{
-                        indicatorsReceptionDock.enCoursClearance.label is defined ? indicatorsReceptionDock.enCoursClearance.label : '-'
-                        }}</span>)</p>
-                <span class="figure"
-                      id="enCoursClearance">{{ indicatorsReceptionDock.enCoursClearance.count is defined ? indicatorsReceptionDock.enCoursClearance.count : '-' }}</span>
+                <p class="little-font">Colis en attente dédouanement<br>
+                    (<span id="empForClearanceDock">
+                        {{ indicatorsReceptionDock.enCoursClearance.label is defined ? indicatorsReceptionDock.enCoursClearance.label : '-' }}
+                    </span>)<br>
+                    <span class="figure" id="enCoursClearance">
+                        {{ indicatorsReceptionDock.enCoursClearance.count is defined ? indicatorsReceptionDock.enCoursClearance.count : '-' }}
+                    </span>
+                </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div class="dashboard-box text-center">
-                <p class="little-font">Colis dédouanés et dispo (<span id="empForClearedDock">{{ indicatorsReceptionDock.enCoursCleared.label is defined ? indicatorsReceptionDock.enCoursCleared.label : '-' }}</span>)</p>
-                <span class="figure"
-                      id="urgenceCount">{{ indicatorsReceptionDock.enCoursCleared.count is defined ? indicatorsReceptionDock.enCoursCleared.count : '-' }}</span>
+                <p class="little-font">Colis dédouanés et dispo<br>
+                    (<span id="empForClearedDock">{{ indicatorsReceptionDock.enCoursCleared.label is defined ? indicatorsReceptionDock.enCoursCleared.label : '-' }}
+                    </span>)<br>
+                    <span class="figure" id="urgenceCount">
+                        {{ indicatorsReceptionDock.enCoursCleared.count is defined ? indicatorsReceptionDock.enCoursCleared.count : '-' }}
+                    </span>
+                </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div class="dashboard-box text-center">
-                <p class="little-font">Urgences restant à recevoir</p>
-                <span class="figure red"
-                      id="enCoursCleared">{{ indicatorsReceptionDock.urgenceCount }}</span>
+                <p class="little-font">Urgences restant à recevoir<br>
+                    <span class="figure red" id="enCoursCleared">
+                        {{ indicatorsReceptionDock.urgenceCount }}
+                    </span>
+                </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height align-self-center">
             <div class="dashboard-box text-center">
-                <p class="little-font">Colis à déposer en Drop Zones (<span id="empForDropZoneDock">{{ indicatorsReceptionDock.enCoursDropzone.label is defined ? indicatorsReceptionDock.enCoursDropzone.label : '-' }}</span>)</p>
-                <span class="figure"
-                      id="enCoursDropzone">{{ indicatorsReceptionDock.enCoursDropzone.count is defined ? indicatorsReceptionDock.enCoursDropzone.count : '-' }}</span>
+                <p class="little-font">Colis à déposer en Drop Zones<br>
+                    (<span id="empForDropZoneDock">{{ indicatorsReceptionDock.enCoursDropzone.label is defined ? indicatorsReceptionDock.enCoursDropzone.label : '-' }}
+                    </span>)<br>
+                    <span class="figure" id="enCoursDropzone">
+                        {{ indicatorsReceptionDock.enCoursDropzone.count is defined ? indicatorsReceptionDock.enCoursDropzone.count : '-' }}
+                    </span>
+                </p>
             </div>
         </div>
         <div class="col-9 dashboard-box-wrapper third-height">
