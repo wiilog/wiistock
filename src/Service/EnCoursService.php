@@ -385,9 +385,9 @@ class EnCoursService
     public function getMinutesBetween($dateMvt): int
     {
         $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
-
+        $nowIncluding = (clone $now)->setTime(23, 59, 59);
         $interval = DateInterval::createFromDateString('1 day');
-        $period = new DatePeriod($dateMvt, $interval, $now);
+        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
         $minutesBetween = 0;
         /**
          * @var $day DateTime
