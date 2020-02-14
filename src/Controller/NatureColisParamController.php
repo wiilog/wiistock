@@ -72,6 +72,7 @@ class NatureColisParamController extends AbstractController
                         'Code' => $nature->getCode(),
                         'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
                         'Préfixe' => $nature->getPrefix() ?? 'Non défini',
+                        'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
                         'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
                             'url' => $url,
                             'natureId' => $nature->getId(),
@@ -100,6 +101,7 @@ class NatureColisParamController extends AbstractController
                 $nature
                     ->setLabel($data['label'])
                     ->setPrefix($data['prefix'])
+					->setColor($data['color'])
                     ->setDefaultQuantity($data['quantity'])
                     ->setCode($data['code']);
 
