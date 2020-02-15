@@ -7,18 +7,16 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
-
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
 use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\UrgenceRepository;
 use App\Service\DashboardService;
-
 use App\Service\EnCoursService;
 use App\Service\StatisticsService;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -27,7 +25,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use App\Repository\EmplacementRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
@@ -38,6 +35,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ReferenceArticleRepository;
+
 
 /**
  * @Route("/accueil")
@@ -200,7 +198,6 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
-            'carriers' => $this->statisticsService->getDailyArrivalCarriers(),
             'status' => [
                 'DLtoTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
                 'DLincomplete' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
@@ -209,8 +206,7 @@ class AccueilController extends AbstractController
                 'MToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
-            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week')),
-			'indicatorsReceptionDock' => $this->dashboardService->getDataForReceptionDashboard()
+            'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))
         ];
     }
 
@@ -429,62 +425,20 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-urgences-et-encours-admin",
-     *     name="get_encours_and_emergencies_admin",
+     *     "/statistiques-reception-admin",
+     *     name="get_indicators_reception_admin",
      *     options={"expose"=true},
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param EmplacementRepository $emplacementRepository
-     * @param UrgenceRepository $urgenceRepository
-     * @param EnCoursService $enCoursService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param DashboardService $dashboardService
      * @return Response
-     * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws DBALException
      */
-    public function getEmergenciesAndAndEnCoursForAdmin(
-        EmplacementRepository $emplacementRepository,
-        UrgenceRepository $urgenceRepository,
-        EnCoursService $enCoursService,
-        ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        $empIdForLitige =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES)->getValue()
-                :
-                null;
-        $empIdForUrgence =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES)->getValue()
-                :
-                null;
-        $empIdForClearance =
-            $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN)
-                ?
-                $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN)->getValue()
-                :
-                null;
-        $empForLitige = $empIdForLitige ? $emplacementRepository->find($empIdForLitige) : null;
-        $empForUrgence = $empIdForUrgence ? $emplacementRepository->find($empIdForUrgence) : null;
-        $empForClearance = $empIdForClearance ? $emplacementRepository->find($empIdForClearance) : null;
-        $response = [
-            'enCoursLitige' => $empForLitige ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForLitige)['data']),
-                'label' => $empForLitige->getLabel()
-            ] : null,
-            'enCoursClearance' => $empForClearance ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
-                'label' => $empForClearance->getLabel()
-            ] : null,
-            'enCoursUrgence' => $empForUrgence ? [
-                'count' => count($enCoursService->getEnCoursForEmplacement($empForUrgence)['data']),
-                'label' => $empForUrgence->getLabel()
-            ] : null,
-            'urgenceCount' => $urgenceRepository->countUnsolved(),
-        ];
+    public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
+        $response = $dashboardService->getDataForReceptionAdminDashboard();
         return new JsonResponse($response);
     }
 
@@ -496,17 +450,15 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param EmplacementRepository $emplacementRepository
-     * @param UrgenceRepository $urgenceRepository
-     * @param EnCoursService $enCoursService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param DashboardService $dashboardService
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws DBALException
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function getIndicatorsDockReception(): Response
+    public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {
-    	$response = $this->dashboardService->getDataForReceptionDashboard();
+        $response = $dashboardService->getDataForReceptionDockDashboard();
         return new JsonResponse($response);
     }
 

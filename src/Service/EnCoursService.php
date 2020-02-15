@@ -14,7 +14,9 @@ use DateInterval;
 use DatePeriod;
 use DateTime;
 use DateTimeInterface;
+use DateTimeZone;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 
 
 class EnCoursService
@@ -300,42 +302,30 @@ class EnCoursService
 
     /**
      * @param Emplacement $emplacement
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Exception
+     * @return array
+     * @throws Exception
      */
     public function getEnCoursForEmplacement(Emplacement $emplacement)
     {
         $success = true;
         $emplacementInfo = [];
-        $mvtArray = $this->mouvementTracaRepository->findByEmplacementTo($emplacement);
-        $mvtGrouped = [];
-        foreach ($mvtArray as $mvt) {
-            if (isset($mvtGrouped[$mvt->getColis()])
-                && $mvtGrouped[$mvt->getColis()]->getDateTime() < $mvt->getDatetime()) {
-                $mvtGrouped[$mvt->getColis()] = $mvt;
-            } else if (!isset($mvtGrouped[$mvt->getColis()])) {
-                $mvtGrouped[$mvt->getColis()] = $mvt;
-            }
-        }
+        $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement);
 
-        foreach ($mvtGrouped as $mvt) {
-            if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                $dateMvt = new DateTime($mvt->getDatetime()->format('d-m-Y H:i'), new \DateTimeZone("Europe/Paris"));
-                $minutesBetween = $this->getMinutesBetween($dateMvt);
-                if (empty($minutesBetween)) {
-                    $success = false;
-                } else {
-                    $dataForTable = $this->buildDataForDatatable($minutesBetween, $emplacement);
-                    if ($dataForTable) {
-                        $emplacementInfo[] = [
-                            'colis' => $mvt->getColis(),
-                            'time' => $dataForTable['time'],
-                            'date' => $dateMvt->format('d/m/Y H:i:s'),
-                            'max' => $emplacement->getDateMaxTime(),
-                            'late' => $dataForTable['late']
-                        ];
-                    }
+        foreach ($mouvements as $mouvement) {
+            $dateMvt = new DateTime($mouvement->getDatetime()->format('d-m-Y H:i'), new DateTimeZone("Europe/Paris"));
+            $minutesBetween = $this->getMinutesBetween($dateMvt);
+            if (empty($minutesBetween)) {
+                $success = false;
+            } else {
+                $dataForTable = $this->buildDataForDatatable($minutesBetween, $emplacement);
+                if ($dataForTable) {
+                    $emplacementInfo[] = [
+                        'colis' => $mouvement->getColis(),
+                        'time' => $dataForTable['time'],
+                        'date' => $dateMvt->format('d/m/Y H:i:s'),
+                        'max' => $emplacement->getDateMaxTime(),
+                        'late' => $dataForTable['late']
+                    ];
                 }
             }
         }
@@ -377,12 +367,12 @@ class EnCoursService
     /**
      * @param $dateMvt
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     public function getMinutesBetween($dateMvt): int
     {
-        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
-        $nowIncluding = (new DateTime("now", new \DateTimeZone("Europe/Paris")))
+        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $nowIncluding = (new DateTime("now", new DateTimeZone("Europe/Paris")))
             ->add(new DateInterval('PT' . (18 - intval($now->format('H'))) . 'H'));
 
         $interval = DateInterval::createFromDateString('1 day');

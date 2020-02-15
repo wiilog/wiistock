@@ -100,31 +100,29 @@ class EnCoursController extends AbstractController
     }
 
 
-	/**
-	 * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @return JsonResponse
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
+    /**
+     * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
+     * @throws Exception
+     */
     public function apiForRetard(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
             $retards = [];
             foreach ($this->emplacementRepository->findWhereArticleIs() as $emplacementArray) {
                 $emplacement = $this->emplacementRepository->find($emplacementArray['id']);
-                foreach ($this->mouvementTracaRepository->findByEmplacementTo($emplacement) as $mvt) {
-                    if (intval($this->mouvementTracaRepository->findByEmplacementToAndArticleAndDate($emplacement, $mvt)) === 0) {
-                        $dateMvt = $mvt->getDatetime();
-                        $minutesBetween = $this->enCoursService->getMinutesBetween($dateMvt);
-                        $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
-                        if ($dataForTable && $dataForTable['late']) {
-                            $retards[] = [
-                                'colis' => $mvt->getColis(),
-                                'time' => $dataForTable['time'],
-                                'date' => $dateMvt->format('d/m/Y H:i'),
-                                'emp' => $emplacement->getLabel(),
-                            ];
-                        }
+                $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement);
+                foreach ($mouvements as $mouvement) {
+                    $dateMvt = $mouvement->getDatetime();
+                    $minutesBetween = $this->enCoursService->getMinutesBetween($dateMvt);
+                    $dataForTable = $this->enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
+                    if ($dataForTable && $dataForTable['late']) {
+                        $retards[] = [
+                            'colis' => $mouvement->getColis(),
+                            'time' => $dataForTable['time'],
+                            'date' => $dateMvt->format('d/m/Y H:i'),
+                            'emp' => $emplacement->getLabel(),
+                        ];
                     }
                 }
             }

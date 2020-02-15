@@ -43,7 +43,9 @@ $(function () {
     });
 
     loadRetards();
-    updateIndicBoxAdmin();
+    refreshIndicatorsReceptionDock();
+    refreshIndicatorsReceptionAdmin();
+    updateCarriers();
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
@@ -73,6 +75,8 @@ function reloadDashboards() {
     updateCharts();
     updateCarriers();
     refreshIndicatorsReceptionDock();
+    refreshIndicatorsReceptionAdmin();
+
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
@@ -86,7 +90,6 @@ function updateCharts() {
     drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
     drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
-    updateIndicBoxAdmin();
 }
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
@@ -226,20 +229,6 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
     });
 }
 
-function updateIndicBoxAdmin() {
-    $.get(Routing.generate('get_encours_and_emergencies_admin', true), function(data) {
-        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
-
-        $('#urgenceCountCount').text(data.urgenceCount);
-        $('#enCoursUrgenceCount').text(data.enCoursUrgence ? data.enCoursUrgence.count : '-');
-        $('#enCoursLitigeCount').text(data.enCoursLitige ? data.enCoursLitige.count : '-');
-        $('#enCoursClearanceCount').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
-        $('#enCoursLitigeLabel').text(data.enCoursLitige ? data.enCoursLitige.label : '-');
-        $('#enCoursClearanceLabel').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
-        $('#enCoursUrgenceLabel').text(data.enCoursUrgence ? data.enCoursUrgence.label : '-');
-    });
-}
-
 function goToFilteredDemande(type, filter) {
     let path = '';
     if (type === 'livraison') {
@@ -357,6 +346,20 @@ function refreshIndicatorsReceptionDock() {
         $('#empForPackDock').text(data.enCoursDock ? data.enCoursDock.label : '-');
         $('#empForClearanceDock').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
         $('#empForDropZoneDock').text(data.enCoursDropzone ? data.enCoursDropzone.label : '-');
+    });
+}
+
+function refreshIndicatorsReceptionAdmin() {
+    $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
+        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
+
+        $('#urgenceCountCount').text(data.urgenceCount);
+        $('#enCoursUrgenceCount').text(data.enCoursUrgence ? data.enCoursUrgence.count : '-');
+        $('#enCoursLitigeCount').text(data.enCoursLitige ? data.enCoursLitige.count : '-');
+        $('#enCoursClearanceCount').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
+        $('#enCoursLitigeLabel').text(data.enCoursLitige ? data.enCoursLitige.label : '-');
+        $('#enCoursClearanceLabel').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
+        $('#enCoursUrgenceLabel').text(data.enCoursUrgence ? data.enCoursUrgence.label : '-');
     });
 }
 

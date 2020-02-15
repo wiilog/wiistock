@@ -4,13 +4,21 @@
 namespace App\Service;
 
 
+use App\Entity\Emplacement;
+use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Urgence;
 use App\Repository\ArrivageRepository;
 use App\Repository\ArrivalHistoryRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionTracaRepository;
 use App\Repository\UrgenceRepository;
+use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+
 
 class DashboardService
 {
@@ -47,6 +55,7 @@ class DashboardService
 	 * @var UrgenceRepository;
 	 */
     private $urgenceRepository;
+    private $entityManager;
 
     public function __construct(EmplacementRepository $emplacementRepository,
 								ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -54,6 +63,7 @@ class DashboardService
 								ArrivageRepository $arrivageRepository,
 								ReceptionTracaRepository $receptionTracaRepository,
 								EnCoursService $enCoursService,
+								EntityManagerInterface $entityManager,
 								UrgenceRepository $urgenceRepository
 	)
     {
@@ -61,6 +71,7 @@ class DashboardService
         $this->arrivageRepository = $arrivageRepository;
         $this->receptionTracaRepository = $receptionTracaRepository;
         $this->parametrageGlobalRepository = $parametrageGlobalRepository;
+        $this->entityManager = $entityManager;
         $this->emplacementRepository = $emplacementRepository;
         $this->enCoursService = $enCoursService;
         $this->urgenceRepository = $urgenceRepository;
@@ -178,55 +189,83 @@ class DashboardService
         ];
     }
 
-    public function getDataForReceptionDashboard()
-	{
-		$empIdForDock =
-			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)
-				?
-				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_DOCK)->getValue()
-				:
-				null;
-		$empIdForClearance =
-			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)
-				?
-				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK)->getValue()
-				:
-				null;
-		$empIdForCleared =
-			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)
-				?
-				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE)->getValue()
-				:
-				null;
-		$empIdForDropZone =
-			$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)
-				?
-				$this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES)->getValue()
-				:
-				null;
-		$empForDock = $empIdForDock ? $this->emplacementRepository->find($empIdForDock) : null;
-		$empForClearance = $empIdForClearance ? $this->emplacementRepository->find($empIdForClearance) : null;
-		$empForCleared = $empIdForCleared ? $this->emplacementRepository->find($empIdForCleared) : null;
-		$empForDropZone = $empIdForDropZone ? $this->emplacementRepository->find($empIdForDropZone) : null;
+    /**
+     * @return array
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getDataForReceptionAdminDashboard() {
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+
+        $empForUrgence = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES);
+        $empForLitige = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES);
+        $empForClearance = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN);
+
+        return [
+            'enCoursUrgence' => $empForUrgence ? [
+                'count' => $mouvementTracaRepository->countObjectOnLocation($empForUrgence),
+                'label' => $empForUrgence->getLabel()
+            ] : null,
+            'enCoursLitige' => $empForLitige ? [
+                'count' => $mouvementTracaRepository->countObjectOnLocation($empForLitige),
+                'label' => $empForLitige->getLabel()
+            ] : null,
+            'enCoursClearance' => $empForClearance ? [
+                'count' => $mouvementTracaRepository->countObjectOnLocation($empForClearance),
+                'label' => $empForClearance->getLabel()
+            ] : null,
+            'urgenceCount' => $urgenceRepository->countUnsolved(),
+        ];
+    }
+
+    /**
+     * @return array
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getDataForReceptionDockDashboard() {
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+
+        $empForDock = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_DOCK);
+        $empForClearance = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK);
+        $empForCleared = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE);
+        $empForDropZone = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
+
 		return [
 			'enCoursDock' => $empForDock ? [
-				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForDock)['data']),
+				'count' => $mouvementTracaRepository->countObjectOnLocation($empForDock),
 				'label' => $empForDock->getLabel()
 			] : null,
 			'enCoursClearance' => $empForClearance ? [
-				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForClearance)['data']),
+				'count' => $mouvementTracaRepository->countObjectOnLocation($empForClearance),
 				'label' => $empForClearance->getLabel()
 			] : null,
 			'enCoursCleared' => $empForCleared ? [
-				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForCleared)['data']),
+				'count' => $mouvementTracaRepository->countObjectOnLocation($empForCleared),
 				'label' => $empForCleared->getLabel()
 			] : null,
 			'enCoursDropzone' => $empForDropZone ? [
-				'count' => count($this->enCoursService->getEnCoursForEmplacement($empForDropZone)['data']),
+				'count' => $mouvementTracaRepository->countObjectOnLocation($empForDropZone),
 				'label' => $empForDropZone->getLabel()
 			] : null,
 			'urgenceCount' => $this->urgenceRepository->countUnsolved(),
 		];
 	}
+
+	private function findEmplacementParam(string $paramName): ?Emplacement {
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+
+        $param = $parametrageGlobalRepository->findOneByLabel($paramName);
+        $paramValue = $param
+            ? $param->getValue()
+            : null;
+        return $paramValue
+            ? $emplacementRepository->find($paramValue)
+            : null;
+    }
 
 }
