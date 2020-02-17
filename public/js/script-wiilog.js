@@ -69,7 +69,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     });
     inputs.each(function () {
         let $input = $(this);
-        let val = $input.val() !== "" ? $input.val() : $input.attr('value');
+        let val = $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
         const $parent = $input.closest('[data-multiple-key]');

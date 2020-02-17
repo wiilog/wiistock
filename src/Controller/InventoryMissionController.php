@@ -14,6 +14,8 @@ use App\Repository\ArticleRepository;
 
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -142,28 +144,28 @@ class InventoryMissionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/verification", name="mission_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param InventoryEntryRepository $entryRepository
-     * @return Response
-     */
-    public function checkUserCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
+	/**
+	 * @Route("/verification", name="mission_check_delete", options={"expose"=true})
+	 * @param Request $request
+	 * @param InventoryEntryRepository $entryRepository
+	 * @return Response
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function checkMissionCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                dump('hdhd');
                 return $this->redirectToRoute('access_denied');
             }
 
             $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
             $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
-            $entries = $entryRepository->countByMission($missionId);
-            $missionIsUsed = true;
-            if (intval($missionArt) === 0 && intval($missionRef) === 0 && intval($entries) === 0) {
-                $missionIsUsed = false;
-            }
-            if ($missionIsUsed == true) {
+            $missionEntries = $entryRepository->countByMission($missionId);
+
+            $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
+
+            if ($missionIsUsed) {
                 $delete = false;
                 $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
             } else {

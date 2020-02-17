@@ -86,6 +86,12 @@ class InventoryMissionRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param InventoryMission $mission
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
 	public function countArtByMission($mission)
     {
         $em = $this->getEntityManager();
@@ -99,6 +105,12 @@ class InventoryMissionRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param InventoryMission $mission
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
     public function countRefArtByMission($mission)
     {
         $em = $this->getEntityManager();
@@ -288,12 +300,12 @@ class InventoryMissionRepository extends ServiceEntityRepository
 					break;
 				case 'dateMin':
 					$qb
-						->andWhere('im.startPrevDate >= :dateMin')
+						->andWhere('im.endPrevDate >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
 					break;
 				case 'dateMax':
 					$qb
-						->andWhere('im.endPrevDate <= :dateMax')
+						->andWhere('im.startPrevDate <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
 			}
