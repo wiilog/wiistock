@@ -205,7 +205,7 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                 Object.keys(Object.values(data.data)[0]).forEach((key) => {
                     datas.push({
                         label: key,
-                        backgroundColor: "#"+((1<<24)*Math.random()|0).toString(16),
+                        backgroundColor: data.colorsNatures[key] || (`#${((1<<24)*Math.random()|0).toString(16)}`),
                         data: datasets[key]
                     })
                 });
@@ -267,7 +267,12 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            callback: (value) => {
+                                if (Math.floor(value) === value) {
+                                    return value;
+                                }
+                            }
                         }
                     }]
                 },
@@ -337,30 +342,36 @@ function loadRetards() {
 
 function refreshIndicatorsReceptionDock() {
     $.get(Routing.generate('get_indicators_reception_dock'), function(data) {
-        $('#enCoursDock').text(data.enCoursDock.count);
-        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
-        $('#enCoursCleared').text(data.enCoursCleared ? data.enCoursCleared.count : '-');
-        $('#enCoursDropzone').text(data.enCoursDropzone ? data.enCoursDropzone.count : '-');
-        $('#urgenceCount').text(data.urgenceCount ? data.urgenceCount.count : '-');
-        $('#empForClearedDock').text(data.enCoursCleared ? data.enCoursCleared.label : '-');
-        $('#empForPackDock').text(data.enCoursDock ? data.enCoursDock.label : '-');
-        $('#empForClearanceDock').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
-        $('#empForDropZoneDock').text(data.enCoursDropzone ? data.enCoursDropzone.label : '-');
+        refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
+        refreshCounter($('#encours-dock-box'), data.enCoursDock);
+        refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
+        refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
+        refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
     });
 }
 
 function refreshIndicatorsReceptionAdmin() {
     $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
-        $('#enCoursClearance').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
-
-        $('#urgenceCountCount').text(data.urgenceCount);
-        $('#enCoursUrgenceCount').text(data.enCoursUrgence ? data.enCoursUrgence.count : '-');
-        $('#enCoursLitigeCount').text(data.enCoursLitige ? data.enCoursLitige.count : '-');
-        $('#enCoursClearanceCount').text(data.enCoursClearance ? data.enCoursClearance.count : '-');
-        $('#enCoursLitigeLabel').text(data.enCoursLitige ? data.enCoursLitige.label : '-');
-        $('#enCoursClearanceLabel').text(data.enCoursClearance ? data.enCoursClearance.label : '-');
-        $('#enCoursUrgenceLabel').text(data.enCoursUrgence ? data.enCoursUrgence.label : '-');
+        refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
+        refreshCounter($('#encours-litige-box'), data.enCoursLitige);
+        refreshCounter($('#encours-urgence-box'), data.enCoursUrgence);
+        refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
     });
+}
+
+function refreshCounter($counterCountainer, data) {
+    let counter;
+
+    if (typeof data === 'object') {
+        const label = data ? data.label : '-';
+        counter = data ? data.count : '-';
+        $counterCountainer.find('.location-label').text(label);
+    }
+    else {
+        counter = data;
+    }
+
+    $counterCountainer.find('.counter').text(counter);
 }
 
 function updateCarriers() {

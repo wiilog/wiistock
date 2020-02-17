@@ -85,8 +85,8 @@ class EnCoursController extends AbstractController
                 $mouvements = $mouvementTracaRepository->findObjectOnLocation($emplacement);
                 foreach ($mouvements as $mouvement) {
                     $dateMvt = $mouvement->getDatetime();
-                    $minutesBetween = $enCoursService->getMinutesBetween($dateMvt);
-                    $dataForTable = $enCoursService->buildDataForDatatable($minutesBetween, $emplacement);
+                    $movementAge = $enCoursService->getTrackingMovementAge($dateMvt);
+                    $dataForTable = $enCoursService->buildDataForDatatable($movementAge, $emplacement);
                     if ($dataForTable && $dataForTable['late']) {
                         $retards[] = [
                             'colis' => $mouvement->getColis(),
@@ -113,8 +113,7 @@ class EnCoursController extends AbstractController
      * @throws NoResultException
      */
     public function checkTimeWorkedIsDefined(Request $request,
-                                             EntityManagerInterface $entityManager)
-	{
+                                             EntityManagerInterface $entityManager) {
 		if ($request->isXmlHttpRequest()) {
 		    $daysRepository = $entityManager->getRepository(DaysWorked::class);
 			$nbEmptyTimes = $daysRepository->countEmptyTimes();

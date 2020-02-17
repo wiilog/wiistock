@@ -10,11 +10,9 @@ use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
-use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
-use App\Service\StatisticsService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -96,7 +94,6 @@ class AccueilController extends AbstractController
      * @var DashboardService
      */
     private $dashboardService;
-    private $statisticsService;
 
     public function __construct(DashboardService $dashboardService,
                                 ArticleRepository $articleRepository,
@@ -108,7 +105,6 @@ class AccueilController extends AbstractController
                                 CollecteRepository $collecteRepository,
                                 EmplacementRepository $emplacementRepository,
                                 MouvementStockRepository $mouvementStockRepository,
-                                StatisticsService $statisticsService,
                                 FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
         $this->dashboardService = $dashboardService;
@@ -122,11 +118,13 @@ class AccueilController extends AbstractController
         $this->refArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
-        $this->statisticsService = $statisticsService;
     }
 
     /**
      * @Route("/", name="accueil", methods={"GET"})
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function index(): Response
     {
@@ -283,16 +281,16 @@ class AccueilController extends AbstractController
      *      methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param StatisticsService $statisticsService
+     * @param DashboardService $dashboardService
      * @param ArrivageRepository $arrivageRepository
      * @return Response
      * @throws Exception
      */
-    public function getDailyArrivalsStatistics(StatisticsService $statisticsService,
+    public function getDailyArrivalsStatistics(DashboardService $dashboardService,
                                                ArrivageRepository $arrivageRepository): Response
     {
 
-        $arrivalCountByDays = $statisticsService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
+        $arrivalCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
@@ -307,16 +305,16 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param StatisticsService $statisticsService
+     * @param DashboardService $dashboardService
      * @param ColisRepository $colisRepository
      * @return Response
      * @throws Exception
      */
-    public function getDailyPacksStatistics(StatisticsService $statisticsService,
+    public function getDailyPacksStatistics(DashboardService $dashboardService,
                                             ColisRepository $colisRepository): Response
     {
 
-        $packsCountByDays = $statisticsService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
             return $colisRepository->countByDates($dateMin, $dateMax);
         });
 
@@ -331,16 +329,16 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param StatisticsService $statisticsService
+     * @param DashboardService $dashboardService
      * @param ArrivageRepository $arrivageRepository
      * @return Response
      * @throws Exception
      */
-    public function getWeeklyArrivalsStatistics(StatisticsService $statisticsService,
+    public function getWeeklyArrivalsStatistics(DashboardService $dashboardService,
                                                 ArrivageRepository $arrivageRepository): Response
     {
 
-        $arrivalsCountByWeek = $statisticsService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
+        $arrivalsCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
@@ -355,24 +353,23 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param StatisticsService $statisticsService
+     * @param DashboardService $dashboardService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param EnCoursService $enCoursService
-     * @param NatureRepository $natureRepository
      * @param EmplacementRepository $emplacementRepository
      * @param int $graph
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws DBALException
      */
-    public function getEnCoursCountByNatureAndTimespan(
-        StatisticsService $statisticsService,
-        ParametrageGlobalRepository $parametrageGlobalRepository,
-        EnCoursService $enCoursService,
-        NatureRepository $natureRepository,
-        EmplacementRepository $emplacementRepository,
-        int $graph): Response
-    {
+    public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
+                                                       ParametrageGlobalRepository $parametrageGlobalRepository,
+                                                       EnCoursService $enCoursService,
+                                                       EmplacementRepository $emplacementRepository,
+                                                       int $graph): Response {
+
+        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
 
@@ -381,6 +378,11 @@ class AccueilController extends AbstractController
         $naturesForGraph = array_map(function ($natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
+
+        $colorsNatures = [];
+        foreach ($naturesForGraph as $natureForGraph) {
+        	$colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+		}
 
         $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
         $emplacementsWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
@@ -392,7 +394,7 @@ class AccueilController extends AbstractController
         $empToKeep = null;
         foreach ($emplacementsWanted as $emplacementWanted) {
             $enCoursOnThisEmp = $enCoursService->getEnCoursForEmplacement($emplacementWanted);
-            $enCoursCountForTimeSpanAndNature = $statisticsService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) use (
+            $enCoursCountForTimeSpanAndNature = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) use (
                 $enCoursService,
                 $naturesForGraph,
                 $enCoursOnThisEmp
@@ -412,14 +414,16 @@ class AccueilController extends AbstractController
             }
         }
         if ($highestTotal === -1) {
-            $enCoursToMonitor = $statisticsService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan) {
+            $enCoursToMonitor = $dashboardService->getObjectForTimeSpan(function () {
                 return 0;
             });
         }
+
         return new JsonResponse([
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
-            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-'
+            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-',
+			'colorsNatures' => $colorsNatures,
         ]);
     }
 
@@ -435,7 +439,6 @@ class AccueilController extends AbstractController
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws DBALException
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForReceptionAdminDashboard();
@@ -452,7 +455,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
@@ -462,15 +464,17 @@ class AccueilController extends AbstractController
         return new JsonResponse($response);
     }
 
-	/**
-	 * @Route(
+    /**
+     * @Route(
      *     "/statistiques-receptions-associations",
      *     name="get_asso_recep_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
      *     condition="request.isXmlHttpRequest()"
      * )
-	 */
+     * @param Request $request
+     * @return Response
+     */
 	public function getAssoRecepStatistics(Request $request): Response
 	{
         $query = $request->query;
@@ -513,15 +517,14 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      *
-     * @param StatisticsService $statisticsService
-     *
+     * @param DashboardService $dashboardService
      * @return Response
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	public function getDailyCarriersStatistics(StatisticsService $statisticsService): Response {
-        $carriersLabels = $statisticsService->getDailyArrivalCarriers();
+	public function getDailyCarriersStatistics(DashboardService $dashboardService): Response {
+        $carriersLabels = $dashboardService->getDailyArrivalCarriers();
         return new JsonResponse($carriersLabels);
 	}
 }

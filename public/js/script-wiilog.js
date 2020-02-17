@@ -72,7 +72,6 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         let val = $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
-
         const $parent = $input.closest('[data-multiple-key]');
 
         if ($parent && $parent.length > 0) {
@@ -156,7 +155,6 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if (close == true) {
             modal.find('.close').click();
         }
-
         $.post(path, JSON.stringify(Data), function (data) {
             if (data.redirect) {
                 window.location.href = data.redirect;
@@ -818,7 +816,7 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
     let id = icon.data('id');
 
     let param = JSON.stringify(id);
-
+    $submit.hide();
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {

@@ -2,15 +2,20 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
+use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
+use App\Repository\InventoryMissionRepository;
 use App\Repository\ReferenceArticleRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use DateTime;
 
@@ -41,14 +46,27 @@ class InventoryService
 	 */
     private $inventoryEntryRepository;
 
+	/**
+	 * @var InventoryMissionRepository
+	 */
+    private $inventoryMissionRepository;
 
-    public function __construct(InventoryEntryRepository $inventoryEntryRepository, Security $security, EntityManagerInterface $em, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+
+    public function __construct(
+    	InventoryEntryRepository $inventoryEntryRepository,
+		Security $security,
+		EntityManagerInterface $em,
+		ReferenceArticleRepository $referenceArticleRepository,
+		ArticleRepository $articleRepository,
+		InventoryMissionRepository $inventoryMissionRepository
+	)
     {
 		$this->referenceArticleRepository = $referenceArticleRepository;
 		$this->articleRepository = $articleRepository;
 		$this->em = $em;
 		$this->user = $security->getUser();
 		$this->inventoryEntryRepository = $inventoryEntryRepository;
+		$this->inventoryMissionRepository = $inventoryMissionRepository;
     }
 
 	/**
@@ -112,5 +130,24 @@ class InventoryService
 		$em->flush();
 
 		return $quantitiesAreEqual;
+	}
+
+	/**
+	 * @param ReferenceArticle|Article $refOrArticle
+	 * @param InventoryMission $mission
+	 * @param boolean $isRef
+	 * @return boolean
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+	public function isInMissionInSamePeriod($refOrArticle, $mission, $isRef) {
+
+		if ($isRef) {
+			$nbMissions = $this->inventoryMissionRepository->countByRefAndDates($refOrArticle, $mission->getStartPrevDate(), $mission->getEndPrevDate());
+		} else {
+			$nbMissions = $this->inventoryMissionRepository->countByArtAndDates($refOrArticle, $mission->getStartPrevDate(), $mission->getEndPrevDate());
+		}
+
+		return $nbMissions > 0;
 	}
 }
