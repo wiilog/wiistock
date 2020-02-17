@@ -11,6 +11,7 @@ use App\Entity\Urgence;
 use App\Repository\ArrivageRepository;
 use App\Repository\ArrivalHistoryRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionTracaRepository;
 use App\Repository\UrgenceRepository;
@@ -191,7 +192,6 @@ class DashboardService
 
     /**
      * @return array
-     * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
@@ -199,61 +199,77 @@ class DashboardService
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
-        $empForUrgence = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_URGENCES);
-        $empForLitige = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_LITIGES);
-        $empForClearance = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN);
-
-        return [
-            'enCoursUrgence' => $empForUrgence ? [
-                'count' => $mouvementTracaRepository->countObjectOnLocation($empForUrgence),
-                'label' => $empForUrgence->getLabel()
-            ] : null,
-            'enCoursLitige' => $empForLitige ? [
-                'count' => $mouvementTracaRepository->countObjectOnLocation($empForLitige),
-                'label' => $empForLitige->getLabel()
-            ] : null,
-            'enCoursClearance' => $empForClearance ? [
-                'count' => $mouvementTracaRepository->countObjectOnLocation($empForClearance),
-                'label' => $empForClearance->getLabel()
-            ] : null,
-            'urgenceCount' => $urgenceRepository->countUnsolved(),
+        $locationCounterConfig = [
+            'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
+            'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
+            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN
         ];
+
+        $dashboardService = $this;
+
+        $locationCounter = array_reduce(
+            array_keys($locationCounterConfig),
+            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService, $mouvementTracaRepository) {
+                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key], $mouvementTracaRepository);
+                return $carry;
+            },
+            []);
+
+        return array_merge(
+            $locationCounter,
+            ['urgenceCount' => $urgenceRepository->countUnsolved()]
+        );
     }
 
     /**
      * @return array
-     * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard() {
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
 
-        $empForDock = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_DOCK);
-        $empForClearance = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK);
-        $empForCleared = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE);
-        $empForDropZone = $this->findEmplacementParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
+        $locationCounterConfig = [
+            'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
+            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
+            'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
+            'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
+        ];
 
-		return [
-			'enCoursDock' => $empForDock ? [
-				'count' => $mouvementTracaRepository->countObjectOnLocation($empForDock),
-				'label' => $empForDock->getLabel()
-			] : null,
-			'enCoursClearance' => $empForClearance ? [
-				'count' => $mouvementTracaRepository->countObjectOnLocation($empForClearance),
-				'label' => $empForClearance->getLabel()
-			] : null,
-			'enCoursCleared' => $empForCleared ? [
-				'count' => $mouvementTracaRepository->countObjectOnLocation($empForCleared),
-				'label' => $empForCleared->getLabel()
-			] : null,
-			'enCoursDropzone' => $empForDropZone ? [
-				'count' => $mouvementTracaRepository->countObjectOnLocation($empForDropZone),
-				'label' => $empForDropZone->getLabel()
-			] : null,
-			'urgenceCount' => $this->urgenceRepository->countUnsolved(),
-		];
+        $dashboardService = $this;
+
+        $locationCounter = array_reduce(
+            array_keys($locationCounterConfig),
+            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService, $mouvementTracaRepository) {
+                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key], $mouvementTracaRepository);
+                return $carry;
+            },
+            []);
+
+		return array_merge(
+            $locationCounter,
+			['urgenceCount' => $this->urgenceRepository->countUnsolved()]
+        );
 	}
+
+    /**
+     * @param string $paramName
+     * @param MouvementTracaRepository $mouvementTracaRepository
+     * @return array|null
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function getDashboardCounter(string $paramName,
+                                         MouvementTracaRepository $mouvementTracaRepository): ?array {
+        $location = $this->findEmplacementParam($paramName);
+        return isset($location)
+            ? [
+                'count' => $mouvementTracaRepository->countObjectOnLocation($location),
+                'label' => $location->getLabel()
+            ]
+            : null;
+    }
 
 	private function findEmplacementParam(string $paramName): ?Emplacement {
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
