@@ -676,9 +676,9 @@ class ParametrageGlobalController extends AbstractController
 
 			$listMultipleSelect = [
 				ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
-				ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
-				ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
                 ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
+                ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
+                ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
                 ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
                 ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',

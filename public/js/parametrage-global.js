@@ -36,6 +36,8 @@ $(function() {
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
+
+    // config tableau de bord : emplacements
     initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
     initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
     initDisplaySelect2Multiple('#locationWaitingAdmin', '#locationWaitingAdminValue');
@@ -45,6 +47,8 @@ $(function() {
     initDisplaySelect2Multiple('#locationUrgences', '#locationUrgencesValue');
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
+
+    // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
 

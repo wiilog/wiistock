@@ -267,9 +267,11 @@ class DashboardService
         $response['label'] = '';
         foreach ($locations as $location) {
             $response['count'] += $mouvementTracaRepository->countObjectOnLocation($location);
-            $response['label'] .= ($location->getLabel() . ',');
+            if (!empty($response['label'])) {
+                $response['label'] .= ', ';
+            }
+            $response['label'] .= $location->getLabel();
         }
-        $response['label'] = substr($response['label'], 0, strlen($response['label']) - 1);
         return !empty($locations)
             ? $response
             : null;
