@@ -144,28 +144,31 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/verification", name="mission_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param InventoryEntryRepository $entryRepository
+     * @return Response
      */
-    public function checkUserCanBeDeleted(Request $request): Response
+    public function checkUserCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_UTIL)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                dump('hdhd');
                 return $this->redirectToRoute('access_denied');
             }
 
             $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
             $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
-
-            if ($missionArt != 0 || $missionRef != 0)
+            $entries = $entryRepository->countByMission($missionId);
+            $missionIsUsed = true;
+            if (intval($missionArt) === 0 && intval($missionRef) === 0 && intval($entries) === 0) {
                 $missionIsUsed = false;
-            else
-                $missionIsUsed = true;
-
+            }
             if ($missionIsUsed == true) {
-                $delete = true;
-                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
-            } else {
                 $delete = false;
                 $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+            } else {
+                $delete = true;
+                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
             }
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
@@ -181,9 +184,7 @@ class InventoryMissionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $mission = $this->inventoryMissionRepository->find($data['missionId']);
-
+            $mission = $this->inventoryMissionRepository->find(intval($data['missionId']));
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($mission);
             $entityManager->flush();

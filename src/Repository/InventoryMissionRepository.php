@@ -288,12 +288,12 @@ class InventoryMissionRepository extends ServiceEntityRepository
 					break;
 				case 'dateMin':
 					$qb
-						->andWhere('im.endPrevDate >= :dateMin')
+						->andWhere('im.startPrevDate >= :dateMin')
 						->setParameter('dateMin', $filter['value']. " 00:00:00");
 					break;
 				case 'dateMax':
 					$qb
-						->andWhere('im.startPrevDate <= :dateMax')
+						->andWhere('im.endPrevDate <= :dateMax')
 						->setParameter('dateMax', $filter['value'] . " 23:59:59");
 					break;
 			}
