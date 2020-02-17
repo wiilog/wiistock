@@ -12,7 +12,10 @@ use App\Repository\InventoryEntryRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\InventoryService;
 use App\Service\InvMissionService;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,7 +63,20 @@ class InventoryMissionController extends AbstractController
      */
     private $invMissionService;
 
-    public function __construct(InventoryMissionRepository $inventoryMissionRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, InvMissionService $invMissionService)
+	/**
+	 * @var InventoryService
+	 */
+    private $inventoryService;
+
+    public function __construct(
+    	InventoryMissionRepository $inventoryMissionRepository,
+		UserService $userService,
+		InventoryEntryRepository $inventoryEntryRepository,
+		ReferenceArticleRepository $referenceArticleRepository,
+		ArticleRepository $articleRepository,
+		InvMissionService $invMissionService,
+		InventoryService $inventoryService
+	)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -68,6 +84,7 @@ class InventoryMissionController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->invMissionService = $invMissionService;
+        $this->inventoryService = $inventoryService;
     }
 
     /**
@@ -127,30 +144,33 @@ class InventoryMissionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/verification", name="mission_check_delete", options={"expose"=true})
-     */
-    public function checkUserCanBeDeleted(Request $request): Response
+	/**
+	 * @Route("/verification", name="mission_check_delete", options={"expose"=true})
+	 * @param Request $request
+	 * @param InventoryEntryRepository $entryRepository
+	 * @return Response
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function checkMissionCanBeDeleted(Request $request, InventoryEntryRepository $entryRepository): Response
     {
         if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_UTIL)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $missionArt = $this->inventoryMissionRepository->countArtByMission($missionId);
             $missionRef = $this->inventoryMissionRepository->countRefArtByMission($missionId);
+            $missionEntries = $entryRepository->countByMission($missionId);
 
-            if ($missionArt != 0 || $missionRef != 0)
-                $missionIsUsed = false;
-            else
-                $missionIsUsed = true;
+            $missionIsUsed = (intval($missionArt) + intval($missionRef) + intval($missionEntries) > 0);
 
-            if ($missionIsUsed == true) {
-                $delete = true;
-                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
-            } else {
+            if ($missionIsUsed) {
                 $delete = false;
                 $html = $this->renderView('inventaire/modalDeleteMissionWrong.html.twig');
+            } else {
+                $delete = true;
+                $html = $this->renderView('inventaire/modalDeleteMissionRight.html.twig');
             }
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
@@ -166,9 +186,7 @@ class InventoryMissionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $mission = $this->inventoryMissionRepository->find($data['missionId']);
-
+            $mission = $this->inventoryMissionRepository->find(intval($data['missionId']));
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($mission);
             $entityManager->flush();
@@ -220,6 +238,10 @@ class InventoryMissionController extends AbstractController
 
             foreach ($data['articles'] as $articleId) {
                 $article = $this->articleRepository->find($articleId);
+
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
+				if ($alreadyInMission) return new JsonResponse(false);
+
                 $article->addInventoryMission($mission);
                 $em->persist($mission);
                 $em->flush();
@@ -227,7 +249,11 @@ class InventoryMissionController extends AbstractController
 
             foreach ($data['refArticles'] as $refArticleId) {
                 $refArticle = $this->referenceArticleRepository->find($refArticleId);
-                $refArticle->addInventoryMission($mission);
+
+				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
+				if ($alreadyInMission) return new JsonResponse(false);
+
+				$refArticle->addInventoryMission($mission);
                 $em->persist($mission);
                 $em->flush();
             }

@@ -42,4 +42,10 @@ let tableMission = $('#tableMissionInv').DataTable({
 let modalAddToMission = $("#modalAddToMission");
 let submitAddToMission = $("#submitAddToMission");
 let urlAddToMission = Routing.generate('add_to_mission', true);
-InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, null);
+InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMission, displayErrorAddToMission);
+
+function displayErrorAddToMission(data)
+{
+    if (!data) {
+        alertErrorMsg("Cette référence est déjà présente dans une autre mission sur la même période. Vous ne pouvez pas l'ajouter.", true);
+    }}

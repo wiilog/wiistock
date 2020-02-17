@@ -278,7 +278,12 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            callback: (value) => {
+                                if (Math.floor(value) === value) {
+                                    return value;
+                                }
+                            }
                         }
                     }]
                 },
