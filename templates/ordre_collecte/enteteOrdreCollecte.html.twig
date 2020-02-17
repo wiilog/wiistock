@@ -21,7 +21,7 @@
         <p><strong> Opérateur : </strong> {{collecte.utilisateur ? collecte.utilisateur.username : '' }}</p>
     </div>
     <div class="col-4">
-        <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}</p>
+        <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y H:i') : '' }}</p>
         <p><strong> Point de collecte : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
         <p><strong> Destination : </strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
         </p>

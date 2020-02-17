@@ -310,8 +310,11 @@ class OrdreCollecteController extends AbstractController
         }
         $entityManager->persist($ordreCollecte);
 
-        // on modifie le statut de la demande de collecte liée
-        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER));
+        // on modifie statut + date validation de la demande
+        $demandeCollecte
+			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER))
+			->setValidationDate($date);
+
 
         $entityManager->flush();
 

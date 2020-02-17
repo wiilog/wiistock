@@ -251,8 +251,7 @@ class OrdreCollecteService
 		else {
 		// cas de collecte totale
 			$demandeCollecte
-				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
-				->setValidationDate($dateNow);
+				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE));
 		}
 
 		// on modifie le statut de l'ordre de collecte
