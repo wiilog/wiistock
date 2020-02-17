@@ -153,7 +153,7 @@ class MouvementTracaService
                                           FileBag $fileBag = null): MouvementTraca {
 
         $type = is_string($typeMouvementTraca)
-            ? $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
             : $this->statutRepository->find($typeMouvementTraca);
 
         if (!isset($type)) {

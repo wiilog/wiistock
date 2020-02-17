@@ -38,7 +38,7 @@ class RefArticleCollinsVERNONFixtures extends Fixture implements FixtureGroupInt
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $typeStandard = $typeRepository->findOneBy(['label' => Type::LABEL_STANDARD]);
-        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
         $alreadyAddedReference = array_map(function(ReferenceArticle $referenceArticle) {
             return $referenceArticle->getReference();

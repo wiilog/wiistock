@@ -59,7 +59,12 @@ function errorEditDays(data) {
 }
 
 function toggleActiveDemandeLivraison(switchButton, path) {
-    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function () {
+    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function (resp) {
+        if (resp) {
+            alertSuccessMsg('La modification du paramétrage de réception a bien été prise en compte.');
+        } else {
+            alertErrorMsg('Une erreur est survenue lors de la modification du paramétrage de réception.');
+        }
     }, 'json');
 }
 
@@ -213,6 +218,26 @@ function editFont() {
             location.reload();
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+        }
+    });
+}
+
+function editReceptionStatus() {
+    let path = Routing.generate('edit_status_receptions');
+    let $inputs = $('#paramReceptions').find('.status');
+
+    let param = {};
+    $inputs.each(function () {
+        let name = $(this).attr('name');
+        let val = $(this).val();
+        param[name] = val;
+    })
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Les statuts de réception ont bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour des statuts de réception.");
         }
     });
 }

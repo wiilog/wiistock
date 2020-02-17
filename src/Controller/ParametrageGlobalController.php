@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -52,7 +53,7 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
-	 * @param NatureRepository $natureRepository
+	 * @param TransporteurRepository $transporteurRepository
 	 * @return Response
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
@@ -63,11 +64,13 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
-						  TransporteurRepository $transporteurRepository,
-						  NatureRepository $natureRepository): Response {
+						  TransporteurRepository $transporteurRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+        $statusRepository = $this->getDoctrine()->getRepository('App:Statut');
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -106,7 +109,9 @@ class ParametrageGlobalController extends AbstractController
                 'redirect' => $redirect ? $redirect->getValue() : true,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
-                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false
+                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
+					'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+					'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true)
                 ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
@@ -118,7 +123,6 @@ class ParametrageGlobalController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
 				'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
 				'paramDashboard' => [
@@ -430,7 +434,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -463,7 +467,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -496,7 +500,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -535,6 +539,34 @@ class ParametrageGlobalController extends AbstractController
 			return new JsonResponse(true);
 		}
 		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/statuts-receptions",
+	 *     name="edit_status_receptions",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @return Response
+	 */
+    public function editStatusReceptions(Request $request): Response
+	{
+		$statusRepository = $this->getDoctrine()->getRepository('App:Statut');
+
+		$statusCodes = $request->request->all();
+
+			foreach ($statusCodes as $statusId => $statusName) {
+				$status = $statusRepository->find($statusId);
+
+				if ($status) {
+					$status->setNom($statusName);
+				}
+			}
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
 	}
 
 	/**
