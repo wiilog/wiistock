@@ -214,7 +214,6 @@ class DashboardService
                 return $carry;
             },
             []);
-
         return array_merge(
             $locationCounter,
             ['urgenceCount' => $urgenceRepository->countUnsolved()]
@@ -262,26 +261,30 @@ class DashboardService
      */
     private function getDashboardCounter(string $paramName,
                                          MouvementTracaRepository $mouvementTracaRepository): ?array {
-        $location = $this->findEmplacementParam($paramName);
-        return isset($location)
-            ? [
-                'count' => $mouvementTracaRepository->countObjectOnLocation($location),
-                'label' => $location->getLabel()
-            ]
+        $locations = $this->findEmplacementsParam($paramName);
+        $response = [];
+        $response['count'] = 0;
+        $response['label'] = '';
+        foreach ($locations as $location) {
+            $response['count'] += $mouvementTracaRepository->countObjectOnLocation($location);
+            $response['label'] .= ($location->getLabel() . ',');
+        }
+        $response['label'] = substr($response['label'], 0, strlen($response['label']) - 1);
+        return !empty($locations)
+            ? $response
             : null;
     }
 
-	private function findEmplacementParam(string $paramName): ?Emplacement {
+	private function findEmplacementsParam(string $paramName): ?array {
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         $param = $parametrageGlobalRepository->findOneByLabel($paramName);
-        $paramValue = $param
-            ? $param->getValue()
-            : null;
-        return $paramValue
-            ? $emplacementRepository->find($paramValue)
-            : null;
+        $locations = [];
+        if ($param && $param->getValue()) {
+            $locations = $emplacementRepository->findByIds(explode(',', $param->getValue()));
+        }
+        return $locations;
     }
 
 }
