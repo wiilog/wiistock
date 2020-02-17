@@ -10,11 +10,11 @@ use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
-use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -122,6 +122,9 @@ class AccueilController extends AbstractController
 
     /**
      * @Route("/", name="accueil", methods={"GET"})
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function index(): Response
     {
@@ -353,19 +356,20 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param EnCoursService $enCoursService
-     * @param NatureRepository $natureRepository
      * @param EmplacementRepository $emplacementRepository
      * @param int $graph
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws DBALException
      */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        ParametrageGlobalRepository $parametrageGlobalRepository,
                                                        EnCoursService $enCoursService,
-                                                       NatureRepository $natureRepository,
                                                        EmplacementRepository $emplacementRepository,
                                                        int $graph): Response {
+
+        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
 
@@ -374,6 +378,11 @@ class AccueilController extends AbstractController
         $naturesForGraph = array_map(function ($natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
+
+        $colorsNatures = [];
+        foreach ($naturesForGraph as $natureForGraph) {
+        	$colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+		}
 
         $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
         $emplacementsWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
@@ -409,10 +418,12 @@ class AccueilController extends AbstractController
                 return 0;
             });
         }
+
         return new JsonResponse([
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
-            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-'
+            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-',
+			'colorsNatures' => $colorsNatures,
         ]);
     }
 
