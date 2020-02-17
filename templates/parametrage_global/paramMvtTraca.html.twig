@@ -10,9 +10,9 @@
         {% set checked = (redirectMvtTraca ? 'checked' : '') %}
         <label class="switch">
             <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                   onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_redirection_mvt_traca') }}')">
+                   onchange="updateToggledParam($(this), '{{ path('edit_tracking_movement_redirect') }}')">
             <span class="slider round"></span>
         </label>
-        <label class="pl-1" for="param-create-demande-livraison">Vide et reste sur la modale de création de mouvement</label>
+        <label class="pl-1" for="param-create-demande-livraison">Vider et rester sur la modale de création de mouvement</label>
     </div>
 </div>

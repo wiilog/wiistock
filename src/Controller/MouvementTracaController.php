@@ -120,11 +120,11 @@ class MouvementTracaController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
-        $wantsToClose = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+        $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'emplacements' => $this->emplacementRepository->findAll(),
-            'wantsToClose' => $wantsToClose ? $wantsToClose->getValue() : false
+            'redirectAfterTrackingMovementCreation' => (int) ($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
         ]);
     }
 
@@ -443,38 +443,5 @@ class MouvementTracaController extends AbstractController
             ]);
         }
         throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/redirection-switch", name="active_desactive_redirection_mvt_traca", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function actifDesactifRedirectArrival(Request $request,
-                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
-        {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist)
-            {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            }
-            else
-            {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException("404");
     }
 }

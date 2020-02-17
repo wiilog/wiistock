@@ -58,7 +58,7 @@ function errorEditDays(data) {
     }
 }
 
-function toggleActiveDemandeLivraison(switchButton, path) {
+function updateToggledParam(switchButton, path) {
     $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function () {
     }, 'json');
 }

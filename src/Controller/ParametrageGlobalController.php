@@ -79,6 +79,7 @@ class ParametrageGlobalController extends AbstractController
         $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
         $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
         $redirectAfterMvt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+
         $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
         $carriersIds = empty($carriersParams)
             ? []
@@ -711,4 +712,37 @@ class ParametrageGlobalController extends AbstractController
 		}
 		throw new NotFoundHttpException("404");
 	}
+
+    /**
+     * @Route("/tracking-movement-redirect", name="edit_tracking_movement_redirect", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editTrackingMovementsRedirect(Request $request,
+                                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setValue($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT)
+                    ->setValue($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

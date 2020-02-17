@@ -24,12 +24,11 @@
                             <select name="operator"
                                     class="form-control ajax-autocomplete-user data needed operator no-clear">
                                 <option value="{{ app.user.id }}">{{ app.user.username }}</option>
-                                >
                             </select>
                         </div>
                         <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
                             <label for="type">Action*</label>
-                            <select class="form-control data needed {{ isSafran ? 'no-clear' : '' }}" id="type" name="type" onchange="switchMvtCreationType($(this))">
+                            <select class="form-control data needed {{ isSafran ? 'no-clear' }}" id="type" name="type" onchange="switchMvtCreationType($(this))">
                                 {{ not isSafran ? '<option disabled selected></option>' : '' }}
                                 {% for statut in statuts %}
                                     <option value="{{ statut.id }}"
