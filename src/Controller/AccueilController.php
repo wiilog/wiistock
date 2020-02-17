@@ -503,13 +503,7 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
-     * @param EmplacementRepository $emplacementRepository
-     * @param UrgenceRepository $urgenceRepository
-     * @param EnCoursService $enCoursService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
     public function getIndicatorsDockReception(): Response
     {

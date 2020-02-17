@@ -202,7 +202,7 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                 Object.keys(Object.values(data.data)[0]).forEach((key) => {
                     datas.push({
                         label: key,
-                        backgroundColor: data.colorsNatures[key],
+                        backgroundColor: data.colorsNatures[key] || (`#${((1<<24)*Math.random()|0).toString(16)}`),
                         data: datasets[key]
                     })
                 });
