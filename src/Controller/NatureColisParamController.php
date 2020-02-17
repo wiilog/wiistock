@@ -155,6 +155,7 @@ class NatureColisParamController extends AbstractController
                     ->setLabel($data['label'])
                     ->setPrefix($data['prefix'])
                     ->setDefaultQuantity($data['quantity'])
+					->setColor($data['color'])
                     ->setCode($data['code']);
 
                 $em->persist($nature);

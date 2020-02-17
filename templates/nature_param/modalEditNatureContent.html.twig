@@ -4,20 +4,21 @@
             <input type="text" class="form-control data needed" name="nature" required="" value="{{ nature.id }}">
         </div>
 
-
         <div class="form-group col-12">
-            <label for="label">Label*</label>
+            <label>Label*</label>
             <input type="text" class="data form-control needed" name="label" value="{{ nature.label }}">
         </div>
-
         <div class="mb-3 form-group col-12">
-            <label for="code">Code*</label>
+            <label>Code*</label>
             <input type="text" class="data form-control needed" name="code" value="{{ nature.code }}">
         </div>
-
         <div class="mb-3 form-group col-12">
-            <label for="code">Quantité par défaut*</label>
+            <label>Quantité par défaut*</label>
             <input type="text" class="data form-control needed" name="quantity" value="{{ nature.defaultQuantity ? nature.defaultQuantity : '' }}">
+        </div>
+        <div class="mb-3 form-group col-12">
+            <label>Couleur*</label>
+            <input type="color" class="data form-control needed" name="color" value="{{ nature.color ? nature.color : '' }}">
         </div>
         <div class="mb-3 form-group col-12">
             <label for="code">Préfixe*</label>

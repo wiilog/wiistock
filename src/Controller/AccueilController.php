@@ -362,7 +362,6 @@ class AccueilController extends AbstractController
      * @param StatisticsService $statisticsService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param EnCoursService $enCoursService
-     * @param NatureRepository $natureRepository
      * @param EmplacementRepository $emplacementRepository
      * @param int $graph
      * @return Response
@@ -373,10 +372,11 @@ class AccueilController extends AbstractController
         StatisticsService $statisticsService,
         ParametrageGlobalRepository $parametrageGlobalRepository,
         EnCoursService $enCoursService,
-        NatureRepository $natureRepository,
-        EmplacementRepository $emplacementRepository,
+		EmplacementRepository $emplacementRepository,
         int $graph): Response
     {
+    	$natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
 
@@ -385,6 +385,11 @@ class AccueilController extends AbstractController
         $naturesForGraph = array_map(function ($natureId) use ($natureRepository) {
             return $natureRepository->find($natureId);
         }, $naturesForGraph);
+
+        $colorsNatures = [];
+        foreach ($naturesForGraph as $natureForGraph) {
+        	$colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+		}
 
         $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
         $emplacementsWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
@@ -420,10 +425,12 @@ class AccueilController extends AbstractController
                 return 0;
             });
         }
+
         return new JsonResponse([
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
-            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-'
+            "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-',
+			'colorsNatures' => $colorsNatures,
         ]);
     }
 
