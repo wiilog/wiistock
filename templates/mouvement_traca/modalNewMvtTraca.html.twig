@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalNewMvtTraca" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
 
             <div class="modal-header">
@@ -9,42 +9,48 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="form-group col-6">
-                        <label for="datetime">Date*</label>
-                        <input type="datetime-local" class="form-control data datetime needed no-clear" id="datetime"
-                               name="datetime">
-                    </div>
+                    <div class="col-6">
+                        <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
+                            <label for="datetime">Date*</label>
+                            <input type="datetime-local" class="form-control data datetime needed no-clear"
+                                   id="datetime"
+                                   name="datetime">
+                        </div>
 
-                    <div class="form-group col-6 w-100">
-                        <label for="operator mtb-auto mr-2">Opérateur*</label>
-                        <select name="operator" class="form-control ajax-autocomplete-user data needed operator no-clear">
-                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>>
-                        </select>
+                        <div class="form-group col-12 w-100 {{ isSafran ? 'd-none' : '' }}">
+                            <label for="operator mtb-auto mr-2">Opérateur*</label>
+                            <select name="operator"
+                                    class="form-control ajax-autocomplete-user data needed operator no-clear">
+                                <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+                                >
+                            </select>
+                        </div>
+                        <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
+                            <label for="type">Action*</label>
+                            <select class="form-control data needed {{ isSafran ? 'no-clear' : '' }}" id="type" name="type" onchange="switchMvtCreationType($(this))">
+                                {{ not isSafran ? '<option disabled selected></option>' : '' }}
+                                {% for statut in statuts %}
+                                    <option value="{{ statut.id }}"
+                                        {{ isSafran and statut.nom == constant('App\\Entity\\MouvementTraca::TYPE_PRISE_DEPOSE') ? 'selected' : ''}}>
+                                        {{ statut.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="more-body-new-mvt-traca col-12 form-group {{ not isSafran ? 'd-none' : '' }}"></div>
                     </div>
-                    <div class="form-group col-12">
-                        <label for="type">Action*</label>
-                        <select class="form-control data needed" id="type" name="type" onchange="switchMvtCreationType($(this))">
-                            <option disabled selected></option>
-                            {% for statut in statuts %}
-                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="more-body-new-mvt-traca col-12 form-group"></div>
-                </div>
-
-                <div class="row d-none new-mvt-common-body">
-                    <div class="form-group col-12 h-fit-content">
-                        <label for="commentaire">Commentaire</label>
-                        <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-                        <div class="editor-container-new" ></div>
-                    </div>
-                    <div class="form-group col-12">
-                        <div>
-                            {% include 'arrivage/attachements.html.twig' with {'isNew' : true} %}
+                    <div class="col-6">
+                        <div class="form-group col-12 h-fit-content">
+                            <label for="commentaire">Commentaire</label>
+                            <input id="commentaire" class="commentaire form-control data" name="commentaire"
+                                   type="hidden">
+                            <div class="editor-container-new"></div>
+                        </div>
+                        <div class="form-group col-12">
+                            <div>
+                                {% include 'arrivage/attachements.html.twig' with {'isNew' : true} %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -53,7 +59,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewMvtTraca" type="button" class="btn btn-success"
-                    onclick="setCommentaire('.editor-container-new', quillNew)">Enregistrer
+                        onclick="setCommentaire('.editor-container-new', quillNew)">Enregistrer
                 </button>
             </div>
         </div>

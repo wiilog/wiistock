@@ -75,7 +75,7 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt);
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, null, !$('#wantsToKeep').val());
 
 let modalEditMvtTraca = $("#modalEditMvtTraca");
 let submitEditMvtTraca = $("#submitEditMvtTraca");
@@ -94,10 +94,21 @@ function initNewMvtTracaEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewMvtTracaAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user'));
-    $('.new-mvt-common-body').addClass('d-none');
-    $('.more-body-new-mvt-traca').html('');
+    $(modal).find('.more-body-new-mvt-traca').addClass('d-none');
+    $.post(Routing.generate('mouvement_traca_get_appropriate_html'), JSON.stringify('fromStart'), function(response) {
+        if (response.safran) {
+            $('.more-body-new-mvt-traca').html(response.modalBody);
+            $('.more-body-new-mvt-traca').removeClass('d-none');
+        }
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+        ajaxAutoUserInit($('.ajax-autocomplete-user'));
+        $('.select2-colis').select2(({
+            tags: true,
+            "language":{
+                "noResults" : function () { return 'Ajoutez des éléments'; }
+            },
+        }))
+    });
 };
 
 let editorEditMvtTracaAlreadyDone = false;
@@ -119,10 +130,11 @@ function fillDateInNewModal() {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
-    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(appropriateHtml) {
-        if (appropriateHtml) {
-            $input.closest('.modal').find('.more-body-new-mvt-traca').html(appropriateHtml);
+    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(response) {
+        if (response) {
+            $input.closest('.modal').find('.more-body-new-mvt-traca').html(response.modalBody);
             $input.closest('.modal').find('.new-mvt-common-body').removeClass('d-none');
+            $input.closest('.modal').find('.more-body-new-mvt-traca').removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
             $('.select2-colis').select2(({
                 tags: true,

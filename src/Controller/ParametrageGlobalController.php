@@ -78,7 +78,7 @@ class ParametrageGlobalController extends AbstractController
         $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
         $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
         $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
-
+        $redirectAfterMvt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
         $carriersIds = empty($carriersParams)
             ? []
@@ -120,7 +120,8 @@ class ParametrageGlobalController extends AbstractController
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
 				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
-				'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
+                'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
+                'redirectMvtTraca' => $redirectAfterMvt ? $redirectAfterMvt->getValue() : null,
 				'paramDashboard' => [
 					'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
 					'existingListNaturesId' => $globalParamService->getDashboardListNatures(),

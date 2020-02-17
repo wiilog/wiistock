@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block page_content %}
+    {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
     <div class="col-12">
         <h1>Mouvements</h1>
     </div>
@@ -43,6 +44,7 @@
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
+    <input type="text" hidden id="wantsToKeep" value="{{ wantsToClose }}">
 {% endblock %}
 
 {% block javascripts %}
