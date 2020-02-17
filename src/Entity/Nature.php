@@ -43,6 +43,11 @@ class Nature
      */
     private $prefix;
 
+	/**
+	 * @ORM\Column(type="string", length=32, nullable=true)
+	 */
+    private $color;
+
     public function __construct()
     {
         $this->colis = new ArrayCollection();
@@ -128,6 +133,41 @@ class Nature
     public function setPrefix(?string $prefix): self
     {
         $this->prefix = $prefix;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->color = $color;
+
+        return $this;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+            $coli->setNature($this);
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+            // set the owning side to null (unless already changed)
+            if ($coli->getNature() === $this) {
+                $coli->setNature(null);
+            }
+        }
 
         return $this;
     }
