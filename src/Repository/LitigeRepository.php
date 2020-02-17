@@ -205,7 +205,6 @@ class LitigeRepository extends ServiceEntityRepository
 			->leftJoin('l.status', 's')
 			->addSelect('s.nom as status')
 			->leftJoin('l.litigeHistorics', 'lh')
-			->addSelect('lh.date as dateHisto')
 			// litiges sur arrivage
             ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
@@ -308,9 +307,6 @@ class LitigeRepository extends ServiceEntityRepository
 					} else if ($column === 'status') {
 						$qb
 							->orderBy('s.nom', $order);
-					} else if ($column === 'lastHistoric') {
-						$qb
-							->orderBy('dateHisto', $order);
 					} else if ($column === 'acheteurs') {
 						$qb
 							->orderBy('achUsername', $order);

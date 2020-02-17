@@ -73,7 +73,18 @@ function InitiliaserPageDataTable() {
             },
             ajax: {
                 "url": pathAddArticle,
-                "type": "POST"
+                "type": "POST",
+                dataSrc: ({data, hasBarCodeToPrint}) => {
+                    const $printButton = $('#buttonPrintMultipleBarcodes');
+                    const dNoneClass = 'd-none';
+                    if (hasBarCodeToPrint) {
+                        $printButton.removeClass(dNoneClass);
+                    }
+                    else {
+                        $printButton.addClass(dNoneClass);
+                    }
+                    return data;
+                }
             },
             order: [[1, "desc"]],
             columns: [
@@ -469,7 +480,7 @@ function initNewLigneReception() {
             $errorContainer.text('');
             submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
                 displayErrorReception(data);
-                $('#buttonPrintBarcode').click();
+                $('#buttonPrintMultipleBarcodes').click();
             });
         }
     });
