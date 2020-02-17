@@ -339,7 +339,7 @@ function refreshIndicatorsReceptionDock() {
     $.get(Routing.generate('get_indicators_reception_dock'), function(data) {
         refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
         refreshCounter($('#encours-dock-box'), data.enCoursDock);
-        refreshCounter($('#encours-clearance-box'), data.enCoursClearance);
+        refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
         refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
         refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
     });
@@ -347,7 +347,7 @@ function refreshIndicatorsReceptionDock() {
 
 function refreshIndicatorsReceptionAdmin() {
     $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
-        refreshCounter($('#encours-clearance-box'), data.enCoursClearance);
+        refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
         refreshCounter($('#encours-litige-box'), data.enCoursLitige);
         refreshCounter($('#encours-urgence-box'), data.enCoursUrgence);
         refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
