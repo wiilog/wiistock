@@ -135,31 +135,6 @@ class EnCoursController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @param $dateMvt DateTimeAlias
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    private function getMinutesBetween($dateMvt): int
-    {
-        $now = new DateTimeAlias("now", new \DateTimeZone("Europe/Paris"));
-        $nowIncluding = (new DateTimeAlias("now", new \DateTimeZone("Europe/Paris")))
-            ->add(new DateInterval('PT' . (23 - intval($now->format('H'))) . 'H'));
-        // Get days between now and date mvt including now
-        $interval = DateInterval::createFromDateString('1 day');
-        $period = new DatePeriod($dateMvt, $interval, $nowIncluding);
-        $minutesBetween = 0;
-        /**
-         * @var $day DateTimeAlias
-         */
-        foreach ($period as $day) {
-        	$minutesBetween += $this->enCoursService->getMinutesWorkedDuringThisDay($day, $now, $dateMvt);
-        }
-
-        return $minutesBetween;
-    }
-
 	/**
 	 * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST")
 	 */

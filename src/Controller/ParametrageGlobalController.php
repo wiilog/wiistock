@@ -354,7 +354,7 @@ class ParametrageGlobalController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le jour "' . $dayName . '" a bien été modifié.'
+                'msg' => 'Le jour "' . $this->engDayToFr[$dayName] . '" a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException('404');

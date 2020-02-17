@@ -523,26 +523,36 @@ class ReceptionController extends AbstractController
             $ligneArticles = $this->receptionReferenceArticleRepository->findByReception($reception);
 
             $rows = [];
+            $hasBarCodeToPrint = false;
             foreach ($ligneArticles as $ligneArticle) {
-                $rows[] =
-                    [
-                        "Référence" => ($ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : ''),
-                        "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
-                        "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
-                        "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                        "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
-                        'Actions' => $this->renderView(
-                            'reception/datatableLigneRefArticleRow.html.twig',
-                            [
-                                'ligneId' => $ligneArticle->getId(),
-                                'receptionId' => $reception->getId(),
-                                'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                                'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE))
-                            ]
-                        ),
-                    ];
+                $referenceArticle = $ligneArticle->getReferenceArticle();
+                if (!$hasBarCodeToPrint && isset($referenceArticle)) {
+                    $articles = $ligneArticle->getArticles();
+                    $hasBarCodeToPrint = (
+                        ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ||
+                        ($articles->count() > 0)
+                    );
+                }
+
+                $rows[] = [
+                    "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
+                    "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
+                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
+                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
+                    'Actions' => $this->renderView(
+                        'reception/datatableLigneRefArticleRow.html.twig',
+                        [
+                            'ligneId' => $ligneArticle->getId(),
+                            'receptionId' => $reception->getId(),
+                            'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                            'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE))
+                        ]
+                    ),
+                ];
             }
             $data['data'] = $rows;
+            $data['hasBarCodeToPrint'] = $hasBarCodeToPrint;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -1513,7 +1523,6 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
-     * @param Request $request
      * @param Reception $reception
      * @param RefArticleDataService $refArticleDataService
      * @param ArticleDataService $articleDataService
@@ -1541,12 +1550,18 @@ class ReceptionController extends AbstractController
                     $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
                 }
                 else {
-                    array_push(
-                        $carry,
-                        ...array_map(function (Article $article) use ($articleDataService, $wantBL) {
-                            return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
-                        }, $recepRef->getArticles()->toArray())
-                    );
+                    $articlesReception = $recepRef->getArticles()->toArray();
+                    if (!empty($articlesReception)) {
+                        array_push(
+                            $carry,
+                            ...array_map(
+                                function (Article $article) use ($articleDataService, $wantBL) {
+                                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                                },
+                                $articlesReception
+                            )
+                        );
+                    }
                 }
                 return $carry;
             },
