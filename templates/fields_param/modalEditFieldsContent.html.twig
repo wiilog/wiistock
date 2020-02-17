@@ -16,30 +16,27 @@
             </div>
         </div>
 
-        {% if not field.fieldRequiredHidden %}
-            <div class="row">
-                {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
-                <div class="form-group col-12">
-                    <label>Obligatoire à la création ?</label>
-                    <label class="switch">
-                        <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
+        <div class="row">
+            {% if not field.fieldRequiredHidden %}
+            {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
+            <div class="form-group col-12">
+                <label>Obligatoire à la création ?</label>
+                <label class="switch">
+                    <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
+                    <span class="slider round"></span>
+                </label>
             </div>
 
-            <div class="row">
-                {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
-                <div class="form-group col-12">
-                    <label>Obligatoire à la modification ?</label>
-                    <label class="switch">
-                        <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
+            {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
+            <div class="form-group col-12">
+                <label>Obligatoire à la modification ?</label>
+                <label class="switch">
+                    <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
+                    <span class="slider round"></span>
+                </label>
             </div>
-        {% endif %}
-        <div class="row">
+            {% endif %}
+
             {% set isCheckedModify = field.displayed ? 'checked' : '' %}
             <div class="form-group col-12">
                 <label>Affiché ?</label>
@@ -49,6 +46,7 @@
                 </label>
             </div>
         </div>
+    </div>
 
     </div>
 </form>
