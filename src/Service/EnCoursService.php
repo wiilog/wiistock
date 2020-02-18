@@ -288,21 +288,24 @@ class EnCoursService
                                 $time2 = explode(':', $times[1]);
                                 $end = (clone $day)->setTime($time2[0], $time2[1], 0);
 
-                                if ($end < $movementDate || $now < $begin) {
-                                    return new DateInterval('P0Y');
+                                if (($end < $movementDate) || ($now < $begin)) {
+                                    $calculatedInterval = new DateInterval('P0Y');
+                                }
+                                else {
+                                    // si la date du mouvement est dans la fourchette => devient la date de begin
+                                    if ($begin < $movementDate && $movementDate <= $end) {
+                                        $begin = $movementDate;
+                                    }
+
+                                    // si le DateTime 'now'  est dans la fourchette => devient la date de end
+                                    if ($begin <= $now &&
+                                        $now < $end) {
+                                        $end = $now;
+                                    }
+                                    $calculatedInterval = $begin->diff($end);
                                 }
 
-                                // si la date du mouvement est dans la fourchette => devient la date de begin
-                                if ($begin < $movementDate && $movementDate <= $end) {
-                                    $begin = $movementDate;
-                                }
-
-                                // si le DateTime 'now'  est dans la fourchette => devient la date de end
-                                if ($begin <= $now &&
-                                    $now < $end) {
-                                    $end = $now;
-                                }
-                                return $begin->diff($end);
+                                return $calculatedInterval;
                             },
                             explode(';', $daysWorked[$dayLabel])
                         )
