@@ -23,8 +23,11 @@
                             <label for="operator mtb-auto mr-2">Opérateur*</label>
                             <select name="operator"
                                     class="form-control ajax-autocomplete-user data needed operator no-clear">
-                                <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                             </select>
+                            <input hidden
+                                   name="logged-user"
+                                   data-username="{{ app.user.username }}"
+                                   data-id="{{ app.user.id }}"/>
                         </div>
                         <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
                             <label for="type">Action*</label>

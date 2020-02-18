@@ -61,8 +61,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 				'date de fin' => 'date de fin',
 				'numéro de commande' => 'numéro de commande',
 			],
-            'Mouvement de traçabilité' => [
-                'colis' => 'Colis'
+            'mouvement de traçabilité' => [
+                'Colis' => 'Colis'
             ]
 		];
 
