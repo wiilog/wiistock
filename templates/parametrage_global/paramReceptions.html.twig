@@ -5,32 +5,47 @@
 </a>
 <div class="collapse col-12" id="paramReceptions">
     <div class="row p-3">
-        {% set checked = (parametrageG == 1) ? 'checked' : '' %}
-        <label class="switch">
-            <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                   onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
-            <span class="slider round"></span>
-        </label>
-        <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
-            réception</label>
+        <div class="col-12">
+            {% set checked = (parametrageG == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
+                réception</label>
+        </div>
     </div>
     <div class="row p-3">
-        {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
-        <label class="switch">
-            <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
-                   onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
-            <span class="slider round"></span>
-        </label>
-        <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
+        <div class="col-12">
+            {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
+        </div>
     </div>
     <div class="row p-3">
-        <div class="form-group w-450px">
+        <div class="form-group w-450px col-6">
+            <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
+            <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeReception($(this))">
+                <option>&nbsp;</option>
+                {% for status in listStatusLitige %}
+                    {% set selected = status.id == defaultStatusLitigeId  ? 'selected' %}
+                    <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group w-450px col-6">
             <div class="w-100">
                 <label for="receptionLocation" class="d-block">Emplacement de réception par défaut</label>
                 <select class="form-control ajax-autocomplete-location d-block" id="receptionLocation">
                 </select>
             </div>
+            <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
         </div>
-        <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
     </div>
 </div>
