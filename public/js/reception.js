@@ -35,13 +35,16 @@ $(function () {
             overrideSearch($('#tableReception_id_filter input'), tableReception);
             hideColumns(tableReception, resp.json.columnsToHide);
         },
+        headerCallback: function(thead) {
+            $(thead).find('th').eq(5).attr('title', "n° de réception");
+        },
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'Référence', 'name': 'reference', 'title': $('#noReception').val()},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],

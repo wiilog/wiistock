@@ -47,6 +47,7 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 
 use DateTime;
@@ -189,6 +190,7 @@ class ReceptionController extends AbstractController
 	 * @var MouvementStockService
 	 */
     private $mouvementStockService;
+    private $translationService;
 
     public function __construct(
         ArticleDataService $articleDataService,
@@ -214,7 +216,8 @@ class ReceptionController extends AbstractController
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
-		MouvementStockService $mouvementStockService
+		MouvementStockService $mouvementStockService,
+		TranslationService $translationService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -241,6 +244,7 @@ class ReceptionController extends AbstractController
         $this->transporteurRepository = $transporteurRepository;
         $this->fieldsParamRepository = $fieldsParamRepository;
         $this->mouvementStockService = $mouvementStockService;
+        $this->translationService = $translationService;
     }
 
 
@@ -1675,7 +1679,7 @@ class ReceptionController extends AbstractController
             $headers = [];
             $headers = array_merge($headers,
                 [
-                    'n° réception',
+                    $this->translationService->getTranslation('réception', 'n° de réception'),
                     'n° de commande',
                     'fournisseur',
                     'utilisateur',
