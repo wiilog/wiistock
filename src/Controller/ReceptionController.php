@@ -1075,7 +1075,7 @@ class ReceptionController extends AbstractController
                 foreach ($listColis as $colisId) {
                     $article = $this->articleRepository->find($colisId);
                     $litige->addArticle($article);
-                    $ligneIsUrgent = $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
                     if ($ligneIsUrgent) {
                         $litige->setEmergencyTriggered(true);
                     }
@@ -1169,7 +1169,7 @@ class ReceptionController extends AbstractController
                 foreach ($listColisId as $colisId) {
                     $article = $this->articleRepository->find($colisId);
                     $litige->addArticle($article);
-                    $ligneIsUrgent = $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
                     if ($ligneIsUrgent) {
                         $litige->setEmergencyTriggered(true);
                     }
