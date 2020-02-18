@@ -53,6 +53,7 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param TransporteurRepository $transporteurRepository
 	 * @param NatureRepository $natureRepository
 	 * @return Response
 	 * @throws NoResultException
@@ -112,12 +113,12 @@ class ParametrageGlobalController extends AbstractController
                     'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
 					'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
-					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION)
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'paramArrivages' => [
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE)
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR)
 				],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,

@@ -76,10 +76,11 @@
 
                     <div class="form-group col-4">
                         <label for="statutLitige">Statut*</label>
-                        <select class="form-control data needed" id="statutLitige" name="statutLitige">
+                        <select class="form-control data needed no-clear" id="statutLitige" name="statutLitige">
                             <option placeholder="" disabled value="" selected></option>
                             {% for statut in statusLitige %}
-                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                {% set selected = statut.id == defaultLitigeStatusId ? 'selected' %}
+                                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                             {% endfor %}
                         </select>
                     </div>

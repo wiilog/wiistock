@@ -35,10 +35,12 @@
                                 redirectPath: path('status_param_index'),
                                 redirectLabel: 'Aller la page de statuts'
                             } %}
-                            <select class="form-control data needed" id="statutLitige" name="statutLitige">
+
+                            <select class="form-control data needed no-clear" id="statutLitige" name="statutLitige">
                                 <option placeholder="" disabled value="" selected></option>
                                 {% for statut in statusLitige %}
-                                    <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                    {% set selected = statut.id == defaultLitigeStatusId ? 'selected' %}
+                                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                                 {% endfor %}
                             </select>
                         </div>
