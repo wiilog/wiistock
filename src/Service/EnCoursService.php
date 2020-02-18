@@ -60,10 +60,10 @@ class EnCoursService
      * @param DaysWorkedRepository $daysRepository
      */
     public function __construct(EntityManagerInterface $entityManager,
-        ColisRepository $colisRepository,
-        MouvementTracaRepository $mouvementTracaRepository,
-        EmplacementRepository $emplacementRepository,
-        DaysWorkedRepository $daysRepository)
+                                ColisRepository $colisRepository,
+                                MouvementTracaRepository $mouvementTracaRepository,
+                                EmplacementRepository $emplacementRepository,
+                                DaysWorkedRepository $daysRepository)
     {
         $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
@@ -226,13 +226,13 @@ class EnCoursService
             $countByNature[$wantedNature->getLabel()] = 0;
         }
         foreach ($enCours as $enCour) {
-            $hourOfEnCours  = strpos($enCour['time'], 'h') ? intval(substr($enCour['time'], 0, 2)) : 0;
+            $hourOfEnCours = strpos($enCour['time'], 'h') ? intval(substr($enCour['time'], 0, 2)) : 0;
             if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
                 $entityColisForThisEnCour = $this->colisRepository->findOneByCode($enCour['colis']);
                 if ($entityColisForThisEnCour) {
                     $key = $entityColisForThisEnCour->getNature()->getLabel();
                     if (array_key_exists($key, $countByNature)) {
-                        $countByNature[$key] ++;
+                        $countByNature[$key]++;
                     }
                 }
             }
@@ -245,7 +245,8 @@ class EnCoursService
      * @return DateInterval
      * @throws Exception
      */
-    public function getTrackingMovementAge(DateTime $movementDate): DateInterval {
+    public function getTrackingMovementAge(DateTime $movementDate): DateInterval
+    {
         $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
 
         $daysWorked = array_reduce(
@@ -287,6 +288,10 @@ class EnCoursService
                                 $time2 = explode(':', $times[1]);
                                 $end = (clone $day)->setTime($time2[0], $time2[1], 0);
 
+                                if ($end < $movementDate || $now < $begin) {
+                                    return new DateInterval('P0Y');
+                                }
+
                                 // si la date du mouvement est dans la fourchette => devient la date de begin
                                 if ($begin < $movementDate && $movementDate <= $end) {
                                     $begin = $movementDate;
@@ -297,14 +302,7 @@ class EnCoursService
                                     $now < $end) {
                                     $end = $now;
                                 }
-
-                                // Si la date du mouvement est après la fourchette de temps
-                                // ou si l'heure actuelle est avant la fourchette
-                                // on retourne un dateInterval de 0
-                                // sinon une dateInterval < 1 day
-                                return ($end < $movementDate || $now < $begin)
-                                    ? new DateInterval('P0Y')
-                                    : $begin->diff($end);
+                                return $begin->diff($end);
                             },
                             explode(';', $daysWorked[$dayLabel])
                         )
@@ -318,8 +316,7 @@ class EnCoursService
                 function (?DateInterval $carry, DateInterval $interval) {
                     if (!isset($carry)) {
                         return $interval;
-                    }
-                    else {
+                    } else {
                         $newDateInterval = new DateInterval('P0Y');
                         $newDateInterval->h = ($carry->h + $interval->h);
                         $newDateInterval->i = ($carry->i + $interval->i);
@@ -330,8 +327,7 @@ class EnCoursService
                 },
                 null
             );
-        }
-        else {
+        } else {
             // age null
             $age = new DateInterval('P0Y');
         }
