@@ -127,7 +127,7 @@ function initNewModalOperator($modal) {
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
     ajaxAutoUserInit($operatorSelect, 'Opérateur');
     let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
-    $operatorSelect.append(option).trigger('change');
+    $operatorSelect.val(null).trigger('change').append(option).trigger('change');
 }
 
 function switchMvtCreationType($input) {
