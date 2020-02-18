@@ -539,7 +539,7 @@ class ReceptionController extends AbstractController
                     "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
                     "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                     "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                    "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
+                    "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
                     'Actions' => $this->renderView(
                         'reception/datatableLigneRefArticleRow.html.twig',
                         [
@@ -748,7 +748,11 @@ class ReceptionController extends AbstractController
                         ];
                     }
                 }
-
+                if ($refArticle->getIsUrgent()) {
+                    $reception->setEmergencyTriggered(true);
+                    $receptionReferenceArticle->setEmergencyTriggered(true);
+                }
+                $em->flush();
 				$json = [
 					'entete' => $this->renderView('reception/enteteReception.html.twig', [
 						'reception' => $reception,
@@ -1069,7 +1073,12 @@ class ReceptionController extends AbstractController
                 // ... et on ajoute ceux sélectionnés
                 $listColis = explode(',', $colis);
                 foreach ($listColis as $colisId) {
-                    $litige->addArticle($this->articleRepository->find($colisId));
+                    $article = $this->articleRepository->find($colisId);
+                    $litige->addArticle($article);
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    if ($ligneIsUrgent) {
+                        $litige->setEmergencyTriggered(true);
+                    }
                 }
             }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
@@ -1158,7 +1167,12 @@ class ReceptionController extends AbstractController
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
-                    $litige->addArticle($this->articleRepository->find($colisId));
+                    $article = $this->articleRepository->find($colisId);
+                    $litige->addArticle($article);
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    if ($ligneIsUrgent) {
+                        $litige->setEmergencyTriggered(true);
+                    }
                 }
             }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
@@ -1306,6 +1320,7 @@ class ReceptionController extends AbstractController
                         ],
                         'litigeId' => $litige->getId(),
                     ]),
+                    'urgence' => $litige->getEmergencyTriggered()
                 ];
             }
 

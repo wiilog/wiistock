@@ -17,12 +17,16 @@ $(function () {
     tableReception = $('#tableReception_id').DataTable({
         serverSide: true,
         processing: true,
-        order: [[1, "desc"]],
+        order: [[8, "desc"], [1, "desc"]],
         "columnDefs": [
             {
                 "orderable": false,
                 "targets": 0
-            }
+            },
+            {
+                "targets": 8,
+                "visible": false
+            },
         ],
         language: {
             url: "/js/i18n/dataTableLanguage.json",
@@ -44,7 +48,11 @@ $(function () {
             {"data": 'Référence', 'name': 'reference', 'title': 'Référence'},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
         ],
+        rowCallback: function (row, data) {
+            $(row).addClass(data.urgence ? 'table-danger' : '');
+        }
     });
 
     let modalReceptionNew = $("#modalNewReception");

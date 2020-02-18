@@ -116,6 +116,7 @@ class ReceptionService
                     'reception/datatableReceptionRow.html.twig',
                     ['reception' => $reception]
                 ),
+                'urgence' => $reception->getEmergencyTriggered()
         ];
         return $row;
     }

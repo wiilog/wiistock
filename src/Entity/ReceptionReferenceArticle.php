@@ -68,6 +68,11 @@ class ReceptionReferenceArticle
 	 */
     private $articles;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $emergencyTriggered;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -213,6 +218,18 @@ class ReceptionReferenceArticle
                 $article->setReceptionReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmergencyTriggered(): ?bool
+    {
+        return $this->emergencyTriggered;
+    }
+
+    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    {
+        $this->emergencyTriggered = $emergencyTriggered;
 
         return $this;
     }

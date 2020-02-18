@@ -86,7 +86,7 @@ function InitiliaserPageDataTable() {
                     return data;
                 }
             },
-            order: [[1, "desc"]],
+            order: [[5, "desc"], [1, "desc"]],
             columns: [
                 {"data": 'Actions', 'title': 'Actions'},
                 {"data": 'Référence', 'title': 'Référence'},
@@ -120,11 +120,12 @@ function InitiliaserPageDataTable() {
                 {"data": 'status', 'name': 'status', 'title': 'Statut'},
                 {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
                 {"data": 'date', 'name': 'date', 'title': 'Date'},
+                {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
             ],
             columnDefs: [
                 {
                     "type": "customDate",
-                    "targets": 4,
+                    "targets": [4, 5],
                     "visible": false
                 },
                 {
@@ -133,8 +134,12 @@ function InitiliaserPageDataTable() {
                 }
             ],
             order: [
+                [5, 'desc'],
                 [4, 'desc'],
             ],
+            rowCallback: function (row, data) {
+                $(row).addClass(data.urgence ? 'table-danger' : '');
+            }
         })
     };
 }
