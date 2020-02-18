@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -33,6 +35,7 @@ class MouvementTraca
     private $uniqueIdForMobile;
 
     /**
+     * @var DateTime
      * @ORM\Column(type="datetime", length=255, nullable=true)
      */
     private $datetime;
@@ -187,12 +190,12 @@ class MouvementTraca
         return $this;
     }
 
-    public function getDatetime(): ?\DateTimeInterface
+    public function getDatetime(): ?DateTime
     {
         return $this->datetime;
     }
 
-    public function setDatetime(?\DateTimeInterface $datetime): self
+    public function setDatetime(?DateTime $datetime): self
     {
         $this->datetime = $datetime;
 

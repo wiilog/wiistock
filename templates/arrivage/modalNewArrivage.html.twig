@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</h5>
+                <h5 class="modal-title" title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -181,7 +181,7 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}
                         <div class="form-group col-2">
-                            <label>Imprimer {{ 'arrivage.arrivage'|trans }}</label>
+                            <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
                                 <input class="checkbox" type="checkbox" name="printArrivage">
                                 <span class="slider round"></span>
@@ -191,14 +191,14 @@
 
                     {% if natures != null %}
                     <div class="form-group col-2">
-                        <label>Imprimer {{ 'arrivage.colis'|trans }}</label>
+                        <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                         <label class="switch d-block-switch mt-2">
                             <input class="checkbox" type="checkbox" name="printColis">
                             <span class="slider round"></span>
                         </label>
                     </div>
                     <div class="col-6 blocVisible d-block natures-container">
-                        <h3 class="label">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
+                        <h3 class="label" title="de colis">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
 
                         <div class="mt-2 row">
                             {% for nature in natures %}
@@ -213,16 +213,17 @@
                         </div>
                     </div>
 
-                {% else %}
+                    {% else %}
                     <div class="col-12">
                         {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                             array: natures,
-                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
+                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
                             redirectPath: path('nature_param_index'),
-                            redirectLabel: 'Aller vers la création des natures'
+                            redirectLabel: 'Aller vers la création des natures',
+                            title: 'de colis'
                         } %}
                     </div>
-                {% endif %}
+                    {% endif %}
                 </div>
 
                 <div class="row champsLibresBlock">

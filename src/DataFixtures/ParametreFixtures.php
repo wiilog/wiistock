@@ -86,6 +86,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
+                'default' => true,
+                SpecificService::CLIENT_SAFRAN_ED => false
+            ],
             ParametrageGlobal::USES_UTF8 => [
                 'default' => true,
             ],

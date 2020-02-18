@@ -7,7 +7,7 @@
     {% for menu in menusTranslations %}
         <div class="row">
             <div class="col-auto">
-                <h2 class="bold">MENU {{ (menu~"."~menu)|trans|upper }}</h2>
+                <h2 class="bold">MENU {{ menu|upper }}</h2>
             </div>
             {% if loop.first %}
                 <div class="ml-auto col-auto">
@@ -28,11 +28,13 @@
         </div>
         {% for translation in translations %}
             {% if (translation.menu == menu) %}
+            {% set translatedValue = (translation.menu~'.'~translation.label)|trans %}
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
-                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ (translation.menu~"."~translation.label)|trans }}</span>
+                        <span class="input-group-text" id="translate-{{ translation.id }}">{{ translation.label }}</span>
                     </div>
-                    <input type="text" class="form-control translate" name="{{ translation.id }}" aria-describedby="translate-{{ translation.id }}">
+                    <input type="text" class="form-control translate" name="{{ translation.id }}" aria-describedby="translate-{{ translation.id }}"
+                    value="{% if translatedValue != translation.label %}{{ translatedValue }}{% endif %}">
                 </div>
             {% endif %}
         {% endfor %}
