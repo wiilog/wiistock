@@ -24,7 +24,7 @@
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             <p class="little-font">
-                                Nombres de lignes restantes à traiter&nbsp;:
+                                Nombres de lignes restantes à traiter
                             </p>
                             <p class="little-font">
                                 <strong id="totalForChart1" class="figure"></strong>
@@ -36,7 +36,7 @@
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             <p class="little-font">
-                                Prochaine bac/palette à traiter&nbsp;:
+                                Prochaine bac/palette à traiter
                             </p>
                             <p class="little-font">
                                 <strong id="empForChart1" class="figure"></strong>
@@ -67,7 +67,7 @@
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             <p class="little-font">
-                                Nombres de lignes restantes à traiter&nbsp;:
+                                Nombres de lignes restantes à traiter
                             </p>
                             <p class="little-font">
                                 <strong id="totalForChart2" class="figure"></strong>
@@ -79,7 +79,7 @@
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             <p class="little-font">
-                                Prochaine palette à traiter&nbsp;:
+                                Prochaine palette à traiter
                             </p>
                             <p class="little-font">
                                 <strong id="empForChart2" class="figure"></strong>
@@ -94,40 +94,44 @@
 <div class="row justify-content-center">
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height m-1">
-            <div class="dashboard-box text-center">
+            <div id="remaining-urgences-box-admin" class="dashboard-box text-center">
                 <p class="little-font">
-                    Nombres d'urgences restantes à recevoir&nbsp;: <p class="figure"
-                                                                           id="urgenceCountCount"></p>
-
+                    Urgences restantes à recevoir<br>
+                    <span class="figure red counter">-</span>
+                </p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height m-1">
-            <div class="dashboard-box text-center">
+            <div id="encours-urgence-box" class="dashboard-box text-center">
                 <p class="little-font">
-                    Nombres d'urgences restantes à traiter (<span id="enCoursUrgenceLabel"></span>)&nbsp;: <p
-                        class="figure" id="enCoursUrgenceCount"></p>
-
+                    Urgences restantes à traiter<br>
+                    (<span class="location-label">-</span>)<br>
+                    <span class="figure counter">-</span>
+                </p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height m-1">
-            <div class="dashboard-box text-center">
+            <div id="encours-litige-box" class="dashboard-box text-center">
                 <p class="little-font">
-                    Nombres de lignes en litiges (<span id="enCoursLitigeLabel"></span>)&nbsp;: <p class="figure"
-                                                                                                        id="enCoursLitigeCount"></p>
+                    Lignes en litiges<br>
+                    (<span class="location-label">-</span>)<br>
+                    <span class="figure counter">-</span>
+                </p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height m-1">
-            <div class="dashboard-box text-center">
+            <div id="encours-clearance-box-admin" class="dashboard-box text-center">
                 <p class="little-font">
-                    Nombres de colis en attente de dédouanement (<span id="enCoursClearanceLabel"></span>)&nbsp;:
-                    <p
-                        class="figure" id="enCoursClearanceCount"></p>
+                    Colis en attente de dédouanement<br>
+                    (<span class="location-label">-</span>)<br>
+                    <span class="figure counter">-</span>
+                </p>
             </div>
         </div>
     </div>

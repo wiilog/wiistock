@@ -678,9 +678,16 @@ class ParametrageGlobalController extends AbstractController
 
 			$listMultipleSelect = [
 				ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => 'listNaturesColis',
-				ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
-				ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
                 ParametrageGlobal::DASHBOARD_CARRIER_DOCK => 'carrierDock',
+                ParametrageGlobal::DASHBOARD_LOCATIONS_1 => 'locationsFirstGraph',
+                ParametrageGlobal::DASHBOARD_LOCATIONS_2 => 'locationsSecondGraph',
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
+                ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
+                ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
+                ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
+                ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
+                ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
+                ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
 			];
 
 			foreach ($listMultipleSelect as $labelParam => $selectId) {
@@ -692,13 +699,6 @@ class ParametrageGlobalController extends AbstractController
 
 			$listSelect = [
 				ParametrageGlobal::DASHBOARD_NATURE_COLIS => 'natureColis',
-				ParametrageGlobal::DASHBOARD_LOCATION_DOCK => 'locationToTreat',
-				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK => 'locationWaitingDock',
-				ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
-				ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE => 'locationAvailable',
-				ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES => 'locationDropZone',
-				ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
-				ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
 			];
 
 			foreach ($listSelect as $labelParam => $selectId) {
