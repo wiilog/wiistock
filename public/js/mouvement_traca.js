@@ -75,7 +75,7 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt);
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, null, Number($('#redirectAfterTrackingMovementCreation').val()));
 
 let modalEditMvtTraca = $("#modalEditMvtTraca");
 let submitEditMvtTraca = $("#submitEditMvtTraca");
@@ -89,40 +89,55 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 let editorNewMvtTracaAlreadyDone = false;
 
-function initNewMvtTracaEditor(modal) {
+function initNewMvtTracaEditor(modalSelector) {
+    const $modal = $(modalSelector);
     if (!editorNewMvtTracaAlreadyDone) {
-        quillNew = initEditor(modal + ' .editor-container-new');
+        quillNew = initEditor(modalSelector + ' .editor-container-new');
         editorNewMvtTracaAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user'));
-    $('.new-mvt-common-body').addClass('d-none');
-    $('.more-body-new-mvt-traca').html('');
+    $modal.find('.more-body-new-mvt-traca').addClass('d-none');
+
+    initNewModalDate($modal);
+    initNewModalOperator($modal);
+
+    $.post(Routing.generate('mouvement_traca_get_appropriate_html'), JSON.stringify('fromStart'), function(response) {
+        if (response.safran) {
+            const $modalBody = $modal.find('.more-body-new-mvt-traca');
+            $modalBody.html(response.modalBody);
+            $modalBody.removeClass('d-none');
+        }
+        ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'));
+
+        $('.select2-colis').select2(({
+            tags: true,
+            "language": {
+                "noResults": function () { return 'Ajoutez des éléments'; }
+            },
+        }))
+    });
 };
 
-let editorEditMvtTracaAlreadyDone = false;
-
-function initEditMvtTracaEditor(modal) {
-    if (!editorEditMvtTracaAlreadyDone) {
-        quillNew = initEditor(modal + ' .editor-container-edit');
-        editorEditMvtTracaAlreadyDone = true;
-    }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-};
-
-function fillDateInNewModal() {
+function initNewModalDate($modal) {
     const date = moment().format();
-    $('#modalNewMvtTraca').find('.datetime').val(date.slice(0,16));
+    $modal.find('.datetime').val(date.slice(0,16));
+}
+
+function initNewModalOperator($modal) {
+    const $operatorSelect = $modal.find('.ajax-autocomplete-user');
+    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
+    ajaxAutoUserInit($operatorSelect, 'Opérateur');
+    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+    $operatorSelect.val(null).trigger('change').append(option).trigger('change');
 }
 
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
-    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(appropriateHtml) {
-        if (appropriateHtml) {
-            $input.closest('.modal').find('.more-body-new-mvt-traca').html(appropriateHtml);
+    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function(response) {
+        if (response) {
+            $input.closest('.modal').find('.more-body-new-mvt-traca').html(response.modalBody);
             $input.closest('.modal').find('.new-mvt-common-body').removeClass('d-none');
+            $input.closest('.modal').find('.more-body-new-mvt-traca').removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
             $('.select2-colis').select2(({
                 tags: true,

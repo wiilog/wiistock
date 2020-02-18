@@ -62,7 +62,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 				'date de début' => 'date de début',
 				'date de fin' => 'date de fin',
 				'numéro de commande' => 'numéro de commande',
-			]
+			],
+            'mouvement de traçabilité' => [
+                'Colis' => 'Colis'
+            ]
 		];
 
 		foreach ($translations as $menu => $translation) {
@@ -81,6 +84,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 						->setTranslation($translatedLabel)
 						->setUpdated(true);
 					$manager->persist($translationObject);
+					dump("Ajout de la traduction :  $menu / $label ==> $translatedLabel");
 				}
 			}
 		}
