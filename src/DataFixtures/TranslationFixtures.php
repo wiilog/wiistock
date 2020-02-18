@@ -27,11 +27,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     {
 		$translations = [
 			'arrivage' => [
-				'arrivages' => 'arrivages',
+				'flux - arrivages' => 'flux - arrivages',
 				'arrivage' => 'arrivage',
-				'cet arrivage' => 'cet arrivage',
-				"d'arrivage" => "d'arrivage",
+				'arrivages' => 'arrivages',
 				'nouvel arrivage' => 'nouvel arrivage',
+				"n° d'arrivage" => "n° d'arrivage",
+				'cet arrivage' => 'cet arrivage',
 				'de colis' => 'de colis',
 				'colis' => 'colis'
 			],
@@ -39,6 +40,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 				'réceptions' => 'réceptions',
 				'réception' => 'réception',
 				'de réception' => 'de réception',
+				'n° de réception' => 'n° de réception',
 				'cette réception' => 'cette réception',
 				'nouvelle réception' => 'nouvelle réception',
 				'la' => 'la',

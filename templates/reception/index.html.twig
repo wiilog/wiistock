@@ -11,14 +11,14 @@
 
 {% block page_content %}
     <div class="col-12">
-        <h1>Ordres {{ 'réception.de réception'|trans }}</h1>
+        <h1>Ordres <span title="de réception">{{ 'réception.de réception'|trans }}</span></h1>
     </div>
 
     <div class='col-12'>
         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
                onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                <span class="fa fa-plus mr-2"></span>{{ 'réception.nouvelle réception'|trans|capitalize }}
+                <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans|capitalize }}</span>
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}

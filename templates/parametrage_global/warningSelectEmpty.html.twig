@@ -1,7 +1,7 @@
 {% if array is empty %}
     <div class="row align-items-center justify-content-center">
         <div class="col-auto">
-            <span>
+            <span title="{{ title is defined ? title }}">
                 <i class='fas fa-warning'></i>
                 {{ warningLabel }}
             </span>
