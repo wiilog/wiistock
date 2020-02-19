@@ -25,7 +25,8 @@ class LitigeRepository extends ServiceEntityRepository
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
 		'updateDate' => 'updateDate',
-		'status' => 'status',
+        'status' => 'status',
+        'urgence' => 'emergencyTriggered',
 	];
 
     public function __construct(ManagerRegistry $registry)
@@ -199,6 +200,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->select('distinct(l.id) as id')
 			->from('App\Entity\Litige', 'l')
 			->addSelect('l.creationDate')
+            ->addSelect('l.emergencyTriggered')
 			->addSelect('l.updateDate')
 			->leftJoin('l.type', 't')
 			->addSelect('t.label as type')

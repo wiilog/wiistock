@@ -9,7 +9,7 @@
             {% set checked = (parametrageG == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                       onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
@@ -19,7 +19,7 @@
             {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
-                       onchange="toggleActiveDemandeLivraison($(this), '{{ path('active_desactive_create_prepa') }}')">
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>

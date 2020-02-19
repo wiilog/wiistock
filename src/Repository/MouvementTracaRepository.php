@@ -8,10 +8,16 @@ use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
+
 
 /**
  * @method MouvementTraca|null find($id, $lockMode = null, $lockVersion = null)
@@ -97,46 +103,61 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		return $result ? $result[0] : null;
 	}
 
-    //VERIFCECILE
-
-	/**
-	 * @param $emplacement Emplacement
-	 * @param $mvt MouvementTraca
-	 * @return mixed
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function findByEmplacementToAndArticleAndDate($emplacement, $mvt) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(m)
-            FROM App\Entity\MouvementTraca m
-            JOIN m.type t
-            WHERE m.emplacement = :emp AND m.datetime > :date AND m.colis LIKE :article AND t.nom LIKE 'prise'"
-        )->setParameters([
-            'emp' => $emplacement,
-            'date' => $mvt->getDatetime(),
-            'article' => $mvt->getColis(),
-        ]);
-        return $query->getSingleScalarResult();
+    /**
+     * @param Emplacement $location
+     * @return MouvementTraca[]
+     * @throws DBALException
+     */
+    public function findObjectOnLocation(Emplacement $location): array {
+        return $this->createQueryBuilderObjectOnLocation($location)
+            ->getQuery()
+            ->getResult();
     }
 
-    //VERIFCECILE
     /**
-     * @param $emplacement Emplacement
+     * @param Emplacement $location
      * @return MouvementTraca[]
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function findByEmplacementTo($emplacement) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m
-            FROM App\Entity\MouvementTraca m
-            JOIN m.type t
-            WHERE m.emplacement = :emp AND t.nom LIKE 'depose'"
-        )->setParameter('emp', $emplacement);
-        return $query->execute();
+    public function countObjectOnLocation(Emplacement $location): int {
+        return $this->createQueryBuilderObjectOnLocation($location)
+            ->select('COUNT(mouvementTraca.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param Emplacement $location
+     * @return QueryBuilder
+     * @throws DBALException
+     */
+    private function createQueryBuilderObjectOnLocation(Emplacement $location): QueryBuilder {
+        $connection = $this->getEntityManager()->getConnection();
+        $ids = $connection
+            ->executeQuery(
+                'SELECT MAX(id) AS id
+                FROM mouvement_traca
+                INNER JOIN (
+                    SELECT mouvement_traca.colis AS colis, MAX(mouvement_traca.datetime) as datetime
+                    FROM `mouvement_traca`
+                    GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id
+                    HAVING mouvement_traca.emplacement_id = :locationId
+                ) sub ON sub.colis = mouvement_traca.colis AND sub.datetime = mouvement_traca.datetime
+                GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id, mouvement_traca.datetime
+                HAVING mouvement_traca.emplacement_id = :locationId',
+                ['locationId' => $location->getId()]
+            )
+            ->fetchAll(FetchMode::COLUMN);
+
+        return $this
+            ->createQueryBuilder('mouvementTraca')
+            ->join('mouvementTraca.type', 'type')
+            ->where('mouvementTraca.id IN (:mouvementTracaIds)')
+            ->andWhere('type.nom = :typeDepose')
+            ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
+            ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY);
     }
 
     /**

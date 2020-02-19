@@ -5,7 +5,7 @@
     <br/>
     <p>Votre commande urgente est arrivée : </p>
     <br/>
-    <p>Numéro d'arrivage : {{ arrivage.numeroArrivage }}</p>
+    <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrivage.numeroArrivage }}</p>
     {% if arrivage.fournisseur %}
         <p>Intitulé fournisseur : {{ arrivage.fournisseur.nom }}</p>
     {% endif %}
@@ -15,7 +15,7 @@
     {% if arrivage.numeroBL %}
         <p>N° commande : {{ arrivage.numeroBL }}</p>
     {% endif %}
-    <p>Horodatage de l'arrivage : {{ arrivage.date|date('d/m/Y H:i') }}</p>
+    <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
     <br/>
     <p>La réception de cette commande sera effectuée sous deux heures.</p>
     <br/>

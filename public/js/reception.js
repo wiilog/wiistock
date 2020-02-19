@@ -17,12 +17,16 @@ $(function () {
     tableReception = $('#tableReception_id').DataTable({
         serverSide: true,
         processing: true,
-        order: [[1, "desc"]],
+        order: [[8, "desc"], [1, "desc"]],
         "columnDefs": [
             {
                 "orderable": false,
                 "targets": 0
-            }
+            },
+            {
+                "targets": 8,
+                "visible": false
+            },
         ],
         language: {
             url: "/js/i18n/dataTableLanguage.json",
@@ -35,16 +39,23 @@ $(function () {
             overrideSearch($('#tableReception_id_filter input'), tableReception);
             hideColumns(tableReception, resp.json.columnsToHide);
         },
+        headerCallback: function(thead) {
+            $(thead).find('th').eq(5).attr('title', "n° de réception");
+        },
         columns: [
             {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'Référence', 'name': 'reference', 'title': $('#noReception').val()},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
         ],
+        rowCallback: function (row, data) {
+            $(row).addClass(data.urgence ? 'table-danger' : '');
+        }
     });
 
     let modalReceptionNew = $("#modalNewReception");

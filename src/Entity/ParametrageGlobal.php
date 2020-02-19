@@ -12,6 +12,9 @@ class ParametrageGlobal
 	// arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
 
+    // mvt traca
+    const CLOSE_AND_CLEAR_AFTER_NEW_MVT = 'CLOSE AND CLEAR AFTER NEW MVT';
+
     // réceptions
     const CREATE_DL_AFTER_RECEPTION = 'CREATION DL APRES RECEPTION';
     const CREATE_PREPA_AFTER_DL = 'CREATION PREPA APRES DL';

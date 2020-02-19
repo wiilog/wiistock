@@ -7,11 +7,18 @@ let tableNature = $('#tableNatures').DataTable({
         "url": pathNature,
         "type": "POST"
     },
+    columnDefs: [
+        {
+            orderable: false,
+            targets: 5
+        }
+    ],
     columns:[
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Code', 'title' : 'Code' },
         { "data": 'Quantité par défaut', 'title' : 'Quantité par défaut' },
         { "data": 'Préfixe', 'title' : 'Préfixe' },
+        { "data": 'Couleur', 'title' : 'Couleur' },
         { "data": 'Actions', 'title' : 'Actions' }
     ],
 });

@@ -47,6 +47,7 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 
 use DateTime;
@@ -189,6 +190,7 @@ class ReceptionController extends AbstractController
 	 * @var MouvementStockService
 	 */
     private $mouvementStockService;
+    private $translationService;
 
     public function __construct(
         ArticleDataService $articleDataService,
@@ -214,7 +216,8 @@ class ReceptionController extends AbstractController
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
-		MouvementStockService $mouvementStockService
+		MouvementStockService $mouvementStockService,
+		TranslationService $translationService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -241,6 +244,7 @@ class ReceptionController extends AbstractController
         $this->transporteurRepository = $transporteurRepository;
         $this->fieldsParamRepository = $fieldsParamRepository;
         $this->mouvementStockService = $mouvementStockService;
+        $this->translationService = $translationService;
     }
 
 
@@ -540,7 +544,7 @@ class ReceptionController extends AbstractController
                     "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
                     "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                     "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                    "Urgence" => ($ligneArticle->getReferenceArticle()->getIsUrgent() ?? false),
+                    "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
                     'Actions' => $this->renderView(
                         'reception/datatableLigneRefArticleRow.html.twig',
                         [
@@ -749,7 +753,11 @@ class ReceptionController extends AbstractController
                         ];
                     }
                 }
-
+                if ($refArticle->getIsUrgent()) {
+                    $reception->setEmergencyTriggered(true);
+                    $receptionReferenceArticle->setEmergencyTriggered(true);
+                }
+                $em->flush();
 				$json = [
 					'entete' => $this->renderView('reception/enteteReception.html.twig', [
 						'reception' => $reception,
@@ -1070,7 +1078,12 @@ class ReceptionController extends AbstractController
                 // ... et on ajoute ceux sélectionnés
                 $listColis = explode(',', $colis);
                 foreach ($listColis as $colisId) {
-                    $litige->addArticle($this->articleRepository->find($colisId));
+                    $article = $this->articleRepository->find($colisId);
+                    $litige->addArticle($article);
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    if ($ligneIsUrgent) {
+                        $litige->setEmergencyTriggered(true);
+                    }
                 }
             }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
@@ -1159,7 +1172,12 @@ class ReceptionController extends AbstractController
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
-                    $litige->addArticle($this->articleRepository->find($colisId));
+                    $article = $this->articleRepository->find($colisId);
+                    $litige->addArticle($article);
+                    $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
+                    if ($ligneIsUrgent) {
+                        $litige->setEmergencyTriggered(true);
+                    }
                 }
             }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
@@ -1307,6 +1325,7 @@ class ReceptionController extends AbstractController
                         ],
                         'litigeId' => $litige->getId(),
                     ]),
+                    'urgence' => $litige->getEmergencyTriggered()
                 ];
             }
 
@@ -1676,7 +1695,7 @@ class ReceptionController extends AbstractController
             $headers = [];
             $headers = array_merge($headers,
                 [
-                    'n° réception',
+                    $this->translationService->getTranslation('réception', 'n° de réception'),
                     'n° de commande',
                     'fournisseur',
                     'utilisateur',

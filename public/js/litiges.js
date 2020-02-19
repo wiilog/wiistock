@@ -28,7 +28,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[7, 'desc']],
+    order: [[9, 'desc'], [7, 'desc']],
     ajax: {
         "url": pathLitiges,
         "type": "POST",
@@ -39,20 +39,29 @@ let tableLitiges = $('#tableLitiges').DataTable({
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': "N° " + $('#trans-arrivage').val()},
+        {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
-        {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': 'N° ' + $('#trans-reception').val()},
+        {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
+        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
     ],
     columnDefs: [
         {
             orderable: false,
             targets: [0, 5]
-        }
+        },
+        {
+            "targets": 9,
+            "visible": false
+        },
     ],
+    headerCallback: function(thead) {
+        $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
+        $(thead).find('th').eq(4).attr('title', "n° de réception");
+    },
     dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
     buttons: [
         {
@@ -64,7 +73,10 @@ let tableLitiges = $('#tableLitiges').DataTable({
         //     extend: 'csv',
         //     className: 'dt-btn'
         // }
-    ]
+    ],
+    rowCallback: function (row, data) {
+        $(row).addClass(data.urgence ? 'table-danger' : '');
+    }
 });
 
 let modalNewLitiges = $('#modalNewLitiges');

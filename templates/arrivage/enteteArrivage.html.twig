@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col">
-        <h1>{{ 'arrivage.arrivage'|trans|capitalize }} {{ arrivage.numeroarrivage }}</h1>
+        <h1><span title="arrivage">{{ 'arrivage.arrivage'|trans|capitalize }}</span> {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
         <input hidden value="{{ arrivage.numeroarrivage  }}" id="numeroArrivage">
         <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
@@ -17,7 +17,7 @@
            target="_blank"
            href="{{ path('print_arrivage_bar_code', {arrivage: arrivage.id}) }}">
             <i class='fas fa-print pointer'></i>
-            Imprimer {{ 'arrivage.arrivage'|trans }}
+            Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
         </a>
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT'))%}
             <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
