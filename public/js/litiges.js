@@ -28,7 +28,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[7, 'desc']],
+    order: [[9, 'desc'], [7, 'desc']],
     ajax: {
         "url": pathLitiges,
         "type": "POST",
@@ -46,12 +46,17 @@ let tableLitiges = $('#tableLitiges').DataTable({
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
         {"data": 'status', 'name': 'status', 'title': 'Statut', 'target': 7},
+        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
     ],
     columnDefs: [
         {
             orderable: false,
             targets: [0, 5]
-        }
+        },
+        {
+            "targets": 9,
+            "visible": false
+        },
     ],
     headerCallback: function(thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
@@ -68,7 +73,10 @@ let tableLitiges = $('#tableLitiges').DataTable({
         //     extend: 'csv',
         //     className: 'dt-btn'
         // }
-    ]
+    ],
+    rowCallback: function (row, data) {
+        $(row).addClass(data.urgence ? 'table-danger' : '');
+    }
 });
 
 let modalNewLitiges = $('#modalNewLitiges');

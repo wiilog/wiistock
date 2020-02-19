@@ -112,6 +112,11 @@ class Reception
 	 */
 	private $location;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $emergencyTriggered;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -404,6 +409,18 @@ class Reception
     public function setLocation(?Emplacement $location): self
     {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function getEmergencyTriggered(): ?bool
+    {
+        return $this->emergencyTriggered;
+    }
+
+    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    {
+        $this->emergencyTriggered = $emergencyTriggered;
 
         return $this;
     }

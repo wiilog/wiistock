@@ -51,7 +51,6 @@ let submitModifyCollecte = $('#submitEditCollecte');
 let urlModifyCollecte = Routing.generate('collecte_edit', true);
 InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
 
-//AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     language: {
@@ -61,12 +60,19 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "url": pathAddArticle,
         "type": "POST"
     },
+    order: [[1, 'desc']],
+    columnDefs: [
+        {
+            "orderable": false,
+            "targets": [0]
+        }
+    ],
     columns: [
+        {"data": 'Actions', 'title': 'Actions'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité'},
-        {"data": 'Actions', 'title': 'Actions'}
+        {"data": 'Quantité', 'title': 'Quantité'}
     ],
 });
 
