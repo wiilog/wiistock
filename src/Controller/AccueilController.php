@@ -7,6 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
@@ -15,6 +16,8 @@ use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -364,11 +367,12 @@ class AccueilController extends AbstractController
      */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        ParametrageGlobalRepository $parametrageGlobalRepository,
+                                                       EntityManager $entityManager,
                                                        EnCoursService $enCoursService,
                                                        EmplacementRepository $emplacementRepository,
                                                        int $graph): Response {
 
-        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;

@@ -7,7 +7,9 @@ use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Statut;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
@@ -21,6 +23,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -64,13 +67,14 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
+						  EntityManager $entityManager,
 						  TransporteurRepository $transporteurRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
-        $statusRepository = $this->getDoctrine()->getRepository('App:Statut');
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -553,9 +557,9 @@ class ParametrageGlobalController extends AbstractController
 	 * @param Request $request
 	 * @return Response
 	 */
-    public function editStatusReceptions(Request $request): Response
+    public function editStatusReceptions(Request $request, EntityManager $entityManager): Response
 	{
-		$statusRepository = $this->getDoctrine()->getRepository('App:Statut');
+		$statusRepository = $entityManager->getRepository(Statut::class);
 
 		$statusCodes = $request->request->all();
 
