@@ -36,15 +36,19 @@ $(function() {
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
-    initDisplaySelect2('#locationToTreat', '#locationToTreatValue');
-    initDisplaySelect2('#locationWaitingDock', '#locationWaitingDockValue');
-    initDisplaySelect2('#locationWaitingAdmin', '#locationWaitingAdminValue');
-    initDisplaySelect2('#locationAvailable', '#locationAvailableValue');
-    initDisplaySelect2('#locationDropZone', '#locationDropZoneValue');
-    initDisplaySelect2('#locationLitiges', '#locationLitigesValue');
-    initDisplaySelect2('#locationUrgences', '#locationUrgencesValue');
+
+    // config tableau de bord : emplacements
+    initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
+    initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
+    initDisplaySelect2Multiple('#locationWaitingAdmin', '#locationWaitingAdminValue');
+    initDisplaySelect2Multiple('#locationAvailable', '#locationAvailableValue');
+    initDisplaySelect2Multiple('#locationDropZone', '#locationDropZoneValue');
+    initDisplaySelect2Multiple('#locationLitiges', '#locationLitigesValue');
+    initDisplaySelect2Multiple('#locationUrgences', '#locationUrgencesValue');
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
+
+    // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
 
@@ -58,7 +62,7 @@ function errorEditDays(data) {
     }
 }
 
-function toggleActiveDemandeLivraison(switchButton, path) {
+function updateToggledParam(switchButton, path) {
     $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function () {
     }, 'json');
 }

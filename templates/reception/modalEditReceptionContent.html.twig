@@ -1,7 +1,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
         <div class="form-group col-6">
-            <label for="numeroReception">Numéro {{ 'réception.réception'|trans }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
+            <label for="numeroReception" title="n° de réception">{{ 'réception.n° de réception'|trans|capitalize }}{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? '*' : '' }}</label>
             <input type="text"
                    class="form-control data Numéro Réception{{ fieldsParam|isFieldRequired('numeroReception', 'mustToModify') ? 'needed' : '' }}"
                    name="numeroReception" id='numeroReception'

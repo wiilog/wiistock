@@ -41,7 +41,7 @@
         {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
 </div>
 <div class="col-4">
-    <p><strong>Date de fin {{ 'réception.de réception'|trans }}
+    <p><strong title="de réception">Date de fin {{ 'réception.de réception'|trans }}
             :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
 </div>
 {% for typeChampLibre in typeChampsLibres %}

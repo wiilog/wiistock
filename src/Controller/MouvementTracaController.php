@@ -6,23 +6,27 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
 use App\Repository\ColisRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
 use App\Service\MouvementTracaService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -107,16 +111,20 @@ class MouvementTracaController extends AbstractController
 
     /**
      * @Route("/", name="mvt_traca_index")
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
-    public function index()
+    public function index(ParametrageGlobalRepository $parametrageGlobalRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
-
+        $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'emplacements' => $this->emplacementRepository->findAll(),
+            'redirectAfterTrackingMovementCreation' => (int) ($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
         ]);
     }
 
@@ -408,20 +416,31 @@ class MouvementTracaController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getAppropriateHtml(Request $request, StatutRepository $statutRepository): Response
+    public function getAppropriateHtml(Request $request, StatutRepository $statutRepository, SpecificService $specificService): Response
     {
         if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $appropriateType = $statutRepository->find($typeId);
-            $fileToRender = 'mouvement_traca/' . (
-                $appropriateType
-                    ? $appropriateType->getNom() === MouvementTraca::TYPE_PRISE_DEPOSE
+            if ($typeId === 'fromStart') {
+                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+                $fileToRender = 'mouvement_traca/' . (
+                    $currentClient
                         ? 'newMassMvtTraca.html.twig'
-                    : 'newSingleMvtTraca.html.twig'
-                : '');
-            return new JsonResponse($fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []));
+                        : 'newSingleMvtTraca.html.twig'
+                    );
+            } else {
+                $appropriateType = $statutRepository->find($typeId);
+                $fileToRender = 'mouvement_traca/' . (
+                    $appropriateType
+                        ? $appropriateType->getNom() === MouvementTraca::TYPE_PRISE_DEPOSE ? 'newMassMvtTraca.html.twig'
+                        : 'newSingleMvtTraca.html.twig'
+                    : 'newSingleMvtTraca.html.twig' );
+            }
+            return new JsonResponse([
+                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),
+                'safran' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED),
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

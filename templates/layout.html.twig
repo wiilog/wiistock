@@ -51,7 +51,7 @@
                         </a>
                         <ul class="sidemenu-sub">
                         {% if rightTracaArri %}
-                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Flux - {{ 'arrivage.arrivages'|trans|capitalize }}</a></li>
+                            <li><a href="{{ path("arrivage_index") }}" class="sub-item" title=" flux - arrivages">• {{ 'arrivage.flux - arrivages'|trans|title }}</a></li>
                         {% endif %}
 
                         {% if rightTracaMouv %}
@@ -140,7 +140,7 @@
                                 <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
                             {% endif %}
                             {% if hasRightOrdreRecep %}
-                                <li><a href="{{ path("reception_index") }}" class="sub-item">• {{ 'réception.réception'|trans|capitalize }}</a></li>
+                                <li><a href="{{ path("reception_index") }}" class="sub-item" title="réception">• {{ 'réception.réception'|trans|capitalize }}</a></li>
                             {% endif %}
                         </ul>
                     </li>
