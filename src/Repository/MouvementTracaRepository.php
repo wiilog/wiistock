@@ -13,7 +13,6 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -290,36 +289,46 @@ class MouvementTracaRepository extends ServiceEntityRepository
     /**
      * @param Utilisateur $operator
      * @param string $type self::MOUVEMENT_TRACA_STOCK | self::MOUVEMENT_TRACA_DEFAULT
+     * @param array $filterDemandeCollecteIds
      * @return MouvementTraca[]
      */
-    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator, string $type) {
-        $em = $this->getEntityManager();
+    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
+                                                     string $type,
+                                                     array $filterDemandeCollecteIds = []) {
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
-            ? ' AND m.mouvementStock IS NOT NULL'
-            : ' AND m.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
-        $query = $em->createQuery(
-            (/** @lang DQL */
-            "SELECT m.colis as ref_article,
-                     t.nom as type,
-                     o.username as operateur,
-                     e.label as ref_emplacement,
-                     m.uniqueIdForMobile as date,
-                     (CASE WHEN m.finished = 1 THEN 1 ELSE 0 END) as finished,
-                     (CASE WHEN m.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) as fromStock,
-                     mouvementStock.quantity as quantity
-            FROM App\Entity\MouvementTraca m
-            JOIN m.type t
-            JOIN m.operateur o
-            JOIN m.emplacement e
-            LEFT JOIN m.mouvementStock mouvementStock
-            WHERE o = :op
-              AND t.nom LIKE :priseType
-              AND m.finished = :finished") . $typeCondition
-        )
-            ->setParameter('op', $operator)
+            ? 'mouvementTraca.mouvementStock IS NOT NULL'
+            : 'mouvementTraca.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
+
+        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
+            ->select('mouvementTraca.colis AS ref_article')
+            ->addSelect('mouvementTracaType.nom AS type')
+            ->addSelect('operator.username AS operateur')
+            ->addSelect('location.label AS ref_emplacement')
+            ->addSelect('mouvementTraca.uniqueIdForMobile AS date')
+            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
+            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+            ->join('mouvementTraca.type', 'mouvementTracaType')
+            ->join('mouvementTraca.operateur', 'operator')
+            ->join('mouvementTraca.emplacement', 'location')
+            ->join('mouvementTraca.mouvementStock', 'mouvementStock')
+            ->where('operator = :operator')
+            ->andWhere('mouvementTracaType.nom LIKE :priseType')
+            ->andWhere('mouvementTraca.finished = :finished')
+            ->andWhere($typeCondition)
+            ->setParameter('operator', $operator)
             ->setParameter('priseType', MouvementTraca::TYPE_PRISE)
             ->setParameter('finished', false);
-        return $query->execute();
+
+        if (!empty($filterDemandeCollecteIds)) {
+            $queryBuilder
+                ->join('mouvementStock.collecteOrder', 'collecteOrder')
+                ->andWhere('collecteOrder.id IN (:collecteOrderId)')
+                ->setParameter('collecteOrderId', $filterDemandeCollecteIds, Connection::PARAM_STR_ARRAY);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
 	public function countByEmplacement($emplacementId)
