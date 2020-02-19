@@ -110,7 +110,7 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1);
 
 function createCallback(response) {
     alertSuccessMsg('Votre arrivage a bien été créé.');
