@@ -8,7 +8,7 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
-use App\Repository\NatureRepository;
+use App\Entity\Nature;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
@@ -30,12 +30,10 @@ class EnCoursController extends AbstractController
 	 * @Route("/encours", name="en_cours", methods={"GET"})
 	 * @param UserService $userService
 	 * @param EntityManagerInterface $entityManager
-	 * @param NatureRepository $natureRepository
 	 * @return Response
 	 */
     public function index(UserService $userService,
-                          EntityManagerInterface $entityManager,
-						  NatureRepository $natureRepository
+                          EntityManagerInterface $entityManager
 	): Response
     {
 		if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
@@ -43,6 +41,7 @@ class EnCoursController extends AbstractController
 		}
 
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+		$natureRepository = $entityManager->getRepository(Nature::class);
 
         return $this->render('en_cours/index.html.twig', [
             'emplacements' => $emplacementRepository->findWhereArticleIs(),

@@ -4,7 +4,8 @@
 
 {% block page_filter %}
     {% include 'filters/filtersEncours.html.twig' with {
-        page: 'PAGE_ENCOURS'
+        page: 'PAGE_ENCOURS',
+        callback: 'reloadDatatables'
     } %}
 {% endblock %}
 
@@ -19,7 +20,7 @@
             <div class="col-12">Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.</div>
         {% endif %}
         {% for emplacement in emplacements %}
-            <div class="col-6">
+            <div class="col-6 block-encours">
                 <h1>Encours - {{ emplacement.label }}</h1>
                 <table class="table table-striped table-bordered encours-table" id="{{ emplacement.id }}">
                 </table>
