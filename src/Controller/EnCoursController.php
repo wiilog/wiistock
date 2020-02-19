@@ -8,6 +8,7 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
+use App\Repository\NatureRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
@@ -25,14 +26,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnCoursController extends AbstractController
 {
-    /**
-     * @Route("/encours", name="en_cours", methods={"GET"})
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
+	/**
+	 * @Route("/encours", name="en_cours", methods={"GET"})
+	 * @param UserService $userService
+	 * @param EntityManagerInterface $entityManager
+	 * @param NatureRepository $natureRepository
+	 * @return Response
+	 */
     public function index(UserService $userService,
-                          EntityManagerInterface $entityManager): Response
+                          EntityManagerInterface $entityManager,
+						  NatureRepository $natureRepository
+	): Response
     {
 		if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
 			return $this->redirectToRoute('access_denied');
@@ -41,7 +45,9 @@ class EnCoursController extends AbstractController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return $this->render('en_cours/index.html.twig', [
-            'emplacements' => $emplacementRepository->findWhereArticleIs()
+            'emplacements' => $emplacementRepository->findWhereArticleIs(),
+			'natures' => $natureRepository->findAll(),
+			'multiple' => true
         ]);
     }
 

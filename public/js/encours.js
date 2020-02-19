@@ -5,6 +5,15 @@ $(function() {
        }
        initDatatables();
    });
+    initSelect2('#emplacement', 'Emplacements');
+    initSelect2('#natures', 'Natures');
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ENCOURS);
+    $.post(path, params, function(data) {
+        displayFiltersSup(data);
+    }, 'json');
 });
 
 function initDatatables() {

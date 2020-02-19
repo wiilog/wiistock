@@ -2,6 +2,12 @@
 
 {% block title %}Traçabilité / Encours{% endblock %}
 
+{% block page_filter %}
+    {% include 'filters/filtersEncours.html.twig' with {
+        page: 'PAGE_ENCOURS'
+    } %}
+{% endblock %}
+
 {% block page_content %}
     <div class="row">
         <div class="col-10"><h1>Emplacements d'encours</h1></div>
