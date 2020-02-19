@@ -104,6 +104,27 @@ class MouvementTracaRepository extends ServiceEntityRepository
 	}
 
     /**
+     * @param string $colis
+     * @return  MouvementTraca
+     */
+    public function getByColisAndPriorToDate($colis, $date)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT mt
+			FROM App\Entity\MouvementTraca mt
+			WHERE mt.colis = :colis AND mt.datetime >= :date"
+        )->setParameters([
+            'colis' => $colis,
+            'date' => $date,
+        ]);
+
+        $result = $query->execute();
+        return $result;
+    }
+
+    /**
      * @param Emplacement $location
      * @return MouvementTraca[]
      * @throws DBALException
