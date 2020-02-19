@@ -47,6 +47,8 @@ $(function() {
     initDisplaySelect2Multiple('#locationUrgences', '#locationUrgencesValue');
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
+    initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
+    $('#locationArrivageDest').on('change', editArrivageDestination);
 
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
@@ -194,7 +196,7 @@ function editDashboardParams() {
         let val = $(this).val();
         let name = $(this).attr("id");
         param[name] = val;
-    })
+    });
 
     $.post(path, param, (resp) => {
         if (resp) {
@@ -215,6 +217,16 @@ function editFont() {
     $.post(path, param, (resp) => {
         if (resp) {
             location.reload();
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+        }
+    });
+}
+
+function editArrivageDestination() {
+    $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
+        if (resp) {
+            alertSuccessMsg("Mise à jour de la destination des arrivages bien effectuée.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
         }

@@ -15,4 +15,11 @@
         </label>
         <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage créé</label>
     </div>
+    <div class="row p-3 col-3 w-100">
+        <label for="locationWaitingDock" class="d-block">Emplacement de destination des arrivages</label>
+        <select class="form-control ajax-autocomplete-location d-block data" id="locationArrivageDest">
+        </select>
+        <input hidden id="locationArrivageDestValue" data-id="{{ location ? location.id : null }}"
+               data-text="{{ location ? location.label : null }}">
+    </div>
 </div>

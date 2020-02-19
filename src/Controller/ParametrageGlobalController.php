@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 
@@ -63,6 +64,7 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
+						  EmplacementRepository $emplacementRepository,
 						  TransporteurRepository $transporteurRepository,
 						  NatureRepository $natureRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
@@ -100,7 +102,8 @@ class ParametrageGlobalController extends AbstractController
 
         $carriers['id'] = implode(',', $carriers['id']);
         $carriers['text'] = implode(',', $carriers['text']);
-
+        $emplacementArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $emplacementArrivage = $emplacementArrivage ? $emplacementRepository->find($emplacementArrivage->getValue()) : null;
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
@@ -130,6 +133,9 @@ class ParametrageGlobalController extends AbstractController
 					'locations' => $globalParamService->getDashboardLocations(),
                     'valueCarriers' =>  $carriers
 				],
+                'paramArrivage' => [
+                    'location' => $emplacementArrivage
+                ]
         ]);
     }
 
@@ -742,6 +748,39 @@ class ParametrageGlobalController extends AbstractController
                 $em->flush();
             }
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifier-destination-arrivage", name="set_arrivage_default_dest", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editArrivageDestination(Request $request,
+                                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $empId = json_decode($request->getContent(), true))
+        {
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setValue($empId);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)
+                    ->setValue($empId);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
