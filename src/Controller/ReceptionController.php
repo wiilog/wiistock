@@ -884,7 +884,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-		$paramGlobalRepository = $this->getDoctrine()->getRepository('App:ParametrageGlobal');
+		$paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
 
 		$type = $reception->getType();
         if ($type) {

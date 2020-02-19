@@ -21,9 +21,9 @@
         <div class="form-group w-450px col-6">
             <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
             <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeArrivage($(this))">
-                <option>&nbsp;</option>
+                <option></option>
                 {% for status in listStatusLitige %}
-                    {% set selected = status.id == defaultStatusLitigeId  ? 'selected' %}
+                    {% set selected = (status.id == defaultStatusLitigeId) ? 'selected' %}
                     <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>

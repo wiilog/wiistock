@@ -8,6 +8,7 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Statut;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
@@ -71,7 +72,7 @@ class ParametrageGlobalController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $statusRepository = $this->getDoctrine()->getRepository('App:Statut');
+        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -622,16 +623,18 @@ class ParametrageGlobalController extends AbstractController
     public function editStatusLitigeReception(Request $request): Response
     {
 		$post = $request->request;
-		$paramGlobalRepository = $this->getDoctrine()->getRepository('App:ParametrageGlobal');
-		$parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
 
-		if (empty($parametrageGlobal)) {
+        if (empty($parametrageGlobal)) {
 			$parametrageGlobal = new ParametrageGlobal();
 			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
 			$em->persist($parametrageGlobal);
 		}
-		$parametrageGlobal->setValue($post->get('value'));
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+		$parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
 
 		$em->flush();
 
@@ -653,16 +656,18 @@ class ParametrageGlobalController extends AbstractController
     public function editStatusLitigeArrivage(Request $request): Response
     {
 		$post = $request->request;
-		$paramGlobalRepository = $this->getDoctrine()->getRepository('App:ParametrageGlobal');
-		$parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
-		$em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
 
-		if (empty($parametrageGlobal)) {
+        if (empty($parametrageGlobal)) {
 			$parametrageGlobal = new ParametrageGlobal();
 			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
 			$em->persist($parametrageGlobal);
 		}
-		$parametrageGlobal->setValue($post->get('value'));
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
 
 		$em->flush();
 

@@ -875,7 +875,7 @@ class ArrivageController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $paramGlobalRepository = $this->getDoctrine()->getRepository('App:ParametrageGlobal');
+        $paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
 
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {

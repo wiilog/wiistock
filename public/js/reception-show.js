@@ -139,6 +139,14 @@ function InitiliaserPageDataTable() {
     };
 }
 
+function initDateTimePickerReception() {
+    initDateTimePicker('#dateCommande, #dateAttendue');
+
+    $('.date-cl').each(function() {
+        initDateTimePicker('#' + $(this).attr('id'));
+    });
+}
+
 function displayErrorReception(data) {
     let $modal = $("#modalEditLigneArticle");
     let msg = 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !';
