@@ -62,6 +62,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
     let name;
+    let datesToCheck = [];
     let vals = [];
     inputsArray.each(function () {
         name = $(this).attr("name");
@@ -122,6 +123,14 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 $input.removeClass('is-invalid');
             }
         }
+        // validation valeur des inputs datetimepicker - part 1/2
+        if ($input.hasClass('date')) {
+            if ($input.hasClass('first-date')) {
+                datesToCheck.first = $input.val();
+            } else if ($input.hasClass('last-date')) {
+                datesToCheck.last = $input.val();
+            }
+        }
         // validation valeur des inputs de type password
         if ($input.attr('type') === 'password') {
             let password = $input.val();
@@ -150,8 +159,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     });
     modal.find(".elem").remove();
 
+    // validation valeur des inputs datetimepicker - part 2/2
+    let datesAreValid = datesToCheck.length === 0 || moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
+
     // si tout va bien on envoie la requête ajax...
-    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
+    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
         if (close == true) {
             modal.find('.close').click();
         }
@@ -231,6 +243,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
             msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
+        }
+
+        // cas où les dates ne sont pas dans le bon ordre
+        if (!datesAreValid) {
+            msg += "La date de début doit être antérieure à la date de fin.<br>";
         }
 
         modal.find('.error-msg').html(msg);
@@ -1088,8 +1105,8 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY') {
-    $(dateInput).datetimepicker({
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null) {
+    let options = {
         format: format,
         useCurrent: false,
         locale: moment.locale(),
@@ -1104,8 +1121,14 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
             selectDecade: 'Choisir la décennie',
-        },
-    });
+        }
+    };
+    if (minDate) {
+        options.minDate = moment().hours(0).minutes(0);
+    } if (defaultHours !== null && defaultMinutes !== null) {
+        options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
+    }
+    $(dateInput).datetimepicker(options);
 }
 
 function toggleQuill($modal, enable) {

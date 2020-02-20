@@ -288,6 +288,7 @@ class LitigeRepository extends ServiceEntityRepository
 						->andWhere('(
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
+						r.numeroReception LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value
