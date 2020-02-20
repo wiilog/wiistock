@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -65,6 +66,7 @@ class ReceptionRepository extends ServiceEntityRepository
 	 * @param Utilisateur $user
 	 * @return int
 	 * @throws NonUniqueResultException
+	 * @throws NoResultException
 	 */
 	public function countByUser($user)
 	{
@@ -136,6 +138,11 @@ class ReceptionRepository extends ServiceEntityRepository
                     $qb->andWhere('r.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
+				case 'emergency':
+					$qb
+						->andWhere('r.emergencyTriggered = :isUrgent')
+						->setParameter('isUrgent', $filter['value']);
+					break;
             }
         }
         //Filter search
