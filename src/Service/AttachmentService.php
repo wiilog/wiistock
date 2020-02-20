@@ -38,17 +38,20 @@ class AttachmentService
         }
 
         $isFileName = count($files) > 0 && is_string($files[array_key_first($files)]);
-
         foreach ($files as $fileIndex => $file) {
 			if ($file) {
-			    $filename = $isFileName
-                    ? $file
-                    : $this->saveFile($file);
-
+                if ($isFileName) {
+                    $originalFileName = $fileIndex;
+                    $fileName = $file;
+                } else {
+                    $fileArray = $this->saveFile($file);
+                    $originalFileName = $file->getClientOriginalName();
+                    $fileName = $fileArray[$file->getClientOriginalName()];
+                }
                 $pj = new PieceJointe();
                 $pj
-                    ->setOriginalName($fileIndex)
-                    ->setFileName($filename);
+                    ->setOriginalName($originalFileName)
+                    ->setFileName($fileName);
 
                 $this->em->persist($pj);
 
