@@ -321,9 +321,13 @@ class EnCoursService
                     } else {
                         $newDateInterval = new DateInterval('P0Y');
                         $newDateInterval->h = ($carry->h + $interval->h);
-                        $newDateInterval->i = ($carry->i + $interval->i);
-                        $newDateInterval->s = ($carry->s + $interval->s);
-                        $newDateInterval->f = ($carry->f + $interval->f);
+                        $i = ($carry->i + $interval->i);
+                        $newDateInterval->i = $i % 60;
+                        $newDateInterval->h += intval($i / 60);
+                        $s = ($carry->s + $interval->s);
+                        $newDateInterval->s = $s % 60;
+                        $newDateInterval->i += intval($s / 60);
+                        $newDateInterval->h += intval(($s / 60) / 60);
                         return $newDateInterval;
                     }
                 },
