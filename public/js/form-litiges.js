@@ -1,4 +1,3 @@
-
 function openNewLitigeModal($button) {
     const modalSelector = $button.data('target');
     clearModal(modalSelector);
