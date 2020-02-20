@@ -386,7 +386,7 @@ class ArrivageController extends AbstractController
 			}
 
 			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
+			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
             $data = [
                 "redirect" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
@@ -633,6 +633,9 @@ class ArrivageController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 foreach ($arrivage->getColis() as $colis) {
                     $litiges = $colis->getLitiges();
+                    foreach ($this->mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                        $entityManager->remove($mvtToDelete);
+                    }
                     $entityManager->remove($colis);
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
@@ -875,6 +878,8 @@ class ArrivageController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -912,8 +917,10 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
-				'champsLibres' => $champsLibres
-            ]);
+				'champsLibres' => $champsLibres,
+				'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+
+			]);
     }
 
     /**
@@ -943,7 +950,7 @@ class ArrivageController extends AbstractController
                 }
             }
             if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
             }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();

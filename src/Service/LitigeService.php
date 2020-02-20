@@ -122,6 +122,7 @@ class LitigeService
 			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
 			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
 			'status' => $litige['status'] ?? '',
+            'urgence' => $litige['emergencyTriggered']
 		];
         return $row;
     }

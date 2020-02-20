@@ -108,7 +108,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
                 ->setType($typeSili)
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                 ->setReference($row[0])
                 ->setQuantiteStock($row[3])
                 ->setLibelle($row[1])

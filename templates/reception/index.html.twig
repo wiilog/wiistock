@@ -39,6 +39,9 @@
         </table>
     </div>
     {% include "reception/modalNewReception.html.twig" %}
+
+    <input hidden id="noReception" value="{{ "réception.n° de réception"|trans|capitalize }}">
+
 {% endblock %}
 
 {% block javascripts %}

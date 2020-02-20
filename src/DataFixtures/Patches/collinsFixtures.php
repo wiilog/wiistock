@@ -31,9 +31,9 @@ class collinsFixtures extends Fixture implements FixtureGroupInterface
     	if ($isCollins) {
 			// spécifique collins champ libre 'BL' (numéro BL d'un article, à afficher sur étiquette)
 
-			$typeRepository = $manager->getRepository('App\Entity\Type');
-			$champLibreRepository = $manager->getRepository('App\Entity\ChampLibre');
-			$categorieCLRepository = $manager->getRepository('App\Entity\CategorieCL');
+			$typeRepository = $manager->getRepository(Type::class);
+			$champLibreRepository = $manager->getRepository(ChampLibre::class);
+			$categorieCLRepository = $manager->getRepository(CategorieCL::class);
 
 			$type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
 			$categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);

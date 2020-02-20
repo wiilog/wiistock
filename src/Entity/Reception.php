@@ -11,8 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Reception
 {
-    const CATEGORIE = 'reception';
-
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
@@ -111,6 +109,11 @@ class Reception
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
 	 */
 	private $location;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $emergencyTriggered;
 
     public function __construct()
     {
@@ -404,6 +407,18 @@ class Reception
     public function setLocation(?Emplacement $location): self
     {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function getEmergencyTriggered(): ?bool
+    {
+        return $this->emergencyTriggered;
+    }
+
+    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    {
+        $this->emergencyTriggered = $emergencyTriggered;
 
         return $this;
     }

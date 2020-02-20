@@ -200,18 +200,18 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statut);
 
             foreach ($data as $key) {
                 $demande = $this->demandeRepository->find($key);
-                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->addPreparation($preparation)
                     ->setStatut($statut);
                 $articles = $demande->getArticles();
                 foreach ($articles as $article) {
-                    $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                    $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                     $preparation->addArticle($article);
                 }
                 $lignesArticles = $demande->getLigneArticle();
@@ -313,7 +313,7 @@ class PreparationController extends AbstractController
                 foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
                     $isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                    $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $qtt = $isRefByRef ?
                         $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
@@ -425,12 +425,12 @@ class PreparationController extends AbstractController
         $demande = $preparation->getDemande();
         if ($demande->getPreparations()->count() === 1) {
             $demande
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
         }
 
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
-            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF));
+            $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF));
             if ($article->getQuantiteAPrelever()) {
                 $article->setQuantite($article->getQuantiteAPrelever());
                 $article->setQuantiteAPrelever(0);
@@ -458,7 +458,7 @@ class PreparationController extends AbstractController
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
             $refArticle = $ligneArticle->getReference();
-            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $preparation = $ligneArticle->getPreparation();
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif, $preparation, $preparation->getDemande());
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
@@ -582,7 +582,7 @@ class PreparationController extends AbstractController
             $preparation = $this->preparationRepository->find($prepaId);
 
             if ($preparation) {
-                $statusInProgress = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                $statusInProgress = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
                 $preparation
                     ->setStatut($statusInProgress)
                     ->setUtilisateur($this->getUser());

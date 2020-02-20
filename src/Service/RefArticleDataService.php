@@ -236,7 +236,7 @@ class RefArticleDataService
         $listArticlesFournisseur = [];
         $articlesFournisseurs = $articleRef->getArticlesFournisseur();
         $totalQuantity = 0;
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         foreach ($articlesFournisseurs as $articleFournisseur) {
             $quantity = 0;
             foreach ($articleFournisseur->getArticles() as $article) {
@@ -364,7 +364,7 @@ class RefArticleDataService
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
-                $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $data['statut']);
+                $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
