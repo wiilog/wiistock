@@ -123,8 +123,9 @@ class ParametrageGlobalController extends AbstractController
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
-                    'location' => $emplacementArrivage
-				],
+                    'location' => $emplacementArrivage,
+                    'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+                ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
                 'paramTranslations' => [
@@ -509,6 +510,39 @@ class ParametrageGlobalController extends AbstractController
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)
+                    ->setValue($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autoprint-switch", name="active_desactive_auto_print", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function actifDesactifAutoPrint(Request $request,
+                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::AUTO_PRINT_COLIS);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setValue($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
                     ->setValue($data['val']);
                 $em->persist($parametrage);
                 $em->flush();

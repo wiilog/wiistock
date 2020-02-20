@@ -215,6 +215,7 @@ class ArrivageController extends AbstractController
      * @param ChampLibreRepository $champLibreRepository
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
@@ -233,8 +234,9 @@ class ArrivageController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
-            'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage()
+			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
+            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage(),
+            'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
         ]);
     }
 
