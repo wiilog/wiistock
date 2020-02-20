@@ -51,7 +51,7 @@
 
     <div class="row mt-2">
         <div class="col-6">
-            <div class="text-right">
+            <div class="text-right mh-60px">
                 {% if modifiable %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
@@ -76,7 +76,7 @@
             </div>
         </div>
         <div class="col-6">
-            <div class="text-right">
+            <div class="text-right mh-60px">
                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href=""
                        data-id='{{ reception.id }}'
