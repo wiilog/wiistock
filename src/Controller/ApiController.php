@@ -923,12 +923,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishCollecte", name="api-finish-collecte")
      * @Rest\View()
      * @param Request $request
+     * @param OrdreCollecteService $ordreCollecteService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
      */
     public function finishCollecte(Request $request,
+                                   OrdreCollecteService $ordreCollecteService,
                                    EntityManagerInterface $entityManager)
     {
         $resData = [];
@@ -936,44 +938,97 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
-                $resData = ['success' => [], 'errors' => []];
+                $resData = ['success' => [], 'errors' => [], 'data' => []];
 
                 $collectes = json_decode($request->request->get('collectes'), true);
 
+                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                $articleRepository = $entityManager->getRepository(Article::class);
+                $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
+                $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+                $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
                 // on termine les collectes
                 foreach ($collectes as $collecteArray) {
-                    $collecte = $this->ordreCollecteRepository->find($collecteArray['id']);
+                    $collecte = $ordreCollecteRepository->find($collecteArray['id']);
                     try {
                         $entityManager->transactional(function ()
-                                                      use ($entityManager, $collecteArray, $collecte, $nomadUser, &$resData) {
-                            $this->ordreCollecteService->setEntityManager($entityManager);
+                                                      use ($entityManager,
+                                                           $collecteArray,
+                                                           $collecte,
+                                                           $nomadUser,
+                                                           &$resData,
+                                                           $mouvementTracaRepository,
+                                                           $articleRepository,
+                                                           $refArticlesRepository,
+                                                           $ordreCollecteRepository,
+                                                           $emplacementRepository,
+                                                           $ordreCollecteService) {
+                            $ordreCollecteService->setEntityManager($entityManager);
                             $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
-                            $endLocation = $this->emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                            $newCollecte = $this->ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements'], true);
+                            $endLocation = $emplacementRepository->findOneByLabel($collecteArray['location_to']);
+                            $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements'], true);
                             $entityManager->flush();
 
                             if (!empty($newCollecte)) {
                                 $newCollecteId = $newCollecte->getId();
-                                $newCollecteArray = $this->ordreCollecteRepository->getById($newCollecteId);
+                                $newCollecteArray = $ordreCollecteRepository->getById($newCollecteId);
 
-                                $articlesCollecte = $this->articleRepository->getByOrdreCollecteId($newCollecteId);
-                                $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollecteId($newCollecteId);
+                                $articlesCollecte = $articleRepository->getByOrdreCollecteId($newCollecteId);
+                                $refArticlesCollecte = $refArticlesRepository->getByOrdreCollecteId($newCollecteId);
                                 $articlesCollecte = array_merge($articlesCollecte, $refArticlesCollecte);
                             }
 
                             $resData['success'][] = [
                                 'numero_collecte' => $collecte->getNumero(),
-                                'id_collecte' => $collecte->getId(),
-                                'newCollecte' => $newCollecteArray ?? null,
-                                'articlesCollecte' => $articlesCollecte ?? []
+                                'id_collecte' => $collecte->getId()
                             ];
+
+                            $newTakings = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed(
+                                $nomadUser,
+                                MouvementTracaRepository::MOUVEMENT_TRACA_STOCK,
+                                [$collecte->getId()]
+                            );
+
+                            if (!empty($newTakings)) {
+                                if (!isset($resData['data']['stockTakings'])) {
+                                    $resData['data']['stockTakings'] = [];
+                                }
+                                array_push(
+                                    $resData['data']['stockTakings'],
+                                    ...$newTakings
+                                );
+                            }
+
+                            if (isset($newCollecteArray)) {
+                                if (!isset($resData['data']['newCollectes'])) {
+                                    $resData['data']['newCollectes'] = [];
+                                }
+                                $resData['data']['newCollectes'][] = $newCollecteArray;
+                            }
+
+                            if (!empty($articlesCollecte)) {
+                                if (!isset($resData['data']['articlesCollecte'])) {
+                                    $resData['data']['articlesCollecte'] = [];
+                                }
+                                array_push(
+                                    $resData['data']['articlesCollecte'],
+                                    ...$articlesCollecte
+                                );
+                            }
                         });
                     } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
-                            $this->ordreCollecteService->setEntityManager($entityManager);
+                            $ordreCollecteService->setEntityManager($entityManager);
+
+                            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                            $articleRepository = $entityManager->getRepository(Article::class);
+                            $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
+                            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+                            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         }
 
                         $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
@@ -1004,7 +1059,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Get("/api/addInventoryEntries")
      * @Rest\View()
      * @param Request $request
-     * @param InventoryEntryRepository $inventoryEntryRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */

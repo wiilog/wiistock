@@ -16,8 +16,9 @@
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="no-clear form-control input-sm data select2 {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="fournisseur" id="fournisseur">
+                                <option {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'disabled' }}>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
                                     <option value="{{ fournisseur.id }}">{{fournisseur.nom}}</option>
                                 {% endfor %}
@@ -33,8 +34,9 @@
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="no-clear form-control input-sm data select2 {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="transporteur" id="transporteur">
+                                <option {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'disabled' }}>&nbsp;</option>
                                 {% for carrier in carriers %}
                                     <option value="{{ carrier.id }}">{{carrier.label}}</option>
                                 {% endfor %}
@@ -169,7 +171,7 @@
 
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
-                            <label for="acheteurs">Acheteur(s){{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="acheteurs">Acheteurs{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
                                 <option value="{{ app.user.id }}">{{ app.user.username }}</option>
@@ -193,8 +195,10 @@
                     <div class="form-group col-2">
                         <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                         <label class="switch d-block-switch mt-2">
-                            <input class="checkbox" type="checkbox" name="printColis">
+                            {% set isSafranEd = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                            <input class="checkbox no-clear" type="checkbox" name="printColis" id="printColis" {{ isSafranEd ? 'checked' }}>
                             <span class="slider round"></span>
+                            <input hidden value="{{ isSafranEd }}" id="printColisChecked">
                         </label>
                     </div>
                     <div class="col-6 blocVisible d-block natures-container">
@@ -207,7 +211,8 @@
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array"
-                                           name="nature" data-id="{{ nature.id }}" min="0" value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
+                                           name="nature" data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                           data-id="{{ nature.id }}" min="0" value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                 </div>
                             {% endfor %}
                         </div>

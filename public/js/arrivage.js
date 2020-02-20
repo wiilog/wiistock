@@ -16,7 +16,7 @@ $(function() {
         initFilterDateToday();
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Destinataires');
+    ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
     $('select[name="tableArrivages_length"]').on('change', function() {
         $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify($(this).val()));
@@ -110,7 +110,7 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1, redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1);
 
 function createCallback(response) {
     alertSuccessMsg('Votre arrivage a bien été créé.');
@@ -118,6 +118,8 @@ function createCallback(response) {
         $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
         $('.list-multiple').select2();
         $modalNewArrivage.find('#statut').val(response.statutConformeId);
+        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
+        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
     }
     if (response.printColis) {
         let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: response.arrivageId }, true);

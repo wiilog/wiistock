@@ -14,7 +14,7 @@
         </div>
         <div class="mb-3 form-group col-12">
             <label>Quantité par défaut*</label>
-            <input type="text" class="data form-control needed" name="quantity" value="{{ nature.defaultQuantity ? nature.defaultQuantity : '' }}">
+            <input type="text" class="data form-control needed" name="quantity" value="{{ nature.defaultQuantity is defined ? nature.defaultQuantity : '' }}">
         </div>
         <div class="mb-3 form-group col-12">
             <label>Couleur*</label>
