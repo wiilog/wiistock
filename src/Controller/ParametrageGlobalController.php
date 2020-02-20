@@ -5,11 +5,14 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\Emplacement;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\Transporteur;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
@@ -17,7 +20,6 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
-use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -46,34 +48,30 @@ class ParametrageGlobalController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
-	/**
-	 * @Route("/", name="global_param_index")
-	 * @param TranslationRepository $translationRepository
-	 * @param UserService $userService
-	 * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
-	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
-	 * @param MailerServerRepository $mailerServerRepository
-	 * @param GlobalParamService $globalParamService
-	 * @param EntityManagerInterface $entityManager
-	 * @param TransporteurRepository $transporteurRepository
-	 * @return Response
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function index(TranslationRepository $translationRepository,
-                          UserService $userService,
-                          DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
-                          ParametrageGlobalRepository $parametrageGlobalRepository,
-                          MailerServerRepository $mailerServerRepository,
+    /**
+     * @Route("/", name="global_param_index")
+     * @param UserService $userService
+     * @param GlobalParamService $globalParamService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function index(UserService $userService,
 						  GlobalParamService $globalParamService,
-						  EntityManagerInterface $entityManager,
-						  TransporteurRepository $transporteurRepository): Response {
+						  EntityManagerInterface $entityManager): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
+        $translationRepository = $entityManager->getRepository(Translation::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -106,7 +104,10 @@ class ParametrageGlobalController extends AbstractController
 
         $carriers['id'] = implode(',', $carriers['id']);
         $carriers['text'] = implode(',', $carriers['text']);
-
+        $emplacementArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $emplacementArrivage = isset($emplacementArrivageId)
+            ? $emplacementRepository->find($emplacementArrivageId)
+            : null;
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
@@ -121,8 +122,10 @@ class ParametrageGlobalController extends AbstractController
                 'paramArrivages' => [
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR)
-				],
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                    'location' => $emplacementArrivage,
+                    'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+                ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
                 'paramTranslations' => [
@@ -517,6 +520,39 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
+     * @Route("/autoprint-switch", name="active_desactive_auto_print", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function actifDesactifAutoPrint(Request $request,
+                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::AUTO_PRINT_COLIS);
+            $em = $this->getDoctrine()->getManager();
+            if ($ifExist)
+            {
+                $ifExist->setValue($data['val']);
+                $em->flush();
+            }
+            else
+            {
+                $parametrage = new ParametrageGlobal();
+                $parametrage
+                    ->setLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
+                    ->setValue($data['val']);
+                $em->persist($parametrage);
+                $em->flush();
+            }
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
      * @param Request $request
      * @param TranslationRepository $translationRepository
@@ -850,6 +886,33 @@ class ParametrageGlobalController extends AbstractController
                 $em->flush();
             }
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifier-destination-arrivage", name="set_arrivage_default_dest", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editArrivageDestination(Request $request,
+                                            ParametrageGlobalRepository $parametrageGlobalRepository): Response {
+        if ($request->isXmlHttpRequest()) {
+            $value = json_decode($request->getContent(), true);
+            $trimmedValue = trim($value);
+            $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $em = $this->getDoctrine()->getManager();
+            if (!isset($parametrage)) {
+                $parametrage = new ParametrageGlobal();
+                $parametrage->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+                $em->persist($parametrage);
+            }
+            $parametrage->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+            $em->flush();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }

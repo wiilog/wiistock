@@ -6,7 +6,7 @@
     </h1>
 </a>
 <div class="collapse col-12" id="paramArrivage">
-    <div class="row p-3">
+    <div class="row mt-2">
         <div class="col-12">
             {% set checked = (redirect ? 'checked' : '') %}
             <label class="switch">
@@ -18,7 +18,18 @@
         </div>
     </div>
     <div class="row p-3">
-        <div class="form-group w-450px col-6">
+        <div class="col-12">
+            {% set checked = (autoPrint ? 'checked' : '') %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_auto_print') }}')">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-create-demande-livraison">Impression cochée par défaut</label>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group w-450px col-4">
             <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
             <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeArrivage($(this))">
                 <option></option>
@@ -27,6 +38,18 @@
                     <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label for="locationWaitingDock" class="d-block">Emplacement de destination des arrivages</label>
+            <select class="form-control ajax-autocomplete-location d-block data w-100"
+                    id="locationArrivageDest">
+            </select>
+            <input hidden
+                   id="locationArrivageDestValue"
+                   data-id="{{ location ? location.id : null }}"
+                   data-text="{{ location ? location.label : null }}"/>
         </div>
     </div>
 </div>
