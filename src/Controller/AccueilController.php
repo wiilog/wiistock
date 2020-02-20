@@ -16,8 +16,7 @@ use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -348,26 +347,27 @@ class AccueilController extends AbstractController
         return new JsonResponse($arrivalsCountByWeek);
     }
 
-    /**
-     * @Route(
-     *     "/statistiques-encours-par-duree-et-nature/{graph}",
-     *     name="get_encours_count_by_nature_and_timespan",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param DashboardService $dashboardService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param EnCoursService $enCoursService
-     * @param EmplacementRepository $emplacementRepository
-     * @param int $graph
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws DBALException
-     */
+	/**
+	 * @Route(
+	 *     "/statistiques-encours-par-duree-et-nature/{graph}",
+	 *     name="get_encours_count_by_nature_and_timespan",
+	 *     options={"expose"=true},
+	 *     methods="GET",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param DashboardService $dashboardService
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param EntityManagerInterface $entityManager
+	 * @param EnCoursService $enCoursService
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param int $graph
+	 * @return Response
+	 * @throws DBALException
+	 * @throws NonUniqueResultException
+	 */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        ParametrageGlobalRepository $parametrageGlobalRepository,
-                                                       EntityManager $entityManager,
+                                                       EntityManagerInterface $entityManager,
                                                        EnCoursService $enCoursService,
                                                        EmplacementRepository $emplacementRepository,
                                                        int $graph): Response {

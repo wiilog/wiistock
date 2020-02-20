@@ -14,8 +14,6 @@ use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
-
-use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
@@ -23,7 +21,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -56,8 +54,8 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param EntityManagerInterface $entityManager
 	 * @param TransporteurRepository $transporteurRepository
-	 * @param NatureRepository $natureRepository
 	 * @return Response
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
@@ -68,8 +66,7 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
-						  EntityManager $entityManager,
-						  NatureRepository $natureRepository,
+						  EntityManagerInterface $entityManager,
 						  TransporteurRepository $transporteurRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -563,9 +560,10 @@ class ParametrageGlobalController extends AbstractController
 	 *     condition="request.isXmlHttpRequest()"
 	 * )
 	 * @param Request $request
+	 * @param EntityManagerInterface $entityManager
 	 * @return Response
 	 */
-    public function editStatusReceptions(Request $request, EntityManager $entityManager): Response
+    public function editStatusReceptions(Request $request, EntityManagerInterface $entityManager): Response
 	{
 		$statusRepository = $entityManager->getRepository(Statut::class);
 
