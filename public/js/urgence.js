@@ -2,7 +2,8 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
     initPage();
     initDateTimePicker('#dateMin, #dateMax');
-    initDateTimePicker('#dateStart, #dateEnd', 'DD/MM/YYYY HH:mm');
+    initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
+    initDateTimePicker('#dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

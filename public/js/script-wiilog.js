@@ -1080,8 +1080,8 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY') {
-    $(dateInput).datetimepicker({
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null) {
+    let options = {
         format: format,
         useCurrent: false,
         locale: moment.locale(),
@@ -1096,8 +1096,14 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
             selectMonth: 'Choisir le mois',
             selectYear: 'Choisir l\'année',
             selectDecade: 'Choisir la décennie',
-        },
-    });
+        }
+    };
+    if (minDate) {
+        options.minDate = moment().hours(0).minutes(0);
+    } if (defaultHours !== null && defaultMinutes !== null) {
+        options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
+    }
+    $(dateInput).datetimepicker(options);
 }
 
 function toggleQuill($modal, enable) {
