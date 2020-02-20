@@ -938,7 +938,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if (!$request->isXmlHttpRequest()) {
             $apiKey = $request->request->get('apiKey');
             if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
-                $resData = ['success' => [], 'errors' => []];
+                $resData = ['success' => [], 'errors' => [], 'data' => []];
 
                 $collectes = json_decode($request->request->get('collectes'), true);
 
@@ -982,15 +982,41 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             $resData['success'][] = [
                                 'numero_collecte' => $collecte->getNumero(),
-                                'id_collecte' => $collecte->getId(),
-                                'stockTaking' => $mouvementTracaRepository->getTakingByOperatorAndNotDeposed(
-                                    $nomadUser,
-                                    MouvementTracaRepository::MOUVEMENT_TRACA_STOCK,
-                                    [$collecte->getId()]
-                                ),
-                                'newCollecte' => $newCollecteArray ?? null,
-                                'articlesCollecte' => $articlesCollecte ?? []
+                                'id_collecte' => $collecte->getId()
                             ];
+
+                            $newTakings = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed(
+                                $nomadUser,
+                                MouvementTracaRepository::MOUVEMENT_TRACA_STOCK,
+                                [$collecte->getId()]
+                            );
+
+                            if (!empty($newTakings)) {
+                                if (!isset($resData['data']['stockTakings'])) {
+                                    $resData['data']['stockTakings'] = [];
+                                }
+                                array_push(
+                                    $resData['data']['stockTakings'],
+                                    ...$newTakings
+                                );
+                            }
+
+                            if (isset($newCollecteArray)) {
+                                if (!isset($resData['data']['newCollectes'])) {
+                                    $resData['data']['newCollectes'] = [];
+                                }
+                                $resData['data']['newCollectes'][] = $newCollecteArray;
+                            }
+
+                            if (!empty($articlesCollecte)) {
+                                if (!isset($resData['data']['articlesCollecte'])) {
+                                    $resData['data']['articlesCollecte'] = [];
+                                }
+                                array_push(
+                                    $resData['data']['articlesCollecte'],
+                                    ...$articlesCollecte
+                                );
+                            }
                         });
                     } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
