@@ -316,22 +316,17 @@ class EnCoursService
             $age = array_reduce(
                 $periodsWorked,
                 function (?DateInterval $carry, DateInterval $interval) {
-                    if (!isset($carry)) {
-                        return $interval;
-                    } else {
-                        $newDateInterval = new DateInterval('P0Y');
-                        $newDateInterval->h = ($carry->h + $interval->h);
-                        $i = ($carry->i + $interval->i);
-                        $newDateInterval->i = $i % 60;
-                        $newDateInterval->h += intval($i / 60);
-                        $s = ($carry->s + $interval->s);
-                        $newDateInterval->s = $s % 60;
-                        $newDateInterval->i += intval($s / 60);
-                        $newDateInterval->h += intval(($s / 60) / 60);
-                        return $newDateInterval;
-                    }
+                    $s = ($carry->s + $interval->s);
+                    $i = ($carry->i + $interval->i) + intval($s / 60);
+                    $h = ($carry->h + $interval->h) + intval($i / 60);
+
+                    $newDateInterval = new DateInterval('P0Y');
+                    $newDateInterval->h = $h;
+                    $newDateInterval->i = $i % 60;
+                    $newDateInterval->s = $s % 60;
+                    return $newDateInterval;
                 },
-                null
+                new DateInterval('P0Y')
             );
         } else {
             // age null
