@@ -369,8 +369,8 @@ class InventoryMissionRepository extends ServiceEntityRepository
      */
     public function countByRefAndDates($ref, $startDate, $endDate): int {
         return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
-            ->join('mission.articles', 'article')
-            ->andWhere('refArticles = :refArt')
+            ->join('mission.refArticles', 'refArticle')
+            ->andWhere('refArticle = :refArt')
             ->setParameter('refArt', $ref)
             ->select('COUNT(mission)')
             ->getQuery()
@@ -379,8 +379,8 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
     /**
      * @param Article $art
-     * @param DateTimeInterface $startDate
-     * @param ObjectType $endDate
+     * @param DateTime $startDate
+     * @param DateTime $endDate
      * @return int
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -398,8 +398,10 @@ class InventoryMissionRepository extends ServiceEntityRepository
 	private function createQueryBuilderMissionInBracket(DateTime $startDate, DateTime $endDate): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('mission');
         $exprBuilder = $queryBuilder->expr();
+
+        // On teste si les dates ne se chevauchent pas
         return $queryBuilder
-            ->where($exprBuilder->andX(
+            ->where($exprBuilder->orX(
                 $exprBuilder->between('mission.startPrevDate', ':startDate', ':endDate'),
                 $exprBuilder->between('mission.endPrevDate', ':startDate', ':endDate'),
                 $exprBuilder->between(':startDate', 'mission.startPrevDate', 'mission.endPrevDate'),

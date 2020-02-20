@@ -47,5 +47,6 @@ InitialiserModal(modalAddToMission, submitAddToMission, urlAddToMission, tableMi
 function displayErrorAddToMission(data)
 {
     if (!data) {
-        alertErrorMsg("Cette référence est déjà présente dans une autre mission sur la même période. Vous ne pouvez pas l'ajouter.", true);
-    }}
+        alertErrorMsg("Cette référence est déjà présente dans une mission sur la même période. Vous ne pouvez pas l'ajouter.", true);
+    }
+}
