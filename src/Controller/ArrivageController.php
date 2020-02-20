@@ -208,13 +208,14 @@ class ArrivageController extends AbstractController
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
-	/**
-	 * @Route("/", name="arrivage_index")
-	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
-	 * @param ChampLibreRepository $champLibreRepository
-	 * @return RedirectResponse|Response
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @Route("/", name="arrivage_index")
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param ChampLibreRepository $champLibreRepository
+     * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -233,7 +234,8 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
 			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage()
+            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage(),
+            'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
         ]);
     }
 

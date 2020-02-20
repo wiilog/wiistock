@@ -86,6 +86,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            ParametrageGlobal::AUTO_PRINT_COLIS => [
+                'default' => true,
+            ],
             ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
