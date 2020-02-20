@@ -169,7 +169,7 @@
                             {% if hasRightStockRefe %}
                                 <li>
                                     <a href="{{ path('reference_article_index') }}" class="sub-item">
-                                        {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                                             • Référence CEA
                                         {% else %}
                                             • Référence
