@@ -366,8 +366,8 @@ class AccueilController extends AbstractController
                                                        ParametrageGlobalRepository $parametrageGlobalRepository,
                                                        EnCoursService $enCoursService,
                                                        EmplacementRepository $emplacementRepository,
-                                                       int $graph): Response {
-
+                                                       int $graph): Response
+	{
         $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;

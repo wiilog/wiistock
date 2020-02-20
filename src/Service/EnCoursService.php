@@ -179,17 +179,17 @@ class EnCoursService
         return null;
     }
 
-    /**
-     * @param Emplacement $emplacement
-     * @return array
-     * @throws DBALException
-     * @throws Exception
-     */
-    public function getEnCoursForEmplacement(Emplacement $emplacement)
+	/**
+	 * @param Emplacement $emplacement
+	 * @param string|null $filters
+	 * @return array
+	 * @throws DBALException
+	 */
+    public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = null)
     {
         $success = true;
         $emplacementInfo = [];
-        $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement);
+        $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement, $filters);
 
         foreach ($mouvements as $mouvement) {
             $dateMvt = new DateTime($mouvement->getDatetime()->format('d-m-Y H:i'), new DateTimeZone("Europe/Paris"));

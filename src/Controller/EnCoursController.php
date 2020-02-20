@@ -6,9 +6,11 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
+use App\Repository\FiltreSupRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
@@ -50,22 +52,28 @@ class EnCoursController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EnCoursService $enCoursService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws Exception
-     */
+	/**
+	 * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @param Request $request
+	 * @param EnCoursService $enCoursService
+	 * @param FiltreSupRepository $filtreSupRepository
+	 * @param EntityManagerInterface $entityManager
+	 * @return JsonResponse
+	 * @throws DBALException
+	 * @throws NonUniqueResultException
+	 */
     public function apiForEmplacement(Request $request,
                                       EnCoursService $enCoursService,
-                                      EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $emplacement = $entityManager->find(Emplacement::class, $data['id']);
-            return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement));
-        }
-        throw new NotFoundHttpException("404");
+                                      FiltreSupRepository $filtreSupRepository,
+                                      EntityManagerInterface $entityManager): Response
+	{
+    	$emplacementRepository = $entityManager->getRepository(Emplacement::class);
+    	$emplacement = $emplacementRepository->find($request->request->get('id'));
+
+		$filter = $filtreSupRepository->getOnebyFieldAndPageAndUser(FiltreSup::FIELD_NATURES, FiltreSup::PAGE_ENCOURS, $this->getUser());
+		$filters = $filter ? explode(',', $filter) : null;
+
+		return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement, $filters));
     }
 
 

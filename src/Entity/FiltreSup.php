@@ -49,6 +49,7 @@ class FiltreSup
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
     const PAGE_ALERTE = 'alerte';
+    const PAGE_ENCOURS = 'encours';
 
 
     const PAGE_TO_CATEGORY = [

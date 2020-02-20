@@ -13,7 +13,6 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -105,22 +104,45 @@ class MouvementTracaRepository extends ServiceEntityRepository
 
     /**
      * @param Emplacement $location
+	 * @param string|null $natureIds
      * @return MouvementTraca[]
      * @throws DBALException
      */
-    public function findObjectOnLocation(Emplacement $location): array {
-        return $this->createQueryBuilderObjectOnLocation($location)
-            ->getQuery()
+    public function findObjectOnLocation(Emplacement $location, $natureIds = null): array {
+
+        $finalQuery = $this->createQueryBuilderObjectOnLocation($location);
+
+    	if ($natureIds) {
+			$query = $this->getEntityManager()->createQuery(
+				/** @lang DQL */
+				'SELECT mt.id
+				FROM App\Entity\MouvementTraca mt
+				JOIN App\Entity\Colis c WITH mt.colis = c.code
+				WHERE c.nature IN (:naturesId)
+				AND mt.emplacement = :locationId
+				')
+				->setParameter('naturesId', $natureIds, Connection::PARAM_STR_ARRAY)
+				->setParameter('locationId', $location->getId());
+
+			$mvtTracaIds = array_column($query->execute(), 'id');
+
+			$finalQuery
+				->andWhere('mouvementTraca.id IN (:mouvementTracaIds)')
+				->setParameter('mouvementTracaIds', $mvtTracaIds, Connection::PARAM_STR_ARRAY);
+		}
+
+    	return $finalQuery
+			->getQuery()
             ->getResult();
     }
 
-    /**
-     * @param Emplacement $location
-     * @return MouvementTraca[]
-     * @throws DBALException
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Emplacement $location
+	 * @return int
+	 * @throws DBALException
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
     public function countObjectOnLocation(Emplacement $location): int {
         return $this->createQueryBuilderObjectOnLocation($location)
             ->select('COUNT(mouvementTraca.id)')

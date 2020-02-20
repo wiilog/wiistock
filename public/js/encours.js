@@ -20,10 +20,11 @@ $(function() {
 
 function initDatatables() {
     let idLocationsToDisplay = $('#emplacement').val();
+    let noFilter = idLocationsToDisplay.length === 0;
 
     $('.encours-table').each(function () {
         let that = $(this);
-        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0) {
+        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0 && !noFilter) {
             that.closest('.block-encours').hide();
         } else {
             initOrReloadOneDatatable(that);
@@ -48,13 +49,8 @@ function initOrReloadOneDatatable(that) {
             },
             ajax: {
                 "url": routeForApi,
-                "contentType": "application/json",
                 "type": "POST",
-                "data": function () {
-                    return JSON.stringify({
-                        id: that.attr('id')
-                    });
-                }
+                "data": { id: that.attr('id') }
             },
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
@@ -82,12 +78,13 @@ function initOrReloadOneDatatable(that) {
 
 function reloadDatatables() {
     let idLocationsToDisplay = $('#emplacement').val();
+    let noFilter = idLocationsToDisplay.length === 0;
 
     $('.encours-table').each(function () {
         let that = $(this);
         let blockEncours = that.closest('.block-encours');
 
-        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0) {
+        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0 && !noFilter) {
             blockEncours.hide();
         } else {
             blockEncours.show();
