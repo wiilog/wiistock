@@ -19,6 +19,11 @@ class Statut
     private $id;
 
     /**
+     * @ORM\Column(type="string", length=32, nullable=true)
+     */
+    private $code;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nom;
@@ -539,6 +544,18 @@ class Statut
                 $arrivage->setStatut(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): self
+    {
+        $this->code = $code;
 
         return $this;
     }

@@ -41,8 +41,8 @@ class PatchRenameStatutArt extends Fixture implements FixtureGroupInterface
 
 	public function load(ObjectManager $manager)
 	{
-        $statutActifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'actif');
-        $statutInactifArts = $this->statutRepository->findOneByCategorieNameAndStatutName('article', 'inactif');
+        $statutActifArts = $this->statutRepository->findOneByCategorieNameAndStatutCode('article', 'actif');
+        $statutInactifArts = $this->statutRepository->findOneByCategorieNameAndStatutCode('article', 'inactif');
 
         if (!empty($statutActifArts)) {
             $statutActifArts->setNom(Article::STATUT_ACTIF);

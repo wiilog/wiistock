@@ -80,24 +80,24 @@ class StatutRepository extends ServiceEntityRepository
 
     /**
      * @param string $categorieName
-     * @param string $statutName
+     * @param string $statutCode
      * @return Statut | null
      * @throws NonUniqueResultException
      */
-    public function findOneByCategorieNameAndStatutName($categorieName, $statutName)
+    public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT s
           FROM App\Entity\Statut s
           JOIN s.categorie c
-          WHERE c.nom = :categorieName AND s.nom = :statutName
+          WHERE c.nom = :categorieName AND s.code = :statutCode
           "
         );
 
         $query->setParameters([
             'categorieName' => $categorieName,
-            'statutName' => $statutName
+            'statutCode' => $statutCode
         ]);
 
         return $query->getOneOrNullResult();

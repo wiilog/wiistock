@@ -202,7 +202,7 @@ class DemandeLivraisonService
         }
         $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $this->emplacementRepository->find($data['destination']);
         $type = $this->typeRepository->find($data['type']);
 
@@ -245,14 +245,14 @@ class DemandeLivraisonService
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
-            $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
+            $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $preparation
                     ->setNumero('P-' . $date->format('YmdHis'))
                     ->setDate($date);
-                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
                 $this->em->persist($preparation);
                 $demande->addPreparation($preparation);

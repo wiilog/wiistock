@@ -152,9 +152,9 @@ class PreparationsManagerService
         }
         $isPreparationComplete = $this->isPreparationComplete($preparation);
         $prepaStatusLabel = $isPreparationComplete ? Preparation::STATUT_PREPARE : Preparation::STATUT_INCOMPLETE;
-        $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, $prepaStatusLabel);
+        $statutPreparePreparation = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, $prepaStatusLabel);
         $demandeStatusLabel = $isPreparationComplete ? Demande::STATUT_PREPARE : Demande::STATUT_INCOMPLETE;
-        $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
+        $statutPrepareDemande = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $demandeStatusLabel);
         if ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER) {
             $demande->setStatut($statutPrepareDemande);
         }
@@ -197,7 +197,7 @@ class PreparationsManagerService
     public function persistLivraison(DateTime $dateEnd, Preparation $preparation)
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $statut = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
 
         $livraison
@@ -233,7 +233,7 @@ class PreparationsManagerService
         $newPreparation
             ->setNumero('P-' . $date->format('YmdHis'))
             ->setDate($date)
-            ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
+            ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
         $demande->addPreparation($newPreparation);
         foreach ($listOfArticleSplitted as $articleId) {
             $articleToKeep = $articleRepository->find($articleId);
@@ -375,7 +375,7 @@ class PreparationsManagerService
                 }
 
                 $article
-                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
+                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT))
                     ->setQuantitePrelevee($mouvement['quantity']);
             }
         }
@@ -437,7 +437,7 @@ class PreparationsManagerService
                 $quantitePrelevee = $article->getQuantitePrelevee();
                 $selected = !(empty($quantitePrelevee));
                 $article->setStatut(
-                    $statutRepository->findOneByCategorieNameAndStatutName(
+                    $statutRepository->findOneByCategorieNameAndStatutCode(
                         Article::CATEGORIE,
                         $selected ? Article::STATUT_EN_TRANSIT : Article::STATUT_ACTIF));
                 // scission des articles dont la quantité prélevée n'est pas totale
@@ -508,7 +508,7 @@ class PreparationsManagerService
 
         if (!$preparation->getStatut() || !$preparation->getUtilisateur()) {
             // modif du statut de la préparation
-            $statutEDP = $statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+            $statutEDP = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
             $preparation
                 ->setStatut($statutEDP)
                 ->setUtilisateur($user);

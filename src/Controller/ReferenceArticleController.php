@@ -428,7 +428,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, $data['statut']);
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
             switch($data['type_quantite']) {
                 case 'article':
@@ -922,7 +922,7 @@ class ReferenceArticleController extends AbstractController
 						}
 						$newArticle = new Article();
 						$index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-						$statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_INACTIF);
+						$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
 						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 						$ref = $date->format('YmdHis');
 						$articleFournisseur = new ArticleFournisseur();
@@ -982,7 +982,7 @@ class ReferenceArticleController extends AbstractController
             if ($refArticle) {
                 $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
-                $statutD = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+                $statutD = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1267,7 +1267,7 @@ class ReferenceArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
 
-            $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+            $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
             $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());

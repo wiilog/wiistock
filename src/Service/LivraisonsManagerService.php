@@ -76,7 +76,7 @@ class LivraisonsManagerService {
             $statutRepository = $this->entityManager->getRepository(Statut::class);
             $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-            $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutName(
+            $statutForLivraison = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::ORDRE_LIVRAISON,
                 $livraison->getPreparation()->getStatut()->getNom() === Preparation::STATUT_INCOMPLETE ? Livraison::STATUT_INCOMPLETE : Livraison::STATUT_LIVRE);
 
@@ -96,7 +96,7 @@ class LivraisonsManagerService {
                     break;
                 }
             }
-            $statutLivre = $statutRepository->findOneByCategorieNameAndStatutName(
+            $statutLivre = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
@@ -115,7 +115,7 @@ class LivraisonsManagerService {
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== 0) {
                     $article
-                        ->setStatut($statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+                        ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
                         ->setEmplacement($demande->getDestination());
                 }
             }

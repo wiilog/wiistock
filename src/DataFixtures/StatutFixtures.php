@@ -155,12 +155,13 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
 			// création des statuts
 			foreach ($statuses as $statusLabel) {
-				$statut = $this->statutRepository->findOneByCategorieNameAndStatutName($categoryName, $statusLabel);
+				$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
 
 				if (empty($statut)) {
 					$statut = new Statut();
 					$statut
 						->setNom($statusLabel)
+						->setCode($statusLabel)
 						->setCategorie($this->getReference('statut-' . $categoryName));
 					$manager->persist($statut);
 					dump("création du statut " . $statusLabel);
