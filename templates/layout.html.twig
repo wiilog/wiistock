@@ -1,4 +1,4 @@
-{% set version = '2.6.1' %}
+{% set version = '2.6.2' %}
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -169,7 +169,7 @@
                             {% if hasRightStockRefe %}
                                 <li>
                                     <a href="{{ path('reference_article_index') }}" class="sub-item">
-                                        {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                                             • Référence CEA
                                         {% else %}
                                             • Référence

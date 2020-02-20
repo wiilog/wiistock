@@ -81,8 +81,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
             Data[multipleKey] = (Data[multipleKey] || {});
             Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
             Data[multipleKey][objectIndex][name] = val;
-        }
-        else {
+        } else {
             Data[name] = val;
         }
 
@@ -286,7 +285,8 @@ function showRow(button, path, modal) {
  *
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
+}) {
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -318,8 +318,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
 }
 
-function newModal(path, modal)
-{
+function newModal(path, modal) {
     $.post(path, function (resp) {
         modal.find('.modal-body').html(resp);
     }, 'json');
@@ -502,8 +501,8 @@ function initSelect2(select, placeholder = '', lengthMin = 0) {
     });
 }
 
-function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = ''){
-    $select.each(function() {
+function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = '') {
+    $select.each(function () {
         let isMultiple = $(this).attr('multiple') === 'multiple';
         $(this).select2({
             ajax: {
@@ -565,8 +564,8 @@ function ajaxAutoRefArticleInit(select, typeQuantity = null) {
     initSelect2Ajax(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
 };
 
-function ajaxAutoArticlesInit (select) {
-    initSelect2Ajax(select, 'get_articles', {activeOnly:1});
+function ajaxAutoArticlesInit(select) {
+    initSelect2Ajax(select, 'get_articles', {activeOnly: 1});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
@@ -667,7 +666,17 @@ function clearModal(modal) {
         .find('.modal-body')
         .find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
     selects.each(function () {
-        $(this).val(null).trigger('change');
+        if (!$(this).hasClass('no-clear')) {
+            $(this).val(null).trigger('change');
+        }
+    });
+    let dataArrays = $modal
+        .find('.modal-body')
+        .find('.data-array');
+    dataArrays.each(function() {
+        if ($(this).data('init') !== undefined) {
+            $(this).val($(this).data('init'));
+        }
     });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
@@ -684,9 +693,11 @@ function clearModal(modal) {
 function clearCheckboxes($modal) {
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
-        $(this).prop('checked', false);
-        $(this).removeClass('active');
-        $(this).addClass('not-active');
+        if (!$(this).hasClass('no-clear')) {
+            $(this).prop('checked', false);
+            $(this).removeClass('active');
+            $(this).addClass('not-active');
+        }
     });
 }
 
@@ -799,7 +810,7 @@ function saveFilters(page, tableSelector, callback) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
 
-    $.post(path, JSON.stringify(params), function() {
+    $.post(path, JSON.stringify(params), function () {
         if (callback) {
             callback();
         }
@@ -930,7 +941,7 @@ let submitNewAssociation = function () {
 let toggleArrivage = function (button) {
     let $arrivageBlock = $('.arrivalNb').first().parent();
     if (button.data('arrivage')) {
-        $arrivageBlock.find('input').each(function() {
+        $arrivageBlock.find('input').each(function () {
             if ($(this).hasClass('arrivage-input')) {
                 $(this).remove();
             } else {
@@ -941,7 +952,7 @@ let toggleArrivage = function (button) {
         $arrivageBlock.hide();
         button.text('Avec Arrivage');
     } else {
-        $arrivageBlock.find('input').each(function() {
+        $arrivageBlock.find('input').each(function () {
             $(this).addClass('needed');
         });
         $arrivageBlock.show();
@@ -950,7 +961,7 @@ let toggleArrivage = function (button) {
     button.data('arrivage', !button.data('arrivage'));
 };
 
-let addArrivalAssociation = function(span) {
+let addArrivalAssociation = function (span) {
     let $arrivalInput = span.parent().find('.arrivalNb').first();
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
@@ -958,8 +969,8 @@ let addArrivalAssociation = function(span) {
 
 function overrideSearch($input, table, callback = null) {
     $input.off();
-    $input.on('keyup', function(e) {
-        if (e.key === 'Enter'){
+    $input.on('keyup', function (e) {
+        if (e.key === 'Enter') {
             table.search(this.value).draw();
             if (callback) {
                 callback($input);
@@ -971,19 +982,19 @@ function overrideSearch($input, table, callback = null) {
 
 function addToRapidSearch(checkbox) {
     let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function() {
+    $('#rapidSearch tbody td').each(function () {
         alreadySearched.push($(this).html());
     });
     if (!alreadySearched.includes(checkbox.data('name'))) {
         let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
         $('#rapidSearch tbody').append(tr);
     } else {
-        $('#rapidSearch tbody tr').each(function() {
+        $('#rapidSearch tbody tr').each(function () {
             if ($(this).find('td').html() === checkbox.data('name')) {
                 if ($('#rapidSearch tbody tr').length > 1) {
                     $(this).remove();
                 } else {
-                    checkbox.prop( "checked", true );
+                    checkbox.prop("checked", true);
                 }
             }
         });
@@ -1012,8 +1023,7 @@ function onFlyFormToggle(id, button, forceHide = false) {
         $toShow.removeClass('invisible');
         $toAdd.removeClass('invisible');
         onFlyFormOpened[id] = true;
-    }
-    else {
+    } else {
         $toShow
             .addClass('invisible')
             .css("height", "0");
@@ -1022,7 +1032,7 @@ function onFlyFormToggle(id, button, forceHide = false) {
         // we reset all field
         $toShow
             .find('.newFormulaire ')
-            .each(function() {
+            .each(function () {
                 const $fieldNext = $(this).next();
                 if ($fieldNext.is('.select2-container')) {
                     $fieldNext.removeClass('is-invalid');
@@ -1046,8 +1056,7 @@ function onFlyFormToggle(id, button, forceHide = false) {
 }
 
 
-function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
-{
+function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     let inputs = button.closest('.formulaire').find(".newFormulaire");
     let params = {};
     let formIsValid = true;
@@ -1059,8 +1068,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null)
                 $fieldNext.addClass('is-invalid');
             }
             formIsValid = false;
-        }
-        else {
+        } else {
             $(this).removeClass('is-invalid');
             const $fieldNext = $(this).next();
             if ($fieldNext.is('.select2-container')) {
@@ -1138,7 +1146,7 @@ function generateCSV(route, filename = 'export', param = null) {
 }
 
 let dlFile = function (csv, filename) {
-    $.post(Routing.generate('get_encodage'), function(usesUTF8) {
+    $.post(Routing.generate('get_encodage'), function (usesUTF8) {
         let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
         let d = new Date();
         let textEncode = new CustomTextEncoder(encoding, {NONSTANDARD_allowLegacyEncoding: true});
@@ -1153,7 +1161,7 @@ let dlFile = function (csv, filename) {
 function warningEmptyDatesForCsv() {
     alertErrorMsg('Veuillez saisir des dates dans le filtre en haut de page.', true);
     $('#dateMin, #dateMax').addClass('is-invalid');
-    $('.is-invalid').on('click', function() {
+    $('.is-invalid').on('click', function () {
         $(this).parent().find('.is-invalid').removeClass('is-invalid');
     });
 }
@@ -1225,8 +1233,7 @@ function displayFiltersSup(data) {
                 const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
                 if ($fieldDate.data("DateTimePicker")) {
                     $fieldDate.data("DateTimePicker").date(dateValue);
-                }
-                else {
+                } else {
                     $fieldDate.val(dateValue);
                 }
                 break;
@@ -1264,7 +1271,7 @@ function extendsDateSort(name) {
 }
 
 function hideColumns(table, data) {
-    data.forEach(function(col) {
-        table.column(col+':name').visible(false);
+    data.forEach(function (col) {
+        table.column(col + ':name').visible(false);
     })
 }

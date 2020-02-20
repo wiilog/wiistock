@@ -16,7 +16,7 @@ Liste des articles :<br>
 <table class="table">
     <thead>
         <tr>
-            {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                 <th class="th">Référence CEA</th>
             {% else %}
                 <th class="th">Référence</th>
