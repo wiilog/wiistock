@@ -386,7 +386,7 @@ class ArrivageController extends AbstractController
 			}
 
 			$paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
+			$statutConforme = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
             $data = [
                 "redirect" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
@@ -950,7 +950,7 @@ class ArrivageController extends AbstractController
                 }
             }
             if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
-                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
             }
             $typeDescription = $litige->getType()->getDescription();
             $typeLabel = $litige->getType()->getLabel();

@@ -261,8 +261,8 @@ class ReceptionController extends AbstractController
             $type = $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
-            $statutLabel = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
+			$statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
@@ -411,7 +411,8 @@ class ReceptionController extends AbstractController
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+
             foreach ($listTypes as $type) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
@@ -453,7 +454,7 @@ class ReceptionController extends AbstractController
             }
             $reception = $this->receptionRepository->find($data['id']);
 
-            $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             $typeChampLibre = [];
             foreach ($listType as $type) {
@@ -483,7 +484,7 @@ class ReceptionController extends AbstractController
             $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
-                'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
+                'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
@@ -550,7 +551,7 @@ class ReceptionController extends AbstractController
                             'ligneId' => $ligneArticle->getId(),
                             'receptionId' => $reception->getId(),
                             'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                            'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE))
+                            'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE
                         ]
                     ),
                 ];
@@ -572,7 +573,7 @@ class ReceptionController extends AbstractController
         }
 
         //TODO à modifier si plusieurs types possibles pour une réception
-        $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+        $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
@@ -639,15 +640,15 @@ class ReceptionController extends AbstractController
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
             $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
+            $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
             foreach ($listTypes as $type) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
@@ -710,7 +711,7 @@ class ReceptionController extends AbstractController
             if ($refAlreadyExists->count() === 0) {
                 $anomalie = $contentData['anomalie'];
                 if ($anomalie) {
-                    $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                    $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
                     $reception->setStatut($statutRecep);
                 }
 
@@ -735,7 +736,7 @@ class ReceptionController extends AbstractController
                 $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
                 $champsLibres = [];
-                $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+                $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
                 foreach ($listTypes as $oneType) {
                     $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
@@ -843,8 +844,8 @@ class ReceptionController extends AbstractController
 
 
             $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, $statutLabel);
+            $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
             $em->flush();
             $type = $reception->getType();
@@ -852,7 +853,7 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
             foreach ($listTypes as $oneType) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
@@ -901,7 +902,7 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = [];
         }
 
-        $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+        $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
         $champsLibresReception = [];
         foreach ($listTypes as $type) {
             $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
@@ -936,9 +937,9 @@ class ReceptionController extends AbstractController
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
-            'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
-            'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
+            'type' => $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION),
+            'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+//            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
@@ -1381,12 +1382,12 @@ class ReceptionController extends AbstractController
     private function validateReception($reception, $listReceptionReferenceArticle)
     {
     	$em = $this->getDoctrine()->getManager();
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
 		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
 
-        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
+        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {

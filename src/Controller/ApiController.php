@@ -351,7 +351,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                             if (!isset($mouvementTraca)) {
                                 $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
-                                $type = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $mvt['type']);
+                                $type = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
 
                                 // création de l'emplacement s'il n'existe pas
                                 if (!$location) {
@@ -400,14 +400,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                 ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
                                                 : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
 
-                                            $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                            $status = $this->statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                             $article->setStatut($status);
                                         }
                                     } else { // MouvementTraca::TYPE_DEPOSE
                                         $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
                                             [
                                                 'colis' => $mouvementTraca->getColis(),
-                                                'type' => $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
+                                                'type' => $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
                                                 'finished' => false
                                             ],
                                             ['datetime' => 'DESC']
@@ -434,7 +434,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     ? [Article::CATEGORIE, Article::STATUT_ACTIF]
                                                     : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
 
-                                                $status = $this->statutRepository->findOneByCategorieNameAndStatutName($configStatus[0], $configStatus[1]);
+                                                $status = $this->statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                                 $article
                                                     ->setStatut($status)
                                                     ->setEmplacement($location);
@@ -812,7 +812,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     if (!empty($commentaire)) {
                         $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                     }
-                    $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
+                    $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
                     $em->flush();
                     if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
                         $this->mailerService->sendMail(
@@ -1142,7 +1142,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
         $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
-        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
         return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),

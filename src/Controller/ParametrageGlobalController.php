@@ -7,14 +7,13 @@ use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
-
-use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
@@ -22,6 +21,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,8 +54,8 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param EntityManagerInterface $entityManager
 	 * @param TransporteurRepository $transporteurRepository
-	 * @param NatureRepository $natureRepository
 	 * @return Response
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
@@ -66,13 +66,14 @@ class ParametrageGlobalController extends AbstractController
                           ParametrageGlobalRepository $parametrageGlobalRepository,
                           MailerServerRepository $mailerServerRepository,
 						  GlobalParamService $globalParamService,
-						  TransporteurRepository $transporteurRepository,
-						  NatureRepository $natureRepository): Response {
+						  EntityManagerInterface $entityManager,
+						  TransporteurRepository $transporteurRepository): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -113,9 +114,10 @@ class ParametrageGlobalController extends AbstractController
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
                     'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
 					'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+					'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
-                ],
+				], //TODO CG
                 'paramArrivages' => [
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
@@ -443,7 +445,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -476,7 +478,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -509,7 +511,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -548,6 +550,35 @@ class ParametrageGlobalController extends AbstractController
 			return new JsonResponse(true);
 		}
 		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/statuts-receptions",
+	 *     name="edit_status_receptions",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @param EntityManagerInterface $entityManager
+	 * @return Response
+	 */
+    public function editStatusReceptions(Request $request, EntityManagerInterface $entityManager): Response
+	{
+		$statusRepository = $entityManager->getRepository(Statut::class);
+
+		$statusCodes = $request->request->all();
+
+			foreach ($statusCodes as $statusId => $statusName) {
+				$status = $statusRepository->find($statusId);
+
+				if ($status) {
+					$status->setNom($statusName);
+				}
+			}
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
 	}
 
 	/**
