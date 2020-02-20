@@ -1,20 +1,20 @@
-$(function() {
+$(function () {
     initSelect2('#emplacement', 'Emplacements');
     initSelect2('#natures', 'Natures');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ENCOURS);
-    $.post(path, params, function(data) {
+    $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
 
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
-       if (data === false) {
-           alertErrorMsg('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', true);
-       }
-       initDatatables();
-   });
+        if (data === false) {
+            alertErrorMsg('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', true);
+        }
+        initDatatables();
+    });
 
 });
 
@@ -50,7 +50,7 @@ function initOrReloadOneDatatable(that) {
             ajax: {
                 "url": routeForApi,
                 "type": "POST",
-                "data": { id: that.attr('id') }
+                "data": {id: that.attr('id')}
             },
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
@@ -67,9 +67,7 @@ function initOrReloadOneDatatable(that) {
                 },
             ],
             rowCallback: function (row, data) {
-                if (data.success === true) {
-                    $(row).addClass(data.late ? 'table-danger' : '');
-                }
+                $(row).addClass(data.late ? 'table-danger' : '');
             },
             "order": [[2, "desc"]]
         });

@@ -170,7 +170,6 @@ class EnCoursService
                 // OR true if age hour == $maxTimeHours and age minutes > $maxTimeMinutes
                 (($movementAge->h === $maxTimeHours) && ($movementAge->i > $maxTimeMinutes))
             );
-
             return [
                 'time' => $time,
                 'late' => $late,
