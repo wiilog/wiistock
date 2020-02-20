@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{  'réception.réception'|trans|capitalize }}{% endblock %}
+{% block title %}{{ 'réception.réception'|trans|capitalize }}{% endblock %}
 {% block page_content %}
     <div class="row">
         <div class="col">
@@ -78,8 +78,12 @@
         <div class="col-6">
             <div class="text-right">
                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href="" data-id='{{ reception.id }}' data-target='#modalNewLitige' data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">
+                    <a href=""
+                       data-id='{{ reception.id }}'
+                       data-target='#modalNewLitige'
+                       data-toggle='modal'
+                       class="btn btn-primary btn-action ml-auto"
+                       onclick="openNewLitigeModal($(this))">
                         <i class="fa fa-plus mr-2"></i>
                         Nouveau litige</a>
                 {% endif %}
@@ -120,8 +124,8 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src = "{{asset('js/form-reference-article.js')}}?{{ date().timestamp }}"></script>
-    <script src = "{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
-    <script src = "{{asset('js/reception.js')}}?{{ date().timestamp }}"></script>
-    <script src = "{{asset('js/reception-show.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/form-reference-article.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/reception-show.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/form-litiges.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

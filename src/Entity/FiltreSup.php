@@ -28,6 +28,7 @@ class FiltreSup
 	const FIELD_COMMANDE = 'commande';
 	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
 	const FIELD_NUM_ARRIVAGE = 'numArrivage';
+	const FIELD_NATURES = 'natures';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -48,6 +49,7 @@ class FiltreSup
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
     const PAGE_ALERTE = 'alerte';
+    const PAGE_ENCOURS = 'encours';
 
 
     const PAGE_TO_CATEGORY = [

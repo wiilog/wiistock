@@ -221,7 +221,7 @@ class DemandeController extends AbstractController
                         return new JsonResponse($response);
                     }
                 } else {
-                    $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                    $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                     $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF);
                     $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
                     if ($ligne->getQuantite() > $totalQuantity) {
@@ -256,18 +256,18 @@ class DemandeController extends AbstractController
                 ->setNumero('P-' . $date->format('YmdHis'))
                 ->setDate($date);
 
-            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
 
             $demande->addPreparation($preparation);
-            $statutD = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $statutD = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
             $em->persist($preparation);
 
             // modification du statut articles => en transit
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 $preparation->addArticle($article);
             }
             $lignesArticles = $demande->getLigneArticle();
@@ -560,7 +560,7 @@ class DemandeController extends AbstractController
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
-                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
                 $totalQuantity = 0;
                 if ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                     foreach ($articleRef->getArticlesFournisseur() as $articleFournisseur) {
@@ -699,7 +699,7 @@ class DemandeController extends AbstractController
 
             $ligneArticle = $this->ligneArticleRepository->find($data['id']);
             $articleRef = $ligneArticle->getReference();
-            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
                 $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();

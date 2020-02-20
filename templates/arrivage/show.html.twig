@@ -32,8 +32,12 @@
         <div class="col-6">
             <div class="d-flex h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href="" data-id='{{ arrivage.id }}' data-target='#modalNewLitige' data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto" onclick="clearModal('#modalNewLitige')">
+                    <a href=""
+                       data-id='{{ arrivage.id }}'
+                       data-target='#modalNewLitige'
+                       data-toggle='modal'
+                       class="btn btn-primary btn-action ml-auto"
+                       onclick="openNewLitigeModal($(this))">
                         <i class="fa fa-plus mr-2"></i>
                         Nouveau litige</a>
                 {% endif %}
@@ -58,6 +62,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
     <script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/form-litiges.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

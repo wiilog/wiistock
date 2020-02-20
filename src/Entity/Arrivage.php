@@ -109,12 +109,12 @@ class Arrivage
 
 
 	public function __construct()
-                {
-                    $this->acheteurs = new ArrayCollection();
-                    $this->colis = new ArrayCollection();
-                    $this->attachements = new ArrayCollection();
-                    $this->valeurChampLibre = new ArrayCollection();
-                }
+	{
+		$this->acheteurs = new ArrayCollection();
+		$this->colis = new ArrayCollection();
+		$this->attachements = new ArrayCollection();
+		$this->valeurChampLibre = new ArrayCollection();
+	}
 
     public function getId(): ?int
     {

@@ -101,7 +101,7 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                 ->setLibelle($row[1])
                 ->setQuantiteStock(intval($row[3]))
                 ->setTypeQuantite('reference')
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
             $manager->flush();
 

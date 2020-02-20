@@ -8,7 +8,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Entity\Emplacement;
 
-class EmplacementFixtures extends Fixture
+class ImportEmplacementFixtures extends Fixture
 {
     private $encoder;
 

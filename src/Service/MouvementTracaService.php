@@ -153,7 +153,7 @@ class MouvementTracaService
                                           FileBag $fileBag = null): MouvementTraca {
 
         $type = is_string($typeMouvementTraca)
-            ? $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
             : $this->statutRepository->find($typeMouvementTraca);
 
         if (!isset($type)) {
@@ -183,7 +183,7 @@ class MouvementTracaService
     private function generateUniqueIdForMobile(DateTime $date): string {
         $uniqueId = null;
         //same format as moment.defaultFormat
-        $dateStr = $date->format('Y-m-dTH:i:sP');
+        $dateStr = $date->format('Y-m-d\TH:i:sP');
         $randomLength = 9;
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));

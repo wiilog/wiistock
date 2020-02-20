@@ -3,16 +3,16 @@ let tableDays = $('#tableDays').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{
+    ajax: {
         "url": pathDays,
         "type": "POST"
     },
-    columns:[
-        { "data": 'Day', 'title' : 'Jour' },
-        { "data": 'Worked', 'title' : 'Travaillé' },
-        { "data": 'Times', 'title' : 'Horaires de travail' },
-        { "data": 'Order', 'title' : 'Ordre' },
-        { "data": 'Actions', 'title' : 'Actions' },
+    columns: [
+        {"data": 'Day', 'title': 'Jour'},
+        {"data": 'Worked', 'title': 'Travaillé'},
+        {"data": 'Times', 'title': 'Horaires de travail'},
+        {"data": 'Order', 'title': 'Ordre'},
+        {"data": 'Actions', 'title': 'Actions'},
     ],
     order: [
         [3, 'asc']
@@ -30,7 +30,7 @@ let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
 InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
 
-$(function() {
+$(function () {
     initSelect2($('.select2'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
@@ -66,6 +66,11 @@ function errorEditDays(data) {
 
 function updateToggledParam(switchButton, path) {
     $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function () {
+        if (resp) {
+            alertSuccessMsg('La modification du paramétrage de réception a bien été prise en compte.');
+        } else {
+            alertErrorMsg('Une erreur est survenue lors de la modification du paramétrage de réception.');
+        }
     }, 'json');
 }
 
@@ -110,15 +115,15 @@ function ajaxDims() {
     //TODO passer en jquery
 }
 
-function updatePrefixDemand(){
+function updatePrefixDemand() {
     let prefixe = $('#prefixeDemande').val();
     let typeDemande = $('#typeDemandePrefixageDemande').val();
 
-    let path = Routing.generate('ajax_update_prefix_demand',true);
+    let path = Routing.generate('ajax_update_prefix_demand', true);
     let params = JSON.stringify({prefixe: prefixe, typeDemande: typeDemande});
 
     let msg = '';
-    if(typeDemande === 'aucunPrefixe'){
+    if (typeDemande === 'aucunPrefixe') {
         $('#typeDemandePrefixageDemande').addClass('is-invalid');
         msg += 'Veuillez sélectionner un type de demande.';
     } else {
@@ -136,7 +141,7 @@ function getPrefixDemand(select) {
     let path = Routing.generate('ajax_get_prefix_demand', true);
     let params = JSON.stringify(typeDemande);
 
-    $.post(path, params, function(data) {
+    $.post(path, params, function (data) {
         $('#prefixeDemande').val(data);
     }, 'json');
 }
@@ -144,7 +149,7 @@ function getPrefixDemand(select) {
 function saveTranslations() {
     let $inputs = $('#translation').find('.translate');
     let data = [];
-    $inputs.each(function() {
+    $inputs.each(function () {
         let name = $(this).attr('name');
         let val = $(this).val();
         data.push({id: name, val: val});
@@ -166,13 +171,13 @@ function saveTranslations() {
 }
 
 function ajaxEncodage() {
-    $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function() {
+    $.post(Routing.generate('save_encodage'), JSON.stringify($('select[name="param-type-encodage"]').val()), function () {
         alertSuccessMsg('Mise à jour de vos préférences d\'encodage réussie.');
     });
 }
 
 function editDefaultLocationValue() {
-    let path = Routing.generate('edit_reception_location',true);
+    let path = Routing.generate('edit_reception_location', true);
     const locationValue = $(this).val();
     let param = {
         value: locationValue
@@ -188,7 +193,7 @@ function editDefaultLocationValue() {
 }
 
 function editDashboardParams() {
-    let path = Routing.generate('edit_dashboard_params',true);
+    let path = Routing.generate('edit_dashboard_params', true);
     let data = $('#paramDashboard').find('.data');
 
     let param = {};
@@ -206,8 +211,39 @@ function editDashboardParams() {
         }
     });
 }
+
+function editStatusLitigeReception($select) {
+    let path = Routing.generate('edit_status_litige_reception',true);
+    const param = {
+        value: $select.val()
+    };
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Le statut de litige réception par défaut a bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut de litige réception par défaut.");
+        }
+    });
+}
+
+function editStatusLitigeArrivage($select) {
+    let path = Routing.generate('edit_status_litige_arrivage',true);
+    const param = {
+        value: $select.val()
+    };
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Le statut de litige arrivage par défaut a bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut de litige arrivage par défaut.");
+        }
+    });
+}
+
 function editFont() {
-    let path = Routing.generate('edit_font',true);
+    let path = Routing.generate('edit_font', true);
     let param = {
         value: $('select[name="param-font-family"]').val()
     };
@@ -229,6 +265,26 @@ function editArrivageDestination() {
             alertSuccessMsg("Mise à jour de la destination des arrivages bien effectuée.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+        }
+    });
+}
+
+function editReceptionStatus() {
+    let path = Routing.generate('edit_status_receptions');
+    let $inputs = $('#paramReceptions').find('.status');
+
+    let param = {};
+    $inputs.each(function () {
+        let name = $(this).attr('name');
+        let val = $(this).val();
+        param[name] = val;
+    })
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Les statuts de réception ont bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour des statuts de réception.");
         }
     });
 }

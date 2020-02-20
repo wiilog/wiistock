@@ -324,7 +324,7 @@ class LivraisonController extends AbstractController
 
             $livraison = $this->livraisonRepository->find($data['livraison']);
 
-            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutName(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
 
             $preparation = $livraison->getpreparation();
             $preparation->setStatut($statutP);

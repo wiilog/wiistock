@@ -88,7 +88,6 @@ Class GlobalParamService
 		return $resp ?? null;
 	}
 
-
 	/**
 	 * @throws NonUniqueResultException
 	 */

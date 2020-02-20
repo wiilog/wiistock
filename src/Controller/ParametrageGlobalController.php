@@ -3,17 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Statut;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
-
-use App\Repository\NatureRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
@@ -21,6 +22,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -53,7 +55,8 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
-	 * @param NatureRepository $natureRepository
+	 * @param EntityManagerInterface $entityManager
+	 * @param TransporteurRepository $transporteurRepository
 	 * @return Response
 	 * @throws NoResultException
 	 * @throws NonUniqueResultException
@@ -66,10 +69,14 @@ class ParametrageGlobalController extends AbstractController
 						  GlobalParamService $globalParamService,
 						  EmplacementRepository $emplacementRepository,
 						  TransporteurRepository $transporteurRepository,
-						  NatureRepository $natureRepository): Response {
+						  NatureRepository $natureRepository,
+						  EntityManagerInterface $entityManager): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -107,11 +114,20 @@ class ParametrageGlobalController extends AbstractController
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
-                'redirect' => $redirect ? $redirect->getValue() : true,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
-                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false
-                ],
+                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
+					'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+					'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
+					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
+				], //TODO CG
+                'paramArrivages' => [
+					'redirect' => $redirect ? $redirect->getValue() : true,
+					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                    'location' => $emplacementArrivage
+				],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
                 'paramTranslations' => [
@@ -122,7 +138,6 @@ class ParametrageGlobalController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'redirectMvtTraca' => $redirectAfterMvt ? $redirectAfterMvt->getValue() : null,
@@ -133,9 +148,6 @@ class ParametrageGlobalController extends AbstractController
 					'locations' => $globalParamService->getDashboardLocations(),
                     'valueCarriers' =>  $carriers
 				],
-                'paramArrivage' => [
-                    'location' => $emplacementArrivage
-                ]
         ]);
     }
 
@@ -438,7 +450,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -471,7 +483,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -504,7 +516,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }
@@ -543,6 +555,35 @@ class ParametrageGlobalController extends AbstractController
 			return new JsonResponse(true);
 		}
 		throw new NotFoundHttpException("404");
+	}
+
+	/**
+	 * @Route("/statuts-receptions",
+	 *     name="edit_status_receptions",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @param EntityManagerInterface $entityManager
+	 * @return Response
+	 */
+    public function editStatusReceptions(Request $request, EntityManagerInterface $entityManager): Response
+	{
+		$statusRepository = $entityManager->getRepository(Statut::class);
+
+		$statusCodes = $request->request->all();
+
+			foreach ($statusCodes as $statusId => $statusName) {
+				$status = $statusRepository->find($statusId);
+
+				if ($status) {
+					$status->setNom($statusName);
+				}
+			}
+			$this->getDoctrine()->getManager()->flush();
+
+			return new JsonResponse(true);
 	}
 
 	/**
@@ -601,6 +642,72 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
+    }
+
+	/**
+	 * @Route(
+	 *     "/statut-litige-reception",
+	 *     name="edit_status_litige_reception",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editStatusLitigeReception(Request $request): Response
+    {
+		$post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
+
+        if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
+			$em->persist($parametrageGlobal);
+		}
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+		$parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+		$em->flush();
+
+		return new JsonResponse(true);
+    }
+
+	/**
+	 * @Route(
+	 *     "/statut-litige-arrivage",
+	 *     name="edit_status_litige_arrivage",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editStatusLitigeArrivage(Request $request): Response
+    {
+		$post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
+
+        if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
+			$em->persist($parametrageGlobal);
+		}
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+		$em->flush();
+
+		return new JsonResponse(true);
     }
 
 	/**
