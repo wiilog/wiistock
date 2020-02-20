@@ -35,6 +35,12 @@ function initPage() {
         drawCallback: function() {
             overrideSearch($('#tableUrgences_filter input'), tableUrgence);
         },
+        headerCallback: function(thead) {
+            $(thead).find('th').eq(1).attr('title', "date de début");
+            $(thead).find('th').eq(2).attr('title', "date de fin");
+            $(thead).find('th').eq(3).attr('title', "numéro de commande");
+            $(thead).find('th').eq(4).attr('title', "acheteur");
+        },
         columnDefs: [
             {
                 "orderable" : false,

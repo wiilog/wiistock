@@ -30,8 +30,8 @@
 
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig' %}
-    <input hidden id="trans-arrivage" value="{{ "arrivage.d'arrivage"|trans }}">
-    <input hidden id="trans-reception" value="{{ "réception.de réception"|trans }}">
+    <input hidden id="transNoArrivage" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
+    <input hidden id="transNoReception" value="{{ "réception.n° de réception"|trans|capitalize }}">
 {% endblock %}
 
 {% block javascripts %}

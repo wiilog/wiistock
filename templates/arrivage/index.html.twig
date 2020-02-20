@@ -15,14 +15,15 @@
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
-    <h1>{{ 'arrivage.arrivages'|trans|capitalize }}</h1>
+    <h1 title="arrivages">{{ 'arrivage.arrivages'|trans|capitalize }}</h1>
 
     <div class="row">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
                data-backdrop="static" data-keyboard="false"
                onclick="initNewArrivageEditor('#modalNewArrivage')">
-                <span class="fa fa-plus mr-2"></span>{{ 'arrivage.nouvel arrivage'|trans|capitalize }}
+                <span class="fa fa-plus mr-2"></span>
+                <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</span>
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -50,7 +51,7 @@
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
 
-    <input hidden id="dArrTranslation" value="{{ "arrivage.d'arrivage"|trans }}">
+    <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
 {% endblock %}
 
 {% block javascripts %}

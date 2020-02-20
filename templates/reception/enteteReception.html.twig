@@ -3,7 +3,7 @@
 </div>
 {% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
     <div class="col-4">
-        <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
+        <p><strong title="n° de réception">{{ 'réception.n° de réception'|trans|capitalize }} :</strong> {{ reception.numeroReception }}</p>
     </div>
 {% endif %}
 {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
@@ -38,10 +38,10 @@
 {% endif %}
 <div class="col-4">
     <p><strong>Date de création :</strong>
-        {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+        {{ reception.date ? reception.date| date('d/m/Y H:i') : ' ' }}</p>
 </div>
 <div class="col-4">
-    <p><strong>Date de fin {{ 'réception.de réception'|trans }}
+    <p><strong title="de réception">Date de fin {{ 'réception.de réception'|trans }}
             :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
 </div>
 {% for typeChampLibre in typeChampsLibres %}

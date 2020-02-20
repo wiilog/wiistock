@@ -7,7 +7,7 @@
     </div>
     {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
         <div class="urgence-row row ml-2">
-            <h1><i class="fa fa-exclamation-triangle mr-2"></i>{{ 'arrivage.cet arrivage'|trans|capitalize }} est à traiter en URGENCE.</h1>
+            <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
         </div>
     {% endif %}
     <div class="row mt-5">
@@ -15,14 +15,14 @@
             <div class="d-flex justify-content-between h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                     <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
-                        <span class="fa fa-plus mr-2"></span>Ajouter {{ 'arrivage.colis'|trans }}
+                        <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                     </div>
                 {% endif %}
                 <a class="btn btn-primary"
                    id="printColisBtn"
                    target="_blank"
                    href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id}) }}">
-                    <span class="fa fa-print mr-2"></span>Imprimer {{ 'arrivage.colis'|trans }}
+                    <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                 </a>
             </div>
             <div>

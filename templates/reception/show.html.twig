@@ -3,7 +3,7 @@
 {% block page_content %}
     <div class="row">
         <div class="col">
-            <h1>{{ 'réception.réception'|trans|capitalize }}</h1>
+            <h1 title="réception">{{ 'réception.réception'|trans|capitalize }}</h1>
             <input id="receptionId" value="{{ reception.id }}" type="hidden">
         </div>
         <div class="col text-right">
@@ -21,7 +21,7 @@
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
-                       class="btn btn-primary btn-action ml-auto">
+                       class="btn btn-primary btn-action ml-auto" title="réception">
                         {{ 'réception.réception'|trans|capitalize }}</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
@@ -39,7 +39,7 @@
                        )">
                         Modifier</a>
                     <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }}, false)">
-                        Fin {{ 'réception.réception'|trans }}
+                        Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
                     </div>
                 {% endif %}
             {% endif %}
@@ -58,7 +58,7 @@
                            class="btn btn-primary btn-action ml-auto"
                            onclick="initNewArticleEditor('#modalAddLigneArticle'),
                            ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
-                            <span class="fa fa-plus mr-2"></span>Ajouter {{ 'réception.article'|trans }}
+                            <span class="fa fa-plus mr-2"></span>Ajouter <span title="article">{{ 'réception.article'|trans }}</span>
                         </a>
                     {% endif %}
                 {% endif %}

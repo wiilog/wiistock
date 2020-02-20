@@ -63,4 +63,25 @@ class TranslationRepository extends ServiceEntityRepository
 		return $query->getScalarResult();
 	}
 
+	/**
+	 * @param string $menu
+	 * @param string $label
+	 * @return mixed
+	 */
+	public function getTranslationByMenuAndLabel($menu, $label)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT t.translation
+			FROM App\Entity\Translation t
+			WHERE t.menu = :menu AND t.label = :label"
+		)->setParameters([
+			'menu' => $menu,
+			'label' => $label
+		]);
+
+		return array_column($query->execute(), 'translation');
+	}
+
 }

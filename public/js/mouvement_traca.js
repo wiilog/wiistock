@@ -34,7 +34,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "colis", 'name': 'colis', 'title': "Colis"},
+        {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
@@ -45,6 +45,9 @@ let tableMvt = $('#tableMvts').DataTable({
             targets: 0
         }
     ],
+    headerCallback: function(thead) {
+        $(thead).find('th').eq(2).attr('title', "Colis");
+    },
 });
 
 $.fn.dataTable.ext.search.push(
