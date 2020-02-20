@@ -107,6 +107,7 @@ class LitigeService
 
 		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
+
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesArrivageRow.html.twig', [
 				'litigeId' => $litige['id'],
