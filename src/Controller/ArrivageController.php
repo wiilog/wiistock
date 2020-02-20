@@ -60,7 +60,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Date;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -356,21 +355,19 @@ class ArrivageController extends AbstractController
             if ($checkNatures != 0) {
                 foreach ($natures as $natureArray) {
                     $nature = $this->natureRepository->find($natureArray['id']);
-                    $dateForMvt = new DateTime($arrivage->getDate()->format(DATE_ATOM));
                     for ($i = 0; $i < $natureArray['val']; $i++) {
                         $colisInserted = $colisService->persistColis($arrivage, $nature);
                         if ($defaultEmpForMvt) {
-                            $em->persist($mouvementTracaService
-                                ->persistMouvementTraca(
-                                    $colisInserted->getCode(),
-                                    $defaultEmpForMvt,
-                                    $this->getUser(),
-                                    $dateForMvt,
-                                    false,
-                                    true,
-                                    MouvementTraca::TYPE_DEPOSE
-                                )
+                            $mouvementDepose = $mouvementTracaService->persistMouvementTraca(
+                                $colisInserted->getCode(),
+                                $defaultEmpForMvt,
+                                $this->getUser(),
+                                $arrivage->getDate(),
+                                false,
+                                true,
+                                MouvementTraca::TYPE_DEPOSE
                             );
+                            $em->persist($mouvementDepose);
                         }
                     }
                 }
@@ -1028,61 +1025,37 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param EmplacementRepository $emplacementRepository
      * @param ColisService $colisService
-     * @param MouvementTracaService $mouvementTracaService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return JsonResponse
+     * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function addColis(Request $request,
-                             EmplacementRepository $emplacementRepository,
-                             ColisService $colisService,
-                             MouvementTracaService $mouvementTracaService,
-                             ParametrageGlobalRepository $parametrageGlobalRepository)
+                             ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
-            $colisIds = [];
-
-            $natureKey = array_keys($data);
-            $defaultEmpForMvt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-            $defaultEmpForMvt = $defaultEmpForMvt ? $emplacementRepository->find($defaultEmpForMvt->getValue()) : null;
-            foreach ($natureKey as $natureId) {
-                if (gettype($natureId) === 'integer') {
-                    $nature = $this->natureRepository->find($natureId);
-                    for ($i = 0; $i < $data[$natureId]; $i++) {
-                        $colis = $colisService->persistColis($arrivage, $nature);
-                        $dateForMvt = new DateTime($arrivage->getDate()->format(DATE_ATOM));
-                        if ($defaultEmpForMvt) {
-                            $em->persist($mouvementTracaService
-                                ->persistMouvementTraca(
-                                    $colis->getCode(),
-                                    $defaultEmpForMvt,
-                                    $this->getUser(),
-                                    $dateForMvt,
-                                    false,
-                                    true,
-                                    MouvementTraca::TYPE_DEPOSE
-                                )
-                            );
-                        }
-                        $em->flush();
-                        $colisIds[] = $colis->getId();
+            $natures = array_reduce(
+                array_keys($data),
+                function ($carry, $key) use ($data) {
+                    if (gettype($key) === 'integer') {
+                        $carry[$key] = $data[$key];
                     }
-                }
-            }
+                },
+                []
+            );
+
+            $persistedColis = $colisService->persistMultiColis($arrivage, $natures);
 
             return new JsonResponse([
-                'colisIds' => $colisIds,
+                'colisIds' => array_map(function (Colis $colis) {
+                    return $colis->getId();
+                }, $persistedColis),
                 'arrivageId' => $arrivage->getId(),
                 'arrivage' => $arrivage->getNumeroArrivage()
             ]);

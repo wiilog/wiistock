@@ -5,20 +5,21 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\Emplacement;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\Transporteur;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
-use App\Repository\TransporteurRepository;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -47,29 +48,17 @@ class ParametrageGlobalController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
-	/**
-	 * @Route("/", name="global_param_index")
-	 * @param TranslationRepository $translationRepository
-	 * @param UserService $userService
-	 * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
-	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
-	 * @param MailerServerRepository $mailerServerRepository
-	 * @param GlobalParamService $globalParamService
-	 * @param EntityManagerInterface $entityManager
-	 * @param TransporteurRepository $transporteurRepository
-	 * @return Response
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function index(TranslationRepository $translationRepository,
-                          UserService $userService,
-                          DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
-                          ParametrageGlobalRepository $parametrageGlobalRepository,
-                          MailerServerRepository $mailerServerRepository,
+    /**
+     * @Route("/", name="global_param_index")
+     * @param UserService $userService
+     * @param GlobalParamService $globalParamService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function index(UserService $userService,
 						  GlobalParamService $globalParamService,
-						  EmplacementRepository $emplacementRepository,
-						  TransporteurRepository $transporteurRepository,
-						  NatureRepository $natureRepository,
 						  EntityManagerInterface $entityManager): Response {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
@@ -77,6 +66,12 @@ class ParametrageGlobalController extends AbstractController
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
+        $translationRepository = $entityManager->getRepository(Translation::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -109,8 +104,10 @@ class ParametrageGlobalController extends AbstractController
 
         $carriers['id'] = implode(',', $carriers['id']);
         $carriers['text'] = implode(',', $carriers['text']);
-        $emplacementArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-        $emplacementArrivage = $emplacementArrivage ? $emplacementRepository->find($emplacementArrivage->getValue()) : null;
+        $emplacementArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $emplacementArrivage = isset($emplacementArrivageId)
+            ? $emplacementRepository->find($emplacementArrivageId)
+            : null;
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
@@ -867,26 +864,20 @@ class ParametrageGlobalController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function editArrivageDestination(Request $request,
-                                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $empId = json_decode($request->getContent(), true))
-        {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+                                            ParametrageGlobalRepository $parametrageGlobalRepository): Response {
+        if ($request->isXmlHttpRequest()) {
+            $value = json_decode($request->getContent(), true);
+            $trimmedValue = trim($value);
+            $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
             $em = $this->getDoctrine()->getManager();
-            if ($ifExist)
-            {
-                $ifExist->setValue($empId);
-                $em->flush();
-            }
-            else
-            {
+            if (!isset($parametrage)) {
                 $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)
-                    ->setValue($empId);
+                $parametrage->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
                 $em->persist($parametrage);
-                $em->flush();
             }
+            $parametrage->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+            $em->flush();
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");

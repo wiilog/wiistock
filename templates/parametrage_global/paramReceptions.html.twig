@@ -4,7 +4,7 @@
                 class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
 <div class="collapse col-12" id="paramReceptions">
-    <div class="row p-3">
+    <div class="row">
         <div class="col-12">
             {% set checked = (parametrageG == 1) ? 'checked' : '' %}
             <label class="switch">
@@ -16,7 +16,7 @@
                 réception</label>
         </div>
     </div>
-    <div class="row p-3">
+    <div class="row mt-2">
         <div class="col-12">
             {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
             <label class="switch">
@@ -27,8 +27,8 @@
             <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
         </div>
     </div>
-    <div class="row p-3">
-        <div class="form-group w-450px col-6">
+    <div class="row mt-2">
+        <div class="form-group col-4">
             <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
             <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeReception($(this))">
                 <option></option>
@@ -38,8 +38,9 @@
                 {% endfor %}
             </select>
         </div>
-
-        <div class="form-group w-450px col-6">
+    </div>
+    <div class="row mt-2">
+        <div class="form-group col-4">
             <div class="w-100">
                 <label for="receptionLocation" class="d-block">Emplacement de réception par défaut</label>
                 <select class="form-control ajax-autocomplete-location d-block" id="receptionLocation">
@@ -48,7 +49,7 @@
             <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
         </div>
     </div>
-    <div class="row p-3">
+    <div class="row mt-2">
         <div class="col-12">
             <div class="float-right btn btn-col-action btn-check-reverse" onclick="editReceptionStatus()">
                 <i class='fas fa-check'></i>
