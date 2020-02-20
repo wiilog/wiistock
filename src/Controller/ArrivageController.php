@@ -633,6 +633,9 @@ class ArrivageController extends AbstractController
                 $entityManager = $this->getDoctrine()->getManager();
                 foreach ($arrivage->getColis() as $colis) {
                     $litiges = $colis->getLitiges();
+                    foreach ($this->mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                        $entityManager->remove($mvtToDelete);
+                    }
                     $entityManager->remove($colis);
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
