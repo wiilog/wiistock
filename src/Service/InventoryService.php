@@ -142,10 +142,12 @@ class InventoryService
 	 */
 	public function isInMissionInSamePeriod($refOrArticle, $mission, $isRef) {
 
+	    $beginDate = clone($mission->getStartPrevDate())->setTime(0, 0, 0);
+	    $endDate = clone($mission->getEndPrevDate())->setTime(23, 59, 59);
 		if ($isRef) {
-			$nbMissions = $this->inventoryMissionRepository->countByRefAndDates($refOrArticle, $mission->getStartPrevDate(), $mission->getEndPrevDate());
+			$nbMissions = $this->inventoryMissionRepository->countByRefAndDates($refOrArticle, $beginDate, $endDate);
 		} else {
-			$nbMissions = $this->inventoryMissionRepository->countByArtAndDates($refOrArticle, $mission->getStartPrevDate(), $mission->getEndPrevDate());
+			$nbMissions = $this->inventoryMissionRepository->countByArtAndDates($refOrArticle, $beginDate, $endDate);
 		}
 
 		return $nbMissions > 0;
