@@ -11,7 +11,6 @@ use App\Entity\FieldsParam;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
-use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
@@ -19,7 +18,6 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
@@ -40,7 +38,6 @@ use App\Service\AttachmentService;
 use App\Service\ColisService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
-use App\Service\MouvementTracaService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -48,6 +45,7 @@ use App\Service\MailerService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -278,8 +276,6 @@ class ArrivageController extends AbstractController
      * @throws Exception
      */
     public function new(Request $request,
-                        MouvementTracaService $mouvementTracaService,
-                        EmplacementRepository $emplacementRepository,
                         ParametrageGlobalRepository $parametrageGlobalRepository,
                         ColisService $colisService): Response
     {
@@ -348,30 +344,19 @@ class ArrivageController extends AbstractController
             }
             $em->flush();
 
-            $natures = isset($data['nature']) ? json_decode($data['nature'], true) : [];
-            $defaultEmpForMvt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-            $defaultEmpForMvt = $defaultEmpForMvt ? $emplacementRepository->find($defaultEmpForMvt->getValue()) : null;
-            $checkNatures = $this->natureRepository->countAll();
-            if ($checkNatures != 0) {
-                foreach ($natures as $natureArray) {
-                    $nature = $this->natureRepository->find($natureArray['id']);
-                    for ($i = 0; $i < $natureArray['val']; $i++) {
-                        $colisInserted = $colisService->persistColis($arrivage, $nature);
-                        if ($defaultEmpForMvt) {
-                            $mouvementDepose = $mouvementTracaService->persistMouvementTraca(
-                                $colisInserted->getCode(),
-                                $defaultEmpForMvt,
-                                $this->getUser(),
-                                $arrivage->getDate(),
-                                false,
-                                true,
-                                MouvementTraca::TYPE_DEPOSE
-                            );
-                            $em->persist($mouvementDepose);
-                        }
+            $natures = array_reduce(
+                isset($data['nature']) ? json_decode($data['nature'], true) : [],
+                function (array $carry, $value) {
+                    if (isset($value['id']) && isset($value['val'])) {
+                        $carry[intval($value['id'])] = intval($value['val']);
                     }
-                }
-            }
+                    return $carry;
+                },
+                []
+            );
+
+            $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
+            $em->flush();
 
             $printColis = null;
             $printArrivage = null;
@@ -381,8 +366,6 @@ class ArrivageController extends AbstractController
             if ($data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
-
-            $em->flush();
 
             if (!empty($urgencesMatching)) {
                 $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
@@ -1025,12 +1008,14 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param ColisService $colisService
      * @return JsonResponse
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function addColis(Request $request,
+                             EntityManagerInterface $entityManager,
                              ColisService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -1040,17 +1025,22 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
 
+
+
             $natures = array_reduce(
                 array_keys($data),
-                function ($carry, $key) use ($data) {
-                    if (gettype($key) === 'integer') {
+                function (array $carry, string $key) use ($data) {
+                    $keyIntval = intval($key);
+                    if (!empty($keyIntval)) {
                         $carry[$key] = $data[$key];
                     }
+                    return $carry;
                 },
                 []
             );
 
-            $persistedColis = $colisService->persistMultiColis($arrivage, $natures);
+            $persistedColis = $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
+            $entityManager->flush();
 
             return new JsonResponse([
                 'colisIds' => array_map(function (Colis $colis) {

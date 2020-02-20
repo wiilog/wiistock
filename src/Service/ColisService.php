@@ -63,7 +63,7 @@ Class ColisService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function persistMultiColis(Arrivage $arrivage, array $colisByNatures): array {
+    public function persistMultiColis(Arrivage $arrivage, array $colisByNatures, $user): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
@@ -83,7 +83,7 @@ Class ColisService
                     $mouvementDepose = $this->mouvementTracaService->persistMouvementTraca(
                         $colis->getCode(),
                         $defaultEmpForMvt,
-                        $this->getUser(),
+                        $user,
                         $now,
                         false,
                         true,
