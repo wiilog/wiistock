@@ -78,7 +78,9 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, null, Number($('#redirectAfterTrackingMovementCreation').val()));
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, (response) => {
+    alertSuccessMsg('Mouvements bien crées.');
+}, Number($('#redirectAfterTrackingMovementCreation').val()));
 
 let modalEditMvtTraca = $("#modalEditMvtTraca");
 let submitEditMvtTraca = $("#submitEditMvtTraca");
