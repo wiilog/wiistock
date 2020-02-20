@@ -7,13 +7,13 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
+use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
@@ -103,10 +103,11 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		return $result ? $result[0] : null;
 	}
 
-    /**
-     * @param string $colis
-     * @return  MouvementTraca
-     */
+	/**
+	 * @param string $colis
+	 * @param DateTimeInterface $date
+	 * @return  MouvementTraca
+	 */
     public function getByColisAndPriorToDate($colis, $date)
     {
         $em = $this->getEntityManager();
