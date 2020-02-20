@@ -878,6 +878,8 @@ class ArrivageController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -915,8 +917,10 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $this->arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
-				'champsLibres' => $champsLibres
-            ]);
+				'champsLibres' => $champsLibres,
+				'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+
+			]);
     }
 
     /**

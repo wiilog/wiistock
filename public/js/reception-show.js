@@ -7,7 +7,8 @@ let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 
 $(function () {
-    const dataTableInitRes = InitiliaserPageDataTable();
+    $('.select2').select2();
+    const dataTableInitRes = InitPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     InitiliserPageModals();
@@ -60,7 +61,7 @@ function InitiliserPageModals() {
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesReception);
 }
 
-function InitiliaserPageDataTable() {
+function InitPageDataTable() {
     let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
 
@@ -142,6 +143,14 @@ function InitiliaserPageDataTable() {
             }
         })
     };
+}
+
+function initDateTimePickerReception() {
+    initDateTimePicker('#dateCommande, #dateAttendue');
+
+    $('.date-cl').each(function() {
+        initDateTimePicker('#' + $(this).attr('id'));
+    });
 }
 
 function displayErrorReception(data) {

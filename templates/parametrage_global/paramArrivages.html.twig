@@ -7,12 +7,26 @@
 </a>
 <div class="collapse col-12" id="paramArrivage">
     <div class="row p-3">
-        {% set checked = (redirect ? 'checked' : '') %}
-        <label class="switch">
-            <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                   onchange="updateToggledParam($(this), '{{ path('active_desactive_redirection') }}')">
-            <span class="slider round"></span>
-        </label>
-        <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage créé</label>
+        <div class="col-12">
+            {% set checked = (redirect ? 'checked' : '') %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
+                       onchange="updateToggledParam($(this), '{{ path('active_desactive_redirection') }}')">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-create-demande-livraison">Redirection vers l'arrivage créé</label>
+        </div>
+    </div>
+    <div class="row p-3">
+        <div class="form-group w-450px col-6">
+            <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
+            <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeArrivage($(this))">
+                <option></option>
+                {% for status in listStatusLitige %}
+                    {% set selected = (status.id == defaultStatusLitigeId) ? 'selected' %}
+                    <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
 </div>

@@ -77,10 +77,13 @@
                     <div class="form-group col-4">
                         <label for="statutLitige">Statut*</label>
                         <select class="form-control data needed" id="statutLitige" name="statutLitige">
-                            <option placeholder="" disabled value="" selected></option>
+                            <option disabled selected></option>
                             {% for statut in statusLitige %}
                                 <option value="{{ statut.id }}">{{ statut.nom }}</option>
                             {% endfor %}
+                            {% if defaultLitigeStatusId is defined and defaultLitigeStatusId != null %}
+                                <input hidden name="default-status" data-id="{{ defaultLitigeStatusId }}"/>
+                            {% endif %}
                         </select>
                     </div>
                     <div class="form-group col-4">

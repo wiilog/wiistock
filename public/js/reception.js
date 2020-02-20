@@ -86,19 +86,12 @@ function initNewReceptionEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
     initDateTimePicker('#dateCommande, #dateAttendue');
-    initDateTimePickerCL();
-    $modal.find('.list-multiple').select2();
-}
 
-function initDateTimePickerCL() {
     $('.date-cl').each(function() {
         initDateTimePicker('#' + $(this).attr('id'));
     });
-}
 
-function initDateTimePickerReception() {
-    initDateTimePicker('#dateCommande, #dateAttendue');
-    initDateTimePickerCL();
+    $modal.find('.list-multiple').select2();
 }
 
 function initReceptionLocation() {

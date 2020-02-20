@@ -892,7 +892,9 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $type = $reception->getType();
+		$paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+
+		$type = $reception->getType();
         if ($type) {
             $valeurChampLibreTab = $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
         } else {
@@ -945,7 +947,8 @@ class ReceptionController extends AbstractController
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
-			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
+			'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 		]);
     }
 
