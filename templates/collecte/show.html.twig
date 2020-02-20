@@ -48,7 +48,7 @@
         <div class="col text-right" id='boutonCollecteInf'>
             <a href="{{ path('reference_article_index') }}" data-toggle="modal"
                class="btn btn-primary btn-action ml-auto">
-                {% if isCurrentClient (constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                     Chercher une référence CEA
                 {% else %}
                     Chercher une référence
