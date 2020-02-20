@@ -102,7 +102,7 @@ class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInter
 
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ref = $date->format('YmdHis');
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
         $article
           ->setStatut($statut)

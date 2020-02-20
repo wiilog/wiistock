@@ -38,7 +38,7 @@
 {% endif %}
 <div class="col-4">
     <p><strong>Date de création :</strong>
-        {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+        {{ reception.date ? reception.date| date('d/m/Y H:i') : ' ' }}</p>
 </div>
 <div class="col-4">
     <p><strong title="de réception">Date de fin {{ 'réception.de réception'|trans }}

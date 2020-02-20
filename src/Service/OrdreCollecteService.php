@@ -164,7 +164,7 @@ class OrdreCollecteService
 		$referenceToQuantity = [];
 		$artToQuantity = [];
 
-        $statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+        $statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 		if ($statutATraiter->getId() !== $ordreCollecte->getStatut()->getId()) {
             throw new Exception(self::COLLECTE_ALREADY_BEGUN);
         }
@@ -244,20 +244,21 @@ class OrdreCollecteService
 				}
 			}
 
-			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
+			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
 
 			$em->flush();
 		}
 		else {
 		// cas de collecte totale
 			$demandeCollecte
-				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE));
+				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
+				->setValidationDate($dateNow);
 		}
 
 		// on modifie le statut de l'ordre de collecte
 		$ordreCollecte
 			->setUtilisateur($user)
-			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
+			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
@@ -291,7 +292,7 @@ class OrdreCollecteService
                     $article->setEmplacement($depositLocation);
                 }
 
-                $statutArticle = $this->statutRepository->findOneByCategorieNameAndStatutName(
+                $statutArticle = $this->statutRepository->findOneByCategorieNameAndStatutCode(
                     CategorieStatut::ARTICLE,
                     $fromNomade ? Article::STATUT_INACTIF : Article::STATUT_ACTIF
                 );

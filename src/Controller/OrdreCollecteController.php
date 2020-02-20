@@ -287,7 +287,7 @@ class OrdreCollecteController extends AbstractController
         }
 
         // on crée l'ordre de collecte
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutName(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ordreCollecte
@@ -312,7 +312,7 @@ class OrdreCollecteController extends AbstractController
 
         // on modifie statut + date validation de la demande
         $demandeCollecte
-			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER))
+			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER))
 			->setValidationDate($date);
 
 
@@ -382,7 +382,7 @@ class OrdreCollecteController extends AbstractController
             $collecte = $ordreCollecte->getDemandeCollecte();
 
             $collecte
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON));
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON));
             $entityManager = $this->getDoctrine()->getManager();
             foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
                 $entityManager->remove($cr);

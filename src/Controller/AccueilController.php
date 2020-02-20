@@ -7,6 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Repository\ColisRepository;
@@ -15,6 +16,7 @@ use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -173,16 +175,16 @@ class AccueilController extends AbstractController
         $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
         $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
 
-        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutName(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
+        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
 
-        $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+        $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
 
         $listStatutDemandeP = $this->statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutName(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+        $statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
         $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
         return [
@@ -345,30 +347,33 @@ class AccueilController extends AbstractController
         return new JsonResponse($arrivalsCountByWeek);
     }
 
-    /**
-     * @Route(
-     *     "/statistiques-encours-par-duree-et-nature/{graph}",
-     *     name="get_encours_count_by_nature_and_timespan",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param DashboardService $dashboardService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param EnCoursService $enCoursService
-     * @param EmplacementRepository $emplacementRepository
-     * @param int $graph
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws DBALException
-     */
+	/**
+	 * @Route(
+	 *     "/statistiques-encours-par-duree-et-nature/{graph}",
+	 *     name="get_encours_count_by_nature_and_timespan",
+	 *     options={"expose"=true},
+	 *     methods="GET",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param DashboardService $dashboardService
+	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
+	 * @param EntityManagerInterface $entityManager
+	 * @param EnCoursService $enCoursService
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param int $graph
+	 * @return Response
+	 * @throws DBALException
+	 * @throws NonUniqueResultException
+	 */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        ParametrageGlobalRepository $parametrageGlobalRepository,
+                                                       EntityManagerInterface $entityManager,
                                                        EnCoursService $enCoursService,
                                                        EmplacementRepository $emplacementRepository,
-                                                       int $graph): Response {
+                                                       int $graph): Response
+	{
 
-        $natureRepository = $this->getDoctrine()->getRepository('App:Nature');
+		$natureRepository = $entityManager->getRepository(Nature::class);
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;

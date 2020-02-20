@@ -90,6 +90,7 @@ class FiltreSupController extends AbstractController
 				'providers' => FiltreSup::FIELD_PROVIDERS,
 				'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,
 				'demande' => FiltreSup::FIELD_DEMANDE,
+				'natures' => FiltreSup::FIELD_NATURES
 			];
 
 			foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

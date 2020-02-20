@@ -6,6 +6,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -47,29 +48,33 @@ class FiltreSupRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
-    /**
-     * @param string $field
-     * @param string $page
-     * @param Utilisateur $user
-     * @return FiltreSup|null
-     * @throws NonUniqueResultException
-     */
-    public function findOnebyFieldAndPage($field, $page, $user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT fs
+	/**
+	 * @param string $field
+	 * @param string $page
+	 * @param Utilisateur $user
+	 * @return array
+	 * @throws NonUniqueResultException
+	 */
+    public function getOnebyFieldAndPageAndUser($field, $page, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT fs.value
 			FROM App\Entity\FiltreSup fs
 			WHERE fs.field = :field
-			AND fs.page = :page"
-        )->setParameters([
-            'field' => $field,
-            'page' => $page,
-        ]);
+			AND fs.page = :page
+			AND fs.user = :user"
+		)->setParameters([
+			'field' => $field,
+			'page' => $page,
+			'user' => $user
+		]);
 
-        return $query->getOneOrNullResult();
-    }
+		$result = $query->getOneOrNullResult();
+		dump($result);
+		return $result ? $result['value'] : null;
+	}
 
 	/**
 	 * @param string $page

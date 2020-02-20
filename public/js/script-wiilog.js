@@ -10,6 +10,7 @@ const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_LITIGE_ARR = 'litige';
+const PAGE_ENCOURS = 'encours';
 const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
@@ -765,7 +766,8 @@ function saveFilters(page, tableSelector, callback) {
             'filter-carrier',
             'filter-reference',
             'filter-location',
-            'filter-demand'
+            'filter-demand',
+            'filter-natures'
         ],
         checkbox: [
             'filter-checkbox'
@@ -1197,13 +1199,16 @@ function displayFiltersSup(data) {
             case 'statut':
             case 'carriers':
             case 'emplacement':
+            case 'natures':
                 let valuesElement2 = element.value.split(',');
                 let $select2 = $('#' + element.field);
+                let ids = [];
                 valuesElement2.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
-                    $select2.val(id).trigger('change');
+                    ids.push(id);
                 });
+                $select2.val(ids).trigger('change');
                 break;
 
             case 'emergency':

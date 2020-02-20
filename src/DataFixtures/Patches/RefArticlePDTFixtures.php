@@ -111,7 +111,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
                     ->setType($typePdt)
-                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                     ->setReference($row[0])
                     ->setLibelle($row[1])
                     ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
@@ -189,7 +189,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             $article
                 ->setReference($row[0] . '-' . $i)
                 ->setLabel($row[1])
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutName(Article::CATEGORIE, Article::STATUT_ACTIF))
+                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF))
                 ->setType($typePdt)
                 ->setConform(true)
                 ->setQuantite(intval($row[3]));
