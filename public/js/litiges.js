@@ -6,7 +6,7 @@ $(function() {
     initSelect2('#statut', 'Statut');
     initSelect2('#litigeOrigin', 'Origine');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
-    ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+    // ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -14,10 +14,6 @@ $(function() {
     $.post(path, params, function(data) {
         displayFiltersSup(data);
     }, 'json');
-
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
-    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-
 });
 
 let pathLitiges = Routing.generate('litige_api', true);
