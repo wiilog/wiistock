@@ -7,7 +7,8 @@ let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 
 $(function () {
-    const dataTableInitRes = InitiliaserPageDataTable();
+    $('.select2').select2();
+    const dataTableInitRes = InitPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     InitiliserPageModals();
@@ -60,7 +61,7 @@ function InitiliserPageModals() {
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesReception);
 }
 
-function InitiliaserPageDataTable() {
+function InitPageDataTable() {
     let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
 
@@ -86,7 +87,7 @@ function InitiliaserPageDataTable() {
                     return data;
                 }
             },
-            order: [[1, "desc"]],
+            order: [[5, "desc"], [1, "desc"]],
             columns: [
                 {"data": 'Actions', 'title': 'Actions'},
                 {"data": 'Référence', 'title': 'Référence'},
@@ -120,11 +121,12 @@ function InitiliaserPageDataTable() {
                 {"data": 'status', 'name': 'status', 'title': 'Statut'},
                 {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
                 {"data": 'date', 'name': 'date', 'title': 'Date'},
+                {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
             ],
             columnDefs: [
                 {
                     "type": "customDate",
-                    "targets": 4,
+                    "targets": [4, 5],
                     "visible": false
                 },
                 {
@@ -133,10 +135,22 @@ function InitiliaserPageDataTable() {
                 }
             ],
             order: [
+                [5, 'desc'],
                 [4, 'desc'],
             ],
+            rowCallback: function (row, data) {
+                $(row).addClass(data.urgence ? 'table-danger' : '');
+            }
         })
     };
+}
+
+function initDateTimePickerReception() {
+    initDateTimePicker('#dateCommande, #dateAttendue');
+
+    $('.date-cl').each(function() {
+        initDateTimePicker('#' + $(this).attr('id'));
+    });
 }
 
 function displayErrorReception(data) {

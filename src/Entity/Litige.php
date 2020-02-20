@@ -68,6 +68,11 @@ class Litige
      */
     private $buyers;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $emergencyTriggered;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -310,6 +315,18 @@ class Litige
         if ($this->buyers->contains($buyer)) {
             $this->buyers->removeElement($buyer);
         }
+
+        return $this;
+    }
+
+    public function getEmergencyTriggered(): ?bool
+    {
+        return $this->emergencyTriggered;
+    }
+
+    public function setEmergencyTriggered(?bool $emergencyTriggered): self
+    {
+        $this->emergencyTriggered = $emergencyTriggered;
 
         return $this;
     }

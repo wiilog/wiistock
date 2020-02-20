@@ -26,6 +26,7 @@ class ReceptionRepository extends ServiceEntityRepository
         'Commentaire' => 'commentaire',
         'Statut' => 'statut',
         'Fournisseur' => 'fournisseur',
+        'urgence' => 'emergencyTriggered',
     ];
 
     public function __construct(ManagerRegistry $registry)

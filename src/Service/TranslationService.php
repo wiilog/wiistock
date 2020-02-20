@@ -81,4 +81,10 @@ class TranslationService {
 		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
 		$process->run();
 	}
+
+	public function getTranslation($menu, $label)
+	{
+		$translation = $this->translationRepository->getTranslationByMenuAndLabel($menu, $label);
+		return !empty($translation) ? $translation : $label;
+	}
 }

@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
+use App\Entity\Statut;
 use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
@@ -52,6 +54,7 @@ class ParametrageGlobalController extends AbstractController
 	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
 	 * @param MailerServerRepository $mailerServerRepository
 	 * @param GlobalParamService $globalParamService
+	 * @param TransporteurRepository $transporteurRepository
 	 * @param NatureRepository $natureRepository
 	 * @return Response
 	 * @throws NoResultException
@@ -68,6 +71,8 @@ class ParametrageGlobalController extends AbstractController
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
 
         $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer =  $mailerServerRepository->findOneMailerServer();
@@ -104,11 +109,18 @@ class ParametrageGlobalController extends AbstractController
         return $this->render('parametrage_global/index.html.twig',
             [
             	'dimensions_etiquettes' => $dimensions,
-                'redirect' => $redirect ? $redirect->getValue() : true,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
-                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false
+                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
+					'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
+					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
+                'paramArrivages' => [
+					'redirect' => $redirect ? $redirect->getValue() : true,
+					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR)
+				],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
                 'paramTranslations' => [
@@ -119,7 +131,6 @@ class ParametrageGlobalController extends AbstractController
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
                 'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-				'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
 				'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'redirectMvtTraca' => $redirectAfterMvt ? $redirectAfterMvt->getValue() : null,
@@ -595,6 +606,72 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
+    }
+
+	/**
+	 * @Route(
+	 *     "/statut-litige-reception",
+	 *     name="edit_status_litige_reception",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editStatusLitigeReception(Request $request): Response
+    {
+		$post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
+
+        if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
+			$em->persist($parametrageGlobal);
+		}
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+		$parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+		$em->flush();
+
+		return new JsonResponse(true);
+    }
+
+	/**
+	 * @Route(
+	 *     "/statut-litige-arrivage",
+	 *     name="edit_status_litige_arrivage",
+	 *     options={"expose"=true},
+	 *     methods="POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+	 * @param Request $request
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+    public function editStatusLitigeArrivage(Request $request): Response
+    {
+		$post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
+
+        if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
+			$em->persist($parametrageGlobal);
+		}
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+		$em->flush();
+
+		return new JsonResponse(true);
     }
 
 	/**
