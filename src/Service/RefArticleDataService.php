@@ -220,10 +220,11 @@ class RefArticleDataService
     }
 
 
-    /**
-     * @param ReferenceArticle $articleRef
-     * @return array
-     */
+	/**
+	 * @param ReferenceArticle $articleRef
+	 * @return array
+	 * @throws NonUniqueResultException
+	 */
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
@@ -412,6 +413,8 @@ class RefArticleDataService
             $rowCL[$row['label']] = $row['valeur'];
         }
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+        $quantityStock = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ?
+			$refArticle->getQuantiteStock() : $this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($refArticle);
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -419,7 +422,8 @@ class RefArticleDataService
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $refArticle->getCalculedAvailableQuantity() - $reservedQuantity,
+            "Quantité disponible" => $quantityStock - $reservedQuantity,
+            "Quantité stock" => $quantityStock,
             "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
