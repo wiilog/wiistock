@@ -72,7 +72,6 @@ class FiltreSupRepository extends ServiceEntityRepository
 		]);
 
 		$result = $query->getOneOrNullResult();
-		dump($result);
 		return $result ? $result['value'] : null;
 	}
 
