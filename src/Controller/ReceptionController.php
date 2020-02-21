@@ -1704,6 +1704,7 @@ class ReceptionController extends AbstractController
                     'utilisateur',
                     'statut',
                     'date',
+                    'commentaire',
                     'quantité à recevoir',
                     'quantité reçue',
                     'référence',
@@ -1711,7 +1712,7 @@ class ReceptionController extends AbstractController
                     'quantité stock',
                     'type',
                     'code-barre reference',
-                    'code-barre article'
+                    'code-barre article',
                 ]);
 
             $data = [];
@@ -1737,6 +1738,7 @@ class ReceptionController extends AbstractController
                 $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                 $reception->getStatut() ? $reception->getStatut()->getNom() : '',
                 $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                strip_tags($reception->getCommentaire()),
                 $receptionReferenceArticle->getQuantiteAR(),
                 $receptionReferenceArticle->getQuantite(),
                 $referenceArticle->getReference(),
@@ -1755,6 +1757,7 @@ class ReceptionController extends AbstractController
                     $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                     $reception->getStatut() ? $reception->getStatut()->getNom() : '',
                     $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
+                    strip_tags($reception->getCommentaire()),
                     $receptionReferenceArticle->getQuantiteAR(),
                     $receptionReferenceArticle->getQuantite(),
                     $article->getReference(),
