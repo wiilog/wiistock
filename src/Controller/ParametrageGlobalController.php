@@ -118,7 +118,7 @@ class ParametrageGlobalController extends AbstractController
 					'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
-				], //TODO CG
+				],
                 'paramArrivages' => [
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),

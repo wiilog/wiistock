@@ -215,8 +215,7 @@ class ArrivageController extends AbstractController
      * @param ChampLibreRepository $champLibreRepository
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
+	 */
     public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
