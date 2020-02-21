@@ -74,7 +74,7 @@ function openTableHisto() {
                 "targets": 1
             },
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">'
+        dom: '<"top">rt<"bottom"lp><"clear">',
     });
 }
 extendsDateSort('customDate');
@@ -103,6 +103,12 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    "columnDefs": [
+        {
+            "targets": 5,
+            "visible": false
+        },
+    ],
     scrollX: true,
     ajax: {
         "url": pathArrivageLitiges,
@@ -114,7 +120,11 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
+        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
     ],
+    rowCallback: function (row, data) {
+        $(row).addClass(data.urgence ? 'table-danger' : '');
+    },
     order: [[0, 'desc']],
 });
 
