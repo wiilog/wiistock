@@ -259,6 +259,11 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                 }] : data
             },
             options: {
+                layout: {
+                    padding: {
+                        top: 15
+                    }
+                },
                 tooltips: false,
                 responsive: true,
                 legend: {
@@ -277,32 +282,30 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                     }]
                 },
                 animation: {
-                    onComplete: displayFiguresOnChart
+                    onProgress() {
+                        let ctx = (this.chart.ctx);
+                        ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
+                        ctx.fillStyle = "black";
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+
+                        this.data.datasets.forEach(function (dataset) {
+                            for (let i = 0; i < dataset.data.length; i++) {
+                                for (let key in dataset._meta) {
+                                    if (parseInt(dataset.data[i]) > 0) {
+                                        let model = dataset._meta[key].data[i]._model;
+                                        ctx.fillText(dataset.data[i], model.x, model.y - 13);
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             }
         });
     } else {
         return null;
     }
-}
-
-function displayFiguresOnChart() {
-    let ctx = (this.chart.ctx);
-    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
-    ctx.fillStyle = "white";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    this.data.datasets.forEach(function (dataset) {
-        for (let i = 0; i < dataset.data.length; i++) {
-            for (let key in dataset._meta) {
-                if (parseInt(dataset.data[i]) > 0) {
-                    let model = dataset._meta[key].data[i]._model;
-                    ctx.fillText(dataset.data[i], model.x, model.y + 5);
-                }
-            }
-        }
-    });
 }
 
 function loadRetards() {
