@@ -281,11 +281,12 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                         }
                     }]
                 },
+                hover: {mode: null},
                 animation: {
-                    onProgress() {
+                    onComplete() {
                         let ctx = (this.chart.ctx);
                         ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
-                        ctx.fillStyle = "black";
+                        ctx.fillStyle = 'black';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'top';
 
