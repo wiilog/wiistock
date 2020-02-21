@@ -5,11 +5,13 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Types\ObjectType;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -357,57 +359,55 @@ class InventoryMissionRepository extends ServiceEntityRepository
         return $result ? $result[0] : null;
     }
 
-	/**
-	 * @param ReferenceArticle $ref
-	 * @param DateTimeInterface $startDate
-	 * @param DateTimeInterface $endDate
-	 * @return InventoryMission[]
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countByRefAndDates($ref, $startDate, $endDate)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(m)
-			FROM App\Entity\InventoryMission m
-			JOIN m.refArticles ra
-			WHERE (m.startPrevDate <= :startDate OR m.endPrevDate >= :endDate)
-			AND ra = :ref"
-		)->setParameters([
-			'ref' => $ref,
-			'startDate' => $startDate->format('Y-m-d H:i:s'),
-			'endDate' => $endDate->format('Y-m-d H:i:s')
-		]);
-
-		return $query->getSingleScalarResult();
+    /**
+     * @param ReferenceArticle $ref
+     * @param DateTimeInterface $startDate
+     * @param DateTimeInterface $endDate
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByRefAndDates($ref, $startDate, $endDate): int {
+        return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
+            ->join('mission.refArticles', 'refArticle')
+            ->andWhere('refArticle = :refArt')
+            ->setParameter('refArt', $ref)
+            ->select('COUNT(mission)')
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
 
-	/**
-	 * @param Article $art
-	 * @param DateTimeInterface $startDate
-	 * @param ObjectType $endDate
-	 * @return InventoryMission[]
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countByArtAndDates($art, $startDate, $endDate)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(m)
-			FROM App\Entity\InventoryMission m
-			JOIN m.articles a
-			WHERE (m.startPrevDate <= :startDate OR m.endPrevDate >= :endDate)
-			AND a = :art"
-		)->setParameters([
-			'art' => $art,
-			'startDate' => $startDate->format('Y-m-d H:i:s'),
-			'endDate' => $endDate->format('Y-m-d H:i:s')
-		]);
-
-		return $query->getSingleScalarResult();
+    /**
+     * @param Article $art
+     * @param DateTime $startDate
+     * @param DateTime $endDate
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByArtAndDates($art, $startDate, $endDate): int {
+		return $this->createQueryBuilderMissionInBracket($startDate, $endDate)
+            ->join('mission.articles', 'article')
+            ->andWhere('article = :art')
+            ->setParameter('art', $art)
+            ->select('COUNT(mission)')
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
+
+	private function createQueryBuilderMissionInBracket(DateTime $startDate, DateTime $endDate): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('mission');
+        $exprBuilder = $queryBuilder->expr();
+
+        // On teste si les dates ne se chevauchent pas
+        return $queryBuilder
+            ->where($exprBuilder->orX(
+                $exprBuilder->between('mission.startPrevDate', ':startDate', ':endDate'),
+                $exprBuilder->between('mission.endPrevDate', ':startDate', ':endDate'),
+                $exprBuilder->between(':startDate', 'mission.startPrevDate', 'mission.endPrevDate'),
+                $exprBuilder->between(':endDate', 'mission.startPrevDate', 'mission.endPrevDate')
+            ))
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+    }
 }
