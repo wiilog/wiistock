@@ -268,6 +268,7 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                 responsive: true,
                 legend: {
                     display: isMultiple,
+                    position: 'bottom'
                 },
                 scales: {
                     yAxes: [{
