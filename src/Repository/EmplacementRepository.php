@@ -99,7 +99,7 @@ class EmplacementRepository extends ServiceEntityRepository
           WHERE e.label LIKE :search
           AND e.isActive = 1
           "
-        )->setParameter('search', '%' . $search . '%');
+        )->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
 
         return $query->execute();
     }
