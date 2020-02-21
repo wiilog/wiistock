@@ -299,31 +299,32 @@ class LitigeRepository extends ServiceEntityRepository
 
 			if (!empty($params->get('order')))
 			{
-				$order = $params->get('order')[0]['dir'];
-				if (!empty($order))
-				{
-					$column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-
-					if ($column === 'type') {
-						$qb
-							->orderBy('t.label', $order);
-					} else if ($column === 'status') {
-						$qb
-							->orderBy('s.nom', $order);
-					} else if ($column === 'acheteurs') {
-						$qb
-							->orderBy('achUsername', $order);
-					} else if ($column === 'numeroArrivage') {
-						$qb
-							->orderBy('a.numeroArrivage', $order);
-					} else if ($column === 'numeroReception') {
-						$qb
-							->orderBy('r.numeroReception', $order);
-					} else {
-						$qb
-							->orderBy('l.' . $column, $order);
-					}
-				}
+                foreach ($params->get('order') as $sort) {
+                    $order = $sort['dir'];
+                    if (!empty($order))
+                    {
+                        $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+                        if ($column === 'type') {
+                            $qb
+                                ->addOrderBy('t.label', $order);
+                        } else if ($column === 'status') {
+                            $qb
+                                ->addOrderBy('s.nom', $order);
+                        } else if ($column === 'acheteurs') {
+                            $qb
+                                ->addOrderBy('achUsername', $order);
+                        } else if ($column === 'numeroArrivage') {
+                            $qb
+                                ->addOrderBy('a.numeroArrivage', $order);
+                        } else if ($column === 'numeroReception') {
+                            $qb
+                                ->addOrderBy('r.numeroReception', $order);
+                        } else {
+                            $qb
+                                ->addOrderBy('l.' . $column, $order);
+                        }
+                    }
+                }
 			}
 		}
 		// compte éléments filtrés
