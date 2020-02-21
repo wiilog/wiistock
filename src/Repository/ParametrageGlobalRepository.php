@@ -41,19 +41,18 @@ class ParametrageGlobalRepository extends ServiceEntityRepository
 	 * @param $label
 	 * @return ParametrageGlobal
 	 * @throws NonUniqueResultException
-	 * @throws NoResultException
 	 */
     public function getOneParamByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT pg.value AS value
+            "SELECT pg.value
             FROM App\Entity\ParametrageGlobal pg
             WHERE pg.label LIKE :label
             "
         )->setParameter('label', $label);
 
-        $res = $query->getResult();
-        $resCount = count($res);
-        return $resCount > 0 ? $res[$resCount - 1]['value'] : null;
+        $result = $query->getOneOrNullResult();
+
+        return $result ? $result['value'] : null;
     }
 }
