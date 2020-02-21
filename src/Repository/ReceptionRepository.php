@@ -164,21 +164,23 @@ class ReceptionRepository extends ServiceEntityRepository
             }
             if (!empty($params->get('order')))
             {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'statut') {
-                        $qb
-                            ->leftJoin('r.statut', 's2')
-                            ->orderBy('s2.nom', $order);
-                    } else if ($column === 'fournisseur') {
-                        $qb
-                            ->leftJoin('r.fournisseur', 'u2')
-                            ->orderBy('u2.nom', $order);
-                    } else {
-                        $qb
-                            ->orderBy('r.' . $column, $order);
+                foreach ($params->get('order') as $sort) {
+                    $order = $sort['dir'];
+                    if (!empty($order))
+                    {
+                        $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+                        if ($column === 'statut') {
+                            $qb
+                                ->leftJoin('r.statut', 's2')
+                                ->addOrderBy('s2.nom', $order);
+                        } else if ($column === 'fournisseur') {
+                            $qb
+                                ->leftJoin('r.fournisseur', 'u2')
+                                ->addOrderBy('u2.nom', $order);
+                        } else {
+                            $qb
+                                ->addOrderBy('r.' . $column, $order);
+                        }
                     }
                 }
             }

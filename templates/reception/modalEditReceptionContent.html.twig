@@ -172,8 +172,7 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         {% for typeChampLibre in typeChampsLibres %}
-            <div
-                class="{{ reception.type is not empty ? 'd-block' : 'd-none' }}">
+            <div>
                 <div class="row mt-2">
                     {% for champLibre in typeChampLibre.champsLibres %}
                         <div class="form-group col-6">
