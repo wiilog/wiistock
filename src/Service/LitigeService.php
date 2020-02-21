@@ -109,7 +109,7 @@ class LitigeService
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 
 		$row = [
-			'actions' => $this->templating->render('litige/datatableLitigesArrivageRow.html.twig', [
+			'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
 				'litigeId' => $litige['id'],
 				'arrivageId' => $litige['arrivageId'],
 				'receptionId' => $litige['receptionId'],
@@ -118,7 +118,10 @@ class LitigeService
 			'type' => $litige['type'] ?? '',
 			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
 			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
-			'receptionNumber' => $litige['numeroReception'] ?? '',
+			'receptionNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
+				'receptionNb' => $litige['numeroReception'] ?? '',
+				'receptionId' => $litige['receptionId']
+			]),
 			'lastHistoric' => $lastHistoricStr,
 			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
 			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',

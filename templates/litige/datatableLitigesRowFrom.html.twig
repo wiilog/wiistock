@@ -1,0 +1,7 @@
+<div class="d-flex">
+    {% if receptionNb is not null and receptionId is not null %}
+        <a href="{{ path('reception_show', {'id': receptionId }) }}" target="_blank">
+            <i class='fas fa-share-square mr-2'></i>{{ receptionNb }}
+        </a>
+    {% endif %}
+</div>
