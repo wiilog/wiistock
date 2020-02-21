@@ -276,6 +276,11 @@ class LitigeRepository extends ServiceEntityRepository
 						$qb->andWhere('a.id is not null');
 					}
 					break;
+				case 'emergency':
+					$qb
+						->andWhere('l.emergencyTriggered = :isUrgent')
+						->setParameter('isUrgent', $filter['value']);
+					break;
 			}
 		}
 
