@@ -150,19 +150,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    //TODO remplacer par $ref->getQuantiteStock()
-    public function getQuantiteStockById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r.quantiteStock
-            FROM App\Entity\ReferenceArticle r
-            WHERE r.id = $id
-           "
-        );
-        return $query->getSingleScalarResult();
-    }
-
     public function findByFiltersAndParams($filters, $params, $user)
     {
         $needCLOrder = null;
@@ -183,7 +170,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
 			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
-        //TODO trouver + dynamique
+
         $qb->from('App\Entity\ReferenceArticle', 'ra');
 
 		foreach ($filters as $filter) {

@@ -1449,20 +1449,20 @@ class ReceptionController extends AbstractController
         $em->flush();
     }
 
-    /**
-     * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function getArticleStock(Request $request)
-    {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $id = $request->request->get('id');
-        $quantiteStock = $this->referenceArticleRepository->getQuantiteStockById($id);
-
-        return new JsonResponse($quantiteStock);
-    }
+//    /**
+//     * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
+//     */
+//    public function getArticleStock(Request $request)
+//    {
+//        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
+//            return $this->redirectToRoute('access_denied');
+//        }
+//
+//        $id = $request->request->get('id');
+//        $quantiteStock = $this->referenceArticleRepository->getQuantiteStockById($id);
+//
+//        return new JsonResponse($quantiteStock);
+//    }
 
     /**
      * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
