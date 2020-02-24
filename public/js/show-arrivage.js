@@ -40,16 +40,22 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
         {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
-        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
     ],
     order: [
-        [1, 'asc'],
+        [2, 'asc'],
     ],
+    columnDefs: [
+        {
+            orderable: false,
+            targets: 0
+        }
+    ]
 });
 let tableHistoLitige;
 function openTableHisto() {
@@ -74,7 +80,7 @@ function openTableHisto() {
                 "targets": 1
             },
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">'
+        dom: '<"top">rt<"bottom"lp><"clear">',
     });
 }
 extendsDateSort('customDate');
@@ -103,19 +109,33 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    "columnDefs": [
+        {
+            "targets": 5,
+            "visible": false
+        },
+        {
+            targets: 0,
+            orderable: false,
+        }
+    ],
     scrollX: true,
     ajax: {
         "url": pathArrivageLitiges,
         "type": "POST"
     },
     columns: [
+        {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
-        {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
+        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
     ],
-    order: [[0, 'desc']],
+    rowCallback: function (row, data) {
+        $(row).addClass(data.urgence ? 'table-danger' : '');
+    },
+    order: [[1, 'desc']],
 });
 
 let modalNewLitige = $('#modalNewLitige');
