@@ -6,6 +6,7 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -136,22 +137,48 @@ class LitigeRepository extends ServiceEntityRepository
 	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
-	public function findByDates($dateMin, $dateMax)
+	public function findArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax)
 	{
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
-
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			'SELECT l
-            FROM App\Entity\Litige l
-            WHERE l.creationDate BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
+		$query = $this
+            ->createQueryBuilderByDates($dateMin, $dateMax)
+            ->join('litige.colis', 'colis')
+            ->join('colis.arrivage', 'arrivage')
+            ->getQuery();
 		return $query->execute();
+	}
+
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return Litige[]|null
+	 */
+	public function findReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
+	{
+		$query = $this
+            ->createQueryBuilderByDates($dateMin, $dateMax)
+            ->join('litige.articles', 'article')
+            ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
+            ->join('receptionReferenceArticle.reception', 'reception')
+            ->getQuery();
+		return $query->execute();
+	}
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return QueryBuilder
+     */
+	public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('litige');
+        $exprBuilder = $queryBuilder->expr();
+
+        return $queryBuilder
+            ->distinct()
+            ->where($exprBuilder->between('litige.creationDate', ':dateMin', ':dateMax'))
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
 	}
 
     public function findByArrivage($arrivage)
