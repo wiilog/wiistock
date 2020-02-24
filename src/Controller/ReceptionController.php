@@ -1393,7 +1393,7 @@ class ReceptionController extends AbstractController
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
 
-        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
+        $typeDeposeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1412,7 +1412,7 @@ class ReceptionController extends AbstractController
 
 				$mouvementTraca = new MouvementTraca();
 				$mouvementTraca
-					->setType($typeMouvementTraca)
+					->setType($typeDeposeMouvementTraca)
 					->setEmplacement($receptionLocation)
 					->setOperateur($currentUser)
 					->setDatetime($now)
@@ -1436,7 +1436,7 @@ class ReceptionController extends AbstractController
 
 					$mouvementTraca = new MouvementTraca();
 					$mouvementTraca
-						->setType($typeMouvementTraca)
+						->setType($typeDeposeMouvementTraca)
 						->setEmplacement($receptionLocation)
 						->setOperateur($currentUser)
 						->setDatetime($now)
