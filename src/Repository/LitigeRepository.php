@@ -356,4 +356,23 @@ class LitigeRepository extends ServiceEntityRepository
 			'total' => $countTotal
 		];
 	}
+
+	/**
+	 * @param int $litigeId
+	 * @return string[]
+	 */
+	public function getCommandesByLitigeId(int $litigeId) {
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			"SELECT rra.commande
+			FROM App\Entity\ReceptionReferenceArticle rra
+			JOIN rra.articles a
+			JOIN a.litiges l
+            WHERE l.id = :litigeId")
+			->setParameter('litigeId', $litigeId);
+
+		$result = $query->execute();
+		return array_column($result, 'commande');
+	}
 }

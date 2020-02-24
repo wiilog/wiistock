@@ -24,7 +24,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[10, 'desc'], [8, 'desc']],
+    order: [[11, 'desc'], [9, 'desc']],
     ajax: {
         "url": pathLitiges,
         "type": "POST",
@@ -36,8 +36,9 @@ let tableLitiges = $('#tableLitiges').DataTable({
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
-        {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
         {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
+        {"data": 'command', 'name': 'command', 'title': 'N° commande achat'},
+        {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
         {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
@@ -48,10 +49,10 @@ let tableLitiges = $('#tableLitiges').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: [0, 6]
+            targets: [0, 4, 7]
         },
         {
-            "targets": 10,
+            "targets": 11,
             "visible": false
         },
     ],
