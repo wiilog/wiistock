@@ -26,6 +26,7 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\CSVExportService;
 use App\Service\LitigeService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
 use Exception;
@@ -186,6 +187,7 @@ class LitigeController extends AbstractController
      * @return Response
      */
 	public function getLitigesIntels(Request $request,
+                                     SpecificService $specificService,
                                      CSVExportService $CSVExportService): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -203,12 +205,18 @@ class LitigeController extends AbstractController
                 'date creation',
                 'date modification',
                 'colis / réference',
-                'ordre arrivage / réception',
-                'fournisseur',
-                'date commentaire',
-                'utilisateur',
-                'commentaire'
+                'ordre arrivage / réception'
             ];
+
+            if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
+                $headers[] = "n° commande d'achat";
+                $headers[] = 'fournisseur';
+            }
+
+            $headers[] = 'date commentaire';
+            $headers[] = 'utilisateur';
+            $headers[] = 'commentaire';
+
 			$data = [
                 $headers
             ];
@@ -240,8 +248,13 @@ class LitigeController extends AbstractController
                     : null;
                 $litigeData[] = (isset($arrivage) ? $arrivage->getNumeroArrivage() : '');
 
-                $fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
-                $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+                // TODO AB delete : commande d'achat & fournisseur pour un arrivage
+                if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
+                    $litigeData[] = ''; // N° command d'achat
+
+                    $fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
+                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+                }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() > 0) {
@@ -305,8 +318,12 @@ class LitigeController extends AbstractController
 
                 $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
-                $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
-                $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+                if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
+                    $litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
+
+                    $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+                }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() > 0) {
