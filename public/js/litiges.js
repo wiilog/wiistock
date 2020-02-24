@@ -56,16 +56,16 @@ function initDatatableLitiges(isCollins) {
             {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
             // spécifique Collins
-            {"data": 'numCommandeRecep', 'name': 'numCommandeRecep', 'title': 'N° commande / BL', 'visible' : isCollins},
-            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false, 'visible': isCollins},
-            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur', 'visible': isCollins},
-            {"data": 'references', 'name': 'references', 'title': 'Références', 'orderable': false, 'visible': isCollins},
+            {"data": 'numCommandeRecep', 'name': 'numCommandeRecep', 'title': 'N° commande / BL', 'visible' : isCollins, 'class': isCollins ? '' : 'noVis'},
+            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false, 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
+            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur', 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
+            {"data": 'references', 'name': 'references', 'title': 'Références', 'orderable': false, 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
             // fin de spécifique Collins
             {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
             {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
             {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
         headerCallback: function(thead) {
             $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
