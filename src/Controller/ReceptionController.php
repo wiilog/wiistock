@@ -1089,6 +1089,9 @@ class ReceptionController extends AbstractController
                     }
                 }
             }
+            if ($post->get('emergency')) {
+                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+            }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
                 // on détache les colis existants...
                 $existingBuyers = $litige->getBuyers();
@@ -1182,6 +1185,9 @@ class ReceptionController extends AbstractController
                         $litige->setEmergencyTriggered(true);
                     }
                 }
+            }
+            if ($post->get('emergency')) {
+                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
             }
             if (!empty($buyers = $post->get('acheteursLitige'))) {
                 $listBuyers = explode(',', $buyers);

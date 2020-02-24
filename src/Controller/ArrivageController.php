@@ -948,6 +948,9 @@ class ArrivageController extends AbstractController
                     $arrivage = $this->colisRepository->find($colisId)->getArrivage();
                 }
             }
+            if ($post->get('emergency')) {
+                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+            }
             if ((!$litige->getStatus() || !$litige->getStatus()->isTreated()) && $arrivage) {
                 $arrivage->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_LITIGE));
             }
@@ -1078,6 +1081,7 @@ class ArrivageController extends AbstractController
                         ],
                         'litigeId' => $litige->getId(),
                     ]),
+                    'urgence' => $litige->getEmergencyTriggered()
                 ];
             }
 
@@ -1180,11 +1184,16 @@ class ArrivageController extends AbstractController
                 $comment .= "Changement du statut : " .
                     $statutBeforeName . " -> " . $litige->getStatus()->getNom() . ".";
             }
+
             if ($post->get('commentaire')) {
                 if (!empty($comment)) {
                     $comment .= "\n";
                 }
                 $comment .= trim($post->get('commentaire'));
+            }
+
+            if ($post->get('emergency')) {
+                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
             }
 
             if (!empty($comment)) {
