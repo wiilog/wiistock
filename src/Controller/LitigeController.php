@@ -289,24 +289,7 @@ class LitigeController extends AbstractController
                 $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
                 $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
 
-                $referencesStr = implode(
-                    ', ',
-                    $litige
-                        ->getArticles()
-                        ->map(function(Article $article) {
-                            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
-                            $reference = isset($receptionReferenceArticle)
-                                ? $receptionReferenceArticle->getReferenceArticle()
-                                : null;
-                            return isset($reference)
-                                ? $reference->getReference()
-                                : null;
-                        })
-                        ->filter(function($str) {
-                            return !empty($str);
-                        })
-                        ->toArray()
-                );
+                $referencesStr = implode(', ', $this->litigeRepository->getReferencesByLitigeId($litige->getId()));
 
                 $litigeData[] = $referencesStr;
 
