@@ -26,6 +26,7 @@ use App\Repository\UtilisateurRepository;
 
 use App\Service\CSVExportService;
 use App\Service\LitigeService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
 use Exception;
@@ -142,12 +143,13 @@ class LitigeController extends AbstractController
 		$this->litigeService = $litigeService;
 	}
 
-    /**
-     * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
-     * @param LitigeService $litigeService
-     * @return Response
-     */
-    public function index(LitigeService $litigeService)
+	/**
+	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+	 * @param LitigeService $litigeService
+	 * @param SpecificService $specificService
+	 * @return Response
+	 */
+    public function index(LitigeService $litigeService, SpecificService $specificService)
     {
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
@@ -157,7 +159,8 @@ class LitigeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-			'litigeOrigins' => $litigeService->getLitigeOrigin()
+			'litigeOrigins' => $litigeService->getLitigeOrigin(),
+			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)
 		]);
     }
 

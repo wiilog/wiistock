@@ -129,7 +129,7 @@ class LitigeService
 			]),
             'references' => $references,
 			'command' => $commands,
-//			'bl' => $litige['numBl'] ?? '',
+			'numCommandeRecep' => $litige['numCommandeRecep'] ?? '',
 			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
 			'provider' => $litige['provider'] ?? '',
 			'lastHistoric' => $lastHistoricStr,

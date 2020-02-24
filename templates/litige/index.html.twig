@@ -32,6 +32,7 @@
     {% include 'litige/modalDeleteLitige.html.twig' %}
     <input hidden id="transNoArrivage" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
     <input hidden id="transNoReception" value="{{ "réception.n° de réception"|trans|capitalize }}">
+    <input hidden id="isCollins" value="{{ isCollins }}">
 {% endblock %}
 
 {% block javascripts %}
