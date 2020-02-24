@@ -259,10 +259,16 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                 }] : data
             },
             options: {
+                layout: {
+                    padding: {
+                        top: 30
+                    }
+                },
                 tooltips: false,
                 responsive: true,
                 legend: {
                     display: isMultiple,
+                    position: 'bottom'
                 },
                 scales: {
                     yAxes: [{
@@ -276,33 +282,64 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                         }
                     }]
                 },
+                hover: {mode: null},
                 animation: {
-                    onComplete: displayFiguresOnChart
+                    onComplete() {
+                        let ctx = (this.chart.ctx);
+                        ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        ctx.strokeStyle = 'black';
+                        ctx.shadowColor = '#999';
+
+                        // on récupère la fontSize de font (format [X]px Arial)
+                        const fontArray = (ctx.font || '').split(' ');
+
+                        const fontSize = Number(fontArray[0].substr(0, fontArray[0].length > 2 ? (fontArray[0].length - 2) : 0) || 12);
+                        const figurePaddingHorizontal = 8;
+                        const figurePaddingVertical = 4;
+                        const figureColor = '#666666';
+                        const rectColor = '#FFFFFF';
+
+                        this.data.datasets.forEach(function (dataset) {
+                            for (let i = 0; i < dataset.data.length; i++) {
+                                for (let key in dataset._meta) {
+                                    if (parseInt(dataset.data[i]) > 0) {
+                                        let {x, y} = dataset._meta[key].data[i]._model;
+                                        y -= 25;
+                                        const figure = dataset.data[i];
+                                        const {width} = ctx.measureText(figure);
+                                        const rectX = x - (width / 2) - figurePaddingHorizontal;
+                                        const rectY = y - figurePaddingVertical;
+                                        const rectWidth = width + (figurePaddingHorizontal * 2);
+                                        const rectHeight = fontSize + (figurePaddingVertical * 2);
+
+                                        // context only for rect
+                                        ctx.shadowBlur = 2;
+                                        ctx.shadowOffsetX = 1;
+                                        ctx.shadowOffsetY = 1;
+                                        ctx.fillStyle = rectColor;
+                                        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+
+
+                                        // context only for text
+                                        ctx.shadowBlur = 0;
+                                        ctx.shadowOffsetX = 0;
+                                        ctx.shadowOffsetY = 0;
+                                        ctx.fillStyle = figureColor;
+                                        ctx.fillText(figure, x, y);
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             }
         });
     } else {
         return null;
     }
-}
-
-function displayFiguresOnChart() {
-    let ctx = (this.chart.ctx);
-    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
-    ctx.fillStyle = "white";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    this.data.datasets.forEach(function (dataset) {
-        for (let i = 0; i < dataset.data.length; i++) {
-            for (let key in dataset._meta) {
-                if (parseInt(dataset.data[i]) > 0) {
-                    let model = dataset._meta[key].data[i]._model;
-                    ctx.fillText(dataset.data[i], model.x, model.y + 5);
-                }
-            }
-        }
-    });
 }
 
 function loadRetards() {
