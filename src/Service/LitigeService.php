@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Repository\FiltreSupRepository;
@@ -108,6 +109,11 @@ class LitigeService
 		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 
+		$commands = $this->litigeRepository->getCommandesByLitigeId($litigeId);
+
+		// TODO specifique
+		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
+
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
 				'litigeId' => $litige['id'],
@@ -117,11 +123,15 @@ class LitigeService
 			]),
 			'type' => $litige['type'] ?? '',
 			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
-			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
 			'receptionNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
 				'receptionNb' => $litige['numeroReception'] ?? '',
 				'receptionId' => $litige['receptionId']
 			]),
+            'references' => $references,
+			'command' => $commands,
+			'numCommandeRecep' => $litige['numCommandeRecep'] ?? '',
+			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
+			'provider' => $litige['provider'] ?? '',
 			'lastHistoric' => $lastHistoricStr,
 			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
 			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
