@@ -11,6 +11,12 @@
           width: 11px
           left: 4px
           bottom: 3px
+      input
+          &:checked + .slider:before
+              -webkit-transform: translateX(17px)
+              -ms-transform: translateX(17px)
+              transform: translateX(17px)
+
     &.d-block-switch
         display: block
 
@@ -20,18 +26,15 @@
         height: 0
 
         &:checked + .slider
-            //background-color: #2196F3
             background-color: $redDark
 
         &:focus + .slider
-            //box-shadow: 0 0 1px #2196F3
             box-shadow: 0 0 1px $redDark
 
         &:checked + .slider:before
-            -webkit-transform: translateX(17px)
-            -ms-transform: translateX(17px)
-            transform: translateX(17px)
-
+            -webkit-transform: translateX(26px)
+            -ms-transform: translateX(26px)
+            transform: translateX(26px)
     .slider
         position: absolute
         cursor: pointer
@@ -39,7 +42,6 @@
         left: 0
         right: 0
         bottom: 0
-        //background-color: #ccc
         background-color: $grey
         -webkit-transition: .4s
         transition: .4s
