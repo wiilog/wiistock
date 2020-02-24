@@ -38,6 +38,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
         {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
         {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
         {"data": 'command', 'name': 'command', 'title': 'N° commande achat'},
+        // {"data": 'bl', 'name': 'bl', 'title': 'N° BL'}, //TODO CG
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
 
         // TODO specifique
