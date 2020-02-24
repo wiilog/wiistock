@@ -180,14 +180,15 @@ class LitigeController extends AbstractController
 		throw new NotFoundHttpException('404');
 	}
 
-    /**
-     * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     *
-     * @param Request $request
-     * @param CSVExportService $CSVExportService
-     *
-     * @return Response
-     */
+	/**
+	 * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 *
+	 * @param Request $request
+	 * @param SpecificService $specificService
+	 * @param CSVExportService $CSVExportService
+	 *
+	 * @return Response
+	 */
 	public function getLitigesIntels(Request $request,
                                      SpecificService $specificService,
                                      CSVExportService $CSVExportService): Response
@@ -204,7 +205,7 @@ class LitigeController extends AbstractController
 			$headers = [
 			    'Type',
                 'Statut',
-                'Date creation',
+                'Date création',
                 'Date modification',
                 'Colis / Réferences',
                 'Ordre arrivage / réception'
@@ -262,7 +263,7 @@ class LitigeController extends AbstractController
                 }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
-                if ($litigeHistorics->count() > 0) {
+                if ($litigeHistorics->count() == 0) {
                     $litigeData[] = '';
                     $litigeData[] = '';
                     $litigeData[] = '';
@@ -316,7 +317,7 @@ class LitigeController extends AbstractController
                 }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
-                if ($litigeHistorics->count() > 0) {
+                if ($litigeHistorics->count() == 0) {
                     $litigeData[] = '';
                     $litigeData[] = '';
                     $litigeData[] = '';
