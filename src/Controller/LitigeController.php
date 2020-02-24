@@ -209,8 +209,9 @@ class LitigeController extends AbstractController
             ];
 
             if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                $headers[] = "n° commande d'achat";
+                $headers[] = "n° de commande";
                 $headers[] = 'fournisseur';
+                $headers[] = "n° de ligne";
             }
 
             $headers[] = 'date commentaire';
@@ -250,10 +251,12 @@ class LitigeController extends AbstractController
 
                 // TODO AB delete : commande d'achat & fournisseur pour un arrivage
                 if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                    $litigeData[] = ''; // N° command d'achat
+                    $litigeData[] = ''; // N° de commande
 
                     $fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
                     $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+
+                    $litigeData[] = ''; // N° de ligne
                 }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
@@ -302,10 +305,12 @@ class LitigeController extends AbstractController
                 $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
                 if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                    $litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
+                    $litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
 
                     $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
                     $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+
+                    $litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
                 }
 
                 $litigeHistorics = $litige->getLitigeHistorics();
