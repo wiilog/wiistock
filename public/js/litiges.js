@@ -39,7 +39,11 @@ let tableLitiges = $('#tableLitiges').DataTable({
         {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
         {"data": 'command', 'name': 'command', 'title': 'N° commande achat'},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
+
+        // TODO specifique
         {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
+        {"data": 'references', 'name': 'references', 'title': 'Références'},
+
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
