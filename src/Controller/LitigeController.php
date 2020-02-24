@@ -12,7 +12,6 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
-use App\Entity\Reception;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\ColisRepository;
@@ -114,7 +113,19 @@ class LitigeController extends AbstractController
 	 * @param TypeRepository $typeRepository
 	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
-	public function __construct(LitigeService $litigeService, PieceJointeRepository $pieceJointeRepository, ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
+	public function __construct(LitigeService $litigeService,
+                                PieceJointeRepository $pieceJointeRepository,
+                                ColisRepository $colisRepository,
+                                UserService $userService,
+                                ArrivageRepository $arrivageRepository,
+                                LitigeRepository $litigeRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                StatutRepository $statutRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                TransporteurRepository $transporteurRepository,
+                                ChauffeurRepository $chauffeurRepository,
+                                TypeRepository $typeRepository,
+                                LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -166,10 +177,14 @@ class LitigeController extends AbstractController
 		throw new NotFoundHttpException('404');
 	}
 
-	/**
-	 * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 * @throws Exception
-	 */
+    /**
+     * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     *
+     * @param Request $request
+     * @param CSVExportService $CSVExportService
+     *
+     * @return Response
+     */
 	public function getLitigesIntels(Request $request,
                                      CSVExportService $CSVExportService): Response
 	{
@@ -189,6 +204,7 @@ class LitigeController extends AbstractController
                 'date modification',
                 'colis / réference',
                 'ordre arrivage / réception',
+                'fournisseur',
                 'date commentaire',
                 'utilisateur',
                 'commentaire'
@@ -223,6 +239,9 @@ class LitigeController extends AbstractController
                     ? $colis->first()->getArrivage()
                     : null;
                 $litigeData[] = (isset($arrivage) ? $arrivage->getNumeroArrivage() : '');
+
+                $fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
+                $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() > 0) {
@@ -285,6 +304,9 @@ class LitigeController extends AbstractController
                 $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
 
                 $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
+
+                $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+                $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() > 0) {
