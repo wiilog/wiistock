@@ -35,9 +35,7 @@ class EnCoursController extends AbstractController
 	 * @return Response
 	 */
     public function index(UserService $userService,
-                          EntityManagerInterface $entityManager
-	): Response
-    {
+                          EntityManagerInterface $entityManager): Response {
 		if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
 			return $this->redirectToRoute('access_denied');
 		}

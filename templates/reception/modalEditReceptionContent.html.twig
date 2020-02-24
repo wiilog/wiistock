@@ -44,7 +44,7 @@
 </div>
 
 <div class="row">
-    {% if fieldsParam|isFieldRequired('numeroCommande', 'displayed') %}
+    {% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
         <div class="form-group col-6">
             <label for="numeroCommande">Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}"

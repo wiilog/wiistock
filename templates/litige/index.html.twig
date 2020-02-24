@@ -13,7 +13,7 @@
     <h1>Litiges</h1>
 
     <div class="row">
-        <div class="btn btn-primary" onclick="generateCSV('get_litiges_for_csv', 'litiges-{{ 'arrivage.arrivages'|trans }}')">
+        <div class="btn btn-primary" onclick="generateCSV('get_litiges_for_csv', 'litiges')">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
     </div>
@@ -32,6 +32,7 @@
     {% include 'litige/modalDeleteLitige.html.twig' %}
     <input hidden id="transNoArrivage" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
     <input hidden id="transNoReception" value="{{ "réception.n° de réception"|trans|capitalize }}">
+    <input hidden id="isCollins" value="{{ isCollins }}">
 {% endblock %}
 
 {% block javascripts %}
