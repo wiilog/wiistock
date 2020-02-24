@@ -21,6 +21,7 @@ class LitigeRepository extends ServiceEntityRepository
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
 		'receptionNumber' => 'numeroReception',
+		'provider' => 'provider',
 		'buyers' => 'acheteurs',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
@@ -215,12 +216,15 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
+			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.reception', 'r')
 			->addSelect('r.numeroReception')
 			->addSelect('r.id as receptionId')
+			->leftJoin('r.fournisseur', 'rFourn')
+			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
 		;
 		$countTotal = count($qb->getQuery()->getResult());
 
@@ -296,7 +300,9 @@ class LitigeRepository extends ServiceEntityRepository
 						r.numeroReception LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
-						lh.comment LIKE :value
+						lh.comment LIKE :value OR
+						aFourn.nom LIKE :value OR
+						rFourn.nom LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -324,6 +330,9 @@ class LitigeRepository extends ServiceEntityRepository
                         } else if ($column === 'numeroReception') {
                             $qb
                                 ->addOrderBy('r.numeroReception', $order);
+                        } else if ($column === 'provider') {
+                            $qb
+                                ->addOrderBy('provider', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);

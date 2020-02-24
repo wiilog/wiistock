@@ -122,6 +122,7 @@ class LitigeService
 				'receptionNb' => $litige['numeroReception'] ?? '',
 				'receptionId' => $litige['receptionId']
 			]),
+			'provider' => $litige['provider'] ?? '',
 			'lastHistoric' => $lastHistoricStr,
 			'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
 			'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',

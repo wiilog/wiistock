@@ -24,7 +24,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[9, 'desc'], [7, 'desc']],
+    order: [[10, 'desc'], [8, 'desc']],
     ajax: {
         "url": pathLitiges,
         "type": "POST",
@@ -38,6 +38,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
         {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
         {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
         {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
+        {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
         {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
         {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
@@ -47,10 +48,10 @@ let tableLitiges = $('#tableLitiges').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: [0, 5]
+            targets: [0, 6]
         },
         {
-            "targets": 9,
+            "targets": 10,
             "visible": false
         },
     ],
