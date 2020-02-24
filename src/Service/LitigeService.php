@@ -112,22 +112,7 @@ class LitigeService
 		$commands = $this->litigeRepository->getCommandesByLitigeId($litigeId);
 
 		// TODO specifique
-		$litigeObject = $this->litigeRepository->find($litige['id']);
-		$references = $litigeObject
-            ->getArticles()
-            ->map(function(Article $article) {
-                $receptionReferenceArticle = $article->getReceptionReferenceArticle();
-                $reference = isset($receptionReferenceArticle)
-                    ? $receptionReferenceArticle->getReferenceArticle()
-                    : null;
-                return isset($reference)
-                    ? $reference->getReference()
-                    : null;
-            })
-            ->filter(function($str) {
-                return !empty($str);
-            })
-            ->toArray();
+		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
 
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [

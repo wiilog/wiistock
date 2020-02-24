@@ -24,7 +24,7 @@ let tableLitiges = $('#tableLitiges').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[11, 'desc'], [9, 'desc']],
+    order: [10, 'desc'],
     ajax: {
         "url": pathLitiges,
         "type": "POST",
@@ -53,10 +53,10 @@ let tableLitiges = $('#tableLitiges').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: [0, 4, 7]
+            targets: [0, 4, 7, 8]
         },
         {
-            "targets": 11,
+            "targets": 12,
             "visible": false
         },
     ],

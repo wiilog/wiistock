@@ -402,4 +402,24 @@ class LitigeRepository extends ServiceEntityRepository
 		$result = $query->execute();
 		return array_column($result, 'commande');
 	}
+
+	/**
+	 * @param int $litigeId
+	 * @return string[]
+	 */
+	public function getReferencesByLitigeId(int $litigeId) {
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			"SELECT ra.reference
+			FROM App\Entity\ReceptionReferenceArticle rra
+			JOIN rra.articles a
+			JOIN rra.referenceArticle ra
+			JOIN a.litiges l
+            WHERE l.id = :litigeId")
+			->setParameter('litigeId', $litigeId);
+
+		$result = $query->execute();
+		return array_column($result, 'reference');
+	}
 }
