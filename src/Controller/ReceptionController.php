@@ -1849,7 +1849,7 @@ class ReceptionController extends AbstractController
 
             $em->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException('404');
     }

@@ -492,9 +492,13 @@ function initNewLigneReception() {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(data) {
-                displayErrorReception(data);
-                $('#buttonPrintMultipleBarcodes').click();
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(success) {
+                if (success) {
+                    let $btn = $('#buttonPrintMultipleBarcodes');
+                    if ($btn.length > 0) {
+                        $btn[0].click();
+                    }
+                }
             });
         }
     });
