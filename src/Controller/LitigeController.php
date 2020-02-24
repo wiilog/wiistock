@@ -200,23 +200,23 @@ class LitigeController extends AbstractController
             $arrivalLitiges = $this->litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [
-			    'type',
-                'statut',
-                'date creation',
-                'date modification',
-                'colis / réference',
-                'ordre arrivage / réception'
+			    'Type',
+                'Statut',
+                'Date creation',
+                'Date modification',
+                'Colis / Réferences',
+                'Ordre arrivage / réception'
             ];
 
             if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                $headers[] = "n° de commande";
-                $headers[] = 'fournisseur';
-                $headers[] = "n° de ligne";
+                $headers[] = "N° Commande / BL";
+                $headers[] = 'Fournisseur';
+                $headers[] = "N° ligne";
             }
 
-            $headers[] = 'date commentaire';
-            $headers[] = 'utilisateur';
-            $headers[] = 'commentaire';
+            $headers[] = 'Date commentaire';
+            $headers[] = 'Utilisateur';
+            $headers[] = 'Commentaire';
 
 			$data = [
                 $headers
