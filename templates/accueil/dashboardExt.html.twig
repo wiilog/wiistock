@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block classbody %}
+    class='new-body'
+{% endblock  %}
+
+{% block body %}
+<div class="wrapper pl-0">
+    <div class="container-fluid">
+        {% if page == 1 %}
+            {% include 'accueil/dashboardArrival.html.twig' with { extDashboard : true } %}
+        {% elseif page == 2 %}
+            {% include 'accueil/dashboardDockReception.html.twig' %}
+        {% elseif page == 3 %}
+            {% include 'accueil/dashboardAdminReception.html.twig' %}
+        {% endif %}
+            <div class="row">
+                <div class="col-12 little-font text-right fixed-bottom z-index-back">
+                    Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
+                </div>
+            </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src = "{{ asset('js/dashboard.js')}}?{{ date().timestamp }}"></script>
+{% endblock %}

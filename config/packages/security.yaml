@@ -83,4 +83,5 @@ security:
         - { path: ^/change-password-in-bdd, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/verifier-email, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/statistiques/, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }
