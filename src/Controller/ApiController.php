@@ -1140,12 +1140,19 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->persist($inventoryEntry);
 
                         if ($inventoryEntry->getAnomaly()) {
-                            $newAnomalies[] = $inventoryEntry->getId();
+                            $newAnomalies[] = $inventoryEntry;
                         }
                         $numberOfRowsInserted++;
                     }
                 }
                 $entityManager->flush();
+
+                $newAnomaliesIds = array_map(
+                    function (InventoryEntry $inventory) {
+                        return $inventory->getId();
+                    },
+                    $newAnomalies
+                );
 
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
@@ -1153,8 +1160,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     ? "Aucune saisie d'inventaire à synchroniser."
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
                 $this->successDataMsg['data']['anomalies'] = array_merge(
-                    $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomalies),
-                    $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
+                    $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomaliesIds),
+                    $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomaliesIds)
                 );
             } else {
                 $this->successDataMsg['success'] = false;
