@@ -1,6 +1,7 @@
 let onFlyFormOpened = {};
 let clicked = false;
 $('.select2').select2();
+let arrivageUrgentLoading = false;
 
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
@@ -110,31 +111,90 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1);
-
-function createCallback(response) {
-    alertSuccessMsg('Votre arrivage a bien été créé.');
-    if (!response.redirect) {
-        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
-        $('.list-multiple').select2();
-        $modalNewArrivage.find('#statut').val(response.statutConformeId);
-        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
-        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
-    }
-    if (response.printColis) {
-        let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: response.arrivageId }, true);
-        window.open(path, '_blank');
-    }
-    if (response.printArrivage) {
-        setTimeout(function() {
-            let path = Routing.generate('print_arrivage_bar_code', { arrivage: response.arrivageId }, true);
-            window.open(path, '_blank');
-        }, 500);
-    }
-}
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, arrivalCreationCallback, redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
+
+function arrivalCreationCallback({alertConfig = {}, ...response}) {
+    const {autoHide, message, modalType, arrivalId} = alertConfig;
+
+    const buttonConfigs = [
+        {
+            class: 'btn btn-success m-0 btn-action-on-hide',
+            text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
+            action: ($modal) => {
+                if (modalType === 'yes-no-question') {
+                    if (!arrivageUrgentLoading) {
+                        arrivageUrgentLoading = true;
+                        $modal.find('.modal-footer-wrapper').addClass('d-none');
+                        loadSpinnerAR($modal.find('.spinner'));
+                        setArrivalUrgent(arrivalId, response);
+                    }
+                }
+                else {
+                    treatArrivalCreation(response);
+                }
+                $modal.modal('hide')
+            }
+        }
+    ];
+
+    if (modalType === 'yes-no-question') {
+        buttonConfigs.push({
+            class: 'btn btn-secondary m-0',
+            text: 'Non',
+            action: ($modal) => {
+                $modal.modal('hide')
+            }
+        });
+    }
+
+    displayAlertModal(
+        undefined,
+        $('<div/>', {
+            class: 'text-center',
+            text: message
+        }),
+        buttonConfigs,
+        (modalType === 'info') ? 'success' : undefined,
+        autoHide
+    );
+}
+
+function setArrivalUrgent(newArrivalId, arrivalResponseCreation) {
+    const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
+    $.ajax({
+        type: 'PATCH',
+        url: patchArrivalUrgentUrl,
+        success: (secondResponse) => {
+            arrivageUrgentLoading = false;
+            if (secondResponse.success) {
+                arrivalCreationCallback({
+                    alertConfig: secondResponse.alertConfig,
+                    ...arrivalResponseCreation
+                });
+            }
+            else {
+                displayAlertModal(
+                    undefined,
+                    $('<div/>', {
+                        class: 'text-center',
+                        text: 'Erreur dans la mise en urgence de l\'arrivage'
+                    }),
+                    [{
+                        class: 'btn btn-secondary m-0',
+                        text: 'OK',
+                        action: ($modal) => {
+                            $modal.modal('hide')
+                        }
+                    }],
+                    'error'
+                );
+            }
+        }
+    });
+}
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
@@ -151,5 +211,36 @@ function initNewArrivageEditor(modal) {
     ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
     ajaxAutoChauffeurInit($modal.find('.ajax-autocomplete-chauffeur'));
     $modal.find('.list-multiple').select2();
+}
+
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, statutConformeId, }) {
+    if (!redirectAfterAlert) {
+        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
+        $('.list-multiple').select2();
+        $modalNewArrivage.find('#statut').val(statutConformeId);
+        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
+        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+        if (printColis) {
+            let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: arrivageId }, true);
+            window.open(path, '_blank');
+        }
+        if (printArrivage) {
+            setTimeout(function() {
+                let path = Routing.generate('print_arrivage_bar_code', { arrivage: arrivageId }, true);
+                window.open(path, '_blank');
+            }, 500);
+        }
+    }
+    else {
+        const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
+        window.location.href = arrivalShowUrl;
+    }
+}
+
+function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
+    const printColisNumber = (printColis === true) ? '1' : '0';
+    const printArrivageNumber = (printArrivage === true) ? '1' : '0';
+    return `${arrivageShowUrl}/${printColisNumber}/${printArrivageNumber}`;
 }
 

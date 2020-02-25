@@ -6,10 +6,9 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Repository\ArrivageRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
-use App\Repository\FiltreSupRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
@@ -20,70 +19,50 @@ use Twig\Error\SyntaxError;
 
 class ArrivageDataService
 {
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var ArrivageRepository
-     */
-    private $arrivageRepository;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
-
-	/**
-	 * @var UserService
-	 */
     private $userService;
-
     private $security;
-
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
     private $em;
     private $mailerService;
+    private $entityManager;
 
     public function __construct(UserService $userService,
-                                ArrivageRepository $arrivageRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $em,
                                 MailerService $mailerService,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
+                                EntityManagerInterface $entityManager,
                                 Security $security)
     {
 
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
-        $this->arrivageRepository = $arrivageRepository;
+        $this->entityManager = $entityManager;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
         $this->mailerService = $mailerService;
     }
 
-	/**
-	 * @param array $params
-	 * @param int|null $userId
-	 * @return array
-	 * @throws LoaderError
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param array $params
+     * @param int|null $userId
+     * @return array
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NoResultException
+     */
     public function getDataForDatatable($params = null, $userId)
     {
-    	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
-		$queryResult = $this->arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+
+        $queryResult = $arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
 
 		$arrivages = $queryResult['data'];
 
@@ -98,19 +77,21 @@ class ArrivageDataService
 		];
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return array
-	 * @throws NonUniqueResultException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param Arrivage $arrivage
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NoResultException
+     */
     public function dataRowArrivage($arrivage)
     {
 		$url = $this->router->generate('arrivage_show', [
 			'id' => $arrivage->getId(),
 		]);
+        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
 
 		$acheteursUsernames = [];
 		foreach ($arrivage->getAcheteurs() as $acheteur) {
@@ -124,7 +105,7 @@ class ArrivageDataService
 			'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
 			'NoTracking' => $arrivage->getNoTracking() ?? '',
 			'NumeroBL' => $arrivage->getNumeroBL() ?? '',
-			'NbUM' => $this->arrivageRepository->countColisByArrivage($arrivage),
+			'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
 			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
 			'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
 			'Acheteurs' => implode(', ', $acheteursUsernames),
@@ -172,6 +153,13 @@ class ArrivageDataService
                     $arrivage->getAcheteurs()->toArray()
                 )
             );
+        }
+    }
+
+    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void {
+        if (!empty($emergencies)) {
+            $arrivage->setIsUrgent(true);
+            $this->addBuyersToArrivage($arrivage, $emergencies);
         }
     }
 }
