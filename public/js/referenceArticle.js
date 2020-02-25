@@ -148,7 +148,7 @@ function initTableRefArticle() {
                     }
                 },
                 initComplete: function() {
-                    loadSpinnerAR($('#spinner'));
+                    loadSpinner($('#spinner'));
                     initRemove();
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function($input) {
@@ -407,11 +407,6 @@ function initNewReferenceArticleEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     clearModal(modal);
 };
-
-function loadSpinnerAR(div) {
-    div.removeClass('d-flex');
-    div.addClass('d-none');
-}
 
 function deleteArticleFournisseur(button) {
     xhttp = new XMLHttpRequest();

@@ -128,24 +128,32 @@ function arrivalCreationCallback({alertConfig = {}, ...response}) {
                     if (!arrivageUrgentLoading) {
                         arrivageUrgentLoading = true;
                         $modal.find('.modal-footer-wrapper').addClass('d-none');
-                        loadSpinnerAR($modal.find('.spinner'));
+                        loadSpinner($modal.find('.spinner'));
                         setArrivalUrgent(arrivalId, response);
                     }
                 }
                 else {
                     treatArrivalCreation(response);
+                    $modal.modal('hide')
                 }
-                $modal.modal('hide')
             }
         }
     ];
 
     if (modalType === 'yes-no-question') {
-        buttonConfigs.push({
+        buttonConfigs.unshift({
             class: 'btn btn-secondary m-0',
             text: 'Non',
-            action: ($modal) => {
-                $modal.modal('hide')
+            action: () => {
+                arrivalCreationCallback({
+                    alertConfig: {
+                        autoHide: false,
+                        message: 'Arrivage enregistré avec succès',
+                        modalType: 'info',
+                        arrivalId
+                    },
+                    ...response
+                });
             }
         });
     }
