@@ -135,7 +135,7 @@ class AccueilController extends AbstractController
     }
 
 	/**
-	 * @Route("/statistiques/dashboard-externe/{page}", name="dashboard_ext", methods={"GET"})
+	 * @Route("/statistiques/dashboard-externe/{page}", name="dashboard_ext", methods={"GET"}, condition="'%client%' matches '/^safran-ed$/'")
 	 * @param int $page
 	 * @return Response
 	 * @throws NoResultException
