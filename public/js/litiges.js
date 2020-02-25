@@ -16,7 +16,6 @@ $(function() {
     initSelect2('#statut', 'Statut');
     initSelect2('#litigeOrigin', 'Origine');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
-    // ajaxAutoFournisseurInit($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -25,14 +24,13 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 
-    let isCollins = $('#isCollins').val();
-    initDatatableLitiges(isCollins);
+    initDatatableLitiges();
     InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
     initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
 });
 
-function initDatatableLitiges(isCollins) {
+function initDatatableLitiges() {
     let pathLitiges = Routing.generate('litige_api', true);
     tableLitiges = $('#tableLitiges').DataTable({
         responsive: true,
@@ -55,12 +53,10 @@ function initDatatableLitiges(isCollins) {
             {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
-            // spécifique Collins
-            {"data": 'numCommandeRecep', 'name': 'numCommandeRecep', 'title': 'N° commande / BL', 'visible' : isCollins, 'class': isCollins ? '' : 'noVis'},
-            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false, 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
-            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur', 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
-            {"data": 'references', 'name': 'references', 'title': 'Références', 'orderable': false, 'visible': isCollins, 'class': isCollins ? '' : 'noVis'},
-            // fin de spécifique Collins
+            {"data": 'numCommandeRecep', 'name': 'numCommandeRecep', 'title': 'N° commande / BL'},
+            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
+            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
+            {"data": 'references', 'name': 'references', 'title': 'Références', 'orderable': false},
             {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
             {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
             {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
@@ -81,7 +77,24 @@ function initDatatableLitiges(isCollins) {
         ],
         rowCallback: function (row, data) {
             $(row).addClass(data.urgence ? 'table-danger' : '');
+        },
+        initComplete: function() {
+            let $btnColvis = $('#tableLitiges_wrapper').first('.buttons-colvis');
+            $btnColvis.one('click', initColVisParam);
         }
+    });
+}
+
+function initColVisParam() {
+    let $buttons = $(this).find('.buttons-columnVisibility');
+
+    $buttons.on('click', function() {
+        let data = {};
+        $buttons.each((index, elem) => {
+            let $elem = $(elem);
+            data[$elem.text()] = $elem.hasClass('active');
+        });
+       $.post(Routing.generate('save_column_visible_for_litiges'), data);
     });
 }
 

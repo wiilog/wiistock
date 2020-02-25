@@ -160,7 +160,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     modal.find(".elem").remove();
 
     // validation valeur des inputs datetimepicker - part 2/2
-    let datesAreValid = Boolean(datesToCheck.first && datesToCheck.last) && moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
+    let datesAreValid = !datesToCheck.first || !datesToCheck.last || moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
 
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
@@ -194,7 +194,6 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         }, 'json');
 
     } else {
-
         // ... sinon on construit les messages d'erreur
         let msg = '';
 

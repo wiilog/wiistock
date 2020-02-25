@@ -111,7 +111,6 @@ class LitigeService
 
 		$commands = $this->litigeRepository->getCommandesByLitigeId($litigeId);
 
-		// TODO specifique
 		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
 
 		$row = [
