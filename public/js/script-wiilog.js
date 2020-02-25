@@ -1298,3 +1298,70 @@ function hideColumns(table, data) {
         table.column(col + ':name').visible(false);
     })
 }
+
+/**
+ *
+ * @param {string|undefined} title
+ * @param $body jQuery object
+ * @param {array} buttonConfig array of html config
+ * @param {'success'|'error'|undefined} iconType
+ */
+function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
+    const $alertModal = $('#alert-modal');
+
+    // set title
+    const $modalHeader = $alertModal.find('.modal-header');
+    const $modalTitle = $modalHeader.find('.modal-title');
+    if (title) {
+        $modalHeader.removeClass('d-none');
+        $modalTitle .text(title);
+    }
+    else {
+        $modalHeader.addClass('d-none');
+        $modalTitle.empty();
+    }
+
+    const $modalBody = $alertModal.find('.modal-body');
+    $modalBody
+        .find('.swal2-icon')
+        .addClass('d-none');
+
+    // we display requested icon
+    if (iconType) {
+        $modalBody
+            .find(`.swal2-icon.icon-${iconType}`)
+            .removeClass('d-none')
+            .addClass('d-flex');
+    }
+
+    $modalBody
+        .find('.modal-body-main')
+        .html($body);
+
+    // set buttons
+    const $modalFooter = $alertModal.find('.modal-footer');
+    if (buttonConfig && buttonConfig.length > 0) {
+        $modalFooter.removeClass('d-none');
+        const $wrapper = $('<div/>').append(
+            ...buttonConfig.map(({action, ...config}) => {
+                return $('<button/>', {
+                    ...config,
+                    ...(action
+                        ? {
+                            click: () => {
+                                action($alertModal)
+                            }
+                        }
+                        : {})
+                });
+            })
+        );
+        $modalFooter.html($wrapper);
+    }
+    else {
+        $modalFooter.addClass('d-none');
+        $modalFooter.empty();
+    }
+
+    $alertModal.modal('show');
+}
