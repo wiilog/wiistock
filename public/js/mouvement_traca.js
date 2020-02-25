@@ -87,7 +87,7 @@ initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, ta
                 ? (mouvementTracaCounter > 1
                     ? 'Mouvements créés avec succès.'
                     : 'Mouvement créé avec succès.')
-                : 'Aucun mouvement créé'
+                : 'Aucun mouvement créé.'
         }),
         [
             {
