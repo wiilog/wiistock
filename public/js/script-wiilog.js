@@ -62,7 +62,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
     let name;
-    let datesToCheck = [];
+    let datesToCheck = {};
     let vals = [];
     inputsArray.each(function () {
         name = $(this).attr("name");
@@ -160,7 +160,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     modal.find(".elem").remove();
 
     // validation valeur des inputs datetimepicker - part 2/2
-    let datesAreValid = datesToCheck.length === 0 || moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
+    let datesAreValid = Boolean(datesToCheck.first && datesToCheck.last) && moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
 
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
@@ -1124,7 +1124,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
         }
     };
     if (minDate) {
-        options.minDate = moment().hours(0).minutes(0);
+        options.minDate = moment().hours(0).minutes(0).seconds(0);
     } if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
     }
