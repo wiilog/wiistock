@@ -522,6 +522,7 @@ class ArrivageController extends AbstractController
                 if (!empty($urgencesMatching)) {
                     $success = true;
                     $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
+                    $entityManager->flush();
                 }
             }
         }
@@ -541,12 +542,12 @@ class ArrivageController extends AbstractController
             'autoHide' => !$isSEDCurrentClient && !$isArrivalUrgent,
             'message' => (!$isSEDCurrentClient
                 ? ($isArrivalUrgent
-                    ? 'Arrivage urgent enregistré avec succès'
-                    : 'Arrivage enregistré avec succès')
+                    ? 'Arrivage URGENT enregistré avec succès.'
+                    : 'Arrivage enregistré avec succès.')
                 : ($isArrivalUrgent
                     // TODO urgence afficher = 'Le poste xxx est urgent sur la commande xxxxxxxxxx». L’avez-vous reçu dans cet arrivage ?'
                     ? 'Est-ce que l\'arrivage est urgent ?'
-                    : 'Arrivage enregistré avec succès')),
+                    : 'Arrivage enregistré avec succès.')),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'arrivalId' => $arrivage->getId()

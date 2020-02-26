@@ -189,7 +189,7 @@ function setArrivalUrgent(newArrivalId, arrivalResponseCreation) {
                     undefined,
                     $('<div/>', {
                         class: 'text-center',
-                        text: 'Erreur dans la mise en urgence de l\'arrivage'
+                        text: 'Erreur dans la mise en urgence de l\'arrivage.'
                     }),
                     [{
                         class: 'btn btn-secondary m-0',
@@ -222,9 +222,9 @@ function initNewArrivageEditor(modal) {
     $modal.find('.list-multiple').select2();
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, statutConformeId, }) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, numeroArrivage, champsLibresBlock, statutConformeId}) {
     if (!redirectAfterAlert) {
-        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
+        $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
         $('.list-multiple').select2();
         $modalNewArrivage.find('#statut').val(statutConformeId);
         let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();

@@ -50,10 +50,8 @@ class ArrivageDataService
      * @param int|null $userId
      * @return array
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function getDataForDatatable($params = null, $userId)
     {
@@ -80,11 +78,9 @@ class ArrivageDataService
     /**
      * @param Arrivage $arrivage
      * @return array
-     * @throws NonUniqueResultException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function dataRowArrivage($arrivage)
     {
