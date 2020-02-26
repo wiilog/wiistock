@@ -19,6 +19,7 @@ class CollecteRepository extends ServiceEntityRepository
         'Création' => 'date',
         'Validation' => 'validationDate',
         'Demandeur' => 'demandeur',
+        'Numéro' => 'numero',
         'Objet' => 'objet',
         'Statut' => 'statut',
         'Type' => 'type',
