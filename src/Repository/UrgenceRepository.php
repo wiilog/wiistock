@@ -39,18 +39,18 @@ class UrgenceRepository extends ServiceEntityRepository
     public function findUrgencesMatching(Arrivage $arrivage): array {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+            /** @lang DQL */
             "SELECT u
-                FROM App\Entity\Urgence u
-                WHERE u.dateStart <= :date
-                  AND u.dateEnd >= :date
-                  AND u.commande LIKE :commande"
+            FROM App\Entity\Urgence u
+            WHERE :date BETWEEN u.dateStart AND u.dateEnd
+            AND u.commande LIKE :commande"
+            //TODO CG match fournisseur (spécifique safran ?)
         )->setParameters([
             'date' => $arrivage->getDate(),
             'commande' => $arrivage->getNumeroBL()
         ]);
 
-        $res = $query->getResult();
-        return $res;
+        return $query->getResult();
     }
 
     /**
@@ -148,30 +148,5 @@ class UrgenceRepository extends ServiceEntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
-    }
-
-    /**
-     * @param Urgence $urgence
-     * @return DateTime|null
-     */
-    public function getLastArrivalDateByUrgence(Urgence $urgence) {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT a.date
-            FROM App\Entity\Arrivage a
-            WHERE a.numeroBL = :commande
-            AND a.date BETWEEN :startDate AND :endDate
-            ORDER BY a.date DESC
-            ")
-            ->setParameters([
-                'commande' => $urgence->getCommande(),
-                'startDate' => $urgence->getDateStart() ? $urgence->getDateStart()->format('Y-m-d H:i:s') : '',
-                'endDate' => $urgence->getDateEnd() ? $urgence->getDateEnd()->format('Y-m-d H:i:s') : '',
-            ]);
-
-        $result = $query->execute();
-        return $result ? $result[0]['date'] : null;
     }
 }

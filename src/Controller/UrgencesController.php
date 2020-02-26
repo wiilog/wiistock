@@ -84,8 +84,7 @@ class UrgencesController extends AbstractController
      * @param UtilisateurRepository $utilisateurRepository
      * @return Response
      */
-    public function new(Request $request,
-                        UtilisateurRepository $utilisateurRepository): Response
+    public function new(Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');

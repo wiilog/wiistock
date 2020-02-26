@@ -111,20 +111,16 @@ class UrgenceService
 
     public function dataRowUrgence(Urgence $urgence)
     {
-        $arrivalDate = '';
-        $isSafranEd = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
-        if ($isSafranEd) {
-            $urgenceRepository = $this->em->getRepository(Urgence::class);
-            $arrivalDateTime = $urgenceRepository->getLastArrivalDateByUrgence($urgence);
-            $arrivalDate = $arrivalDateTime ? $arrivalDateTime->format('d/m/Y H:i') : '';
-        }
-
         return [
                 'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
                 'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
                 'commande' => $urgence->getCommande(),
-                'arrivalDate' => $arrivalDate,
+                'arrivalDate' => $urgence->getLastArrival() && $urgence->getLastArrival()->getDate() ? $urgence->getLastArrival()->getDate()->format('d/m/Y H:i') : '',
                 'buyer' => $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '',
+                'provider' => $urgence->getProvider() ? $urgence->getProvider()->getNom() : '',
+                'carrier' => $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '',
+                'trackingNb' => $urgence->getTrackingNb() ?? '',
+                'postNb' => $urgence->getPostNb() ?? '',
                 'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                     'urgence' => $urgence
                 ])

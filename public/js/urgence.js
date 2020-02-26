@@ -2,7 +2,7 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
-    initPage($('#isSafranEd').val());
+    initPage();
     initDateTimePicker('#dateMin, #dateMax');
     initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
     initDateTimePicker('#dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
@@ -15,7 +15,7 @@ $(function() {
     }, 'json');
 });
 
-function initPage(isSafranEd) {
+function initPage() {
     let pathUrgences = Routing.generate('urgence_api', true);
     let tableUrgence = $('#tableUrgences').DataTable({
         processing: true,
@@ -33,8 +33,12 @@ function initPage(isSafranEd) {
             { "data": 'start', 'name' : 'start','title' : $('#dateBeginTranslation').val() },
             { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
             { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
+            { "data": 'postNb', 'name' : 'postNb', 'title' : 'N° poste' },
             { "data": 'buyer', 'name' : 'buyer', 'title' : $('#buyerTranslation').val() },
-            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val(), 'visible': isSafranEd },
+            { "data": 'provider', 'name' : 'provider', 'title' : 'Fournisseur' },
+            { "data": 'carrier', 'name' : 'carrier', 'title' : 'Transporteur' },
+            { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
+            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val() },
         ],
         drawCallback: function() {
             overrideSearch($('#tableUrgences_filter input'), tableUrgence);

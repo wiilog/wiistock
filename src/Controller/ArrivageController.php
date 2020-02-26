@@ -363,6 +363,8 @@ class ArrivageController extends AbstractController
             $attachmentService->addAttachements($request->files, $arrivage);
 
             if ($arrivage->getNumeroBL()) {
+                //TODO CG enlever spécifique ?
+                //spécifique safran = vérifier en plus fournisseur + uniquement si pas déjà matching + lien arrivage/urgence
                 $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrivage);
                 if (!empty($urgencesMatching)) {
                     $isArrivalUrgent = true;
