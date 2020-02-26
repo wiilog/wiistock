@@ -26,6 +26,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\UserService;
 
 use DateTime;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -101,15 +104,22 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param InvMissionService $invMissionService
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        InvMissionService $invMissionService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->invMissionService->getDataForMissionsDatatable($request->request);
+            $data = $invMissionService->getDataForMissionsDatatable($request->request);
 
             return new JsonResponse($data);
         }

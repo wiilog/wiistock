@@ -65,11 +65,11 @@ function errorEditDays(data) {
 }
 
 function updateToggledParam(switchButton, path) {
-    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function () {
+    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function (resp) {
         if (resp) {
-            alertSuccessMsg('La modification du paramétrage de réception a bien été prise en compte.');
+            alertSuccessMsg('La modification du paramétrage a bien été prise en compte.');
         } else {
-            alertErrorMsg('Une erreur est survenue lors de la modification du paramétrage de réception.');
+            alertErrorMsg('Une erreur est survenue lors de la modification du paramétrage.');
         }
     }, 'json');
 }

@@ -78,8 +78,28 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, (response) => {
-    alertSuccessMsg('Mouvements bien crées.');
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, ({success, mouvementTracaCounter}) => {
+    displayAlertModal(
+        undefined,
+        $('<div/>', {
+            class: 'text-center',
+            text: mouvementTracaCounter > 0
+                ? (mouvementTracaCounter > 1
+                    ? 'Mouvements créés avec succès.'
+                    : 'Mouvement créé avec succès.')
+                : 'Aucun mouvement créé.'
+        }),
+        [
+            {
+                class: 'btn btn-success m-0',
+                text: 'Continuer',
+                action: ($modal) => {
+                    $modal.modal('hide')
+                }
+            }
+        ],
+        success ? 'success' : 'error'
+    );
 }, Number($('#redirectAfterTrackingMovementCreation').val()));
 
 let modalEditMvtTraca = $("#modalEditMvtTraca");
