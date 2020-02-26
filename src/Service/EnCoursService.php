@@ -225,7 +225,7 @@ class EnCoursService
             $countByNature[$wantedNature->getLabel()] = 0;
         }
         foreach ($enCours as $enCour) {
-            $hourOfEnCours = strpos($enCour['time'], 'h') ? intval(substr($enCour['time'], 0, 2)) : 0;
+            $hourOfEnCours = intval($enCour['delay'] / 1000 / 60 / 60);
             if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
                 $entityColisForThisEnCour = $this->colisRepository->findOneByCode($enCour['colis']);
                 if ($entityColisForThisEnCour) {
