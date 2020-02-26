@@ -66,7 +66,7 @@
 
 <div class="row fly-form">
     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
-        <div class="form-group w-100 col-5">
+        <div class="form-group w-100 col">
             <label for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
             <select
                 class="form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}"
@@ -75,15 +75,17 @@
                     value="{{ reception.fournisseur ? reception.fournisseur.id : '' }}">{{ reception.fournisseur ? reception.fournisseur.nom : '' }}</option>
             </select>
         </div>
-        <div class="form-group col-1 toggle-button-container">
-            <span class="btn btn-primary"
-                  onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                <i class="fa fa-plus"></i>
-            </span>
-        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="form-group col-1 toggle-button-container">
+                <span class="btn btn-primary"
+                      onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                    <i class="fa fa-plus"></i>
+                </span>
+            </div>
+        {% endif %}
     {% endif %}
     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
-        <div class="form-group w-100 col-5">
+        <div class="form-group w-100 col">
             <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
             <select
                 class="form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}"
@@ -92,12 +94,14 @@
                     value="{{ reception.transporteur ? reception.transporteur.id : '' }}">{{ reception.transporteur ? reception.transporteur.label : '' }}</option>
             </select>
         </div>
-        <div class="form-group col-1 toggle-button-container">
-            <span class="btn btn-primary"
-                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
-                <i class="fa fa-plus"></i>
-            </span>
-        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="form-group col-1 toggle-button-container">
+                <span class="btn btn-primary"
+                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                    <i class="fa fa-plus"></i>
+                </span>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 
@@ -133,7 +137,7 @@
                 <i class="fas fa-check-circle"></i>
             </span>
         </div>
-    </div>
+</div>
 </div>
 
 <div class="row">

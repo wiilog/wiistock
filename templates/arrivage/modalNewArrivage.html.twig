@@ -24,10 +24,13 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
                         <div class="form-group col w-100">
@@ -42,11 +45,14 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary"
-                              onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary"
+                                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
                         <div class="form-group col w-100">
@@ -61,10 +67,13 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="row new-on-fly-form-container align-items-start">
