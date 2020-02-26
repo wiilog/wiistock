@@ -76,7 +76,8 @@
                         {% endif %}
                     {% endif %}
                 </div>
-                <div class="row new-on-fly-form-container align-items-start">
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                    <div class="row new-on-fly-form-container align-items-start">
                     <div class="row col-4 formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
@@ -133,6 +134,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
                         <div class="form-group col-4">
