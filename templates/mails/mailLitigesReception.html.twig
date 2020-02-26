@@ -20,13 +20,13 @@
                 <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
 
                 {% set firstColis = litige.articles|first %}
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.reception.numeroReception }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.receptionReferenceArticle.reception.numeroReception }}</td>
                 <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.barcode }}</td>
             </tr>
             {% for colis in litige.articles %}
                 {% if not loop.first %}
                     <tr>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.reception.numeroReception }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.receptionReferenceArticle.reception.numeroReception }}</td>
                         <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.barcode }}</td>
                     </tr>
                 {% endif %}
