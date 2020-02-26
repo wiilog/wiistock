@@ -27,7 +27,7 @@ const STATUT_EN_TRANSIT = 'en transit';
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
 // alert modals cnfig
-const AUTO_HIDE_DEFAULT_DELAY = 1000;
+const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
 $.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
@@ -1373,7 +1373,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
     if (autoHide) {
         setTimeout(() => {
-            if (!$alertModal.hasClass('show')) {
+            if ($alertModal.hasClass('show')) {
                 $modalFooter.find('.btn-action-on-hide').trigger('click');
                 $alertModal.modal('hide');
             }
