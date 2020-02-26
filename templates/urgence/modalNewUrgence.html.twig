@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalNewUrgence" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
 
             <div class="modal-header">
@@ -11,26 +11,73 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group">
-                    <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans|capitalize }}*</label>
-                    <input type="text" class="form-control cursor-default data needed date first-date" id="dateStart" name="dateStart" placeholder="jj/mm/aaaa">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans|capitalize }}*</label>
+                            <input type="text" class="form-control cursor-default data needed date first-date" id="dateStart" name="dateStart" placeholder="jj/mm/aaaa">
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans|capitalize }}*</label>
+                            <input type="text" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd" placeholder="jj/mm/aaaa">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans|capitalize }}*</label>
-                    <input type="text" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd" placeholder="jj/mm/aaaa">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group needed">
+                            <label for="source" title="numéro de commande">{{ 'urgences.numéro de commande'|trans|capitalize }}*</label>
+                            <input class="form-control data needed" name="commande">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="postNb">Numéro de poste*</label>
+                            <input type="text" class="form-control data needed" name="postNb">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group needed">
-                    <label for="source" title="numéro de commande">{{ 'urgences.numéro de commande'|trans|capitalize }}*</label>
-                    <input class="form-control data needed" name="commande">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label title="acheteur">{{ 'urgences.acheteur'|trans|capitalize }}*</label>
+                            <select name="acheteur"
+                                    class="form-control input-sm ajax-autocomplete-user data needed ajax-autocomplete w-100">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Fournisseur*</label>
+                            <select name="provider"
+                                    class="form-control input-sm ajax-autocomplete-fournisseur data needed ajax-autocomplete w-100">
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans|capitalize }}</label>
-                    <select name="acheteur"
-                            class="form-control input-sm ajax-autocomplete-user data ajax-autocomplete w-100">
-                    </select>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Transporteur*</label>
+                            <select name="carrier"
+                                    class="form-control input-sm ajax-autocomplete-transporteur data needed ajax-autocomplete w-100">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="provider">Numéro tracking transporteur</label>
+                            <input type="text" class="form-control data" name="trackingNb">
+                        </div>
+                    </div>
                 </div>
             </div>
 

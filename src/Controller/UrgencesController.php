@@ -4,8 +4,11 @@ namespace App\Controller;
 
 
 use App\Entity\Action;
+use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Entity\Utilisateur;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UrgenceService;
@@ -76,7 +79,7 @@ class UrgencesController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param UtilisateurRepository $utilisateurRepository
      * @return Response
@@ -84,32 +87,42 @@ class UrgencesController extends AbstractController
     public function new(Request $request,
                         UtilisateurRepository $utilisateurRepository): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
-            $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
-            $urgence = new Urgence();
-            $urgence
-                ->setCommande($data['commande'])
-                ->setDateStart($dateStart)
-                ->setDateEnd($dateEnd);
-
-            if (isset($data['acheteur'])) {
-                $buyer = $utilisateurRepository->find($data['acheteur']);
-                if (isset($buyer)) {
-                    $urgence->setBuyer($buyer);
-                }
-            }
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($urgence);
-
-            $em->flush();
-            return new JsonResponse($data);
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new XmlHttpException('404 not found');
+
+        $data = json_decode($request->getContent(), true);
+
+        $em = $this->getDoctrine()->getManager();
+        $utilisateurRepository = $em->getRepository(Utilisateur::class);
+        $fournisseurRepository = $em->getRepository(Fournisseur::class);
+        $transporteurRepository = $em->getRepository(Transporteur::class);
+
+        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
+
+        $urgence = new Urgence();
+        $urgence
+            ->setPostNb($data['postNb'])
+            ->setBuyer($utilisateurRepository->find($data['acheteur']))
+            ->setProvider($fournisseurRepository->find($data['provider']))
+            ->setCarrier($transporteurRepository->find($data['carrier']))
+            ->setTrackingNb($data['trackingNb'])
+            ->setCommande($data['commande'])
+            ->setDateStart($dateStart)
+            ->setDateEnd($dateEnd);
+
+        if (isset($data['acheteur'])) {
+            $buyer = $utilisateurRepository->find($data['acheteur']);
+            if (isset($buyer)) {
+                $urgence->setBuyer($buyer);
+            }
+        }
+
+        $em->persist($urgence);
+
+        $em->flush();
+        return new JsonResponse($data);
     }
 
     /**
@@ -152,7 +165,7 @@ class UrgencesController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param UtilisateurRepository $utilisateurRepository
      * @return Response
@@ -160,34 +173,42 @@ class UrgencesController extends AbstractController
     public function edit(Request $request,
                          UtilisateurRepository $utilisateurRepository): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-			$dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
-			$dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
-            $urgence = $this->urgenceRepository->find($data['id']);
-            $urgence
-                ->setCommande($data['commande'])
-                ->setDateStart($dateStart)
-                ->setDateEnd($dateEnd);
-
-            $buyer = isset($data['acheteur'])
-                ? $utilisateurRepository->find($data['acheteur'])
-                : null;
-
-            if(isset($buyer)) {
-                $buyer->addEmergency($urgence);
-            }
-            else {
-                $urgence->setBuyer(null);
-            }
-
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-            return new JsonResponse();
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new NotFoundHttpException('404');
+
+        $data = json_decode($request->getContent(), true);
+        $em = $this->getDoctrine()->getManager();
+
+        $utilisateurRepository = $em->getRepository(Utilisateur::class);
+        $fournisseurRepository = $em->getRepository(Fournisseur::class);
+        $transporteurRepository = $em->getRepository(Transporteur::class);
+
+        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
+        $urgence = $this->urgenceRepository->find($data['id']);
+        $urgence
+            ->setPostNb($data['postNb'])
+            ->setBuyer($utilisateurRepository->find($data['acheteur']))
+            ->setProvider($fournisseurRepository->find($data['provider']))
+            ->setCarrier($transporteurRepository->find($data['carrier']))
+            ->setTrackingNb($data['trackingNb'])
+            ->setCommande($data['commande'])
+            ->setDateStart($dateStart)
+            ->setDateEnd($dateEnd);
+
+        $buyer = isset($data['acheteur'])
+            ? $utilisateurRepository->find($data['acheteur'])
+            : null;
+
+        if(isset($buyer)) {
+            $buyer->addEmergency($urgence);
+        }
+        else {
+            $urgence->setBuyer(null);
+        }
+
+        $em->flush();
+        return new JsonResponse();
     }
 }

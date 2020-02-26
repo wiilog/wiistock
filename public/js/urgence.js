@@ -1,5 +1,7 @@
 $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initPage($('#isSafranEd').val());
     initDateTimePicker('#dateMin, #dateMax');
     initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
@@ -83,6 +85,8 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
     $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
 
     ajaxAutoUserInit($modal.find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($modal.find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
 
     if (buyerId && buyerName) {
         let option = new Option(buyerName, buyerId, true, true);
