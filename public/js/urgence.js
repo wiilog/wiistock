@@ -1,6 +1,6 @@
 $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
-    initPage();
+    initPage($('#isSafranEd').val());
     initDateTimePicker('#dateMin, #dateMax');
     initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
     initDateTimePicker('#dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
@@ -13,7 +13,7 @@ $(function() {
     }, 'json');
 });
 
-function initPage() {
+function initPage(isSafranEd) {
     let pathUrgences = Routing.generate('urgence_api', true);
     let tableUrgence = $('#tableUrgences').DataTable({
         processing: true,
@@ -32,6 +32,7 @@ function initPage() {
             { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
             { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
             { "data": 'buyer', 'name' : 'buyer', 'title' : $('#buyerTranslation').val() },
+            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val(), 'visible': isSafranEd },
         ],
         drawCallback: function() {
             overrideSearch($('#tableUrgences_filter input'), tableUrgence);

@@ -24,6 +24,9 @@
     <input hidden id="dateEndTranslation" value="{{ 'urgences.date de fin'|trans|capitalize }}">
     <input hidden id="numComTranslation" value="{{ 'urgences.numéro de commande'|trans|capitalize }}">
     <input hidden id="buyerTranslation" value="{{ 'urgences.acheteur'|trans|capitalize }}">
+    <input hidden id="arrivalTranslation" value="{{ "arrivage.arrivage"|trans|capitalize }}">
+    <input hidden id="isSafranEd" value="{{ isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) }}">
+
 {% endblock %}
 
 {% block javascripts %}

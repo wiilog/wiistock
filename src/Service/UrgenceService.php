@@ -61,6 +61,11 @@ class UrgenceService
 	 */
     private $security;
 
+    /**
+     * @var SpecificService
+     */
+    private $specificService;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FiltreSupRepository $filtreSupRepository,
@@ -69,6 +74,7 @@ class UrgenceService
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
                                 UrgenceRepository $urgenceRepository,
+								SpecificService $specificService,
 								Security $security)
     {
         $this->templating = $templating;
@@ -80,6 +86,7 @@ class UrgenceService
         $this->filtreSupRepository = $filtreSupRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->security = $security;
+        $this->specificService = $specificService;
     }
 
     public function getDataForDatatable($params = null)
@@ -102,18 +109,25 @@ class UrgenceService
         ];
     }
 
-    public function dataRowUrgence(Urgence$urgence)
+    public function dataRowUrgence(Urgence $urgence)
     {
-        $row =
-            [
+        $arrivalDate = '';
+        $isSafranEd = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+        if ($isSafranEd) {
+            $urgenceRepository = $this->em->getRepository(Urgence::class);
+            $arrivalDateTime = $urgenceRepository->getLastArrivalDateByUrgence($urgence);
+            $arrivalDate = $arrivalDateTime ? $arrivalDateTime->format('d/m/Y H:i') : '';
+        }
+
+        return [
                 'start' => $urgence->getDateStart()->format('d/m/Y H:i'),
                 'end' => $urgence->getDateEnd()->format('d/m/Y H:i'),
                 'commande' => $urgence->getCommande(),
+                'arrivalDate' => $arrivalDate,
                 'buyer' => $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '',
                 'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                     'urgence' => $urgence
                 ])
             ];
-        return $row;
     }
 }

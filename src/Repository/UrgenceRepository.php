@@ -149,4 +149,29 @@ class UrgenceRepository extends ServiceEntityRepository
             'total' => $countTotal
         ];
     }
+
+    /**
+     * @param Urgence $urgence
+     * @return DateTime|null
+     */
+    public function getLastArrivalDateByUrgence(Urgence $urgence) {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "SELECT a.date
+            FROM App\Entity\Arrivage a
+            WHERE a.numeroBL = :commande
+            AND a.date BETWEEN :startDate AND :endDate
+            ORDER BY a.date DESC
+            ")
+            ->setParameters([
+                'commande' => $urgence->getCommande(),
+                'startDate' => $urgence->getDateStart() ? $urgence->getDateStart()->format('Y-m-d H:i:s') : '',
+                'endDate' => $urgence->getDateEnd() ? $urgence->getDateEnd()->format('Y-m-d H:i:s') : '',
+            ]);
+
+        $result = $query->execute();
+        return $result ? $result[0]['date'] : null;
+    }
 }
