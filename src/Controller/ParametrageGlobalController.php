@@ -885,7 +885,7 @@ class ParametrageGlobalController extends AbstractController
                 $em->persist($parametrage);
                 $em->flush();
             }
-            return new JsonResponse();
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }

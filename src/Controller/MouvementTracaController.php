@@ -213,7 +213,12 @@ class MouvementTracaController extends AbstractController
 
             $em->flush();
 
-			return new JsonResponse(true);
+			$countCreatedMouvements = count($createdMouvements);
+
+			return new JsonResponse([
+			    'success' => $countCreatedMouvements > 0,
+                'mouvementTracaCounter' => $countCreatedMouvements
+            ]);
 		}
 		throw new NotFoundHttpException('404 not found');
 	}
