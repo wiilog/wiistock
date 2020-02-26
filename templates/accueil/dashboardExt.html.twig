@@ -7,11 +7,9 @@
 {% block body %}
 <div class="wrapper pl-0">
     <div class="container-fluid">
-        {% if page == 1 %}
-            {% include 'accueil/dashboardArrival.html.twig' with { extDashboard : true } %}
-        {% elseif page == 2 %}
+        {% if page == 'quai' %}
             {% include 'accueil/dashboardDockReception.html.twig' %}
-        {% elseif page == 3 %}
+        {% elseif page == 'admin' %}
             {% include 'accueil/dashboardAdminReception.html.twig' %}
         {% endif %}
             <div class="row">

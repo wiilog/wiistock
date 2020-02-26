@@ -134,14 +134,20 @@ class AccueilController extends AbstractController
         return $this->render('accueil/index.html.twig', $data);
     }
 
-	/**
-	 * @Route("/statistiques/dashboard-externe/{page}", name="dashboard_ext", methods={"GET"}, condition="'%client%' matches '/^safran-ed$/'")
-	 * @param int $page
-	 * @return Response
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function dasbhoardExt(?int $page = 1): Response
+    /**
+     * @Route(
+     *     "/dashboard-externe/{page}",
+     *     name="dashboard_ext",
+     *     methods={"GET"},
+     *     requirements={"page" = "(quai)|(admin)"},
+     *     condition="'%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
+     * )
+     * @param string $page
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function dashboardExt(string $page): Response
     {
         $data = $this->getDashboardData();
 		$data['page'] = $page;
