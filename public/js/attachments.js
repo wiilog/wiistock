@@ -202,17 +202,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             dataType: 'json',
             success: (data) => {
                 if (data.redirect) {
-                    let print = null;
-                    if (data.printColis === true && data.printArrivage === true) {
-                        print = '/1/1';
-                    } else if (data.printColis === true && data.printArrivage !== true) {
-                        print = '/1/0';
-                    } else if (data.printColis !== true && data.printArrivage === true) {
-                        print = '/0/1';
-                    } else if (data.printColis !== true && data.printArrivage !== true) {
-                        print = '/0/0';
-                    }
-                    window.location.href = data.redirect + print;
+                    window.location.href = data.redirect;
                     return;
                 }
 
