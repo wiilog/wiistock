@@ -547,6 +547,7 @@ class ArrivageController extends AbstractController
                     // TODO urgence afficher = 'Le poste xxx est urgent sur la commande xxxxxxxxxx». L’avez-vous reçu dans cet arrivage ?'
                     ? 'Est-ce que l\'arrivage est urgent ?'
                     : 'Arrivage enregistré avec succès')),
+            'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'arrivalId' => $arrivage->getId()
         ];

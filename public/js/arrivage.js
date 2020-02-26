@@ -117,7 +117,7 @@ let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
 function arrivalCreationCallback({alertConfig = {}, ...response}) {
-    const {autoHide, message, modalType, arrivalId} = alertConfig;
+    const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
 
     const buttonConfigs = [
         {
@@ -150,6 +150,7 @@ function arrivalCreationCallback({alertConfig = {}, ...response}) {
                         autoHide: false,
                         message: 'Arrivage enregistré avec succès',
                         modalType: 'info',
+                        iconType: 'success',
                         arrivalId
                     },
                     ...response
@@ -165,7 +166,7 @@ function arrivalCreationCallback({alertConfig = {}, ...response}) {
             text: message
         }),
         buttonConfigs,
-        (modalType === 'info') ? 'success' : 'warning',
+        iconType,
         autoHide
     );
 }
