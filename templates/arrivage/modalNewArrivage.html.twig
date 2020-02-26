@@ -178,9 +178,7 @@
                             </select>
                         </div>
                     {% endif %}
-                </div>
 
-                <div class="row">
                     {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
@@ -201,13 +199,16 @@
                             <input hidden value="{{ checked }}" id="printColisChecked">
                         </label>
                     </div>
-                    <div class="col-6 blocVisible d-block natures-container">
+                </div>
+
+                <div class="row">
+                    <div class="col-12 blocVisible d-block natures-container">
                         <h3 class="label" title="de colis">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
 
                         <div class="mt-2 row">
                             {% for nature in natures %}
-                                <div class="form-group col text-nowrap">
-                                    <label>
+                                <div class="form-group col-2 d-flex flex-column">
+                                    <label class="ellipsis">
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array"
