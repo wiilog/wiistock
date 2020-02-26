@@ -222,7 +222,7 @@ function initNewArrivageEditor(modal) {
     $modal.find('.list-multiple').select2();
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, numeroArrivage, champsLibresBlock, statutConformeId}) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, champsLibresBlock, statutConformeId}) {
     if (!redirectAfterAlert) {
         $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
         $('.list-multiple').select2();
