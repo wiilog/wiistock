@@ -367,6 +367,7 @@ function loadRetards() {
             initComplete: () => {
                 datatableLoading = false;
             },
+            order: [[2, 'desc']],
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Dépose'},
