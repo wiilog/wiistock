@@ -165,7 +165,7 @@ function arrivalCreationCallback({alertConfig = {}, ...response}) {
             text: message
         }),
         buttonConfigs,
-        (modalType === 'info') ? 'success' : undefined,
+        (modalType === 'info') ? 'success' : 'warning',
         autoHide
     );
 }

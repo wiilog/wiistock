@@ -1307,7 +1307,7 @@ function hideColumns(table, data) {
  * @param {string|undefined} title
  * @param $body jQuery object
  * @param {array} buttonConfig array of html config
- * @param {'success'|'error'|undefined} iconType
+ * @param {'success'|'warning'|'error'|undefined} iconType
  * @param {boolean} autoHide delay in milliseconds
  */
 function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
@@ -1331,13 +1331,13 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
     const $modalBody = $alertModal.find('.modal-body');
     $modalBody
-        .find('.swal2-icon')
+        .find('.bookmark-icon')
         .addClass('d-none');
 
     // we display requested icon
     if (iconType) {
         $modalBody
-            .find(`.swal2-icon.icon-${iconType}`)
+            .find(`.bookmark-icon.bookmark-${iconType}`)
             .removeClass('d-none')
             .addClass('d-flex');
     }
