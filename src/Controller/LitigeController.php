@@ -8,7 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\ColumnVisible;
+use App\Entity\ColumnHidden;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
@@ -175,6 +175,14 @@ class LitigeController extends AbstractController
 			}
 
 			$data = $this->litigeService->getDataForDatatable($request->request);
+			$columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
+
+			$columnsToHide = $columnHiddenRepository->findOneBy([
+				'page' => ColumnHidden::PAGE_LITIGE,
+				'user' => $this->getUser()
+			]);
+
+			$data['columnHidden'] = $columnsToHide ? $columnsToHide->getValue() : [];
 
 			return new JsonResponse($data);
 		}
@@ -437,11 +445,11 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/colonne-visible", name="save_column_visible_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
 	 * @param Request $request
 	 * @return Response
 	 */
-	public function saveColumnVisible(Request $request): Response
+	public function saveColumnHidden(Request $request): Response
 	{
 		$em = $this->getDoctrine()->getManager();
 
@@ -449,22 +457,22 @@ class LitigeController extends AbstractController
 		$value = [];
 
 		foreach ($columns as $columnName => $display) {
-			if ($display == 'true') $value[] =  $columnName;
+			if ($display == 'false') $value[] =  $columnName;
 		}
 
-		$columnVisibleRepository = $em->getRepository('App:ColumnVisible');
-		$columnVisible = $columnVisibleRepository->findOneBy(['user' => $this->getUser()]);
+		$columnHiddenRepository = $em->getRepository(ColumnHidden::class);
+		$columnHidden = $columnHiddenRepository->findOneBy(['user' => $this->getUser()]);
 
-		if (!$columnVisible) {
-			$columnVisible = new ColumnVisible();
-			$columnVisible
+		if (!$columnHidden) {
+			$columnHidden = new ColumnHidden();
+			$columnHidden
 				->setUser($this->getUser())
-				->setPage(ColumnVisible::PAGE_LITIGE);
-			$em->persist($columnVisible);
+				->setPage(ColumnHidden::PAGE_LITIGE);
+			$em->persist($columnHidden);
 			$em->flush();
 		}
 
-		$columnVisible->setValue($value);
+		$columnHidden->setValue($value);
 		$em->flush();
 
 		return new JsonResponse();

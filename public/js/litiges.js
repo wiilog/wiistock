@@ -43,6 +43,12 @@ function initDatatableLitiges() {
         ajax: {
             "url": pathLitiges,
             "type": "POST",
+            'dataSrc': function (json) {
+                json.columnHidden.forEach(element => {
+                    tableLitiges.column(element+':name').visible(false);
+                });
+                return json.data;
+            }
         },
         'drawCallback': function() {
             overrideSearch($('#tableLitiges_filter input'), tableLitiges);
@@ -94,7 +100,7 @@ function initColVisParam() {
             let $elem = $(elem);
             data[$elem.text()] = $elem.hasClass('active');
         });
-       $.post(Routing.generate('save_column_visible_for_litiges'), data);
+       $.post(Routing.generate('save_column_hidden_for_litiges'), data);
     });
 }
 

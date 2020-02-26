@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ColumnVisibleRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ColumnHiddenRepository")
  */
-class ColumnVisible
+class ColumnHidden
 {
 	const PAGE_LITIGE = 'litige';
 
