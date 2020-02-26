@@ -371,7 +371,7 @@ function loadRetards() {
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
+                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds) => millisecondsToDelay(milliseconds)},
                 {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
             ]
         });
