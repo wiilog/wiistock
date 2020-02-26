@@ -18,14 +18,14 @@
                     array: typesLitige,
                     warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
                     redirectPath: path('types_param_index'),
-                    redirectLabel: 'Aller la page de types'
+                    redirectLabel: 'Aller vers la page de types'
                 } %}
                 {% if typesLitige is not empty %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                         array: statusLitige,
                         warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
                         redirectPath: path('status_param_index'),
-                        redirectLabel: 'Aller la page de statuts'
+                        redirectLabel: 'Aller vers la page de statuts'
                     } %}
                 {% endif %}
 

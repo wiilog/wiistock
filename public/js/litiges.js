@@ -39,7 +39,7 @@ function initDatatableLitiges() {
         language: {
             url: "/js/i18n/dataTableLanguage.json",
         },
-        order: [10, 'desc'],
+        order: [11, 'desc'],
         ajax: {
             "url": pathLitiges,
             "type": "POST",
@@ -55,18 +55,18 @@ function initDatatableLitiges() {
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': 'Actions', 'orderable': false},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": "arrivalNumber", 'name': 'arrivalNumber', 'title': $('#transNoArrivage').val()},
-            {"data": 'receptionNumber', 'name': 'receptionNumber', 'title': $('#transNoReception').val()},
-            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteurs'},
-            {"data": 'numCommandeRecep', 'name': 'numCommandeRecep', 'title': 'N° commande / BL'},
-            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
-            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'references', 'title': 'Références', 'orderable': false},
-            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
-            {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
-            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
+            {"data": 'type', 'name': 'Type', 'title': 'Type'},
+            {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
+            {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
+            {"data": 'buyers', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+            {"data": 'numCommandeRecep', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
+            {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
+            {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
+            {"data": 'references', 'name': 'Références', 'title': 'Références', 'orderable': false},
+            {"data": 'lastHistoric', 'name': 'Dernier_historique', 'title': 'Dernier historique'},
+            {"data": 'creationDate', 'name': 'Créé_le', 'title': 'Créé le'},
+            {"data": 'updateDate', 'name': 'Modifié_le', 'title': 'Modifié le'},
+            {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
         headerCallback: function(thead) {
@@ -173,33 +173,6 @@ function openTableHisto() {
         dom: '<"top">rt<"bottom"lp><"clear">'
     });
 }
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableLitiges.column('creationDate:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-        if (typeof data[indexDate] !== "undefined") {
-            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-            ) {
-                return true;
-            }
-            return false;
-        }
-        return true;
-    }
-);
 
 function getCommentAndAddHisto()
 {
