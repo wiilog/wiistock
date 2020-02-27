@@ -1043,7 +1043,7 @@ class ReceptionController extends AbstractController
                         'commande' => $commande,
                         'quantity' => $quantity,
                     ],
-                    'typeArticle' => $typeArticle->getLabel(),
+                    'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
                     'champsLibres' => $champsLibres,
 					'references' => $this->articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
                 ]
