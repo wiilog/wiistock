@@ -137,9 +137,21 @@ class CollecteRepository extends ServiceEntityRepository
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
+                    $exprBuilder = $qb->expr();
 					$qb
-						->andWhere('c.objet LIKE :value')
-						->setParameter('value', '%' . $search . '%');
+						->andWhere(
+                            $exprBuilder->orX(
+						        'c.objet LIKE :value',
+						        'c.numero LIKE :value',
+						        'demandeur_search.username LIKE :value',
+						        'type_search.label LIKE :value',
+						        'statut_search.nom LIKE :value'
+                            )
+                        )
+						->setParameter('value', '%' . $search . '%')
+                        ->leftJoin('c.demandeur', 'demandeur_search')
+                        ->leftJoin('c.type', 'type_search')
+                        ->leftJoin('c.statut', 'statut_search');
 				}
 			}
 
