@@ -1273,7 +1273,6 @@ class ReceptionController extends AbstractController
                 'FOLLOW GT // Litige sur réception',
                 $this->renderView('mails/mailLitigesReception.html.twig', [
                     'litiges' => [$litige],
-                    'references' => $this->litigeRepository->getReferencesByLitigeId($litige->getId()),
 					'title' => $title,
                     'urlSuffix' => 'reception'
                 ]),

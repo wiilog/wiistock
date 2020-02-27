@@ -13,7 +13,7 @@
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° de réception</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Fournisseur</th>
-            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Références</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Référence</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Article</th>
         </tr>
     </thead>
@@ -24,16 +24,17 @@
                 {% set reception = firstArticle.receptionReferenceArticle.reception %}
 
                 <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.numeroReception }}</td>
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.reference }}</td>
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.fournisseur ? reception.fournisseur.nom }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.numeroReception }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.reference }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.fournisseur ? reception.fournisseur.nom }}</td>
+
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstArticle.articleFournisseur.referenceArticle }}</td>
                 <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstArticle.barcode }}</td>
             </tr>
             {% for article in litige.articles %}
                 {% if not loop.first %}
                     <tr>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ references|join(', ') }}</td>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ article.receptionReferenceArticle.reception.numeroReception }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ article.articleFournisseur.referenceArticle }}</td>
                         <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ article.barcode }}</td>
                     </tr>
                 {% endif %}
