@@ -394,10 +394,6 @@ class ArrivageController extends AbstractController
                 $printArrivage = true;
             }
 
-            if (!empty($urgencesMatching)) {
-                $arrivageDataService->sendArrivageUrgentEmail($arrivage);
-            }
-
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
@@ -520,7 +516,6 @@ class ArrivageController extends AbstractController
                 if (!empty($urgencesMatching)) {
                     $success = true;
                     $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
-                    $arrivageDataService->sendArrivageUrgentEmail($arrival);
                     $entityManager->flush();
                 }
             }
@@ -645,17 +640,14 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
-            $arrivageEditUrgent = false;
 
             if ($arrivage->getNumeroBL() &&
                 ($oldNumeroBL !== $arrivage->getNumeroBL())) {
 				$urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
 				$arrivage->clearUrgences();
                 if (!empty($urgencesMatching)) {
-                    $arrivageEditUrgent = true;
                     if (!$isSEDCurrentClient) {
 						$this->arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
-                        $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
 					}
                 } else {
                     $arrivage->setIsUrgent(false);
