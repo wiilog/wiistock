@@ -26,6 +26,9 @@ const STATUT_EN_TRANSIT = 'en transit';
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
+// alert modals config
+const AUTO_HIDE_DEFAULT_DELAY = 2000;
+
 $.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
@@ -160,7 +163,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     modal.find(".elem").remove();
 
     // validation valeur des inputs datetimepicker - part 2/2
-    let datesAreValid = !datesToCheck.first || !datesToCheck.last || moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
+    let datesAreValid = (
+        !datesToCheck.first ||
+        !datesToCheck.last ||
+        moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'))
+    );
 
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
@@ -1318,14 +1325,19 @@ function hideColumns(table, data) {
  * @param {string|undefined} title
  * @param $body jQuery object
  * @param {array} buttonConfig array of html config
- * @param {'success'|'error'|undefined} iconType
+ * @param {'success'|'warning'|'error'|undefined} iconType
+ * @param {boolean} autoHide delay in milliseconds
  */
-function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
+function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
+
     const $alertModal = $('#alert-modal');
+    hideSpinner($alertModal.find('.modal-footer .spinner'));
+    $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
 
     // set title
     const $modalHeader = $alertModal.find('.modal-header');
     const $modalTitle = $modalHeader.find('.modal-title');
+
     if (title) {
         $modalHeader.removeClass('d-none');
         $modalTitle .text(title);
@@ -1337,13 +1349,13 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
 
     const $modalBody = $alertModal.find('.modal-body');
     $modalBody
-        .find('.swal2-icon')
+        .find('.bookmark-icon')
         .addClass('d-none');
 
     // we display requested icon
     if (iconType) {
         $modalBody
-            .find(`.swal2-icon.icon-${iconType}`)
+            .find(`.bookmark-icon.bookmark-${iconType}`)
             .removeClass('d-none')
             .addClass('d-flex');
     }
@@ -1353,12 +1365,12 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
         .html($body);
 
     // set buttons
-    const $modalFooter = $alertModal.find('.modal-footer');
+    const $modalFooter = $alertModal.find('.modal-footer > .modal-footer-wrapper');
     if (buttonConfig && buttonConfig.length > 0) {
         $modalFooter.removeClass('d-none');
-        const $wrapper = $('<div/>').append(
+        const $wrapper = $('<div/>', {class: 'row justify-content-center'}).prepend(
             ...buttonConfig.map(({action, ...config}) => {
-                return $('<button/>', {
+                return $('<div/>', {class: 'col-auto'}).append($('<button/>', {
                     ...config,
                     ...(action
                         ? {
@@ -1367,7 +1379,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
                             }
                         }
                         : {})
-                });
+                }));
             })
         );
         $modalFooter.html($wrapper);
@@ -1375,6 +1387,15 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined) {
     else {
         $modalFooter.addClass('d-none');
         $modalFooter.empty();
+    }
+
+    if (autoHide) {
+        setTimeout(() => {
+            if ($alertModal.hasClass('show')) {
+                $modalFooter.find('.btn-action-on-hide').trigger('click');
+                $alertModal.modal('hide');
+            }
+        }, AUTO_HIDE_DEFAULT_DELAY)
     }
 
     $alertModal.modal('show');
