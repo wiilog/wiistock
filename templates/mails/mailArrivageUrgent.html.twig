@@ -6,14 +6,17 @@
     <p>Votre commande urgente est arrivée : </p>
     <br/>
     <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrivage.numeroArrivage }}</p>
+    {% if arrivage.numeroBL %}
+        <p>N° commande : {{ arrivage.numeroBL }}</p>
+    {% endif %}
+    {% if posts|length > 0 %}
+        <p>Poste{{ posts|length > 1 ? 's' }} : {{ posts|join(', ') }}</p>
+    {% endif %}
     {% if arrivage.fournisseur %}
         <p>Intitulé fournisseur : {{ arrivage.fournisseur.nom }}</p>
     {% endif %}
     {% if arrivage.noTracking %}
         <p>N° tracking transporteur : {{ arrivage.noTracking }}</p>
-    {% endif %}
-    {% if arrivage.numeroBL %}
-        <p>N° commande : {{ arrivage.numeroBL }}</p>
     {% endif %}
     <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
     <br/>
