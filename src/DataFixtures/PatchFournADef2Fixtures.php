@@ -31,11 +31,11 @@ class PatchFournADef2Fixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
 		// on crée les articles fournisseurs et on les lie aux références
-		$fournisseurADef = $manager->getRepository('App:Fournisseur')->findOneByCodeReference('A DEFINIR'); /** @var Fournisseur $fournisseurADef */
+		$fournisseurADef = $manager->getRepository(Fournisseur::class)->findOneByCodeReference('A DEFINIR'); /** @var Fournisseur $fournisseurADef */
 
 		$query = $manager->createQuery(
 		/** @lang DQL */
-			"SELECT ra 
+			"SELECT ra
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.articlesFournisseur af
 			WHERE af.id is null");
