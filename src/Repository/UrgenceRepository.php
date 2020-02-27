@@ -32,22 +32,31 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return Urgence[]
-     */
-    public function findUrgencesMatching(Arrivage $arrivage): array {
+	/**
+	 * @param Arrivage $arrivage
+	 * @param bool $excludeTriggered
+	 * @return Urgence[]
+	 */
+    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "SELECT u
+        $dql = /** @lang DQL */
+			"SELECT u
             FROM App\Entity\Urgence u
             WHERE :date BETWEEN u.dateStart AND u.dateEnd
-            AND u.commande LIKE :commande"
-            //TODO CG match fournisseur (spécifique safran ?)
-        )->setParameters([
+            AND u.commande LIKE :commande
+            AND (u.provider IS NULL OR u.provider = :provider)";
+
+		if ($excludeTriggered) {
+			/** @lang DQL */
+			$dql .= " AND u.lastArrival IS NULL";
+		}
+
+        $query = $em
+			->createQuery($dql)
+			->setParameters([
             'date' => $arrivage->getDate(),
-            'commande' => $arrivage->getNumeroBL()
+            'commande' => $arrivage->getNumeroBL(),
+			'provider' => $arrivage->getFournisseur()
         ]);
 
         return $query->getResult();

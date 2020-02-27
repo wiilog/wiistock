@@ -152,9 +152,17 @@ class ArrivageDataService
         }
     }
 
+	/**
+	 * @param Arrivage $arrivage
+	 * @param Urgence[] $emergencies
+	 */
     public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
+            foreach ($emergencies as $emergency) {
+            	$emergency->setLastArrival($arrivage);
+			}
+            $this->entityManager->flush();
             $this->addBuyersToArrivage($arrivage, $emergencies);
         }
     }

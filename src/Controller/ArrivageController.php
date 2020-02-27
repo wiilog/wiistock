@@ -363,9 +363,7 @@ class ArrivageController extends AbstractController
             $attachmentService->addAttachements($request->files, $arrivage);
 
             if ($arrivage->getNumeroBL()) {
-                //TODO CG enlever spécifique ?
-                //spécifique safran = vérifier en plus fournisseur + uniquement si pas déjà matching + lien arrivage/urgence
-                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrivage);
+                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
                 if (!empty($urgencesMatching)) {
                     $isArrivalUrgent = true;
                     if (!$isSEDCurrentClient) {
@@ -520,7 +518,7 @@ class ArrivageController extends AbstractController
         if (!$arrival->getIsUrgent()) {
             if ($arrival->getNumeroBL()) {
                 $urgenceRepository = $entityManager->getRepository(Urgence::class);
-                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrival);
+                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrival, true);
                 if (!empty($urgencesMatching)) {
                     $success = true;
                     $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
@@ -529,12 +527,12 @@ class ArrivageController extends AbstractController
             }
         }
 
-        return new JsonResponse([
-            'success' => $success,
-            'alertConfig' => $success
-                ? $this->createArrivalAlertConfig($arrival, false, true)
-                : null
-        ]);
+        $response = $this->getResponseReloadArrivage($arrival->getId());
+
+        $response['success'] = $success;
+        $response['alertConfig'] = $success ? $this->createArrivalAlertConfig($arrival, false, true) : null;
+
+        return new JsonResponse($response);
     }
 
     private function createArrivalAlertConfig(Arrivage $arrivage,
@@ -572,8 +570,9 @@ class ArrivageController extends AbstractController
             }
             $post = $request->request;
             $em = $this->getDoctrine()->getManager();
+			$isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
-            $arrivage = $this->arrivageRepository->find($post->get('id'));
+			$arrivage = $this->arrivageRepository->find($post->get('id'));
 
             $fournisseurId = $post->get('fournisseur');
             $transporteurId = $post->get('transporteur');
@@ -633,13 +632,15 @@ class ArrivageController extends AbstractController
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
             $arrivageEditUrgent = false;
+
             if ($arrivage->getNumeroBL() &&
                 ($oldNumeroBL !== $arrivage->getNumeroBL())) {
-                $urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage);
+				$urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
                 if (!empty($urgencesMatching)) {
-                    $arrivage->setIsUrgent(true);
-                    $this->arrivageDataService->addBuyersToArrivage($arrivage, $urgencesMatching);
                     $arrivageEditUrgent = true;
+                    if (!$isSEDCurrentClient) {
+						$this->arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
+					}
                 } else {
                     $arrivage->setIsUrgent(false);
                 }
@@ -689,6 +690,7 @@ class ArrivageController extends AbstractController
             }
 
             $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
             $response = [
                 'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                     'arrivage' => $arrivage,
@@ -696,6 +698,7 @@ class ArrivageController extends AbstractController
                     'fieldsParam' => $fieldsParam,
                     'champsLibres' => $champsLibres
                 ]),
+				'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $arrivageEditUrgent)
             ];
             return new JsonResponse($response);
         }
@@ -1526,6 +1529,7 @@ class ArrivageController extends AbstractController
                         ];
                     }
                 }
+
                 $response = [
                     'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
                         'arrivage' => $arrivageToReload,

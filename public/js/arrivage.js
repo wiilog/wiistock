@@ -1,7 +1,6 @@
 let onFlyFormOpened = {};
 let clicked = false;
 $('.select2').select2();
-let arrivageUrgentLoading = false;
 
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
@@ -111,99 +110,10 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, arrivalCreationCallback, redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, (params) => arrivalCallback(true, params), redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
-
-function arrivalCreationCallback({alertConfig = {}, ...response}) {
-    const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
-
-    const buttonConfigs = [
-        {
-            class: 'btn btn-success m-0 btn-action-on-hide',
-            text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
-            action: ($modal) => {
-                if (modalType === 'yes-no-question') {
-                    if (!arrivageUrgentLoading) {
-                        arrivageUrgentLoading = true;
-                        $modal.find('.modal-footer-wrapper').addClass('d-none');
-                        loadSpinner($modal.find('.spinner'));
-                        setArrivalUrgent(arrivalId, response);
-                    }
-                }
-                else {
-                    treatArrivalCreation(response);
-                    $modal.modal('hide')
-                }
-            }
-        }
-    ];
-
-    if (modalType === 'yes-no-question') {
-        buttonConfigs.unshift({
-            class: 'btn btn-secondary m-0',
-            text: 'Non',
-            action: () => {
-                arrivalCreationCallback({
-                    alertConfig: {
-                        autoHide: false,
-                        message: 'Arrivage enregistré avec succès',
-                        modalType: 'info',
-                        iconType: 'success',
-                        arrivalId
-                    },
-                    ...response
-                });
-            }
-        });
-    }
-
-    displayAlertModal(
-        undefined,
-        $('<div/>', {
-            class: 'text-center',
-            text: message
-        }),
-        buttonConfigs,
-        iconType,
-        autoHide
-    );
-}
-
-function setArrivalUrgent(newArrivalId, arrivalResponseCreation) {
-    const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
-    $.ajax({
-        type: 'PATCH',
-        url: patchArrivalUrgentUrl,
-        success: (secondResponse) => {
-            arrivageUrgentLoading = false;
-            if (secondResponse.success) {
-                arrivalCreationCallback({
-                    alertConfig: secondResponse.alertConfig,
-                    ...arrivalResponseCreation
-                });
-            }
-            else {
-                displayAlertModal(
-                    undefined,
-                    $('<div/>', {
-                        class: 'text-center',
-                        text: 'Erreur dans la mise en urgence de l\'arrivage.'
-                    }),
-                    [{
-                        class: 'btn btn-secondary m-0',
-                        text: 'OK',
-                        action: ($modal) => {
-                            $modal.modal('hide')
-                        }
-                    }],
-                    'error'
-                );
-            }
-        }
-    });
-}
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);

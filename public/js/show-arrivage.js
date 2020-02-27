@@ -156,7 +156,7 @@ InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableAr
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-initModalWithAttachments(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage);
+initModalWithAttachments(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, (params) => arrivalCallback(false, params));
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');

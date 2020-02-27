@@ -5,11 +5,6 @@
     <div class="zone-entete">
         {% include "arrivage/enteteArrivage.html.twig" %}
     </div>
-    {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
-        <div class="urgence-row row ml-2">
-            <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
-        </div>
-    {% endif %}
     <div class="row mt-5">
         <div class="col-6">
             <div class="d-flex justify-content-between h-54px">
@@ -63,6 +58,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/arrivage-common.js')}}?{{ date().timestamp }}"></script>
     <script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
     <script src="{{asset('js/form-litiges.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -115,3 +115,9 @@
     </div>
     {% endif %}
 </div>
+
+{% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
+    <div class="urgence-row row ml-2">
+        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
+    </div>
+{% endif %}
