@@ -38,7 +38,7 @@ use App\Repository\ReferenceArticleRepository;
 
 
 /**
- * @Route("/accueil")
+ * @Route("/")
  */
 class AccueilController extends AbstractController
 {
@@ -123,7 +123,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/", name="accueil", methods={"GET"})
+     * @Route("/accueil", name="accueil", methods={"GET"})
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -132,6 +132,26 @@ class AccueilController extends AbstractController
     {
         $data = $this->getDashboardData();
         return $this->render('accueil/index.html.twig', $data);
+    }
+
+    /**
+     * @Route(
+     *     "/dashboard-externe/{page}",
+     *     name="dashboard_ext",
+     *     methods={"GET"},
+     *     requirements={"page" = "(quai)|(admin)"},
+     *     condition="'%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
+     * )
+     * @param string $page
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function dashboardExt(string $page): Response
+    {
+        $data = $this->getDashboardData();
+		$data['page'] = $page;
+        return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
     /**
@@ -212,7 +232,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-fiabilite-monetaire",
+     *     "/statistiques/fiabilite-monetaire",
      *     name="get_monetary_fiability_statistics",
      *     options={"expose"=true},
      *     methods="GET",
@@ -254,7 +274,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @Route("/statistiques/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
     public function graphiqueReference(): Response
     {
@@ -277,7 +297,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-jour",
+     *     "/statistiques/arrivages-jour",
      *     name="get_daily_arrivals_statistics",
      *     options={"expose"=true},
      *      methods="GET",
@@ -301,7 +321,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-colis-jour",
+     *     "/statistiques/colis-jour",
      *     name="get_daily_packs_statistics",
      *     options={"expose"=true},
      *     methods="GET",
@@ -325,7 +345,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-semaine",
+     *     "/statistiques/arrivages-semaine",
      *     name="get_weekly_arrivals_statistics",
      *     options={"expose"=true},
      *     methods="GET",
@@ -349,7 +369,7 @@ class AccueilController extends AbstractController
 
 	/**
 	 * @Route(
-	 *     "/statistiques-encours-par-duree-et-nature/{graph}",
+	 *     "/statistiques/encours-par-duree-et-nature/{graph}",
 	 *     name="get_encours_count_by_nature_and_timespan",
 	 *     options={"expose"=true},
 	 *     methods="GET",
@@ -434,7 +454,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-reception-admin",
+     *     "/statistiques/reception-admin",
      *     name="get_indicators_reception_admin",
      *     options={"expose"=true},
      *     methods="GET",
@@ -452,7 +472,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-reception-quai",
+     *     "/statistiques/reception-quai",
      *     name="get_indicators_reception_dock",
      *     options={"expose"=true},
      *     methods="GET",
@@ -471,7 +491,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-receptions-associations",
+     *     "/statistiques/receptions-associations",
      *     name="get_asso_recep_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
@@ -493,7 +513,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-um",
+     *     "/statistiques/arrivages-um",
      *     name="get_arrival_um_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
@@ -515,7 +535,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-transporteurs-jour",
+     *     "/statistiques/transporteurs-jour",
      *     name="get_daily_carriers_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},

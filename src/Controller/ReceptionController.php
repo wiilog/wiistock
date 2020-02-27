@@ -13,6 +13,7 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
@@ -41,6 +42,7 @@ use App\Repository\TransporteurRepository;
 
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
+use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
@@ -191,6 +193,7 @@ class ReceptionController extends AbstractController
 	 */
     private $mouvementStockService;
     private $translationService;
+    private $mailerService;
 
     public function __construct(
         ArticleDataService $articleDataService,
@@ -212,6 +215,7 @@ class ReceptionController extends AbstractController
         PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
         LitigeRepository $litigeRepository,
+        MailerService $mailerService,
         AttachmentService $attachmentService,
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
@@ -224,6 +228,7 @@ class ReceptionController extends AbstractController
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
+        $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
@@ -1260,10 +1265,10 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
-        foreach ($acheteursEmail as $email) {
+        $acheteursEmail = $litige->getBuyers()->toArray();
+        /** @var Utilisateur $buyer */
+        foreach ($acheteursEmail as $buyer) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
-
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur réception',
                 $this->renderView('mails/mailLitigesReception.html.twig', [
@@ -1271,7 +1276,7 @@ class ReceptionController extends AbstractController
                     'title' => $title,
                     'urlSuffix' => 'reception'
                 ]),
-                $email
+                $buyer->getEmail()
             );
         }
     }

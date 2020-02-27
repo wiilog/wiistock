@@ -24,10 +24,13 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
                         <div class="form-group col w-100">
@@ -42,11 +45,14 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary"
-                              onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary"
+                                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
                         <div class="form-group col w-100">
@@ -61,14 +67,19 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                        <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')"><i
-                                class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                 <div class="row new-on-fly-form-container align-items-start">
-                    <div class="row col-4 formulaire fly-form">
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                    <div class="row col formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
                             <input type="text" id="newFournisseur" class="form-control input-sm valeur newFormulaire neededNew"
@@ -83,7 +94,9 @@
                                 <i class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire fly-form">
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                    <div class="row col formulaire fly-form">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
                             <input type="text" id="newTransporteur" class="form-control input-sm newFormulaire neededNew"
@@ -99,7 +112,10 @@
                             </span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire fly-form">
+                    {% endif %}
+
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                    <div class="row formulaire fly-form">
                         <div class="form-group col-10 invisible" id="chauffeurDisplay">
                             <label for="newChauffeurName">Nom*</label>
                             <input type="text" id="newChauffeurName" class="form-control input-sm newFormulaire neededNew"
@@ -123,7 +139,9 @@
                             </span>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
+                {% endif %}
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
                         <div class="form-group col-4">
@@ -178,9 +196,7 @@
                             </select>
                         </div>
                     {% endif %}
-                </div>
 
-                <div class="row">
                     {% if fieldsParam|isFieldRequired('imprimerArrivage', 'displayed') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
@@ -201,13 +217,16 @@
                             <input hidden value="{{ checked }}" id="printColisChecked">
                         </label>
                     </div>
-                    <div class="col-6 blocVisible d-block natures-container">
+                </div>
+
+                <div class="row">
+                    <div class="col-12 blocVisible d-block natures-container">
                         <h3 class="label" title="de colis">Nombre {{ 'arrivage.de colis'|trans }} à ajouter :</h3>
 
                         <div class="mt-2 row">
                             {% for nature in natures %}
-                                <div class="form-group col text-nowrap">
-                                    <label>
+                                <div class="form-group col-2 d-flex flex-column">
+                                    <label class="ellipsis">
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array"

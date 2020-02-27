@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\ColumnHidden;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
@@ -174,6 +175,14 @@ class LitigeController extends AbstractController
 			}
 
 			$data = $this->litigeService->getDataForDatatable($request->request);
+			$columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
+
+			$columnsToHide = $columnHiddenRepository->findOneBy([
+				'page' => ColumnHidden::PAGE_LITIGE,
+				'user' => $this->getUser()
+			]);
+
+			$data['columnHidden'] = $columnsToHide ? $columnsToHide->getValue() : [];
 
 			return new JsonResponse($data);
 		}
@@ -208,22 +217,16 @@ class LitigeController extends AbstractController
                 'Date création',
                 'Date modification',
                 'Colis / Réferences',
-                'Ordre arrivage / réception'
+                'Ordre arrivage / réception',
+				'N° Commande / BL',
+                'Fournisseur',
+                'N° ligne',
+            	'Date commentaire',
+            	'Utilisateur',
+            	'Commentaire'
             ];
 
-            if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                $headers[] = "N° Commande / BL";
-                $headers[] = 'Fournisseur';
-                $headers[] = "N° ligne";
-            }
-
-            $headers[] = 'Date commentaire';
-            $headers[] = 'Utilisateur';
-            $headers[] = 'Commentaire';
-
-			$data = [
-                $headers
-            ];
+			$data = [$headers];
 
 			/** @var Litige $litige */
             foreach ($arrivalLitiges as $litige) {
@@ -252,15 +255,12 @@ class LitigeController extends AbstractController
                     : null;
                 $litigeData[] = (isset($arrivage) ? $arrivage->getNumeroArrivage() : '');
 
-                // TODO AB delete : commande d'achat & fournisseur pour un arrivage
-                if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                    $litigeData[] = ''; // N° de commande
+				$litigeData[] = ''; // N° de commande
 
-                    $fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
-                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+				$fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
+				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
-                    $litigeData[] = ''; // N° de ligne
-                }
+				$litigeData[] = ''; // N° de ligne
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() == 0) {
@@ -307,14 +307,12 @@ class LitigeController extends AbstractController
 
                 $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
-                if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)) {
-                    $litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
+				$litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
 
-                    $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
-                    $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+				$fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
-                    $litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
-                }
+				$litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() == 0) {
@@ -444,5 +442,39 @@ class LitigeController extends AbstractController
 
 		}
 		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @param Request $request
+	 * @return Response
+	 */
+	public function saveColumnHidden(Request $request): Response
+	{
+		$em = $this->getDoctrine()->getManager();
+
+		$columns = $request->request->all();
+		$value = [];
+
+		foreach ($columns as $columnName => $display) {
+			if ($display == 'false') $value[] =  $columnName;
+		}
+
+		$columnHiddenRepository = $em->getRepository(ColumnHidden::class);
+		$columnHidden = $columnHiddenRepository->findOneBy(['user' => $this->getUser()]);
+
+		if (!$columnHidden) {
+			$columnHidden = new ColumnHidden();
+			$columnHidden
+				->setUser($this->getUser())
+				->setPage(ColumnHidden::PAGE_LITIGE);
+			$em->persist($columnHidden);
+			$em->flush();
+		}
+
+		$columnHidden->setValue($value);
+		$em->flush();
+
+		return new JsonResponse();
 	}
 }
