@@ -37,27 +37,27 @@ class UrgenceRepository extends ServiceEntityRepository
 	 * @param bool $excludeTriggered
 	 * @return Urgence[]
 	 */
-    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
+    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array     {
         $em = $this->getEntityManager();
         $dql = /** @lang DQL */
-			"SELECT u
+            "SELECT u
             FROM App\Entity\Urgence u
             WHERE :date BETWEEN u.dateStart AND u.dateEnd
             AND u.commande LIKE :commande
             AND (u.provider IS NULL OR u.provider = :provider)";
 
-		if ($excludeTriggered) {
-			/** @lang DQL */
-			$dql .= " AND u.lastArrival IS NULL";
-		}
+        if ($excludeTriggered) {
+            /** @lang DQL */
+            $dql .= " AND u.lastArrival IS NULL";
+        }
 
         $query = $em
-			->createQuery($dql)
-			->setParameters([
-            'date' => $arrivage->getDate(),
-            'commande' => $arrivage->getNumeroBL(),
-			'provider' => $arrivage->getFournisseur()
-        ]);
+            ->createQuery($dql)
+            ->setParameters([
+                'date' => $arrivage->getDate(),
+                'commande' => $arrivage->getNumeroBL(),
+                'provider' => $arrivage->getFournisseur()
+            ]);
 
         return $query->getResult();
     }

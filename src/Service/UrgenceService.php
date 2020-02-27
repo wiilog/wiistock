@@ -5,11 +5,15 @@ namespace App\Service;
 
 
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
+use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\ReferenceArticleRepository;
+use DateTime;
+use DateTimeZone;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use App\Repository\UrgenceRepository;
@@ -54,7 +58,7 @@ class UrgenceService
      */
     private $user;
 
-    private $em;
+    private $entityManager;
 
 	/**
 	 * @var Security
@@ -69,7 +73,7 @@ class UrgenceService
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FiltreSupRepository $filtreSupRepository,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
@@ -78,7 +82,7 @@ class UrgenceService
 								Security $security)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -125,5 +129,38 @@ class UrgenceService
                     'urgence' => $urgence
                 ])
             ];
+    }
+
+    public function updateUrgence(Urgence $urgence, $data): Urgence {
+        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
+        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
+
+        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
+
+        $buyer = isset($data['acheteur'])
+            ? $utilisateurRepository->find($data['acheteur'])
+            : null;
+
+        $provider = isset($data['provider'])
+            ? $fournisseurRepository->find($data['provider'])
+            : null;
+
+        $carrier = isset($data['carrier'])
+            ? $transporteurRepository->find($data['carrier'])
+            : null;
+
+        $urgence
+            ->setPostNb($data['postNb'])
+            ->setBuyer($buyer)
+            ->setProvider($provider)
+            ->setCarrier($carrier)
+            ->setTrackingNb($data['trackingNb'])
+            ->setCommande($data['commande'])
+            ->setDateStart($dateStart)
+            ->setDateEnd($dateEnd);
+
+        return $urgence;
     }
 }

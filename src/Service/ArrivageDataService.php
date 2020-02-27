@@ -162,8 +162,9 @@ class ArrivageDataService
             foreach ($emergencies as $emergency) {
             	$emergency->setLastArrival($arrivage);
 			}
-            $this->entityManager->flush();
             $this->addBuyersToArrivage($arrivage, $emergencies);
-        }
+            $this->entityManager->flush();
+			$this->sendArrivageUrgentEmail($arrivage);
+		}
     }
 }

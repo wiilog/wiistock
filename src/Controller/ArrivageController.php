@@ -311,7 +311,6 @@ class ArrivageController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
-            $isArrivalUrgent = false;
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
@@ -365,7 +364,6 @@ class ArrivageController extends AbstractController
             if ($arrivage->getNumeroBL()) {
                 $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
                 if (!empty($urgencesMatching)) {
-                    $isArrivalUrgent = true;
                     if (!$isSEDCurrentClient) {
                         $arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
                     }
@@ -394,10 +392,6 @@ class ArrivageController extends AbstractController
             }
             if ($data['printArrivage'] === 'true') {
                 $printArrivage = true;
-            }
-
-            if (!empty($urgencesMatching)) {
-                $arrivageDataService->sendArrivageUrgentEmail($arrivage);
             }
 
             $champsLibresKey = array_keys($data);
@@ -429,7 +423,7 @@ class ArrivageController extends AbstractController
                     'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
                 ]),
                 'statutConformeId' => $statutConformeId,
-                'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $isArrivalUrgent)
+                'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $urgencesMatching ?? [])
             ];
             return new JsonResponse($data);
         }
@@ -530,14 +524,43 @@ class ArrivageController extends AbstractController
         $response = $this->getResponseReloadArrivage($arrival->getId());
 
         $response['success'] = $success;
-        $response['alertConfig'] = $success ? $this->createArrivalAlertConfig($arrival, false, true) : null;
+        $response['alertConfig'] = $success ? $this->createArrivalAlertConfig($arrival, false, $urgencesMatching ?? []) : null;
 
         return new JsonResponse($response);
     }
 
+    /**
+     * @param Arrivage $arrivage
+     * @param bool $isSEDCurrentClient
+     * @param array $urgences
+     * @return array
+     */
     private function createArrivalAlertConfig(Arrivage $arrivage,
                                               bool $isSEDCurrentClient,
-                                              bool $isArrivalUrgent): array {
+                                              array $urgences): array {
+        $posts = array_map(
+            function (Urgence $urgence) {
+                return $urgence->getPostNb();
+            },
+            $urgences
+        );
+        $isArrivalUrgent = count($urgences);
+
+        if ($isSEDCurrentClient && $isArrivalUrgent) {
+			$nbPosts = count($posts);
+			if ($nbPosts == 0) {
+				$msgSedUrgent = "L'arrivage est-il urgent sur la commande " . $arrivage->getNumeroBL() . " ?";
+			} else {
+				if ($nbPosts == 1) {
+					$msgSedUrgent = "Le poste <span class='bold'>" . $posts[0] . '</span> est urgent sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					<br>L'avez-vous reçu dans cet arrivage ?";
+				} else {
+					$msgSedUrgent = "Les postes <span class='bold'>" . implode(', ', $posts) . '</span> sont urgents sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					<br>Les avez-vous reçus dans cet arrivage ?";
+				}
+			}
+		}
+
         return [
             'autoHide' => !$isSEDCurrentClient && !$isArrivalUrgent,
             'message' => (!$isSEDCurrentClient
@@ -545,8 +568,7 @@ class ArrivageController extends AbstractController
                     ? 'Arrivage URGENT enregistré avec succès.'
                     : 'Arrivage enregistré avec succès.')
                 : ($isArrivalUrgent
-                    // TODO urgence afficher = 'Le poste xxx est urgent sur la commande xxxxxxxxxx». L’avez-vous reçu dans cet arrivage ?'
-                    ? 'Est-ce que l\'arrivage est urgent ?'
+                    ? ($msgSedUrgent ?? '')
                     : 'Arrivage enregistré avec succès.')),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
@@ -631,23 +653,18 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
-            $arrivageEditUrgent = false;
 
             if ($arrivage->getNumeroBL() &&
                 ($oldNumeroBL !== $arrivage->getNumeroBL())) {
 				$urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
+				$arrivage->clearUrgences();
                 if (!empty($urgencesMatching)) {
-                    $arrivageEditUrgent = true;
                     if (!$isSEDCurrentClient) {
 						$this->arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
 					}
                 } else {
                     $arrivage->setIsUrgent(false);
                 }
-            }
-
-            if ($arrivageEditUrgent) {
-                $this->arrivageDataService->sendArrivageUrgentEmail($arrivage);
             }
 
             $em->flush();
@@ -698,7 +715,7 @@ class ArrivageController extends AbstractController
                     'fieldsParam' => $fieldsParam,
                     'champsLibres' => $champsLibres
                 ]),
-				'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $arrivageEditUrgent)
+				'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $urgencesMatching ?? [])
             ];
             return new JsonResponse($response);
         }
