@@ -74,6 +74,12 @@
                 {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES')] %}
                 <input hidden id="locationDropZoneValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
             </div>
+            <div class="form-group">
+                <a href="{{ path('dashboard_ext', { 'page': 'quai'}) }}" target="_blank" class="btn btn-primary border-radius-light">
+                    Dashboard réception quai
+                    <i class="fas fa-share-square mr-2"></i>
+                </a>
+            </div>
         </div>
 
         <div class="col-5 offset-1">
@@ -151,6 +157,12 @@
                 </div>
                 {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATIONS_2')] %}
                 <input hidden id="locationsSecondGraphValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            </div>
+            <div class="form-group">
+                <a href="{{ path('dashboard_ext', { 'page': 'admin'}) }}" target="_blank" class="btn btn-primary border-radius-light">
+                    Dashboard réception administrative
+                    <i class="fas fa-share-square mr-2"></i>
+                </a>
             </div>
         </div>
     </div>
