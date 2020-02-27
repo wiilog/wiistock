@@ -153,14 +153,13 @@ class EnCoursService
     {
         $maxTime = $emplacement->getDateMaxTime();
         if ($maxTime) {
-            $time = (
-                (($movementAge->h > 0)
-                    ? (($movementAge->h < 10 ? '0' : '') . $movementAge->h . ' h ')
-                    : '')
-                . (($movementAge->i === 0 && $movementAge->h < 1)
-                    ? '< 1 min'
-                    : ((($movementAge->h > 0 && $movementAge->i < 10) ? '0' : '') . $movementAge->i . ' min'))
+            $timeMilliSecond = (
+                ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
+                ($movementAge->i * 60 * 1000) + // minutes in milliseconds
+                ($movementAge->s * 1000) + // seconds in milliseconds
+                ($movementAge->f)
             );
+
             $maxTimeHours = intval(explode(':', $maxTime)[0]);
             $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
             $late = (
@@ -171,19 +170,20 @@ class EnCoursService
                 (($movementAge->h === $maxTimeHours) && ($movementAge->i > $maxTimeMinutes))
             );
             return [
-                'time' => $time,
+                'delay' => $timeMilliSecond,
                 'late' => $late,
             ];
         }
         return null;
     }
 
-	/**
-	 * @param Emplacement $emplacement
-	 * @param string|null $filters
-	 * @return array
-	 * @throws DBALException
-	 */
+    /**
+     * @param Emplacement $emplacement
+     * @param string|null $filters
+     * @return array
+     * @throws DBALException
+     * @throws Exception
+     */
     public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = null)
     {
         $success = true;
@@ -197,10 +197,10 @@ class EnCoursService
             if ($dataForTable) {
                 $emplacementInfo[] = [
                     'colis' => $mouvement->getColis(),
-                    'time' => $dataForTable['time'],
+                    'delay' => $dataForTable['delay'],
                     'date' => $dateMvt->format('d/m/Y H:i:s'),
-                    'max' => $emplacement->getDateMaxTime(),
-                    'late' => $dataForTable['late']
+                    'late' => $dataForTable['late'],
+                    'emp' => $emplacement->getLabel()
                 ];
             }
         }
@@ -225,7 +225,7 @@ class EnCoursService
             $countByNature[$wantedNature->getLabel()] = 0;
         }
         foreach ($enCours as $enCour) {
-            $hourOfEnCours = strpos($enCour['time'], 'h') ? intval(substr($enCour['time'], 0, 2)) : 0;
+            $hourOfEnCours = intval($enCour['delay'] / 1000 / 60 / 60);
             if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
                 $entityColisForThisEnCour = $this->colisRepository->findOneByCode($enCour['colis']);
                 if ($entityColisForThisEnCour) {
@@ -316,7 +316,8 @@ class EnCoursService
             $age = array_reduce(
                 $periodsWorked,
                 function (?DateInterval $carry, DateInterval $interval) {
-                    $s = ($carry->s + $interval->s);
+                    $f = ($carry->f + $interval->f);
+                    $s = ($carry->s + $interval->s) + intval($f / 1000);
                     $i = ($carry->i + $interval->i) + intval($s / 60);
                     $h = ($carry->h + $interval->h) + intval($i / 60);
 
@@ -324,6 +325,7 @@ class EnCoursService
                     $newDateInterval->h = $h;
                     $newDateInterval->i = $i % 60;
                     $newDateInterval->s = $s % 60;
+                    $newDateInterval->f = $f % 1000;
                     return $newDateInterval;
                 },
                 new DateInterval('P0Y')

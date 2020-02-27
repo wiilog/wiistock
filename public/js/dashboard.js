@@ -320,7 +320,7 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                                 for (let key in dataset._meta) {
                                     if (parseInt(dataset.data[i]) > 0) {
                                         let {x, y} = dataset._meta[key].data[i]._model;
-                                        y -= 25;
+                                        y -= 23;
                                         const figure = dataset.data[i];
                                         const {width} = ctx.measureText(figure);
                                         const rectX = x - (width / 2) - figurePaddingHorizontal;
@@ -380,10 +380,11 @@ function loadRetards() {
             initComplete: () => {
                 datatableLoading = false;
             },
+            order: [[2, 'desc']],
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
+                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
                 {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
             ]
         });

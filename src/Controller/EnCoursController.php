@@ -76,7 +76,7 @@ class EnCoursController extends AbstractController
 
 
     /**
-     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
+     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param EnCoursService $enCoursService
@@ -84,35 +84,23 @@ class EnCoursController extends AbstractController
      * @throws DBALException
      * @throws Exception
      */
-    public function apiForRetard(Request $request,
-                                 EntityManagerInterface $entityManager,
+    public function apiForRetard(EntityManagerInterface $entityManager,
                                  EnCoursService $enCoursService): Response {
-        if ($request->isXmlHttpRequest()) {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            $retards = [];
-            foreach ($emplacementRepository->findWhereArticleIs() as $emplacementArray) {
-                $emplacement = $emplacementRepository->find($emplacementArray['id']);
-                $mouvements = $mouvementTracaRepository->findObjectOnLocation($emplacement);
-                foreach ($mouvements as $mouvement) {
-                    $dateMvt = $mouvement->getDatetime();
-                    $movementAge = $enCoursService->getTrackingMovementAge($dateMvt);
-                    $dataForTable = $enCoursService->buildDataForDatatable($movementAge, $emplacement);
-                    if ($dataForTable && $dataForTable['late']) {
-                        $retards[] = [
-                            'colis' => $mouvement->getColis(),
-                            'time' => $dataForTable['time'],
-                            'date' => $dateMvt->format('d/m/Y H:i'),
-                            'emp' => $emplacement->getLabel(),
-                        ];
-                    }
-                }
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $retards = [];
+        foreach ($emplacementRepository->findWhereArticleIs() as $emplacementArray) {
+            $emplacement = $emplacementRepository->find($emplacementArray['id']);
+            $enCours = $enCoursService->getEnCoursForEmplacement($emplacement);
+            if (!empty($enCours['data'])) {
+                array_push(
+                    $retards,
+                    ...($enCours['data'])
+                );
             }
-            return new JsonResponse([
-                'data' => $retards
-            ]);
         }
-        throw new NotFoundHttpException("404");
+        return new JsonResponse([
+            'data' => $retards
+        ]);
     }
 
     /**
