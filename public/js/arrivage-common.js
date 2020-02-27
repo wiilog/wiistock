@@ -49,7 +49,7 @@ function arrivalCallback(isCreation, {alertConfig = {}, ...response}) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            text: message
+            html: message
         }),
         buttonConfigs,
         iconType,

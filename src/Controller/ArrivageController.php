@@ -538,13 +538,28 @@ class ArrivageController extends AbstractController
     private function createArrivalAlertConfig(Arrivage $arrivage,
                                               bool $isSEDCurrentClient,
                                               array $urgences): array {
-        $postes = array_map(
+        $posts = array_map(
             function (Urgence $urgence) {
                 return $urgence->getPostNb();
             },
             $urgences
         );
         $isArrivalUrgent = count($urgences);
+
+        if ($isSEDCurrentClient && $isArrivalUrgent) {
+			$nbPosts = count($posts);
+			if ($nbPosts == 0) {
+				$msgSedUrgent = "L'arrivage est-il urgent sur la commande " . $arrivage->getNumeroBL() . " ?";
+			} else {
+				if ($nbPosts == 1) {
+					$msgSedUrgent = "Le poste <span class='bold'>" . $posts[0] . '</span> est urgent sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					<br>L'avez-vous reçu dans cet arrivage ?";
+				} else {
+					$msgSedUrgent = "Les postes <span class='bold'>" . implode(', ', $posts) . '</span> sont urgents sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					<br>Les avez-vous reçus dans cet arrivage ?";
+				}
+			}
+		}
 
         return [
             'autoHide' => !$isSEDCurrentClient && !$isArrivalUrgent,
@@ -553,9 +568,7 @@ class ArrivageController extends AbstractController
                     ? 'Arrivage URGENT enregistré avec succès.'
                     : 'Arrivage enregistré avec succès.')
                 : ($isArrivalUrgent
-                    ? ((count($postes) === 1
-                        ? ('Le poste ' . $postes[0] . ' est urgent')
-                        : ('Les postes ' . implode(', ', $postes) . ' sont urgents')) . ' sur la commande ' . $arrivage->getNumeroBL() . '. L\'avez-vous reçu dans cet arrivage ?')
+                    ? ($msgSedUrgent ?? '')
                     : 'Arrivage enregistré avec succès.')),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
