@@ -77,8 +77,9 @@
                     {% endif %}
                 </div>
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                    <div class="row new-on-fly-form-container align-items-start">
-                    <div class="row col-4 formulaire fly-form">
+                <div class="row new-on-fly-form-container align-items-start">
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                    <div class="row col formulaire fly-form">
                         <div class="form-group col-10 invisible" id="fournisseurDisplay">
                             <label for="newFournisseur">Nom*</label>
                             <input type="text" id="newFournisseur" class="form-control input-sm valeur newFormulaire neededNew"
@@ -93,7 +94,9 @@
                                 <i class="fas fa-check-circle"></i></span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire fly-form">
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                    <div class="row col formulaire fly-form">
                         <div class="form-group col-10 invisible" id="transporteurDisplay">
                             <label for="newTransporteur">Nom*</label>
                             <input type="text" id="newTransporteur" class="form-control input-sm newFormulaire neededNew"
@@ -109,7 +112,10 @@
                             </span>
                         </div>
                     </div>
-                    <div class="row col-4 formulaire fly-form">
+                    {% endif %}
+
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                    <div class="row formulaire fly-form">
                         <div class="form-group col-10 invisible" id="chauffeurDisplay">
                             <label for="newChauffeurName">Nom*</label>
                             <input type="text" id="newChauffeurName" class="form-control input-sm newFormulaire neededNew"
@@ -133,6 +139,7 @@
                             </span>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
                 {% endif %}
                 <div class="row">
