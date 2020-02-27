@@ -76,7 +76,7 @@ class EnCoursController extends AbstractController
 
 
     /**
-     * @Route("/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
+     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param EnCoursService $enCoursService

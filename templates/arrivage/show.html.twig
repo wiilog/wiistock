@@ -2,11 +2,13 @@
 {% block title %}{{ 'arrivage.arrivage'|trans|capitalize }}{% endblock %}
 {% block page_content %}
 
+    {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
+
     <div class="zone-entete">
         {% include "arrivage/enteteArrivage.html.twig" %}
     </div>
     <div class="row mt-5">
-        <div class="col-6">
+        <div class="{{ displayLitiges ? 'col-6' : 'col-12' }}">
             <div class="d-flex justify-content-between h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                     <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
@@ -24,23 +26,25 @@
                 <table id="tableColis" class="table table-striped table-bordered w-100"></table>
             </div>
         </div>
-        <div class="col-6">
-            <div class="d-flex h-54px">
-                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href=""
-                       data-id='{{ arrivage.id }}'
-                       data-target='#modalNewLitige'
-                       data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto"
-                       onclick="openNewLitigeModal($(this))">
-                        <i class="fa fa-plus mr-2"></i>
-                        Nouveau litige</a>
-                {% endif %}
+        {% if displayLitiges %}
+            <div class="col-6">
+                <div class="d-flex h-54px">
+                    {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                        <a href=""
+                           data-id='{{ arrivage.id }}'
+                           data-target='#modalNewLitige'
+                           data-toggle='modal'
+                           class="btn btn-primary btn-action ml-auto"
+                           onclick="openNewLitigeModal($(this))">
+                            <i class="fa fa-plus mr-2"></i>
+                            Nouveau litige</a>
+                    {% endif %}
+                </div>
+                <div>
+                    <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
+                </div>
             </div>
-            <div>
-                <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
-            </div>
-        </div>
+        {% endif %}
     </div>
     <a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
 

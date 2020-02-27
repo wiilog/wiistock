@@ -94,50 +94,55 @@ function updateCharts() {
 
 function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
     return new Promise(function (resolve) {
-        let $dashboardBox = $button.closest('.dashboard-box');
-        let $rangeBtns = $dashboardBox.find('.range-buttons');
-        let $firstDay = $rangeBtns.find('.firstDay');
-        let $lastDay = $rangeBtns.find('.lastDay');
+        if ($button.length == 0) {
+            resolve();
 
-        let $canvas = $dashboardBox.find('canvas');
+        } else {
+            let $dashboardBox = $button.closest('.dashboard-box');
+            let $rangeBtns = $dashboardBox.find('.range-buttons');
+            let $firstDay = $rangeBtns.find('.firstDay');
+            let $lastDay = $rangeBtns.find('.lastDay');
 
-        let params = {
-            'firstDay': $firstDay.data('day'),
-            'lastDay': $lastDay.data('day'),
-            'beforeAfter': beforeAfter
-        };
-        $.get(Routing.generate(path), params, function (data) {
-            let labels = Object.keys(data.data);
-            let datas = Object.values(data.data).map((value) => {
-                if (typeof value == 'object' && 'count' in value) {
-                    return value['count'];
+            let $canvas = $dashboardBox.find('canvas');
+
+            let params = {
+                'firstDay': $firstDay.data('day'),
+                'lastDay': $lastDay.data('day'),
+                'beforeAfter': beforeAfter
+            };
+            $.get(Routing.generate(path), params, function (data) {
+                let labels = Object.keys(data.data);
+                let datas = Object.values(data.data).map((value) => {
+                    if (typeof value == 'object' && 'count' in value) {
+                        return value['count'];
+                    } else {
+                        return value;
+                    }
+                });
+
+                $firstDay.text(data.firstDay);
+                $firstDay.data('day', data.firstDayData);
+                $lastDay.text(data.lastDay);
+                $lastDay.data('day', data.lastDayData);
+
+                let bgColors = [];
+                for (let i = 0; i < labels.length - 1; i++) {
+                    bgColors.push('rgba(163,209,255, 1)');
+                }
+                bgColors.push('rgba(57,181,74, 1)');
+
+                $rangeBtns.removeClass('d-none');
+
+                // cas rafraîchissement
+                if (chart) {
+                    updateData(chart, data);
+                    resolve();
+                    // cas initialisation
                 } else {
-                    return value;
+                    resolve(newChart($canvas, labels, datas, bgColors));
                 }
             });
-
-            $firstDay.text(data.firstDay);
-            $firstDay.data('day', data.firstDayData);
-            $lastDay.text(data.lastDay);
-            $lastDay.data('day', data.lastDayData);
-
-            let bgColors = [];
-            for (let i = 0; i < labels.length - 1; i++) {
-                bgColors.push('rgba(163,209,255, 1)');
-            }
-            bgColors.push('rgba(57,181,74, 1)');
-
-            $rangeBtns.removeClass('d-none');
-
-            // cas rafraîchissement
-            if (chart) {
-                updateData(chart, data);
-                resolve();
-                // cas initialisation
-            } else {
-                resolve(newChart($canvas, labels, datas, bgColors));
-            }
-        });
+        }
     });
 }
 
@@ -164,68 +169,76 @@ function updateDataForMultiple(chart, data, labels) {
 
 function drawSimpleChart($canvas, path, chart = null) {
     return new Promise(function (resolve) {
-        $.get(Routing.generate(path), function (data) {
-            let labels = Object.keys(data);
-            let datas = Object.values(data);
-            let bgColors = [];
-            for (let i = 0; i < labels.length - 1; i++) {
-                bgColors.push('rgba(163,209,255, 1)');
-            }
-            bgColors.push('rgba(57,181,74, 1)');
-            // cas rafraîchissement
-            if (chart) {
-                updateData(chart, data);
-                resolve();
-            } else {
-                resolve(newChart($canvas, labels, datas, bgColors));
-            }
-        });
+        if ($canvas.length == 0) {
+            resolve();
+        } else {
+            $.get(Routing.generate(path), function (data) {
+                let labels = Object.keys(data);
+                let datas = Object.values(data);
+                let bgColors = [];
+                for (let i = 0; i < labels.length - 1; i++) {
+                    bgColors.push('rgba(163,209,255, 1)');
+                }
+                bgColors.push('rgba(57,181,74, 1)');
+                // cas rafraîchissement
+                if (chart) {
+                    updateData(chart, data);
+                    resolve();
+                } else {
+                    resolve(newChart($canvas, labels, datas, bgColors));
+                }
+            });
+        }
     });
 }
 
 function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) {
     return new Promise(function (resolve) {
-        $.get(Routing.generate(path, params), function (data) {
-            $('#empForChart' + chartNumber).text(data.location);
-            $('#totalForChart' + chartNumber).text(data.total);
-            let datas = [];
-            let labels = Object.keys(data.data);
-            if (chartNumber === 1) {
-                datas = Object.values(data.data).map((valueArray) => {
-                    return Object.values(valueArray)[0];
-                });
-            } else {
-                let datasets = [];
-                Object.values(data.data).forEach((data) => {
-                    Object.keys(data).forEach((key) => {
-                        if (!datasets[key]) datasets[key] = [];
-                        datasets[key].push(data[key]);
-                    });
-                });
-                Object.keys(Object.values(data.data)[0]).forEach((key) => {
-                    datas.push({
-                        label: key,
-                        backgroundColor: data.colorsNatures[key] || (`#${((1<<24)*Math.random()|0).toString(16)}`),
-                        data: datasets[key]
-                    })
-                });
-            }
-            let bgColors = [];
-            for (let i = 0; i < labels.length - 1; i++) {
-                bgColors.push('rgba(163,209,255, 1)');
-            }
-            bgColors.push('rgba(57,181,74, 1)');
-            if (chart) {
+        if ($canvas.length == 0) {
+            resolve();
+        } else {
+            $.get(Routing.generate(path, params), function (data) {
+                $('#empForChart' + chartNumber).text(data.location);
+                $('#totalForChart' + chartNumber).text(data.total);
+                let datas = [];
+                let labels = Object.keys(data.data);
                 if (chartNumber === 1) {
-                    updateData(chart, data);
+                    datas = Object.values(data.data).map((valueArray) => {
+                        return Object.values(valueArray)[0];
+                    });
                 } else {
-                    updateDataForMultiple(chart, datas, labels);
+                    let datasets = [];
+                    Object.values(data.data).forEach((data) => {
+                        Object.keys(data).forEach((key) => {
+                            if (!datasets[key]) datasets[key] = [];
+                            datasets[key].push(data[key]);
+                        });
+                    });
+                    Object.keys(Object.values(data.data)[0]).forEach((key) => {
+                        datas.push({
+                            label: key,
+                            backgroundColor: data.colorsNatures[key] || (`#${((1 << 24) * Math.random() | 0).toString(16)}`),
+                            data: datasets[key]
+                        })
+                    });
                 }
-                resolve();
-            } else {
-                resolve(newChart($canvas, labels, datas, bgColors, chartNumber === 2));
-            }
-        });
+                let bgColors = [];
+                for (let i = 0; i < labels.length - 1; i++) {
+                    bgColors.push('rgba(163,209,255, 1)');
+                }
+                bgColors.push('rgba(57,181,74, 1)');
+                if (chart) {
+                    if (chartNumber === 1) {
+                        updateData(chart, data);
+                    } else {
+                        updateDataForMultiple(chart, datas, labels);
+                    }
+                    resolve();
+                } else {
+                    resolve(newChart($canvas, labels, datas, bgColors, chartNumber === 2));
+                }
+            });
+        }
     });
 }
 

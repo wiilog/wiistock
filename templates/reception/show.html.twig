@@ -1,6 +1,9 @@
 {% extends "layout.html.twig" %}
 {% block title %}{{ 'réception.réception'|trans|capitalize }}{% endblock %}
 {% block page_content %}
+
+    {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
+
     <div class="row">
         <div class="col">
             <h1 title="réception">{{ 'réception.réception'|trans|capitalize }}</h1>
@@ -50,7 +53,7 @@
     </div>
 
     <div class="row mt-2">
-        <div class="col-6">
+        <div class="{{ displayLitiges ? 'col-6' : 'col-12' }}">
             <div class="text-right mh-60px">
                 {% if modifiable %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
@@ -75,23 +78,25 @@
                 </table>
             </div>
         </div>
-        <div class="col-6">
-            <div class="text-right mh-60px">
-                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href=""
-                       data-id='{{ reception.id }}'
-                       data-target='#modalNewLitige'
-                       data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto"
-                       onclick="openNewLitigeModal($(this))">
-                        <i class="fa fa-plus mr-2"></i>
-                        Nouveau litige</a>
-                {% endif %}
+        {% if displayLitiges %}
+            <div class="col-6">
+                <div class="text-right mh-60px">
+                    {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                        <a href=""
+                           data-id='{{ reception.id }}'
+                           data-target='#modalNewLitige'
+                           data-toggle='modal'
+                           class="btn btn-primary btn-action ml-auto"
+                           onclick="openNewLitigeModal($(this))">
+                            <i class="fa fa-plus mr-2"></i>
+                            Nouveau litige</a>
+                    {% endif %}
+                </div>
+                <div>
+                    <table id="tableReceptionLitiges" class="table table-striped table-bordered w-100"></table>
+                </div>
             </div>
-            <div>
-                <table id="tableReceptionLitiges" class="table table-striped table-bordered w-100"></table>
-            </div>
-        </div>
+        {% endif %}
     </div>
     <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
             hidden></button>

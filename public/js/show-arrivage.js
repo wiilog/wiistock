@@ -40,7 +40,7 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': 'Action'},
+        {"data": 'actions', 'name': 'actions', 'title': 'Actions'},
         {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
@@ -125,7 +125,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': 'Action'},
+        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
