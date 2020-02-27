@@ -9,6 +9,9 @@ use App\Entity\Urgence;
 use App\Repository\UrgenceRepository;
 use App\Service\UrgenceService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -75,10 +78,15 @@ class UrgencesController extends AbstractController
     /**
      * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param UrgenceService $urgenceService
      * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function new(Request $request, UrgenceService $urgenceService): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        UrgenceService $urgenceService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
@@ -86,19 +94,36 @@ class UrgencesController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        $em = $this->getDoctrine()->getManager();
-
+        $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $urgence = new Urgence();
         $urgenceService->updateUrgence($urgence, $data);
 
-        $em->persist($urgence);
+        $response = [];
 
-        $em->flush();
-        return new JsonResponse($data);
+        $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
+            $urgence->getDateStart(),
+            $urgence->getDateEnd(),
+            $urgence->getProvider(),
+            $urgence->getCommande()
+        );
+
+        if ($sameUrgentCounter > 0) {
+            $response['success'] = false;
+            $response['message'] = "Une urgence sur la même période, avec le même fournisseur et le même numéro de commande existe déjà.";
+        }
+        else {
+            $entityManager->persist($urgence);
+            $entityManager->flush();
+            $response['success'] = true;
+            $response['message'] = "L'urgence a été créée avec succès.";
+        }
+        return new JsonResponse($response);
     }
 
     /**
      * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
      */
     public function delete(Request $request): Response
     {
@@ -108,10 +133,19 @@ class UrgencesController extends AbstractController
             }
 
             $urgence = $this->urgenceRepository->find($data['urgence']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($urgence);
-            $entityManager->flush();
-            return new JsonResponse();
+            $canDeleteUrgence = !$urgence->getLastArrival();
+            if ($canDeleteUrgence) {
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($urgence);
+                $entityManager->flush();
+            }
+
+            return new JsonResponse([
+                'success' => $canDeleteUrgence,
+                'message' => $canDeleteUrgence
+                    ? "L'urgence a été supprimée avec succès"
+                    : "L'urgence ne peut pas être supprimée car elle est déjà liée à un arrivage"
+            ]);
         }
 
         throw new NotFoundHttpException("404");
@@ -139,10 +173,14 @@ class UrgencesController extends AbstractController
     /**
      * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param UrgenceService $urgenceService
      * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
                          UrgenceService $urgenceService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
@@ -150,13 +188,36 @@ class UrgencesController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        $em = $this->getDoctrine()->getManager();
 
+        $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $urgence = $this->urgenceRepository->find($data['id']);
+        $response = [];
 
-        $urgenceService->updateUrgence($urgence, $data);
+        if (isset($urgence)) {
+            $urgenceService->updateUrgence($urgence, $data);
+            $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
+                $urgence->getDateStart(),
+                $urgence->getDateEnd(),
+                $urgence->getProvider(),
+                $urgence->getCommande(),
+                [$urgence->getId()]
+            );
 
-        $em->flush();
-        return new JsonResponse();
+            if ($sameUrgentCounter > 0) {
+                $response['success'] = false;
+                $response['message'] = "Une urgence sur la même période, avec le même fournisseur et le même numéro de commande existe déjà.";
+            }
+            else {
+                $entityManager->flush();
+                $response['success'] = true;
+                $response['message'] = "L'urgence a été modifiée avec succès.";
+            }
+        }
+        else {
+            $response['success'] = false;
+            $response['message'] = "L'urgence à modifier est introuvable.";
+        }
+
+        return new JsonResponse($response);
     }
 }

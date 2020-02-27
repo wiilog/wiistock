@@ -64,17 +64,17 @@ function initPage() {
     let modalNewUrgence = $('#modalNewUrgence');
     let submitNewUrgence = $('#submitNewUrgence');
     let urlNewUrgence = Routing.generate('urgence_new');
-    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence);
+    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalNewUrgence, true), false, false);
 
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
     let urlDeleteUrgence = Routing.generate('urgence_delete', true);
-    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence);
+    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence, (data) => callbackUrgenceAction(data));
 
     let modalModifyUrgence = $('#modalEditUrgence');
     let submitModifyUrgence = $('#submitEditUrgence');
     let urlModifyUrgence = Routing.generate('urgence_edit', true);
-    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence);
+    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalModifyUrgence), false, false);
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
@@ -96,5 +96,22 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
         let option = new Option(buyerName, buyerId, true, true);
         const $selectBuyer = $modal.find('.ajax-autocomplete-user[name="acheteur"]');
         $selectBuyer.append(option).trigger('change');
+    }
+}
+
+function callbackUrgenceAction({success, message}, $modal = undefined, resetDate = false) {
+    if (success) {
+        alertSuccessMsg(message, true);
+        if ($modal) {
+            clearModal($modal);
+            if (resetDate) {
+                $('#dateStart').val(moment().hours(0).minutes(0).format('DD/MM/YYYY HH:mm'));
+                $('#dateEnd').val(moment().hours(23).minutes(59).format('DD/MM/YYYY HH:mm'));
+            }
+            $modal.modal('hide');
+        }
+    }
+    else {
+        alertErrorMsg(message, true);
     }
 }

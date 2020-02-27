@@ -3,11 +3,14 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
+use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 
 use DateTime;
 use DateTimeZone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,29 +40,72 @@ class UrgenceRepository extends ServiceEntityRepository
 	 * @param bool $excludeTriggered
 	 * @return Urgence[]
 	 */
-    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array     {
-        $em = $this->getEntityManager();
-        $dql = /** @lang DQL */
-            "SELECT u
-            FROM App\Entity\Urgence u
-            WHERE :date BETWEEN u.dateStart AND u.dateEnd
-            AND u.commande LIKE :commande
-            AND (u.provider IS NULL OR u.provider = :provider)";
-
-        if ($excludeTriggered) {
-            /** @lang DQL */
-            $dql .= " AND u.lastArrival IS NULL";
-        }
-
-        $query = $em
-            ->createQuery($dql)
+    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->where(':date BETWEEN u.dateStart AND u.dateEnd')
+            ->andWhere('u.commande LIKE :commande')
+            ->andWhere('u.provider IS NULL OR u.provider = :provider')
             ->setParameters([
                 'date' => $arrivage->getDate(),
                 'commande' => $arrivage->getNumeroBL(),
                 'provider' => $arrivage->getFournisseur()
             ]);
 
-        return $query->getResult();
+        if ($excludeTriggered) {
+            $queryBuilder->andWhere('u.lastArrival IS NULL');
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param DateTime $dateStart
+     * @param DateTime $dateEnd
+     * @param Fournisseur|null $provider
+     * @param string|null $numeroCommande
+     * @param array $urgenceIdsExcluded
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countUrgenceMatching(DateTime $dateStart,
+                                         DateTime $dateEnd,
+                                         ?Fournisseur $provider,
+                                         ?string $numeroCommande,
+                                         array $urgenceIdsExcluded = []): int {
+
+        $queryBuilder = $this->createQueryBuilder('u');
+
+        $exprBuilder = $queryBuilder->expr();
+        $queryBuilder
+            ->select('COUNT(u)')
+            ->leftJoin('u.provider', 'provider')
+            ->where($exprBuilder->orX(
+                ':dateStart BETWEEN u.dateStart AND u.dateEnd',
+                ':dateEnd BETWEEN u.dateStart AND u.dateEnd',
+                'u.dateStart BETWEEN :dateStart AND :dateEnd',
+                'u.dateEnd BETWEEN :dateStart AND :dateEnd'
+            ))
+            ->andWhere('provider = :provider')
+            ->andWhere('u.commande = :commande')
+            ->setParameters([
+                'dateStart' => $dateStart,
+                'dateEnd' => $dateEnd,
+                'provider' => $provider,
+                'commande' => $numeroCommande,
+            ]);
+
+        if (!empty($urgenceIdsExcluded)) {
+            $queryBuilder
+                ->andWhere('u.id NOT IN (:urgenceIdsExcluded)')
+                ->setParameter('urgenceIdsExcluded', $urgenceIdsExcluded, Connection::PARAM_STR_ARRAY);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
