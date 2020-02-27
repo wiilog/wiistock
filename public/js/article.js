@@ -30,7 +30,7 @@ function initTableArticle() {
                     }
                 },
                 initComplete: function () {
-                    loadSpinnerAR($('#spinner'));
+                    loadSpinner($('#spinner'));
                     init();
                     overrideSearchArticle();
                     hideAndShowColumns(columns);
@@ -44,11 +44,6 @@ function initTableArticle() {
                 },
             });
     });
-}
-
-function loadSpinnerAR(div) {
-    div.removeClass('d-flex');
-    div.addClass('d-none');
 }
 
 let resetNewArticle = function (element) {
