@@ -320,7 +320,7 @@ function newChart($canvasId, labels, data, bgColors, isMultiple = false) {
                                 for (let key in dataset._meta) {
                                     if (parseInt(dataset.data[i]) > 0) {
                                         let {x, y} = dataset._meta[key].data[i]._model;
-                                        y -= 25;
+                                        y -= 23;
                                         const figure = dataset.data[i];
                                         const {width} = ctx.measureText(figure);
                                         const rectX = x - (width / 2) - figurePaddingHorizontal;
