@@ -1359,7 +1359,8 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     const $modalBody = $alertModal.find('.modal-body');
     $modalBody
         .find('.bookmark-icon')
-        .addClass('d-none');
+        .addClass('d-none')
+        .removeClass('d-flex');
 
     // we display requested icon
     if (iconType) {

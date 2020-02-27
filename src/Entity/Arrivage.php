@@ -108,14 +108,20 @@ class Arrivage
 	 */
 	private $valeurChampLibre;
 
+    /**
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="lastArrival")
+     */
+    private $urgences;
 
-	public function __construct()
-      	{
-      		$this->acheteurs = new ArrayCollection();
-      		$this->colis = new ArrayCollection();
-      		$this->attachements = new ArrayCollection();
-      		$this->valeurChampLibre = new ArrayCollection();
-      	}
+
+	public function __construct() {
+        $this->acheteurs = new ArrayCollection();
+        $this->colis = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
+        $this->urgences = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -313,6 +319,49 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($colis->getArrivage() === $this) {
                 $colis->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+    /**
+     * @return Collection|Urgence[]
+     */
+    public function getUrgences(): Collection
+    {
+        return $this->urgences;
+    }
+
+    /**
+     * @return void
+     */
+    public function clearUrgences(): void
+    {
+        foreach ($this->urgences as $urgence) {
+            if ($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
+            }
+        }
+        $this->urgences->clear();
+    }
+
+    public function addUrgence(Urgence $urgence): self
+    {
+        if (!$this->urgences->contains($urgence)) {
+            $this->urgences[] = $urgence;
+            $urgence->setLastArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrgence(Urgence $urgence): self
+    {
+        if ($this->urgences->contains($urgence)) {
+            $this->urgences->removeElement($urgence);
+            // set the owning side to null (unless already changed)
+            if ($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
             }
         }
 

@@ -91,3 +91,34 @@ function setArrivalUrgent(newArrivalId, arrivalResponseCreation, isCreation) {
         }
     });
 }
+
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, champsLibresBlock, statutConformeId}) {
+    if (!redirectAfterAlert) {
+        $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
+        $('.list-multiple').select2();
+        $modalNewArrivage.find('#statut').val(statutConformeId);
+        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
+        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+        if (printColis) {
+            let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: arrivageId }, true);
+            window.open(path, '_blank');
+        }
+        if (printArrivage) {
+            setTimeout(function() {
+                let path = Routing.generate('print_arrivage_bar_code', { arrivage: arrivageId }, true);
+                window.open(path, '_blank');
+            }, 500);
+        }
+    }
+    else {
+        const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
+        window.location.href = arrivalShowUrl;
+    }
+}
+
+function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
+    const printColisNumber = (printColis === true) ? '1' : '0';
+    const printArrivageNumber = (printArrivage === true) ? '1' : '0';
+    return `${arrivageShowUrl}/${printColisNumber}/${printArrivageNumber}`;
+}

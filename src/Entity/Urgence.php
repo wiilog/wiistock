@@ -57,7 +57,7 @@ class Urgence
     private $postNb;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="urgences")
      */
     private $lastArrival;
 
