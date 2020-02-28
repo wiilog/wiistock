@@ -16,7 +16,7 @@
     </div>
     <div class="btn btn-col-action" data-id='{{ urgence.id }}' data-target='#modalDeleteUrgence'
          data-toggle='modal'
-         onclick="deleteRow($(this), $('#modalDeleteUrgence'), $('#submitDeleteUrgence'))">
+         onclick="checkAndDeleteRow($(this), '#modalDeleteUrgence', 'urgence_check_delete', '#submitDeleteUrgence')">
         <i class='fas fa-trash'></i>
     </div>
 </div>

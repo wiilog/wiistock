@@ -81,6 +81,8 @@ class ArrivageDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function dataRowArrivage($arrivage)
     {
@@ -131,25 +133,36 @@ class ArrivageDataService
         }
     }
 
-    public function sendArrivageUrgentEmail(Arrivage $arrivage): void {
-        if($arrivage->getIsUrgent()) {
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Arrivage urgent',
-                $this->templating->render(
-                    'mails/mailArrivageUrgent.html.twig',
-                    [
-                        'title' => 'Arrivage urgent',
-                        'arrivage' => $arrivage
-                    ]
-                ),
-                array_map(
-                    function (Utilisateur $buyer) {
-                        return $buyer->getEmail();
-                    },
-                    $arrivage->getAcheteurs()->toArray()
-                )
-            );
-        }
+    public function sendArrivageUrgentEmail(Arrivage $arrivage, array $emergencies): void {
+
+        $posts = array_reduce(
+            $emergencies,
+            function (array $carry, Urgence $emergency) {
+                if ($emergency->getPostNb()) {
+                    $carry[] = $emergency->getPostNb();
+                }
+                return $carry;
+            },
+            []
+        );
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Arrivage urgent',
+            $this->templating->render(
+                'mails/mailArrivageUrgent.html.twig',
+                [
+                    'title' => 'Arrivage urgent',
+                    'arrivage' => $arrivage,
+                    'posts' => $posts
+                ]
+            ),
+            array_map(
+                function (Utilisateur $buyer) {
+                    return $buyer->getEmail();
+                },
+                $arrivage->getAcheteurs()->toArray()
+            )
+        );
     }
 
 	/**
@@ -164,7 +177,7 @@ class ArrivageDataService
 			}
             $this->addBuyersToArrivage($arrivage, $emergencies);
             $this->entityManager->flush();
-			$this->sendArrivageUrgentEmail($arrivage);
+			$this->sendArrivageUrgentEmail($arrivage, $emergencies);
 		}
     }
 }
