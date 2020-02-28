@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Repository\UrgenceRepository;
+use App\Service\TranslationService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -120,32 +121,28 @@ class UrgencesController extends AbstractController
         return new JsonResponse($response);
     }
 
-    /**
-     * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @return Response
-     */
-    public function delete(Request $request): Response
+	/**
+	 * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
+	 * @param Request $request
+	 * @param TranslationService $translationService
+	 * @return Response
+	 */
+    public function delete(Request $request, TranslationService $translationService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+			$entityManager = $this->getDoctrine()->getManager();
             $urgence = $this->urgenceRepository->find($data['urgence']);
             $canDeleteUrgence = !$urgence->getLastArrival();
             if ($canDeleteUrgence) {
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($urgence);
                 $entityManager->flush();
             }
 
-            return new JsonResponse([
-                'success' => $canDeleteUrgence,
-                'message' => $canDeleteUrgence
-                    ? "L'urgence a été supprimée avec succès"
-                    : "L'urgence ne peut pas être supprimée car elle est déjà liée à un arrivage"
-            ]);
+            return new JsonResponse();
         }
 
         throw new NotFoundHttpException("404");
@@ -193,7 +190,7 @@ class UrgencesController extends AbstractController
         $urgence = $this->urgenceRepository->find($data['id']);
         $response = [];
 
-        if (isset($urgence)) {
+        if ($urgence) {
             $urgenceService->updateUrgence($urgence, $data);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
                 $urgence->getDateStart(),
@@ -215,9 +212,33 @@ class UrgencesController extends AbstractController
         }
         else {
             $response['success'] = false;
-            $response['message'] = "L'urgence à modifier est introuvable.";
+            $response['message'] = "Une erreur est survenue lors de la modification de l'urgence.";
         }
 
         return new JsonResponse($response);
     }
+
+	/**
+	 * @Route("/verification", name="urgence_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+	 */
+	public function checkUrgenceCanBeDeleted(Request $request): Response
+	{
+		$urgenceId = json_decode($request->getContent(), true);
+		$urgenceRepository = $this->getDoctrine()->getRepository(Urgence::class);
+
+		$urgence = $urgenceRepository->find($urgenceId);
+
+		// on vérifie que l'urgence n'a pas été déclenchée
+		$urgenceUsed = !empty($urgence->getLastArrival());
+
+		if (!$urgenceUsed) {
+			$delete = true;
+			$html = $this->renderView('urgence/modalDeleteUrgenceRight.html.twig');
+		} else {
+			$delete = false;
+			$html = $this->renderView('urgence/modalDeleteUrgenceWrong.html.twig');
+		}
+
+		return new JsonResponse(['delete' => $delete, 'html' => $html]);
+	}
 }

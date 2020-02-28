@@ -69,7 +69,7 @@ function initPage() {
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
     let urlDeleteUrgence = Routing.generate('urgence_delete', true);
-    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence, (data) => callbackUrgenceAction(data));
+    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence);
 
     let modalModifyUrgence = $('#modalEditUrgence');
     let submitModifyUrgence = $('#submitEditUrgence');

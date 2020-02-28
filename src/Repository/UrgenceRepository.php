@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
-use App\Entity\CategorieStatut;
 use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 
@@ -81,14 +80,13 @@ class UrgenceRepository extends ServiceEntityRepository
         $exprBuilder = $queryBuilder->expr();
         $queryBuilder
             ->select('COUNT(u)')
-            ->leftJoin('u.provider', 'provider')
             ->where($exprBuilder->orX(
                 ':dateStart BETWEEN u.dateStart AND u.dateEnd',
                 ':dateEnd BETWEEN u.dateStart AND u.dateEnd',
                 'u.dateStart BETWEEN :dateStart AND :dateEnd',
                 'u.dateEnd BETWEEN :dateStart AND :dateEnd'
             ))
-            ->andWhere('provider = :provider')
+            ->andWhere('u.provider = :provider')
             ->andWhere('u.commande = :commande')
             ->setParameters([
                 'dateStart' => $dateStart,
