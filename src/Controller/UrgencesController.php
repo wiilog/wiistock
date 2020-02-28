@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Repository\UrgenceRepository;
-use App\Service\TranslationService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -121,20 +120,19 @@ class UrgencesController extends AbstractController
         return new JsonResponse($response);
     }
 
-	/**
-	 * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
-	 * @param Request $request
-	 * @param TranslationService $translationService
-	 * @return Response
-	 */
-    public function delete(Request $request, TranslationService $translationService): Response
+    /**
+     * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-			$entityManager = $this->getDoctrine()->getManager();
             $urgence = $this->urgenceRepository->find($data['urgence']);
             $canDeleteUrgence = !$urgence->getLastArrival();
             if ($canDeleteUrgence) {
@@ -218,13 +216,16 @@ class UrgencesController extends AbstractController
         return new JsonResponse($response);
     }
 
-	/**
-	 * @Route("/verification", name="urgence_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-	 */
-	public function checkUrgenceCanBeDeleted(Request $request): Response
+    /**
+     * @Route("/verification", name="urgence_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+	public function checkUrgenceCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
 	{
 		$urgenceId = json_decode($request->getContent(), true);
-		$urgenceRepository = $this->getDoctrine()->getRepository(Urgence::class);
+		$urgenceRepository = $entityManager->getRepository(Urgence::class);
 
 		$urgence = $urgenceRepository->find($urgenceId);
 
