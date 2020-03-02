@@ -1,7 +1,6 @@
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title" title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</h5>
 
@@ -16,9 +15,10 @@
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="no-clear form-control input-sm data select2 {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
-                                name="fournisseur" id="fournisseur">
-                                <option {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'disabled' }}>&nbsp;</option>
+                                class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                name="fournisseur"
+                                id="fournisseur">
+                                <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
                                     <option value="{{ fournisseur.id }}">{{fournisseur.nom}}</option>
                                 {% endfor %}
@@ -37,9 +37,9 @@
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="no-clear form-control input-sm data select2 {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="transporteur" id="transporteur">
-                                <option {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'disabled' }}>&nbsp;</option>
+                                <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
                                     <option value="{{ carrier.id }}">{{carrier.label}}</option>
                                 {% endfor %}
@@ -48,7 +48,7 @@
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-1 toggle-button-container">
                                 <span class="btn btn-primary"
-                                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <i class="fa fa-plus"></i>
                                 </span>
                             </div>
@@ -59,9 +59,10 @@
                             <label
                                 for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data select2 {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="form-control input-sm data select2 ajax-autocomplete-chauffeur {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
                                 name="chauffeur"
                                 id="chauffeur">
+                                <option selected disabled>&nbsp;</option>
                                 {% for chauffeurs in chauffeurs %}
                                     <option value="{{ chauffeurs.id }}">{{chauffeurs.nom}}</option>
                                 {% endfor %}
@@ -154,8 +155,9 @@
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
                         <div class="form-group col-4">
-                            <label for="noBL">N° commande /
-                                BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="noBL">
+                                N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? '*' : '' }}
+                            </label>
                             <input type="text" id="noBL"
                                    class="form-control input-sm data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? 'needed' : '' }}"
                                    name="noBL" maxlength="64">
@@ -179,7 +181,12 @@
                                     <div class="form-group col-12 w-100">
                                         <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
                                         <select class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
-                                                name="destinataire" id="destinataire">
+                                                name="destinataire"
+                                                id="destinataire">
+                                            <option selected disabled>&nbsp;</option>
+                                            {% for user in users %}
+                                                <option value="{{ user.id }}">{{user.username}}</option>
+                                            {% endfor %}
                                         </select>
                                     </div>
                                 {% endif %}
