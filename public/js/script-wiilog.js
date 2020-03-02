@@ -1412,3 +1412,12 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
     $alertModal.modal('show');
 }
+
+function initOnTheFlyCopies() {
+    $("#newFournisseur").keyup(function() {
+        $('#newFournisseurCode').val(this.value);
+    });
+    $("#newTransporteur").keyup(function() {
+        $('#newTransporteurCode').val(this.value);
+    });
+}

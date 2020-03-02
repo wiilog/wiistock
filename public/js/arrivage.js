@@ -6,6 +6,7 @@ $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2('#statut', 'Statut');
     initSelect2('#carriers', 'Transporteurs');
+    initOnTheFlyCopies();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
