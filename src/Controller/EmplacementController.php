@@ -171,17 +171,29 @@ class EmplacementController extends AbstractController
 				->setDescription($data["Description"])
 				->setIsActive(true)
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
-
-            if (isset($data['dateMaxTime'])) {
-                $emplacement
-                    ->setDateMaxTime($data['dateMaxTime']);
-            }
+            $this->setTimeIfCorrect($data, $emplacement);
             $em->persist($emplacement);
             $em->flush();
             return new JsonResponse(true);
         }
 
         throw new NotFoundHttpException("404");
+    }
+
+    private function setTimeIfCorrect(array $data, Emplacement $emplacement) {
+        if (isset($data['dateMaxTime'])) {
+            $matchHours = '\d+';
+            $matchMinutes = '([0-5][0-9])';
+            $matchHoursMinutes = "$matchHours:$matchMinutes";
+            $resultFormat = preg_match(
+                "/^$matchHoursMinutes$/",
+                $data['dateMaxTime']
+            );
+            if (!empty($resultFormat)) {
+                $emplacement
+                    ->setDateMaxTime($data['dateMaxTime']);
+            }
+        }
     }
 
     /**
@@ -226,11 +238,7 @@ class EmplacementController extends AbstractController
                 ->setDescription($data["Description"])
             	->setIsDeliveryPoint($data["isDeliveryPoint"])
 				->setIsActive($data['isActive']);
-
-            if (isset($data['dateMaxTime'])) {
-                $emplacement
-                    ->setDateMaxTime($data['dateMaxTime']);
-            }
+            $this->setTimeIfCorrect($data, $emplacement);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();
