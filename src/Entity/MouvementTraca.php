@@ -77,6 +77,16 @@ class MouvementTraca
      */
     private $finished;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvementsTraca")
+     */
+    private $reception;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="mouvementsTraca")
+     */
+    private $arrivage;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -224,6 +234,30 @@ class MouvementTraca
     public function getFinished(): ?bool
     {
         return $this->finished;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getArrivage(): ?Arrivage
+    {
+        return $this->arrivage;
+    }
+
+    public function setArrivage(?Arrivage $arrivage): self
+    {
+        $this->arrivage = $arrivage;
+
+        return $this;
     }
 
 }

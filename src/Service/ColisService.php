@@ -87,7 +87,11 @@ Class ColisService
                         $now,
                         false,
                         true,
-                        MouvementTraca::TYPE_DEPOSE
+                        MouvementTraca::TYPE_DEPOSE,
+                        null,
+                        null,
+                        null,
+                        $arrivage
                     );
                     $this->entityManager->persist($mouvementDepose);
                 }

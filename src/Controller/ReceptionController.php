@@ -1421,6 +1421,7 @@ class ReceptionController extends AbstractController
 					->setEmplacement($receptionLocation)
 					->setOperateur($currentUser)
 					->setDatetime($now)
+                    ->setReception($reception)
 					->setColis($referenceArticle->getBarCode())
 					->setMouvementStock($mouvementStock);
 				$em->persist($mouvementTraca);
@@ -1445,6 +1446,7 @@ class ReceptionController extends AbstractController
 						->setEmplacement($receptionLocation)
 						->setOperateur($currentUser)
 						->setDatetime($now)
+                        ->setReception($reception)
 						->setColis($article->getBarCode())
 						->setMouvementStock($mouvementStock);
 					$em->persist($mouvementTraca);

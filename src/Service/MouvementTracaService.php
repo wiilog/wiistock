@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -42,9 +43,9 @@ class MouvementTracaService
      */
     private $router;
 
-	/**
-	 * @var UserService
-	 */
+    /**
+     * @var UserService
+     */
     private $userService;
 
     private $security;
@@ -66,7 +67,8 @@ class MouvementTracaService
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
                                 Security $security,
-                                AttachmentService $attachmentService) {
+                                AttachmentService $attachmentService)
+    {
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -78,51 +80,69 @@ class MouvementTracaService
         $this->attachmentService = $attachmentService;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws Exception
-	 */
+    /**
+     * @param array|null $params
+     * @return array
+     * @throws Exception
+     */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
 
-		$queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
 
-		$mouvements = $queryResult['data'];
+        $mouvements = $queryResult['data'];
 
-		$rows = [];
-		foreach ($mouvements as $mouvement) {
-			$rows[] = $this->dataRowMouvement($mouvement);
-		}
+        $rows = [];
+        foreach ($mouvements as $mouvement) {
+            $rows[] = $this->dataRowMouvement($mouvement);
+        }
 
-		return [
-			'data' => $rows,
-			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total'],
-		];
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
     }
 
-	/**
-	 * @param MouvementTraca $mouvement
-	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
-	 */
+    /**
+     * @param MouvementTraca $mouvement
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
     public function dataRowMouvement($mouvement)
     {
-		$row = [
-			'id' => $mouvement->getId(),
-			'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
-			'colis' => $mouvement->getColis(),
-			'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
-			'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
-			'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
-			'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
-				'mvt' => $mouvement,
-			])
-		];
+        if ($mouvement->getArrivage()) {
+            $fromPath = 'arrivage_show';
+            $fromEntityId = $mouvement->getArrivage()->getId();
+            $originFrom = $mouvement->getArrivage()->getNumeroArrivage();
+        } elseif ($mouvement->getReception()) {
+            $fromPath = 'reception_show';
+            $fromEntityId = $mouvement->getReception()->getId();
+            $originFrom = $mouvement->getReception()->getNumeroReception();
+        } else {
+            $fromPath = null;
+            $fromEntityId = null;
+            $originFrom = 'Aucune origine';
+        }
+        $row = [
+            'id' => $mouvement->getId(),
+            'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
+            'colis' => $mouvement->getColis(),
+            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
+                'from' => $originFrom,
+                'entityPath' => $fromPath,
+                'entityId' => $fromEntityId
+            ]),
+            'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
+            'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
+            'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
+            'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+                'mvt' => $mouvement,
+            ])
+        ];
 
         return $row;
     }
@@ -138,6 +158,7 @@ class MouvementTracaService
      * @param string|null $commentaire
      * @param MouvementStock|null $mouvementStock
      * @param FileBag|null $fileBag
+     * @param Arrivage|null $arrivage
      * @return MouvementTraca
      * @throws NonUniqueResultException
      */
@@ -150,7 +171,9 @@ class MouvementTracaService
                                           $typeMouvementTraca,
                                           string $commentaire = null,
                                           MouvementStock $mouvementStock = null,
-                                          FileBag $fileBag = null): MouvementTraca {
+                                          FileBag $fileBag = null,
+                                          Arrivage $arrivage = null): MouvementTraca
+    {
 
         $type = is_string($typeMouvementTraca)
             ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
@@ -169,6 +192,7 @@ class MouvementTracaService
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
+            ->setArrivage($arrivage)
             ->setMouvementStock($mouvementStock)
             ->setCommentaire($commentaire);
         $this->em->persist($mouvementTraca);
@@ -180,7 +204,8 @@ class MouvementTracaService
         return $mouvementTraca;
     }
 
-    private function generateUniqueIdForMobile(DateTime $date): string {
+    private function generateUniqueIdForMobile(DateTime $date): string
+    {
         $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format(DateTime::ATOM);

@@ -114,14 +114,20 @@ class Arrivage
      */
     private $urgences;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="arrivage")
+     */
+    private $mouvementsTraca;
+
 
 	public function __construct() {
-        $this->acheteurs = new ArrayCollection();
-        $this->colis = new ArrayCollection();
-        $this->attachements = new ArrayCollection();
-        $this->valeurChampLibre = new ArrayCollection();
-        $this->urgences = new ArrayCollection();
-    }
+                       $this->acheteurs = new ArrayCollection();
+                       $this->colis = new ArrayCollection();
+                       $this->attachements = new ArrayCollection();
+                       $this->valeurChampLibre = new ArrayCollection();
+                       $this->urgences = new ArrayCollection();
+                       $this->mouvementsTraca = new ArrayCollection();
+                   }
 
     public function getId(): ?int
     {
@@ -456,6 +462,37 @@ class Arrivage
     {
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementsTraca(): Collection
+    {
+        return $this->mouvementsTraca;
+    }
+
+    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca[] = $mouvementsTraca;
+            $mouvementsTraca->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca->removeElement($mouvementsTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementsTraca->getArrivage() === $this) {
+                $mouvementsTraca->setArrivage(null);
+            }
         }
 
         return $this;
