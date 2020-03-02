@@ -38,16 +38,19 @@ class MailerService
 		}
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
         if ($mailerServer) {
-            $from = $mailerServer->getUser() ? $mailerServer->getUser() : '';
-            $password = $mailerServer->getPassword() ? $mailerServer->getPassword() : '';
-            $host = $mailerServer->getSmtp() ? $mailerServer->getSmtp() : '';
-            $port = $mailerServer->getPort() ?  $mailerServer->getPort() : '';
-            $protocole = $mailerServer->getProtocol() ? $mailerServer->getProtocol() : '';
+            $user = $mailerServer->getUser() ?? '';
+            $password = $mailerServer->getPassword() ?? '';
+            $host = $mailerServer->getSmtp() ?? '';
+            $port = $mailerServer->getPort() ?? '';
+            $protocole = $mailerServer->getProtocol() ?? '';
+            $senderName = $mailerServer->getSenderName() ?? '';
+            $senderMail = $mailerServer->getSenderMail() ?? '';
+
         } else {
             return false;
         }
 
-        if (empty($from) || empty($password) || empty($host) || empty($port) || empty($protocole)) {
+        if (empty($user) || empty($password) || empty($host) || empty($port) || empty($protocole)) {
             return false;
         }
 
@@ -67,13 +70,13 @@ class MailerService
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
-            ->setUsername($from)
+            ->setUsername($user)
             ->setPassword($password);
 
         $message = (new \Swift_Message());
 
 		$message
-            ->setFrom($from)
+            ->setFrom($senderMail, $senderName)
             ->setTo($to)
             ->setSubject($subject)
             ->setBody($content)
