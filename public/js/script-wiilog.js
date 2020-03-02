@@ -58,6 +58,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+
     let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
@@ -72,6 +73,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         vals.push($(this).val());
         Data[name] = vals;
     });
+
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
