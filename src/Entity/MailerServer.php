@@ -41,6 +41,16 @@ class MailerServer
      */
     private $protocol;
 
+	/**
+	 * @ORM\Column(type="string", length=255, nullable=true)
+	 */
+    private $senderName;
+
+	/**
+	 * @ORM\Column(type="string", length=255, nullable=true)
+	 */
+	private $senderMail;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -102,6 +112,30 @@ class MailerServer
     public function setProtocol(?string $protocol): self
     {
         $this->protocol = $protocol;
+
+        return $this;
+    }
+
+    public function getSenderName(): ?string
+    {
+        return $this->senderName;
+    }
+
+    public function setSenderName(?string $senderName): self
+    {
+        $this->senderName = $senderName;
+
+        return $this;
+    }
+
+    public function getSenderMail(): ?string
+    {
+        return $this->senderMail;
+    }
+
+    public function setSenderMail(?string $senderMail): self
+    {
+        $this->senderMail = $senderMail;
 
         return $this;
     }
