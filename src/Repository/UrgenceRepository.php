@@ -193,22 +193,21 @@ class UrgenceRepository extends ServiceEntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ??
 						$params->get('columns')[$params->get('order')[0]['column']]['data'];
-
                     switch ($column) {
 						case 'provider':
 							$qb
 								->leftJoin('u.provider', 'p_order')
-								->orderBy('p_order.nom');
+								->orderBy('p_order.nom', $order);
 							break;
 						case 'carrier':
 							$qb
 								->leftJoin('u.carrier', 'c_order')
-								->orderBy('c_order.label');
+								->orderBy('c_order.label', $order);
 							break;
 						case 'buyer':
 							$qb
 								->leftJoin('u.buyer', 'b_order')
-								->orderBy('b_order.username');
+								->orderBy('b_order.username', $order);
 							break;
 						default:
 							$qb->orderBy('u.' . $column, $order);
