@@ -188,19 +188,21 @@ class DashboardService
     /**
      * @param string $paramName
      * @param MouvementTracaRepository $mouvementTracaRepository
+     * @param DateTime[]|null $dateBracket ['dateMin' => DateTime, 'dateMax' => DateTime]
      * @return array|null
      * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function getDashboardCounter(string $paramName,
-                                         MouvementTracaRepository $mouvementTracaRepository): ?array {
+    public function getDashboardCounter(string $paramName,
+                                        MouvementTracaRepository $mouvementTracaRepository,
+                                        array $dateBracket = []): ?array {
         $locations = $this->findEmplacementsParam($paramName);
         $response = [];
         $response['count'] = 0;
         $response['label'] = '';
         foreach ($locations as $location) {
-            $response['count'] += $mouvementTracaRepository->countObjectOnLocation($location);
+            $response['count'] += $mouvementTracaRepository->countObjectOnLocation($location, $dateBracket);
             if (!empty($response['label'])) {
                 $response['label'] .= ', ';
             }
