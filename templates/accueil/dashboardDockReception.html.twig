@@ -13,8 +13,10 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <div class="h-100">
+                <div style="height: 70% !important;">
                     <canvas id="chartDailyArrival" width="300" height="90"></canvas>
+                </div>
+                <div class="custom-chart-legend">
                 </div>
             </div>
         </div>
@@ -26,8 +28,10 @@
                 <div class="points">
                     {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
                 </div>
-                <div class="h-100">
+                <div style="height: 70% !important;">
                     <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
+                </div>
+                <div class="custom-chart-legend">
                 </div>
             </div>
         </div>

@@ -96,7 +96,7 @@ function updateSimpleChartData(
     chart,
     data,
     {lastColor, lastLabel,  label } = {lastColor: undefined, lastLabel: undefined, label: undefined},
-    {data: lineChartData, label: lineChartLabel} = {data: undefined, label: undefined}) {
+    {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data);
@@ -113,16 +113,53 @@ function updateSimpleChartData(
         chart.data.datasets[0].backgroundColor[dataLength - 1] = lastColor;
     }
 
-    if (lineChartData) {
+    if (subData) {
+        const subColor = '#e0e0e0';
         chart.data.datasets.push({
             label: lineChartLabel,
-            data: Object.values(lineChartData)
+            backgroundColor: (new Array(dataLength)).fill(subColor),
+            data: Object.values(subData)
         });
 
         chart.legend.display = true;
+
+        const legendConfig = [
+            {
+                label,
+                color: '#A3D1FF'
+            },
+            ...((lastLabel && lastColor)
+                ? [{
+                    label: lastLabel,
+                    color: lastColor
+                }]
+                : []),
+            {
+                label: lineChartLabel,
+                color: subColor
+            }
+        ];
+
+        console.log(legendConfig);
+
+
+        const $legendContainer = $(chart.canvas).parent().siblings('.custom-chart-legend');
+        $legendContainer.html($('<ul/>', {
+            class: 'd-flex justify-content-center align-items-center',
+            html: legendConfig.map(({label, color}) => (
+                $('<li/>', {
+                    class: 'd-flex justify-content-center align-items-center',
+                    html: [
+                        $('<span/>', {class: 'chart-legend-color', style: `background-color: ${color}`}),
+                        $('<span/>', {class: 'chart-legend-label', text: label})
+                    ]
+                })
+            ))
+        }));
+
     }
 
-    chart.generateLegend();
+
 
     chart.update();
 }
@@ -169,7 +206,7 @@ function drawSimpleChart($canvas, path, chart = null) {
         } else {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
-                    chart = newChart($canvas, Boolean(data.subCounters));
+                    chart = newChart($canvas);
                 }
 
                 updateSimpleChartData(
@@ -177,8 +214,8 @@ function drawSimpleChart($canvas, path, chart = null) {
                     data.data || data,
                     {
                         lastColor: '#39B54A',
-                        lastLabel: 'Arrivage du jour',
-                        label: 'Autres arrivage'
+                        lastLabel: data.data && data.lastLabel,
+                        label:  data.data && data.label
                     },
                     {
                         data: data.subCounters,

@@ -396,7 +396,9 @@ class AccueilController extends AbstractController
         return new JsonResponse([
             'data' => $arrivalsCountByWeek,
             'subCounters' => $colisCountByWeek,
-            'subLabel' => 'Colis'
+            'subLabel' => 'Colis',
+            'label' => 'Autres arrivages',
+            'lastLabel' => 'Arrivages de la semaine'
         ]);
     }
 
