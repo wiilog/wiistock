@@ -139,8 +139,7 @@ class AccueilController extends AbstractController
      *     "/dashboard-externe/{page}",
      *     name="dashboard_ext",
      *     methods={"GET"},
-     *     requirements={"page" = "(quai)|(admin)"},
-     *     condition="'%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
+     *     requirements={"page" = "(quai)|(admin)"}"
      * )
      * @param string $page
      * @return Response
