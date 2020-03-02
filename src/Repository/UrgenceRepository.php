@@ -112,29 +112,15 @@ class UrgenceRepository extends ServiceEntityRepository
      * @throws NonUniqueResultException
      */
     public function countUnsolved() {
-        $em = $this->getEntityManager();
+        $queryBuilder = $this->createQueryBuilder('urgence')
+            ->select('COUNT(urgence)')
+            ->where('urgence.dateStart < :now')
+            ->andWhere('urgence.lastArrival IS NULL')
+            ->setParameter('now', new DateTime('now', new DateTimeZone('Europe/Paris')));
 
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "
-            SELECT COUNT(u)
-            FROM App\Entity\Urgence AS u
-            WHERE u.dateStart < :now
-            AND
-            (
-                SELECT COUNT(a)
-                FROM App\Entity\Arrivage AS a
-                WHERE (a.date BETWEEN u.dateStart AND u.dateEnd) AND a.numeroBL = u.commande
-            ) = 0"
-        );
-
-		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-		$now->setTime(0,0);
-		$now = $now->format('Y-m-d H:i:s');
-
-		$query->setParameter('now', $now);
-
-        return $query->getSingleScalarResult();
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findByParamsAndFilters($params, $filters)
