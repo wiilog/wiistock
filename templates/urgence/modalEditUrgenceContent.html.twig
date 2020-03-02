@@ -39,7 +39,7 @@
 <div class="row">
     <div class="col-6">
         <div class="form-group">
-            <label for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans|capitalize }}*</label>
+            <label for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans }}*</label>
             <select name="acheteur"
                     class="form-control input-sm ajax-autocomplete-user data needed ajax-autocomplete w-100">
                 <option value="{{ urgence.buyer ? urgence.buyer.id }}">{{ urgence.buyer ? urgence.buyer.username }}</option>
