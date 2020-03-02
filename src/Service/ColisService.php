@@ -67,12 +67,15 @@ Class ColisService
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-
-        $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-        $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
-            ? $emplacementRepository->find($defaultEmpForMvtParam)
+        $defaultEmpForMvt = $arrivage->getDestinataire()
+            ? $emplacementRepository->findOneByLabel(Emplacement::LABEL_ECS_ARG)
             : null;
-
+        if (!$defaultEmpForMvt) {
+            $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
+                ? $emplacementRepository->find($defaultEmpForMvtParam)
+                : null;
+        }
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $colisList = [];
         foreach ($colisByNatures as $natureId => $number) {
