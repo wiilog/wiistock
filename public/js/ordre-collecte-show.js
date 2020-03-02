@@ -15,7 +15,7 @@ let tableArticle = $('#tableArticle').DataTable({
         { "data": 'Libellé', 'title': 'Libellé' },
         { "data": 'Emplacement', 'title': 'Emplacement' },
         { "data": 'Quantité', 'title': 'Quantité' },
-        { "data": 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'title': 'Actions', 'orderable': false },
     ],
 });
 
