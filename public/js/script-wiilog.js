@@ -685,7 +685,7 @@ function clearModal(modal) {
         .find('.data-array');
     dataArrays.each(function() {
         if ($(this).data('init') !== undefined) {
-            $(this).val($(this).data('init'));
+            //$(this).val($(this).data('init'));
         }
     });
     // on vide les messages d'erreur
