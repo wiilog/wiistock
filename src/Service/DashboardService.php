@@ -207,7 +207,7 @@ class DashboardService
             $response['count'] +=
                 $forEnCours
                     ? $mouvementTracaRepository->countObjectOnLocation($location, $dateBracket)
-                    : $mouvementTracaRepository->countObjectOnLocationForAllTime($location, $dateBracket);
+                    : $mouvementTracaRepository->countDropTrackingOnLocation($location, $dateBracket);
             if (!empty($response['label'])) {
                 $response['label'] .= ', ';
             }

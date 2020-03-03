@@ -191,16 +191,19 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countObjectOnLocationForAllTime(Emplacement $location, array $dateBracket = []): int {
+    public function countDropTrackingOnLocation(Emplacement $location, array $dateBracket = []): int {
         if (!empty($dateBracket) && count($dateBracket) === 2) {
             $queryBuilder = $this
                 ->createQueryBuilder('mouvementTraca')
                 ->select('COUNT(mouvementTraca.id)')
                 ->join('mouvementTraca.type', 'type')
                 ->andWhere('type.nom = :typeDepose')
+                ->andWhere('mouvementTraca.emplacement = :location')
                 ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
                 ->setParameter('dateMin', $dateBracket['dateMin'])
-                ->setParameter('dateMax', $dateBracket['dateMax']);
+                ->setParameter('dateMax', $dateBracket['dateMax'])
+                ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
+                ->setParameter('location', $location);
         }
 
         return $queryBuilder

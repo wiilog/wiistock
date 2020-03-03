@@ -360,7 +360,8 @@ class AccueilController extends AbstractController
                 [
                     'dateMin' => $dateMin,
                     'dateMax' => $dateMax
-                ]
+                ],
+                false
             );
             return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
