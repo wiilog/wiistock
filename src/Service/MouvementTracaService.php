@@ -120,16 +120,19 @@ class MouvementTracaService
     {
         if ($mouvement->getArrivage()) {
             $fromPath = 'arrivage_show';
+            $fromLabel = 'arrivage.arrivage';
             $fromEntityId = $mouvement->getArrivage()->getId();
             $originFrom = $mouvement->getArrivage()->getNumeroArrivage();
         } elseif ($mouvement->getReception()) {
             $fromPath = 'reception_show';
+            $fromLabel = 'réception.réception';
             $fromEntityId = $mouvement->getReception()->getId();
             $originFrom = $mouvement->getReception()->getNumeroReception();
         } else {
             $fromPath = null;
             $fromEntityId = null;
-            $originFrom = 'Aucune origine';
+            $fromLabel = null;
+            $originFrom = '-';
         }
         $row = [
             'id' => $mouvement->getId(),
@@ -137,6 +140,7 @@ class MouvementTracaService
             'colis' => $mouvement->getColis(),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
                 'from' => $originFrom,
+                'fromLabel' => $fromLabel,
                 'entityPath' => $fromPath,
                 'entityId' => $fromEntityId
             ]),
