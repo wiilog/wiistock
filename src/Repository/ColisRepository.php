@@ -47,5 +47,4 @@ class ColisRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-
 }

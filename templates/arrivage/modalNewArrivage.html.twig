@@ -20,13 +20,14 @@
                                 id="fournisseur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
-                                    <option value="{{ fournisseur.id }}">{{fournisseur.nom}}</option>
+                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-1 toggle-button-container">
-                                <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                <span class="btn btn-primary"
+                                      onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <i class="fa fa-plus"></i>
                                 </span>
                             </div>
@@ -41,7 +42,7 @@
                                 name="transporteur" id="transporteur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
-                                    <option value="{{ carrier.id }}">{{carrier.label}}</option>
+                                    <option value="{{ carrier.id }}">{{ carrier.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -64,13 +65,14 @@
                                 id="chauffeur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for chauffeurs in chauffeurs %}
-                                    <option value="{{ chauffeurs.id }}">{{chauffeurs.nom}}</option>
+                                    <option value="{{ chauffeurs.id }}">{{ chauffeurs.nom }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-1 toggle-button-container">
-                                <span class="btn btn-primary" onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
+                                <span class="btn btn-primary"
+                                      onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <i class="fa fa-plus"></i>
                                 </span>
                             </div>
@@ -78,70 +80,77 @@
                     {% endif %}
                 </div>
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                <div class="row new-on-fly-form-container align-items-start">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
-                    <div class="row col formulaire fly-form">
-                        <div class="form-group col-10 invisible" id="fournisseurDisplay">
-                            <label for="newFournisseur">Nom*</label>
-                            <input type="text" id="newFournisseur" class="form-control input-sm valeur newFormulaire neededNew"
-                                   name="Nom" maxlength="64">
-                            <label for="newFournisseurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newFournisseurCode" class="form-control input-sm newFormulaire neededNew"
-                                   name="Code" maxlength="64">
-                        </div>
-                        <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
+                    <div class="row new-on-fly-form-container align-items-start">
+                        {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                            <div class="row col formulaire fly-form">
+                                <div class="form-group col-10 invisible" id="fournisseurDisplay">
+                                    <label for="newFournisseur">Nom*</label>
+                                    <input type="text" id="newFournisseur"
+                                           class="form-control input-sm valeur newFormulaire neededNew"
+                                           name="Nom" maxlength="64">
+                                    <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                    <input type="text" id="newFournisseurCode"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="Code" maxlength="64">
+                                </div>
+                                <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
                             <span class="btn btn-success"
                                   onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
                                 <i class="fas fa-check-circle"></i></span>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
-                    <div class="row col formulaire fly-form">
-                        <div class="form-group col-10 invisible" id="transporteurDisplay">
-                            <label for="newTransporteur">Nom*</label>
-                            <input type="text" id="newTransporteur" class="form-control input-sm newFormulaire neededNew"
-                                   name="label" maxlength="64">
-                            <label for="newTransporteurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newTransporteurCode" class="form-control input-sm newFormulaire neededNew"
-                                   name="code" maxlength="64">
-                        </div>
-                        <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                            <div class="row col formulaire fly-form">
+                                <div class="form-group col-10 invisible" id="transporteurDisplay">
+                                    <label for="newTransporteur">Nom*</label>
+                                    <input type="text" id="newTransporteur"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="label" maxlength="64">
+                                    <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                    <input type="text" id="newTransporteurCode"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="code" maxlength="64">
+                                </div>
+                                <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
                             <span class="btn btn-success"
                                   onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
                                 <i class="fas fa-check-circle"></i>
                             </span>
-                        </div>
-                    </div>
-                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
-                    <div class="row formulaire fly-form">
-                        <div class="form-group col-10 invisible" id="chauffeurDisplay">
-                            <label for="newChauffeurName">Nom*</label>
-                            <input type="text" id="newChauffeurName" class="form-control input-sm newFormulaire neededNew"
-                                   name="nom" maxlength="64">
-                            <label for="newChauffeurFirstName" class="mt-2">Prénom*</label>
-                            <input type="text" id="newChauffeurFirstName" class="form-control input-sm newFormulaire neededNew"
-                                   name="prenom" maxlength="64">
-                            <label for="newChauffeurNumero" class="mt-2">N°doc ID*</label>
-                            <input type="text" id="newChauffeurNumero" class="form-control input-sm newFormulaire neededNew"
-                                   name="documentID" maxlength="64">
-                            <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
-                            <select
-                                class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
-                                name="transporteur" id="newChauffeurTransporteur">
-                            </select>
-                        </div>
-                        <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
+                        {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                            <div class="row formulaire fly-form">
+                                <div class="form-group col-10 invisible" id="chauffeurDisplay">
+                                    <label for="newChauffeurName">Nom*</label>
+                                    <input type="text" id="newChauffeurName"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="nom" maxlength="64">
+                                    <label for="newChauffeurFirstName" class="mt-2">Prénom*</label>
+                                    <input type="text" id="newChauffeurFirstName"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="prenom" maxlength="64">
+                                    <label for="newChauffeurNumero" class="mt-2">N°doc ID*</label>
+                                    <input type="text" id="newChauffeurNumero"
+                                           class="form-control input-sm newFormulaire neededNew"
+                                           name="documentID" maxlength="64">
+                                    <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
+                                    <select
+                                        class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
+                                        name="transporteur" id="newChauffeurTransporteur">
+                                    </select>
+                                </div>
+                                <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
                             <span class="btn btn-success"
                                   onclick="onFlyFormSubmit(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('#chauffeur'))">
                                 <i class="fas fa-check-circle"></i>
                             </span>
-                        </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
                 {% endif %}
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
@@ -179,13 +188,15 @@
                             <div class="row">
                                 {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                                     <div class="form-group col-12 w-100">
-                                        <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
-                                        <select class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
-                                                name="destinataire"
-                                                id="destinataire">
+                                        <label
+                                            for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
+                                        <select
+                                            class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
+                                            name="destinataire"
+                                            id="destinataire">
                                             <option selected disabled>&nbsp;</option>
                                             {% for user in users %}
-                                                <option value="{{ user.id }}">{{user.username}}</option>
+                                                <option value="{{ user.id }}">{{ user.username }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -196,10 +207,14 @@
 
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
-                            <label for="acheteurs">Acheteurs{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
+                            <label
+                                for="acheteurs">Acheteurs{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
-                                <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+                                <option selected disabled>&nbsp;</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     {% endif %}
@@ -219,7 +234,8 @@
                         <label title="colis">Imprimer {{ 'arrivage.colis'|trans }}</label>
                         <label class="switch d-block-switch mt-2">
                             {% set checked = (autoPrint ? 'checked' : '') %}
-                            <input class="checkbox no-clear" type="checkbox" name="printColis" id="printColis" {{checked}}>
+                            <input class="checkbox no-clear" type="checkbox" name="printColis"
+                                   id="printColis" {{ checked }}>
                             <span class="slider round"></span>
                             <input hidden value="{{ checked }}" id="printColisChecked">
                         </label>
@@ -245,15 +261,15 @@
                     </div>
 
                     {% else %}
-                    <div class="col-12">
-                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                            array: natures,
-                            warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
-                            redirectPath: path('nature_param_index'),
-                            redirectLabel: 'Aller vers la création des natures',
-                            title: 'de colis'
-                        } %}
-                    </div>
+                        <div class="col-12">
+                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                                array: natures,
+                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
+                                redirectPath: path('nature_param_index'),
+                                redirectLabel: 'Aller vers la création des natures',
+                                title: 'de colis'
+                            } %}
+                        </div>
                     {% endif %}
                 </div>
 

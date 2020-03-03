@@ -136,10 +136,13 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/dashboard-externe/{page}",
+     *     "/dashboard-externe/{token}/{page}",
      *     name="dashboard_ext",
      *     methods={"GET"},
-     *     requirements={"page" = "(quai)|(admin)"}
+     *     requirements={
+     *         "page" = "(quai)|(admin)",
+     *         "token" = "%dashboardToken%"
+     *     }
      * )
      * @param string $page
      * @return Response
