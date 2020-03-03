@@ -1,6 +1,15 @@
 $(function() {
+    initDateTimePicker('#dateMin, #dateMax');
     initSelect2($('#statut'), 'Statut');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_IMPORT);
+
+    $.post(path, params, function (data) {
+        displayFiltersSup(data);
+    }, 'json');
 });
 
 let pathImport = Routing.generate('import_api');

@@ -34,7 +34,6 @@ class ImportController extends AbstractController
 		$statusRepository = $this->getDoctrine()->getRepository(Statut::class);
 		$statuts = $statusRepository->findByCategorieName(CategorieStatut::IMPORT);
 
-
 		return $this->render('import/index.html.twig', [
 			'statuts' => $statuts
 		]);

@@ -33,7 +33,30 @@ class ImportRepository extends ServiceEntityRepository
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
-				//TODO CG
+				case 'statut':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('i.status', 's_filter')
+						->andWhere('s_filter.id in (:status)')
+						->setParameter('status', $value);
+					break;
+				case 'utilisateurs':
+					$value = explode(',', $filter['value']);
+					$qb
+						->join('i.user', 'u_filter')
+						->andWhere('u_filter.id in (:user)')
+						->setParameter('user', $value);
+					break;
+				case 'dateMin':
+					$qb
+						->andWhere('i.startDate >= :dateMin OR i.endDate >= :dateMin')
+						->setParameter('dateMin', $filter['value'] . " 00:00:00");
+					break;
+				case 'dateMax':
+					$qb
+						->andWhere('i.startDate <= :dateMax OR i.endDate <= :dateMax')
+						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+					break;
 			}
 		}
 
