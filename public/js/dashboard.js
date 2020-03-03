@@ -140,8 +140,6 @@ function updateSimpleChartData(
             }
         ];
 
-        console.log(legendConfig);
-
 
         const $legendContainer = $(chart.canvas).parent().siblings('.custom-chart-legend');
         $legendContainer.html($('<ul/>', {
