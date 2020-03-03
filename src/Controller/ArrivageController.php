@@ -67,6 +67,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\Json;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -378,18 +379,25 @@ class ArrivageController extends AbstractController
                 }
             }
             $entityManager->flush();
-
-            $natures = array_reduce(
-                isset($data['colis']) ? json_decode($data['colis'], true) : [],
-                function (array $carry, $value) {
-                    if (isset($value['id']) && isset($value['val'])) {
-                        $carry[intval($value['id'])] = intval($value['val']);
+            $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
+            $natures = [];
+            array_walk(
+                $colis,
+                function ($value, $key) use (&$natures) {
+                    if (isset($value)) {
+                        $natures[intval($key)] = intval($value);
                     }
-                    return $carry;
-                },
-                []
+                }
             );
-
+            $total = array_reduce($natures, function(int $carry, $nature) {
+                return $carry + $nature;
+            }, 0);
+            if ($total === 0) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez renseigner au moins un colis.<br>"
+                ]);
+            }
             $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
             $entityManager->flush();
 

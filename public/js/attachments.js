@@ -144,15 +144,20 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     let arrayIdVal = {};
     let totalForInputsArray = [0, '', false];
     inputsArray.each(function () {
+        name = $(this).attr("name");
         if ($(this).hasClass('needed-positiv')) {
             totalForInputsArray[0] += Number($(this).val());
-            totalForInputsArray[1] = $(this).attr("name");
+            totalForInputsArray[1] = name;
             totalForInputsArray[2] = true;
         }
-        name = $(this).attr("name");
-        vals.push($(this).val());
-        Data[name] = vals;
+        if (!arrayIdVal[name]) {
+            arrayIdVal[name] = {};
+        }
+        arrayIdVal[name][$(this).data('id')] = $(this).val();
     });
+    for (const name in arrayIdVal) {
+        Data.append(name, JSON.stringify(arrayIdVal[name]));
+    }
     inputs.each(function () {
         let val = $(this).val();
         name = $(this).attr("name");
@@ -177,7 +182,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             }
         }
     });
-
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
@@ -204,29 +208,33 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             cache: false,
             dataType: 'json',
             success: (data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
-                }
+                if (data.success === false) {
+                    $(modal).find('.error-msg').html(data.msg);
+                } else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
 
-                if (table) {
-                    table.ajax.reload(function (json) {
-                        if (data !== undefined) {
-                            $('#myInput').val(json.lastInput);
-                        }
-                    }, false);
-                }
+                    if (table) {
+                        table.ajax.reload(function (json) {
+                            if (data !== undefined) {
+                                $('#myInput').val(json.lastInput);
+                            }
+                        }, false);
+                    }
 
-                // mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
+                    // mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
+                    droppedFiles = [];
+                    if (callback !== null) callback(data);
                 }
-                droppedFiles = [];
-                if (callback !== null) callback(data);
             }
         });
     } else {
