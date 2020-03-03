@@ -473,10 +473,10 @@ function initNewLigneReception() {
         initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
     }
-    initSelect2Ajax($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), 'get_emplacement');
-    initSelect2('.select2-type');
-    initSelect2Ajax($modalNewLigneReception.find('.select2-user'), 'get_user');
-    initSelect2Ajax($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), 'get_ref_article_reception', 0, {reception: $('#receptionId').val()});
+    initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
+    initSelect2($('.select2-type'));
+    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route:  'get_user'});
+    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {route: 'get_ref_article_reception', param: {reception: $('#receptionId').val()}});
 
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',

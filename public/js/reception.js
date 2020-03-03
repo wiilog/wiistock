@@ -6,7 +6,7 @@ let tableReception;
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
-    initSelect2('#statut', 'Statut');
+    initSelect2($('#statut'), 'Statut');
 
     $('.body-add-ref').css('display', 'none');
 

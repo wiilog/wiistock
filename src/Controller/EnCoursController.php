@@ -8,7 +8,6 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Repository\FiltreSupRepository;
 use App\Service\EnCoursService;

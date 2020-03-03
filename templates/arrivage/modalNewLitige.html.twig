@@ -30,20 +30,25 @@
                 {% endif %}
 
                 <div class="row">
-                    <div class="form-group col">
-                        <label for="fournisseurLitige">Fournisseur</label>
-                        <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige" value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+                        <div class="form-group col">
+                            <label for="fournisseurLitige">Fournisseur</label>
+                            <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige" value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
+                        </div>
+                    {% endif %}
 
-                    <div class="form-group col">
-                        <label for="transporteurLitige">Transporteur</label>
-                        <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige" value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
-                    </div>
-
-                    <div class="form-group col">
-                        <label for="chauffeurLitige">Chauffeur</label>
-                        <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige" value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+                        <div class="form-group col">
+                            <label for="transporteurLitige">Transporteur</label>
+                            <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige" value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
+                        </div>
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
+                        <div class="form-group col">
+                            <label for="chauffeurLitige">Chauffeur</label>
+                            <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige" value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="row">
                     <div class="form-group col-4">
@@ -51,10 +56,12 @@
                         <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige" value="{{ arrivage.numeroArrivage }}" disabled>
                     </div>
 
-                    <div class="form-group col-4">
-                        <label for="noBLLitige">N° commande / BL</label>
-                        <input type="text" id="noBLLitige" class="form-control data" name="noBLLitige" value="{{ arrivage.numeroBL }}" disabled>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
+                        <div class="form-group col-4">
+                            <label for="noBLLitige">N° commande / BL</label>
+                            <input type="text" id="noBLLitige" class="form-control data" name="noBLLitige" value="{{ arrivage.numeroBL }}" disabled>
+                        </div>
+                    {% endif %}
 
                     <div class="form-group col-4">
                         <label for="typeLitige">Type*</label>
@@ -67,12 +74,14 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="form-group w-100 col-4">
-                        <label for="acheteursLitige">Acheteur(s)</label>
-                        <select class="form-control data" name="acheteursLitige" multiple="multiple"
-                                id="acheteursLitige" disabled>
-                        </select>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
+                        <div class="form-group w-100 col-4">
+                            <label for="acheteursLitige">Acheteur(s)</label>
+                            <select class="form-control data" name="acheteursLitige" multiple="multiple"
+                                    id="acheteursLitige" disabled>
+                            </select>
+                        </div>
+                    {% endif %}
 
                     <div class="form-group col-4">
                         <label for="statutLitige">Statut*</label>
