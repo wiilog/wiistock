@@ -30,7 +30,7 @@ function initTableArticle() {
                     }
                 },
                 initComplete: function () {
-                    loadSpinner($('#spinner'));
+                    hideSpinner($('#spinner'));
                     init();
                     overrideSearchArticle();
                     hideAndShowColumns(columns);

@@ -42,7 +42,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#statut', 'Statut');
+    initSelect2($('#statut'), 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     // applique les filtres si pré-remplis

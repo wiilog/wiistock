@@ -148,7 +148,7 @@ function initTableRefArticle() {
                     }
                 },
                 initComplete: function() {
-                    loadSpinner($('#spinner'));
+                    hideSpinner($('#spinner'));
                     initRemove();
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function($input) {
