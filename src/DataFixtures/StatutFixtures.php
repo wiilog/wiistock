@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -120,7 +121,13 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::ACHEMINEMENT => [
                 Acheminements::STATUT_A_TRAITER,
                 Acheminements::STATUT_TRAITE,
-            ]
+            ],
+			CategorieStatut::IMPORT => [
+				Import::STATUS_PLANNED,
+				Import::STATUS_FINISHED,
+				Import::STATUS_IN_PROGRESS,
+				Import::STATUS_CANCELLED,
+			]
         ];
 
         // on supprime les anciens statut d'arrivage qui ne sont pas dans le tableau

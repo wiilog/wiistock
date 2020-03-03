@@ -26,6 +26,7 @@ class CategorieStatut
     const LITIGE_ARR = 'litige arrivage';
     const LITIGE_RECEPT = 'litige reception';
     const ACHEMINEMENT = 'acheminement';
+    const IMPORT = 'import';
 
     /**
      * @ORM\Id()
