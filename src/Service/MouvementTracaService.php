@@ -2,26 +2,26 @@
 
 namespace App\Service;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
-
+use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
-
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class MouvementTracaService
 {
@@ -42,9 +42,9 @@ class MouvementTracaService
      */
     private $router;
 
-	/**
-	 * @var UserService
-	 */
+    /**
+     * @var UserService
+     */
     private $userService;
 
     private $security;
@@ -66,7 +66,8 @@ class MouvementTracaService
                                 Twig_Environment $templating,
                                 FiltreSupRepository $filtreSupRepository,
                                 Security $security,
-                                AttachmentService $attachmentService) {
+                                AttachmentService $attachmentService)
+    {
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -78,51 +79,73 @@ class MouvementTracaService
         $this->attachmentService = $attachmentService;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws Exception
-	 */
+    /**
+     * @param array|null $params
+     * @return array
+     * @throws Exception
+     */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
 
-		$queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
 
-		$mouvements = $queryResult['data'];
+        $mouvements = $queryResult['data'];
 
-		$rows = [];
-		foreach ($mouvements as $mouvement) {
-			$rows[] = $this->dataRowMouvement($mouvement);
-		}
+        $rows = [];
+        foreach ($mouvements as $mouvement) {
+            $rows[] = $this->dataRowMouvement($mouvement);
+        }
 
-		return [
-			'data' => $rows,
-			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total'],
-		];
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
     }
 
-	/**
-	 * @param MouvementTraca $mouvement
-	 * @return array
-	 * @throws \Twig_Error_Loader
-	 * @throws \Twig_Error_Runtime
-	 * @throws \Twig_Error_Syntax
-	 */
+    /**
+     * @param MouvementTraca $mouvement
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function dataRowMouvement($mouvement)
     {
-		$row = [
-			'id' => $mouvement->getId(),
-			'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
-			'colis' => $mouvement->getColis(),
-			'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
-			'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
-			'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
-			'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
-				'mvt' => $mouvement,
-			])
-		];
+        if ($mouvement->getArrivage()) {
+            $fromPath = 'arrivage_show';
+            $fromLabel = 'arrivage.arrivage';
+            $fromEntityId = $mouvement->getArrivage()->getId();
+            $originFrom = $mouvement->getArrivage()->getNumeroArrivage();
+        } elseif ($mouvement->getReception()) {
+            $fromPath = 'reception_show';
+            $fromLabel = 'réception.réception';
+            $fromEntityId = $mouvement->getReception()->getId();
+            $originFrom = $mouvement->getReception()->getNumeroReception();
+        } else {
+            $fromPath = null;
+            $fromEntityId = null;
+            $fromLabel = null;
+            $originFrom = '-';
+        }
+        $row = [
+            'id' => $mouvement->getId(),
+            'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
+            'colis' => $mouvement->getColis(),
+            'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', [
+                'from' => $originFrom,
+                'fromLabel' => $fromLabel,
+                'entityPath' => $fromPath,
+                'entityId' => $fromEntityId
+            ]),
+            'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
+            'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
+            'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
+            'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
+                'mvt' => $mouvement,
+            ])
+        ];
 
         return $row;
     }
@@ -135,22 +158,19 @@ class MouvementTracaService
      * @param bool $fromNomade
      * @param bool|null $finished
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
-     * @param string|null $commentaire
-     * @param MouvementStock|null $mouvementStock
-     * @param FileBag|null $fileBag
+     * @param array $options = ['commentaire' => string|null, 'mouvementStock' => MouvementStock|null, 'fileBag' => FileBag|null, from => Arrivage|Reception|null]
      * @return MouvementTraca
      * @throws NonUniqueResultException
      */
     public function persistMouvementTraca(string $colis,
-                                          Emplacement $location,
+                                          ?Emplacement $location,
                                           Utilisateur $user,
                                           DateTime $date,
                                           bool $fromNomade,
                                           ?bool $finished,
                                           $typeMouvementTraca,
-                                          string $commentaire = null,
-                                          MouvementStock $mouvementStock = null,
-                                          FileBag $fileBag = null): MouvementTraca {
+                                          array $options = []): MouvementTraca
+    {
 
         $type = is_string($typeMouvementTraca)
             ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
@@ -159,6 +179,11 @@ class MouvementTracaService
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
         }
+
+        $commentaire = $options['commentaire'] ?? null;
+        $mouvementStock = $options['mouvementStock'] ?? null;
+        $fileBag = $options['fileBag'] ?? null;
+        $from = $options['from'] ?? null;
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
@@ -170,7 +195,17 @@ class MouvementTracaService
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire($commentaire);
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+
+        if (isset($from)) {
+            if ($from instanceof Arrivage) {
+                $mouvementTraca->setArrivage($from);
+            }
+            else if ($from instanceof Reception) {
+                $mouvementTraca->setReception($from);
+            }
+        }
+
         $this->em->persist($mouvementTraca);
 
         if (isset($fileBag)) {
@@ -180,7 +215,8 @@ class MouvementTracaService
         return $mouvementTraca;
     }
 
-    private function generateUniqueIdForMobile(DateTime $date): string {
+    private function generateUniqueIdForMobile(DateTime $date): string
+    {
         $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format(DateTime::ATOM);

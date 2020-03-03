@@ -17,7 +17,6 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
-
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -33,14 +32,12 @@ use App\Repository\ChauffeurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\NatureRepository;
-use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -51,7 +48,6 @@ use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
-
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -378,18 +374,23 @@ class ArrivageController extends AbstractController
                 }
             }
             $entityManager->flush();
+            $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
+            $natures = [];
+            foreach ($colis as $key => $value) {
+                if (isset($value)) {
+                    $natures[intval($key)] = intval($value);
+                }
+            }
+            $total = array_reduce($natures, function(int $carry, $nature) {
+                return $carry + $nature;
+            }, 0);
 
-            $natures = array_reduce(
-                isset($data['nature']) ? json_decode($data['nature'], true) : [],
-                function (array $carry, $value) {
-                    if (isset($value['id']) && isset($value['val'])) {
-                        $carry[intval($value['id'])] = intval($value['val']);
-                    }
-                    return $carry;
-                },
-                []
-            );
-
+            if ($total === 0) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Veuillez renseigner au moins un colis.<br>"
+                ]);
+            }
             $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
             $entityManager->flush();
 

@@ -4,6 +4,7 @@ parameters:
     nomade_versions: '>=2.7.0'
     nomade_apk: 'http://wiilog.fr/dl/wiistock/app-2-7-0.apk'
     client: '%env(APP_CLIENT)%'
+    dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
 
 services:
     # default configuration for services in *this* file

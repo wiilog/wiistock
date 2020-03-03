@@ -115,12 +115,18 @@ class Reception
      */
     private $emergencyTriggered;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="reception")
+     */
+    private $mouvementsTraca;
+
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->valeurChampLibre = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->mouvementsTraca = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -419,6 +425,37 @@ class Reception
     public function setEmergencyTriggered(?bool $emergencyTriggered): self
     {
         $this->emergencyTriggered = $emergencyTriggered;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementsTraca(): Collection
+    {
+        return $this->mouvementsTraca;
+    }
+
+    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca[] = $mouvementsTraca;
+            $mouvementsTraca->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca->removeElement($mouvementsTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementsTraca->getReception() === $this) {
+                $mouvementsTraca->setReception(null);
+            }
+        }
 
         return $this;
     }
