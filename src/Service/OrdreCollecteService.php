@@ -427,8 +427,7 @@ class OrdreCollecteService
             $fromNomade,
             !$fromNomade,
             MouvementTraca::TYPE_PRISE,
-            null,
-            $mouvementStock
+            ['mouvementStock' => $mouvementStock]
         );
 
         // si on est sur la supervision
@@ -444,8 +443,7 @@ class OrdreCollecteService
                 $fromNomade,
                 !$fromNomade,
                 MouvementTraca::TYPE_DEPOSE,
-                null,
-                $mouvementStock
+                ['mouvementStock' => $mouvementStock]
             );
 
             // On fini le mouvement de stock

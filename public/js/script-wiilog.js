@@ -58,6 +58,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+
     let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
@@ -72,6 +73,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         vals.push($(this).val());
         Data[name] = vals;
     });
+
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
@@ -499,40 +501,28 @@ function initFilterDateToday() {
     }
 }
 
-function initSelect2(select, placeholder = '', lengthMin = 0) {
-    let isMultiple = $(select).attr('multiple') === 'multiple';
-
-    $(select).select2({
-        language: {
-            inputTooShort: function () {
-                let s = lengthMin > 1 ? 's' : '';
-                return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: lengthMin,
-        placeholder: {
-            id: 0,
-            text: placeholder,
-        },
-        allowClear: !isMultiple
-    });
-}
-
-function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = '') {
+/**
+ *
+ * @param $select
+ * @param {{}|{route: string, param: {}|undefined}} ajaxOption
+ * @param lengthMin
+ * @param placeholder
+ */
+function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOption = {}) {
     $select.each(function () {
-        let isMultiple = $(this).attr('multiple') === 'multiple';
-        $(this).select2({
-            ajax: {
-                url: Routing.generate(route, params, true),
-                dataType: 'json',
-                delay: 250,
-            },
+        const $item = $(this);
+        let isMultiple = $item.attr('multiple') === 'multiple';
+        const ajaxOptions = ajaxOption && ajaxOption.route
+            ? {
+                ajax: {
+                    url: Routing.generate(ajaxOption.route, ajaxOption.param || {}, true),
+                    dataType: 'json',
+                    delay: 250,
+                }
+            }
+            : {};
+        $item.select2({
+            ...ajaxOptions,
             language: {
                 inputTooShort: function () {
                     let s = lengthMin > 1 ? 's' : '';
@@ -547,6 +537,7 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
             },
             minimumInputLength: lengthMin,
             placeholder: {
+                id: 0,
                 text: placeholder,
             },
             allowClear: !isMultiple
@@ -576,48 +567,44 @@ function initDisplaySelect2Multiple(select, inputValues) {
 }
 
 function ajaxAutoCompleteEmplacementInit(select) {
-    initSelect2Ajax(select, 'get_emplacement');
+    initSelect2(select, '', 1, {route: 'get_emplacement'});
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
-    initSelect2Ajax(select, 'get_transporteurs');
+    initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
 function ajaxAutoRefArticleInit(select, typeQuantity = null) {
-    initSelect2Ajax(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
+    initSelect2(select, '', 1, {route: 'get_ref_articles', param: {activeOnly: 1, typeQuantity}});
 };
 
 function ajaxAutoArticlesInit(select) {
-    initSelect2Ajax(select, 'get_articles', {activeOnly: 1});
+    initSelect2(select, '', 1, {route: 'get_articles', param: {activeOnly: 1}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
     let reception = receptionId ? receptionId : $('#receptionId').val();
-    initSelect2Ajax(select, 'get_article_reception', 0, {reception: reception});
+    initSelect2(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
 }
 
 function ajaxAutoFournisseurInit(select, placeholder = '') {
-    initSelect2Ajax(select, 'get_fournisseur', 1, {}, placeholder);
+    initSelect2(select, placeholder, 1, {route: 'get_fournisseur'});
 }
 
 function ajaxAutoChauffeurInit(select) {
-    initSelect2Ajax(select, 'get_chauffeur')
+    initSelect2(select, '', 1, {route: 'get_chauffeur'});
 }
 
 function ajaxAutoUserInit(select, placeholder = '') {
-    initSelect2Ajax(select, 'get_user', 1, {}, placeholder);
+    initSelect2(select, placeholder, 1, {route: 'get_user'});
 }
 
-// function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
-//     initSelect2Ajax(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
-// }
-
 function ajaxAutoDemandCollectInit(select) {
-    initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
+    initSelect2(select, 'Numéro demande', 3, {route: 'get_demand_collect'});
 }
 
 function ajaxAutoDemandesInit(select) {
-    initSelect2Ajax(select, 'get_demandes', 3, {}, 'Numéro demande');
+    initSelect2(select, 'Numéro demande', 3, {route: 'get_demandes'});
 }
 
 let toggleRequiredChampsLibres = function (select, require) {
@@ -687,7 +674,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             $(this).val(null).trigger('change');
