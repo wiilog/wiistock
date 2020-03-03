@@ -250,6 +250,7 @@
                 {% set hasRightRefStatuLiti = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_STATU_LITI')) %}
                 {% set hasRightRefNatuColi = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_NATU_COLI')) %}
                 {% set hasRightRefCf = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_CF')) %}
+                {% set hasRightImport= hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_IMPORT')) %}
 
                 {% if hasRightRefGlobal or hasRightRefRole or hasRightRefUtil or hasRightRefCl or hasRightRefExpo or hasRightRefType or hasRightRefStatuLiti or hasRightRefNatuColi or hasRightRefCf %}
                 <li class="menu-item has-submenu">
@@ -306,6 +307,11 @@
                         {% if hasRightRefCf %}
                             <li>
                                 <a href="{{ path('fields_param_index') }}" class="sub-item">• Champs fixes</a>
+                            </li>
+                        {% endif %}
+                        {% if hasRightImport %}
+                            <li>
+                                <a href="{{ path('import_index') }}" class="sub-item">• Import et mise à jour</a>
                             </li>
                         {% endif %}
                     </ul>

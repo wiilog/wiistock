@@ -115,6 +115,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_CF,
 				Action::EDIT,
 				Action::DELETE,
+				Action::DISPLAY_IMPORT
 			]
 		];
 
