@@ -119,15 +119,14 @@ class Arrivage
      */
     private $mouvementsTraca;
 
-
-	public function __construct() {
-                       $this->acheteurs = new ArrayCollection();
-                       $this->colis = new ArrayCollection();
-                       $this->attachements = new ArrayCollection();
-                       $this->valeurChampLibre = new ArrayCollection();
-                       $this->urgences = new ArrayCollection();
-                       $this->mouvementsTraca = new ArrayCollection();
-                   }
+    public function __construct() {
+        $this->acheteurs = new ArrayCollection();
+        $this->colis = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
+        $this->urgences = new ArrayCollection();
+        $this->mouvementsTraca = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

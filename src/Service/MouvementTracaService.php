@@ -9,6 +9,7 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 
+use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
@@ -23,6 +24,9 @@ use Symfony\Component\Routing\RouterInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class MouvementTracaService
 {
@@ -108,9 +112,9 @@ class MouvementTracaService
     /**
      * @param MouvementTraca $mouvement
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function dataRowMouvement($mouvement)
     {
@@ -155,24 +159,18 @@ class MouvementTracaService
      * @param bool $fromNomade
      * @param bool|null $finished
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
-     * @param string|null $commentaire
-     * @param MouvementStock|null $mouvementStock
-     * @param FileBag|null $fileBag
-     * @param Arrivage|null $arrivage
+     * @param array $options = ['commentaire' => string|null, 'mouvementStock' => MouvementStock|null, 'fileBag' => FileBag|null, from => Arrivage|Reception|null]
      * @return MouvementTraca
      * @throws NonUniqueResultException
      */
     public function persistMouvementTraca(string $colis,
-                                          Emplacement $location,
+                                          ?Emplacement $location,
                                           Utilisateur $user,
                                           DateTime $date,
                                           bool $fromNomade,
                                           ?bool $finished,
                                           $typeMouvementTraca,
-                                          string $commentaire = null,
-                                          MouvementStock $mouvementStock = null,
-                                          FileBag $fileBag = null,
-                                          Arrivage $arrivage = null): MouvementTraca
+                                          array $options = []): MouvementTraca
     {
 
         $type = is_string($typeMouvementTraca)
@@ -183,6 +181,11 @@ class MouvementTracaService
             throw new Exception('Le type de mouvement traca donné est invalide');
         }
 
+        $commentaire = $options['commentaire'] ?? null;
+        $mouvementStock = $options['mouvementStock'] ?? null;
+        $fileBag = $options['fileBag'] ?? null;
+        $from = $options['from'] ?? null;
+
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($colis)
@@ -192,9 +195,18 @@ class MouvementTracaService
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
-            ->setArrivage($arrivage)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire($commentaire);
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+
+        if (isset($from)) {
+            if ($from instanceof Arrivage) {
+                $mouvementTraca->setArrivage($from);
+            }
+            else if ($from instanceof Reception) {
+                $mouvementTraca->setReception($from);
+            }
+        }
+
         $this->em->persist($mouvementTraca);
 
         if (isset($fileBag)) {
