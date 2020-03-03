@@ -26,7 +26,7 @@ class UrgenceRepository extends ServiceEntityRepository
     private const DtToDbLabels = [
         "start" => 'dateStart',
         "end" => 'dateEnd',
-        'commande' => 'commande'
+        'arrivalDate' => 'lastArrival',
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -171,17 +171,47 @@ class UrgenceRepository extends ServiceEntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                	$exprBuilder = $qb->expr();
                     $qb
-                        ->andWhere('u.commande LIKE :value')
+						->leftJoin('u.buyer', 'b_search')
+						->leftJoin('u.provider', 'p_search')
+						->leftJoin('u.carrier', 'c_search')
+                        ->andWhere($exprBuilder->orX(
+                        	'u.commande LIKE :value',
+							'u.postNb LIKE :value',
+							'u.trackingNb LIKE :value',
+							'b_search.username LIKE :value',
+							'p_search.nom LIKE :value',
+							'c_search.label LIKE :value'
+							))
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    $qb
-                        ->orderBy('u.' . $column, $order);
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ??
+						$params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    switch ($column) {
+						case 'provider':
+							$qb
+								->leftJoin('u.provider', 'p_order')
+								->orderBy('p_order.nom', $order);
+							break;
+						case 'carrier':
+							$qb
+								->leftJoin('u.carrier', 'c_order')
+								->orderBy('c_order.label', $order);
+							break;
+						case 'buyer':
+							$qb
+								->leftJoin('u.buyer', 'b_order')
+								->orderBy('b_order.username', $order);
+							break;
+						default:
+							$qb->orderBy('u.' . $column, $order);
+					}
                 }
             }
         }

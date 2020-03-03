@@ -14,11 +14,13 @@ use App\Entity\Fournisseur;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 
 use App\Entity\Statut;
 use App\Entity\Transporteur;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -218,26 +220,38 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/", name="arrivage_index")
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param ChampLibreRepository $champLibreRepository
+     * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
-	 */
-    public function index(ParametrageGlobalRepository $parametrageGlobalRepository, ChampLibreRepository $champLibreRepository)
+     */
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
         return $this->render('arrivage/index.html.twig', [
-            'carriers' => $this->transporteurRepository->findAllSorted(),
-            'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-            'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'natures' => $this->natureRepository->findAll(),
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+            'carriers' => $transporteurRepository->findAllSorted(),
+            'chauffeurs' => $chauffeurRepository->findAllSorted(),
+            'users' => $utilisateurRepository->findAllSorted(),
+            'fournisseurs' => $fournisseurRepository->findAllSorted(),
+            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'natures' => $natureRepository->findAll(),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
 			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
@@ -324,32 +338,26 @@ class ArrivageController extends AbstractController
                 ->setNumeroArrivage($numeroArrivage)
                 ->setCommentaire($data['commentaire'] ?? null);
 
-            $fournisseur = $data['fournisseur'] ?? null;
-            if ($fournisseur) {
-                $arrivage->setFournisseur($fournisseurRepository->find($fournisseur));
+            if (!empty($data['fournisseur'])) {
+                $arrivage->setFournisseur($fournisseurRepository->find($data['fournisseur']));
             }
-            $transporteur = $data['transporteur'] ?? null;
-            if ($transporteur) {
-                $arrivage->setTransporteur($transporteurRepository->find($transporteur));
+            if (!empty($data['transporteur'])) {
+                $arrivage->setTransporteur($transporteurRepository->find($data['transporteur']));
             }
-            $chauffeur = $data['chauffeur'] ?? null;
-            if ($chauffeur) {
-                $arrivage->setChauffeur($chauffeurRepository->find($chauffeur));
+            if (!empty($data['chauffeur'])) {
+                $arrivage->setChauffeur($chauffeurRepository->find($data['chauffeur']));
             }
-            $noTracking = $data['noTracking'];
-            if ($noTracking) {
-                $arrivage->setNoTracking(substr($noTracking, 0, 64));
+            if (!empty($data['noTracking'])) {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
             }
             $noBL = $data['noBL'];
-            if ($noBL) {
+            if (!empty($data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
             }
-            $destinataire = $data['destinataire'];
-            if ($destinataire) {
-                $arrivage->setDestinataire($userRepository->find($destinataire));
+            if (!empty($data['destinataire'])) {
+                $arrivage->setDestinataire($userRepository->find($data['destinataire']));
             }
-            $acheteurs = $data['acheteurs'];
-            if ($acheteurs) {
+            if (!empty($data['acheteurs'])) {
                 $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
@@ -552,10 +560,10 @@ class ArrivageController extends AbstractController
 				$msgSedUrgent = "L'arrivage est-il urgent sur la commande " . $arrivage->getNumeroBL() . " ?";
 			} else {
 				if ($nbPosts == 1) {
-					$msgSedUrgent = "Le poste <span class='bold'>" . $posts[0] . '</span> est urgent sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					$msgSedUrgent = "Le poste <span class='bold'>" . $posts[0] . '</span> est urgent sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> .
 					<br>L'avez-vous reçu dans cet arrivage ?";
 				} else {
-					$msgSedUrgent = "Les postes <span class='bold'>" . implode(', ', $posts) . '</span> sont urgents sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> . 
+					$msgSedUrgent = "Les postes <span class='bold'>" . implode(', ', $posts) . '</span> sont urgents sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> .
 					<br>Les avez-vous reçus dans cet arrivage ?";
 				}
 			}
@@ -607,23 +615,12 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
                 ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-                ->setNumeroBL(substr($post->get('noBL'), 0, 64));
-
-            if ($fournisseurId) {
-                $arrivage->setFournisseur($this->fournisseurRepository->find($fournisseurId));
-            }
-            if ($transporteurId) {
-                $arrivage->setTransporteur($this->transporteurRepository->find($transporteurId));
-            }
-            if ($chauffeurId) {
-                $arrivage->setChauffeur($this->chauffeurRepository->find($chauffeurId));
-            }
-            if ($statutId) {
-                $arrivage->setStatut($this->statutRepository->find($statutId));
-            }
-            if ($destinataireId) {
-                $arrivage->setDestinataire($this->utilisateurRepository->find($destinataireId));
-            }
+                ->setNumeroBL(substr($post->get('noBL'), 0, 64))
+                ->setFournisseur($fournisseurId ? $this->fournisseurRepository->find($fournisseurId) : null)
+                ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
+                ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
+                ->setStatut($statutId ? $this->statutRepository->find($statutId) : null)
+                ->setDestinataire($destinataireId ? $this->utilisateurRepository->find($destinataireId) : null);
 
             $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...

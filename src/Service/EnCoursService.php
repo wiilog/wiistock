@@ -227,7 +227,7 @@ class EnCoursService
         foreach ($enCours as $enCour) {
             $hourOfEnCours = intval($enCour['delay'] / 1000 / 60 / 60);
             if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
-                $entityColisForThisEnCour = $this->colisRepository->findOneByCode($enCour['colis']);
+                $entityColisForThisEnCour = $this->colisRepository->findOneBy(['code' => $enCour['colis']]);
                 if ($entityColisForThisEnCour) {
                     $key = $entityColisForThisEnCour->getNature()->getLabel();
                     if (array_key_exists($key, $countByNature)) {

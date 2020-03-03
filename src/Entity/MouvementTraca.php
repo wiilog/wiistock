@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use DateTime;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -76,6 +75,16 @@ class MouvementTraca
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $finished;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvementsTraca")
+     */
+    private $reception;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="mouvementsTraca")
+     */
+    private $arrivage;
 
     public function __construct()
     {
@@ -224,6 +233,30 @@ class MouvementTraca
     public function getFinished(): ?bool
     {
         return $this->finished;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getArrivage(): ?Arrivage
+    {
+        return $this->arrivage;
+    }
+
+    public function setArrivage(?Arrivage $arrivage): self
+    {
+        $this->arrivage = $arrivage;
+
+        return $this;
     }
 
 }

@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Repository\FiltreSupRepository;

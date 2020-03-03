@@ -23,22 +23,6 @@ class ColisRepository extends ServiceEntityRepository
         parent::__construct($registry, Colis::class);
     }
 
-	/**
-	 * @param string $code
-	 * @return Colis|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByCode($code)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery('
-            SELECT c
-            FROM App\Entity\Colis c
-            WHERE c.code = :code'
-        )->setParameter('code', $code);
-        return $query->getOneOrNullResult();
-    }
-
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax

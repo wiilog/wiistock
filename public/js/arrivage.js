@@ -4,8 +4,8 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    initSelect2('#statut', 'Statut');
-    initSelect2('#carriers', 'Transporteurs');
+    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#carriers'), 'Transporteurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -117,6 +117,7 @@ let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
+    clearModal($modal);
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
@@ -125,9 +126,9 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($modal.find('.ajax-autocomplete-fournisseur'));
-    ajaxAutoUserInit($modal.find('.ajax-autocomplete-user'));
-    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
-    ajaxAutoChauffeurInit($modal.find('.ajax-autocomplete-chauffeur'));
+    initSelect2($modal.find('.ajax-autocomplete-fournisseur'));
+    initSelect2($modal.find('.ajax-autocomplete-transporteur'));
+    initSelect2($modal.find('.ajax-autocomplete-chauffeur'));;
+    initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
 }
