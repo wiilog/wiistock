@@ -50,7 +50,7 @@ class MailerService
             return false;
         }
 
-        if (empty($user) || empty($password) || empty($host) || empty($port) || empty($protocole)) {
+        if (empty($user) || empty($password) || empty($host) || empty($port)) {
             return false;
         }
 
