@@ -2,15 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
-use App\Repository\ColisRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
@@ -311,14 +313,26 @@ class AccueilController extends AbstractController
      * @throws Exception
      */
     public function getDailyArrivalsStatistics(DashboardService $dashboardService,
-                                               ArrivageRepository $arrivageRepository): Response
+                                               EntityManagerInterface $entityManager): Response
     {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
 
         $arrivalCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        return new JsonResponse($arrivalCountByDays);
+        $colisCountByDay = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+
+        return new JsonResponse([
+            'data' => $arrivalCountByDays,
+            'subCounters' => $colisCountByDay,
+            'subLabel' => 'Colis',
+            'label' => 'Autres arrivages',
+            'lastLabel' => 'Arrivages du jour'
+        ]);
     }
 
     /**
@@ -330,16 +344,26 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ColisRepository $colisRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function getDailyPacksStatistics(DashboardService $dashboardService,
-                                            ColisRepository $colisRepository): Response
+                                            EntityManagerInterface $entityManager): Response
     {
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
+        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService, $mouvementTracaRepository) {
+            $resCounter = $dashboardService->getDashboardCounter(
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+                $mouvementTracaRepository,
+                [
+                    'dateMin' => $dateMin,
+                    'dateMax' => $dateMax
+                ],
+                false
+            );
+            return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
 
         return new JsonResponse($packsCountByDays);
@@ -359,14 +383,26 @@ class AccueilController extends AbstractController
      * @throws Exception
      */
     public function getWeeklyArrivalsStatistics(DashboardService $dashboardService,
-                                                ArrivageRepository $arrivageRepository): Response
+                                                EntityManagerInterface $entityManager): Response
     {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
 
         $arrivalsCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        return new JsonResponse($arrivalsCountByWeek);
+        $colisCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+
+        return new JsonResponse([
+            'data' => $arrivalsCountByWeek,
+            'subCounters' => $colisCountByWeek,
+            'subLabel' => 'Colis',
+            'label' => 'Autres arrivages',
+            'lastLabel' => 'Arrivages de la semaine'
+        ]);
     }
 
 	/**
@@ -408,7 +444,9 @@ class AccueilController extends AbstractController
 
         $colorsNatures = [];
         foreach ($naturesForGraph as $natureForGraph) {
-        	$colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+            if ($natureForGraph->getColor()) {
+                $colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+            }
 		}
 
         $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
@@ -450,7 +488,7 @@ class AccueilController extends AbstractController
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
             "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-',
-			'colorsNatures' => $colorsNatures,
+			'chartColors' => $colorsNatures,
         ]);
     }
 

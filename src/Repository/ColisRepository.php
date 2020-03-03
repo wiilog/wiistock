@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Arrivage;
 use App\Entity\Colis;
 
 use DateTime;
@@ -26,24 +27,20 @@ class ColisRepository extends ServiceEntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return int
-     * @throws NonUniqueResultException
+     * @return Arrivage[]|null
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function countByDates(DateTime $dateMin, DateTime $dateMax): int
+    public function countByDates(DateTime $dateMin, DateTime $dateMax)
     {
-        $dateMinStr = $dateMin->format('Y-m-d H:i:s');
-        $dateMaxStr = $dateMax->format('Y-m-d H:i:s');
-
         return $this->createQueryBuilder('colis')
             ->join('colis.arrivage', 'arrivage')
             ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
-                'dateMin' => $dateMinStr,
-                'dateMax' => $dateMaxStr
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
             ])
-            ->distinct()
-            ->select('count(colis)')
+            ->select('COUNT(arrivage)')
             ->getQuery()
             ->getSingleScalarResult();
     }
