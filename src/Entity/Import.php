@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -9,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Import
 {
+	const STATUS_DRAFT = 'brouillon';
 	const STATUS_CANCELLED = 'annulé';
 	const STATUS_IN_PROGRESS = 'en cours';
 	const STATUS_FINISHED = 'terminé';
@@ -32,7 +34,7 @@ class Import
     private $entity;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="importCsv")
      */
     private $csvFile;
 
@@ -62,17 +64,17 @@ class Import
     private $nbErrors;
 
 	/**
-	 * @ORM\Column(type="datetime")
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
     private $startDate;
 
 	/**
-	 * @ORM\Column(type="datetime")
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
     private $endDate;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", cascade={"persist", "remove"})
+	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="importLog")
 	 */
     private $logFile;
 
@@ -80,6 +82,12 @@ class Import
 	 * @ORM\Column(type="json", nullable=true)
 	 */
     private $columnToField;
+
+    public function __construct()
+    {
+        $this->csvFile = new ArrayCollection();
+        $this->logFile = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -230,4 +238,51 @@ class Import
 
         return $this;
     }
+
+    public function addCsvFile(PieceJointe $csvFile): self
+    {
+        if (!$this->csvFile->contains($csvFile)) {
+            $this->csvFile[] = $csvFile;
+            $csvFile->setImportCsv($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCsvFile(PieceJointe $csvFile): self
+    {
+        if ($this->csvFile->contains($csvFile)) {
+            $this->csvFile->removeElement($csvFile);
+            // set the owning side to null (unless already changed)
+            if ($csvFile->getImportCsv() === $this) {
+                $csvFile->setImportCsv(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addLogFile(PieceJointe $logFile): self
+    {
+        if (!$this->logFile->contains($logFile)) {
+            $this->logFile[] = $logFile;
+            $logFile->setImportLog($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLogFile(PieceJointe $logFile): self
+    {
+        if ($this->logFile->contains($logFile)) {
+            $this->logFile->removeElement($logFile);
+            // set the owning side to null (unless already changed)
+            if ($logFile->getImportLog() === $this) {
+                $logFile->setImportLog(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

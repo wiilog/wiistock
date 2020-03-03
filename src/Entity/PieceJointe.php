@@ -48,6 +48,20 @@ class PieceJointe
      */
     private $mouvementTraca;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="csvFile")
+     * @ORM\JoinColumn(name="import_csv_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $importCsv;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="logFile")
+     * @ORM\JoinColumn(name="import_log_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $importLog;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -109,6 +123,30 @@ class PieceJointe
     public function setMouvementTraca(?MouvementTraca $mouvementTraca): self
     {
         $this->mouvementTraca = $mouvementTraca;
+
+        return $this;
+    }
+
+    public function getImportLog(): ?Import
+    {
+        return $this->importLog;
+    }
+
+    public function setImportLog(?Import $importLog): self
+    {
+        $this->importLog = $importLog;
+
+        return $this;
+    }
+
+    public function getImportCsv(): ?Import
+    {
+        return $this->importCsv;
+    }
+
+    public function setImportCsv(?Import $importCsv): self
+    {
+        $this->importCsv = $importCsv;
 
         return $this;
     }

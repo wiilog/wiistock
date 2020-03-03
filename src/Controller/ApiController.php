@@ -454,7 +454,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                 $signatureFile = $request->files->get("signature_$index");
                                 if (!empty($signatureFile)) {
-                                    $attachmentService->addAttachements([$signatureFile], null, null, $mouvementTraca);
+                                    $attachmentService->addAttachements([$signatureFile], $mouvementTraca);
                                 }
 
                                 $entityManager->persist($mouvementTraca);

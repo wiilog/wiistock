@@ -39,3 +39,15 @@ let tableImport = $('#tableImport').DataTable({
         overrideSearch($('#tableImport_filter input'), tableImport);
     }
 });
+
+let $modalNewImport = $("#modalNewImport");
+let $submitNewFournisseur = $("#submitNewImport");
+let urlNewImportFirst = Routing.generate('import_new', true);
+initModalWithAttachments($modalNewImport, $submitNewFournisseur, urlNewImportFirst, tableImport, displaySecondModal, false);
+
+function displaySecondModal(data) {
+    //TODO CG vérification 1 seul fichier + format csv
+    if (data.success) {
+        $modalNewImport.find('.modal-body').html(data.html);
+    }
+}

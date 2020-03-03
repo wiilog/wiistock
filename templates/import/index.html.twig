@@ -22,10 +22,13 @@
 
     <table id="tableImport" class="table table-striped table-bordered w-100">
     </table>
+
+    {% include 'import/modalNewImport.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/attachments.js')}}?{{ date().timestamp }}"> </script>
     <script src="{{ asset('js/import.js')}}?{{ date().timestamp }}"> </script>
 {% endblock %}
 

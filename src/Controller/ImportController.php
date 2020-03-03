@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Import;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Service\AttachmentService;
 use App\Service\ImportDataService;
 use App\Service\UserService;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,6 +60,42 @@ class ImportController extends AbstractController
 		$data = $importDataService->getDataForDatatable($request->request);
 
 		return new JsonResponse($data);
+	}
+
+	/**
+	 * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @param Request $request
+	 * @param UserService $userService
+	 * @param AttachmentService $attachmentService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
+	public function new(Request $request, UserService $userService, AttachmentService $attachmentService): Response
+	{
+		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
+			return $this->redirectToRoute('access_denied');
+		}
+//TODO CG test format fichier
+		$post = $request->request;
+		$em = $this->getDoctrine()->getManager();
+		$statusRepository = $em->getRepository(Statut::class);
+
+		$import = new Import();
+		$import
+			->setLabel($post->get('label'))
+			->setEntity($post->get('entity'))
+			->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+			->setUser($this->getUser());
+
+		$em->persist($import);
+		$em->flush();
+
+		$attachmentService->addAttachements($request->files, $import);
+
+		return new JsonResponse([
+			'success' => true,
+			'html' => $this->renderView('import/modalNewImportSecond.html.twig', ['import' => $import])
+		]);
 	}
 
 }

@@ -127,6 +127,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Import::STATUS_FINISHED,
 				Import::STATUS_IN_PROGRESS,
 				Import::STATUS_CANCELLED,
+				Import::STATUS_DRAFT,
 			]
         ];
 

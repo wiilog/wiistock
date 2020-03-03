@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Import;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
 use App\Entity\PieceJointe;
@@ -28,11 +29,9 @@ class AttachmentService
 
 	/**
 	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
-	 * @param Arrivage $arrivage
-	 * @param Litige|null $litige
-	 * @param MouvementTraca|null $mvtTraca
+	 * @param Arrivage|Litige|MouvementTraca|Import $entity
 	 */
-	public function addAttachements($files, $arrivage, $litige = null, $mvtTraca = null) {
+	public function addAttachements($files, $entity) {
         if ($files instanceof FileBag) {
             $files = $files->all();
         }
@@ -52,16 +51,19 @@ class AttachmentService
                 $pj
                     ->setOriginalName($originalFileName)
                     ->setFileName($fileName);
-
                 $this->em->persist($pj);
 
-				if ($arrivage) {
-					$arrivage->addAttachement($pj);
-				} elseif ($litige) {
-					$litige->addPiecesJointe($pj);
-				} elseif ($mvtTraca) {
-					$mvtTraca->addAttachement($pj);
+                if ($entity instanceof Arrivage) {
+					$entity->addAttachement($pj);
+				} elseif ($entity instanceof Litige) {
+					$entity->addPiecesJointe($pj);
+				} elseif ($entity instanceof MouvementTraca) {
+					$entity->addAttachement($pj);
+				} elseif ($entity instanceof Import) {
+					$entity->addCsvFile($pj);
 				}
+
+                $this->em->flush();
 			}
 		}
 	}
