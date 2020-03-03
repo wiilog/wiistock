@@ -264,11 +264,10 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                 } else if (min < 1) {
                     msg += ' ne peut pas être rempli'
                 }
-
             })
         }
         if (totalForInputsArray[2] && totalForInputsArray[0] === 0) {
-            msg += "Le total des champs " + totalForInputsArray[1] + " ne peut être inferieur à 0.<br>";
+            msg += "Veuillez renseigner au moins un " + totalForInputsArray[1] + ".<br>";
             $('.data-array.needed-positiv[name="' + totalForInputsArray[1] + '"]').addClass('is-invalid');
         }
         modal.find('.error-msg').html(msg);
