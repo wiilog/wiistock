@@ -301,16 +301,12 @@ class ReceptionController extends AbstractController
                 ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setDateCommande(
                     !empty($data['dateCommande'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
@@ -364,32 +360,28 @@ class ReceptionController extends AbstractController
             $statut = $this->statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
 
-			$fournisseur = isset($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+			$fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
-			$utilisateur = isset($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
+			$utilisateur = !empty($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
             $reception->setUtilisateur($utilisateur);
 
-			$transporteur = isset($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
+			$transporteur = !empty($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
             $reception->setTransporteur($transporteur);
 
-            $location = isset($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
+            $location = !empty($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
 
             $reception
-                ->setReference(isset($data['numeroCommande']) ? $data['numeroCommande'] : null)
+                ->setReference(!empty($data['numeroCommande']) ? $data['numeroCommande'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setDateCommande(
                     !empty($data['dateCommande'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
@@ -441,7 +433,7 @@ class ReceptionController extends AbstractController
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
 					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-			])
+			    ])
             ];
             return new JsonResponse($json);
         }
