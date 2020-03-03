@@ -158,10 +158,16 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            // on vérifie que l'emplacement n'existe pas déjà
-            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel(trim($data['Label']));
-            if ($emplacementAlreadyExist) {
-                return new JsonResponse(false);
+
+            $errorResponse = $this->checkLocationLabel($data["Label"] ?? null);
+            if ($errorResponse) {
+                return $errorResponse;
+            }
+
+            $dateMaxTime = !empty($data['dateMaxTime']) ? $data['dateMaxTime'] : null;
+            $errorResponse = $this->checkMaxTime($dateMaxTime);
+            if ($errorResponse) {
+                return $errorResponse;
             }
 
             $em = $this->getDoctrine()->getManager();
@@ -170,12 +176,9 @@ class EmplacementController extends AbstractController
 				->setLabel($data["Label"])
 				->setDescription($data["Description"])
 				->setIsActive(true)
+                ->setDateMaxTime($dateMaxTime)
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
 
-            if (isset($data['dateMaxTime'])) {
-                $emplacement
-                    ->setDateMaxTime($data['dateMaxTime']);
-            }
             $em->persist($emplacement);
             $em->flush();
             return new JsonResponse(true);
@@ -214,23 +217,25 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			// on vérifie que l'emplacement n'existe pas déjà
-			$emplacementAlreadyExist = $this->emplacementRepository->countByLabel(trim($data['Label']), $data['id']);
-			if ($emplacementAlreadyExist) {
-				return new JsonResponse(false);
-			}
+            $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
+            if ($errorResponse) {
+                return $errorResponse;
+            }
+
+            $dateMaxTime = !empty($data['dateMaxTime']) ? $data['dateMaxTime'] : null;
+            $errorResponse = $this->checkMaxTime($dateMaxTime);
+            if ($errorResponse) {
+                return $errorResponse;
+            }
 
             $emplacement = $this->emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
                 ->setDescription($data["Description"])
             	->setIsDeliveryPoint($data["isDeliveryPoint"])
+                ->setDateMaxTime($dateMaxTime)
 				->setIsActive($data['isActive']);
 
-            if (isset($data['dateMaxTime'])) {
-                $emplacement
-                    ->setDateMaxTime($data['dateMaxTime']);
-            }
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();
@@ -404,5 +409,43 @@ class EmplacementController extends AbstractController
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodeConfigs),
             $fileName
         );
+    }
+
+    private function checkLocationLabel(?string $label, $locationId = null) {
+        $labelTrimmed = $label ? trim($label) : null;
+        if (!empty($labelTrimmed)) {
+            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel($label, $locationId);
+            if ($emplacementAlreadyExist) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre."
+                ]);
+            }
+        }
+        else {
+            return new JsonResponse([
+                'success' => false,
+                'message' => "Vous devez donner un nom valide."
+            ]);
+        }
+        return null;
+    }
+
+    private function checkMaxTime(?string $dateMaxTime) {
+        if (!empty($dateMaxTime)) {
+            $matchHours = '\d+';
+            $matchMinutes = '([0-5][0-9])';
+            $matchHoursMinutes = "$matchHours:$matchMinutes";
+            $resultFormat = preg_match(
+                "/^$matchHoursMinutes$/",
+                $dateMaxTime
+            );
+            if (empty($resultFormat)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "Le délai saisi est invalide."
+                ]);
+            }
+        }
     }
 }
