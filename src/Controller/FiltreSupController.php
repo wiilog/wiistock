@@ -55,7 +55,7 @@ class FiltreSupController extends AbstractController
 
             foreach ($filterLabels as $filterLabel => $filterName) {
                 if (array_key_exists($filterLabel, $data)) {
-                    if (!is_array($data[$filterLabel]) && !strpos($data[$filterLabel], ',') && !strpos($data[$filterLabel], ':')) {
+                    if (!is_array($data[$filterLabel]) && (strpos($data[$filterLabel], ',') || strpos($data[$filterLabel], ':'))) {
                         return new JsonResponse(false);
                     }
                     $value = is_array($data[$filterLabel]) ? implode(',', $data[$filterLabel]) : $data[$filterLabel];
@@ -110,10 +110,10 @@ class FiltreSupController extends AbstractController
                         if (is_array($data[$filterLabel])) {
                             $value = [];
                             foreach ($data[$filterLabel] as $elem) {
-                                if (!strpos($elem['id'], ',')
-                                    || !strpos($elem['text'], ',')
-                                    || !strpos($elem['id'], ':')
-                                    || !strpos($elem['text'], ':')) {
+                                if (strpos($elem['id'], ',')
+                                    || strpos($elem['text'], ',')
+                                    || strpos($elem['id'], ':')
+                                    || strpos($elem['text'], ':')) {
                                     return new JsonResponse(false);
                                 }
                                 $value[] = $elem['id'] . ':' . $elem['text'];
