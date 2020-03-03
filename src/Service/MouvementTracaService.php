@@ -6,22 +6,17 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
-
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
-
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
