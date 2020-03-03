@@ -140,15 +140,16 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     let name;
-    let vals = [];
     let arrayIdVal = {};
-    let totalForInputsArray = [0, '', false];
+    let totalForInputsArrayNeededPositive = {};
+
     inputsArray.each(function () {
         name = $(this).attr("name");
         if ($(this).hasClass('needed-positiv')) {
-            totalForInputsArray[0] += Number($(this).val());
-            totalForInputsArray[1] = name;
-            totalForInputsArray[2] = true;
+            if (!totalForInputsArrayNeededPositive[name]) {
+                totalForInputsArrayNeededPositive[name] = 0;
+            }
+            totalForInputsArrayNeededPositive[name] += Number($(this).val());
         }
         if (!arrayIdVal[name]) {
             arrayIdVal[name] = {};
@@ -195,8 +196,16 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append('file' + index, file);
     });
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && (!totalForInputsArray[2] || totalForInputsArray[0] > 0)) {
-        if (close == true) modal.find('.close').click();
+    const inputArrayNames = Object.keys(totalForInputsArrayNeededPositive);
+    const firstNameNeededPositiveArray = inputArrayNames.reduce(
+        (lastName, currentName) => {
+            return (!lastName && totalForInputsArrayNeededPositive[currentName] === 0)
+                ? currentName
+                : lastName
+        },
+        undefined);
+    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && !firstNameNeededPositiveArray) {
+        if (close) modal.find('.close').click();
         clearInvalidInputs(modal);
         clearErrorMsg(modal.find(':first-child'));
         $.ajax({
@@ -274,9 +283,9 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                 }
             })
         }
-        if (totalForInputsArray[2] && totalForInputsArray[0] === 0) {
-            msg += "Veuillez renseigner au moins un " + totalForInputsArray[1] + ".<br>";
-            $('.data-array.needed-positiv[name="' + totalForInputsArray[1] + '"]').addClass('is-invalid');
+        if (firstNameNeededPositiveArray) {
+            msg += "Veuillez renseigner au moins un " + firstNameNeededPositiveArray + ".<br>";
+            $('.data-array.needed-positiv[name="' + firstNameNeededPositiveArray + '"]').addClass('is-invalid');
         }
         modal.find('.error-msg').html(msg);
     }

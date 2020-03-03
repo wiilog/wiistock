@@ -17,7 +17,6 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
-
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
@@ -33,14 +32,12 @@ use App\Repository\ChauffeurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\NatureRepository;
-use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -51,7 +48,6 @@ use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
-
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -67,7 +63,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Json;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -381,17 +376,15 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
-            array_walk(
-                $colis,
-                function ($value, $key) use (&$natures) {
-                    if (isset($value)) {
-                        $natures[intval($key)] = intval($value);
-                    }
+            foreach ($colis as $key => $value) {
+                if (isset($value)) {
+                    $natures[intval($key)] = intval($value);
                 }
-            );
+            }
             $total = array_reduce($natures, function(int $carry, $nature) {
                 return $carry + $nature;
             }, 0);
+
             if ($total === 0) {
                 return new JsonResponse([
                     'success' => false,
