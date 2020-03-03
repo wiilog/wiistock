@@ -23,7 +23,7 @@ let tableMvt = $('#tableMvts').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[1, "desc"]],
+    order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
@@ -33,6 +33,7 @@ let tableMvt = $('#tableMvts').DataTable({
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
@@ -42,7 +43,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: 0
+            targets: [0, 1]
         }
     ],
     headerCallback: function(thead) {

@@ -323,6 +323,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
+                                        MouvementTracaService $mouvementTracaService,
                                         AttachmentService $attachmentService,
                                         EntityManagerInterface $entityManager)
     {
@@ -347,7 +348,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $invalidLocationTo = '';
                     try {
                         $entityManager->transactional(function (EntityManagerInterface $entityManager)
-                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo, &$finishMouvementTraca) {
+                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo, &$finishMouvementTraca, $mouvementTracaService) {
                             $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                             if (!isset($mouvementTraca)) {
                                 $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
@@ -373,7 +374,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     ->setDatetime($date)
                                     ->setFinished($mvt['finished'])
                                     ->setType($type);
-
 
                                 // set mouvement de stock
                                 if (isset($mvt['fromStock']) && $mvt['fromStock']) {

@@ -44,6 +44,7 @@ use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
+use App\Service\MouvementTracaService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -1348,7 +1349,8 @@ class ReceptionController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function finish(Request $request): Response
+    public function finish(Request $request,
+                           MouvementTracaService $mouvementTracaService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -1362,14 +1364,14 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($reception, $listReceptionReferenceArticle);
+                    $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle);
+                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1382,7 +1384,7 @@ class ReceptionController extends AbstractController
 	 * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
 	 * @throws NonUniqueResultException
 	 */
-    private function validateReception($reception, $listReceptionReferenceArticle)
+    private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
     {
     	$em = $this->getDoctrine()->getManager();
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1390,7 +1392,6 @@ class ReceptionController extends AbstractController
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
 
-        $typeDeposeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1407,15 +1408,19 @@ class ReceptionController extends AbstractController
 					->setDate($now);
 				$em->persist($mouvementStock);
 
-				$mouvementTraca = new MouvementTraca();
-				$mouvementTraca
-					->setType($typeDeposeMouvementTraca)
-					->setEmplacement($receptionLocation)
-					->setOperateur($currentUser)
-					->setDatetime($now)
-					->setColis($referenceArticle->getBarCode())
-					->setMouvementStock($mouvementStock);
-				$em->persist($mouvementTraca);
+                $mouvementTracaService->persistMouvementTraca(
+                    $referenceArticle->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'from' => $reception
+                    ]
+                );
 
             } else {
 				$articles = $receptionRA->getArticles();
@@ -1431,15 +1436,19 @@ class ReceptionController extends AbstractController
 						->setDate($now);
 					$em->persist($mouvementStock);
 
-					$mouvementTraca = new MouvementTraca();
-					$mouvementTraca
-						->setType($typeDeposeMouvementTraca)
-						->setEmplacement($receptionLocation)
-						->setOperateur($currentUser)
-						->setDatetime($now)
-						->setColis($article->getBarCode())
-						->setMouvementStock($mouvementStock);
-					$em->persist($mouvementTraca);
+                    $mouvementTracaService->persistMouvementTraca(
+                        $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        MouvementTraca::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $mouvementStock,
+                            'from' => $reception
+                        ]
+                    );
 				}
 			}
         }
