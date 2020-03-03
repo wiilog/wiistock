@@ -134,7 +134,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     // dans les inputs...
     let inputs = modal.find(".data");
     let inputsArray = modal.find(".data-array");
-
+    $('.is-invalid').removeClass('is-invalid');
     let Data = new FormData();
     let missingInputs = [];
     let wrongNumberInputs = [];
@@ -142,14 +142,17 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     let name;
     let vals = [];
     let arrayIdVal = {};
-
+    let totalForInputsArray = [0, '', false];
     inputsArray.each(function () {
-        arrayIdVal = {id: $(this).data('id'), val: $(this).val()};
-        vals.push(arrayIdVal);
+        if ($(this).hasClass('needed-positiv')) {
+            totalForInputsArray[0] += Number($(this).val());
+            totalForInputsArray[1] = $(this).attr("name");
+            totalForInputsArray[2] = true;
+        }
         name = $(this).attr("name");
-        Data.append(name, JSON.stringify(vals));
+        vals.push($(this).val());
+        Data[name] = vals;
     });
-
     inputs.each(function () {
         let val = $(this).val();
         name = $(this).attr("name");
@@ -188,7 +191,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append('file' + index, file);
     });
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid) {
+    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && (!totalForInputsArray[2] || totalForInputsArray[0] > 0)) {
         if (close == true) modal.find('.close').click();
         clearInvalidInputs(modal);
         clearErrorMsg(modal.find(':first-child'));
@@ -263,6 +266,10 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                 }
 
             })
+        }
+        if (totalForInputsArray[2] && totalForInputsArray[0] === 0) {
+            msg += "Le total des champs " + totalForInputsArray[1] + " ne peut être inferieur à 0.<br>";
+            $('.data-array.needed-positiv[name="' + totalForInputsArray[1] + '"]').addClass('is-invalid');
         }
         modal.find('.error-msg').html(msg);
     }

@@ -380,7 +380,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
 
             $natures = array_reduce(
-                isset($data['nature']) ? json_decode($data['nature'], true) : [],
+                isset($data['colis']) ? json_decode($data['colis'], true) : [],
                 function (array $carry, $value) {
                     if (isset($value['id']) && isset($value['val'])) {
                         $carry[intval($value['id'])] = intval($value['val']);
