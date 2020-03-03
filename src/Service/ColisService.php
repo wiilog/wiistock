@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Repository\ColisRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,10 +20,13 @@ Class ColisService
 
     private $entityManager;
     private $mouvementTracaService;
+    private $specificService;
 
     public function __construct(MouvementTracaService $mouvementTracaService,
+                                SpecificService $specificService,
                                 EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
+        $this->specificService = $specificService;
         $this->mouvementTracaService = $mouvementTracaService;
     }
 
@@ -63,14 +65,16 @@ Class ColisService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function persistMultiColis(Arrivage $arrivage, array $colisByNatures, $user): array {
+    public function persistMultiColis(Arrivage $arrivage,
+                                      array $colisByNatures,
+                                      $user): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-        $defaultEmpForMvt = $arrivage->getDestinataire()
-            ? $emplacementRepository->findOneByLabel(Emplacement::LABEL_ECS_ARG)
+        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire())
+            ? $emplacementRepository->findOneByLabel(SpecificService::ECS_ARG_LOCATION)
             : null;
-        if (!$defaultEmpForMvt) {
+        if (!isset($defaultEmpForMvt)) {
             $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
             $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
                 ? $emplacementRepository->find($defaultEmpForMvtParam)
