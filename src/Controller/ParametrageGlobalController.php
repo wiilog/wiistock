@@ -396,23 +396,20 @@ class ParametrageGlobalController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $mailerServer =  $mailerServerRepository->findOneMailerServer();
-            if ($mailerServer === null) {
-                $mailerServerNew = new MailerServer;
-                $mailerServerNew
-                    ->setUser($data['user'])
-                    ->setPassword($data['password'])
-                    ->setPort($data['port'])
-                    ->setProtocol($data['protocol'])
-                    ->setSmtp($data['smtp']);
-                $em->persist($mailerServerNew);
-            } else {
-                $mailerServer
-                    ->setUser($data['user'])
-                    ->setPassword($data['password'])
-                    ->setPort($data['port'])
-                    ->setProtocol($data['protocol'])
-                    ->setSmtp($data['smtp']);
-            }
+            if (!$mailerServer) {
+				$mailerServerNew = new MailerServer;
+				$em->persist($mailerServerNew);
+			}
+
+			$mailerServer
+				->setUser($data['user'])
+				->setPassword($data['password'])
+				->setPort($data['port'])
+				->setProtocol($data['protocol'] ?? null)
+				->setSmtp($data['smtp'])
+				->setSenderName($data['senderName'])
+				->setSenderMail($data['senderMail']);
+
             $em->flush();
 
             return new JsonResponse($data);
