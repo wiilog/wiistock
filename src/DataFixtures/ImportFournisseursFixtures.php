@@ -31,10 +31,9 @@ class ImportFournisseursFixtures extends Fixture implements FixtureGroupInterfac
         	if ($firstRow) {
         		$firstRow = false;
 			} else {
-				$row = array_map('utf8_encode', $data);
+				$row = $data;
 				$code = $row[1];
 				$fournisseur = $this->fournisseurRepository->findOneByCodeReference($code);
-
 				if (empty($fournisseur)) {
 					$fournisseur = new Fournisseur();
 					$fournisseur
