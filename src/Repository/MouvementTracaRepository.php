@@ -192,18 +192,21 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @throws NonUniqueResultException
      */
     public function countDropTrackingOnLocation(Emplacement $location, array $dateBracket = []): int {
+
+        $queryBuilder = $this
+            ->createQueryBuilder('mouvementTraca')
+            ->select('COUNT(mouvementTraca.id)')
+            ->join('mouvementTraca.type', 'type')
+            ->andWhere('type.nom = :typeDepose')
+            ->andWhere('mouvementTraca.emplacement = :location')
+            ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
+            ->setParameter('location', $location);
+
         if (!empty($dateBracket) && count($dateBracket) === 2) {
-            $queryBuilder = $this
-                ->createQueryBuilder('mouvementTraca')
-                ->select('COUNT(mouvementTraca.id)')
-                ->join('mouvementTraca.type', 'type')
-                ->andWhere('type.nom = :typeDepose')
-                ->andWhere('mouvementTraca.emplacement = :location')
+            $queryBuilder
                 ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
                 ->setParameter('dateMin', $dateBracket['dateMin'])
-                ->setParameter('dateMax', $dateBracket['dateMax'])
-                ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
-                ->setParameter('location', $location);
+                ->setParameter('dateMax', $dateBracket['dateMax']);
         }
 
         return $queryBuilder
@@ -216,23 +219,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @throws DBALException
      */
     private function createQueryBuilderObjectOnLocation(Emplacement $location): QueryBuilder {
-        $connection = $this->getEntityManager()->getConnection();
-        $ids = $connection
-            ->executeQuery(
-                'SELECT MAX(id) AS id
-                FROM mouvement_traca
-                INNER JOIN (
-                    SELECT mouvement_traca.colis AS colis, MAX(mouvement_traca.datetime) as datetime
-                    FROM `mouvement_traca`
-                    GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id
-                    HAVING mouvement_traca.emplacement_id = :locationId
-                ) sub ON sub.colis = mouvement_traca.colis AND sub.datetime = mouvement_traca.datetime
-                GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id, mouvement_traca.datetime
-                HAVING mouvement_traca.emplacement_id = :locationId',
-                ['locationId' => $location->getId()]
-            )
-            ->fetchAll(FetchMode::COLUMN);
-
+        $ids = $this->getTrackingIdsGroupedByColis(['lastLocation' => $location]);
         return $this
             ->createQueryBuilder('mouvementTraca')
             ->join('mouvementTraca.type', 'type')
@@ -240,6 +227,76 @@ class MouvementTracaRepository extends ServiceEntityRepository
             ->andWhere('type.nom = :typeDepose')
             ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
             ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY);
+    }
+
+    public function getColisById(array $ids) {
+        $result = $this
+            ->createQueryBuilder('mouvementTraca')
+            ->select('mouvementTraca.colis')
+            ->andWhere('mouvementTraca.id IN (:mouvementTracaIds)')
+            ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
+        return $result ? array_column($result, 'colis') : [];
+    }
+
+    /**
+     * Si un emplacement est donné on récupère les id des desniers mouvements de traca pour chaque colis dans l'emplacement
+     * Sinon on récupère les ids derniers mouvements traca pour chaque colis enregistré
+     * @param array $options = [
+     *  'lastLocation' => Emplacement|null,
+     *  'colisFilter' => string|null,
+     *  'currentLocationsFilter' => null|Emplacement[]
+     * ]
+     * @return array
+     * @throws DBALException
+     */
+    public function getTrackingIdsGroupedByColis(array $options = []): array {
+        $connection = $this->getEntityManager()->getConnection();
+
+        $lastLocation = $options['lastLocation'] ?? null;
+        $last = $options['last'] ?? true;
+        $comparisonFunction = $last ? 'MAX' : 'MIN';
+
+        $currentLocationsFilterId = array_reduce(
+            $options['currentLocationsFilter'] ?? [],
+            function(string $carry, Emplacement $location) {
+                return $carry . ((!empty($carry) ? ',' : '') . $location->getId());
+            },
+            ''
+        );
+
+        $colisFilter = array_reduce(
+            $options['colisFilter'] ?? [],
+            function(string $carry, string $colis) {
+                $colisEscaped = str_replace("'", "\'", $colis);
+                return $carry . (!empty($carry) ? ',' : '') . "'$colisEscaped'";
+            },
+            ''
+        );
+
+        return $connection
+            ->executeQuery(
+                "
+                SELECT ${comparisonFunction}(id) AS id
+                FROM mouvement_traca
+                INNER JOIN (
+                    -- liste des derniers mouvements de traca pour chaque colis sur un emplacement
+                    SELECT mouvement_traca.colis AS colis,
+                           mouvement_traca.emplacement_id AS emplacement_id,
+                           ${comparisonFunction}(mouvement_traca.datetime) as datetime
+                    FROM `mouvement_traca`
+                    GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id " .
+                    (isset($lastLocation) ? ('HAVING mouvement_traca.emplacement_id = ' . $lastLocation->getId()) : '') .
+                ') sub ON sub.colis = mouvement_traca.colis
+                      AND sub.datetime = mouvement_traca.datetime
+                      AND sub.emplacement_id = mouvement_traca.emplacement_id ' .
+                      (!empty($currentLocationsFilterId)
+                          ? ('WHERE sub.emplacement_id IN (' . $currentLocationsFilterId . ')')
+                          : (!empty($colisFilter) ? ('WHERE sub.colis IN (' . $colisFilter . ')') : '')),
+                !empty($colisFilter) ? ['colisFilter' => $colisFilter] : []
+            )
+            ->fetchAll(FetchMode::COLUMN);
     }
 
     /**

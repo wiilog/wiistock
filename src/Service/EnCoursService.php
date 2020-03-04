@@ -144,37 +144,30 @@ class EnCoursService
 
     /**
      * @param DateInterval $movementAge
-     * @param Emplacement $emplacement
+     * @param string|null $dateMaxTime
      * @return array containing :
-     * late => if the ref stayed too long on the emp
-     * time => the time stayed on the emp
+     * countDownLateTimespan => not defined or the time remaining to be late
+     * ageTimespan => the time stayed on the emp
      */
-    public function buildDataForDatatable(DateInterval $movementAge, Emplacement $emplacement)
+    public function getTimeInformation(DateInterval $movementAge, ?string $dateMaxTime)
     {
-        $maxTime = $emplacement->getDateMaxTime();
-        if ($maxTime) {
-            $timeMilliSecond = (
-                ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
-                ($movementAge->i * 60 * 1000) + // minutes in milliseconds
-                ($movementAge->s * 1000) + // seconds in milliseconds
-                ($movementAge->f)
-            );
-
-            $maxTimeHours = intval(explode(':', $maxTime)[0]);
-            $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
-            $late = (
-                // true if age hour > $maxTimeHours
-                ($movementAge->h > $maxTimeHours) ||
-
-                // OR true if age hour == $maxTimeHours and age minutes > $maxTimeMinutes
-                (($movementAge->h === $maxTimeHours) && ($movementAge->i > $maxTimeMinutes))
-            );
-            return [
-                'delay' => $timeMilliSecond,
-                'late' => $late,
-            ];
+        $ageTimespan = (
+            ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
+            ($movementAge->i * 60 * 1000) + // minutes in milliseconds
+            ($movementAge->s * 1000) + // seconds in milliseconds
+            ($movementAge->f)
+        );
+        $information = [
+            'ageTimespan' => $ageTimespan
+        ];
+        if ($dateMaxTime) {
+            $explodeAgeTimespan = explode(':', $dateMaxTime);
+            $maxTimeHours = intval($explodeAgeTimespan[0]);
+            $maxTimeMinutes = intval($explodeAgeTimespan[1]);
+            $maxTimespan = $maxTimeHours * 60 + $maxTimeMinutes;
+            $information['countDownLateTimespan'] = ($maxTimespan - $ageTimespan);
         }
-        return null;
+        return $information;
     }
 
     /**
@@ -193,13 +186,14 @@ class EnCoursService
         foreach ($mouvements as $mouvement) {
             $dateMvt = new DateTime($mouvement->getDatetime()->format('d-m-Y H:i'), new DateTimeZone("Europe/Paris"));
             $movementAge = $this->getTrackingMovementAge($dateMvt);
-            $dataForTable = $this->buildDataForDatatable($movementAge, $emplacement);
-            if ($dataForTable) {
+            $dateMaxTime = $emplacement->getDateMaxTime();
+            if ($dateMaxTime) {
+                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $emplacementInfo[] = [
                     'colis' => $mouvement->getColis(),
-                    'delay' => $dataForTable['delay'],
+                    'delay' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format('d/m/Y H:i:s'),
-                    'late' => $dataForTable['late'],
+                    'late' => $timeInformation['countDownLateTimespan'] < 0,
                     'emp' => $emplacement->getLabel()
                 ];
             }
