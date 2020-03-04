@@ -34,7 +34,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 				"n° d'arrivage" => "n° d'arrivage",
 				'cet arrivage' => 'cet arrivage',
 				'de colis' => 'de colis',
-				'colis' => 'colis'
+                'colis' => 'colis',
+                'acheteurs' => 'acheteurs',
 			],
 			'réception' => [
 				'réceptions' => 'réceptions',

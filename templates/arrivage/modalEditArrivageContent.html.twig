@@ -82,7 +82,7 @@
     {% endif %}
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="form-group w-100 col-4">
-        <label for="acheteursEdit">Acheteur(s){{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
+        <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
         <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                 id="acheteursEdit">
             {% for utilisateur in utilisateurs %}
