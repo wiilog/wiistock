@@ -136,14 +136,6 @@ class PreparationsManagerService
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $demande = $preparation->getDemande();
-        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $refQuantitePrelevee = $ligneArticle->getQuantitePrelevee();
-            if (isset($refQuantitePrelevee) &&
-                $refQuantitePrelevee > 0 &&
-                $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $ligneArticle->getReference()->setEmplacement($emplacement);
-            }
-        }
         foreach ($preparation->getArticles() as $article) {
             $artQuantitePrelevee = $article->getQuantitePrelevee();
             if (isset($artQuantitePrelevee) && $artQuantitePrelevee > 0) {
