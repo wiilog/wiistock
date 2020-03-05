@@ -178,6 +178,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     * @throws NonUniqueResultException
      */
     public function compareStock(Request $request): Response
     {
@@ -190,8 +191,7 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
-                $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+                $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['stock'] = $treshHold;
@@ -548,6 +548,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+     * @throws NonUniqueResultException
      */
     public function articleApi(Request $request, Demande $demande): Response
     {
@@ -560,20 +561,7 @@ class DemandeController extends AbstractController
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
-                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-                $totalQuantity = 0;
-                if ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    foreach ($articleRef->getArticlesFournisseur() as $articleFournisseur) {
-                        $quantity = 0;
-                        foreach ($articleFournisseur->getArticles() as $article) {
-                            if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
-                        }
-                        $totalQuantity += $quantity;
-                    }
-                }
-                $quantity = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $articleRef->getQuantiteStock() : $totalQuantity;
-                $availableQuantity = $quantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
-
+                $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
@@ -792,11 +780,7 @@ class DemandeController extends AbstractController
 					$demandeData = [];
 					$articleRef = $ligneArticle->getReference();
 
-					$quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-						? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
-						: $articleRef->getQuantiteStock();
-
-					$availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
+                    $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
 
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';

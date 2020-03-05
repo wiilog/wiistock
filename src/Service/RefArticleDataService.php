@@ -516,7 +516,7 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser( FiltreSup::PAGE_ALERTE, $user);
+        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
         $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
@@ -542,12 +542,7 @@ class RefArticleDataService
      */
     public function dataRowAlerteRef($referenceArticle)
     {
-        if ($referenceArticle['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $quantity = $referenceArticle['quantiteStock'];
-        } else {
-            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle['id']);
-        }
-
+        $quantity = $this->getAvailableQuantityForRef($referenceArticle);
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
@@ -573,12 +568,13 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array {
+    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array
+    {
         return [
             'barcode' => $referenceArticle->getBarCode(),
             'barcodeLabel' => $this->templating->render('reference_article/barcodeLabel.html.twig', [
                 'refRef' => $referenceArticle->getReference(),
-                'refLabel' =>$referenceArticle->getLibelle(),
+                'refLabel' => $referenceArticle->getLibelle(),
             ])
         ];
     }
@@ -587,7 +583,8 @@ class RefArticleDataService
      * @param ReferenceArticle $referenceArticle
      * @return array ['code' => string, 'labels' => string[]]
      */
-    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array
+    {
         $labels = [
             $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
             $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
@@ -598,5 +595,20 @@ class RefArticleDataService
                 return !empty($label);
             })
         ];
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return int
+     * @throws NonUniqueResultException
+     */
+    public function getAvailableQuantityForRef(ReferenceArticle $referenceArticle): int
+    {
+        if ($referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $quantity = $referenceArticle->getQuantiteStock();
+        } else {
+            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle->getId());
+        }
+        return $quantity;
     }
 }

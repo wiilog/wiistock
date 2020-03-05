@@ -266,28 +266,21 @@ class ArticleDataService
             } else {
                 $articles = [];
             }
-
-            $totalQuantity = 0;
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
                     'reference' => 'aucun article disponible',
                 ];
-            } else {
-                foreach ($articles as $article) {
-					$totalQuantity += $article->getQuantite();
-                }
             }
-			$availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
-
+            $quantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
 			if ($byRef && $demande == 'demande') {
 				$json = $this->templating->render('demande/choiceContent.html.twig', [
-					'maximum' => $availableQuantity
+					'maximum' => $quantity
 				]);
 			} else {
 				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
-					'maximum' => $availableQuantity
+					'maximum' => $quantity
 				]);
 			}
 
@@ -344,9 +337,7 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-
-			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
-			$role = $this->user->getRole();
+            $role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
             $paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
 
@@ -360,8 +351,7 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-            $availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
-
+            $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
             	$data = [
