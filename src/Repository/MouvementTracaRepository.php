@@ -159,20 +159,57 @@ class MouvementTracaRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-	/**
-	 * @param Emplacement $location
-	 * @return int
-	 * @throws DBALException
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-    public function countObjectOnLocation(Emplacement $location): int {
-        return $this->createQueryBuilderObjectOnLocation($location)
-            ->select('COUNT(mouvementTraca.id)')
+    /**
+     * @param Emplacement $location
+     * @param DateTime[] $dateBracket  ['dateMin' => DateTime, 'dateMax' => DateTime]
+     * @return int
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countObjectOnLocation(Emplacement $location, array $dateBracket = []): int {
+        $queryBuilder = $this->createQueryBuilderObjectOnLocation($location)
+            ->select('COUNT(mouvementTraca.id)');
+
+        if (!empty($dateBracket) && count($dateBracket) === 2) {
+            $queryBuilder
+                ->select('COUNT(mouvementTraca.id)')
+                ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
+                ->setParameter('dateMin', $dateBracket['dateMin'])
+                ->setParameter('dateMax', $dateBracket['dateMax']);
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param Emplacement $location
+     * @param DateTime[] $dateBracket  ['dateMin' => DateTime, 'dateMax' => DateTime]
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countDropTrackingOnLocation(Emplacement $location, array $dateBracket = []): int {
+        if (!empty($dateBracket) && count($dateBracket) === 2) {
+            $queryBuilder = $this
+                ->createQueryBuilder('mouvementTraca')
+                ->select('COUNT(mouvementTraca.id)')
+                ->join('mouvementTraca.type', 'type')
+                ->andWhere('type.nom = :typeDepose')
+                ->andWhere('mouvementTraca.emplacement = :location')
+                ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
+                ->setParameter('dateMin', $dateBracket['dateMin'])
+                ->setParameter('dateMax', $dateBracket['dateMax'])
+                ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
+                ->setParameter('location', $location);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
     /**
      * @param Emplacement $location
      * @return QueryBuilder

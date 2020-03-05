@@ -63,7 +63,7 @@ $.fn.dataTable.ext.search.push(
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#statut', 'Statut');
+    initSelect2($('#statut'), 'Statut');
     ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 

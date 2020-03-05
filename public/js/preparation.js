@@ -4,7 +4,7 @@ let prepaHasBegun = false;
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#statut', 'Statut');
+    initSelect2($('#statut'), 'Statut');
 
     ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
     ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
