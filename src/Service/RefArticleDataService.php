@@ -404,6 +404,15 @@ class RefArticleDataService
     }
 
 
+    /**
+     * @param ReferenceArticle $refArticle
+     * @return array
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws \Doctrine\DBAL\DBALException
+     */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
         $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
@@ -411,15 +420,14 @@ class RefArticleDataService
         foreach ($rows as $row) {
             $rowCL[$row['label']] = $row['valeur'];
         }
-        $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
-
+        $availableQuantity = $this->getAvailableQuantityForRef($refArticle);
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $refArticle->getCalculedAvailableQuantity() - $reservedQuantity,
+            "Quantité" => $availableQuantity,
             "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
@@ -601,13 +609,14 @@ class RefArticleDataService
      * @param ReferenceArticle $referenceArticle
      * @return int
      * @throws NonUniqueResultException
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function getAvailableQuantityForRef(ReferenceArticle $referenceArticle): int
     {
         if ($referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $quantity = $referenceArticle->getQuantiteStock();
         } else {
-            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle->getId());
+            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle);
         }
         return $quantity;
     }

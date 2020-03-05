@@ -351,7 +351,7 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-            $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
+            $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
             	$data = [

@@ -12,6 +12,8 @@ use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -1005,28 +1007,36 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param ReferenceArticle|int $refId
+     * @param ReferenceArticle $referenceArticle
      * @return int
-     * @throws NonUniqueResultException
+     * @throws DBALException
      */
-    public function getTotalQuantityArticlesByRefArticle($refId)
+    public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT SUM(a.quantite)
-			FROM App\Entity\Article a
-			LEFT JOIN a.articleFournisseur af
-			LEFT JOIN af.referenceArticle ra
-			LEFT JOIN a.statut s
-			WHERE s.nom = :active AND ra.id = :refId
-			")
-            ->setParameters([
-                'active' => Article::STATUT_ACTIF,
-                'refId' => $refId
-            ]);
-
-        return $query->getSingleScalarResult();
+        return intval(
+            ($em
+            ->getConnection()
+            ->executeQuery(
+                'SELECT
+                        SUM(article.quantite) -
+                        (
+                            SELECT SUM(ligne_article.quantite)
+                            FROM ligne_article
+                            INNER JOIN demande d on ligne_article.demande_id = d.id
+                            INNER JOIN statut s on d.statut_id = s.id
+                            WHERE ligne_article.reference_id = :refId AND s.nom = :statut
+                        ) as quantity
+                        FROM article
+                        INNER JOIN article_fournisseur af on article.article_fournisseur_id = af.id
+                        INNER JOIN statut s2 on article.statut_id = s2.id
+                        WHERE s2.nom = :active AND af.reference_article_id = :refId',
+                [
+                    'active' => Article::STATUT_ACTIF,
+                    'refId' => $referenceArticle->getId(),
+                    'statut' => Demande::STATUT_A_TRAITER
+                ])
+            ->fetchColumn(0)) ?? 0);
     }
 
     public function countAlert()
