@@ -17,15 +17,13 @@ $(function () {
         $('#btnModalAddColis').click();
     }
 
-    //check si on doit print les colis ou l'arrivage à la création
-    let printColis = $('#printColis').val();
-    let printArrivage = $('#printArrivage').val();
-    if (printColis) {
-        $('#printColisBtn')[0].click();
-    }
-    if (printArrivage) {
-        $('#printArrivageBtn')[0].click();
-    }
+    let params = {
+        arrivage: Number($('#arrivageId').val()),
+        printColis: Number(Boolean($('#printColis').val())),
+        printArrivage: Number(Boolean($('#printArrivage').val()))
+    };
+
+    window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
 });
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
