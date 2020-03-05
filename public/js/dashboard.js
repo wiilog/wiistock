@@ -452,7 +452,6 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
-            console.log(dataset.data);
             for (let i = 0; i < dataset.data.length; i++) {
                 for (let key in dataset._meta) {
                     if (parseInt(dataset.data[i]) > 0) {
@@ -477,7 +476,8 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                         ctx.shadowBlur = 0;
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 0;
-                        ctx.fillStyle = (redForFirstData && i === (dataset.data.length - 1)) ? 'red' : figureColor;
+                        const applyRedFont = (redForFirstData && i === (dataset.data.length - 1));
+                        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
                         ctx.fillText(figure, x, y);
                     }
                 }

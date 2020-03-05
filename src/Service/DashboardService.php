@@ -323,7 +323,10 @@ class DashboardService
             -1 => -1,
         ];
         foreach ($timeSpans as $timeBegin => $timeEnd) {
-            $timeSpanToObject[$timeBegin === -1 ? "Retard" : ($timeBegin . "h-" . $timeEnd . 'h')] = $getObject($timeBegin, $timeEnd);
+            $key = $timeBegin === -1
+                ? "Retard"
+                : ($timeEnd . "h-" . $timeBegin . 'h');
+            $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
     }
