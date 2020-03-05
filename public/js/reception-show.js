@@ -145,9 +145,13 @@ function InitPageDataTable() {
     };
 }
 
+function initEditReception() {
+    initDateTimePickerReception();
+    initOnTheFlyCopies($('.copyOnTheFly'));
+}
+
 function initDateTimePickerReception() {
     initDateTimePicker('#dateCommande, #dateAttendue');
-
     $('.date-cl').each(function() {
         initDateTimePicker('#' + $(this).attr('id'));
     });
