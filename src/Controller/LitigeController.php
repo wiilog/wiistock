@@ -193,13 +193,11 @@ class LitigeController extends AbstractController
 	 * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
 	 *
 	 * @param Request $request
-	 * @param SpecificService $specificService
 	 * @param CSVExportService $CSVExportService
 	 *
 	 * @return Response
 	 */
 	public function getLitigesIntels(Request $request,
-                                     SpecificService $specificService,
                                      CSVExportService $CSVExportService): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -255,7 +253,7 @@ class LitigeController extends AbstractController
                     : null;
                 $litigeData[] = (isset($arrivage) ? $arrivage->getNumeroArrivage() : '');
 
-				$litigeData[] = ''; // N° de commande
+                $litigeData[] = (isset($arrivage) ? $arrivage->getNumeroBL() : ''); // N° de commande
 
 				$fournisseur = (isset($arrivage) ? $arrivage->getFournisseur() : null);
 				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
