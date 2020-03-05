@@ -113,7 +113,7 @@ class ChauffeurController extends AbstractController
                 ->setNom($data['nom'])
                 ->setPrenom($data['prenom'] ?? null)
                 ->setDocumentID($data['documentID'] ?? null)
-                ->setTransporteur(isset($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null);
+                ->setTransporteur(!empty($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($chauffeur);
