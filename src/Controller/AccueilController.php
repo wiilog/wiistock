@@ -14,11 +14,9 @@ use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
-use App\Repository\ParametrageGlobalRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -45,6 +43,8 @@ use App\Repository\ReferenceArticleRepository;
  */
 class AccueilController extends AbstractController
 {
+
+
     /**
      * @var CollecteRepository
      */
@@ -406,29 +406,31 @@ class AccueilController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route(
-	 *     "/statistiques/encours-par-duree-et-nature/{graph}",
-	 *     name="get_encours_count_by_nature_and_timespan",
-	 *     options={"expose"=true},
-	 *     methods="GET",
-	 *     condition="request.isXmlHttpRequest()"
-	 * )
-	 * @param DashboardService $dashboardService
-	 * @param ParametrageGlobalRepository $parametrageGlobalRepository
-	 * @param EntityManagerInterface $entityManager
-	 * @param EnCoursService $enCoursService
-	 * @param EmplacementRepository $emplacementRepository
-	 * @param int $graph
-	 * @return Response
-	 * @throws DBALException
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @Route(
+     *     "/statistiques/encours-par-duree-et-nature/{graph}",
+     *     name="get_encours_count_by_nature_and_timespan",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     *
+     * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
+     * @param EnCoursService $enCoursService
+     * @param int $graph
+     *
+     * @return Response
+     *
+     * @throws NonUniqueResultException
+     */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        EntityManagerInterface $entityManager,
                                                        EnCoursService $enCoursService,
                                                        int $graph): Response
 	{
+
+	    $adminDelay = '48:00';
 
 		$natureRepository = $entityManager->getRepository(Nature::class);
 		$emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -456,16 +458,20 @@ class AccueilController extends AbstractController
 
         if (!empty($naturesForGraph)) {
             $colisOnCluster = $colisRepository->getColisNaturesOnLocationCluster($emplacementsWanted, $naturesForGraph);
-            dump($colisOnCluster);
+
+            $countByNatureBase = [];
+            foreach ($naturesForGraph as $wantedNature) {
+                $countByNatureBase[$wantedNature->getLabel()] = 0;
+            }
+
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $naturesForGraph, $colisOnCluster, &$locationCounters) {
-                $countByNature = [];
-                foreach ($naturesForGraph as $wantedNature) {
-                    $countByNature[$wantedNature->getLabel()] = 0;
-                }
+                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$colisOnCluster, $adminDelay, &$locationCounters) {
+
+                $countByNature = array_merge($countByNatureBase);
+                $colisUnTreated = [];
                 foreach ($colisOnCluster as $colis) {
                     $date = $enCoursService->getTrackingMovementAge($colis['dateTime']);
-                    $timeInformation = $enCoursService->getTimeInformation($date, $colis['locationDateMaxTime']);
+                    $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? intval($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
                         : null;
@@ -475,6 +481,7 @@ class AccueilController extends AbstractController
                             ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
                             || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                         )) {
+
                         $countByNature[$colis['natureLabel']]++;
 
                         if (empty($locationCounters[$colis['locationLabel']])) {
@@ -483,7 +490,11 @@ class AccueilController extends AbstractController
 
                         $locationCounters[$colis['locationLabel']]++;
                     }
+                    else {
+                        $colisUnTreated[] = $colis;
+                    }
                 }
+                $colisOnCluster = $colisUnTreated;
                 return $countByNature;
             });
         }

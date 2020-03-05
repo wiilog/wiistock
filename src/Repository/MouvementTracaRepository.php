@@ -219,7 +219,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @throws DBALException
      */
     private function createQueryBuilderObjectOnLocation(Emplacement $location): QueryBuilder {
-        $ids = $this->getTrackingIdsGroupedByColis(['lastLocation' => $location]);
+        $ids = $this->getTrackingIdsGroupedByColis(['lastLocations' => [$location]]);
         return $this
             ->createQueryBuilder('mouvementTraca')
             ->join('mouvementTraca.type', 'type')
@@ -244,9 +244,9 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * Si un emplacement est donné on récupère les id des desniers mouvements de traca pour chaque colis dans l'emplacement
      * Sinon on récupère les ids derniers mouvements traca pour chaque colis enregistré
      * @param array $options = [
-     *  'lastLocation' => Emplacement|null,
+     *  'lastLocations' => Emplacement[]|null|int[],
      *  'colisFilter' => string|null,
-     *  'currentLocationsFilter' => null|Emplacement[]
+     *  'currentLocationsFilter' => null|Emplacement[]|int[]
      * ]
      * @return array
      * @throws DBALException
@@ -254,14 +254,27 @@ class MouvementTracaRepository extends ServiceEntityRepository
     public function getTrackingIdsGroupedByColis(array $options = []): array {
         $connection = $this->getEntityManager()->getConnection();
 
-        $lastLocation = $options['lastLocation'] ?? null;
         $last = $options['last'] ?? true;
         $comparisonFunction = $last ? 'MAX' : 'MIN';
 
+        $lastLocations = array_reduce(
+            $options['lastLocations'] ?? [],
+            function(string $carry, $location) {
+                $locationId = ($location instanceof Emplacement)
+                    ? $location->getId()
+                    : $location;
+                return $carry . ((!empty($carry) ? ',' : '') . $locationId);
+            },
+            ''
+        );
+
         $currentLocationsFilterId = array_reduce(
             $options['currentLocationsFilter'] ?? [],
-            function(string $carry, Emplacement $location) {
-                return $carry . ((!empty($carry) ? ',' : '') . $location->getId());
+            function(string $carry, $location) {
+                $locationId = ($location instanceof Emplacement)
+                    ? $location->getId()
+                    : $location;
+                return $carry . ((!empty($carry) ? ',' : '') . $locationId);
             },
             ''
         );
@@ -275,6 +288,15 @@ class MouvementTracaRepository extends ServiceEntityRepository
             ''
         );
 
+        $whereClause = [];
+
+        if (!empty($currentLocationsFilterId)) {
+            $whereClause[] = 'mouvement_traca.emplacement_id IN (' . $currentLocationsFilterId . ')';
+        }
+        if (!empty($colisFilter)) {
+            $whereClause[] = 'mouvement_traca.colis IN (' . $colisFilter . ')';
+        }
+
         return $connection
             ->executeQuery(
                 "
@@ -287,14 +309,16 @@ class MouvementTracaRepository extends ServiceEntityRepository
                            ${comparisonFunction}(mouvement_traca.datetime) as datetime
                     FROM `mouvement_traca`
                     GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id " .
-                    (isset($lastLocation) ? ('HAVING mouvement_traca.emplacement_id = ' . $lastLocation->getId()) : '') .
+                    (!empty($lastLocations) ? ('HAVING mouvement_traca.emplacement_id IN (' . $lastLocations . ')') : '') .
                 ') sub ON sub.colis = mouvement_traca.colis
                       AND sub.datetime = mouvement_traca.datetime
-                      AND sub.emplacement_id = mouvement_traca.emplacement_id ' .
-                      (!empty($currentLocationsFilterId)
-                          ? ('WHERE sub.emplacement_id IN (' . $currentLocationsFilterId . ')')
-                          : (!empty($colisFilter) ? ('WHERE sub.colis IN (' . $colisFilter . ')') : '')),
-                !empty($colisFilter) ? ['colisFilter' => $colisFilter] : []
+                      AND sub.emplacement_id = mouvement_traca.emplacement_id
+                -- Avec ce groupBy on enlève les mouvements qui ont les mêmes tuples (colis / datetime / emplacement)
+                GROUP BY mouvement_traca.colis, mouvement_traca.datetime, mouvement_traca.emplacement_id ' .
+                ((!empty($currentLocationsFilterId) || !empty($colisFilter))
+                    ? ('HAVING ' . implode(' AND ', $whereClause))
+                    : ''),
+                []
             )
             ->fetchAll(FetchMode::COLUMN);
     }

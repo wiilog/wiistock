@@ -52,7 +52,12 @@ class ColisRepository extends ServiceEntityRepository
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $mouvementTracaOnClusterIds = $mouvementTracaRepository->getTrackingIdsGroupedByColis(['currentLocationsFilter' => $locations]);
         $mouvementTracaOnClusterColis = $mouvementTracaRepository->getColisById($mouvementTracaOnClusterIds);
-        $firstMouvementsForColis = $mouvementTracaRepository->getTrackingIdsGroupedByColis(['colisFilter' => $mouvementTracaOnClusterColis, 'last' => false]);
+        $firstMouvementsForColis = $mouvementTracaRepository->getTrackingIdsGroupedByColis([
+            'lastLocations' => $locations,
+            'colisFilter' => $mouvementTracaOnClusterColis,
+            'last' => false
+        ]);
+
         $queryBuilder = $this
             ->createQueryBuilder('colis')
             ->select('nature.id as natureId')
@@ -60,14 +65,11 @@ class ColisRepository extends ServiceEntityRepository
             ->addSelect('mouvementTraca.datetime AS dateTime')
             ->addSelect('location.id AS locationId')
             ->addSelect('location.label AS locationLabel')
-            ->addSelect('location.dateMaxTime AS locationDateMaxTime')
             ->join('colis.nature', 'nature')
             ->join(MouvementTraca::class, 'mouvementTraca', 'WITH', 'mouvementTraca.colis = colis.code')
             ->join('mouvementTraca.type', 'type')
             ->join('mouvementTraca.emplacement', 'location')
             ->where('mouvementTraca.id IN (:mouvementTracaIds)')
-            ->andWhere('type.nom = :typeDepose')
-            ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
             ->setParameter('mouvementTracaIds', $firstMouvementsForColis, Connection::PARAM_STR_ARRAY);
 
         if (!empty($naturesFilter)) {

@@ -164,7 +164,10 @@ class EnCoursService
             $explodeAgeTimespan = explode(':', $dateMaxTime);
             $maxTimeHours = intval($explodeAgeTimespan[0]);
             $maxTimeMinutes = intval($explodeAgeTimespan[1]);
-            $maxTimespan = $maxTimeHours * 60 + $maxTimeMinutes;
+            $maxTimespan = (
+                ($maxTimeHours * 60 * 60 * 1000) + // hours in milliseconds
+                ($maxTimeMinutes * 60 * 1000)      // minutes in milliseconds
+            );
             $information['countDownLateTimespan'] = ($maxTimespan - $ageTimespan);
         }
         return $information;
