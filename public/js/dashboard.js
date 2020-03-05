@@ -304,7 +304,7 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false, redForFirstData = false) {
+function newChart($canvasId, showLegend = false, redForLastData = false) {
     if ($canvasId.length) {
         const chart = new Chart($canvasId, {
             type: 'bar',
@@ -341,7 +341,7 @@ function newChart($canvasId, showLegend = false, redForFirstData = false) {
                 hover: {mode: null},
                 animation: {
                     onComplete() {
-                        buildLabelOnBarChart(this, redForFirstData);
+                        buildLabelOnBarChart(this, redForLastData);
                     }
                 }
             }
@@ -477,7 +477,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                         ctx.shadowBlur = 0;
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 0;
-                        ctx.fillStyle = (redForFirstData && i === 0) ? 'red' : figureColor;
+                        ctx.fillStyle = (redForFirstData && i === (dataset.data.length - 1)) ? 'red' : figureColor;
                         ctx.fillText(figure, x, y);
                     }
                 }
