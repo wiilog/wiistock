@@ -4,4 +4,5 @@ twig:
     strict_variables: '%kernel.debug%'
     form_themes: ['bootstrap_4_layout.html.twig']
     globals:
+        dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
         web_version: '%web_version%'
