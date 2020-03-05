@@ -7,7 +7,7 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
-
+    initOnTheFlyCopies($('.copyOnTheFly'));
     $('.body-add-ref').css('display', 'none');
 
     ajaxAutoArticlesReceptionInit($('.select2-autocomplete-articles'));
