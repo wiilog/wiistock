@@ -6,6 +6,7 @@ $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2($('#statut'), 'Statut');
     initSelect2($('#carriers'), 'Transporteurs');
+    initOnTheFlyCopies($('.copyOnTheFly'));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -119,7 +120,7 @@ let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
-    clearModal($modal);
+    clearModal($modal); //TODO CG garder ?
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
