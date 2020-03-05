@@ -680,14 +680,14 @@ function clearModal(modal) {
             $(this).val(null).trigger('change');
         }
     });
-    let dataArrays = $modal
-        .find('.modal-body')
-        .find('.data-array');
-    dataArrays.each(function() {
-        if ($(this).data('init') !== undefined) {
-            $(this).val($(this).data('init'));
-        }
-    });
+    // let dataArrays = $modal
+    //     .find('.modal-body')
+    //     .find('.data-array');
+    // dataArrays.each(function() {
+    //     if ($(this).data('init') !== undefined) {
+    //         $(this).val($(this).data('init'));
+    //     }
+    // });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
@@ -719,7 +719,7 @@ function alertErrorMsg(data, remove = false) {
             .css('display', 'block')
             .css('opacity', '1');
 
-        if (remove == true) {
+        if (remove) {
             $alertDanger.delay(2000).fadeOut(2000);
         }
         $alertDanger.find('.error-msg').html(data);
@@ -820,15 +820,19 @@ function saveFilters(page, tableSelector, callback) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
 
-    $.post(path, JSON.stringify(params), function () {
-        if (callback) {
-            callback();
-        }
-        if (tableSelector) {
-            const $table = $(tableSelector);
-            if ($table && $table.DataTable) {
-                $table.DataTable().draw();
+    $.post(path, JSON.stringify(params), function (response) {
+        if (response) {
+            if (callback) {
+                callback();
             }
+            if (tableSelector) {
+                const $table = $(tableSelector);
+                if ($table && $table.DataTable) {
+                    $table.DataTable().draw();
+                }
+            }
+        } else {
+            alertErrorMsg('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', true);
         }
     }, 'json');
 }
@@ -1396,4 +1400,12 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     }
 
     $alertModal.modal('show');
+}
+
+function initOnTheFlyCopies($elems) {
+    $elems.each(function() {
+        $(this).keyup(function() {
+            $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
+        })
+    });
 }

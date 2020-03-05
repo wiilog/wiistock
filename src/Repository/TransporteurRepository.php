@@ -78,4 +78,16 @@ class TransporteurRepository extends ServiceEntityRepository
 
         return $queryBuilder->getQuery()->getArrayResult();
     }
+
+    public function findOneByCode($code)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT t
+          FROM App\Entity\Transporteur t
+          WHERE t.code = :search"
+        )->setParameter('search', $code);
+
+        return $query->getOneOrNullResult();
+    }
 }

@@ -161,6 +161,7 @@ class UtilisateurController extends AbstractController
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
 				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
+				->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
                 ->setRecherche(Utilisateur::SEARCH_DEFAULT);
 
             if ($password !== '') {
