@@ -77,7 +77,7 @@ class TranslationService {
 	 * @param string $file
 	 * @param string $right
 	 */
-	private function chmod($file, $right) {
+	public function chmod($file, $right) {
 		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
 		$process->run();
 	}

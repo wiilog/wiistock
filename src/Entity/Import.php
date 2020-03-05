@@ -16,6 +16,26 @@ class Import
 	const STATUS_FINISHED = 'terminé';
 	const STATUS_PLANNED = 'planifié';
 
+	const ENTITY_ART = 'ART';
+	const ENTITY_REF= 'REF';
+	const ENTITY_FOU = 'FOU';
+	const ENTITY_ART_FOU = 'ART_FOU';
+
+	const FIELDS_ENTITY = [
+		'reference' => 'référence',
+		'quantite' => 'quantité',
+		'label' => 'libellé',
+		'libelle' => 'libellé',
+		'articleFournisseur' => 'article fournisseur',
+		'prixUnitaire' => 'prix unitaire',
+		'limitSecurity' => 'seuil de sécurité',
+		'limitWarning' => "seuil d'alerte",
+		'quantiteStock' => 'quantité en stock',
+		'typeQuantite' => 'type quantité (article ou référence)',
+		'codeReference' => 'code',
+		'nom' => 'libellé'
+	];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

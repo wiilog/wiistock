@@ -14,7 +14,7 @@
 
     <div class="row ">
         {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_IMPORT')) %}
-            <a href="" data-toggle="modal" data-target="#modalNewImport" class="btn btn-primary float-left">
+            <a href="" data-toggle="modal" data-target="#modalNewImportFirst" class="btn btn-primary float-left">
                 <span class="fa fa-plus mr-2"></span>Nouvel import
             </a>
         {% endif %}
@@ -23,7 +23,13 @@
     <table id="tableImport" class="table table-striped table-bordered w-100">
     </table>
 
-    {% include 'import/modalNewImport.html.twig' %}
+    {% include 'import/modalNewImportFirst.html.twig' %}
+    {% include 'import/modalNewImportSecond.html.twig' %}
+    {% include 'import/modalNewImportConfirm.html.twig' %}
+
+    <input hidden id="openModalNewImportSecond" data-toggle="modal" data-target="#modalNewImportSecond">
+    <input hidden id="openModalNewImportConfirm" data-toggle="modal" data-target="#modalNewImportConfirm">
+
 {% endblock %}
 
 {% block javascripts %}

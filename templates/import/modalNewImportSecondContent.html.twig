@@ -1,0 +1,13 @@
+{% for i in 0..(data.headers|length -  1) %}
+    <tr>
+        <td>{{ data.headers[i] }}</td>
+        <td>{{ data.firstRow[i] }}</td>
+        <td><select class="form-control data" name="{{ i }}">
+                <option></option>
+                {% for fieldValue, fieldName in fields %}
+                    <option value="{{ fieldValue }}">{{ fieldName|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </td>
+    </tr>
+{% endfor %}

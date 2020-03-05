@@ -40,14 +40,33 @@ let tableImport = $('#tableImport').DataTable({
     }
 });
 
-let $modalNewImport = $("#modalNewImport");
-let $submitNewFournisseur = $("#submitNewImport");
+let $modalNewImportFirst = $("#modalNewImportFirst");
+let $submitNewFournisseurFirst = $("#submitNewImportFirst");
 let urlNewImportFirst = Routing.generate('import_new', true);
-initModalWithAttachments($modalNewImport, $submitNewFournisseur, urlNewImportFirst, tableImport, displaySecondModal, false);
+initModalWithAttachments($modalNewImportFirst, $submitNewFournisseurFirst, urlNewImportFirst, tableImport, displaySecondModal, false);
+
+let $modalNewImportSecond = $('#modalNewImportSecond');
+let $submitNewFournisseurSecond = $("#submitNewImportSecond");
+let urlNewImportSecond= Routing.generate('import_links', true);
+InitialiserModal($modalNewImportSecond, $submitNewFournisseurSecond, urlNewImportSecond, null, displayConfirmationModal);
+
+let $modalNewImportConfirm = $('#modalNewImportConfirm');
+let $submitNewImportConfirm = $('#submitNewImportConfirm');
+let urlNewImportConfirm = Routing.generate('import_confirm', true);
+InitialiserModal($modalNewImportConfirm, $submitNewImportConfirm, urlNewImportConfirm, tableImport);
 
 function displaySecondModal(data) {
     //TODO CG vérification 1 seul fichier + format csv
     if (data.success) {
-        $modalNewImport.find('.modal-body').html(data.html);
+        $modalNewImportSecond.find('tbody').html(data.html);
+        $modalNewImportSecond.find('#submitNewImportSecond').val(data.importId);
+        $('#openModalNewImportSecond').click();
+        $modalNewImportFirst.find('.close').click();
     }
+}
+
+function displayConfirmationModal(data) {
+    $modalNewImportConfirm.find('#submitNewImportConfirm').val(data.importId);
+    $('#openModalNewImportConfirm').click();
+    $modalNewImportSecond.find('.close').click();
 }

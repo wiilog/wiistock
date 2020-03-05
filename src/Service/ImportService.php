@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Import;
+use App\Entity\PieceJointe;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,7 +13,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class ImportDataService
+class ImportService
 {
     /**
      * @var Twig_Environment
@@ -94,6 +95,21 @@ class ImportDataService
                     ];
         return $row;
     }
+
+	/**
+	 * @param PieceJointe $attachment
+	 * @return array
+	 */
+    public function readFile($attachment)
+	{
+		$path = "../public/uploads/attachements/" . $attachment->getFileName();
+		$file = fopen($path, "r");
+
+		$headers = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
+		$firstRow = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
+
+		return ['headers' => $headers, 'firstRow' => $firstRow];
+	}
 }
 
 

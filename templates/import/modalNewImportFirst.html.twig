@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewImport" role="dialog" aria-hidden="true">
+<form method="" class="modal fade" id="modalNewImportFirst" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,6 +8,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-8">
@@ -18,10 +19,10 @@
                         <label>Type de données à importer</label>
                         <select class="form-control data needed" name="entity">
                             <option></option>
-                            <option value="ART">Articles</option>
-                            <option value="REF">Références</option>
-                            <option value="FOU">Fournisseurs</option>
-                            <option value="ART_FOU">Articles fournisseurs</option>
+                            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}">Articles</option>
+                            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}">Références</option>
+                            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}">Fournisseurs</option>
+                            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}">Articles fournisseurs</option>
                         </select>
                     </div>
                 </div>
@@ -37,12 +38,12 @@
                 <div class="row">
                     <p>Attention : Le délimiteur est le point virgule et l'encodage UTF-8.</p>
                 </div>
-
             </div>
+
             <div class="error-msg pl-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewImport" type="button" class="btn btn-success">Valider
+                <button id="submitNewImportFirst" type="button" class="btn btn-success">Valider
                 </button>
             </div>
         </div>
