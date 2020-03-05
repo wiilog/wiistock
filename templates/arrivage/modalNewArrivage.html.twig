@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</h5>
+                <h5 class="modal-title" title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -189,7 +189,7 @@
                                 {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                                     <div class="form-group col-12 w-100">
                                         <label title="destinatire" for="destinataire">
-                                            {{ 'arrivage.destinataire'|trans|capitalize }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}
+                                            {{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}
                                         </label>
                                         <select
                                             class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
@@ -209,7 +209,7 @@
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
                             <label title="acheteurs" for="acheteurs">
-                                {{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}
+                                {{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}
                             </label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
