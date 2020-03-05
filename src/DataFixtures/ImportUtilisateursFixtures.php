@@ -3,14 +3,10 @@
 namespace App\DataFixtures;
 
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\Role;
-use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\RoleRepository;
-use App\Repository\TransporteurRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -99,8 +95,14 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                         ->setEmail($mail)
                         ->setRole($role)
                         ->setStatus(true)
-                        ->setDropzone($emplacement)
+						->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
+						->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
+						->setRecherche(Utilisateur::SEARCH_DEFAULT)
+						->setDropzone($emplacement)
+						->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
+						->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                         ->setPassword($this->encoder->encodePassword($utilisateur, $pass));
+
 					$manager->persist($utilisateur);
         			$manager->flush();
 				}

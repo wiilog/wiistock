@@ -2,9 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Fournisseur;
 use App\Entity\Transporteur;
-use App\Repository\FournisseurRepository;
 use App\Repository\TransporteurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -34,7 +32,7 @@ class ImportTransporteurFixtures extends Fixture implements FixtureGroupInterfac
         		$firstRow = false;
 			} else {
 				$row = array_map('utf8_encode', $data);
-				$code = $row[1];
+				$code = $row[1] ?? $row[0];
 				$transporteur = $this->transporteurRepository->findOneByCode($code);
 
 				if (empty($transporteur)) {
