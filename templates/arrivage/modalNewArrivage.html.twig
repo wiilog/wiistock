@@ -252,11 +252,9 @@
                                     <label class="ellipsis">
                                         {{ nature.label | capitalize }}
                                     </label>
-                                    <input type="number" class="form-control input-sm data-array"
-                                           name="nature"
-                                           data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
-                                           data-id="{{ nature.id }}" min="0"
-                                           value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
+                                    <input type="number" class="form-control input-sm data-array needed-positiv"
+                                           name="colis" data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                           data-id="{{ nature.id }}" min="0" value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                 </div>
                             {% endfor %}
                         </div>

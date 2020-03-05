@@ -40,7 +40,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, displayErrorEmplacement, false);
+InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalNewEmplacement"), response), false, false);
 
 let modalDeleteEmplacement = $('#modalDeleteEmplacement');
 let submitDeleteEmplacement = $('#submitDeleteEmplacement');
@@ -50,7 +50,7 @@ InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmpla
 let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, displayErrorEditEmplacement, false);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), false, false);
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
@@ -69,16 +69,12 @@ function checkAndDeleteRowEmplacement(icon) {
     });
 }
 
-function displayErrorEmplacement(success) {
-    let modal = $("#modalNewEmplacement");
-    let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
-    displayError(modal, msg, success);
-}
-
-function displayErrorEditEmplacement(success) {
-    let modal = $("#modalEditEmplacement");
-    let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
-    displayError(modal, msg, success);
+function displayErrorEmplacement($modal, response) {
+    if (!response.success) {
+        modal.find('.error-msg').html(response.message);
+    } else {
+        modal.find('.close').click();
+    }
 }
 
 function overrideSearchEmplacement() {

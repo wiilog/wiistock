@@ -75,7 +75,8 @@ function initPage() {
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
-    initDateTimePicker('#modalEditUrgence .datepicker', 'DD/MM/YYYY HH:mm');
+    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
+    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
     let dateStart = $dateStartInput.data('date');
 
