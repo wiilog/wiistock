@@ -4,10 +4,9 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    //TODO CG avec ou sans $ ?
-    initSelect2('#statut', 'Statut');
-    initSelect2('#carriers', 'Transporteurs');
-    initOnTheFlyCopies();
+    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#carriers'), 'Transporteurs');
+    initOnTheFlyCopies($('.copyOnTheFly'));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

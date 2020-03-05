@@ -147,7 +147,7 @@ function InitPageDataTable() {
 
 function initEditReception() {
     initDateTimePickerReception();
-    initOnTheFlyCopies();
+    initOnTheFlyCopies($('.copyOnTheFly'));
 }
 
 function initDateTimePickerReception() {

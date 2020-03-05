@@ -6,9 +6,8 @@ let tableReception;
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
-    //TODO CG garder le $ ?
     initSelect2($('#statut'), 'Statut');
-    initOnTheFlyCopies();
+    initOnTheFlyCopies($('.copyOnTheFly'));
     $('.body-add-ref').css('display', 'none');
 
     ajaxAutoArticlesReceptionInit($('.select2-autocomplete-articles'));

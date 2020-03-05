@@ -1398,11 +1398,10 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     $alertModal.modal('show');
 }
 
-function initOnTheFlyCopies() {
-    $("#newFournisseur").keyup(function() {
-        $('#newFournisseurCode').val(this.value);
-    });
-    $("#newTransporteur").keyup(function() {
-        $('#newTransporteurCode').val(this.value);
+function initOnTheFlyCopies($elems) {
+    $elems.each(function() {
+        $(this).keyup(function() {
+            $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
+        })
     });
 }
