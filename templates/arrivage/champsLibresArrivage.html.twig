@@ -40,7 +40,7 @@
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
             <select
-                    class="form-control data list-multiple w-100 {{ required ? 'needed' : '' }} "
+                    class="form-control data list-multiple w-100 {{ required ? 'needed' : '' }}"
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
                     multiple="multiple">
                 {% for elem in  champLibre.elements %}
