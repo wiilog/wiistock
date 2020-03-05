@@ -90,14 +90,15 @@ let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
 InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
     if (data.colisIds && data.colisIds.length > 0) {
-        let path = Routing.generate(
-            'print_arrivage_colis_bar_codes',
+        window.location.href = Routing.generate(
+            'print_arrivage_bar_codes',
             {
                 arrivage: data.arrivageId,
-                colisList: data.colisIds.join(',')
+                colisList: data.colisIds.join(','),
+                printArrivage: 1,
+                printColis: 1
             },
             true);
-        window.open(path, '_blank');
     }
 
     window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})

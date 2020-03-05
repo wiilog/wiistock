@@ -1418,105 +1418,91 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/{arrivage}/etiquette", name="print_arrivage_bar_code", options={"expose"=true}, methods="GET")
-     * @param Arrivage $arrivage
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws NoResultException
-     */
-    public function printArrivageBarCode(Arrivage $arrivage,
-                                         PDFGeneratorService $PDFGeneratorService): Response
-    {
-        $barcodeConfigs = [[
-            'code' => $arrivage->getNumeroArrivage()
-        ]];
+	/**
+	 * @Route("/{arrivage}/{printColis}/{printArrivage}/etiquette", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
+	 * @param Arrivage $arrivage
+	 * @param bool $printColis
+	 * @param bool $printArrivage
+	 * @param Request $request
+	 * @param PDFGeneratorService $PDFGeneratorService
+	 * @return Response
+	 * @throws LoaderError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
+	public function printArrivageColisBarCodes(
+		Arrivage $arrivage,
+		?bool $printColis = false,
+		?bool $printArrivage = false,
+		Request $request,
+		PDFGeneratorService $PDFGeneratorService): Response
+	{
+		$barcodeConfigs = [];
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
+		if ($printColis) {
+			$barcodeConfigs = $this->getBarcodeConfigPrintColis($request, $arrivage);
+		}
 
-        return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
-            $fileName
-        );
-    }
+		if ($printArrivage) {
+			$barcodeConfigs[] = [
+				'code' => $arrivage->getNumeroArrivage()
+			];
+		}
 
-    /**
-     * @Route(
-     *     "/{arrivage}/etiquettes-colis/{colisId}",
-     *     name="print_arrivage_colis_bar_codes",
-     *     methods={"GET"},
-     *     defaults={"colisId": null},
-     *     options={"expose"=true}
-     * )
-     * @Entity("colis", expr="colisId ? repository.find(colisId) : colisId")
-     *
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @param ColisRepository $colisRepository
-     * @param Request $request
-     * @param Arrivage $arrivage
-     * @param Colis|null $colis
-     * @return PdfResponse
-     * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function printArrivageColisBarCodes(PDFGeneratorService $PDFGeneratorService,
-                                               ColisRepository $colisRepository,
-                                               Request $request,
-                                               Arrivage $arrivage,
-                                               ?Colis $colis): PdfResponse
-    {
-        $colisListStr = $request->query->get('colisList');
-        if (!empty($colisListStr)) {
-            $colisList = array_map(function ($id) use ($colisRepository) {
-                return $colisRepository->find($id);
-            }, explode(',', $colisListStr));
-        } else if (isset($colis)) {
-            $colisList = [$colis];
-        }
+		$fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
-        if (!empty($colisList)) {
-            /** @var Colis $colisRequested */
-            foreach ($colisList as $colisRequested) {
-                if ($colisRequested->getArrivage()->getId() !== $arrivage->getId()) {
-                    throw new NotFoundHttpException("404");
-                }
-            }
-        }
+		return new PdfResponse(
+			$PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+			$fileName
+		);
+	}
 
-        $barcodeConfigs = array_map(
-            function (Colis $colisInArrivage) use ($arrivage) {
-                $acheteurs = $arrivage->getAcheteurs();
-                $acheteursCounter = $acheteurs->count();
-                return [
-                    'code' => $colisInArrivage->getCode(),
-                    'labels' => [
-                        ($acheteursCounter === 1)
-                            ? ($acheteurs->first()->getDropzone()
-                            ? $acheteurs->first()->getDropzone()->getLabel()
-                            : '')
-                            : ''
-                    ]
-                ];
-            },
-            !empty($colisList)
-                ? $colisList
-                : $arrivage->getColis()->toArray()
-        );
+    private function getBarcodeConfigPrintColis(
+    	Request $request,
+		Arrivage $arrivage)
+	{
+		$colisRepository = $this->getDoctrine()->getRepository(Colis::class);
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'colis_arrivage');
+		$colisListStr = $request->query->get('colisList');
+		if (!empty($colisListStr)) {
+			$colisList = array_map(function ($id) use ($colisRepository) {
+				return $colisRepository->find($id);
+			}, explode(',', $colisListStr));
+		} else if (isset($colis)) {
+			$colisList = [$colis];
+		}
 
-        return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
-            $fileName
-        );
-    }
+		if (!empty($colisList)) {
+			/** @var Colis $colisRequested */
+			foreach ($colisList as $colisRequested) {
+				if ($colisRequested->getArrivage()->getId() !== $arrivage->getId()) {
+					throw new NotFoundHttpException("404");
+				}
+			}
+		}
+
+		return array_map(
+			function (Colis $colisInArrivage) use ($arrivage) {
+				$acheteurs = $arrivage->getAcheteurs();
+				$acheteursCounter = $acheteurs->count();
+				return [
+					'code' => $colisInArrivage->getCode(),
+					'labels' => [
+						($acheteursCounter === 1)
+							? ($acheteurs->first()->getDropzone()
+							? $acheteurs->first()->getDropzone()->getLabel()
+							: '')
+							: ''
+					]
+				];
+			},
+			!empty($colisList)
+				? $colisList
+				: $arrivage->getColis()->toArray()
+		);
+	}
 
     private function getResponseReloadArrivage($reloadArrivageId): ?array
     {
