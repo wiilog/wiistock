@@ -680,14 +680,14 @@ function clearModal(modal) {
             $(this).val(null).trigger('change');
         }
     });
-    let dataArrays = $modal
-        .find('.modal-body')
-        .find('.data-array');
-    dataArrays.each(function() {
-        if ($(this).data('init') !== undefined) {
-            $(this).val($(this).data('init'));
-        }
-    });
+    // let dataArrays = $modal
+    //     .find('.modal-body')
+    //     .find('.data-array');
+    // dataArrays.each(function() {
+    //     if ($(this).data('init') !== undefined) {
+    //         $(this).val($(this).data('init'));
+    //     }
+    // });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off

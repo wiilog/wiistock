@@ -54,8 +54,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
         {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'Destinataire'},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': 'Acheteurs'},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
+        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
@@ -72,6 +72,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
     headerCallback: function(thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
+        $(thead).find('th').eq(8).attr('title', "destinataire");
+        $(thead).find('th').eq(9).attr('title', "acheteurs");
     },
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
@@ -128,7 +130,7 @@ function initNewArrivageEditor(modal) {
     }
     initSelect2($modal.find('.ajax-autocomplete-fournisseur'));
     initSelect2($modal.find('.ajax-autocomplete-transporteur'));
-    initSelect2($modal.find('.ajax-autocomplete-chauffeur'));;
+    initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
 }
