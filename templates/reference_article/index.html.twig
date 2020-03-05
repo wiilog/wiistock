@@ -41,10 +41,12 @@
             <i class="fa fa-plus mr-2"></i>Nouvel article de référence
         </div>
         {% endif %}
+        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title= {{ filters | length == 0 ?  "'Veuillez renseigner au moins un filtre pour imprimer.'"  :" " }}>
             <div data-toggle="modal" id="printTag" class="printButton {{ filters | length > 0 ? '' : 'btn-disabled' }} btn btn-action btn-primary"
                  onclick="printReferenceArticleBarCode()">
                 <i class="fas fa-print"></i> Imprimer les étiquettes
             </div>
+        </span>
     </div>
     <div class="row">
         <div class="col-1">

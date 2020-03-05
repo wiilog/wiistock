@@ -1397,3 +1397,11 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
     $alertModal.modal('show');
 }
+function managePrintButtonTooltip(active, $button) {
+    if ($button) {
+        let $printTagParent = $button.parent();
+        $printTagParent.tooltip(
+            active ? undefined : 'dispose'
+        )
+    }
+}
