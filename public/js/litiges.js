@@ -12,9 +12,9 @@ let urlDeleteLitige = Routing.generate('litige_delete', true);
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#carriers', 'Transporteurs');
-    initSelect2('#statut', 'Statut');
-    initSelect2('#litigeOrigin', 'Origine');
+    initSelect2($('#carriers'), 'Transporteurs');
+    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#litigeOrigin'), 'Origine');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
 
     // filtres enregistrés en base pour chaque utilisateur

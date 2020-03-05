@@ -29,8 +29,8 @@ function initPage() {
         },
         order: [[1, "desc"]],
         columns:[
-            { "data": 'actions', 'title': 'Actions' },
-            { "data": 'start', 'name' : 'start','title' : $('#dateBeginTranslation').val() },
+            { "data": 'actions', 'title': 'Actions', 'orderable': false },
+            { "data": 'start', 'name' : 'start', 'title' : $('#dateBeginTranslation').val() },
             { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
             { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
             { "data": 'postNb', 'name' : 'postNb', 'title' : 'N° poste' },
@@ -47,13 +47,10 @@ function initPage() {
             $(thead).find('th').eq(1).attr('title', "date de début");
             $(thead).find('th').eq(2).attr('title', "date de fin");
             $(thead).find('th').eq(3).attr('title', "numéro de commande");
-            $(thead).find('th').eq(4).attr('title', "acheteur");
+            $(thead).find('th').eq(5).attr('title', "acheteur");
+            $(thead).find('th').eq(9).attr('title', "arrivage");
         },
         columnDefs: [
-            {
-                "orderable" : false,
-                "targets" : [0, 4]
-            },
             {
                 "type": "customDate",
                 "targets": [1, 2]
@@ -78,7 +75,8 @@ function initPage() {
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
-    initDateTimePicker('#modalEditUrgence .datepicker', 'DD/MM/YYYY HH:mm');
+    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
+    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
     let dateStart = $dateStartInput.data('date');
 

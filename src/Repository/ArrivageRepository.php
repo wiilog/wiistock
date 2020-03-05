@@ -73,14 +73,11 @@ class ArrivageRepository extends ServiceEntityRepository
      */
     public function createQueryBuilderByDates($dateMin, $dateMax): QueryBuilder
     {
-        $dateMinStr = $dateMin->format('Y-m-d H:i:s');
-        $dateMaxStr = $dateMax->format('Y-m-d H:i:s');
-
         return $this->createQueryBuilder('arrivage')
             ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
             ->setParameters([
-                'dateMin' => $dateMinStr,
-                'dateMax' => $dateMaxStr
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
             ]);
     }
 

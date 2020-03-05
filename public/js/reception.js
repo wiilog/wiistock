@@ -6,7 +6,8 @@ let tableReception;
 $(function () {
     $('.select2').select2();
     initDateTimePicker();
-    initSelect2('#statut', 'Statut');
+    //TODO CG garder le $ ?
+    initSelect2($('#statut'), 'Statut');
     initOnTheFlyCopies();
     $('.body-add-ref').css('display', 'none');
 

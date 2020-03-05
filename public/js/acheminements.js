@@ -44,7 +44,7 @@ let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
 InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
 
 $(function() {
-    initSelect2('#statut', 'Statut');
+    initSelect2($('#statut'), 'Statut');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
