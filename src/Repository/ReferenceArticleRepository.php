@@ -1014,19 +1014,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
-        return intval(
-            ($em
+        $totalQuantity = intval(
+            $em
             ->getConnection()
             ->executeQuery(
                 'SELECT
-                        SUM(article.quantite) -
-                        (
+                        @quantityReserved := (
                             SELECT SUM(ligne_article.quantite)
                             FROM ligne_article
                             INNER JOIN demande d on ligne_article.demande_id = d.id
                             INNER JOIN statut s on d.statut_id = s.id
                             WHERE ligne_article.reference_id = :refId AND s.nom = :statut
-                        ) as quantity
+                        ),
+                        @quantity := IF(@quantityReserved IS NULL, SUM(article.quantite), SUM(article.quantite) - @quantityReserved)
                         FROM article
                         INNER JOIN article_fournisseur af on article.article_fournisseur_id = af.id
                         INNER JOIN statut s2 on article.statut_id = s2.id
@@ -1036,7 +1036,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     'refId' => $referenceArticle->getId(),
                     'statut' => Demande::STATUT_A_TRAITER
                 ])
-            ->fetchColumn(0)) ?? 0);
+            ->fetchColumn(1));
+        return $totalQuantity >= 0 ? $totalQuantity : 0;
     }
 
     public function countAlert()

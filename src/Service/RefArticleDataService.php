@@ -35,6 +35,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
+use Doctrine\DBAL\DBALException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -232,28 +233,22 @@ class RefArticleDataService
         } else {
             $valeurChampLibre = [];
         }
-        // construction du tableau des articles fournisseurs
-        $listArticlesFournisseur = [];
-        $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-        $totalQuantity = 0;
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-        foreach ($articlesFournisseurs as $articleFournisseur) {
-            $quantity = 0;
-            foreach ($articleFournisseur->getArticles() as $article) {
-                if ($article->getStatut() == $statut) $quantity += $article->getQuantite();
-            }
-            $totalQuantity += $quantity;
-
-            $listArticlesFournisseur[] = [
-                'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                'label' => $articleFournisseur->getLabel(),
-                'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                'quantity' => $quantity
-            ];
-        }
-
+        $totalQuantity = $this->getAvailableQuantityForRef($articleRef);
         return $data = [
-            'listArticlesFournisseur' => $listArticlesFournisseur,
+            'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
+                function (array $carry, ArticleFournisseur $articleFournisseur) {
+                    $carry[] = [
+                        'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                        'label' => $articleFournisseur->getLabel(),
+                        'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                        'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
+                            return $article->getStatut()->getNom() === Article::STATUT_ACTIF
+                                ? $carry + $article->getQuantite()
+                                : $carry;
+                        }, 0)
+                    ];
+                    return $carry;
+                }, []),
             'totalQuantity' => $totalQuantity,
             'valeurChampLibre' => $valeurChampLibre
         ];
@@ -411,7 +406,7 @@ class RefArticleDataService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
@@ -608,16 +603,13 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return int
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
     public function getAvailableQuantityForRef(ReferenceArticle $referenceArticle): int
     {
-        if ($referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $quantity = $referenceArticle->getQuantiteStock();
-        } else {
-            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle);
-        }
-        return $quantity;
+        return
+            $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
+                ? $referenceArticle->getQuantiteStock()
+                : $this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle);
     }
 }
