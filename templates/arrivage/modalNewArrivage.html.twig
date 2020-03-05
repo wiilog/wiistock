@@ -188,8 +188,9 @@
                             <div class="row">
                                 {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                                     <div class="form-group col-12 w-100">
-                                        <label
-                                            for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
+                                        <label title="destinatire" for="destinataire">
+                                            {{ 'arrivage.destinataire'|trans|capitalize }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}
+                                        </label>
                                         <select
                                             class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
                                             name="destinataire"
@@ -207,8 +208,9 @@
 
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
-                            <label title="acheteurs"
-                                for="acheteurs">{{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
+                            <label title="acheteurs" for="acheteurs">
+                                {{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}
+                            </label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
                                 <option selected disabled>&nbsp;</option>

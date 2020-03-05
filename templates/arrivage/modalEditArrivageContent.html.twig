@@ -70,7 +70,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="form-group col-4">
-        <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
+        <label for="destinataire">{{ 'arrivage.destinataire'|trans|capitalize }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
         <select class="form-control data {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
             <option disabled selected></option>
             {% for utilisateur in utilisateurs %}

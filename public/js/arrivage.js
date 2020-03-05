@@ -54,7 +54,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
         {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'Destinataire'},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
         {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
@@ -72,7 +72,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
     headerCallback: function(thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-        $(thead).find('th').eq(2).attr('title', "acheteurs");
+        $(thead).find('th').eq(8).attr('title', "destinataire");
+        $(thead).find('th').eq(9).attr('title', "acheteurs");
     },
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
