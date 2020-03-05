@@ -94,8 +94,6 @@ InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) 
             'print_arrivage_bar_codes',
             {
                 arrivage: data.arrivageId,
-                colisList: data.colisIds.join(','),
-                printArrivage: 1,
                 printColis: 1
             },
             true);
