@@ -23,7 +23,6 @@ let tableTransporteur = $('#tableTransporteur_id').DataTable({
     ],
 });
 
-
 let modalNewTransporteur = $("#modalNewTransporteur");
 let submitNewTransporteur = $("#submitNewTransporteur");
 let urlNewTransporteur = Routing.generate('transporteur_new', true);

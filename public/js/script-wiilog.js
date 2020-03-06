@@ -661,7 +661,11 @@ function clearModal(modal) {
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            $(this).val("");
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init'));
+            } else {
+                $(this).val("");
+            }
         }
         if ($(this).attr('id') === 'statut') {
             $(this).val($(this).parent().find('span.active').data('title'));
@@ -677,7 +681,11 @@ function clearModal(modal) {
         .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).val(null).trigger('change');
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init')).trigger('change');
+            } else {
+                $(this).val(null).trigger('change');
+            }
         }
     });
     // let dataArrays = $modal
@@ -704,9 +712,13 @@ function clearCheckboxes($modal) {
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).prop('checked', false);
-            $(this).removeClass('active');
-            $(this).addClass('not-active');
+            if ($(this).hasClass('needs-default')) {
+                $(this).prop('checked', $(this).data('init'));
+            } else {
+                $(this).prop('checked', false);
+                $(this).removeClass('active');
+                $(this).addClass('not-active');
+            }
         }
     });
 }

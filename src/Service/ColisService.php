@@ -71,7 +71,7 @@ Class ColisService
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire())
+        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getAcheteurs()->count() > 0)
             ? $emplacementRepository->findOneByLabel(SpecificService::ECS_ARG_LOCATION)
             : null;
         if (!isset($defaultEmpForMvt)) {
