@@ -224,7 +224,7 @@ class RefArticleDataService
 	/**
 	 * @param ReferenceArticle $articleRef
 	 * @return array
-	 * @throws NonUniqueResultException
+	 * @throws DBALException
 	 */
     public function getDataEditForRefArticle($articleRef)
     {
@@ -255,14 +255,15 @@ class RefArticleDataService
         ];
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param bool $isADemand
-     * @return string
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param bool $isADemand
+	 * @return string
+	 * @throws DBALException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
@@ -418,7 +419,7 @@ class RefArticleDataService
 
 		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
 		$quantityStock = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ?
-			$refArticle->getQuantiteStock() : $this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($refArticle);
+			$refArticle->getQuantiteStock() : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($refArticle);
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -540,14 +541,14 @@ class RefArticleDataService
         ];
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return array
+	 * @throws DBALException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function dataRowAlerteRef($referenceArticle)
     {
         $quantity = $this->getAvailableQuantityForRef($referenceArticle);
@@ -614,7 +615,7 @@ class RefArticleDataService
     {
         return
             $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
-                ? $referenceArticle->getQuantiteStock()
-                : $this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle);
+                ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
+                : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
     }
 }

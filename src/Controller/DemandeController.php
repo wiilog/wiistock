@@ -39,6 +39,7 @@ use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -176,10 +177,11 @@ class DemandeController extends AbstractController
         $this->demandeLivraisonService = $demandeLivraisonService;
     }
 
-    /**
-     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+	 * @throws NonUniqueResultException
+	 * @throws DBALException
+	 */
     public function compareStock(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -546,10 +548,13 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+	 * @param Request $request
+	 * @param Demande $demande
+	 * @return Response
+	 * @throws DBALException
+	 */
     public function articleApi(Request $request, Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {

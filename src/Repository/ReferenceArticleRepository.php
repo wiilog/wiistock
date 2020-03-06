@@ -13,10 +13,8 @@ use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -1017,7 +1015,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws DBALException
 	 */
-	public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
+	public function getTotalAvailableQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
         $totalQuantity = intval(

@@ -225,6 +225,7 @@ class ArticleDataService
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 * @throws NonUniqueResultException
+	 * @throws DBALException
 	 */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
@@ -320,13 +321,16 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @return array
-     *
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
+	/**
+	 * @param $refArticle
+	 * @return array
+	 *
+	 * @throws DBALException
+	 * @throws NonUniqueResultException
+	 * @throws Twig_Error_Loader
+	 * @throws Twig_Error_Runtime
+	 * @throws Twig_Error_Syntax
+	 */
     public function getLivraisonArticlesByRefArticle($refArticle)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
