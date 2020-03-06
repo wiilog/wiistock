@@ -2,15 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
-use App\Repository\ColisRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
@@ -38,7 +40,7 @@ use App\Repository\ReferenceArticleRepository;
 
 
 /**
- * @Route("/accueil")
+ * @Route("/")
  */
 class AccueilController extends AbstractController
 {
@@ -123,7 +125,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/", name="accueil", methods={"GET"})
+     * @Route("/accueil", name="accueil", methods={"GET"})
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -132,6 +134,28 @@ class AccueilController extends AbstractController
     {
         $data = $this->getDashboardData();
         return $this->render('accueil/index.html.twig', $data);
+    }
+
+    /**
+     * @Route(
+     *     "/dashboard-externe/{token}/{page}",
+     *     name="dashboard_ext",
+     *     methods={"GET"},
+     *     requirements={
+     *         "page" = "(quai)|(admin)",
+     *         "token" = "%dashboardToken%"
+     *     }
+     * )
+     * @param string $page
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function dashboardExt(string $page): Response
+    {
+        $data = $this->getDashboardData();
+		$data['page'] = $page;
+        return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
     /**
@@ -212,7 +236,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-fiabilite-monetaire",
+     *     "/statistiques/fiabilite-monetaire",
      *     name="get_monetary_fiability_statistics",
      *     options={"expose"=true},
      *     methods="GET",
@@ -254,7 +278,7 @@ class AccueilController extends AbstractController
     }
 
     /**
-     * @Route("/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @Route("/statistiques/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
     public function graphiqueReference(): Response
     {
@@ -277,7 +301,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-jour",
+     *     "/statistiques/arrivages-jour",
      *     name="get_daily_arrivals_statistics",
      *     options={"expose"=true},
      *      methods="GET",
@@ -289,35 +313,57 @@ class AccueilController extends AbstractController
      * @throws Exception
      */
     public function getDailyArrivalsStatistics(DashboardService $dashboardService,
-                                               ArrivageRepository $arrivageRepository): Response
+                                               EntityManagerInterface $entityManager): Response
     {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
 
         $arrivalCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        return new JsonResponse($arrivalCountByDays);
+        $colisCountByDay = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+
+        return new JsonResponse([
+            'data' => $arrivalCountByDays,
+            'subCounters' => $colisCountByDay,
+            'subLabel' => 'Colis',
+            'label' => 'Autres arrivages',
+            'lastLabel' => 'Arrivages du jour'
+        ]);
     }
 
     /**
      * @Route(
-     *     "/statistiques-colis-jour",
+     *     "/statistiques/colis-jour",
      *     name="get_daily_packs_statistics",
      *     options={"expose"=true},
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ColisRepository $colisRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function getDailyPacksStatistics(DashboardService $dashboardService,
-                                            ColisRepository $colisRepository): Response
+                                            EntityManagerInterface $entityManager): Response
     {
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
+        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService, $mouvementTracaRepository) {
+            $resCounter = $dashboardService->getDashboardCounter(
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+                $mouvementTracaRepository,
+                [
+                    'dateMin' => $dateMin,
+                    'dateMax' => $dateMax
+                ],
+                false
+            );
+            return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
 
         return new JsonResponse($packsCountByDays);
@@ -325,7 +371,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-semaine",
+     *     "/statistiques/arrivages-semaine",
      *     name="get_weekly_arrivals_statistics",
      *     options={"expose"=true},
      *     methods="GET",
@@ -337,19 +383,31 @@ class AccueilController extends AbstractController
      * @throws Exception
      */
     public function getWeeklyArrivalsStatistics(DashboardService $dashboardService,
-                                                ArrivageRepository $arrivageRepository): Response
+                                                EntityManagerInterface $entityManager): Response
     {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
 
         $arrivalsCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        return new JsonResponse($arrivalsCountByWeek);
+        $colisCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+
+        return new JsonResponse([
+            'data' => $arrivalsCountByWeek,
+            'subCounters' => $colisCountByWeek,
+            'subLabel' => 'Colis',
+            'label' => 'Autres arrivages',
+            'lastLabel' => 'Arrivages de la semaine'
+        ]);
     }
 
 	/**
 	 * @Route(
-	 *     "/statistiques-encours-par-duree-et-nature/{graph}",
+	 *     "/statistiques/encours-par-duree-et-nature/{graph}",
 	 *     name="get_encours_count_by_nature_and_timespan",
 	 *     options={"expose"=true},
 	 *     methods="GET",
@@ -386,7 +444,9 @@ class AccueilController extends AbstractController
 
         $colorsNatures = [];
         foreach ($naturesForGraph as $natureForGraph) {
-        	$colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+            if ($natureForGraph->getColor()) {
+                $colorsNatures[$natureForGraph->getLabel()] = $natureForGraph->getColor();
+            }
 		}
 
         $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
@@ -428,13 +488,13 @@ class AccueilController extends AbstractController
             "data" => $enCoursToMonitor,
             'total' => $highestTotal === -1 ? '-' : $highestTotal,
             "location" => $empToKeep && $highestTotal > -1 ? $empToKeep->getLabel() : '-',
-			'colorsNatures' => $colorsNatures,
+			'chartColors' => $colorsNatures,
         ]);
     }
 
     /**
      * @Route(
-     *     "/statistiques-reception-admin",
+     *     "/statistiques/reception-admin",
      *     name="get_indicators_reception_admin",
      *     options={"expose"=true},
      *     methods="GET",
@@ -452,7 +512,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-reception-quai",
+     *     "/statistiques/reception-quai",
      *     name="get_indicators_reception_dock",
      *     options={"expose"=true},
      *     methods="GET",
@@ -471,7 +531,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-receptions-associations",
+     *     "/statistiques/receptions-associations",
      *     name="get_asso_recep_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
@@ -493,7 +553,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-arrivages-um",
+     *     "/statistiques/arrivages-um",
      *     name="get_arrival_um_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},
@@ -515,7 +575,7 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques-transporteurs-jour",
+     *     "/statistiques/transporteurs-jour",
      *     name="get_daily_carriers_statistics",
      *     options={"expose"=true},
      *     methods={"GET"},

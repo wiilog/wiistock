@@ -1,8 +1,11 @@
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    nomade_versions: '>=2.6.3'
-    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-2-6-3.apk'
+    web_version: '2.8.3'
+    nomade_versions: '>=2.8.1'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-2-8-1.apk'
+    client: '%env(APP_CLIENT)%'
+    dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
 
 services:
     # default configuration for services in *this* file

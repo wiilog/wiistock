@@ -1,6 +1,6 @@
 $(function () {
-    initSelect2('#emplacement', 'Emplacements');
-    initSelect2('#natures', 'Natures');
+    initSelect2($('#emplacement'), 'Emplacements');
+    initSelect2($('#natures'), 'Natures');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -55,16 +55,8 @@ function initOrReloadOneDatatable(that) {
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
-                {"data": 'time', 'name': 'delai', 'title': 'Délai'},
-                {"data": 'max', 'name': 'max', 'title': 'max'},
-                {"data": 'late', 'name': 'late', 'title': 'late'},
-            ],
-            "columnDefs": [
-                {
-                    "targets": [3, 4],
-                    "visible": false,
-                    "searchable": false
-                },
+                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
+                {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
             ],
             rowCallback: function (row, data) {
                 $(row).addClass(data.late ? 'table-danger' : '');

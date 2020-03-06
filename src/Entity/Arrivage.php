@@ -108,14 +108,25 @@ class Arrivage
 	 */
 	private $valeurChampLibre;
 
+    /**
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="lastArrival")
+     */
+    private $urgences;
 
-	public function __construct()
-	{
-		$this->acheteurs = new ArrayCollection();
-		$this->colis = new ArrayCollection();
-		$this->attachements = new ArrayCollection();
-		$this->valeurChampLibre = new ArrayCollection();
-	}
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="arrivage")
+     */
+    private $mouvementsTraca;
+
+    public function __construct() {
+        $this->acheteurs = new ArrayCollection();
+        $this->colis = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
+        $this->urgences = new ArrayCollection();
+        $this->mouvementsTraca = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -318,6 +329,49 @@ class Arrivage
 
         return $this;
     }
+    /**
+     * @return Collection|Urgence[]
+     */
+    public function getUrgences(): Collection
+    {
+        return $this->urgences;
+    }
+
+    /**
+     * @return void
+     */
+    public function clearUrgences(): void
+    {
+        foreach ($this->urgences as $urgence) {
+            if ($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
+            }
+        }
+        $this->urgences->clear();
+    }
+
+    public function addUrgence(Urgence $urgence): self
+    {
+        if (!$this->urgences->contains($urgence)) {
+            $this->urgences[] = $urgence;
+            $urgence->setLastArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrgence(Urgence $urgence): self
+    {
+        if ($this->urgences->contains($urgence)) {
+            $this->urgences->removeElement($urgence);
+            // set the owning side to null (unless already changed)
+            if ($urgence->getLastArrival() === $this) {
+                $urgence->setLastArrival(null);
+            }
+        }
+
+        return $this;
+    }
 
     public function getCommentaire(): ?string
     {
@@ -407,6 +461,37 @@ class Arrivage
     {
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementsTraca(): Collection
+    {
+        return $this->mouvementsTraca;
+    }
+
+    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca[] = $mouvementsTraca;
+            $mouvementsTraca->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca->removeElement($mouvementsTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementsTraca->getArrivage() === $this) {
+                $mouvementsTraca->setArrivage(null);
+            }
         }
 
         return $this;

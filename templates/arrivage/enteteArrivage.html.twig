@@ -14,8 +14,7 @@
         </a>
         <a class="btn btn-success"
            id="printArrivageBtn"
-           target="_blank"
-           href="{{ path('print_arrivage_bar_code', {arrivage: arrivage.id}) }}">
+           href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
             <i class='fas fa-print pointer'></i>
             Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
         </a>
@@ -68,12 +67,16 @@
     </div>
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="col-4">
-        <p><strong>Destinataire :</strong> <span>{{ arrivage.destinataire ? arrivage.destinataire.username : '' }}</span></p>
+        <p title="destinataire">
+            <strong>{{ 'arrivage.destinataire'|trans|capitalize }} :</strong>
+            {{ arrivage.destinataire ? arrivage.destinataire.username : '' }}
+        </p>
     </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="col-4">
-        <p><strong>Acheteurs :</strong>
+        <p title="acheteurs">
+            <strong>{{ 'arrivage.acheteurs'|trans|capitalize }} :</strong>
             {{ arrivage.acheteurs|join(', ') }}
         </p>
     </div>
@@ -115,3 +118,9 @@
     </div>
     {% endif %}
 </div>
+
+{% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
+    <div class="urgence-row row ml-2">
+        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
+    </div>
+{% endif %}

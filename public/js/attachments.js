@@ -134,22 +134,31 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
     // dans les inputs...
     let inputs = modal.find(".data");
     let inputsArray = modal.find(".data-array");
-
+    $('.is-invalid').removeClass('is-invalid');
     let Data = new FormData();
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
     let name;
-    let vals = [];
     let arrayIdVal = {};
+    let totalForInputsArrayNeededPositive = {};
 
     inputsArray.each(function () {
-        arrayIdVal = {id: $(this).data('id'), val: $(this).val()};
-        vals.push(arrayIdVal);
         name = $(this).attr("name");
-        Data.append(name, JSON.stringify(vals));
+        if ($(this).hasClass('needed-positiv')) {
+            if (!totalForInputsArrayNeededPositive[name]) {
+                totalForInputsArrayNeededPositive[name] = 0;
+            }
+            totalForInputsArrayNeededPositive[name] += Number($(this).val());
+        }
+        if (!arrayIdVal[name]) {
+            arrayIdVal[name] = {};
+        }
+        arrayIdVal[name][$(this).data('id')] = $(this).val();
     });
-
+    for (const name in arrayIdVal) {
+        Data.append(name, JSON.stringify(arrayIdVal[name]));
+    }
     inputs.each(function () {
         let val = $(this).val();
         name = $(this).attr("name");
@@ -174,7 +183,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             }
         }
     });
-
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
@@ -188,8 +196,16 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         Data.append('file' + index, file);
     });
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid) {
-        if (close == true) modal.find('.close').click();
+    const inputArrayNames = Object.keys(totalForInputsArrayNeededPositive);
+    const firstNameNeededPositiveArray = inputArrayNames.reduce(
+        (lastName, currentName) => {
+            return (!lastName && totalForInputsArrayNeededPositive[currentName] === 0)
+                ? currentName
+                : lastName
+        },
+        undefined);
+    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && !firstNameNeededPositiveArray) {
+        if (close) modal.find('.close').click();
         clearInvalidInputs(modal);
         clearErrorMsg(modal.find(':first-child'));
         $.ajax({
@@ -201,39 +217,33 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             cache: false,
             dataType: 'json',
             success: (data) => {
-                if (data.redirect) {
-                    let print = null;
-                    if (data.printColis === true && data.printArrivage === true) {
-                        print = '/1/1';
-                    } else if (data.printColis === true && data.printArrivage !== true) {
-                        print = '/1/0';
-                    } else if (data.printColis !== true && data.printArrivage === true) {
-                        print = '/0/1';
-                    } else if (data.printColis !== true && data.printArrivage !== true) {
-                        print = '/0/0';
+                if (data.success === false) {
+                    $(modal).find('.error-msg').html(data.msg);
+                } else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
                     }
-                    window.location.href = data.redirect + print;
-                    return;
-                }
 
-                if (table) {
-                    table.ajax.reload(function (json) {
-                        if (data !== undefined) {
-                            $('#myInput').val(json.lastInput);
-                        }
-                    }, false);
-                }
+                    if (table) {
+                        table.ajax.reload(function (json) {
+                            if (data !== undefined) {
+                                $('#myInput').val(json.lastInput);
+                            }
+                        }, false);
+                    }
 
-                // mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
+                    // mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
+                    droppedFiles = [];
+                    if (callback !== null) callback(data);
                 }
-                droppedFiles = [];
-                if (callback !== null) callback(data);
             }
         });
     } else {
@@ -271,8 +281,11 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                 } else if (min < 1) {
                     msg += ' ne peut pas être rempli'
                 }
-
             })
+        }
+        if (firstNameNeededPositiveArray) {
+            msg += "Veuillez renseigner au moins un " + firstNameNeededPositiveArray + ".<br>";
+            $('.data-array.needed-positiv[name="' + firstNameNeededPositiveArray + '"]').addClass('is-invalid');
         }
         modal.find('.error-msg').html(msg);
     }

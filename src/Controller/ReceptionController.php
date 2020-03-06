@@ -13,6 +13,7 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
@@ -41,7 +42,9 @@ use App\Repository\TransporteurRepository;
 
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
+use App\Service\MailerService;
 use App\Service\MouvementStockService;
+use App\Service\MouvementTracaService;
 use App\Service\PDFGeneratorService;
 use App\Service\ReceptionService;
 use App\Service\AttachmentService;
@@ -191,6 +194,7 @@ class ReceptionController extends AbstractController
 	 */
     private $mouvementStockService;
     private $translationService;
+    private $mailerService;
 
     public function __construct(
         ArticleDataService $articleDataService,
@@ -212,6 +216,7 @@ class ReceptionController extends AbstractController
         PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
         LitigeRepository $litigeRepository,
+        MailerService $mailerService,
         AttachmentService $attachmentService,
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
@@ -224,6 +229,7 @@ class ReceptionController extends AbstractController
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
+        $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
@@ -295,16 +301,12 @@ class ReceptionController extends AbstractController
                 ->setReference(!empty($data['reference']) ? $data['reference'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setDateCommande(
                     !empty($data['dateCommande'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null)
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
@@ -358,32 +360,28 @@ class ReceptionController extends AbstractController
             $statut = $this->statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
 
-			$fournisseur = isset($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+			$fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
-			$utilisateur = isset($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
+			$utilisateur = !empty($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
             $reception->setUtilisateur($utilisateur);
 
-			$transporteur = isset($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
+			$transporteur = !empty($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
             $reception->setTransporteur($transporteur);
 
-            $location = isset($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
+            $location = !empty($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
 
             $reception
-                ->setReference(isset($data['numeroCommande']) ? $data['numeroCommande'] : null)
+                ->setReference(!empty($data['numeroCommande']) ? $data['numeroCommande'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setDateCommande(
                     !empty($data['dateCommande'])
-                        ?
-                        new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
-                        :
-                        null)
+                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        : null)
                 ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
@@ -435,7 +433,7 @@ class ReceptionController extends AbstractController
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
 					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-			])
+			    ])
             ];
             return new JsonResponse($json);
         }
@@ -1038,7 +1036,7 @@ class ReceptionController extends AbstractController
                         'commande' => $commande,
                         'quantity' => $quantity,
                     ],
-                    'typeArticle' => $typeArticle->getLabel(),
+                    'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
                     'champsLibres' => $champsLibres,
 					'references' => $this->articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
                 ]
@@ -1260,10 +1258,10 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
-        foreach ($acheteursEmail as $email) {
+        $acheteursEmail = $litige->getBuyers()->toArray();
+        /** @var Utilisateur $buyer */
+        foreach ($acheteursEmail as $buyer) {
             $title = 'Un litige a été déclaré sur une réception vous concernant :';
-
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur réception',
                 $this->renderView('mails/mailLitigesReception.html.twig', [
@@ -1271,7 +1269,7 @@ class ReceptionController extends AbstractController
                     'title' => $title,
                     'urlSuffix' => 'reception'
                 ]),
-                $email
+                $buyer->getEmail()
             );
         }
     }
@@ -1351,7 +1349,8 @@ class ReceptionController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function finish(Request $request): Response
+    public function finish(Request $request,
+                           MouvementTracaService $mouvementTracaService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -1365,14 +1364,14 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($reception, $listReceptionReferenceArticle);
+                    $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle);
+                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1385,7 +1384,7 @@ class ReceptionController extends AbstractController
 	 * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
 	 * @throws NonUniqueResultException
 	 */
-    private function validateReception($reception, $listReceptionReferenceArticle)
+    private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
     {
     	$em = $this->getDoctrine()->getManager();
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1393,7 +1392,6 @@ class ReceptionController extends AbstractController
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
 
-        $typeMouvementTraca = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_DEPOSE);
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1410,15 +1408,19 @@ class ReceptionController extends AbstractController
 					->setDate($now);
 				$em->persist($mouvementStock);
 
-				$mouvementTraca = new MouvementTraca();
-				$mouvementTraca
-					->setType($typeMouvementTraca)
-					->setEmplacement($receptionLocation)
-					->setOperateur($currentUser)
-					->setDatetime($now)
-					->setColis($referenceArticle->getBarCode())
-					->setMouvementStock($mouvementStock);
-				$em->persist($mouvementTraca);
+                $mouvementTracaService->persistMouvementTraca(
+                    $referenceArticle->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'from' => $reception
+                    ]
+                );
 
             } else {
 				$articles = $receptionRA->getArticles();
@@ -1434,15 +1436,19 @@ class ReceptionController extends AbstractController
 						->setDate($now);
 					$em->persist($mouvementStock);
 
-					$mouvementTraca = new MouvementTraca();
-					$mouvementTraca
-						->setType($typeMouvementTraca)
-						->setEmplacement($receptionLocation)
-						->setOperateur($currentUser)
-						->setDatetime($now)
-						->setColis($article->getBarCode())
-						->setMouvementStock($mouvementStock);
-					$em->persist($mouvementTraca);
+                    $mouvementTracaService->persistMouvementTraca(
+                        $article->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        MouvementTraca::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $mouvementStock,
+                            'from' => $reception
+                        ]
+                    );
 				}
 			}
         }
@@ -1849,7 +1855,7 @@ class ReceptionController extends AbstractController
 
             $em->flush();
 
-            return new JsonResponse(['success' => true]);
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException('404');
     }

@@ -133,7 +133,9 @@ class InvMissionService
 		$nbRefInMission = $this->referenceArticleRepository->countByMission($mission);
 		$nbEntriesInMission = $this->inventoryEntryRepository->countByMission($mission);
 
-		$rateBar = ($nbArtInMission + $nbRefInMission) != 0 ? $nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission) : 0;
+		$rateBar = (($nbArtInMission + $nbRefInMission) != 0)
+            ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
+            : 0;
 
 		$row =
 			[

@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Repository\ColisRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,10 +20,13 @@ Class ColisService
 
     private $entityManager;
     private $mouvementTracaService;
+    private $specificService;
 
     public function __construct(MouvementTracaService $mouvementTracaService,
+                                SpecificService $specificService,
                                 EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
+        $this->specificService = $specificService;
         $this->mouvementTracaService = $mouvementTracaService;
     }
 
@@ -63,16 +65,21 @@ Class ColisService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function persistMultiColis(Arrivage $arrivage, array $colisByNatures, $user): array {
+    public function persistMultiColis(Arrivage $arrivage,
+                                      array $colisByNatures,
+                                      $user): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-
-        $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-        $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
-            ? $emplacementRepository->find($defaultEmpForMvtParam)
+        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getAcheteurs()->count() > 0)
+            ? $emplacementRepository->findOneByLabel(SpecificService::ECS_ARG_LOCATION)
             : null;
-
+        if (!isset($defaultEmpForMvt)) {
+            $defaultEmpForMvtParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $defaultEmpForMvt = !empty($defaultEmpForMvtParam)
+                ? $emplacementRepository->find($defaultEmpForMvtParam)
+                : null;
+        }
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $colisList = [];
         foreach ($colisByNatures as $natureId => $number) {
@@ -87,7 +94,8 @@ Class ColisService
                         $now,
                         false,
                         true,
-                        MouvementTraca::TYPE_DEPOSE
+                        MouvementTraca::TYPE_DEPOSE,
+                        ['from' => $arrivage]
                     );
                     $this->entityManager->persist($mouvementDepose);
                 }

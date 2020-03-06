@@ -131,45 +131,43 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $data = json_decode($request->getContent(), true);
 
-            // on vérifie que le nom du champ libre n'est pas déjà utilisé
-            $champLibreExist = $this->champLibreRepository->countByLabel($data['label']);
-            if (!$champLibreExist) {
-                $type = $this->typeRepository->find($data['type']);
-                $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
-                $champLibre = new ChampLibre();
-                $champLibre
-                    ->setlabel($data['label'])
-                    ->setCategorieCL($categorieCL)
-                    ->setRequiredCreate($data['requiredCreate'])
-                    ->setRequiredEdit($data['requiredEdit'])
-                    ->setType($type)
-                    ->settypage($data['typage']);
+		// on vérifie que le nom du champ libre n'est pas déjà utilisé
+		$champLibreExist = $this->champLibreRepository->countByLabel($data['label']);
+		if (!$champLibreExist) {
+			$type = $this->typeRepository->find($data['type']);
+			$categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
+			$champLibre = new ChampLibre();
+			$champLibre
+				->setlabel($data['label'])
+				->setCategorieCL($categorieCL)
+				->setRequiredCreate($data['requiredCreate'])
+				->setRequiredEdit($data['requiredEdit'])
+				->setType($type)
+				->settypage($data['typage']);
 
-                if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
-                    $champLibre
-                        ->setElements(array_filter(explode(';', $data['elem'])))
-                        ->setDefaultValue(null);
-                } else {
-                    $champLibre
-                        ->setElements(null)
-                        ->setDefaultValue($data['valeur']);
-                }
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($champLibre);
-                $em->flush();
+			if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
+				$champLibre
+					->setElements(array_filter(explode(';', $data['elem'])))
+					->setDefaultValue(null);
+			} else {
+				$champLibre
+					->setElements(null)
+					->setDefaultValue($data['valeur']);
+			}
+			$em = $this->getDoctrine()->getManager();
+			$em->persist($champLibre);
+			$em->flush();
 
-                return new JsonResponse($data);
-            } else {
-                return new JsonResponse(false);
-            }
-        }
-        throw new NotFoundHttpException('404');
+			return new JsonResponse($data);
+		} else {
+			return new JsonResponse(false);
+		}
     }
 
     /**
@@ -194,52 +192,49 @@ class ChampLibreController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
-            $champLibre = $this->champLibreRepository->find($data['champLibre']);
+        $data = json_decode($request->getContent(), true);
 
-            $champLibre
-                ->setLabel($data['label'])
-                ->setCategorieCL($categorieCL)
-                ->setRequiredCreate($data['requiredCreate'])
-                ->setRequiredEdit($data['requiredEdit'])
-                ->setTypage($data['typage']);
+		$categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
+		$champLibre = $this->champLibreRepository->find($data['champLibre']);
 
-            if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
-                $champLibre
-                    ->setElements(array_filter(explode(';', $data['elem'])))
-                    ->setDefaultValue(null);
-            } else {
-                $champLibre
-                    ->setElements(null)
-                    ->setDefaultValue($data['valeur']);
-            }
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+		$champLibre
+			->setLabel($data['label'])
+			->setCategorieCL($categorieCL)
+			->setRequiredCreate($data['requiredCreate'])
+			->setRequiredEdit($data['requiredEdit'])
+			->setTypage($data['typage']);
+		if (in_array($champLibre->getTypage(), [ChampLibre::TYPE_LIST, ChampLibre::TYPE_LIST_MULTIPLE])) {
+			$champLibre
+				->setElements(array_filter(explode(';', $data['elem'])))
+				->setDefaultValue(null);
+		} else {
+			$champLibre
+				->setElements(null)
+				->setDefaultValue($data['valeur']);
+		}
+		$em = $this->getDoctrine()->getManager();
+		$em->flush();
 
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException('404');
+		return new JsonResponse();
     }
 
     /**
-     * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibre = $this->champLibreRepository->find($data['champLibre']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($champLibre);
-            $entityManager->flush();
+        $data = json_decode($request->getContent(), true);
 
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException('404');
+		$champLibre = $this->champLibreRepository->find($data['champLibre']);
+		$entityManager = $this->getDoctrine()->getManager();
+		$entityManager->remove($champLibre);
+		$entityManager->flush();
+
+		return new JsonResponse();
     }
 
     /**

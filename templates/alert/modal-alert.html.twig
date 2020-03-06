@@ -1,0 +1,38 @@
+
+{# Alert modal #}
+<div class="modal fade bg-grey-transparent"
+     id="alert-modal"
+     tabindex="-1"
+     role="dialog"
+     data-backdrop="false"
+     data-keyboard="false"
+     aria-labelledby="alert-modal-title"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alert-modal-title"></h5>
+            </div>
+            <div class="modal-body">
+                <div class="modal-body-wrapper">
+                    <div class="modal-body-icon">
+                        {% include 'alert/success-bookmark.html.twig' %}
+                        {% include 'alert/warning-bookmark.html.twig' %}
+                        {% include 'alert/error-bookmark.html.twig' %}
+                    </div>
+                    <div class="modal-body-main"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <div class="modal-footer-wrapper"></div>
+
+                <div class="d-none justify-content-center spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

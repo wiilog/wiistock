@@ -26,6 +26,9 @@ const STATUT_EN_TRANSIT = 'en transit';
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 
+// alert modals config
+const AUTO_HIDE_DEFAULT_DELAY = 2000;
+
 $.fn.dataTable.ext.errMode = () => {
     alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
 };
@@ -55,6 +58,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
+
     let inputsArray = modal.find(".data-array");
     let Data = {};
     let missingInputs = [];
@@ -62,13 +66,14 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     let passwordIsValid = true;
     let barcodeIsInvalid = false;
     let name;
-    let datesToCheck = [];
+    let datesToCheck = {};
     let vals = [];
     inputsArray.each(function () {
         name = $(this).attr("name");
         vals.push($(this).val());
         Data[name] = vals;
     });
+
     inputs.each(function () {
         let $input = $(this);
         let val = $input.val();
@@ -160,7 +165,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     modal.find(".elem").remove();
 
     // validation valeur des inputs datetimepicker - part 2/2
-    let datesAreValid = datesToCheck.length === 0 || moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'));
+    let datesAreValid = (
+        !datesToCheck.first ||
+        !datesToCheck.last ||
+        moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'))
+    );
 
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
@@ -194,7 +203,6 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         }, 'json');
 
     } else {
-
         // ... sinon on construit les messages d'erreur
         let msg = '';
 
@@ -493,40 +501,28 @@ function initFilterDateToday() {
     }
 }
 
-function initSelect2(select, placeholder = '', lengthMin = 0) {
-    let isMultiple = $(select).attr('multiple') === 'multiple';
-
-    $(select).select2({
-        language: {
-            inputTooShort: function () {
-                let s = lengthMin > 1 ? 's' : '';
-                return 'Veuillez entrer au moins ' + lengthMin + ' caractère' + s + '.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: lengthMin,
-        placeholder: {
-            id: 0,
-            text: placeholder,
-        },
-        allowClear: !isMultiple
-    });
-}
-
-function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder = '') {
+/**
+ *
+ * @param $select
+ * @param {{}|{route: string, param: {}|undefined}} ajaxOption
+ * @param lengthMin
+ * @param placeholder
+ */
+function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOption = {}) {
     $select.each(function () {
-        let isMultiple = $(this).attr('multiple') === 'multiple';
-        $(this).select2({
-            ajax: {
-                url: Routing.generate(route, params, true),
-                dataType: 'json',
-                delay: 250,
-            },
+        const $item = $(this);
+        let isMultiple = $item.attr('multiple') === 'multiple';
+        const ajaxOptions = ajaxOption && ajaxOption.route
+            ? {
+                ajax: {
+                    url: Routing.generate(ajaxOption.route, ajaxOption.param || {}, true),
+                    dataType: 'json',
+                    delay: 250,
+                }
+            }
+            : {};
+        $item.select2({
+            ...ajaxOptions,
             language: {
                 inputTooShort: function () {
                     let s = lengthMin > 1 ? 's' : '';
@@ -541,6 +537,7 @@ function initSelect2Ajax($select, route, lengthMin = 1, params = {}, placeholder
             },
             minimumInputLength: lengthMin,
             placeholder: {
+                id: 0,
                 text: placeholder,
             },
             allowClear: !isMultiple
@@ -570,48 +567,44 @@ function initDisplaySelect2Multiple(select, inputValues) {
 }
 
 function ajaxAutoCompleteEmplacementInit(select) {
-    initSelect2Ajax(select, 'get_emplacement');
+    initSelect2(select, '', 1, {route: 'get_emplacement'});
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
-    initSelect2Ajax(select, 'get_transporteurs');
+    initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
 function ajaxAutoRefArticleInit(select, typeQuantity = null) {
-    initSelect2Ajax(select, 'get_ref_articles', 1, {activeOnly: 1, typeQuantity});
+    initSelect2(select, '', 1, {route: 'get_ref_articles', param: {activeOnly: 1, typeQuantity}});
 };
 
 function ajaxAutoArticlesInit(select) {
-    initSelect2Ajax(select, 'get_articles', {activeOnly: 1});
+    initSelect2(select, '', 1, {route: 'get_articles', param: {activeOnly: 1}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
     let reception = receptionId ? receptionId : $('#receptionId').val();
-    initSelect2Ajax(select, 'get_article_reception', 0, {reception: reception});
+    initSelect2(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
 }
 
 function ajaxAutoFournisseurInit(select, placeholder = '') {
-    initSelect2Ajax(select, 'get_fournisseur', 1, {}, placeholder);
+    initSelect2(select, placeholder, 1, {route: 'get_fournisseur'});
 }
 
 function ajaxAutoChauffeurInit(select) {
-    initSelect2Ajax(select, 'get_chauffeur')
+    initSelect2(select, '', 1, {route: 'get_chauffeur'});
 }
 
 function ajaxAutoUserInit(select, placeholder = '') {
-    initSelect2Ajax(select, 'get_user', 1, {}, placeholder);
+    initSelect2(select, placeholder, 1, {route: 'get_user'});
 }
 
-// function ajaxAutoArticleFournisseurByRefInit(ref, select, placeholder = '') {
-//     initSelect2Ajax(select, 'get_article_fournisseur_autocomplete', 0, {referenceArticle: ref}, placeholder);
-// }
-
 function ajaxAutoDemandCollectInit(select) {
-    initSelect2Ajax(select, 'get_demand_collect', 3, {}, 'Numéro demande');
+    initSelect2(select, 'Numéro demande', 3, {route: 'get_demand_collect'});
 }
 
 function ajaxAutoDemandesInit(select) {
-    initSelect2Ajax(select, 'get_demandes', 3, {}, 'Numéro demande');
+    initSelect2(select, 'Numéro demande', 3, {route: 'get_demandes'});
 }
 
 let toggleRequiredChampsLibres = function (select, require) {
@@ -668,7 +661,11 @@ function clearModal(modal) {
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            $(this).val("");
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init'));
+            } else {
+                $(this).val("");
+            }
         }
         if ($(this).attr('id') === 'statut') {
             $(this).val($(this).parent().find('span.active').data('title'));
@@ -681,20 +678,24 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).val(null).trigger('change');
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init')).trigger('change');
+            } else {
+                $(this).val(null).trigger('change');
+            }
         }
     });
-    let dataArrays = $modal
-        .find('.modal-body')
-        .find('.data-array');
-    dataArrays.each(function() {
-        if ($(this).data('init') !== undefined) {
-            $(this).val($(this).data('init'));
-        }
-    });
+    // let dataArrays = $modal
+    //     .find('.modal-body')
+    //     .find('.data-array');
+    // dataArrays.each(function() {
+    //     if ($(this).data('init') !== undefined) {
+    //         $(this).val($(this).data('init'));
+    //     }
+    // });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
@@ -711,9 +712,13 @@ function clearCheckboxes($modal) {
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).prop('checked', false);
-            $(this).removeClass('active');
-            $(this).addClass('not-active');
+            if ($(this).hasClass('needs-default')) {
+                $(this).prop('checked', $(this).data('init'));
+            } else {
+                $(this).prop('checked', false);
+                $(this).removeClass('active');
+                $(this).addClass('not-active');
+            }
         }
     });
 }
@@ -726,7 +731,7 @@ function alertErrorMsg(data, remove = false) {
             .css('display', 'block')
             .css('opacity', '1');
 
-        if (remove == true) {
+        if (remove) {
             $alertDanger.delay(2000).fadeOut(2000);
         }
         $alertDanger.find('.error-msg').html(data);
@@ -827,15 +832,19 @@ function saveFilters(page, tableSelector, callback) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
 
-    $.post(path, JSON.stringify(params), function () {
-        if (callback) {
-            callback();
-        }
-        if (tableSelector) {
-            const $table = $(tableSelector);
-            if ($table && $table.DataTable) {
-                $table.DataTable().draw();
+    $.post(path, JSON.stringify(params), function (response) {
+        if (response) {
+            if (callback) {
+                callback();
             }
+            if (tableSelector) {
+                const $table = $(tableSelector);
+                if ($table && $table.DataTable) {
+                    $table.DataTable().draw();
+                }
+            }
+        } else {
+            alertErrorMsg('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', true);
         }
     }, 'json');
 }
@@ -1124,7 +1133,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
         }
     };
     if (minDate) {
-        options.minDate = moment().hours(0).minutes(0);
+        options.minDate = moment().hours(0).minutes(0).seconds(0);
     } if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
     }
@@ -1267,6 +1276,30 @@ function displayFiltersSup(data) {
     });
 }
 
+/**
+ * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
+ */
+function renderMillisecondsToDelayDatatable(milliseconds, type) {
+    let res;
+
+    if (type === 'display') {
+        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
+        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
+        res = (
+                (hours > 0)
+                    ? `${hours < 10 ? '0' : ''}${hours} h `
+                    : '') +
+            ((minutes === 0 && hours < 1)
+                ? '< 1 min'
+                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
+    }
+    else {
+        res = milliseconds;
+    }
+
+    return res;
+}
+
 function extendsDateSort(name) {
     $.extend($.fn.dataTableExt.oSort, {
         [name + "-pre"]: function (date) {
@@ -1297,4 +1330,93 @@ function hideColumns(table, data) {
     data.forEach(function (col) {
         table.column(col + ':name').visible(false);
     })
+}
+
+/**
+ *
+ * @param {string|undefined} title
+ * @param $body jQuery object
+ * @param {array} buttonConfig array of html config
+ * @param {'success'|'warning'|'error'|undefined} iconType
+ * @param {boolean} autoHide delay in milliseconds
+ */
+function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
+    const $alertModal = $('#alert-modal');
+    hideSpinner($alertModal.find('.modal-footer .spinner'));
+    $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
+
+    // set title
+    const $modalHeader = $alertModal.find('.modal-header');
+    const $modalTitle = $modalHeader.find('.modal-title');
+
+    if (title) {
+        $modalHeader.removeClass('d-none');
+        $modalTitle .text(title);
+    }
+    else {
+        $modalHeader.addClass('d-none');
+        $modalTitle.empty();
+    }
+
+    const $modalBody = $alertModal.find('.modal-body');
+    $modalBody
+        .find('.bookmark-icon')
+        .addClass('d-none')
+        .removeClass('d-flex');
+
+    // we display requested icon
+    if (iconType) {
+        $modalBody
+            .find(`.bookmark-icon.bookmark-${iconType}`)
+            .removeClass('d-none')
+            .addClass('d-flex');
+    }
+
+    $modalBody
+        .find('.modal-body-main')
+        .html($body);
+
+    // set buttons
+    const $modalFooter = $alertModal.find('.modal-footer > .modal-footer-wrapper');
+    if (buttonConfig && buttonConfig.length > 0) {
+        $modalFooter.removeClass('d-none');
+        const $wrapper = $('<div/>', {class: 'row justify-content-center'}).prepend(
+            ...buttonConfig.map(({action, ...config}) => {
+                return $('<div/>', {class: 'col-auto'}).append($('<button/>', {
+                    ...config,
+                    ...(action
+                        ? {
+                            click: () => {
+                                action($alertModal)
+                            }
+                        }
+                        : {})
+                }));
+            })
+        );
+        $modalFooter.html($wrapper);
+    }
+    else {
+        $modalFooter.addClass('d-none');
+        $modalFooter.empty();
+    }
+
+    if (autoHide) {
+        setTimeout(() => {
+            if ($alertModal.hasClass('show')) {
+                $modalFooter.find('.btn-action-on-hide').trigger('click');
+                $alertModal.modal('hide');
+            }
+        }, AUTO_HIDE_DEFAULT_DELAY)
+    }
+
+    $alertModal.modal('show');
+}
+
+function initOnTheFlyCopies($elems) {
+    $elems.each(function() {
+        $(this).keyup(function() {
+            $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
+        })
+    });
 }

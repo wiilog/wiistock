@@ -6,6 +6,7 @@ use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -21,6 +22,8 @@ class LitigeRepository extends ServiceEntityRepository
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
 		'receptionNumber' => 'numeroReception',
+		'provider' => 'provider',
+		'numCommandeBl' => 'numCommandeBl',
 		'buyers' => 'acheteurs',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
@@ -136,22 +139,48 @@ class LitigeRepository extends ServiceEntityRepository
 	 * @param DateTime $dateMax
 	 * @return Litige[]|null
 	 */
-	public function findByDates($dateMin, $dateMax)
+	public function findArrivalsLitigeByDates(DateTime $dateMin, DateTime $dateMax)
 	{
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
-
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			'SELECT l
-            FROM App\Entity\Litige l
-            WHERE l.creationDate BETWEEN :dateMin AND :dateMax'
-		)->setParameters([
-			'dateMin' => $dateMin,
-			'dateMax' => $dateMax
-		]);
+		$query = $this
+            ->createQueryBuilderByDates($dateMin, $dateMax)
+            ->join('litige.colis', 'colis')
+            ->join('colis.arrivage', 'arrivage')
+            ->getQuery();
 		return $query->execute();
+	}
+
+	/**
+	 * @param DateTime $dateMin
+	 * @param DateTime $dateMax
+	 * @return Litige[]|null
+	 */
+	public function findReceptionLitigeByDates(DateTime $dateMin, DateTime $dateMax)
+	{
+		$query = $this
+            ->createQueryBuilderByDates($dateMin, $dateMax)
+            ->join('litige.articles', 'article')
+            ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
+            ->join('receptionReferenceArticle.reception', 'reception')
+            ->getQuery();
+		return $query->execute();
+	}
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return QueryBuilder
+     */
+	public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder('litige');
+        $exprBuilder = $queryBuilder->expr();
+
+        return $queryBuilder
+            ->distinct()
+            ->where($exprBuilder->between('litige.creationDate', ':dateMin', ':dateMax'))
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
 	}
 
     public function findByArrivage($arrivage)
@@ -215,13 +244,17 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
+			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.reception', 'r')
 			->addSelect('r.numeroReception')
 			->addSelect('r.id as receptionId')
-		;
+			->leftJoin('r.fournisseur', 'rFourn')
+			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
+			->addSelect('(CASE WHEN a.numeroBL IS NOT NULL THEN a.numeroBL ELSE r.reference END) as numCommandeBl');
+
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -296,7 +329,9 @@ class LitigeRepository extends ServiceEntityRepository
 						r.numeroReception LIKE :value OR
 						ach.username LIKE :value OR
 						s.nom LIKE :value OR
-						lh.comment LIKE :value
+						lh.comment LIKE :value OR
+						aFourn.nom LIKE :value OR
+						rFourn.nom LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -324,6 +359,12 @@ class LitigeRepository extends ServiceEntityRepository
                         } else if ($column === 'numeroReception') {
                             $qb
                                 ->addOrderBy('r.numeroReception', $order);
+                        } else if ($column === 'provider') {
+                            $qb
+                                ->addOrderBy('provider', $order);
+                        } else if ($column === 'numCommandeBl') {
+                            $qb
+                                ->addOrderBy('r.reference', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);
@@ -346,5 +387,44 @@ class LitigeRepository extends ServiceEntityRepository
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
+	}
+
+	/**
+	 * @param int $litigeId
+	 * @return string[]
+	 */
+	public function getCommandesByLitigeId(int $litigeId) {
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			"SELECT rra.commande
+			FROM App\Entity\ReceptionReferenceArticle rra
+			JOIN rra.articles a
+			JOIN a.litiges l
+            WHERE l.id = :litigeId")
+			->setParameter('litigeId', $litigeId);
+
+		$result = $query->execute();
+		return array_column($result, 'commande');
+	}
+
+	/**
+	 * @param int $litigeId
+	 * @return string[]
+	 */
+	public function getReferencesByLitigeId(int $litigeId) {
+		$em = $this->getEntityManager();
+
+		$query = $em->createQuery(
+			"SELECT ra.reference
+			FROM App\Entity\ReceptionReferenceArticle rra
+			JOIN rra.articles a
+			JOIN rra.referenceArticle ra
+			JOIN a.litiges l
+            WHERE l.id = :litigeId")
+			->setParameter('litigeId', $litigeId);
+
+		$result = $query->execute();
+		return array_column($result, 'reference');
 	}
 }

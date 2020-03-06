@@ -4,8 +4,9 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    initSelect2('#statut', 'Statut');
-    initSelect2('#carriers', 'Transporteurs');
+    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#carriers'), 'Transporteurs');
+    initOnTheFlyCopies($('.copyOnTheFly'));
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -54,8 +55,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
         {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'Destinataire'},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': 'Acheteurs'},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
+        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
@@ -72,6 +73,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
     headerCallback: function(thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
+        $(thead).find('th').eq(8).attr('title', "destinataire");
+        $(thead).find('th').eq(9).attr('title', "acheteurs");
     },
     "rowCallback" : function(row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
@@ -110,34 +113,14 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, createCallback, redirectAfterArrival === 1);
-
-function createCallback(response) {
-    alertSuccessMsg('Votre arrivage a bien été créé.');
-    if (!response.redirect) {
-        $modalNewArrivage.find('.champsLibresBlock').html(response.champsLibresBlock);
-        $('.list-multiple').select2();
-        $modalNewArrivage.find('#statut').val(response.statutConformeId);
-        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
-        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
-    }
-    if (response.printColis) {
-        let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: response.arrivageId }, true);
-        window.open(path, '_blank');
-    }
-    if (response.printArrivage) {
-        setTimeout(function() {
-            let path = Routing.generate('print_arrivage_bar_code', { arrivage: response.arrivageId }, true);
-            window.open(path, '_blank');
-        }, 500);
-    }
-}
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, (params) => arrivalCallback(true, params), redirectAfterArrival === 1);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
+    clearModal($modal);
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
@@ -146,10 +129,9 @@ function initNewArrivageEditor(modal) {
         quillNew = initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    ajaxAutoFournisseurInit($modal.find('.ajax-autocomplete-fournisseur'));
-    ajaxAutoUserInit($modal.find('.ajax-autocomplete-user'));
-    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
-    ajaxAutoChauffeurInit($modal.find('.ajax-autocomplete-chauffeur'));
+    initSelect2($modal.find('.ajax-autocomplete-fournisseur'));
+    initSelect2($modal.find('.ajax-autocomplete-transporteur'));
+    initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
+    initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
 }
-

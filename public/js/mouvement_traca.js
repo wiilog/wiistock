@@ -2,8 +2,8 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker();
-    initSelect2('#statut', 'Type');
-    initSelect2('#emplacement', 'Emplacement');
+    initSelect2($('#statut'), 'Type');
+    initSelect2($('#emplacement'), 'Emplacement');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -23,7 +23,7 @@ let tableMvt = $('#tableMvts').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[1, "desc"]],
+    order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
@@ -33,6 +33,7 @@ let tableMvt = $('#tableMvts').DataTable({
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
@@ -42,7 +43,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: 0
+            targets: [0, 1]
         }
     ],
     headerCallback: function(thead) {
@@ -78,8 +79,28 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, (response) => {
-    alertSuccessMsg('Mouvements bien crées.');
+initModalWithAttachments(modalNewMvtTraca, submitNewMvtTraca, urlNewMvtTraca, tableMvt, ({success, mouvementTracaCounter}) => {
+    displayAlertModal(
+        undefined,
+        $('<div/>', {
+            class: 'text-center',
+            text: mouvementTracaCounter > 0
+                ? (mouvementTracaCounter > 1
+                    ? 'Mouvements créés avec succès.'
+                    : 'Mouvement créé avec succès.')
+                : 'Aucun mouvement créé.'
+        }),
+        [
+            {
+                class: 'btn btn-success m-0',
+                text: 'Continuer',
+                action: ($modal) => {
+                    $modal.modal('hide')
+                }
+            }
+        ],
+        success ? 'success' : 'error'
+    );
 }, Number($('#redirectAfterTrackingMovementCreation').val()));
 
 let modalEditMvtTraca = $("#modalEditMvtTraca");

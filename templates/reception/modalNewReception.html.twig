@@ -62,7 +62,7 @@
 
                 <div class="row fly-form">
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
-                        <div class="form-group w-100 col-5">
+                        <div class="form-group w-100 col">
                             <label
                                 for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
@@ -70,15 +70,17 @@
                                 name="fournisseur" id="fournisseur">
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                            <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
-                                <i class="fa fa-plus"></i>
-                            </span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary" onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                            </div>
+                        {% endif %}
                     {% endif %}
 
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
-                        <div class="form-group w-100 col-5">
+                        <div class="form-group w-100 col">
                             <label
                                 for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
                             <select
@@ -86,47 +88,52 @@
                                 name="transporteur" id="transporteur">
                             </select>
                         </div>
-                        <div class="form-group col-1 toggle-button-container">
-                            <span class="btn btn-primary"
-                                  onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')"><i
-                                    class="fa fa-plus"></i></span>
-                        </div>
+                        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary"
+                                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                                    <i class="fa fa-plus"></i></span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
-                <div class="row new-on-fly-form-container">
-                    <div class="row col-6 formulaire fly-form">
-                        <div class="form-group col-10 invisible" id="fournisseurDisplay">
-                            <label for="newFournisseur">Nom*</label>
-                            <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
-                                   name="Nom" maxlength="64">
-                            <label for="newFournisseurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
-                                   name="Code" maxlength="64">
+
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                    <div class="row new-on-fly-form-container">
+                        <div class="row col-6 formulaire fly-form">
+                            <div class="form-group col-10 invisible" id="fournisseurDisplay">
+                                <label for="newFournisseur">Nom*</label>
+                                <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly"
+                                       name="Nom" maxlength="64">
+                                <label for="newFournisseurCode" class="mt-2">Code*</label>
+                                <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
+                                       name="Code" maxlength="64">
+                            </div>
+                            <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
+                                <span class="btn btn-success"
+                                      onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            </div>
                         </div>
-                        <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
-                            <span class="btn btn-success"
-                                  onclick="onFlyFormSubmit(Routing.generate('fournisseur_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
+                        <div class="row col-6 formulaire fly-form">
+                            <div class="form-group col-10 invisible" id="transporteurDisplay">
+                                <label for="newTransporteur">Nom*</label>
+                                <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly"
+                                       name="label" maxlength="64">
+                                <label for="newTransporteurCode" class="mt-2">Code*</label>
+                                <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
+                                       name="code" maxlength="64">
+                            </div>
+                            <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
+                                <span class="btn btn-success"
+                                      onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div class="row col-6 formulaire fly-form">
-                        <div class="form-group col-10 invisible" id="transporteurDisplay">
-                            <label for="newTransporteur">Nom*</label>
-                            <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
-                                   name="label" maxlength="64">
-                            <label for="newTransporteurCode" class="mt-2">Code*</label>
-                            <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
-                                   name="code" maxlength="64">
-                        </div>
-                        <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
-                            <span class="btn btn-success"
-                                  onclick="onFlyFormSubmit(Routing.generate('transporteur_new', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
 
                 {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
                     <div class="form-group">
@@ -158,14 +165,16 @@
                                             </label>
 
                                             {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                                <input type="checkbox" class="data checkbox"
+                                                <input type="checkbox" class="data checkbox needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : " " }}"
                                                        name="{{ champLibre.id }}" id="">
 
 
                                             {% elseif  champLibre.typage == 'number' %}
                                                 <input type="number"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
                                                        name="{{ champLibre.id }}" id="">
 
@@ -179,6 +188,7 @@
                                                         <option value="{{ elem }}">{{ elem }}</option>
                                                     {% endfor %}
                                                 </select>
+
                                             {% elseif champLibre.typage == 'list multiple' %}
                                                 <select id="{{ champLibre.id ~ 'create' }}"
                                                         class="w-100 form-control data list-multiple  {{ champLibre.requiredCreate ? 'needed' : '' }}"
@@ -187,24 +197,29 @@
                                                         <option value="{{ elem }}">{{ elem }}</option>
                                                     {% endfor %}
                                                 </select>
+
                                             {% elseif champLibre.typage == 'text' %}
                                                 <input type="text" id="{{ champLibre.label ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
                                                        name="{{ champLibre.id }}" id="input">
 
                                             {% elseif champLibre.typage == 'date' %}
                                                 <input
                                                     type="text"
-                                                    class="form-control data date-cl {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                    class="form-control data date-cl {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                    data-init="{{ champLibre.defaultValue }}"
                                                     name="{{ champLibre.id }}"
                                                     id="{{ champLibre.label ~ 'edit' }}"
                                                     placeholder="jj/mm/aaaa"
                                                     value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
+
                                             {% elseif champLibre.typage == 'datetime' %}
                                                 <input type="datetime-local" name="{{ champLibre.id }}"
                                                        id="{{ champLibre.id ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
 
                                             {% else %}

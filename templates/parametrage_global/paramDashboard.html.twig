@@ -33,7 +33,7 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationToTreat" class="d-block">Emplacement quai</label>
+                        <label for="locationToTreat" class="d-block">Emplacement : Colis restant à traiter</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationToTreat" multiple>
                         </select>
                     </div>
@@ -44,7 +44,7 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationWaitingDock" class="d-block">Emplacement en attente de dédouanement</label>
+                        <label for="locationWaitingDock" class="d-block">Emplacement : Colis en attente dédouanement</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationWaitingDock" multiple>
                         </select>
                     </div>
@@ -55,7 +55,7 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationAvailable" class="d-block">Emplacement colis dédouanés et disponibles</label>
+                        <label for="locationAvailable" class="d-block">Emplacement : Colis dédouanés et dispo</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationAvailable" multiple>
                         </select>
                     </div>
@@ -66,13 +66,19 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationDropZone" class="d-block">Emplacement à distribuer en Drop Zones</label>
+                        <label for="locationDropZone" class="d-block">Emplacement : Colis à déposer en Drop Zones</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationDropZone" multiple>
                         </select>
                     </div>
                 </div>
                 {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES')] %}
                 <input hidden id="locationDropZoneValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            </div>
+            <div class="form-group">
+                <a href="{{ path('dashboard_ext', { 'page': 'quai', 'token': dashboardToken}) }}" target="_blank" class="btn btn-primary border-radius-light">
+                    Dashboard réception quai
+                    <i class="fas fa-share-square mr-2"></i>
+                </a>
             </div>
         </div>
 
@@ -100,18 +106,18 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationWaitingAdmin" class="d-block">Emplacement en attente de dédouanement</label>
-                        <select class="form-control ajax-autocomplete-location d-block data" id="locationWaitingAdmin" multiple>
+                        <label for="locationUrgences" class="d-block">Emplacement : Urgences restantes à traiter</label>
+                        <select class="form-control ajax-autocomplete-location d-block data" id="locationUrgences" multiple>
                         </select>
                     </div>
                 </div>
-                {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN')] %}
-                <input hidden id="locationWaitingAdminValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+                {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_URGENCES')] %}
+                <input hidden id="locationUrgencesValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
             </div>
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationLitiges" class="d-block">Emplacement litiges</label>
+                        <label for="locationLitiges" class="d-block">Emplacement : Lignes en litiges</label>
                         <select class="form-control ajax-autocomplete-location d-block data" id="locationLitiges" multiple>
                         </select>
                     </div>
@@ -122,13 +128,13 @@
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
                     <div class="w-100">
-                        <label for="locationUrgences" class="d-block">Emplacement urgences</label>
-                        <select class="form-control ajax-autocomplete-location d-block data" id="locationUrgences" multiple>
+                        <label for="locationWaitingAdmin" class="d-block">Emplacement : Colis en attente de dédouanement</label>
+                        <select class="form-control ajax-autocomplete-location d-block data" id="locationWaitingAdmin" multiple>
                         </select>
                     </div>
                 </div>
-                {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_URGENCES')] %}
-                <input hidden id="locationUrgencesValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+                {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN')] %}
+                <input hidden id="locationWaitingAdminValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
             </div>
             <div class="form-group w-fit-content">
                 <div class="form-group w-450px">
@@ -151,6 +157,12 @@
                 </div>
                 {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_LOCATIONS_2')] %}
                 <input hidden id="locationsSecondGraphValue" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            </div>
+            <div class="form-group">
+                <a href="{{ path('dashboard_ext', { 'page': 'admin', 'token': dashboardToken}) }}" target="_blank" class="btn btn-primary border-radius-light">
+                    Dashboard réception administrative
+                    <i class="fas fa-share-square mr-2"></i>
+                </a>
             </div>
         </div>
     </div>

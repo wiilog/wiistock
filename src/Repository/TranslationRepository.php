@@ -67,6 +67,7 @@ class TranslationRepository extends ServiceEntityRepository
 	 * @param string $menu
 	 * @param string $label
 	 * @return mixed
+	 * @throws NonUniqueResultException
 	 */
 	public function getTranslationByMenuAndLabel($menu, $label)
 	{
@@ -81,7 +82,8 @@ class TranslationRepository extends ServiceEntityRepository
 			'label' => $label
 		]);
 
-		return array_column($query->execute(), 'translation');
+		$result = $query->getOneOrNullResult();
+		return $result ? $result['translation'] : null;
 	}
 
 }

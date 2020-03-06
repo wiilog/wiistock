@@ -1,5 +1,7 @@
 $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initPage();
     initDateTimePicker('#dateMin, #dateMax');
     initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
@@ -27,11 +29,16 @@ function initPage() {
         },
         order: [[1, "desc"]],
         columns:[
-            { "data": 'actions', 'title': 'Actions' },
-            { "data": 'start', 'name' : 'start','title' : $('#dateBeginTranslation').val() },
+            { "data": 'actions', 'title': 'Actions', 'orderable': false },
+            { "data": 'start', 'name' : 'start', 'title' : $('#dateBeginTranslation').val() },
             { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
             { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
+            { "data": 'postNb', 'name' : 'postNb', 'title' : 'N° poste' },
             { "data": 'buyer', 'name' : 'buyer', 'title' : $('#buyerTranslation').val() },
+            { "data": 'provider', 'name' : 'provider', 'title' : 'Fournisseur' },
+            { "data": 'carrier', 'name' : 'carrier', 'title' : 'Transporteur' },
+            { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
+            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val() },
         ],
         drawCallback: function() {
             overrideSearch($('#tableUrgences_filter input'), tableUrgence);
@@ -40,13 +47,10 @@ function initPage() {
             $(thead).find('th').eq(1).attr('title', "date de début");
             $(thead).find('th').eq(2).attr('title', "date de fin");
             $(thead).find('th').eq(3).attr('title', "numéro de commande");
-            $(thead).find('th').eq(4).attr('title', "acheteur");
+            $(thead).find('th').eq(5).attr('title', "acheteur");
+            $(thead).find('th').eq(9).attr('title', "arrivage");
         },
         columnDefs: [
-            {
-                "orderable" : false,
-                "targets" : [0, 4]
-            },
             {
                 "type": "customDate",
                 "targets": [1, 2]
@@ -57,7 +61,7 @@ function initPage() {
     let modalNewUrgence = $('#modalNewUrgence');
     let submitNewUrgence = $('#submitNewUrgence');
     let urlNewUrgence = Routing.generate('urgence_new');
-    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence);
+    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalNewUrgence, true), false, false);
 
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
@@ -67,11 +71,12 @@ function initPage() {
     let modalModifyUrgence = $('#modalEditUrgence');
     let submitModifyUrgence = $('#submitEditUrgence');
     let urlModifyUrgence = Routing.generate('urgence_edit', true);
-    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence);
+    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalModifyUrgence), false, false);
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
-    initDateTimePicker('#modalEditUrgence .datepicker', 'DD/MM/YYYY HH:mm');
+    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
+    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
     let dateStart = $dateStartInput.data('date');
 
@@ -82,10 +87,29 @@ function callbackEditFormLoading($modal, buyerId, buyerName) {
     $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
 
     ajaxAutoUserInit($modal.find('.ajax-autocomplete-user'));
+    ajaxAutoFournisseurInit($modal.find('.ajax-autocomplete-fournisseur'));
+    ajaxAutoCompleteTransporteurInit($modal.find('.ajax-autocomplete-transporteur'));
 
     if (buyerId && buyerName) {
         let option = new Option(buyerName, buyerId, true, true);
         const $selectBuyer = $modal.find('.ajax-autocomplete-user[name="acheteur"]');
         $selectBuyer.append(option).trigger('change');
+    }
+}
+
+function callbackUrgenceAction({success, message}, $modal = undefined, resetDate = false) {
+    if (success) {
+        alertSuccessMsg(message, true);
+        if ($modal) {
+            clearModal($modal);
+            if (resetDate) {
+                $('#dateStart').val(moment().hours(0).minutes(0).format('DD/MM/YYYY HH:mm'));
+                $('#dateEnd').val(moment().hours(23).minutes(59).format('DD/MM/YYYY HH:mm'));
+            }
+            $modal.modal('hide');
+        }
+    }
+    else {
+        alertErrorMsg(message, true);
     }
 }

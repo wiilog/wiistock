@@ -166,7 +166,7 @@ class MouvementTracaController extends AbstractController
                     $fromNomade,
 			        null,
                     $post->getInt('type'),
-                    $commentaire
+                    ['commentaire' => $commentaire]
                 );
             }
 			else {
@@ -183,7 +183,7 @@ class MouvementTracaController extends AbstractController
                         $fromNomade,
                         true,
                         MouvementTraca::TYPE_PRISE,
-                        $commentaire
+                        ['commentaire' => $commentaire]
                     );
                     $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
                         $colis,
@@ -193,7 +193,7 @@ class MouvementTracaController extends AbstractController
                         $fromNomade,
                         true,
                         MouvementTraca::TYPE_DEPOSE,
-                        $commentaire
+                        ['commentaire' => $commentaire]
                     );
                 }
             }
@@ -213,7 +213,12 @@ class MouvementTracaController extends AbstractController
 
             $em->flush();
 
-			return new JsonResponse(true);
+			$countCreatedMouvements = count($createdMouvements);
+
+			return new JsonResponse([
+			    'success' => $countCreatedMouvements > 0,
+                'mouvementTracaCounter' => $countCreatedMouvements
+            ]);
 		}
 		throw new NotFoundHttpException('404 not found');
 	}

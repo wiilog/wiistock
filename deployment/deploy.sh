@@ -1,56 +1,15 @@
 #!/bin/bash
 source $(dirname "$0")/utils.sh
 
-echo '-> numéro de version web ? (entrée si pas de modif)'
-read versionWeb
-echo '-> numéro de version nomade ? (entrée si pas de modif, = si idem version web)'
-read versionNomade
-
-# mise à jour des numéros de version (si demandé)
-needCommit=false
-
-if [ "$versionWeb" != "" ]; then
-    # mise à jour numéro de version sur template
-    firstLineTwig="{% set version = '$versionWeb' %}"
-    sed -i "1s/.*/$firstLineTwig/" templates/layout.html.twig
-    echo '////////// OK : numéro de version web mis à jour sur le template //////////'
-    needCommit=true
-fi
-
-if [ "$versionNomade" != "" ]; then
-    if [ "$versionNomade" = "=" ]; then
-        versionNomade=$versionWeb
-    fi
-
-    # mise à jour numéro de version sur services.yaml
-    formerNomadeVersionLine="nomade_versions: "
-    newNomadeVersionLine="$formerNomadeVersionLine'>="$versionNomade"'"
-    replaceInFile "$formerNomadeVersionLine" "$newNomadeVersionLine" 'config/services.yaml'
-
-    # mise à jour lien apk sur services.yaml
-    versionNomadeFormatted=${versionNomade//\./-}
-    formerApkLine="nomade_apk: 'http:\/\/wiilog.fr\/dl\/wiistock"
-    newApkLine="$formerApkLine\/app-$versionNomadeFormatted.apk'"
-    replaceInFile "$formerApkLine" "$newApkLine" 'config/services.yaml'
-
-    echo '////////// OK : numéro de version nomade + lien apk mis à jour sur le services.yaml //////////'
-    needCommit=true
-fi
-
-if [ "$needCommit" = true ]; then
-    # commit et push modifs version
-    git add config/services.yaml
-    git add templates/layout.html.twig
-    git commit -m ">>>> VERSION $versionWeb"
-    git push
-    printf "\n////////// OK : commit et push modif version $versionWeb //////////\n"
-fi
+read -p '-> mettre à jour le numéro de version web et le numéro de version mobile'
+echo ''
 
 # actions manuelles : mise à jour jira
-read -p "-> pense à mettre à jour le numéro de version des tâches sur jira !"
+read -p "-> mettre à jour le numéro de version des tâches sur jira !"
 echo ''
+
 # mise à jour branches à déployer
-read -p "-> maintenant mets à jour la branche distante à déployer"
+read -p "-> mettre à jour la branche distante à déployer"
 echo ''
 
 # choix de l'instance
@@ -141,6 +100,7 @@ commandsToRun+=(
     "php bin/console doctrine:migrations:migrate && php bin/console doctrine:schema:update --force § \n////////// OK : migrations de la base effectuées //////////\n § ////////// KO : migrations //////////\n"
     "php bin/console doctrine:fixtures:load --append $fixturesGroups § \n$fixturesMsg\n § ////////// KO : fixtures //////////\n"
     "yarn build § \n////////// OK : yarn encore //////////\n § \n////////// KO : yarn encore //////////\n"
+    "php bin/console app:update:translations § \n////////// OK : config traductions à jour //////////\n § \n////////// KO : config traductions //////////\n"
     "replaceInFile \"APP_ENV\" \"APP_ENV=$env\" \".env\" § \n////////// OK : mise en environnement de $env de l'instance $instance //////////\n § \n////////// KO : mise en environnement de $env de l'instance $instance //////////\n"\
     "php bin/console cache:clear && chmod 777 -R /var/www/$instance/WiiStock/var/cache/ § \n////////// OK : nettoyage du cache //////////\n § \n////////// KO : nettoyage du cache //////////\n"
 )

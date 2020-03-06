@@ -1,27 +1,78 @@
-<div class="form-group">
-    <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans|capitalize }}*</label>
-    <input type="text"
-           class="form-control cursor-default data needed datepicker dateStart"
-           name="dateStart"
-           data-date="{{ urgence.dateStart|date('Y-m-d H:i') }}">
+<div class="row">
+    <div class="col-6">
+        <div class="form-group">
+            <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans|capitalize }}*</label>
+            <input type="text"
+                   class="form-control cursor-default data needed datepicker dateStart"
+                   name="dateStart"
+                   data-date="{{ urgence.dateStart|date('Y-m-d H:i') }}">
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="form-group">
+            <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans|capitalize }}*</label>
+            <input type="text"
+                   class="form-control cursor-default data needed datepicker dateEnd"
+                   name="dateEnd"
+                   data-date="{{ urgence.dateEnd|date('Y-m-d H:i') }}">
+        </div>
+    </div>
 </div>
 
-<div class="form-group">
-    <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans|capitalize }}*</label>
-    <input type="text"
-           class="form-control cursor-default data needed datepicker dateEnd"
-           name="dateEnd"
-           data-date="{{ urgence.dateEnd|date('Y-m-d H:i') }}">
+<div class="row">
+    <div class="col-6">
+        <div class="form-group needed">
+            <label for="source" title="numéro de commande">{{ 'urgences.numéro de commande'|trans|capitalize }}*</label>
+            <input class="form-control data needed" name="commande" value="{{ urgence.commande }}">
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="form-group">
+            <label for="postNb">Numéro de poste*</label>
+            <input type="text" class="form-control data needed" name="postNb" value="{{ urgence.postNb }}">
+        </div>
+    </div>
 </div>
 
-<div class="form-group needed">
-    <label for="source" title="numéro de commande">{{ 'urgences.numéro de commande'|trans|capitalize }}*</label>
-    <input class="form-control data needed" name="commande" value="{{ urgence.commande }}">
+<div class="row">
+    <div class="col-6">
+        <div class="form-group">
+            <label for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans }}*</label>
+            <select name="acheteur"
+                    class="form-control input-sm ajax-autocomplete-user data needed ajax-autocomplete w-100">
+                <option value="{{ urgence.buyer ? urgence.buyer.id }}">{{ urgence.buyer ? urgence.buyer.username }}</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="form-group">
+            <label>Fournisseur*</label>
+            <select name="provider"
+                    class="form-control input-sm ajax-autocomplete-fournisseur data needed ajax-autocomplete w-100">
+                <option value="{{ urgence.provider ? urgence.provider.id }}">{{ urgence.provider ? urgence.provider.nom }}</option>
+            </select>
+        </div>
+    </div>
 </div>
 
-<div class="form-group">
-    <label for="acheteur" title="acheteur">{{ 'urgences.acheteur'|trans|capitalize }}</label>
-    <select name="acheteur"
-            class="form-control input-sm ajax-autocomplete-user data ajax-autocomplete w-100">
-    </select>
+<div class="row">
+    <div class="col-6">
+        <div class="form-group">
+            <label>Transporteur*</label>
+            <select name="carrier"
+                    class="form-control input-sm ajax-autocomplete-transporteur data needed ajax-autocomplete w-100">
+                <option value="{{ urgence.carrier ? urgence.carrier.id }}">{{ urgence.carrier ? urgence.carrier.label }}</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="form-group">
+            <label for="provider">Numéro tracking transporteur</label>
+            <input type="text" class="form-control data" name="trackingNb" value="{{ urgence.trackingNb }}">
+        </div>
+    </div>
 </div>

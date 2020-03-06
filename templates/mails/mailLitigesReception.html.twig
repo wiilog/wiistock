@@ -11,23 +11,36 @@
         <tr>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° de réception</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Fournisseur</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° ligne</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Référence</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Article</th>
         </tr>
     </thead>
     <tbody>
         {% for litige in litiges %}
             <tr>
-                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
+                {% set firstArticle = litige.articles|first %}
+                {% set firstReceptionReferenceArticle = firstArticle.receptionReferenceArticle %}
+                {% set reception = firstArticle.receptionReferenceArticle.reception %}
 
-                {% set firstColis = litige.articles|first %}
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.reception.numeroReception }}</td>
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.barcode }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.type ? litige.type.label }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.numeroReception }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.reference }}</td>
+                <td class="td" rowspan="{{ litige.articles|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.fournisseur ? reception.fournisseur.nom }}</td>
+
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstReceptionReferenceArticle.commande }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstReceptionReferenceArticle.referenceArticle }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstArticle.barcode }}</td>
             </tr>
-            {% for colis in litige.articles %}
+            {% for article in litige.articles %}
                 {% if not loop.first %}
+                    {% set receptionReferenceArticle = firstArticle.receptionReferenceArticle %}
                     <tr>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.reception.numeroReception }}</td>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.barcode }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ receptionReferenceArticle.commande }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ receptionReferenceArticle.referenceArticle }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ article.barcode }}</td>
                     </tr>
                 {% endif %}
             {% endfor %}

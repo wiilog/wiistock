@@ -2,16 +2,13 @@
 {% block title %}{{ 'arrivage.arrivage'|trans|capitalize }}{% endblock %}
 {% block page_content %}
 
+    {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
+
     <div class="zone-entete">
         {% include "arrivage/enteteArrivage.html.twig" %}
     </div>
-    {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
-        <div class="urgence-row row ml-2">
-            <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
-        </div>
-    {% endif %}
     <div class="row mt-5">
-        <div class="col-6">
+        <div class="{{ displayLitiges ? 'col-6' : 'col-12' }}">
             <div class="d-flex justify-content-between h-54px">
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                     <div data-toggle="modal" data-target="#modalAddColis" class="btn btn-primary" id="btnModalAddColis">
@@ -20,8 +17,7 @@
                 {% endif %}
                 <a class="btn btn-primary"
                    id="printColisBtn"
-                   target="_blank"
-                   href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id}) }}">
+                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                     <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                 </a>
             </div>
@@ -29,23 +25,25 @@
                 <table id="tableColis" class="table table-striped table-bordered w-100"></table>
             </div>
         </div>
-        <div class="col-6">
-            <div class="d-flex h-54px">
-                {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href=""
-                       data-id='{{ arrivage.id }}'
-                       data-target='#modalNewLitige'
-                       data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto"
-                       onclick="openNewLitigeModal($(this))">
-                        <i class="fa fa-plus mr-2"></i>
-                        Nouveau litige</a>
-                {% endif %}
+        {% if displayLitiges %}
+            <div class="col-6">
+                <div class="d-flex h-54px">
+                    {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                        <a href=""
+                           data-id='{{ arrivage.id }}'
+                           data-target='#modalNewLitige'
+                           data-toggle='modal'
+                           class="btn btn-primary btn-action ml-auto"
+                           onclick="openNewLitigeModal($(this))">
+                            <i class="fa fa-plus mr-2"></i>
+                            Nouveau litige</a>
+                    {% endif %}
+                </div>
+                <div>
+                    <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
+                </div>
             </div>
-            <div>
-                <table id="tableArrivageLitiges" class="table table-striped table-bordered w-100"></table>
-            </div>
-        </div>
+        {% endif %}
     </div>
     <a href="{{ path('arrivage_index') }}" class='btn btn-action'>Retour à la liste</a>
 
@@ -63,6 +61,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{asset('js/arrivage-common.js')}}?{{ date().timestamp }}"></script>
     <script src="{{asset('js/show-arrivage.js')}}?{{ date().timestamp }}"></script>
     <script src="{{asset('js/form-litiges.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

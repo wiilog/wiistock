@@ -323,6 +323,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
+                                        MouvementTracaService $mouvementTracaService,
                                         AttachmentService $attachmentService,
                                         EntityManagerInterface $entityManager)
     {
@@ -347,7 +348,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $invalidLocationTo = '';
                     try {
                         $entityManager->transactional(function (EntityManagerInterface $entityManager)
-                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo, &$finishMouvementTraca) {
+                                                      use ($mouvementStockService, &$numberOfRowsInserted, $mvt, $nomadUser, $request, $attachmentService, $index, &$invalidLocationTo, &$finishMouvementTraca, $mouvementTracaService) {
                             $mouvementTraca = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                             if (!isset($mouvementTraca)) {
                                 $location = $this->emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
@@ -373,7 +374,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     ->setDatetime($date)
                                     ->setFinished($mvt['finished'])
                                     ->setType($type);
-
 
                                 // set mouvement de stock
                                 if (isset($mvt['fromStock']) && $mvt['fromStock']) {
@@ -1140,12 +1140,19 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->persist($inventoryEntry);
 
                         if ($inventoryEntry->getAnomaly()) {
-                            $newAnomalies[] = $inventoryEntry->getId();
+                            $newAnomalies[] = $inventoryEntry;
                         }
                         $numberOfRowsInserted++;
                     }
                 }
                 $entityManager->flush();
+
+                $newAnomaliesIds = array_map(
+                    function (InventoryEntry $inventory) {
+                        return $inventory->getId();
+                    },
+                    $newAnomalies
+                );
 
                 $s = $numberOfRowsInserted > 1 ? 's' : '';
                 $this->successDataMsg['success'] = true;
@@ -1153,8 +1160,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     ? "Aucune saisie d'inventaire à synchroniser."
                     : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
                 $this->successDataMsg['data']['anomalies'] = array_merge(
-                    $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomalies),
-                    $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomalies)
+                    $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomaliesIds),
+                    $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomaliesIds)
                 );
             } else {
                 $this->successDataMsg['success'] = false;

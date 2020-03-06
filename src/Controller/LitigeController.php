@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Colis;
+use App\Entity\ColumnHidden;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
@@ -21,7 +25,9 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
+use App\Service\CSVExportService;
 use App\Service\LitigeService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
 use Exception;
@@ -109,7 +115,19 @@ class LitigeController extends AbstractController
 	 * @param TypeRepository $typeRepository
 	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
-	public function __construct(LitigeService $litigeService, PieceJointeRepository $pieceJointeRepository, ColisRepository $colisRepository, UserService $userService, ArrivageRepository $arrivageRepository, LitigeRepository $litigeRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, TypeRepository $typeRepository, LitigeHistoricRepository $litigeHistoricRepository)
+	public function __construct(LitigeService $litigeService,
+                                PieceJointeRepository $pieceJointeRepository,
+                                ColisRepository $colisRepository,
+                                UserService $userService,
+                                ArrivageRepository $arrivageRepository,
+                                LitigeRepository $litigeRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                StatutRepository $statutRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                TransporteurRepository $transporteurRepository,
+                                ChauffeurRepository $chauffeurRepository,
+                                TypeRepository $typeRepository,
+                                LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->statutRepository = $statutRepository;
@@ -126,12 +144,13 @@ class LitigeController extends AbstractController
 		$this->litigeService = $litigeService;
 	}
 
-    /**
-     * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
-     * @param LitigeService $litigeService
-     * @return Response
-     */
-    public function index(LitigeService $litigeService)
+	/**
+	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+	 * @param LitigeService $litigeService
+	 * @param SpecificService $specificService
+	 * @return Response
+	 */
+    public function index(LitigeService $litigeService, SpecificService $specificService)
     {
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
@@ -141,7 +160,8 @@ class LitigeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-			'litigeOrigins' => $litigeService->getLitigeOrigin()
+			'litigeOrigins' => $litigeService->getLitigeOrigin(),
+			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)
 		]);
     }
 
@@ -155,6 +175,14 @@ class LitigeController extends AbstractController
 			}
 
 			$data = $this->litigeService->getDataForDatatable($request->request);
+			$columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
+
+			$columnsToHide = $columnHiddenRepository->findOneBy([
+				'page' => ColumnHidden::PAGE_LITIGE,
+				'user' => $this->getUser()
+			]);
+
+			$data['columnHidden'] = $columnsToHide ? $columnsToHide->getValue() : [];
 
 			return new JsonResponse($data);
 		}
@@ -162,10 +190,15 @@ class LitigeController extends AbstractController
 	}
 
 	/**
-	 * @Route("/arrivage-infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 * @throws Exception
+	 * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 *
+	 * @param Request $request
+	 * @param CSVExportService $CSVExportService
+	 *
+	 * @return Response
 	 */
-	public function getLitigesIntels(Request $request): Response
+	public function getLitigesIntels(Request $request,
+                                     CSVExportService $CSVExportService): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$dateMin = $data['dateMin'] . ' 00:00:00';
@@ -174,67 +207,133 @@ class LitigeController extends AbstractController
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-			$litiges = $this->litigeRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $arrivalLitiges = $this->litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
-			$headers = [];
-			$headers = array_merge($headers, ['type', 'statut', 'date creation', 'date modification', 'colis', 'ordre arrivage', 'date commentaire', 'utilisateur', 'commentaire']);
-			$data = [];
-			$data[] = $headers;
+			$headers = [
+			    'Type',
+                'Statut',
+                'Date création',
+                'Date modification',
+                'Colis / Réferences',
+                'Ordre arrivage / réception',
+				'N° Commande / BL',
+                'Fournisseur',
+                'N° ligne',
+            	'Date commentaire',
+            	'Utilisateur',
+            	'Commentaire'
+            ];
 
-			foreach ($litiges as $litige) {
-				$historics = $this->litigeHistoricRepository->findByLitige($litige);
+			$data = [$headers];
 
-				if (empty($historics)) {
-					$litigesData = [];
+			/** @var Litige $litige */
+            foreach ($arrivalLitiges as $litige) {
+                $litigeData = [];
 
-					$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
-					$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
-					$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
-					$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+                $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
+                $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
+                $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
+                $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
 
-					$colis = $litige->getColis()->toArray();
-					$arrColis = [];
-					foreach ($colis as $coli) {
-						$arrColis[] = $coli->getCode();
-					}
-					$strColis = implode(', ', $arrColis);
-					$litigesData[] = $strColis;
+                $articlesStr = implode(
+                    ', ',
+                    $litige
+                        ->getColis()
+                        ->map(function(Colis $colis) {
+                            return $colis->getCode();
+                        })
+                        ->toArray()
+                );
+                $litigeData[] = $articlesStr;
 
-					$litigesData[] = ($colis && $colis[0]->getArrivage()) ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
+                $colis = $litige->getColis();
+                /** @var Arrivage $arrivage */
+                $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
+                    ? $colis->first()->getArrivage()
+                    : null;
+                $litigeData[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
 
-					$litigesData[] = '';
-					$litigesData[] = '';
-					$litigesData[] = '';
+                $litigeData[] = $arrivage ? $arrivage->getNumeroBL() : ''; // N° de commande
 
-					$data[] = $litigesData;
-				} else {
-					foreach ($historics as $historic) {
-						$litigesData = [];
+				$fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
+				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
-						$litigesData[] = $litige->getType() ? $litige->getType()->getLabel() : '';
-						$litigesData[] = $litige->getStatus() ? $litige->getStatus()->getNom() : '';
-						$litigesData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
-						$litigesData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+				$litigeData[] = ''; // N° de ligne
 
-						$colis = $litige->getColis()->toArray();
-						$arrColis = [];
-						foreach ($colis as $coli) {
-							$arrColis[] = $coli->getCode();
-						}
-						$strColis = implode(', ', $arrColis);
-						$litigesData[] = $strColis;
+                $litigeHistorics = $litige->getLitigeHistorics();
+                if ($litigeHistorics->count() == 0) {
+                    $litigeData[] = '';
+                    $litigeData[] = '';
+                    $litigeData[] = '';
 
-						$litigesData[] = ($colis && $colis[0]->getArrivage()) ? $colis[0]->getArrivage()->getNumeroArrivage() : '';
-
-						$litigesData[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
-						$litigesData[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
-						$litigesData[] = '"' . $historic->getComment() . '"';
-
-						$data[] = $litigesData;
-					}
-				}
-
+                    $data[] = $litigeData;
+                }
+                else {
+                    foreach ($litigeHistorics as $historic) {
+                        $data[] = array_merge(
+                            $litigeData,
+                            [
+                                $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '',
+                                $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
+                                $CSVExportService->escapeCSV($historic->getComment())
+                            ]
+                        );
+                    }
+                }
 			}
+
+            $receptionLitiges = $this->litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
+
+			/** @var Litige $litige */
+            foreach ($receptionLitiges as $litige) {
+                $litigeData = [];
+
+                $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
+                $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
+                $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
+                $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
+
+                $referencesStr = implode(', ', $this->litigeRepository->getReferencesByLitigeId($litige->getId()));
+
+                $litigeData[] = $referencesStr;
+
+                $articles = $litige->getArticles();
+                /** @var Article $firstArticle */
+                $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
+                $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
+                $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
+
+                $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
+
+				$litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
+
+				$fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
+				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
+
+				$litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
+
+                $litigeHistorics = $litige->getLitigeHistorics();
+                if ($litigeHistorics->count() == 0) {
+                    $litigeData[] = '';
+                    $litigeData[] = '';
+                    $litigeData[] = '';
+
+                    $data[] = $litigeData;
+                }
+                else {
+                    foreach ($litigeHistorics as $historic) {
+                        $data[] = array_merge(
+                            $litigeData,
+                            [
+                                ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : ''),
+                                $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
+                                $CSVExportService->escapeCSV($historic->getComment())
+                            ]
+                        );
+                    }
+                }
+			}
+
 			return new JsonResponse($data);
 		} else {
 			throw new NotFoundHttpException('404');
@@ -341,5 +440,39 @@ class LitigeController extends AbstractController
 
 		}
 		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @param Request $request
+	 * @return Response
+	 */
+	public function saveColumnHidden(Request $request): Response
+	{
+		$em = $this->getDoctrine()->getManager();
+
+		$columns = $request->request->all();
+		$value = [];
+
+		foreach ($columns as $columnName => $display) {
+			if ($display == 'false') $value[] =  $columnName;
+		}
+
+		$columnHiddenRepository = $em->getRepository(ColumnHidden::class);
+		$columnHidden = $columnHiddenRepository->findOneBy(['user' => $this->getUser()]);
+
+		if (!$columnHidden) {
+			$columnHidden = new ColumnHidden();
+			$columnHidden
+				->setUser($this->getUser())
+				->setPage(ColumnHidden::PAGE_LITIGE);
+			$em->persist($columnHidden);
+			$em->flush();
+		}
+
+		$columnHidden->setValue($value);
+		$em->flush();
+
+		return new JsonResponse();
 	}
 }
