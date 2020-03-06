@@ -32,6 +32,8 @@ class ArrivageRepository extends ServiceEntityRepository
         'NbUM' => 'nbUM',
         'Statut' => 'statut',
         'Utilisateur' => 'utilisateur',
+        'Duty' => 'duty',
+        'Frozen' => 'frozen',
     ];
 
     public function __construct(ManagerRegistry $registry)
