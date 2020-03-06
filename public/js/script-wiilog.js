@@ -1341,7 +1341,6 @@ function hideColumns(table, data) {
  * @param {boolean} autoHide delay in milliseconds
  */
 function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
-
     const $alertModal = $('#alert-modal');
     hideSpinner($alertModal.find('.modal-footer .spinner'));
     $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
