@@ -103,10 +103,10 @@
                         <div class="row col-6 formulaire fly-form">
                             <div class="form-group col-10 invisible" id="fournisseurDisplay">
                                 <label for="newFournisseur">Nom*</label>
-                                <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew"
+                                <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly"
                                        name="Nom" maxlength="64">
                                 <label for="newFournisseurCode" class="mt-2">Code*</label>
-                                <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew"
+                                <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
                                        name="Code" maxlength="64">
                             </div>
                             <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
@@ -119,10 +119,10 @@
                         <div class="row col-6 formulaire fly-form">
                             <div class="form-group col-10 invisible" id="transporteurDisplay">
                                 <label for="newTransporteur">Nom*</label>
-                                <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew"
+                                <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly"
                                        name="label" maxlength="64">
                                 <label for="newTransporteurCode" class="mt-2">Code*</label>
-                                <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew"
+                                <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly"
                                        name="code" maxlength="64">
                             </div>
                             <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
@@ -165,14 +165,16 @@
                                             </label>
 
                                             {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                                <input type="checkbox" class="data checkbox"
+                                                <input type="checkbox" class="data checkbox needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : " " }}"
                                                        name="{{ champLibre.id }}" id="">
 
 
                                             {% elseif  champLibre.typage == 'number' %}
                                                 <input type="number"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
                                                        name="{{ champLibre.id }}" id="">
 
@@ -186,6 +188,7 @@
                                                         <option value="{{ elem }}">{{ elem }}</option>
                                                     {% endfor %}
                                                 </select>
+
                                             {% elseif champLibre.typage == 'list multiple' %}
                                                 <select id="{{ champLibre.id ~ 'create' }}"
                                                         class="w-100 form-control data list-multiple  {{ champLibre.requiredCreate ? 'needed' : '' }}"
@@ -194,24 +197,29 @@
                                                         <option value="{{ elem }}">{{ elem }}</option>
                                                     {% endfor %}
                                                 </select>
+
                                             {% elseif champLibre.typage == 'text' %}
                                                 <input type="text" id="{{ champLibre.label ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
                                                        name="{{ champLibre.id }}" id="input">
 
                                             {% elseif champLibre.typage == 'date' %}
                                                 <input
                                                     type="text"
-                                                    class="form-control data date-cl {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                    class="form-control data date-cl {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                    data-init="{{ champLibre.defaultValue }}"
                                                     name="{{ champLibre.id }}"
                                                     id="{{ champLibre.label ~ 'edit' }}"
                                                     placeholder="jj/mm/aaaa"
                                                     value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
+
                                             {% elseif champLibre.typage == 'datetime' %}
                                                 <input type="datetime-local" name="{{ champLibre.id }}"
                                                        id="{{ champLibre.id ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }}"
+                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
+                                                       data-init="{{ champLibre.defaultValue }}"
                                                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
 
                                             {% else %}

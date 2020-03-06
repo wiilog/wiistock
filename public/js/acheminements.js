@@ -81,6 +81,9 @@ function changeStatus(button) {
 }
 
 function printAcheminementFromId(data) {
-    $(`#print-btn-acheminement-${data.acheminement}`)[0].click();
+    const $printButton = $(`#print-btn-acheminement-${data.acheminement}`);
+    if ($printButton.length > 0) {
+        window.location.href = $printButton.attr('href');
+    }
 }
 

@@ -40,7 +40,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalNewEmplacement"), response), false, false);
+InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalNewEmplacement"), response), true, false);
 
 let modalDeleteEmplacement = $('#modalDeleteEmplacement');
 let submitDeleteEmplacement = $('#submitDeleteEmplacement');
@@ -50,7 +50,7 @@ InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmpla
 let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), false, false);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), true, false);
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
@@ -100,10 +100,9 @@ function overrideSearchEmplacement() {
 }
 
 function printLocationsBarCodes() {
-    let path = Routing.generate('print_locations_bar_codes', {
+    window.location.href = Routing.generate('print_locations_bar_codes', {
         listEmplacements: $("#listEmplacementIdToPrint").val(),
         length: tableEmplacement.page.info().length,
         start: tableEmplacement.page.info().start
     }, true);
-    window.open(path, '_blank');
 }

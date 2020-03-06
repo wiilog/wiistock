@@ -220,7 +220,7 @@ function printArticlesBarCodes() {
     const length = tableArticle.page.info().length;
 
     if (length > 0) {
-        let path = Routing.generate(
+        window.location.href = Routing.generate(
             'article_print_bar_codes',
             {
                 length,
@@ -229,7 +229,6 @@ function printArticlesBarCodes() {
             },
             true
         );
-        window.open(path, '_blank');
     }
     else {
         alertErrorMsg("Il n'y a aucun article à imprimer");

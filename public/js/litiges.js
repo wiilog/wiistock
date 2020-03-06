@@ -59,7 +59,7 @@ function initDatatableLitiges() {
             {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'Acheteurs', 'title': 'Acheteurs'},
-            {"data": 'numCommandeRecep', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
+            {"data": 'numCommandeBl', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
             {"data": 'references', 'name': 'Références', 'title': 'Références', 'orderable': false},

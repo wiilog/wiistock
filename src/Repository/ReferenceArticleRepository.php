@@ -169,6 +169,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Quantité disponible' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
+            'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
 			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
