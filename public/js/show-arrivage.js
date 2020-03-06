@@ -17,13 +17,18 @@ $(function () {
         $('#btnModalAddColis').click();
     }
 
+    let printColis = Number(Boolean($('#printColis').val()));
+    let printArrivage = Number(Boolean($('#printArrivage').val()));
+
     let params = {
         arrivage: Number($('#arrivageId').val()),
-        printColis: Number(Boolean($('#printColis').val())),
-        printArrivage: Number(Boolean($('#printArrivage').val()))
+        printColis: printColis,
+        printArrivage: printArrivage
     };
 
-    window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+    if (printColis || printArrivage) {
+        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+    }
 });
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);

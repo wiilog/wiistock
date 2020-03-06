@@ -1461,7 +1461,7 @@ class ArrivageController extends AbstractController
             }
         }
         else {
-            if ($colis->getArrivage()->getId() !== $arrivage->getId()) {
+            if ($colis->getArrivage() && $colis->getArrivage()->getId() !== $arrivage->getId()) {
                 throw new NotFoundHttpException("404");
             }
 
@@ -1470,7 +1470,7 @@ class ArrivageController extends AbstractController
 
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
-        return new PdfResponse(
+        return empty($barcodeConfigs) ? new JsonResponse() : new PdfResponse(
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
