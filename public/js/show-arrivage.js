@@ -17,14 +17,17 @@ $(function () {
         $('#btnModalAddColis').click();
     }
 
-    //check si on doit print les colis ou l'arrivage à la création
-    let printColis = $('#printColis').val();
-    let printArrivage = $('#printArrivage').val();
-    if (printColis) {
-        $('#printColisBtn')[0].click();
-    }
-    if (printArrivage) {
-        $('#printArrivageBtn')[0].click();
+    let printColis = Number(Boolean($('#printColis').val()));
+    let printArrivage = Number(Boolean($('#printArrivage').val()));
+
+    if (printColis || printArrivage) {
+        let params = {
+            arrivage: Number($('#arrivageId').val()),
+            printColis: printColis,
+            printArrivage: printArrivage
+        };
+
+        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
 });
 
@@ -90,14 +93,13 @@ let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
 InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
     if (data.colisIds && data.colisIds.length > 0) {
-        let path = Routing.generate(
-            'print_arrivage_colis_bar_codes',
+        window.location.href = Routing.generate(
+            'print_arrivage_bar_codes',
             {
                 arrivage: data.arrivageId,
-                colisList: data.colisIds.join(',')
+                printColis: 1
             },
             true);
-        window.open(path, '_blank');
     }
 
     window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})

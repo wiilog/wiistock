@@ -26,6 +26,12 @@ use App\Repository\RoleRepository;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use Twig_Error_Loader;
+use Twig_Error_Runtime;
+use Twig_Error_Syntax;
 
 
 class UserService
@@ -165,13 +171,13 @@ class UserService
         return $data;
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param null $params
+	 * @return array
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function getUtilisateurDataByParams($params = null)
     {
         $utilisateurs = $this->utilisateurRepository->findByParams($params);
@@ -183,34 +189,29 @@ class UserService
         return ['data' => $rows];
     }
 
-    /**
-     * @param Utilisateur $utilisateur
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param Utilisateur $utilisateur
+	 * @return array
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function dataRowUtilisateur($utilisateur)
     {
         $idUser = $utilisateur->getId();
         $roles = $this->roleRepository->findAll();
 
-        $row = [
+		$row = [
+			'id' => $utilisateur->getId() ?? '',
+			"Nom d'utilisateur" => $utilisateur->getUsername() ?? '',
+			'Email' => $utilisateur->getEmail() ?? '',
+			'Dropzone' => $utilisateur->getDropzone() ? $utilisateur->getDropzone()->getLabel() : '',
+			'Dernière connexion' => $utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : '',
+			'Rôle' => $this->templating->render('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
+			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
+		];
 
-                'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
-                "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
-                'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
-                'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
-                'Rôle' => $this->templating->render('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
-                            'Actions' => $this->templating->render(
-                                'utilisateur/datatableUtilisateurRow.html.twig',
-                                [
-                                    'idUser' => $idUser,
-                                ]
-                            ),
-                        ];
-
-        return $row;
+		return $row;
     }
 
 	/**

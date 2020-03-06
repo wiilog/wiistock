@@ -83,30 +83,44 @@ class TransporteurController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="transporteur_new", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/creer", name="transporteur_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function new(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
+			return $this->redirectToRoute('access_denied');
+		}
 
-            $transporteur = new Transporteur();
+        $data = json_decode($request->getContent(), true);
 
-            $transporteur
-                ->setLabel($data['label'])
-                ->setCode($data['code']);
+		$code = $data['code'];
+		$label = $data['label'];
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($transporteur);
+		// unicité du code et du nom transporteur
+		$codeAlreadyUsed = intval($this->transporteurRepository->countByCode($code));
+		$labelAlreadyUsed = intval($this->transporteurRepository->countByLabel($label));
 
-            $em->flush();
-            $data['id'] = $transporteur->getId();
-            $data['text'] = $transporteur->getLabel();
-            return new JsonResponse($data);
-        }
-        throw new XmlHttpException('404 not found');
+		if ($codeAlreadyUsed + $labelAlreadyUsed) {
+			$msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
+			return new JsonResponse([
+				'success' => false,
+				'msg' => $msg,
+			]);
+		}
+
+		$em = $this->getDoctrine()->getManager();
+		$transporteur = new Transporteur();
+		$transporteur
+			->setLabel($label)
+			->setCode($code);
+		$em->persist($transporteur);
+		$em->flush();
+
+		return new JsonResponse([
+			'success' => true,
+			'id' => $transporteur->getId(),
+			'text' => $transporteur->getLabel()
+		]);
     }
 
     /**

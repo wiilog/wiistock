@@ -12,21 +12,24 @@
         </label>
 
         {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-            <input type="checkbox" class="data checkbox"
-                   value="{{ defaultValue }}" {{ defaultValue ? 'checked': '' }}
+            <input type="checkbox"
+                   class="data checkbox needs-default"
+                   data-init="{{ defaultValue ? 'true': 'false' }}"
+                   value="{{ defaultValue }}"
                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
 
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
             <input type="number"
-                   class="form-control data {{ required ? 'needed' : '' }}"
+                   class="form-control data {{ required ? 'needed' : '' }} needs-default"
                    value="{{ defaultValue }}"
+                   data-init="{{ defaultValue }}"
                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
 
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
             <select
-                    class="form-control data {{ required ? 'needed' : '' }} "
+                    class="form-control data {{ required ? 'needed' : '' }}"
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
                 <option value=""></option>
                 {% for elem in champLibre.elements %}
@@ -37,7 +40,7 @@
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
             <select
-                    class="form-control data list-multiple w-100 {{ required ? 'needed' : '' }} "
+                    class="form-control data list-multiple w-100 {{ required ? 'needed' : '' }}"
                     name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
                     multiple="multiple">
                 {% for elem in  champLibre.elements %}
@@ -47,19 +50,22 @@
             </select>
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
-            <input type="text" class="form-control data {{ required ? 'needed' : '' }}"
+            <input type="text" class="form-control data {{ required ? 'needed' : '' }} needs-default"
                    value="{{ defaultValue }}"
+                   data-init="{{ defaultValue }}"
                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
-            <input type="text" class="form-control data cursor-default date-cl {{ required ? 'needed' : '' }}"
+            <input type="text" class="form-control data cursor-default date-cl {{ required ? 'needed' : '' }} needs-default"
                    value="{{ defaultValue }}"
-                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
+                   data-init="{{ defaultValue }}"
+                   name="{{ champLibre.id }}" id="input{{ champLibre.id }}"
                     placeholder="jj/mm/aaaa">
 
         {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
-            <input type="datetime-local" class="form-control data {{ required ? 'needed' : '' }}"
+            <input type="datetime-local" class="form-control data {{ required ? 'needed' : '' }} needs-default"
                    value="{{ defaultValue }}"
+                   data-init="{{ defaultValue }}"
                    name="{{ champLibre.id }}"  id="input{{ champLibre.id }}">
 
         {% else %}

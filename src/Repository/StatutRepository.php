@@ -64,15 +64,24 @@ class StatutRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-    public function findByName($name)
+	/**
+	 * @param string $categoryName
+	 * @param string[] $statusCodes
+	 * @return mixed
+	 */
+    public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
             "SELECT s
-            FROM App\Entity\Statuts s
-            WHERE s.nom = :name"
+            FROM App\Entity\Statut s
+            JOIN s.categorie c
+            WHERE c.nom = :categoryName
+            AND s.nom IN (:statusCodes)"
         );
-        $query->setParameter("name", $name);
+        $query->setParameter("categoryName", $categoryName);
+        $query->setParameter("statusCodes", $statusCodes, Connection::PARAM_STR_ARRAY);
 
         return $query->execute();
     }

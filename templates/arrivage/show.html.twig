@@ -17,7 +17,7 @@
                 {% endif %}
                 <a class="btn btn-primary"
                    id="printColisBtn"
-                   href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id}) }}">
+                   href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                     <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                 </a>
             </div>
