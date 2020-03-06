@@ -221,10 +221,11 @@ class RefArticleDataService
     }
 
 
-    /**
-     * @param ReferenceArticle $articleRef
-     * @return array
-     */
+	/**
+	 * @param ReferenceArticle $articleRef
+	 * @return array
+	 * @throws NonUniqueResultException
+	 */
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
@@ -403,8 +404,7 @@ class RefArticleDataService
      * @param ReferenceArticle $refArticle
      * @return array
      * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
+	 * @throws RuntimeError
      * @throws SyntaxError
      * @throws DBALException
      */
@@ -415,15 +415,20 @@ class RefArticleDataService
         foreach ($rows as $row) {
             $rowCL[$row['label']] = $row['valeur'];
         }
-        $availableQuantity = $this->getAvailableQuantityForRef($refArticle);
+
+		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
+		$quantityStock = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ?
+			$refArticle->getQuantiteStock() : $this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($refArticle);
+
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle() ? $refArticle->getLibelle() : 'Non défini',
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $availableQuantity,
-            "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
+            "Quantité disponible" => $availableQuantity,
+			"Quantité stock" => $quantityStock ?? 0,
+			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",

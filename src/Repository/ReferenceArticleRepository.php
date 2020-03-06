@@ -16,6 +16,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -32,8 +33,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		'Label' => 'libelle',
 		'Libellé' => 'libelle',
         'Référence' => 'reference',
-        'Quantité' => 'quantiteStock',
-        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
@@ -166,8 +165,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
-            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
-            'Quantité disponible' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Quantité stock' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
@@ -377,6 +375,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
                             ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
                             : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -401,6 +400,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
                             break;
+						case 'Quantité stock':
+							//TODO
+							break;
+						case 'Quantité disponible':
+							//TODO
+							break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
                                 $qb
@@ -1007,12 +1012,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ];
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return int
-     * @throws DBALException
-     */
-    public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return int
+	 * @throws DBALException
+	 */
+	//TODO CG check int
+	public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
         $totalQuantity = intval(
