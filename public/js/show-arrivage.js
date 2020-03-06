@@ -20,13 +20,13 @@ $(function () {
     let printColis = Number(Boolean($('#printColis').val()));
     let printArrivage = Number(Boolean($('#printArrivage').val()));
 
-    let params = {
-        arrivage: Number($('#arrivageId').val()),
-        printColis: printColis,
-        printArrivage: printArrivage
-    };
-
     if (printColis || printArrivage) {
+        let params = {
+            arrivage: Number($('#arrivageId').val()),
+            printColis: printColis,
+            printArrivage: printArrivage
+        };
+
         window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
 });
