@@ -119,6 +119,16 @@ class Arrivage
      */
     private $mouvementsTraca;
 
+	/**
+	 * @ORM\Column(type="boolean", nullable=true)
+	 */
+    private $duty;
+
+	/**
+	 * @ORM\Column(type="boolean", nullable=true)
+	 */
+    private $frozen;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
@@ -497,4 +507,27 @@ class Arrivage
         return $this;
     }
 
+    public function getDuty(): ?bool
+    {
+        return $this->duty;
+    }
+
+    public function setDuty(?bool $duty): self
+    {
+        $this->duty = $duty;
+
+        return $this;
+    }
+
+    public function getFrozen(): ?bool
+    {
+        return $this->frozen;
+    }
+
+    public function setFrozen(?bool $frozen): self
+    {
+        $this->frozen = $frozen;
+
+        return $this;
+    }
 }

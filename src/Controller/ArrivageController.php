@@ -264,15 +264,16 @@ class ArrivageController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return Response
+	 * @throws LoaderError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -340,6 +341,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
+				->setDuty($data['duty'])
+				->setFrozen($data['frozen'])
                 ->setCommentaire($data['commentaire'] ?? null);
 
             if (!empty($data['fournisseur'])) {
@@ -640,6 +643,8 @@ class ArrivageController extends AbstractController
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $this->statutRepository->find($statutId) : null)
+				->setDuty($post->get('duty') == 'true')
+				->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($destinataireId ? $this->utilisateurRepository->find($destinataireId) : null);
 
             $acheteurs = $post->get('acheteurs');
@@ -951,7 +956,7 @@ class ArrivageController extends AbstractController
             $headers = [];
             // en-têtes champs fixes
             $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'statut', 'commentaire', 'date', 'utilisateur']);
+                'n° commande/BL', 'acheteurs', 'douane', 'congelé', 'statut', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
@@ -973,6 +978,8 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
+                $arrivageData[] = $arrivage->getDuty() ? 'oui' : 'non';
+                $arrivageData[] = $arrivage->getFrozen() ? 'oui' : 'non';
                 $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
