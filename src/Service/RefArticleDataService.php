@@ -418,8 +418,7 @@ class RefArticleDataService
         }
 
 		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
-		$quantityStock = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ?
-			$refArticle->getQuantiteStock() : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($refArticle);
+		$quantityStock = $refArticle->getCalculatedStockQuantity();
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -618,4 +617,30 @@ class RefArticleDataService
                 ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
                 : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
     }
+
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @throws DBALException
+	 */
+	public function treatAlert(ReferenceArticle $refArticle): void
+	{
+		$calculedAvailableQuantity = $this->getAvailableQuantityForRef($refArticle);
+		$limitToCompare = empty($refArticle->getLimitWarning())
+			? empty($refArticle->getLimitSecurity())
+				? 0
+				: $refArticle->getLimitSecurity()
+			: $refArticle->getLimitWarning();
+		$status = $refArticle->getStatut();
+		$limitToCompare = intval($limitToCompare);
+		if ($limitToCompare > 0) {
+			if (!isset($status) ||
+				($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
+				($refArticle->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
+				$refArticle->setDateEmergencyTriggered(null);
+			} else if (!$refArticle->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
+				$refArticle->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
+			}
+		}
+	}
+
 }
