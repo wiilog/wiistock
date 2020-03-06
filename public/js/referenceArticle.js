@@ -531,12 +531,11 @@ function saveRapidSearch() {
 }
 
 function printReferenceArticleBarCode() {
-    let path = Routing.generate(
+    window.location.href = Routing.generate(
         'reference_article_bar_codes_print',
         {length: tableRefArticle.page.info().length, start: tableRefArticle.page.info().start, search: $('#tableRefArticle_id_filter input').val()},
         true
     );
-    window.open(path, '_blank');
 }
 
 function displayActifOrInactif(select){

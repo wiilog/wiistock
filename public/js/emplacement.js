@@ -108,10 +108,9 @@ function overrideSearchEmplacement() {
 }
 
 function printLocationsBarCodes() {
-    let path = Routing.generate('print_locations_bar_codes', {
+    window.location.href = Routing.generate('print_locations_bar_codes', {
         listEmplacements: $("#listEmplacementIdToPrint").val(),
         length: tableEmplacement.page.info().length,
         start: tableEmplacement.page.info().start
     }, true);
-    window.open(path, '_blank');
 }
