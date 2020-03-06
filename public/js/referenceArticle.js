@@ -2,7 +2,11 @@
 // TODO AB
 // import Routing from '../../router';
 // import '../../form-reference-article';
-
+let $printTag ;
+$(function () {
+    $printTag = $('#printTag');
+    managePrintButtonTooltip(true, $printTag);
+});
 
 $('.select2').select2();
 let tableRefArticle;
@@ -153,6 +157,7 @@ function initTableRefArticle() {
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function($input) {
                         let $printBtn = $('.justify-content-end').find('#printTag');
+
                         if ($input.val() === '') {
                             $printBtn.addClass('btn-disabled');
                             $printBtn.removeClass('btn-primary');
@@ -251,6 +256,7 @@ function displayNewFilter(data) {
     $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
+    managePrintButtonTooltip(false, $printTag);
 }
 
 // suppression du filtre au clic dessus
@@ -270,6 +276,7 @@ function removeFilter() {
         tableRefArticle.ajax.reload();
     });
     if($('#filters').find('.filter').length <= 0){
+        managePrintButtonTooltip(true, $printTag);
         $('.justify-content-end').find('.printButton').addClass('btn-disabled');
     }
 }
@@ -524,12 +531,11 @@ function saveRapidSearch() {
 }
 
 function printReferenceArticleBarCode() {
-    let path = Routing.generate(
+    window.location.href = Routing.generate(
         'reference_article_bar_codes_print',
         {length: tableRefArticle.page.info().length, start: tableRefArticle.page.info().start, search: $('#tableRefArticle_id_filter input').val()},
         true
     );
-    window.open(path, '_blank');
 }
 
 function displayActifOrInactif(select){

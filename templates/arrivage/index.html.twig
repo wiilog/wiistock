@@ -52,6 +52,8 @@
     {% include "arrivage/modalListColis.html.twig" %}
 
     <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
+    <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans|capitalize }}">
+    <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans|capitalize }}">
 {% endblock %}
 
 {% block javascripts %}

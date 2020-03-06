@@ -145,9 +145,13 @@ function InitPageDataTable() {
     };
 }
 
+function initEditReception() {
+    initDateTimePickerReception();
+    initOnTheFlyCopies($('.copyOnTheFly'));
+}
+
 function initDateTimePickerReception() {
     initDateTimePicker('#dateCommande, #dateAttendue');
-
     $('.date-cl').each(function() {
         initDateTimePicker('#' + $(this).attr('id'));
     });
@@ -494,9 +498,9 @@ function initNewLigneReception() {
             $errorContainer.text('');
             submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(success) {
                 if (success) {
-                    let $btn = $('#buttonPrintMultipleBarcodes');
-                    if ($btn.length > 0) {
-                        $btn[0].click();
+                    const $printButton = $('#buttonPrintMultipleBarcodes');
+                    if ($printButton.length > 0) {
+                        window.location.href = $printButton.attr('href');
                     }
                 }
             });

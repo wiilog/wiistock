@@ -86,11 +86,11 @@
                                 <div class="form-group col-10 invisible" id="fournisseurDisplay">
                                     <label for="newFournisseur">Nom*</label>
                                     <input type="text" id="newFournisseur"
-                                           class="form-control input-sm valeur newFormulaire neededNew"
+                                           class="form-control input-sm valeur newFormulaire neededNew copyOnTheFly"
                                            name="Nom" maxlength="64">
                                     <label for="newFournisseurCode" class="mt-2">Code*</label>
                                     <input type="text" id="newFournisseurCode"
-                                           class="form-control input-sm newFormulaire neededNew"
+                                           class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                            name="Code" maxlength="64">
                                 </div>
                                 <div class="form-group col-2 invisible submit-button-container" id="addFournisseur">
@@ -105,11 +105,11 @@
                                 <div class="form-group col-10 invisible" id="transporteurDisplay">
                                     <label for="newTransporteur">Nom*</label>
                                     <input type="text" id="newTransporteur"
-                                           class="form-control input-sm newFormulaire neededNew"
+                                           class="form-control input-sm newFormulaire neededNew copyOnTheFly"
                                            name="label" maxlength="64">
                                     <label for="newTransporteurCode" class="mt-2">Code*</label>
                                     <input type="text" id="newTransporteurCode"
-                                           class="form-control input-sm newFormulaire neededNew"
+                                           class="form-control input-sm newFormulaire neededNew copiedOnTheFly"
                                            name="code" maxlength="64">
                                 </div>
                                 <div class="form-group col-2 invisible submit-button-container" id="addTransporteur">
@@ -122,25 +122,20 @@
                         {% endif %}
 
                         {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
-                            <div class="row formulaire fly-form">
+                            <div class="row col formulaire fly-form">
                                 <div class="form-group col-10 invisible" id="chauffeurDisplay">
                                     <label for="newChauffeurName">Nom*</label>
                                     <input type="text" id="newChauffeurName"
                                            class="form-control input-sm newFormulaire neededNew"
                                            name="nom" maxlength="64">
-                                    <label for="newChauffeurFirstName" class="mt-2">Prénom*</label>
+                                    <label for="newChauffeurFirstName" class="mt-2">Prénom</label>
                                     <input type="text" id="newChauffeurFirstName"
-                                           class="form-control input-sm newFormulaire neededNew"
+                                           class="form-control input-sm newFormulaire"
                                            name="prenom" maxlength="64">
-                                    <label for="newChauffeurNumero" class="mt-2">N°doc ID*</label>
+                                    <label for="newChauffeurNumero" class="mt-2">N°doc ID</label>
                                     <input type="text" id="newChauffeurNumero"
-                                           class="form-control input-sm newFormulaire neededNew"
+                                           class="form-control input-sm newFormulaire"
                                            name="documentID" maxlength="64">
-                                    <label for="newChauffeurTransporteur" class="mt-2">Transporteur*</label>
-                                    <select
-                                        class="form-control input-sm newFormulaire ajax-autocomplete-transporteur ajax-autocomplete form-group col w-100 neededNew"
-                                        name="transporteur" id="newChauffeurTransporteur">
-                                    </select>
                                 </div>
                                 <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
                             <span class="btn btn-success"
@@ -188,8 +183,9 @@
                             <div class="row">
                                 {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                                     <div class="form-group col-12 w-100">
-                                        <label
-                                            for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
+                                        <label title="destinatire" for="destinataire">
+                                            {{ 'arrivage.destinataire'|trans|capitalize }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}
+                                        </label>
                                         <select
                                             class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
                                             name="destinataire"
@@ -207,8 +203,9 @@
 
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
-                            <label
-                                for="acheteurs">Acheteurs{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}</label>
+                            <label title="acheteurs" for="acheteurs">
+                                {{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? '*' : '' }}
+                            </label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
                                     class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired('acheteurs', 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
                                 <option selected disabled>&nbsp;</option>
@@ -253,8 +250,8 @@
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array needed-positiv"
-                                           name="colis" data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
-                                           data-id="{{ nature.id }}" min="0" value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
+                                           name="colis" data-id="{{ nature.id }}" min="0" {#data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"#}
+                                           value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                 </div>
                             {% endfor %}
                         </div>

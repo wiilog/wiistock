@@ -662,7 +662,11 @@ function clearModal(modal) {
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && !$(this).hasClass('no-clear')) {
-            $(this).val("");
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init'));
+            } else {
+                $(this).val("");
+            }
         }
         if ($(this).attr('id') === 'statut') {
             $(this).val($(this).parent().find('span.active').data('title'));
@@ -678,17 +682,21 @@ function clearModal(modal) {
         .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).val(null).trigger('change');
+            if ($(this).hasClass('needs-default')) {
+                $(this).val($(this).data('init')).trigger('change');
+            } else {
+                $(this).val(null).trigger('change');
+            }
         }
     });
-    let dataArrays = $modal
-        .find('.modal-body')
-        .find('.data-array');
-    dataArrays.each(function() {
-        if ($(this).data('init') !== undefined) {
-            $(this).val($(this).data('init'));
-        }
-    });
+    // let dataArrays = $modal
+    //     .find('.modal-body')
+    //     .find('.data-array');
+    // dataArrays.each(function() {
+    //     if ($(this).data('init') !== undefined) {
+    //         $(this).val($(this).data('init'));
+    //     }
+    // });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
@@ -705,9 +713,13 @@ function clearCheckboxes($modal) {
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         if (!$(this).hasClass('no-clear')) {
-            $(this).prop('checked', false);
-            $(this).removeClass('active');
-            $(this).addClass('not-active');
+            if ($(this).hasClass('needs-default')) {
+                $(this).prop('checked', $(this).data('init'));
+            } else {
+                $(this).prop('checked', false);
+                $(this).removeClass('active');
+                $(this).addClass('not-active');
+            }
         }
     });
 }
@@ -720,7 +732,7 @@ function alertErrorMsg(data, remove = false) {
             .css('display', 'block')
             .css('opacity', '1');
 
-        if (remove == true) {
+        if (remove) {
             $alertDanger.delay(2000).fadeOut(2000);
         }
         $alertDanger.find('.error-msg').html(data);
@@ -821,15 +833,19 @@ function saveFilters(page, tableSelector, callback) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
 
-    $.post(path, JSON.stringify(params), function () {
-        if (callback) {
-            callback();
-        }
-        if (tableSelector) {
-            const $table = $(tableSelector);
-            if ($table && $table.DataTable) {
-                $table.DataTable().draw();
+    $.post(path, JSON.stringify(params), function (response) {
+        if (response) {
+            if (callback) {
+                callback();
             }
+            if (tableSelector) {
+                const $table = $(tableSelector);
+                if ($table && $table.DataTable) {
+                    $table.DataTable().draw();
+                }
+            }
+        } else {
+            alertErrorMsg('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', true);
         }
     }, 'json');
 }
@@ -1326,7 +1342,6 @@ function hideColumns(table, data) {
  * @param {boolean} autoHide delay in milliseconds
  */
 function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
-
     const $alertModal = $('#alert-modal');
     hideSpinner($alertModal.find('.modal-footer .spinner'));
     $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
@@ -1397,4 +1412,21 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     }
 
     $alertModal.modal('show');
+}
+
+function managePrintButtonTooltip(active, $button) {
+    if ($button) {
+        let $printTagParent = $button.parent();
+        $printTagParent.tooltip(
+            active ? undefined : 'dispose'
+        )
+    }
+}
+
+function initOnTheFlyCopies($elems) {
+    $elems.each(function() {
+        $(this).keyup(function() {
+            $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
+        })
+    });
 }
