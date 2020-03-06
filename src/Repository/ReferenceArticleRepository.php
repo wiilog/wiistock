@@ -1017,7 +1017,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws DBALException
 	 */
-	//TODO CG check int
 	public function getTotalQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
