@@ -314,18 +314,20 @@ class DashboardService
     {
         $timeSpanToObject = [];
         $timeSpans = [
-            36 => 48,
-            24 => 36,
-            12 => 24,
-            6 => 12,
-            1 => 6,
-            0 => 1,
             -1 => -1,
+            0 => 1,
+            1 => 6,
+            6 => 12,
+            12 => 24,
+            24 => 36,
+            36 => 48,
         ];
         foreach ($timeSpans as $timeBegin => $timeEnd) {
             $key = $timeBegin === -1
                 ? "Retard"
-                : ($timeEnd . "h-" . $timeBegin . 'h');
+                : ($timeEnd === 1
+                    ? "Moins d'1h"
+                    : ($timeEnd . "h-" . $timeBegin . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
