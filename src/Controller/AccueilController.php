@@ -10,13 +10,13 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ArrivageRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -309,7 +309,7 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ArrivageRepository $arrivageRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
@@ -345,24 +345,18 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
-    public function getDailyPacksStatistics(DashboardService $dashboardService,
-                                            EntityManagerInterface $entityManager): Response
+    public function getDailyPacksStatistics(DashboardService $dashboardService): Response
     {
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-
-        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService, $mouvementTracaRepository) {
+        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService) {
             $resCounter = $dashboardService->getDashboardCounter(
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
-                $mouvementTracaRepository,
                 [
-                    'dateMin' => $dateMin,
-                    'dateMax' => $dateMax
-                ],
-                false
+                    'minDate' => $dateMin,
+                    'maxDate' => $dateMax
+                ]
             );
             return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
@@ -423,6 +417,7 @@ class AccueilController extends AbstractController
      * @return Response
      *
      * @throws NonUniqueResultException
+     * @throws DBALException
      */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        EntityManagerInterface $entityManager,

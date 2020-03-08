@@ -160,67 +160,12 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
-     * TODO AB
-     * @param Emplacement $location
-     * @param DateTime[] $dateBracket  ['dateMin' => DateTime, 'dateMax' => DateTime]
-     * @return int
-     * @throws DBALException
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countObjectOnLocation(Emplacement $location, array $dateBracket = []): int {
-        $queryBuilder = $this->createQueryBuilderObjectOnLocation($location)
-            ->select('COUNT(mouvementTraca.id)');
-
-        if (!empty($dateBracket) && count($dateBracket) === 2) {
-            $queryBuilder
-                ->select('COUNT(mouvementTraca.id)')
-                ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
-                ->setParameter('dateMin', $dateBracket['dateMin'])
-                ->setParameter('dateMax', $dateBracket['dateMax']);
-        }
-
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    /**
-     * @param Emplacement $location
-     * @param DateTime[] $dateBracket  ['dateMin' => DateTime, 'dateMax' => DateTime]
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countDropTrackingOnLocation(Emplacement $location, array $dateBracket = []): int {
-
-        $queryBuilder = $this
-            ->createQueryBuilder('mouvementTraca')
-            ->select('COUNT(mouvementTraca.id)')
-            ->join('mouvementTraca.type', 'type')
-            ->andWhere('type.nom = :typeDepose')
-            ->andWhere('mouvementTraca.emplacement = :location')
-            ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
-            ->setParameter('location', $location);
-
-        if (!empty($dateBracket) && count($dateBracket) === 2) {
-            $queryBuilder
-                ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
-                ->setParameter('dateMin', $dateBracket['dateMin'])
-                ->setParameter('dateMax', $dateBracket['dateMax']);
-        }
-
-        return $queryBuilder
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-    /**
      * @param Emplacement $location
      * @return QueryBuilder
      * @throws DBALException
      */
     private function createQueryBuilderObjectOnLocation(Emplacement $location): QueryBuilder {
-        $ids = $this->getIdForColisOnLocations([$location]);
+        $ids = $this->getIdForPacksOnLocations([$location]);
         return $this
             ->createQueryBuilder('mouvementTraca')
             ->where('mouvementTraca.id IN (:mouvementTracaIds)')
@@ -241,14 +186,15 @@ class MouvementTracaRepository extends ServiceEntityRepository
     /**
      * Retourne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
+     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return int[]
      * @throws DBALException
      */
-    public function getIdForColisOnLocations(array $locations): array {
+    public function getIdForPacksOnLocations(array $locations, array $onDateBracket = []): array {
         $connection = $this->getEntityManager()->getConnection();
 
         return $connection
-            ->executeQuery($this->createSQLQueryPacksOnLocation($locations), [])
+            ->executeQuery($this->createSQLQueryPacksOnLocation($locations, 'id', $onDateBracket), [])
             ->fetchAll(FetchMode::COLUMN);
     }
 
@@ -257,14 +203,15 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * sur un emplacement / groupement d'emplacement
      * (premières prises ou déposes sur l'emplacement ou le groupement d'emplacement où est présent le colis)
      * @param Emplacement[]|int[] $locations
+     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return int[]
      * @throws DBALException
      */
-    public function getFirstIdForColisOnLocations(array $locations): array {
+    public function getFirstIdForPacksOnLocations(array $locations, array $onDateBracket = []): array {
         $connection = $this->getEntityManager()->getConnection();
 
         $locationIds = $this->getIdsFromLocations($locations);
-        $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis');
+        $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis', $onDateBracket);
         $locationIdsStr = implode(',', $locationIds);
         $sqlQuery = "
               SELECT MIN(unique_packs.id) AS id
@@ -290,11 +237,25 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * Retourne une chaîne SQL qui sélectionne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param array $locations
      * @param string $field
+     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return string
      */
-    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id'): string {
+    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = []): string {
         $locationIds = implode(',', $this->getIdsFromLocations($locations));
         $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
+
+        if (!empty($onDateBracket)
+            && isset($onDateBracket['minDate'])
+            && isset($onDateBracket['maxDate'])) {
+            $minDate = $onDateBracket['minDate']->format('Y-m-d H:i:s');
+            $maxDate = $onDateBracket['maxDate']->format('Y-m-d H:i:s');
+            $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${$locationIds})";
+            $uniquePackInLocationClause = "AND unique_packs_in_location.datetime BETWEEN '${minDate}' AND '${maxDate}'";
+        }
+        else {
+            $locationsInDateBracketClause = '';
+            $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${$locationIds})";
+        }
 
         return "
             SELECT unique_packs_in_location.${field}
@@ -305,14 +266,15 @@ class MouvementTracaRepository extends ServiceEntityRepository
                     SELECT MAX(unique_packs.id) AS id
                     FROM mouvement_traca AS unique_packs
                     INNER JOIN (
-                        SELECT mouvement_traca.colis         AS colis,
-                               MAX(mouvement_traca.datetime) AS datetime
-                        FROM mouvement_traca
-                        GROUP BY mouvement_traca.colis) max_datetime_packs ON max_datetime_packs.colis = unique_packs.colis
-                                                                          AND max_datetime_packs.datetime = unique_packs.datetime
+                        SELECT max_datetime_packs_local.colis         AS colis,
+                               MAX(max_datetime_packs_local.datetime) AS datetime
+                        FROM mouvement_traca max_datetime_packs_local
+                        ${locationsInDateBracketClause}
+                        GROUP BY max_datetime_packs_local.colis) max_datetime_packs ON max_datetime_packs.colis = unique_packs.colis
+                                                                                   AND max_datetime_packs.datetime = unique_packs.datetime
                     GROUP BY unique_packs.colis
               )
-              AND unique_packs_in_location.emplacement_id IN (${$locationIds})
+              ${uniquePackInLocationClause}
         ";
     }
 

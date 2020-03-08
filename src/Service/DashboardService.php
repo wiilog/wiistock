@@ -6,14 +6,13 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
+use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
-use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
-use App\Repository\MouvementTracaRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -129,7 +128,6 @@ class DashboardService
      * @throws NonUniqueResultException
      */
     public function getDataForReceptionAdminDashboard() {
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         $locationCounterConfig = [
@@ -142,8 +140,8 @@ class DashboardService
 
         $locationCounter = array_reduce(
             array_keys($locationCounterConfig),
-            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService, $mouvementTracaRepository) {
-                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key], $mouvementTracaRepository);
+            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService) {
+                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key]);
                 return $carry;
             },
             []);
@@ -159,7 +157,6 @@ class DashboardService
      * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard() {
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         $locationCounterConfig = [
@@ -173,8 +170,8 @@ class DashboardService
 
         $locationCounter = array_reduce(
             array_keys($locationCounterConfig),
-            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService, $mouvementTracaRepository) {
-                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key], $mouvementTracaRepository);
+            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService) {
+                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key]);
                 return $carry;
             },
             []);
@@ -187,35 +184,32 @@ class DashboardService
 
     /**
      * @param string $paramName
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param DateTime[]|null $dateBracket ['dateMin' => DateTime, 'dateMax' => DateTime]
-     * @param bool $forEnCours
+     * @param DateTime[]|null $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return array|null
      * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getDashboardCounter(string $paramName,
-                                        MouvementTracaRepository $mouvementTracaRepository,
-                                        array $dateBracket = [],
-                                        bool $forEnCours = true): ?array {
+                                        array $onDateBracket = []): ?array {
+        $colisRepository = $this->entityManager->getRepository(Colis::class);
         $locations = $this->findEmplacementsParam($paramName);
-        $response = [];
-        $response['count'] = 0;
-        $response['label'] = '';
-        foreach ($locations as $location) {
-            $response['count'] +=
-                $forEnCours
-                    ? $mouvementTracaRepository->countObjectOnLocation($location, $dateBracket)
-                    : $mouvementTracaRepository->countDropTrackingOnLocation($location, $dateBracket);
-            if (!empty($response['label'])) {
-                $response['label'] .= ', ';
-            }
-            $response['label'] .= $location->getLabel();
+        if (!empty($locations)) {
+            $response = [];
+            $response['count'] = 0;
+            $response['label'] = array_reduce(
+                $locations,
+                function (string $carry, Emplacement $location) {
+                    return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
+                },
+                ''
+            );
+            $response['count'] = $colisRepository->countPacksOnLocations($locations, $onDateBracket);
         }
-        return !empty($locations)
-            ? $response
-            : null;
+        else {
+            $response = null;
+        }
+        return $response;
     }
 
 	private function findEmplacementsParam(string $paramName): ?array {

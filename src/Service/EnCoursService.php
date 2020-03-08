@@ -7,17 +7,12 @@ namespace App\Service;
 use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
-use App\Repository\ColisRepository;
-use App\Repository\DaysWorkedRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\MouvementTracaRepository;
 use DateInterval;
 use DatePeriod;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 
 
@@ -177,34 +172,6 @@ class EnCoursService
             'data' => $emplacementInfo,
             'sucess' => $success
         ];
-    }
-
-    /**
-     * @param array $enCours
-     * @param int $spanBegin
-     * @param int $spanEnd
-     * @return array
-     * @throws NonUniqueResultException
-     */
-    public function getCountByNatureForEnCoursForTimeSpan(array $enCours, int $spanBegin, int $spanEnd, array $wantedNatures): array
-    {
-        $countByNature = [];
-        foreach ($wantedNatures as $wantedNature) {
-            $countByNature[$wantedNature->getLabel()] = 0;
-        }
-        foreach ($enCours as $enCour) {
-            $hourOfEnCours = intval($enCour['delay'] / 1000 / 60 / 60);
-            if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
-                $entityColisForThisEnCour = $this->colisRepository->findOneBy(['code' => $enCour['colis']]);
-                if ($entityColisForThisEnCour) {
-                    $key = $entityColisForThisEnCour->getNature()->getLabel();
-                    if (array_key_exists($key, $countByNature)) {
-                        $countByNature[$key]++;
-                    }
-                }
-            }
-        }
-        return $countByNature;
     }
 
     /**

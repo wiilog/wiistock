@@ -12,6 +12,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -51,24 +52,62 @@ class ColisRepository extends ServiceEntityRepository
     /**
      * @param array $locations
      * @param array $naturesFilter
-     * @return mixed
+     * @return array Array of [
+     *      'natureId' => int,
+     *      'natureLabel' => string,
+     *      'firstTrackingDateTime' => DateTime,
+     *      'lastTrackingDateTime' => DateTime,
+     *      'currentLocationId' => int,
+     *      'currentLocationLabel' => string
+     *      'code' => string
+     * ]
      * @throws DBALException
      */
-    public function getPackIntelOnLocations(array $locations, array $naturesFilter = []) {
-        $entityManager = $this->getEntityManager();
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-        $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForColisOnLocations($locations);
-        $lastTrackingForColis = $mouvementTracaRepository->getIdForColisOnLocations($locations);
-
-        $queryBuilder = $this
-            ->createQueryBuilder('colis')
+    public function getPackIntelOnLocations(array $locations, array $naturesFilter = []): array {
+        $queryBuilder = $this->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
             ->select('nature.id as natureId')
             ->addSelect('nature.label as natureLabel')
             ->addSelect('firstTracking.datetime AS firstTrackingDateTime')
             ->addSelect('lastTracking.datetime AS lastTrackingDateTime')
             ->addSelect('currentLocation.id AS currentLocationId')
             ->addSelect('currentLocation.label AS currentLocationLabel')
-            ->addSelect('colis.code AS code')
+            ->addSelect('colis.code AS code');
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param array $locations
+     * @param array $naturesFilter
+     * @return int
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countPacksOnLocations(array $locations, array $naturesFilter = []): int {
+        return $this
+            ->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
+            ->select('COUNT(colis.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param array $locations
+     * @param array $naturesFilter
+     * @return mixed
+     * @throws DBALException
+     */
+    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = []): QueryBuilder {
+        $entityManager = $this->getEntityManager();
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations);
+        $lastTrackingForColis = $mouvementTracaRepository->getIdForPacksOnLocations($locations);
+
+        $queryBuilder = $this
+            ->createQueryBuilder('colis')
             ->join('colis.nature', 'nature')
             ->join(MouvementTraca::class, 'firstTracking', 'WITH', 'firstTracking.id IN (:firstTrackingIds) AND firstTracking.colis = colis.code')
             ->join(MouvementTraca::class, 'lastTracking', 'WITH', 'lastTracking.id IN (:lastTrackingIds) AND lastTracking.colis = colis.code')
@@ -90,8 +129,6 @@ class ColisRepository extends ServiceEntityRepository
                 );
         }
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return $queryBuilder;
     }
 }
