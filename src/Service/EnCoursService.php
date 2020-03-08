@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Repository\ColisRepository;
@@ -22,25 +23,6 @@ use Exception;
 
 class EnCoursService
 {
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
-     * @var DaysWorkedRepository
-     */
-    private $daysRepository;
-
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
     private $entityManager;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
@@ -54,21 +36,9 @@ class EnCoursService
 
     /**
      * EnCoursService constructor.
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param EmplacementRepository $emplacementRepository
-     * @param DaysWorkedRepository $daysRepository
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager,
-                                ColisRepository $colisRepository,
-                                MouvementTracaRepository $mouvementTracaRepository,
-                                EmplacementRepository $emplacementRepository,
-                                DaysWorkedRepository $daysRepository)
-    {
-        $this->colisRepository = $colisRepository;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
-        $this->emplacementRepository = $emplacementRepository;
-        $this->daysRepository = $daysRepository;
+    public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
     }
 
@@ -184,16 +154,17 @@ class EnCoursService
     {
         $success = true;
         $emplacementInfo = [];
-        $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement, $filters);
+        $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $packIntelList = $colisRepository->getPackIntelOnLocations([$emplacement], $filters);
 
-        foreach ($mouvements as $mouvement) {
-            $dateMvt = new DateTime($mouvement->getDatetime()->format('d-m-Y H:i'), new DateTimeZone("Europe/Paris"));
+        foreach ($packIntelList as $packIntel) {
+            $dateMvt = new DateTime($packIntel['lastTrackingDateTime'], new DateTimeZone("Europe/Paris"));
             $movementAge = $this->getTrackingMovementAge($dateMvt);
             $dateMaxTime = $emplacement->getDateMaxTime();
             if ($dateMaxTime) {
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $emplacementInfo[] = [
-                    'colis' => $mouvement->getColis(),
+                    'colis' => $packIntel['code'],
                     'delay' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format('d/m/Y H:i:s'),
                     'late' => $timeInformation['countDownLateTimespan'] < 0,

@@ -160,6 +160,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
+     * TODO AB
      * @param Emplacement $location
      * @param DateTime[] $dateBracket  ['dateMin' => DateTime, 'dateMax' => DateTime]
      * @return int
@@ -219,13 +220,10 @@ class MouvementTracaRepository extends ServiceEntityRepository
      * @throws DBALException
      */
     private function createQueryBuilderObjectOnLocation(Emplacement $location): QueryBuilder {
-        $ids = $this->getTrackingIdsGroupedByColis(['lastLocations' => [$location]]);
+        $ids = $this->getIdForColisOnLocations([$location]);
         return $this
             ->createQueryBuilder('mouvementTraca')
-            ->join('mouvementTraca.type', 'type')
             ->where('mouvementTraca.id IN (:mouvementTracaIds)')
-            ->andWhere('type.nom = :typeDepose')
-            ->setParameter('typeDepose', MouvementTraca::TYPE_DEPOSE)
             ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY);
     }
 
@@ -241,86 +239,97 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
-     * Si un emplacement est donné on récupère les id des desniers mouvements de traca pour chaque colis dans l'emplacement
-     * Sinon on récupère les ids derniers mouvements traca pour chaque colis enregistré
-     * @param array $options = [
-     *  'lastLocations' => Emplacement[]|null|int[],
-     *  'colisFilter' => string|null,
-     *  'currentLocationsFilter' => null|Emplacement[]|int[]
-     * ]
-     * @return array
+     * Retourne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * @param Emplacement[]|int[] $locations
+     * @return int[]
      * @throws DBALException
      */
-    public function getTrackingIdsGroupedByColis(array $options = []): array {
+    public function getIdForColisOnLocations(array $locations): array {
         $connection = $this->getEntityManager()->getConnection();
 
-        $last = $options['last'] ?? true;
-        $comparisonFunction = $last ? 'MAX' : 'MIN';
+        return $connection
+            ->executeQuery($this->createSQLQueryPacksOnLocation($locations), [])
+            ->fetchAll(FetchMode::COLUMN);
+    }
 
-        $lastLocations = array_reduce(
-            $options['lastLocations'] ?? [],
-            function(string $carry, $location) {
-                $locationId = ($location instanceof Emplacement)
-                    ? $location->getId()
-                    : $location;
-                return $carry . ((!empty($carry) ? ',' : '') . $locationId);
-            },
-            ''
-        );
+    /**
+     * On retourne les ids des mouvementTraca qui correspondent à l'arrivée d'un colis (étant sur le/les emplacement)
+     * sur un emplacement / groupement d'emplacement
+     * (premières prises ou déposes sur l'emplacement ou le groupement d'emplacement où est présent le colis)
+     * @param Emplacement[]|int[] $locations
+     * @return int[]
+     * @throws DBALException
+     */
+    public function getFirstIdForColisOnLocations(array $locations): array {
+        $connection = $this->getEntityManager()->getConnection();
 
-        $currentLocationsFilterId = array_reduce(
-            $options['currentLocationsFilter'] ?? [],
-            function(string $carry, $location) {
-                $locationId = ($location instanceof Emplacement)
-                    ? $location->getId()
-                    : $location;
-                return $carry . ((!empty($carry) ? ',' : '') . $locationId);
-            },
-            ''
-        );
-
-        $colisFilter = array_reduce(
-            $options['colisFilter'] ?? [],
-            function(string $carry, string $colis) {
-                $colisEscaped = str_replace("'", "\'", $colis);
-                return $carry . (!empty($carry) ? ',' : '') . "'$colisEscaped'";
-            },
-            ''
-        );
-
-        $whereClause = [];
-
-        if (!empty($currentLocationsFilterId)) {
-            $whereClause[] = 'mouvement_traca.emplacement_id IN (' . $currentLocationsFilterId . ')';
-        }
-        if (!empty($colisFilter)) {
-            $whereClause[] = 'mouvement_traca.colis IN (' . $colisFilter . ')';
-        }
+        $locationIds = $this->getIdsFromLocations($locations);
+        $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis');
+        $locationIdsStr = implode(',', $locationIds);
+        $sqlQuery = "
+              SELECT MIN(unique_packs.id) AS id
+              FROM mouvement_traca AS unique_packs
+              INNER JOIN (
+                  SELECT mouvement_traca.colis         AS colis,
+                         MIN(mouvement_traca.datetime) AS datetime
+                  FROM mouvement_traca
+                  WHERE mouvement_traca.emplacement_id IN (${locationIdsStr})
+                    AND mouvement_traca.colis          IN (${$queryColisOnLocations})
+                  GROUP BY mouvement_traca.colis, mouvement_traca.datetime
+              ) AS min_datetime_packs ON min_datetime_packs.colis = unique_packs.colis
+                                     AND min_datetime_packs.datetime = unique_packs.datetime
+              GROUP BY unique_packs.colis
+        ";
 
         return $connection
-            ->executeQuery(
-                "
-                SELECT ${comparisonFunction}(id) AS id
-                FROM mouvement_traca
-                INNER JOIN (
-                    -- liste des derniers mouvements de traca pour chaque colis sur un emplacement
-                    SELECT mouvement_traca.colis AS colis,
-                           mouvement_traca.emplacement_id AS emplacement_id,
-                           ${comparisonFunction}(mouvement_traca.datetime) as datetime
-                    FROM `mouvement_traca`
-                    GROUP BY mouvement_traca.colis, mouvement_traca.emplacement_id " .
-                    (!empty($lastLocations) ? ('HAVING mouvement_traca.emplacement_id IN (' . $lastLocations . ')') : '') .
-                ') sub ON sub.colis = mouvement_traca.colis
-                      AND sub.datetime = mouvement_traca.datetime
-                      AND sub.emplacement_id = mouvement_traca.emplacement_id
-                -- Avec ce groupBy on enlève les mouvements qui ont les mêmes tuples (colis / datetime / emplacement)
-                GROUP BY mouvement_traca.colis, mouvement_traca.datetime, mouvement_traca.emplacement_id ' .
-                ((!empty($currentLocationsFilterId) || !empty($colisFilter))
-                    ? ('HAVING ' . implode(' AND ', $whereClause))
-                    : ''),
-                []
-            )
+            ->executeQuery($sqlQuery, [])
             ->fetchAll(FetchMode::COLUMN);
+    }
+
+    /**
+     * Retourne une chaîne SQL qui sélectionne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * @param array $locations
+     * @param string $field
+     * @return string
+     */
+    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id'): string {
+        $locationIds = implode(',', $this->getIdsFromLocations($locations));
+        $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
+
+        return "
+            SELECT unique_packs_in_location.${field}
+            FROM mouvement_traca AS unique_packs_in_location
+            INNER JOIN type on unique_packs_in_location.type_id = type.id
+                   AND type.label = '${$dropType}'
+            WHERE unique_packs_in_location.id IN (
+                    SELECT MAX(unique_packs.id) AS id
+                    FROM mouvement_traca AS unique_packs
+                    INNER JOIN (
+                        SELECT mouvement_traca.colis         AS colis,
+                               MAX(mouvement_traca.datetime) AS datetime
+                        FROM mouvement_traca
+                        GROUP BY mouvement_traca.colis) max_datetime_packs ON max_datetime_packs.colis = unique_packs.colis
+                                                                          AND max_datetime_packs.datetime = unique_packs.datetime
+                    GROUP BY unique_packs.colis
+              )
+              AND unique_packs_in_location.emplacement_id IN (${$locationIds})
+        ";
+    }
+
+    /**
+     * Return list of id form array of location
+     * @param Emplacement[]|int[] $locations
+     * @return array
+     */
+    private function getIdsFromLocations(array $locations): array {
+        return array_map(
+            function($location) {
+                return ($location instanceof Emplacement)
+                    ? $location->getId()
+                    : $location;
+            },
+            $locations
+        );
     }
 
     /**

@@ -456,8 +456,8 @@ class AccueilController extends AbstractController
 
         $locationCounters = [];
 
-        if (!empty($naturesForGraph)) {
-            $colisOnCluster = $colisRepository->getColisNaturesOnLocationCluster($emplacementsWanted, $naturesForGraph);
+        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
+            $colisOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
