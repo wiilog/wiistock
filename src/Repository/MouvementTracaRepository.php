@@ -174,7 +174,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
                          MIN(mouvement_traca.datetime) AS datetime
                   FROM mouvement_traca
                   WHERE mouvement_traca.emplacement_id IN (${locationIdsStr})
-                    AND mouvement_traca.colis          IN (${$queryColisOnLocations})
+                    AND mouvement_traca.colis          IN (${queryColisOnLocations})
                   GROUP BY mouvement_traca.colis, mouvement_traca.datetime
               ) AS min_datetime_packs ON min_datetime_packs.colis = unique_packs.colis
                                      AND min_datetime_packs.datetime = unique_packs.datetime
@@ -202,19 +202,19 @@ class MouvementTracaRepository extends ServiceEntityRepository
             && isset($onDateBracket['maxDate'])) {
             $minDate = $onDateBracket['minDate']->format('Y-m-d H:i:s');
             $maxDate = $onDateBracket['maxDate']->format('Y-m-d H:i:s');
-            $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${$locationIds})";
+            $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${locationIds})";
             $uniquePackInLocationClause = "AND unique_packs_in_location.datetime BETWEEN '${minDate}' AND '${maxDate}'";
         }
         else {
             $locationsInDateBracketClause = '';
-            $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${$locationIds})";
+            $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${locationIds})";
         }
 
         return "
             SELECT unique_packs_in_location.${field}
             FROM mouvement_traca AS unique_packs_in_location
             INNER JOIN type on unique_packs_in_location.type_id = type.id
-                   AND type.label = '${$dropType}'
+                   AND type.label = '${dropType}'
             WHERE unique_packs_in_location.id IN (
                     SELECT MAX(unique_packs.id) AS id
                     FROM mouvement_traca AS unique_packs

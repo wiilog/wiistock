@@ -80,15 +80,15 @@ class ColisRepository extends ServiceEntityRepository
 
     /**
      * @param array $locations
-     * @param array $naturesFilter
+     * @param array $onDateBracket
      * @return int
      * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countPacksOnLocations(array $locations, array $naturesFilter = []): int {
+    public function countPacksOnLocations(array $locations, array $onDateBracket = []): int {
         return $this
-            ->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
+            ->createPacksOnLocationsQueryBuilder($locations, [], $onDateBracket)
             ->select('COUNT(colis.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -97,14 +97,15 @@ class ColisRepository extends ServiceEntityRepository
     /**
      * @param array $locations
      * @param array $naturesFilter
+     * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
      * @return mixed
      * @throws DBALException
      */
-    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = []): QueryBuilder {
+    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder {
         $entityManager = $this->getEntityManager();
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-        $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations);
-        $lastTrackingForColis = $mouvementTracaRepository->getIdForPacksOnLocations($locations);
+        $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations, $onDateBracket);
+        $lastTrackingForColis = $mouvementTracaRepository->getIdForPacksOnLocations($locations, $onDateBracket);
 
         $queryBuilder = $this
             ->createQueryBuilder('colis')

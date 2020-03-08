@@ -67,8 +67,8 @@ class EnCoursController extends AbstractController
     	$emplacementRepository = $entityManager->getRepository(Emplacement::class);
     	$emplacement = $emplacementRepository->find($request->request->get('id'));
 
-		$filter = $filtreSupRepository->getOnebyFieldAndPageAndUser(FiltreSup::FIELD_NATURES, FiltreSup::PAGE_ENCOURS, $this->getUser());
-		$filters = $filter ? explode(',', $filter) : null;
+		$filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(FiltreSup::FIELD_NATURES, FiltreSup::PAGE_ENCOURS, $this->getUser());
+		$filters = $filtersParam ? explode(',', $filtersParam) : [];
 
 		return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement, $filters));
     }

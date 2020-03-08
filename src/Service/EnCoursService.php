@@ -140,12 +140,12 @@ class EnCoursService
 
     /**
      * @param Emplacement $emplacement
-     * @param string|null $filters
+     * @param array $filters
      * @return array
      * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = null)
+    public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = [])
     {
         $success = true;
         $emplacementInfo = [];
