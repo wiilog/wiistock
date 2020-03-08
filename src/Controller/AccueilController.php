@@ -12,7 +12,6 @@ use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Repository\ArrivageRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
@@ -373,7 +372,7 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ArrivageRepository $arrivageRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
@@ -465,7 +464,7 @@ class AccueilController extends AbstractController
                 $countByNature = array_merge($countByNatureBase);
                 $colisUnTreated = [];
                 foreach ($colisOnCluster as $colis) {
-                    $date = $enCoursService->getTrackingMovementAge($colis['dateTime']);
+                    $date = $enCoursService->getTrackingMovementAge($colis['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? intval($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -479,11 +478,11 @@ class AccueilController extends AbstractController
 
                         $countByNature[$colis['natureLabel']]++;
 
-                        if (empty($locationCounters[$colis['locationLabel']])) {
-                            $locationCounters[$colis['locationLabel']] = 0;
+                        if (empty($locationCounters[$colis['currentLocationLabel']])) {
+                            $locationCounters[$colis['currentLocationLabel']] = 0;
                         }
 
-                        $locationCounters[$colis['locationLabel']]++;
+                        $locationCounters[$colis['currentLocationLabel']]++;
                     }
                     else {
                         $colisUnTreated[] = $colis;

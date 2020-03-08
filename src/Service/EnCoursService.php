@@ -170,7 +170,7 @@ class EnCoursService
 
         return [
             'data' => $emplacementInfo,
-            'sucess' => $success
+            'success' => $success
         ];
     }
 

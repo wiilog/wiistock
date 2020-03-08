@@ -213,8 +213,8 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return "
             SELECT unique_packs_in_location.${field}
             FROM mouvement_traca AS unique_packs_in_location
-            INNER JOIN type on unique_packs_in_location.type_id = type.id
-                   AND type.label = '${dropType}'
+            INNER JOIN statut on unique_packs_in_location.type_id = statut.id
+                   AND statut.code = '${dropType}'
             WHERE unique_packs_in_location.id IN (
                     SELECT MAX(unique_packs.id) AS id
                     FROM mouvement_traca AS unique_packs

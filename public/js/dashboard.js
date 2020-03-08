@@ -476,7 +476,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                         ctx.shadowBlur = 0;
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 0;
-                        const applyRedFont = (redForFirstData && i === (dataset.data.length - 1));
+                        const applyRedFont = (redForFirstData && (i === 0));
                         ctx.fillStyle = applyRedFont ? 'red' : figureColor;
                         ctx.fillText(figure, x, y);
                     }

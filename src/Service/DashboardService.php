@@ -287,7 +287,7 @@ class DashboardService
         $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
 
         if ($daysWorkedInWeek > 0) {
-            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
+            for ($weekIndex = ($nbWeeksToReturn - 1); $weekIndex >= 0; $weekIndex--) {
                 $dateMin = new DateTime("monday $weekIndex weeks ago");
                 $dateMin->setTime(0, 0, 0);
                 $dateMax = new DateTime("sunday $weekIndex weeks ago");
@@ -321,7 +321,7 @@ class DashboardService
                 ? "Retard"
                 : ($timeEnd === 1
                     ? "Moins d'1h"
-                    : ($timeEnd . "h-" . $timeBegin . 'h'));
+                    : ($timeBegin . "h-" . $timeEnd . 'h'));
             $timeSpanToObject[$key] = $getObject($timeBegin, $timeEnd);
         }
         return $timeSpanToObject;
