@@ -347,11 +347,11 @@ class AccueilController extends AbstractController
      * @return Response
      * @throws Exception
      */
-    public function getDailyPacksStatistics(DashboardService $dashboardService): Response
-    {
+    public function getDailyPacksStatistics(DashboardService $dashboardService): Response {
         $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService) {
             $resCounter = $dashboardService->getDashboardCounter(
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+                true,
                 [
                     'minDate' => $dateMin,
                     'maxDate' => $dateMax
@@ -450,8 +450,14 @@ class AccueilController extends AbstractController
 
         $locationCounters = [];
 
+        $olderPackLocation = [
+            'locationLabel' => null,
+            'locationId' => null,
+            'packDateTime' => null
+        ];
+
         if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
-            $colisOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
+            $packsOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
@@ -459,12 +465,11 @@ class AccueilController extends AbstractController
             }
 
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$colisOnCluster, $adminDelay, &$locationCounters) {
-
+                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation) {
                 $countByNature = array_merge($countByNatureBase);
-                $colisUnTreated = [];
-                foreach ($colisOnCluster as $colis) {
-                    $date = $enCoursService->getTrackingMovementAge($colis['firstTrackingDateTime']);
+                $packUntreated = [];
+                foreach ($packsOnCluster as $pack) {
+                    $date = $enCoursService->getTrackingMovementAge($pack['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? intval($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -476,39 +481,56 @@ class AccueilController extends AbstractController
                             || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                         )) {
 
-                        $countByNature[$colis['natureLabel']]++;
+                        $countByNature[$pack['natureLabel']]++;
 
-                        if (empty($locationCounters[$colis['currentLocationLabel']])) {
-                            $locationCounters[$colis['currentLocationLabel']] = 0;
+                        $currentLocationLabel = $pack['currentLocationLabel'];
+                        $currentLocationId = $pack['currentLocationId'];
+                        $lastTrackingDateTime = $pack['lastTrackingDateTime'];
+
+                        // get older pack
+                        if ((
+                                empty($olderPackLocation['locationLabel'])
+                                || empty($olderPackLocation['locationId'])
+                                || empty($olderPackLocation['packDateTime'])
+                            )
+                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)){
+                            $olderPackLocation['locationLabel'] = $currentLocationLabel;
+                            $olderPackLocation['locationId'] = $currentLocationId;
+                            $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
                         }
 
-                        $locationCounters[$colis['currentLocationLabel']]++;
+                        // increment counters
+                        if (empty($locationCounters[$currentLocationId])) {
+                            $locationCounters[$currentLocationId] = 0;
+                        }
+
+                        $locationCounters[$currentLocationId]++;
                     }
                     else {
-                        $colisUnTreated[] = $colis;
+                        $packUntreated[] = $pack;
                     }
                 }
-                $colisOnCluster = $colisUnTreated;
+                $packsOnCluster = $packUntreated;
                 return $countByNature;
             });
         }
 
-        $locationHighestNbOfColis = ['label' => null, 'counter' => 0];
-
-        foreach ($locationCounters as $locationLabel => $counter) {
-            if ($counter > $locationHighestNbOfColis['counter']) {
-                $locationHighestNbOfColis['counter'] = $counter;
-                $locationHighestNbOfColis['label'] = $locationLabel;
-            }
-        }
         if (!isset($graphData)) {
             $graphData = $dashboardService->getObjectForTimeSpan(function () { return 0; });
         }
 
+        $totalToDisplay = !empty($olderPackLocation['locationId'])
+            ? ($locationCounters[$olderPackLocation['locationId']] ?? null)
+            : null;
+
+        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
+            ? $olderPackLocation['locationLabel']
+            : null;
+
         return new JsonResponse([
             "data" => $graphData,
-            'total' => !empty($locationHighestNbOfColis['counter']) ? $locationHighestNbOfColis['counter'] : '-',
-            "location" => !empty($locationHighestNbOfColis['counter']) ? $locationHighestNbOfColis['label'] : '-',
+            'total' =>  isset($totalToDisplay) ? $totalToDisplay : '-',
+            'location' =>  isset($locationToDisplay) ? $locationToDisplay : '-',
 			'chartColors' => array_reduce(
 			    $naturesForGraph,
                 function (array $carry, Nature $nature) {

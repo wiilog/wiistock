@@ -152,6 +152,29 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * @param Emplacement[]|int[] $locations
+     * @return int[]
+     * @throws DBALException
+     */
+    public function getLastOnLocations(array $locations): array {
+        $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
+
+        $queryBuilder = $this->createQueryBuilder('tracking')
+            ->addSelect('tracking.datetime AS lastTrackingDateTime')
+            ->addSelect('currentLocation.id AS currentLocationId')
+            ->addSelect('currentLocation.label AS currentLocationLabel')
+            ->addSelect('tracking.colis AS code')
+            ->join('tracking.emplacement', 'currentLocation')
+            ->where('tracking.id IN (:trackingIds)')
+            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * On retourne les ids des mouvementTraca qui correspondent à l'arrivée d'un colis (étant sur le/les emplacement)
      * sur un emplacement / groupement d'emplacement
      * (premières prises ou déposes sur l'emplacement ou le groupement d'emplacement où est présent le colis)

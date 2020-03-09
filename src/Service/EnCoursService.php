@@ -7,10 +7,10 @@ namespace App\Service;
 use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\MouvementTraca;
 use DateInterval;
 use DatePeriod;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -140,20 +140,22 @@ class EnCoursService
 
     /**
      * @param Emplacement $emplacement
-     * @param array $filters
+     * @param array $natures
      * @return array
      * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = [])
-    {
+    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = []): array {
         $success = true;
         $emplacementInfo = [];
         $colisRepository = $this->entityManager->getRepository(Colis::class);
-        $packIntelList = $colisRepository->getPackIntelOnLocations([$emplacement], $filters);
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $packIntelList = empty($natures)
+            ? $mouvementTracaRepository->getLastOnLocations([$emplacement])
+            : $colisRepository->getPackIntelOnLocations([$emplacement], $natures);
 
         foreach ($packIntelList as $packIntel) {
-            $dateMvt = new DateTime($packIntel['lastTrackingDateTime'], new DateTimeZone("Europe/Paris"));
+            $dateMvt = $packIntel['lastTrackingDateTime'];
             $movementAge = $this->getTrackingMovementAge($dateMvt);
             $dateMaxTime = $emplacement->getDateMaxTime();
             if ($dateMaxTime) {

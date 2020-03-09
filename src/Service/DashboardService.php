@@ -9,6 +9,7 @@ use App\Entity\ArrivalHistory;
 use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
@@ -128,20 +129,39 @@ class DashboardService
      * @throws NonUniqueResultException
      */
     public function getDataForReceptionAdminDashboard() {
-        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-
-        $locationCounterConfig = [
+        return $this->getCounters([
             'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
             'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
             'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN
-        ];
+        ]);
+    }
 
-        $dashboardService = $this;
+    /**
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getDataForReceptionDockDashboard() {
+        return $this->getCounters([
+            'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
+            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
+            'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
+            'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
+        ]);
+	}
 
+    /**
+     * @param array $counterConfig
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+	private function getCounters(array $counterConfig): array {
+        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
         $locationCounter = array_reduce(
-            array_keys($locationCounterConfig),
-            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService) {
-                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key]);
+            array_keys($counterConfig),
+            function (array $carry, string $key) use ($counterConfig) {
+                $carry[$key] = $this->getDashboardCounter($counterConfig[$key]);
                 return $carry;
             },
             []);
@@ -152,37 +172,6 @@ class DashboardService
     }
 
     /**
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function getDataForReceptionDockDashboard() {
-        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-
-        $locationCounterConfig = [
-            'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
-            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
-            'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
-            'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
-        ];
-
-        $dashboardService = $this;
-
-        $locationCounter = array_reduce(
-            array_keys($locationCounterConfig),
-            function (array $carry, string $key) use ($locationCounterConfig, $dashboardService) {
-                $carry[$key] = $dashboardService->getDashboardCounter($locationCounterConfig[$key]);
-                return $carry;
-            },
-            []);
-
-		return array_merge(
-            $locationCounter,
-			['urgenceCount' => $urgenceRepository->countUnsolved()]
-        );
-	}
-
-    /**
      * @param string $paramName
      * @param DateTime[]|null $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return array|null
@@ -191,8 +180,10 @@ class DashboardService
      * @throws NonUniqueResultException
      */
     public function getDashboardCounter(string $paramName,
+                                        bool $isPack = false,
                                         array $onDateBracket = []): ?array {
         $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $locations = $this->findEmplacementsParam($paramName);
         if (!empty($locations)) {
             $response = [];
@@ -204,7 +195,9 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $colisRepository->countPacksOnLocations($locations, $onDateBracket);
+            $response['count'] = $isPack
+                ? $colisRepository->countPacksOnLocations($locations, $onDateBracket)
+                : count($mouvementTracaRepository->getIdForPacksOnLocations($locations, $onDateBracket));
         }
         else {
             $response = null;
