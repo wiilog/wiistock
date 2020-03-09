@@ -279,7 +279,7 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                     chart = newChart($canvas, true, true);
                 }
 
-                updateMultipleChartData(chart, data.data, chartNumber !== 1 && (data.chartColors || {}));
+                updateMultipleChartData(chart, data.data, (data.chartColors || {}));
                 resolve(chart);
             });
         }
@@ -470,7 +470,6 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                         ctx.shadowOffsetY = 1;
                         ctx.fillStyle = rectColor;
                         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-
 
                         // context only for text
                         ctx.shadowBlur = 0;
