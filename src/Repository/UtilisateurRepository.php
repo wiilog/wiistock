@@ -22,6 +22,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
     private const DtToDbLabels = [
         'Nom d\'utilisateur' => 'username',
         'Email' => 'email',
+        'Dropzone' => 'dropzone',
         'Dernière connexion' => 'lastLogin',
         'Rôle' => 'role',
     ];
@@ -194,19 +195,31 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		if (!empty($params)) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-            if (!empty($params->get('order')))
-            {
+
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
-                    $qb->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+
+                if (!empty($order)) {
+                	$column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+
+                	switch ($column) {
+						case 'Dropzone':
+							$qb
+								->leftJoin('a.dropzone', 'd_order')
+								->orderBy('d_order.label', $order);
+							break;
+						default:
+                    		$qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
+					}
                 }
             }
+
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('a.username LIKE :value OR a.email LIKE :value')
+						->leftJoin('a.dropzone', 'd_search')
+						->andWhere('a.username LIKE :value OR a.email LIKE :value OR d_search.label LIKE :value')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}

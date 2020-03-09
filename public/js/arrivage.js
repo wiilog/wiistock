@@ -120,7 +120,7 @@ let quillNew;
 
 function initNewArrivageEditor(modal) {
     let $modal = $(modal);
-    clearModal($modal); //TODO CG garder ?
+    clearModal($modal);
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);

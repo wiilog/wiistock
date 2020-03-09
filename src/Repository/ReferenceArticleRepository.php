@@ -12,6 +12,7 @@ use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Parameter;
@@ -30,11 +31,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		'Label' => 'libelle',
 		'Libellé' => 'libelle',
         'Référence' => 'reference',
-        'Quantité' => 'quantiteStock',
-        'QuantiteStock' => 'quantiteStock',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
+        'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -164,9 +165,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
-            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
-            'Quantité disponible' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Quantité stock' => ['field' => 'quantiteStock', 'typage' => 'number'],
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
+            'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
 			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
@@ -374,6 +375,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
                             ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
                             : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+
                     switch ($column) {
                         case 'Actions':
                             break;
@@ -398,6 +400,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
                             break;
+						case 'Quantité stock':
+							//TODO
+							break;
+						case 'Quantité disponible':
+							//TODO
+							break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
                                 $qb
@@ -1004,29 +1012,38 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ];
     }
 
-    /**
-     * @param ReferenceArticle|int $refId
-     * @return int
-     * @throws NonUniqueResultException
-     */
-    public function getTotalQuantityArticlesByRefArticle($refId)
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return int
+	 * @throws DBALException
+	 */
+	public function getTotalAvailableQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT SUM(a.quantite)
-			FROM App\Entity\Article a
-			LEFT JOIN a.articleFournisseur af
-			LEFT JOIN af.referenceArticle ra
-			LEFT JOIN a.statut s
-			WHERE s.nom = :active AND ra.id = :refId
-			")
-            ->setParameters([
-                'active' => Article::STATUT_ACTIF,
-                'refId' => $refId
-            ]);
-
-        return $query->getSingleScalarResult();
+        $totalQuantity = intval(
+            $em
+            ->getConnection()
+            ->executeQuery(
+                'SELECT
+                        @quantityReserved := (
+                            SELECT SUM(ligne_article.quantite)
+                            FROM ligne_article
+                            INNER JOIN demande d on ligne_article.demande_id = d.id
+                            INNER JOIN statut s on d.statut_id = s.id
+                            WHERE ligne_article.reference_id = :refId AND s.nom = :statut
+                        ),
+                        @quantity := IF(@quantityReserved IS NULL, SUM(article.quantite), SUM(article.quantite) - @quantityReserved)
+                        FROM article
+                        INNER JOIN article_fournisseur af on article.article_fournisseur_id = af.id
+                        INNER JOIN statut s2 on article.statut_id = s2.id
+                        WHERE s2.nom = :active AND af.reference_article_id = :refId',
+                [
+                    'active' => Article::STATUT_ACTIF,
+                    'refId' => $referenceArticle->getId(),
+                    'statut' => Demande::STATUT_A_TRAITER
+                ])
+            ->fetchColumn(1));
+        return $totalQuantity >= 0 ? $totalQuantity : 0;
     }
 
     public function countAlert()

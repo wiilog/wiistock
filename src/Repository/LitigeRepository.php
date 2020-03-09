@@ -23,7 +23,7 @@ class LitigeRepository extends ServiceEntityRepository
 		'arrivalNumber' => 'numeroArrivage',
 		'receptionNumber' => 'numeroReception',
 		'provider' => 'provider',
-		'numCommandeRecep' => 'numCommandeRecep',
+		'numCommandeBl' => 'numCommandeBl',
 		'buyers' => 'acheteurs',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
@@ -253,8 +253,8 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('r.id as receptionId')
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
-			->addSelect('r.reference as numCommandeRecep')
-		;
+			->addSelect('(CASE WHEN a.numeroBL IS NOT NULL THEN a.numeroBL ELSE r.reference END) as numCommandeBl');
+
 		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
@@ -362,7 +362,7 @@ class LitigeRepository extends ServiceEntityRepository
                         } else if ($column === 'provider') {
                             $qb
                                 ->addOrderBy('provider', $order);
-                        } else if ($column === 'numCommandeRecep') {
+                        } else if ($column === 'numCommandeBl') {
                             $qb
                                 ->addOrderBy('r.reference', $order);
                         } else {

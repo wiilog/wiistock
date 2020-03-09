@@ -39,6 +39,7 @@ use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -176,9 +177,11 @@ class DemandeController extends AbstractController
         $this->demandeLivraisonService = $demandeLivraisonService;
     }
 
-    /**
-     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
-     */
+	/**
+	 * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+	 * @throws NonUniqueResultException
+	 * @throws DBALException
+	 */
     public function compareStock(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -190,8 +193,7 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
-                $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+                $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['stock'] = $treshHold;
@@ -546,9 +548,13 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
-     */
+	/**
+	 * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+	 * @param Request $request
+	 * @param Demande $demande
+	 * @return Response
+	 * @throws DBALException
+	 */
     public function articleApi(Request $request, Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -560,20 +566,7 @@ class DemandeController extends AbstractController
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
-                $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-                $totalQuantity = 0;
-                if ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    foreach ($articleRef->getArticlesFournisseur() as $articleFournisseur) {
-                        $quantity = 0;
-                        foreach ($articleFournisseur->getArticles() as $article) {
-                            if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
-                        }
-                        $totalQuantity += $quantity;
-                    }
-                }
-                $quantity = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $articleRef->getQuantiteStock() : $totalQuantity;
-                $availableQuantity = $quantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
-
+                $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
@@ -792,11 +785,7 @@ class DemandeController extends AbstractController
 					$demandeData = [];
 					$articleRef = $ligneArticle->getReference();
 
-					$quantiteStock = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-						? $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
-						: $articleRef->getQuantiteStock();
-
-					$availableQuantity = $quantiteStock - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
+                    $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
 
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
