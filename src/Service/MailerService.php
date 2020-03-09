@@ -56,7 +56,6 @@ class MailerService
 
         //protection dev
         if (!isset($_SERVER['APP_ENV']) || (isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] !== 'prod')) {
-
             $content .= '<p>DESTINATAIRES : ';
             if (!is_array($to)) {
                 $content .= $to;
