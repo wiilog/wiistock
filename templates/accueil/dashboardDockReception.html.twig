@@ -13,7 +13,7 @@
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
-                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                        title="Arrivages quotidiens ainsi que le nombre de colis réceptionnés quotidiens."></i>
                 </div>
                 <div style="height: 70% !important;">
                     <canvas id="chartDailyArrival" width="300" height="90"></canvas>
@@ -30,7 +30,7 @@
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
-                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                        title="Arrivages hebdomadaires ainsi que le nombre de colis réceptionnés hebdomadaires."></i>
                 </div>
                 <div style="height: 70% !important;">
                     <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
@@ -43,7 +43,8 @@
             <div id="encours-dock-box" class="dashboard-box text-center">
                 <p>Colis restant à traiter<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Test">-</span>
+                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
+                    paramétrés comme étant emplacement à traiter.">-</span>
                 </p>
             </div>
         </div>
@@ -51,7 +52,8 @@
             <div id="encours-clearance-box-dock" class="dashboard-box text-center">
                 <p>Colis en attente dédouanement<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Test">-</span>
+                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
+                    paramétrés comme étant emplacement en attente de dédouanement.">-</span>
                 </p>
             </div>
         </div>
@@ -59,14 +61,15 @@
             <div id="encours-cleared-box" class="dashboard-box text-center">
                 <p>Colis dédouanés et dispo<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Test">-</span>
+                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
+                    paramétrés comme étant emplacement de douane.">-</span>
                 </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-dock" class="dashboard-box text-center">
                 <p>Urgences restantes à recevoir<br>
-                    <span class="figure red counter has-tooltip" title="Test">-</span>
+                    <span class="figure red counter has-tooltip" title="Le nombre d'urgences non soldées.">-</span>
                 </p>
             </div>
         </div>
@@ -74,7 +77,8 @@
             <div id="encours-dropzone-box" class="dashboard-box text-center">
                 <p>Colis à déposer en Drop Zones<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Test">-</span>
+                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
+                    paramétrés comme étant drop zones.">-</span>
                 </p>
             </div>
         </div>
@@ -86,7 +90,8 @@
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
-                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                        title="Colis encours sur l'emplacements
+                    paramétré comme étant drop zones."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartColis" width="300" height="90"></canvas>

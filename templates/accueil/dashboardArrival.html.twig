@@ -8,9 +8,7 @@
         <div class="col-12" id="blocIndicators">
             <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
                  aria-expanded="false" aria-controls="indicators">
-                <i
-                    class="fa fa-question has-tooltip"
-                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
             </div>
             <div class="collapse indicators" id="indicators">
                 <div class="card card-body">
@@ -27,7 +25,7 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                    title="Nombre d'{{ 'arrivage.arrivage'|trans }} datés d'aujourd'hui."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -54,7 +52,7 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                    title="Nombre de réceptions de traçabilité datées d'ajourd'hui."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -81,7 +79,8 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                    title="Les colis étant en encours sur un emplacement depuis plus
+                    longtemps que le délai spécifié de l'emplacement."></i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100">
@@ -98,7 +97,7 @@
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
-                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
+                        title="Fiabilité monétaire sur les 6 derniers mois glissants."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
