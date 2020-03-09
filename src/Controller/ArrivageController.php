@@ -327,7 +327,7 @@ class ArrivageController extends AbstractController
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-
+            $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
             $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -372,7 +372,7 @@ class ArrivageController extends AbstractController
             if (!empty($data['destinataire'])) {
                 $arrivage->setDestinataire($userRepository->find($data['destinataire']));
             }
-            if (empty($urgencesMatching) && $arrivage->getAcheteurs()->count() > 0) {
+            if (empty($urgencesMatching) && $arrivage->getAcheteurs()->count() > 0 && $sendMail) {
                 $arrivageDataService->sendArrivageEmail($arrivage);
             }
             $entityManager->persist($arrivage);
