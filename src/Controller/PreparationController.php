@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\EmplacementRepository;
@@ -16,12 +17,16 @@ use App\Repository\LigneArticlePreparationRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
+use App\Service\RefArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -675,6 +680,73 @@ class PreparationController extends AbstractController
                     $article->getBarCode(),
                 ]);
             }
+        }
+    }
+
+    /**
+     * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
+     * @param Preparation $preparation
+     * @param RefArticleDataService $refArticleDataService
+     * @param EntityManagerInterface $entityManager
+     * @param ArticleDataService $articleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getBarCodes(Preparation $preparation,
+                                RefArticleDataService $refArticleDataService,
+                                EntityManagerInterface $entityManager,
+                                ArticleDataService $articleDataService,
+                                PDFGeneratorService $PDFGeneratorService): Response {
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+
+        $articles = $preparation->getArticles()->toArray();
+        $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();
+        $referenceArticles = [];
+
+        /** @var LigneArticlePreparation $ligne */
+        foreach ($lignesArticle as $ligne) {
+            $reference = $ligne->getReference();
+            if($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $referenceArticles[] = $reference;
+            }
+        }
+        $barcodeConfigs = array_merge(
+            array_map(
+                function (Article $article) use ($articleDataService, $wantBL) {
+                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                },
+                $articles
+            ),
+            array_map(
+                function (ReferenceArticle $referenceArticle) use ($refArticleDataService) {
+                    return $refArticleDataService->getBarcodeConfig($referenceArticle);
+                },
+                $referenceArticles
+            )
+        );
+
+        $barcodeCounter = count($barcodeConfigs);
+
+        if ($barcodeCounter > 0) {
+            $fileName = $PDFGeneratorService->getBarcodeFileName(
+                $barcodeConfigs,
+                'preparation'
+            );
+
+            return new PdfResponse(
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $fileName
+            );
+        }
+        else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
 }
