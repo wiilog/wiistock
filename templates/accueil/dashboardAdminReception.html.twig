@@ -15,7 +15,9 @@
                         {% endif %}
                     </p>
                     <div class="points">
-                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                     </div>
                     <div class="h-100">
                         <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
@@ -30,7 +32,7 @@
                                 Nombres de lignes restantes à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="totalForChart1" class="figure"></strong>
+                                <strong id="totalForChart1" class="figure has-tooltip" title="Test"></strong>
                             </p>
                         </div>
                     </div>
@@ -42,7 +44,7 @@
                                 Prochaine bac/palette à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="empForChart1" class="figure"></strong>
+                                <strong id="empForChart1" class="figure has-tooltip" title="Test"></strong>
                             </p>
                         </div>
                     </div>
@@ -61,7 +63,9 @@
                         {% endif %}
                     </p>
                     <div class="points">
-                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                     </div>
                     <div class="h-100">
                         <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
@@ -76,7 +80,7 @@
                                 Nombres de lignes restantes à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="totalForChart2" class="figure"></strong>
+                                <strong id="totalForChart2" class="figure has-tooltip" title="Test"></strong>
                             </p>
                         </div>
                     </div>
@@ -88,7 +92,7 @@
                                 Prochaine palette à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="empForChart2" class="figure"></strong>
+                                <strong id="empForChart2" class="figure has-tooltip" title="Test"></strong>
                             </p>
                         </div>
                     </div>
@@ -103,7 +107,7 @@
             <div id="remaining-urgences-box-admin" class="dashboard-box text-center">
                 <p>
                     Urgences restantes à recevoir<br>
-                    <span class="figure red counter">-</span>
+                    <span class="figure red counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -114,7 +118,7 @@
                 <p>
                     Urgences restantes à traiter<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -125,7 +129,7 @@
                 <p>
                     Lignes en litiges<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -136,7 +140,7 @@
                 <p>
                     Colis en attente de dédouanement<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>

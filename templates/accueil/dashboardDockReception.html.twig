@@ -11,7 +11,9 @@
                     Arrivages quotidiens<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                 </div>
                 <div style="height: 70% !important;">
                     <canvas id="chartDailyArrival" width="300" height="90"></canvas>
@@ -26,7 +28,9 @@
                     Arrivages hebdomadaires<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                 </div>
                 <div style="height: 70% !important;">
                     <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
@@ -39,7 +43,7 @@
             <div id="encours-dock-box" class="dashboard-box text-center">
                 <p>Colis restant à traiter<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -47,7 +51,7 @@
             <div id="encours-clearance-box-dock" class="dashboard-box text-center">
                 <p>Colis en attente dédouanement<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -55,14 +59,14 @@
             <div id="encours-cleared-box" class="dashboard-box text-center">
                 <p>Colis dédouanés et dispo<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-dock" class="dashboard-box text-center">
                 <p>Urgences restantes à recevoir<br>
-                    <span class="figure red counter">-</span>
+                    <span class="figure red counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -70,7 +74,7 @@
             <div id="encours-dropzone-box" class="dashboard-box text-center">
                 <p>Colis à déposer en Drop Zones<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
+                    <span class="figure counter has-tooltip" title="Test">-</span>
                 </p>
             </div>
         </div>
@@ -80,7 +84,9 @@
                     Nombre de colis distribués en Dropzone<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartColis" width="300" height="90"></canvas>
@@ -96,7 +102,9 @@
                     Suivi des transporteurs<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                 </div>
                 <div class="little-font" id="statistics-arrival-carriers"></div>
             </div>

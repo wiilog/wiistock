@@ -1413,6 +1413,10 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     $alertModal.modal('show');
 }
 
+function initToolTip($element) {
+    $element.tooltip();
+}
+
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
         let $printTagParent = $button.parent();

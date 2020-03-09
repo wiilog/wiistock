@@ -8,7 +8,9 @@
         <div class="col-12" id="blocIndicators">
             <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
                  aria-expanded="false" aria-controls="indicators">
-                {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
             </div>
             <div class="collapse indicators" id="indicators">
                 <div class="card card-body">
@@ -23,7 +25,9 @@
                 Arrivage (UM)<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -48,7 +52,9 @@
                 Réceptions (nombre d'associations)<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -73,7 +79,9 @@
                 Colis en retard<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100">
@@ -88,7 +96,9 @@
                     Fiabilité monétaire<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
