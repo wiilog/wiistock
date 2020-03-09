@@ -35,6 +35,8 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
@@ -606,22 +608,24 @@ class RefArticleDataService
     }
 
     /**
-     * @param ReferenceArticle $referenceArticle
+     * @param ReferenceArticle|array $referenceArticle
      * @return int
      * @throws DBALException
      */
-    public function getAvailableQuantityForRef(ReferenceArticle $referenceArticle): int
+    public function getAvailableQuantityForRef($referenceArticle): int
     {
+        $referenceArticle = is_array($referenceArticle) ? $this->referenceArticleRepository->find($referenceArticle['id']) : $referenceArticle;
         return
             $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
                 ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
                 : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @throws DBALException
-	 */
+    /**
+     * @param ReferenceArticle $refArticle
+     * @throws DBALException
+     * @throws Exception
+     */
 	public function treatAlert(ReferenceArticle $refArticle): void
 	{
 		$calculedAvailableQuantity = $this->getAvailableQuantityForRef($refArticle);

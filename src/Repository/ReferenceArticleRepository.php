@@ -34,6 +34,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
+        'Quantité' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
