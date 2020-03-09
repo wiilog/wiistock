@@ -10,7 +10,7 @@
     {% if isPrepaEditable %}
         {% set action = '' %}
         {% set attr = '' %}
-        {% if isRefByRef %}
+        {% if isRefByArt %}
             {% set action = ", startPicking($(this))" %}
             {% set attr = 'value='~id %}
         {% else %}
@@ -29,6 +29,17 @@
                 <i class='fas fa-check'></i>
             </div>
         </div>
-    {% endif %}
 
+    {% endif %}
+    {% if isRef %}
+        {% if not isRefByArt %}
+            <a href="{{ path('reference_article_single_bar_code_print', {reference: artOrRefId}) }}" class="btn btn-col-action">
+                <i class='fas fa-print'></i>
+            </a>
+        {% endif %}
+    {% else %}
+        <a href="{{ path('article_single_bar_code_print', {article: artOrRefId}) }}" class="btn btn-col-action">
+            <i class='fas fa-print'></i>
+        </a>
+    {% endif %}
 </div>

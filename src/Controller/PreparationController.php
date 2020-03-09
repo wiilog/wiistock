@@ -312,9 +312,9 @@ class PreparationController extends AbstractController
                 $rows = [];
                 foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
-                    $isRefByRef = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                    $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                     $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-                    $qtt = $isRefByRef ?
+                    $qtt = $isRefByArt ?
                         $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
                     $ligneArticleFromDemande = $this->ligneArticleRepository->findOneByRefArticleAndDemande($articleRef, $demande);
@@ -345,7 +345,7 @@ class PreparationController extends AbstractController
                                 'barcode' => $articleRef->getBarCode(),
                                 'isRef' => true,
                                 'artOrRefId' => $articleRef->getId(),
-                                'isRefByRef' => $isRefByRef,
+                                'isRefByArt' => $isRefByArt,
                                 'quantity' => $qtt,
                                 'id' => $ligneArticle->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
@@ -373,7 +373,7 @@ class PreparationController extends AbstractController
                                 'barcode' => $article->getBarCode(),
                                 'artOrRefId' => $article->getId(),
                                 'isRef' => false,
-                                'isRefByRef' => false,
+                                'isRefByArt' => false,
                                 'quantity' => $article->getQuantiteAPrelever(),
                                 'id' => $article->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
