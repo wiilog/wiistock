@@ -31,15 +31,15 @@
         </div>
 
     {% endif %}
-    {% if isRef %}
-        {% if not isRefByArt %}
-            <a href="{{ path('reference_article_single_bar_code_print', {reference: artOrRefId}) }}" class="btn btn-col-action">
-                <i class='fas fa-print'></i>
-            </a>
-        {% endif %}
-    {% else %}
-        <a href="{{ path('article_single_bar_code_print', {article: artOrRefId}) }}" class="btn btn-col-action">
+
+    {% if not isRef or not isRefByArt %}
+        {% set printPath = (isRef
+            ? path('reference_article_single_bar_code_print', {reference: artOrRefId})
+            : path('article_single_bar_code_print', {article: artOrRefId}) )
+        %}
+        <a href="{{ printPath }}" class="btn btn-col-action print-button">
             <i class='fas fa-print'></i>
         </a>
     {% endif %}
+
 </div>
