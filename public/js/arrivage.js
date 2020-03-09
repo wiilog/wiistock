@@ -60,6 +60,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'urgent', visible: false},
     ],
     columnDefs: [
         {
@@ -134,4 +135,5 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
+    initSelect2WithTags('.select2-tag');
 }

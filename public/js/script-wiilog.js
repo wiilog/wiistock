@@ -1429,3 +1429,12 @@ function initOnTheFlyCopies($elems) {
         })
     });
 }
+
+function initSelect2WithTags(selector) {
+    $(selector).select2({
+        tags: true,
+        "language": {
+            "noResults": function () { return 'Ajoutez des éléments'; }
+        },
+    })
+}

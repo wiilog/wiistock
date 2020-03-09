@@ -162,9 +162,10 @@
                             <label for="noBL">
                                 N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? '*' : '' }}
                             </label>
-                            <input type="text" id="noBL"
-                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="noBL" maxlength="64">
+                            <select id="noBL"
+                                   class="form-control input-sm data select2-tag w-100 {{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="noBL" multiple="multiple">
+                            </select>
                         </div>
                     {% endif %}
                     <div class="form-group col-4">

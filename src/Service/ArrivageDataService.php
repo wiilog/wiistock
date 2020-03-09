@@ -112,6 +112,7 @@ class ArrivageDataService
 				'arrivage/datatableArrivageRow.html.twig',
 				['url' => $url, 'arrivage' => $arrivage]
 			),
+            'urgent' => $arrivage->getIsUrgent()
 		];
 
         return $row;

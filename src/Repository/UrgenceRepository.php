@@ -42,11 +42,11 @@ class UrgenceRepository extends ServiceEntityRepository
     public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('u')
             ->where(':date BETWEEN u.dateStart AND u.dateEnd')
-            ->andWhere('u.commande LIKE :commande')
+            ->andWhere('u.commande IN (:commande)')
             ->andWhere('u.provider IS NULL OR u.provider = :provider')
             ->setParameters([
                 'date' => $arrivage->getDate(),
-                'commande' => $arrivage->getNumeroBL(),
+                'commande' => explode(',', $arrivage->getNumeroBL()),
                 'provider' => $arrivage->getFournisseur()
             ]);
 
