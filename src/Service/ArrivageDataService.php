@@ -134,7 +134,6 @@ class ArrivageDataService
 
     public function sendArrivageEmail(Arrivage $arrivage, array $emergencies = []): void
     {
-
         $posts = array_reduce(
             $emergencies,
             function (array $carry, Urgence $emergency) {
@@ -145,6 +144,7 @@ class ArrivageDataService
             },
             []
         );
+
         $this->mailerService->sendMail(
             ('FOLLOW GT // Arrivage') . (count($emergencies) > 0 ? ' urgent' : ''),
             $this->templating->render(

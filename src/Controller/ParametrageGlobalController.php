@@ -551,36 +551,35 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/send-mail-switch", name="active_desactive_send_mail", options={"expose"=true}, methods="GET|POST")
+     * @Route("/send-mail-switch",
+	 *     name="active_desactive_send_mail",
+	 *     options={"expose"=true},
+	 *     methods="GET|POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
      * @param Request $request
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function actifDesactifSendMail(Request $request,
-                                           ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function toggleSendMail(Request $request,
+								   ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
-        {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist)
-            {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            }
-            else
-            {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
+        $data = json_decode($request->getContent(), true);
+
+		$parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+		$em = $this->getDoctrine()->getManager();
+
+		if (empty($parametrageGlobal)) {
+			$parametrage = new ParametrageGlobal();
+			$parametrage->setLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+			$em->persist($parametrage);
+		}
+
+		$parametrageGlobal->setValue($data['val']);
+		$em->flush();
+
+		return new JsonResponse(true);
     }
 
     /**
