@@ -368,12 +368,12 @@ class PreparationController extends AbstractController
                             $this->getDoctrine()->getManager()->flush();
                         }
                         $rows[] = [
-                            "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                            "Libellé" => $article->getLabel() ?? '',
                             "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                             "Quantité" => $article->getQuantite() ?? '',
-                            "Quantité à prélever" => $article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : '',
-                            "Quantité prélevée" => $article->getQuantitePrelevee() ? $article->getQuantitePrelevee() : ' ',
+                            "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
+                            "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
                                 'artOrRefId' => $article->getId(),

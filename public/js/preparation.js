@@ -334,6 +334,6 @@ function printPrepaBarCodes() {
         );
     }
     else {
-        alertErrorMsg("Il n'y a aucun article à imprimer");
+        alertErrorMsg("Il n'y a aucun article à imprimer.");
     }
 }
