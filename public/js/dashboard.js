@@ -279,7 +279,7 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                     chart = newChart($canvas, true, true);
                 }
 
-                updateMultipleChartData(chart, data.data, chartNumber !== 1 && (data.chartColors || {}));
+                updateMultipleChartData(chart, data.data, (data.chartColors || {}));
                 resolve(chart);
             });
         }
@@ -304,7 +304,7 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false, redForFirstData = false) {
+function newChart($canvasId, showLegend = false, redForLastData = false) {
     if ($canvasId.length) {
         const chart = new Chart($canvasId, {
             type: 'bar',
@@ -341,7 +341,7 @@ function newChart($canvasId, showLegend = false, redForFirstData = false) {
                 hover: {mode: null},
                 animation: {
                     onComplete() {
-                        buildLabelOnBarChart(this, redForFirstData);
+                        buildLabelOnBarChart(this, redForLastData);
                     }
                 }
             }
@@ -452,7 +452,6 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
-            console.log(dataset.data);
             for (let i = 0; i < dataset.data.length; i++) {
                 for (let key in dataset._meta) {
                     if (parseInt(dataset.data[i]) > 0) {
@@ -472,12 +471,12 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
                         ctx.fillStyle = rectColor;
                         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
 
-
                         // context only for text
                         ctx.shadowBlur = 0;
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 0;
-                        ctx.fillStyle = (redForFirstData && i === 0) ? 'red' : figureColor;
+                        const applyRedFont = (redForFirstData && (i === 0));
+                        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
                         ctx.fillText(figure, x, y);
                     }
                 }

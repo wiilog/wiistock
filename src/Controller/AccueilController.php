@@ -10,13 +10,12 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Repository\ArrivageRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -309,7 +308,7 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ArrivageRepository $arrivageRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
@@ -345,24 +344,18 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
-    public function getDailyPacksStatistics(DashboardService $dashboardService,
-                                            EntityManagerInterface $entityManager): Response
-    {
-        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-
-        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService, $mouvementTracaRepository) {
+    public function getDailyPacksStatistics(DashboardService $dashboardService): Response {
+        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService) {
             $resCounter = $dashboardService->getDashboardCounter(
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
-                $mouvementTracaRepository,
+                true,
                 [
-                    'dateMin' => $dateMin,
-                    'dateMax' => $dateMax
-                ],
-                false
+                    'minDate' => $dateMin,
+                    'maxDate' => $dateMax
+                ]
             );
             return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
@@ -379,7 +372,7 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param DashboardService $dashboardService
-     * @param ArrivageRepository $arrivageRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
@@ -423,6 +416,7 @@ class AccueilController extends AbstractController
      * @return Response
      *
      * @throws NonUniqueResultException
+     * @throws DBALException
      */
     public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
                                                        EntityManagerInterface $entityManager,
@@ -456,8 +450,14 @@ class AccueilController extends AbstractController
 
         $locationCounters = [];
 
-        if (!empty($naturesForGraph)) {
-            $colisOnCluster = $colisRepository->getColisNaturesOnLocationCluster($emplacementsWanted, $naturesForGraph);
+        $olderPackLocation = [
+            'locationLabel' => null,
+            'locationId' => null,
+            'packDateTime' => null
+        ];
+
+        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
+            $packsOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
@@ -465,12 +465,11 @@ class AccueilController extends AbstractController
             }
 
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$colisOnCluster, $adminDelay, &$locationCounters) {
-
+                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation) {
                 $countByNature = array_merge($countByNatureBase);
-                $colisUnTreated = [];
-                foreach ($colisOnCluster as $colis) {
-                    $date = $enCoursService->getTrackingMovementAge($colis['dateTime']);
+                $packUntreated = [];
+                foreach ($packsOnCluster as $pack) {
+                    $date = $enCoursService->getTrackingMovementAge($pack['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? intval($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -482,39 +481,56 @@ class AccueilController extends AbstractController
                             || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                         )) {
 
-                        $countByNature[$colis['natureLabel']]++;
+                        $countByNature[$pack['natureLabel']]++;
 
-                        if (empty($locationCounters[$colis['locationLabel']])) {
-                            $locationCounters[$colis['locationLabel']] = 0;
+                        $currentLocationLabel = $pack['currentLocationLabel'];
+                        $currentLocationId = $pack['currentLocationId'];
+                        $lastTrackingDateTime = $pack['lastTrackingDateTime'];
+
+                        // get older pack
+                        if ((
+                                empty($olderPackLocation['locationLabel'])
+                                || empty($olderPackLocation['locationId'])
+                                || empty($olderPackLocation['packDateTime'])
+                            )
+                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)){
+                            $olderPackLocation['locationLabel'] = $currentLocationLabel;
+                            $olderPackLocation['locationId'] = $currentLocationId;
+                            $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
                         }
 
-                        $locationCounters[$colis['locationLabel']]++;
+                        // increment counters
+                        if (empty($locationCounters[$currentLocationId])) {
+                            $locationCounters[$currentLocationId] = 0;
+                        }
+
+                        $locationCounters[$currentLocationId]++;
                     }
                     else {
-                        $colisUnTreated[] = $colis;
+                        $packUntreated[] = $pack;
                     }
                 }
-                $colisOnCluster = $colisUnTreated;
+                $packsOnCluster = $packUntreated;
                 return $countByNature;
             });
         }
 
-        $locationHighestNbOfColis = ['label' => null, 'counter' => 0];
-
-        foreach ($locationCounters as $locationLabel => $counter) {
-            if ($counter > $locationHighestNbOfColis['counter']) {
-                $locationHighestNbOfColis['counter'] = $counter;
-                $locationHighestNbOfColis['label'] = $locationLabel;
-            }
-        }
         if (!isset($graphData)) {
             $graphData = $dashboardService->getObjectForTimeSpan(function () { return 0; });
         }
 
+        $totalToDisplay = !empty($olderPackLocation['locationId'])
+            ? ($locationCounters[$olderPackLocation['locationId']] ?? null)
+            : null;
+
+        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
+            ? $olderPackLocation['locationLabel']
+            : null;
+
         return new JsonResponse([
             "data" => $graphData,
-            'total' => !empty($locationHighestNbOfColis['counter']) ? $locationHighestNbOfColis['counter'] : '-',
-            "location" => !empty($locationHighestNbOfColis['counter']) ? $locationHighestNbOfColis['label'] : '-',
+            'total' =>  isset($totalToDisplay) ? $totalToDisplay : '-',
+            'location' =>  isset($locationToDisplay) ? $locationToDisplay : '-',
 			'chartColors' => array_reduce(
 			    $naturesForGraph,
                 function (array $carry, Nature $nature) {
