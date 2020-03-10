@@ -1341,7 +1341,6 @@ function hideColumns(table, data) {
  * @param {boolean} autoHide delay in milliseconds
  */
 function displayAlertModal(title, $body, buttonConfig, iconType = undefined, autoHide = false) {
-
     const $alertModal = $('#alert-modal');
     hideSpinner($alertModal.find('.modal-footer .spinner'));
     $alertModal.find('.modal-footer-wrapper').removeClass('d-none');
@@ -1412,6 +1411,15 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     }
 
     $alertModal.modal('show');
+}
+
+function managePrintButtonTooltip(active, $button) {
+    if ($button) {
+        let $printTagParent = $button.parent();
+        $printTagParent.tooltip(
+            active ? undefined : 'dispose'
+        )
+    }
 }
 
 function initOnTheFlyCopies($elems) {

@@ -50,6 +50,7 @@ use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -214,13 +215,14 @@ class ArrivageController extends AbstractController
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
-    /**
-     * @Route("/", name="arrivage_index")
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
-     */
-    public function index(EntityManagerInterface $entityManager)
+	/**
+	 * @Route("/", name="arrivage_index")
+	 * @param EntityManagerInterface $entityManager
+	 * @param SpecificService $specificService
+	 * @return RedirectResponse|Response
+	 * @throws NonUniqueResultException
+	 */
+    public function index(EntityManagerInterface $entityManager, SpecificService $specificService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
@@ -240,6 +242,12 @@ class ArrivageController extends AbstractController
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
 
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
+        	$status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
+		} else {
+        	$status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+		}
+
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
@@ -247,7 +255,7 @@ class ArrivageController extends AbstractController
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $natureRepository->findAll(),
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+            'statuts' => $status,
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
 			'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
@@ -439,22 +447,27 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException('404 not found');
     }
 
-    /**
-     * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ChampLibreRepository $champLibreRepository
-     * @param ValeurChampLibreRepository $valeurChampLibreRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @param ValeurChampLibreRepository $valeurChampLibreRepository
+	 * @param SpecificService $specificService
+	 * @return Response
+	 * @throws NonUniqueResultException
+	 */
     public function editApi(Request $request,
                             ChampLibreRepository $champLibreRepository,
-                            ValeurChampLibreRepository $valeurChampLibreRepository): Response
+                            ValeurChampLibreRepository $valeurChampLibreRepository,
+							SpecificService $specificService
+	): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $statutRepository = $this->getDoctrine()->getRepository(Statut::class);
+
             $arrivage = $this->arrivageRepository->find($data['id']);
 
             // construction de la chaîne de caractères pour alimenter le select2
@@ -479,6 +492,12 @@ class ArrivageController extends AbstractController
                 ];
             }
 
+			if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
+				$status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
+			} else {
+				$status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+			}
+
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -488,7 +507,7 @@ class ArrivageController extends AbstractController
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                     'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+                    'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
                     'champsLibres' => $champsLibresArray
                 ]);
@@ -1417,24 +1436,55 @@ class ArrivageController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
+//*
     /**
-     * @Route("/{arrivage}/etiquette", name="print_arrivage_bar_code", options={"expose"=true}, methods="GET")
+     * @Route(
+     *     "/{arrivage}/colis/{colis}/etiquette",
+     *     name="print_arrivage_single_colis_bar_codes",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     *
      * @param Arrivage $arrivage
+     * @param Request $request
      * @param PDFGeneratorService $PDFGeneratorService
+     * @param Colis|null $colis
+     *
      * @return Response
+     *
      * @throws LoaderError
+     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
-    public function printArrivageBarCode(Arrivage $arrivage,
-                                         PDFGeneratorService $PDFGeneratorService): Response
-    {
-        $barcodeConfigs = [[
-            'code' => $arrivage->getNumeroArrivage()
-        ]];
+    public function printArrivageColisBarCodes(Arrivage $arrivage,
+                                               Request $request,
+                                               PDFGeneratorService $PDFGeneratorService,
+                                               Colis $colis = null): Response {
+        $barcodeConfigs = [];
+
+        if (!isset($colis)) {
+            $printColis = $request->query->getBoolean('printColis');
+            $printArrivage = $request->query->getBoolean('printArrivage');
+
+            if ($printColis) {
+                $barcodeConfigs = $this->getBarcodeConfigPrintAllColis($arrivage);
+            }
+
+            if ($printArrivage) {
+                $barcodeConfigs[] = [
+                    'code' => $arrivage->getNumeroArrivage()
+                ];
+            }
+        }
+        else {
+            if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
+                throw new NotFoundHttpException("404");
+            }
+
+            $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getAcheteurs());
+        }
 
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
@@ -1446,76 +1496,51 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route(
-     *     "/{arrivage}/etiquettes-colis/{colisId}",
-     *     name="print_arrivage_colis_bar_codes",
-     *     methods={"GET"},
-     *     defaults={"colisId": null},
-     *     options={"expose"=true}
+     *     "/{arrivage}/etiquettes",
+     *     name="print_arrivage_bar_codes",
+     *     options={"expose"=true},
+     *     methods="GET"
      * )
-     * @Entity("colis", expr="colisId ? repository.find(colisId) : colisId")
-     *
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @param ColisRepository $colisRepository
-     * @param Request $request
      * @param Arrivage $arrivage
-     * @param Colis|null $colis
-     * @return PdfResponse
+     * @param Request $request
+     * @param PDFGeneratorService $PDFGeneratorService
+     * @return Response
      * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function printArrivageColisBarCodes(PDFGeneratorService $PDFGeneratorService,
-                                               ColisRepository $colisRepository,
-                                               Request $request,
-                                               Arrivage $arrivage,
-                                               ?Colis $colis): PdfResponse
+    public function printArrivageAlias(Arrivage $arrivage,
+                                       Request $request,
+                                       PDFGeneratorService $PDFGeneratorService) {
+        return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
+
+    }
+
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage)
     {
-        $colisListStr = $request->query->get('colisList');
-        if (!empty($colisListStr)) {
-            $colisList = array_map(function ($id) use ($colisRepository) {
-                return $colisRepository->find($id);
-            }, explode(',', $colisListStr));
-        } else if (isset($colis)) {
-            $colisList = [$colis];
-        }
-
-        if (!empty($colisList)) {
-            /** @var Colis $colisRequested */
-            foreach ($colisList as $colisRequested) {
-                if ($colisRequested->getArrivage()->getId() !== $arrivage->getId()) {
-                    throw new NotFoundHttpException("404");
-                }
-            }
-        }
-
-        $barcodeConfigs = array_map(
+        return array_map(
             function (Colis $colisInArrivage) use ($arrivage) {
-                $acheteurs = $arrivage->getAcheteurs();
-                $acheteursCounter = $acheteurs->count();
-                return [
-                    'code' => $colisInArrivage->getCode(),
-                    'labels' => [
-                        ($acheteursCounter === 1)
-                            ? ($acheteurs->first()->getDropzone()
-                            ? $acheteurs->first()->getDropzone()->getLabel()
-                            : '')
-                            : ''
-                    ]
-                ];
+                return $this->getBarcodeColisConfig($colisInArrivage, $arrivage->getAcheteurs());
             },
-            !empty($colisList)
-                ? $colisList
-                : $arrivage->getColis()->toArray()
+            $arrivage->getColis()->toArray()
         );
+    }
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'colis_arrivage');
-
-        return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
-            $fileName
-        );
+    private function getBarcodeColisConfig(Colis $colis, Collection $buyers)
+    {
+        $buyersCounter = $buyers->count();
+        return [
+            'code' => $colis->getCode(),
+            'labels' => [
+                ($buyersCounter === 1)
+                    ? ($buyers->first()->getDropzone()
+                        ? $buyers->first()->getDropzone()->getLabel()
+                        : '')
+                    : ''
+            ]
+        ];
     }
 
     private function getResponseReloadArrivage($reloadArrivageId): ?array

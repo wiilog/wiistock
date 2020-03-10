@@ -14,7 +14,7 @@
         </a>
         <a class="btn btn-success"
            id="printArrivageBtn"
-           href="{{ path('print_arrivage_bar_code', {arrivage: arrivage.id}) }}">
+           href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
             <i class='fas fa-print pointer'></i>
             Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
         </a>

@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+let $printTag ;
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
@@ -52,6 +52,11 @@ let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), true, false);
 
+$(function () {
+    $printTag = $('#btnPrint');
+    managePrintButtonTooltip(true, $printTag);
+});
+
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
     let id = icon.data('id');
@@ -86,24 +91,26 @@ function overrideSearchEmplacement() {
             if ($input.val() === '') {
                 $printButton.addClass('btn-disabled');
                 $printButton.removeClass('btn-primary');
+                managePrintButtonTooltip(true, $printTag);
             } else {
                 $printButton.removeClass('btn-disabled');
                 $printButton.addClass('btn-primary');
+                managePrintButtonTooltip(false, $printTag);
             }
             tableEmplacement.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
             $printButton.addClass('btn-disabled');
             $printButton.removeClass('btn-primary');
+            managePrintButtonTooltip(true, $printTag);
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
 }
 
 function printLocationsBarCodes() {
-    let path = Routing.generate('print_locations_bar_codes', {
+    window.location.href = Routing.generate('print_locations_bar_codes', {
         listEmplacements: $("#listEmplacementIdToPrint").val(),
         length: tableEmplacement.page.info().length,
         start: tableEmplacement.page.info().start
     }, true);
-    window.open(path, '_blank');
 }

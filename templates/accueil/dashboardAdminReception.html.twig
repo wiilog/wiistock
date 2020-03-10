@@ -9,7 +9,10 @@
             <div class="col-8 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
                     <p class="title">
-                        Entrées à effectuer<br>
+                        Entrées à effectuer
+                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                            Composant
+                        {% endif %}
                     </p>
                     <div class="points">
                         {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
@@ -52,7 +55,10 @@
             <div class="col-8 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
                     <p class="title">
-                        Entrées à effectuer<br>
+                        Entrées à effectuer
+                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                            Méca
+                        {% endif %}
                     </p>
                     <div class="points">
                         {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}

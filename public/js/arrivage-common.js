@@ -100,16 +100,13 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
         $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
 
-        if (printColis) {
-            let path = Routing.generate('print_arrivage_colis_bar_codes', { arrivage: arrivageId }, true);
-            window.open(path, '_blank');
-        }
-        if (printArrivage) {
-            setTimeout(function() {
-                let path = Routing.generate('print_arrivage_bar_code', { arrivage: arrivageId }, true);
-                window.open(path, '_blank');
-            }, 500);
-        }
+        let params = {
+            arrivage: arrivageId,
+            printColis: printColis ? 1 : 0,
+            printArrivage: printArrivage ? 1 : 0
+        };
+
+        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
     else {
         const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);

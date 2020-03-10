@@ -766,7 +766,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getCalculedAvailableQuantity(): int
+    public function getCalculatedStockQuantity(): int
     {
         $totalQuantity = 0;
         if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -781,30 +781,6 @@ class ReferenceArticle
         return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
             ? $this->getQuantiteStock()
             : $totalQuantity;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function treatAlert(): void
-    {
-        $calculedAvailableQuantity = $this->getCalculedAvailableQuantity();
-        $limitToCompare = empty($this->getLimitWarning())
-            ? empty($this->getLimitSecurity())
-                ? 0
-                : $this->getLimitSecurity()
-            : $this->getLimitWarning();
-        $status = $this->getStatut();
-        $limitToCompare = intval($limitToCompare);
-        if ($limitToCompare > 0) {
-            if (!isset($status) ||
-                ($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
-                ($this->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
-                $this->setDateEmergencyTriggered(null);
-            } else if (!$this->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
-                $this->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
-            }
-        }
     }
 
     public function getDateEmergencyTriggered(): ?\DateTimeInterface
