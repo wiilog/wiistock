@@ -10,11 +10,13 @@
                 <p class="title">
                     Arrivages quotidiens<br>
                 </p>
-                <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Arrivages quotidiens ainsi que le nombre de colis réceptionnés quotidiens."></i>
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
+                    </div>
+                {% endif %}
                 <div style="height: 70% !important;">
                     <canvas id="chartDailyArrival" width="300" height="90"></canvas>
                 </div>
@@ -27,11 +29,13 @@
                 <p class="title">
                     Arrivages hebdomadaires<br>
                 </p>
-                <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Arrivages hebdomadaires ainsi que le nombre de colis réceptionnés hebdomadaires."></i>
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre de colis réceptionnés par semaine."></i>
+                    </div>
+                {% endif %}
                 <div style="height: 70% !important;">
                     <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
                 </div>
@@ -43,8 +47,7 @@
             <div id="encours-dock-box" class="dashboard-box text-center">
                 <p>Colis restant à traiter<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant emplacement à traiter.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
@@ -52,8 +55,7 @@
             <div id="encours-clearance-box-dock" class="dashboard-box text-center">
                 <p>Colis en attente dédouanement<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant emplacement en attente de dédouanement.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
@@ -61,15 +63,14 @@
             <div id="encours-cleared-box" class="dashboard-box text-center">
                 <p>Colis dédouanés et dispo<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant emplacement de douane.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-dock" class="dashboard-box text-center">
-                <p>Urgences restantes à recevoir<br>
-                    <span class="figure red counter has-tooltip" title="Le nombre d'urgences non soldées.">-</span>
+                <p>Urgences restant à recevoir<br>
+                    <span class="figure red counter">-</span>
                 </p>
             </div>
         </div>
@@ -77,22 +78,22 @@
             <div id="encours-dropzone-box" class="dashboard-box text-center">
                 <p>Colis à déposer en Drop Zones<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant drop zones.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
                 <p class="title">
-                    Nombre de colis distribués en Dropzone<br>
+                    Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                 </p>
-                <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Colis encours sur l'emplacements
-                    paramétré comme étant drop zones."></i>
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.colis'|trans|capitalize }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
+                    </div>
+                {% endif %}
                 <div class="h-100">
                     <canvas id="chartColis" width="300" height="90"></canvas>
                 </div>
@@ -106,11 +107,13 @@
                 <p class="title">
                     Suivi des transporteurs<br>
                 </p>
-                <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Transporteurs ayant effectués une livraison aujourd'hui."></i>
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+                    </div>
+                {% endif %}
                 <div class="little-font" id="statistics-arrival-carriers"></div>
             </div>
         </div>

@@ -46,7 +46,7 @@ $(function () {
     refreshIndicatorsReceptionDock();
     refreshIndicatorsReceptionAdmin();
     updateCarriers();
-    initTooltips();
+    initTooltips($('.has-tooltip'));
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
@@ -68,12 +68,6 @@ $(function () {
         }
     })
 });
-
-function initTooltips() {
-    $('.has-tooltip').each(function() {
-        initToolTip($(this));
-    });
-}
 
 function reloadDashboards() {
     if (datatableColis) {

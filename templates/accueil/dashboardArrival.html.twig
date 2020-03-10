@@ -25,7 +25,7 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Nombre d'{{ 'arrivage.arrivage'|trans }} datés d'aujourd'hui."></i>
+                    title="Nombre d'{{ 'arrivage.arrivage'|trans }} par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -52,7 +52,7 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Nombre de réceptions de traçabilité datées d'ajourd'hui."></i>
+                    title="Nombre de réceptions de traçabilité par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -79,8 +79,8 @@
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
-                    title="Les colis étant en encours sur un emplacement depuis plus
-                    longtemps que le délai spécifié de l'emplacement."></i>
+                    title="{{ 'arrivage.colis'|trans|capitalize }} ayant dépassé le délai de présence sur son emplacement
+                     (paramétrable sur chaque emplacement)."></i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100">
@@ -97,7 +97,7 @@
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
-                        title="Fiabilité monétaire sur les 6 derniers mois glissants."></i>
+                        title="Fiabilité monétaire sur les 6 derniers mois."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>

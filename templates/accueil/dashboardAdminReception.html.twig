@@ -14,13 +14,15 @@
                             Composant
                         {% endif %}
                     </p>
-                    <div class="points">
-                        <i
-                            class="fa fa-question has-tooltip"
-                            title="Nombre de colis de nature paramétrée pour le graphe 1
-                            étant en encours de moins de 48h sur
-                            l'ensemble des emplacements paramétrés pour le graphe 1."></i>
-                    </div>
+                    {% if not isDashboardExt %}
+                        <div class="points">
+    {#                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}#}
+                            <i
+                                class="fa fa-question has-tooltip"
+                                title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
+                                présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1."></i>
+                        </div>
+                    {% endif %}
                     <div class="h-100">
                         <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
                     </div>
@@ -30,13 +32,19 @@
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
+                            {% if not isDashboardExt %}
+                                <div class="points">
+                                    <i class="fa fa-question has-tooltip"
+                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                                        sur l'emplacement paramétré sur le graphe 1 ayant l'encours le plus ancien.">
+                                    </i>
+                                </div>
+                            {% endif %}
                             <p>
-                                Nombres de lignes restantes à traiter
+                                Nombres de lignes restant à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="totalForChart1" class="figure has-tooltip" title="Nombre
-                                de colis en encours sur l'emplacement paramétré sur le graphe 1
-                                ayant l'encours le plus ancien."></strong>
+                                <strong id="totalForChart1" class="figure"></strong>
                             </p>
                         </div>
                     </div>
@@ -44,13 +52,19 @@
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
+                            {% if not isDashboardExt %}
+                                <div class="points">
+                                    <i class="fa fa-question has-tooltip"
+                                       title="Emplacement paramétré sur le graphe 1
+                                        ayant l'encours le plus ancien.">
+                                    </i>
+                                </div>
+                            {% endif %}
                             <p>
                                 Prochaine bac/palette à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="empForChart1" class="figure has-tooltip"
-                                        title="Emplacement paramétré sur le graphe 1
-                                        ayant l'encours le plus ancien."></strong>
+                                <strong id="empForChart1" class="figure"></strong>
                             </p>
                         </div>
                     </div>
@@ -68,13 +82,14 @@
                             Méca
                         {% endif %}
                     </p>
-                    <div class="points">
-                        <i
-                            class="fa fa-question has-tooltip"
-                            title="Nombre de colis de natures paramétrées pour le graphe 2
-                            étant en encours de moins de 48h sur
-                            l'ensemble des emplacements paramétrés pour le graphe 2."></i>
-                    </div>
+                    {% if not isDashboardExt %}
+                        <div class="points">
+                            <i
+                                class="fa fa-question has-tooltip"
+                                title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
+                                présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2."></i>
+                        </div>
+                    {% endif %}
                     <div class="h-100">
                         <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
                     </div>
@@ -84,13 +99,19 @@
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
+                            {% if not isDashboardExt %}
+                                <div class="points">
+                                    <i class="fa fa-question has-tooltip"
+                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                                        sur l'emplacement paramétré sur le graphe 2 ayant l'encours le plus ancien.">
+                                    </i>
+                                </div>
+                            {% endif %}
                             <p>
-                                Nombres de lignes restantes à traiter
+                                Nombres de lignes restant à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="totalForChart2" class="figure has-tooltip" title="Nombre
-                                de colis en encours sur l'emplacement paramétré sur le graphe 2
-                                ayant l'encours le plus ancien'."></strong>
+                                <strong id="totalForChart2" class="figure"></strong>
                             </p>
                         </div>
                     </div>
@@ -98,13 +119,19 @@
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
+                            {% if not isDashboardExt %}
+                                <div class="points">
+                                    <i class="fa fa-question has-tooltip"
+                                       title="Emplacement paramétré sur le graphe 2
+                                        ayant l'encours le plus ancien.">
+                                    </i>
+                                </div>
+                            {% endif %}
                             <p>
                                 Prochaine palette à traiter
                             </p>
                             <p class="little-font">
-                                <strong id="empForChart2" class="figure has-tooltip"
-                                        title="Emplacement paramétré sur le graphe 2
-                                        ayant l'encours le plus ancien."></strong>
+                                <strong id="empForChart2" class="figure"></strong>
                             </p>
                         </div>
                     </div>
@@ -118,8 +145,8 @@
         <div class="dashboard-box-wrapper fourth-height m-1">
             <div id="remaining-urgences-box-admin" class="dashboard-box text-center">
                 <p>
-                    Urgences restantes à recevoir<br>
-                    <span class="figure red counter has-tooltip" title="Le nombre d'urgences non soldées.">-</span>
+                    Urgences restant à recevoir<br>
+                    <span class="figure red counter has-tooltip" title="Nombre {{ 'urgences.urgences'|trans }} non soldées.">-</span>
                 </p>
             </div>
         </div>
@@ -128,10 +155,9 @@
         <div class="dashboard-box-wrapper fourth-height m-1">
             <div id="encours-urgence-box" class="dashboard-box text-center">
                 <p>
-                    Urgences restantes à traiter<br>
+                    Urgences restant à traiter<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant urgents.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
@@ -142,8 +168,7 @@
                 <p>
                     Lignes en litiges<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant en litiges.">-</span>
+                    <span class="figure counter">-</span>
                 </p>
             </div>
         </div>
@@ -154,8 +179,7 @@
                 <p>
                     Colis en attente de dédouanement<br>
                     (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip" title="Colis restants à traiter sur les emplacements
-                    paramétrés comme étant en dédouanement.">-</span>
+                    <span class="figure counter has-tooltip">-</span>
                 </p>
             </div>
         </div>
