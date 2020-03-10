@@ -23,7 +23,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 
-use http\Client\Curl\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -57,13 +56,11 @@ class OrdreCollecteController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $demandeCollecte = $demandId
-            ? $collecteRepository->find($demandId)
-            : null;
+        $demandeCollecte = $demandId ? $collecteRepository->find($demandId) : null;
 
         return $this->render('ordre_collecte/index.html.twig', [
-            'filterDemandId' => isset($demandeCollecte) ? $demandId : null,
-            'filterDemandValue' => isset($demandeCollecte) ? $demandeCollecte->getNumero() : null,
+            'filterDemandId' => $demandeCollecte ? $demandId : null,
+            'filterDemandValue' => $demandeCollecte ? $demandeCollecte->getNumero() : null,
             'filtersDisabled' => isset($demandeCollecte),
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
@@ -255,10 +252,10 @@ class OrdreCollecteController extends AbstractController
 
         // on modifie statut + date validation de la demande
         $demandeCollecte
-            ->setStatut($statutRepository
-                ->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER))
+            ->setStatut(
+            	$statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
+			)
             ->setValidationDate($date);
-
 
         $entityManager->flush();
 
@@ -335,21 +332,16 @@ class OrdreCollecteController extends AbstractController
             if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
+            if ($ordreCollecte->getStatut() && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
                 $statutRepository = $entityManager->getRepository(Statut::class);
                 $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
                 $collecte = $ordreCollecte->getDemandeCollecte();
                 $isOnlyOrdreCollecte = $collecte->getOrdresCollecte()->count() === 1;
                 $entityManager = $this->getDoctrine()->getManager();
-                if ($isOnlyOrdreCollecte) {
-                    $collecte
-                        ->setStatut($statutRepository
-                            ->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON));
-                } else {
-                    $collecte
-                        ->setStatut($statutRepository
-                            ->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE));
-                }
+
+                $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
+                $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
+
                 foreach ($ordreCollecte->getArticles() as $article) {
                     if (!$isOnlyOrdreCollecte) {
                         $article->removeCollecte($collecte);
