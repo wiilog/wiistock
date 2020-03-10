@@ -140,7 +140,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
         $result = $this
             ->createQueryBuilder('mouvementTraca')
             ->select('mouvementTraca.colis')
-            ->andWhere('mouvementTraca.id IN (:mouvementTracaIds)')
+            ->where('mouvementTraca.id IN (:mouvementTracaIds)')
             ->setParameter('mouvementTracaIds', $ids, Connection::PARAM_STR_ARRAY)
             ->getQuery()
             ->getResult();
@@ -148,7 +148,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * Retourne les ids de mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return int[]

@@ -11,6 +11,7 @@ use App\Entity\MouvementTraca;
 use DateInterval;
 use DatePeriod;
 use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -199,7 +200,7 @@ class EnCoursService
 
 
         if (count($daysWorked) > 0) {
-            $now = new DateTime("now");
+            $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
             $nowIncluding = (clone $now)->setTime(23, 59, 59);
             $interval = DateInterval::createFromDateString('1 day');
             $period = new DatePeriod($movementDate, $interval, $nowIncluding);

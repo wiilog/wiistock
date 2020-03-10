@@ -472,7 +472,7 @@ class AccueilController extends AbstractController
                     $date = $enCoursService->getTrackingMovementAge($pack['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                        ? intval($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
+                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
                         : null;
 
                     if (isset($countDownHours)
