@@ -1,7 +1,10 @@
 let pathArticle = Routing.generate('article_api', true);
 let tableArticle;
+let $printTag ;
 $(function () {
+    $printTag = $('#printTag');
     initTableArticle();
+    managePrintButtonTooltip(true, $printTag);
 });
 
 function initTableArticle() {
@@ -202,14 +205,17 @@ function overrideSearchArticle() {
             if ($input.val() === '') {
                 $printBtn.addClass('btn-disabled');
                 $printBtn.removeClass('btn-primary');
+                managePrintButtonTooltip(true, $printTag);
             } else {
                 $printBtn.removeClass('btn-disabled');
                 $printBtn.addClass('btn-primary');
+                managePrintButtonTooltip(false, $printTag);
             }
             tableArticle.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
             $printBtn.addClass('btn-disabled');
             $printBtn.removeClass('btn-primary');
+            managePrintButtonTooltip(true, $printTag);
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
@@ -220,7 +226,7 @@ function printArticlesBarCodes() {
     const length = tableArticle.page.info().length;
 
     if (length > 0) {
-        let path = Routing.generate(
+        window.location.href = Routing.generate(
             'article_print_bar_codes',
             {
                 length,
@@ -229,7 +235,6 @@ function printArticlesBarCodes() {
             },
             true
         );
-        window.open(path, '_blank');
     }
     else {
         alertErrorMsg("Il n'y a aucun article à imprimer");

@@ -45,7 +45,7 @@ function initDatatableLitiges() {
             "type": "POST",
             'dataSrc': function (json) {
                 json.columnHidden.forEach(element => {
-                    tableLitiges.column(element+':name').visible(false);
+                    tableLitiges.column(element).visible(false);
                 });
                 return json.data;
             }
@@ -59,7 +59,7 @@ function initDatatableLitiges() {
             {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'Acheteurs', 'title': 'Acheteurs'},
-            {"data": 'numCommandeRecep', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
+            {"data": 'numCommandeBl', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
             {"data": 'references', 'name': 'Références', 'title': 'Références', 'orderable': false},
@@ -98,7 +98,7 @@ function initColVisParam() {
         let data = {};
         $buttons.each((index, elem) => {
             let $elem = $(elem);
-            data[$elem.text()] = $elem.hasClass('active');
+            data[$elem.data('cv-idx')] = $elem.hasClass('active');
         });
        $.post(Routing.generate('save_column_hidden_for_litiges'), data);
     });

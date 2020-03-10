@@ -6,6 +6,8 @@ use App\Entity\Transporteur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
@@ -90,4 +92,40 @@ class TransporteurRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
+	/**
+	 * @param string $code
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function countByCode($code)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT COUNT(t)
+          FROM App\Entity\Transporteur t
+          WHERE t.code = :code"
+		)->setParameter('code', $code);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param string $label
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+    public function countByLabel($label)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT COUNT(t)
+          FROM App\Entity\Transporteur t
+          WHERE t.label = :label"
+		)->setParameter('label', $label);
+
+		return $query->getSingleScalarResult();
+	}
 }

@@ -1,6 +1,6 @@
 <h1 class="text-center">Arrivage n° {{ arrivage.numeroArrivage }}
     <a class="btn btn-success"
-       href="{{ path('print_arrivage_bar_code', {arrivage: arrivage.id}) }}">
+       href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
         <i class='fas fa-print pointer'></i>
     </a>
 </h1>
@@ -15,7 +15,7 @@
         {% endfor %}
         <th class="text-center">
             Impression
-            <a href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id}) }}">
+            <a href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printColis: 1}) }}">
                 <i class='fas fa-print'></i>
             </a>
         </th>
@@ -24,7 +24,7 @@
         <tr>
             <td>{{ colis.code }}</td>
             <td class="text-center">
-                <a href="{{ path('print_arrivage_colis_bar_codes', {arrivage: arrivage.id, colisId: colis.id}) }}">
+                <a href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivage.id, colis: colis.id}) }}">
                     <i class='fas fa-print'></i>
                 </a>
             </td>

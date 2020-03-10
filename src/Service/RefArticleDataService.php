@@ -35,6 +35,9 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
+use DateTime;
+use DateTimeZone;
+use Doctrine\DBAL\DBALException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -220,10 +223,11 @@ class RefArticleDataService
     }
 
 
-    /**
-     * @param ReferenceArticle $articleRef
-     * @return array
-     */
+	/**
+	 * @param ReferenceArticle $articleRef
+	 * @return array
+	 * @throws DBALException
+	 */
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
@@ -232,41 +236,36 @@ class RefArticleDataService
         } else {
             $valeurChampLibre = [];
         }
-        // construction du tableau des articles fournisseurs
-        $listArticlesFournisseur = [];
-        $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-        $totalQuantity = 0;
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-        foreach ($articlesFournisseurs as $articleFournisseur) {
-            $quantity = 0;
-            foreach ($articleFournisseur->getArticles() as $article) {
-                if ($article->getStatut() == $statut) $quantity += $article->getQuantite();
-            }
-            $totalQuantity += $quantity;
-
-            $listArticlesFournisseur[] = [
-                'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                'label' => $articleFournisseur->getLabel(),
-                'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                'quantity' => $quantity
-            ];
-        }
-
+        $totalQuantity = $this->getAvailableQuantityForRef($articleRef);
         return $data = [
-            'listArticlesFournisseur' => $listArticlesFournisseur,
+            'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
+                function (array $carry, ArticleFournisseur $articleFournisseur) {
+                    $carry[] = [
+                        'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                        'label' => $articleFournisseur->getLabel(),
+                        'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                        'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
+                            return $article->getStatut()->getNom() === Article::STATUT_ACTIF
+                                ? $carry + $article->getQuantite()
+                                : $carry;
+                        }, 0)
+                    ];
+                    return $carry;
+                }, []),
             'totalQuantity' => $totalQuantity,
             'valeurChampLibre' => $valeurChampLibre
         ];
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param bool $isADemand
-     * @return string
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param bool $isADemand
+	 * @return string
+	 * @throws DBALException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
@@ -404,6 +403,14 @@ class RefArticleDataService
     }
 
 
+    /**
+     * @param ReferenceArticle $refArticle
+     * @return array
+     * @throws LoaderError
+	 * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws DBALException
+     */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
         $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
@@ -411,7 +418,9 @@ class RefArticleDataService
         foreach ($rows as $row) {
             $rowCL[$row['label']] = $row['valeur'];
         }
-        $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+
+		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
+		$quantityStock = $refArticle->getCalculatedStockQuantity();
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -419,8 +428,9 @@ class RefArticleDataService
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $refArticle->getCalculedAvailableQuantity() - $reservedQuantity,
-            "Code barre" => $refArticle->getBarCode() ?? 'Non défini',
+            "Quantité disponible" => $availableQuantity,
+			"Quantité stock" => $quantityStock ?? 0,
+			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
@@ -516,7 +526,7 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser( FiltreSup::PAGE_ALERTE, $user);
+        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
         $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
@@ -532,22 +542,17 @@ class RefArticleDataService
         ];
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @return array
+	 * @throws DBALException
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        if ($referenceArticle['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $quantity = $referenceArticle['quantiteStock'];
-        } else {
-            $quantity = (int)$this->referenceArticleRepository->getTotalQuantityArticlesByRefArticle($referenceArticle['id']);
-        }
-
+        $quantity = $this->getAvailableQuantityForRef($referenceArticle);
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
@@ -573,12 +578,13 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array {
+    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array
+    {
         return [
             'barcode' => $referenceArticle->getBarCode(),
             'barcodeLabel' => $this->templating->render('reference_article/barcodeLabel.html.twig', [
                 'refRef' => $referenceArticle->getReference(),
-                'refLabel' =>$referenceArticle->getLibelle(),
+                'refLabel' => $referenceArticle->getLibelle(),
             ])
         ];
     }
@@ -587,7 +593,8 @@ class RefArticleDataService
      * @param ReferenceArticle $referenceArticle
      * @return array ['code' => string, 'labels' => string[]]
      */
-    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array {
+    public function getBarcodeConfig(ReferenceArticle $referenceArticle): array
+    {
         $labels = [
             $referenceArticle->getReference() ? ('L/R : ' . $referenceArticle->getReference()) : '',
             $referenceArticle->getLibelle() ? ('C/R : ' . $referenceArticle->getLibelle()) : ''
@@ -599,4 +606,45 @@ class RefArticleDataService
             })
         ];
     }
+
+    /**
+     * @param ReferenceArticle|array $referenceArticle
+     * @return int
+     * @throws DBALException
+     */
+    public function getAvailableQuantityForRef($referenceArticle): int
+    {
+        $referenceArticle = is_array($referenceArticle) ? $this->referenceArticleRepository->find($referenceArticle['id']) : $referenceArticle;
+        return
+            $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
+                ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
+                : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
+    }
+
+    /**
+     * @param ReferenceArticle $refArticle
+     * @throws DBALException
+     * @throws Exception
+     */
+	public function treatAlert(ReferenceArticle $refArticle): void
+	{
+		$calculedAvailableQuantity = $this->getAvailableQuantityForRef($refArticle);
+		$limitToCompare = empty($refArticle->getLimitWarning())
+			? empty($refArticle->getLimitSecurity())
+				? 0
+				: $refArticle->getLimitSecurity()
+			: $refArticle->getLimitWarning();
+		$status = $refArticle->getStatut();
+		$limitToCompare = intval($limitToCompare);
+		if ($limitToCompare > 0) {
+			if (!isset($status) ||
+				($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
+				($refArticle->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
+				$refArticle->setDateEmergencyTriggered(null);
+			} else if (!$refArticle->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
+				$refArticle->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));
+			}
+		}
+	}
+
 }
