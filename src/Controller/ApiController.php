@@ -42,6 +42,7 @@ use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use DateTimeZone;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -1361,6 +1362,49 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $statusCode = Response::HTTP_UNAUTHORIZED;
             $resData['success'] = false;
             $resData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+        return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws DBALException
+     */
+    public function getTrackingDropsOnLocation(Request $request,
+                                              EntityManagerInterface $entityManager): Response
+    {
+        $resData = [];
+        if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
+            $statusCode = Response::HTTP_OK;
+
+            $locationLabel = $request->query->get('location');
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
+            $location = !empty($locationLabel)
+                ? $emplacementRepository->findOneByLabel($locationLabel)
+                : null;
+
+            if (!empty($locationLabel) && !isset($location)) {
+                $location = $emplacementRepository->find($locationLabel);
+            }
+
+            if (!empty($location)) {
+                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                $resData['success'] = true;
+                $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
+            }
+            else {
+                $resData['success'] = true;
+                $resData['trackingDrops'] = [];
+            }
+        } else {
+            $statusCode = Response::HTTP_UNAUTHORIZED;
+            $resData['success'] = false;
+            $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
         return new JsonResponse($resData, $statusCode);
     }

@@ -44,6 +44,17 @@ class MouvementTracaRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementTraca::class);
     }
 
+    private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder {
+        return $queryBuilder
+            ->select('mouvementTraca.colis AS ref_article')
+            ->addSelect('mouvementTracaType.nom AS type')
+            ->addSelect('operator.username AS operateur')
+            ->addSelect('location.label AS ref_emplacement')
+            ->addSelect($preferDate ? 'mouvementTraca.datetime AS date' : 'mouvementTraca.uniqueIdForMobile AS date')
+            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
+            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
+    }
+
     /**
      * @param $uniqueId
      * @return MouvementTraca
@@ -152,9 +163,9 @@ class MouvementTracaRepository extends ServiceEntityRepository
     }
 
     /**
-     * Retourne les ids de moumvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
-     * @return int[]
+     * @return array[]
      * @throws DBALException
      */
     public function getLastOnLocations(array $locations): array {
@@ -172,6 +183,36 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
+     * @param Emplacement[]|int[] $locations
+     * @return array[]
+     * @throws DBALException
+     */
+    public function getLastTrackingMovementsOnLocations(array $locations): array {
+        $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
+
+        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'), true)
+            ->join('mouvementTraca.emplacement', 'location')
+            ->join('mouvementTraca.operateur', 'operator')
+            ->join('mouvementTraca.type', 'mouvementTracaType')
+            ->where('mouvementTraca.id IN (:trackingIds)')
+            ->andWhere('mouvementTraca.mouvementStock IS NULL')
+            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY);
+
+        return array_map(
+            function ($movement) {
+                $movement['date'] = $movement['date']
+                    ? $movement['date']->format(DateTime::ATOM)
+                    : null;
+                return $movement;
+            },
+            $queryBuilder
+                ->getQuery()
+                ->getResult()
+        );
     }
 
     /**
@@ -410,14 +451,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
             ? 'mouvementTraca.mouvementStock IS NOT NULL'
             : 'mouvementTraca.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
 
-        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
-            ->select('mouvementTraca.colis AS ref_article')
-            ->addSelect('mouvementTracaType.nom AS type')
-            ->addSelect('operator.username AS operateur')
-            ->addSelect('location.label AS ref_emplacement')
-            ->addSelect('mouvementTraca.uniqueIdForMobile AS date')
-            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'))
             ->join('mouvementTraca.type', 'mouvementTracaType')
             ->join('mouvementTraca.operateur', 'operator')
             ->join('mouvementTraca.emplacement', 'location')
