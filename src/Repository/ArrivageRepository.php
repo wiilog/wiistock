@@ -259,6 +259,16 @@ class ArrivageRepository extends ServiceEntityRepository
                         ->andWhere('a.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
                     break;
+                case 'duty':
+                    $qb
+                        ->andWhere('a.duty = :value')
+                        ->setParameter('value', $filter['value']);
+                    break;
+                case 'frozen':
+                    $qb
+                        ->andWhere('a.frozen = :value')
+                        ->setParameter('value', $filter['value']);
+                    break;
                 case 'numArrivage':
                     $qb
                         ->andWhere('a.numeroArrivage = :numeroArrivage')
