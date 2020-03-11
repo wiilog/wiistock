@@ -428,6 +428,7 @@ class PreparationsManagerService
             if (!$mouvementAlreadySaved) {
                 $quantitePrelevee = $article->getQuantitePrelevee();
                 $selected = !(empty($quantitePrelevee));
+                dump($selected);
                 $article->setStatut(
                     $statutRepository->findOneByCategorieNameAndStatutCode(
                         Article::CATEGORIE,
