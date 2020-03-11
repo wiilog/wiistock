@@ -1210,6 +1210,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             // inventory
             $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
+
+            // prises en cours
+            $stockTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
         }
         else {
             // livraisons
@@ -1231,6 +1234,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             // inventory
             $articlesInventory = [];
             $refArticlesInventory = [];
+
+            // prises en cours
+            $stockTaking = [];
         }
 
         if ($rights['demande']) {
@@ -1242,11 +1248,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['tracking']) {
             $trackingTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
-            $stockTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
         }
         else {
             $trackingTaking = [];
-            $stockTaking = [];
         }
 
         return [
