@@ -172,6 +172,12 @@ function initTableRefArticle() {
                     ...column,
                     class: undefined
                 })),
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },

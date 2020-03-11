@@ -314,9 +314,15 @@ class ReferenceArticleController extends AbstractController
 				],
 				[
 					"title" => 'Quantité disponible',
-					"data" => 'Quantité',
+					"data" => 'Quantité disponible',
 					'name' => 'Quantité disponible',
 					"class" => (in_array('Quantité disponible', $columnsVisible) ? 'display' : 'hide'),
+				],
+				[
+					"title" => 'Quantité en stock',
+					"data" => 'Quantité stock',
+					'name' => 'Quantité stock',
+					"class" => (in_array('Quantité stock', $columnsVisible) ? 'display' : 'hide'),
 				],
                 [
                     "title" => 'Code barre',
@@ -595,6 +601,11 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Statut',
             'id' => 0,
             'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Quantité stock',
+            'id' => 0,
+            'typage' => 'number'
         ];
         $champF[] = [
             'label' => 'Quantité disponible',

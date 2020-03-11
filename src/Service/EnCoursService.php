@@ -4,43 +4,21 @@
 namespace App\Service;
 
 
+use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
-use App\Repository\ColisRepository;
-use App\Repository\DaysWorkedRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\MouvementTracaRepository;
+use App\Entity\MouvementTraca;
 use DateInterval;
 use DatePeriod;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 
 
 class EnCoursService
 {
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
-     * @var DaysWorkedRepository
-     */
-    private $daysRepository;
-
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
     private $entityManager;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
@@ -54,21 +32,9 @@ class EnCoursService
 
     /**
      * EnCoursService constructor.
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param EmplacementRepository $emplacementRepository
-     * @param DaysWorkedRepository $daysRepository
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager,
-                                ColisRepository $colisRepository,
-                                MouvementTracaRepository $mouvementTracaRepository,
-                                EmplacementRepository $emplacementRepository,
-                                DaysWorkedRepository $daysRepository)
-    {
-        $this->colisRepository = $colisRepository;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
-        $this->emplacementRepository = $emplacementRepository;
-        $this->daysRepository = $daysRepository;
+    public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
     }
 
@@ -144,62 +110,62 @@ class EnCoursService
 
     /**
      * @param DateInterval $movementAge
-     * @param Emplacement $emplacement
+     * @param string|null $dateMaxTime
      * @return array containing :
-     * late => if the ref stayed too long on the emp
-     * time => the time stayed on the emp
+     * countDownLateTimespan => not defined or the time remaining to be late
+     * ageTimespan => the time stayed on the emp
      */
-    public function buildDataForDatatable(DateInterval $movementAge, Emplacement $emplacement)
+    public function getTimeInformation(DateInterval $movementAge, ?string $dateMaxTime)
     {
-        $maxTime = $emplacement->getDateMaxTime();
-        if ($maxTime) {
-            $timeMilliSecond = (
-                ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
-                ($movementAge->i * 60 * 1000) + // minutes in milliseconds
-                ($movementAge->s * 1000) + // seconds in milliseconds
-                ($movementAge->f)
+        $ageTimespan = (
+            ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
+            ($movementAge->i * 60 * 1000) + // minutes in milliseconds
+            ($movementAge->s * 1000) + // seconds in milliseconds
+            ($movementAge->f)
+        );
+        $information = [
+            'ageTimespan' => $ageTimespan
+        ];
+        if ($dateMaxTime) {
+            $explodeAgeTimespan = explode(':', $dateMaxTime);
+            $maxTimeHours = intval($explodeAgeTimespan[0]);
+            $maxTimeMinutes = intval($explodeAgeTimespan[1]);
+            $maxTimespan = (
+                ($maxTimeHours * 60 * 60 * 1000) + // hours in milliseconds
+                ($maxTimeMinutes * 60 * 1000)      // minutes in milliseconds
             );
-
-            $maxTimeHours = intval(explode(':', $maxTime)[0]);
-            $maxTimeMinutes = intval(explode(':', $maxTime)[1]);
-            $late = (
-                // true if age hour > $maxTimeHours
-                ($movementAge->h > $maxTimeHours) ||
-
-                // OR true if age hour == $maxTimeHours and age minutes > $maxTimeMinutes
-                (($movementAge->h === $maxTimeHours) && ($movementAge->i > $maxTimeMinutes))
-            );
-            return [
-                'delay' => $timeMilliSecond,
-                'late' => $late,
-            ];
+            $information['countDownLateTimespan'] = ($maxTimespan - $ageTimespan);
         }
-        return null;
+        return $information;
     }
 
     /**
      * @param Emplacement $emplacement
-     * @param string|null $filters
+     * @param array $natures
      * @return array
      * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, $filters = null)
-    {
+    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = []): array {
         $success = true;
         $emplacementInfo = [];
-        $mouvements = $this->mouvementTracaRepository->findObjectOnLocation($emplacement, $filters);
+        $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $packIntelList = empty($natures)
+            ? $mouvementTracaRepository->getLastOnLocations([$emplacement])
+            : $colisRepository->getPackIntelOnLocations([$emplacement], $natures);
 
-        foreach ($mouvements as $mouvement) {
-            $dateMvt = new DateTime($mouvement->getDatetime()->format('d-m-Y H:i'), new DateTimeZone("Europe/Paris"));
+        foreach ($packIntelList as $packIntel) {
+            $dateMvt = $packIntel['lastTrackingDateTime'];
             $movementAge = $this->getTrackingMovementAge($dateMvt);
-            $dataForTable = $this->buildDataForDatatable($movementAge, $emplacement);
-            if ($dataForTable) {
+            $dateMaxTime = $emplacement->getDateMaxTime();
+            if ($dateMaxTime) {
+                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $emplacementInfo[] = [
-                    'colis' => $mouvement->getColis(),
-                    'delay' => $dataForTable['delay'],
+                    'colis' => $packIntel['code'],
+                    'delay' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format('d/m/Y H:i:s'),
-                    'late' => $dataForTable['late'],
+                    'late' => $timeInformation['countDownLateTimespan'] < 0,
                     'emp' => $emplacement->getLabel()
                 ];
             }
@@ -207,36 +173,8 @@ class EnCoursService
 
         return [
             'data' => $emplacementInfo,
-            'sucess' => $success
+            'success' => $success
         ];
-    }
-
-    /**
-     * @param array $enCours
-     * @param int $spanBegin
-     * @param int $spanEnd
-     * @return array
-     * @throws NonUniqueResultException
-     */
-    public function getCountByNatureForEnCoursForTimeSpan(array $enCours, int $spanBegin, int $spanEnd, array $wantedNatures): array
-    {
-        $countByNature = [];
-        foreach ($wantedNatures as $wantedNature) {
-            $countByNature[$wantedNature->getLabel()] = 0;
-        }
-        foreach ($enCours as $enCour) {
-            $hourOfEnCours = intval($enCour['delay'] / 1000 / 60 / 60);
-            if (($spanBegin !== -1 && $hourOfEnCours >= $spanBegin && $hourOfEnCours < $spanEnd) || ($spanBegin === -1 && $enCour['late'])) {
-                $entityColisForThisEnCour = $this->colisRepository->findOneBy(['code' => $enCour['colis']]);
-                if ($entityColisForThisEnCour) {
-                    $key = $entityColisForThisEnCour->getNature()->getLabel();
-                    if (array_key_exists($key, $countByNature)) {
-                        $countByNature[$key]++;
-                    }
-                }
-            }
-        }
-        return $countByNature;
     }
 
     /**
@@ -262,7 +200,7 @@ class EnCoursService
 
 
         if (count($daysWorked) > 0) {
-            $now = new DateTime("now");
+            $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
             $nowIncluding = (clone $now)->setTime(23, 59, 59);
             $interval = DateInterval::createFromDateString('1 day');
             $period = new DatePeriod($movementDate, $interval, $nowIncluding);
