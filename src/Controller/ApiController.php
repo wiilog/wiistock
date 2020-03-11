@@ -254,9 +254,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/connect", name="api-connect", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param UserService $userService
      * @return Response
      */
-    public function connection(Request $request)
+    public function connection(Request $request,
+                               UserService $userService)
     {
         $response = new Response();
 
@@ -274,12 +276,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
 
-                $isInventoryManager = $this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user);
-
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = [
-                    'isInventoryManager' => $isInventoryManager,
-                    'apiKey' => $apiKey
+                    'apiKey' => $apiKey,
+                    'rights' => $this->getMenuRights($user, $userService)
                 ];
             }
         }
@@ -1216,11 +1216,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
             'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK),
 
-            'rights' => [
-                'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK),
-                'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA),
-                'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT)
-            ]
+            'rights' => $this->getMenuRights($user, $userService)
         ];
     }
 
@@ -1432,6 +1428,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $this->articleRepository->getByPreparationsIds($preparationsIds),
             $this->referenceArticleRepository->getByPreparationsIds($preparationsIds)
         );
+    }
+    private function getMenuRights($user, UserService $userService) {
+        return [
+            'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
+            'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
+            'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT, $user),
+            'isInventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
+        ];
     }
 
 }
