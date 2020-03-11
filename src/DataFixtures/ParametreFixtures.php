@@ -122,7 +122,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
-		];
+            ParametrageGlobal::FILE_FOR_LOGO => [],
+        ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
 			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);

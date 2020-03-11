@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\PieceJointe;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
@@ -20,6 +21,7 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -110,6 +112,7 @@ class ParametrageGlobalController extends AbstractController
             : null;
         return $this->render('parametrage_global/index.html.twig',
             [
+                'logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO),
             	'dimensions_etiquettes' => $dimensions,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
@@ -154,6 +157,7 @@ class ParametrageGlobalController extends AbstractController
      * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
+     * @param AttachmentService $attachmentService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
      * @return Response
@@ -161,14 +165,15 @@ class ParametrageGlobalController extends AbstractController
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  UserService $userService,
+                                                 AttachmentService $attachmentService,
                                                  ParametrageGlobalRepository $parametrageGlobalRepository,
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            $data = $request->request->all();
             $em = $this->getDoctrine()->getManager();
 
             $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
@@ -197,6 +202,17 @@ class ParametrageGlobalController extends AbstractController
             }
             $parametrageGlobal128->setValue($data['param-type-etiquette']);
 
+            $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+
+            if (!empty($request->files->all())) {
+                $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LOGO_FOR_LABEL);
+                if (empty($parametrageGlobalLogo)) {
+                    $parametrageGlobalLogo = new ParametrageGlobal();
+                    $parametrageGlobalLogo
+                        ->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
+                }
+                $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
+            }
             $em->flush();
 
             return new JsonResponse($data);

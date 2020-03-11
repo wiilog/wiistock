@@ -48,6 +48,7 @@ class ParametrageGlobal
 	// étiquettes
 	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
     const BARCODE_TYPE_IS_128 = 'barcode type';
+    const FILE_FOR_LOGO = 'file for logo';
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code'
