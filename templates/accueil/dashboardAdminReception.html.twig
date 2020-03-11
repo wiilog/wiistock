@@ -31,7 +31,7 @@
             <div class="col-4 align-self-center">
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center">
+                        <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
@@ -40,10 +40,10 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p>
+                            <p class="text-center">
                                 Nombres de lignes restant à traiter
                             </p>
-                            <p class="little-font">
+                            <p class="verybig bold">
                                 <strong id="totalForChart1" class="figure"></strong>
                             </p>
                         </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="m-1">
                     <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center">
+                        <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
@@ -63,8 +63,7 @@
                             <p>
                                 Prochaine bac/palette à traiter
                             </p>
-                            <p class="little-font">
-                                <strong id="empForChart1" class="figure"></strong>
+                            <p class="big-text figure" id="empForChart1">
                             </p>
                         </div>
                     </div>
@@ -110,7 +109,7 @@
                             <p>
                                 Nombres de lignes restant à traiter
                             </p>
-                            <p class="little-font">
+                            <p class="verybig bold">
                                 <strong id="totalForChart2" class="figure"></strong>
                             </p>
                         </div>
@@ -130,8 +129,7 @@
                             <p>
                                 Prochaine palette à traiter
                             </p>
-                            <p class="little-font">
-                                <strong id="empForChart2" class="figure"></strong>
+                            <p class="big-text figure" id="empForChart2">
                             </p>
                         </div>
                     </div>
@@ -142,45 +140,42 @@
 </div>
 <div class="row justify-content-center">
     <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height m-1">
-            <div id="remaining-urgences-box-admin" class="dashboard-box text-center">
-                <p>
-                    Urgences restant à recevoir<br>
-                    <span class="figure red counter has-tooltip" title="Nombre {{ 'urgences.urgences'|trans }} non soldées.">-</span>
+        <div class="dashboard-box-wrapper fourth-height ">
+            <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-around">
+                <p class="bold p-1">
+                    Urgences restant à recevoir</p>
+                    <p class="verybig bold red counter has-tooltip pt-3" title="Nombre {{ 'urgences.urgences'|trans }} non soldées.">
                 </p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height m-1">
-            <div id="encours-urgence-box" class="dashboard-box text-center">
-                <p>
-                    Urgences restant à traiter<br>
-                    (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
-                </p>
+            <div id="encours-urgence-box" class="dashboard-box text-center justify-content-arround ">
+                <p class="bold p-0">
+                    Urgences restant à traiter</p>
+                    <span class="location-label"></span>
+                    <p class=" verybig bold figure counter pt-3"></p>
             </div>
         </div>
     </div>
     <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height m-1">
-            <div id="encours-litige-box" class="dashboard-box text-center">
-                <p>
-                    Lignes en litiges<br>
-                    (<span class="location-label">-</span>)<br>
-                    <span class="figure counter">-</span>
-                </p>
+        <div class="dashboard-box-wrapper fourth-height">
+            <div id="encours-litige-box" class="dashboard-box text-center justify-content-arround">
+                <p class="bold p-0">
+                    Lignes en litiges</p>
+                    <span class="location-label"></span>
+                    <p  class="verybig bold figure counter pt-3"></p>
             </div>
         </div>
     </div>
     <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height m-1">
-            <div id="encours-clearance-box-admin" class="dashboard-box text-center">
-                <p>
-                    Colis en attente de dédouanement<br>
-                    (<span class="location-label">-</span>)<br>
-                    <span class="figure counter has-tooltip">-</span>
-                </p>
+        <div class="dashboard-box-wrapper fourth-height">
+            <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-arround">
+                <p class="bold p-0">
+                    Colis en attente de dédouanement</p>
+                    <span class="location-label"></span>
+                    <p class="verybig bold figure counter has-tooltip pt-3"></p>
             </div>
         </div>
     </div>
