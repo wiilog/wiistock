@@ -361,6 +361,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Prix unitaire',
 					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Dernier inventaire',
+					"data" => 'Dernier inventaire',
+					'name' => 'Dernier inventaire',
+					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -636,6 +642,11 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Prix unitaire',
             'id' => 0,
             'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)

@@ -431,11 +431,12 @@ class RefArticleDataService
             "Quantité disponible" => $availableQuantity,
 			"Quantité stock" => $quantityStock ?? 0,
 			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
-            "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
+            "Commentaire" => $refArticle->getCommentaire() ?? '',
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
+			"Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
                 'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
