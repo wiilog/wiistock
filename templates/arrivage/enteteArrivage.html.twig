@@ -81,6 +81,22 @@
         </p>
     </div>
     {% endif %}
+    {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
+    <div class="col-4">
+        <p title="douane">
+            <strong>{{ 'arrivage.douane'|trans|capitalize }} :</strong>
+            {{ arrivage.duty ? 'oui' : 'non' }}
+        </p>
+    </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
+    <div class="col-4">
+        <p title="congelé">
+            <strong>{{ 'arrivage.congelé'|trans|capitalize }} :</strong>
+            {{ arrivage.frozen ? 'oui' : 'non' }}
+        </p>
+    </div>
+    {% endif %}
 
     {% for champLibre in champsLibres %}
     <div class="col-4">

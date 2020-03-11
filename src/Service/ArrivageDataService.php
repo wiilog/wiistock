@@ -6,6 +6,8 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,14 +45,16 @@ class ArrivageDataService
         $this->mailerService = $mailerService;
     }
 
-    /**
-     * @param array $params
-     * @param int|null $userId
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @param array $params
+	 * @param int|null $userId
+	 * @return array
+	 * @throws LoaderError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function getDataForDatatable($params = null, $userId)
     {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
@@ -73,15 +77,16 @@ class ArrivageDataService
         ];
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @return array
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function dataRowArrivage($arrivage)
     {
         $url = $this->router->generate('arrivage_show', [
@@ -102,7 +107,9 @@ class ArrivageDataService
             'NoTracking' => $arrivage->getNoTracking() ?? '',
             'NumeroBL' => $arrivage->getNumeroBL() ?? '',
             'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
-            'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
+			'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
+			'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
+			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
             'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
             'Acheteurs' => implode(', ', $acheteursUsernames),
             'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',

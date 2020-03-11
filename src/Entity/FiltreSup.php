@@ -29,6 +29,8 @@ class FiltreSup
 	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
 	const FIELD_NUM_ARRIVAGE = 'numArrivage';
 	const FIELD_NATURES = 'natures';
+	const FIELD_DUTY = 'duty';
+	const FIELD_FROZEN = 'frozen';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
