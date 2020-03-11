@@ -9,14 +9,12 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Repository\FiltreSupRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -49,39 +47,46 @@ class EnCoursController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @param EnCoursService $enCoursService
-	 * @param FiltreSupRepository $filtreSupRepository
-	 * @param EntityManagerInterface $entityManager
-	 * @return JsonResponse
-	 * @throws DBALException
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @Route("/encours-api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EnCoursService $enCoursService
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * @throws DBALException
+     * @throws NonUniqueResultException
+     */
     public function apiForEmplacement(Request $request,
                                       EnCoursService $enCoursService,
-                                      FiltreSupRepository $filtreSupRepository,
                                       EntityManagerInterface $entityManager): Response
 	{
     	$emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
     	$emplacement = $emplacementRepository->find($request->request->get('id'));
 
-		$filter = $filtreSupRepository->getOnebyFieldAndPageAndUser(FiltreSup::FIELD_NATURES, FiltreSup::PAGE_ENCOURS, $this->getUser());
-		$filters = $filter ? explode(',', $filter) : null;
+		$filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(
+		    FiltreSup::FIELD_NATURES,
+            FiltreSup::PAGE_ENCOURS,
+            $this->getUser()
+        );
+		$natureIds = array_map(
+		    function (string $natureParam) {
+		        $natureParamSplit = explode(';', $natureParam);
+		        return $natureParamSplit[0] ?? 0;
+            },
+            $filtersParam ? explode(',', $filtersParam) : []
+        );
 
-		return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement, $filters));
+		return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement, $natureIds));
     }
 
 
     /**
-     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
+     * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      * @param EntityManagerInterface $entityManager
      * @param EnCoursService $enCoursService
      * @return JsonResponse
      * @throws DBALException
-     * @throws Exception
      */
     public function apiForRetard(EntityManagerInterface $entityManager,
                                  EnCoursService $enCoursService): Response {
