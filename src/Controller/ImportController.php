@@ -5,7 +5,9 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\ChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\Menu;
@@ -112,13 +114,28 @@ class ImportController extends AbstractController
 
 		$fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
 			'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-			'quantiteReservee' ];
+			'quantiteReservee'];
 		$fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
 
 		$fields = [];
 		foreach ($fieldNames as $fieldName) {
 			$fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
 		}
+
+		if ($entity == Import::ENTITY_ART) {
+			$categoryCL = CategorieCL::ARTICLE;
+		} else if ($entity == Import::ENTITY_REF) {
+			$categoryCL = CategorieCL::REFERENCE_ARTICLE;
+		}
+
+		if (isset($categoryCL)) {
+			$champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
+
+			foreach ($champsLibres as $champLibre) {
+				$fields[$champLibre['id']] =  $champLibre['value'];
+			}
+		}
+
 		asort($fields);
 
 		return new JsonResponse([

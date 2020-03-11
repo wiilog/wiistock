@@ -251,4 +251,21 @@ class ChampLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param string $categoryCL
+	 * @return array
+	 */
+    public function getLabelAndIdByCategory($categoryCL)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT cl.label as value, cl.id as id
+			FROM App\Entity\ChampLibre cl
+			JOIN cl.categorieCL cat
+			WHERE cat.label = :categoryCL")
+			->setParameter('categoryCL', $categoryCL);
+
+		return $query->execute();
+	}
 }
