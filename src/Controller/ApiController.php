@@ -1164,10 +1164,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @param $user
+     * @param UserService $userService
      * @return array
      * @throws NonUniqueResultException
      */
-    private function getDataArray($user)
+    private function getDataArray($user, UserService $userService)
     {
         $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
         $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
@@ -1213,24 +1214,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
 
             'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
-            'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK)
+            'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK),
+
+            'rights' => [
+                'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK),
+                'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA),
+                'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT)
+            ]
         ];
     }
 
     /**
      * @Rest\Post("/api/getData", name="api-get-data", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param UserService $userService
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function getData(Request $request)
+    public function getData(Request $request,
+                            UserService $userService)
     {
         $apiKey = $request->request->get('apiKey');
         $dataResponse = [];
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
