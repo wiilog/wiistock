@@ -51,7 +51,7 @@ class FiltreSupRepository extends ServiceEntityRepository
 	 * @param string $field
 	 * @param string $page
 	 * @param Utilisateur $user
-	 * @return array
+	 * @return string
 	 * @throws NonUniqueResultException
 	 */
     public function getOnebyFieldAndPageAndUser($field, $page, $user)

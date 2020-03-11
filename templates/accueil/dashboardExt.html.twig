@@ -8,9 +8,9 @@
 <div class="wrapper pl-0">
     <div class="container-fluid">
         {% if page == 'quai' %}
-            {% include 'accueil/dashboardDockReception.html.twig' %}
+            {% include 'accueil/dashboardDockReception.html.twig'  with { 'isDashboardExt': 1 }%}
         {% elseif page == 'admin' %}
-            {% include 'accueil/dashboardAdminReception.html.twig' %}
+            {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% endif %}
             <div class="row">
                 <div class="col-12 little-font text-right fixed-bottom z-index-back">
