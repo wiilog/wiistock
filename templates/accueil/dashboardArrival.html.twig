@@ -23,7 +23,9 @@
                 Arrivage (UM)<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Nombre d'{{ 'arrivage.arrivage'|trans }} par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -48,7 +50,9 @@
                 Réceptions (nombre d'associations)<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="Nombre de réceptions de traçabilité par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -73,7 +77,10 @@
                 Colis en retard<br>
             </p>
             <div class="points">
-                {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                <i
+                    class="fa fa-question has-tooltip"
+                    title="{{ 'arrivage.colis'|trans|capitalize }} ayant dépassé le délai de présence sur son emplacement
+                     (paramétrable sur chaque emplacement)."></i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100">
@@ -88,7 +95,9 @@
                     Fiabilité monétaire<br>
                 </p>
                 <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+                    <i
+                        class="fa fa-question has-tooltip"
+                        title="Fiabilité monétaire sur les 6 derniers mois."></i>
                 </div>
                 <div class="h-100">
                     <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
