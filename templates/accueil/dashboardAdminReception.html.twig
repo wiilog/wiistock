@@ -28,8 +28,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4 align-self-center">
-                <div class="m-1">
+            <div class="col-4 align-self-start">
+                <div class="ml-1 mr-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
@@ -43,13 +43,13 @@
                             <p class="text-center">
                                 Nombres de lignes restant à traiter
                             </p>
-                            <p class="verybig bold">
+                            <p class="big-font">
                                 <strong id="totalForChart1" class="figure"></strong>
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="m-1">
+                <div class="ml-1 mr-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
@@ -63,7 +63,7 @@
                             <p>
                                 Prochain emplacement à traiter
                             </p>
-                            <p class="big-text figure" id="empForChart1">
+                            <p class="medium-font figure" id="empForChart1">
                             </p>
                         </div>
                     </div>
@@ -94,8 +94,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4 align-self-center">
-                <div class="m-1">
+            <div class="col-4 align-self-start">
+                <div class="ml-1 mr-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             {% if not isDashboardExt %}
@@ -109,13 +109,13 @@
                             <p>
                                 Nombres de lignes restant à traiter
                             </p>
-                            <p class="verybig bold">
+                            <p class="big-font">
                                 <strong id="totalForChart2" class="figure"></strong>
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="m-1">
+                <div class="ml-1 mr-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center">
                             {% if not isDashboardExt %}
@@ -129,7 +129,7 @@
                             <p>
                                 Prochain emplacement à traiter
                             </p>
-                            <p class="big-text figure" id="empForChart2">
+                            <p class="medium-font figure" id="empForChart2">
                             </p>
                         </div>
                     </div>
@@ -140,42 +140,45 @@
 </div>
 <div class="row justify-content-center">
     <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height ">
+        <div class="dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-around">
-                <p class="bold p-1">
-                    Urgences restant à recevoir</p>
-                    <p class="verybig bold red counter has-tooltip pt-3" title="Nombre {{ 'urgences.urgences'|trans }} non soldées.">
+                <p class="p-0">
+                    Urgences restant à recevoir
                 </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height m-1">
-            <div id="encours-urgence-box" class="dashboard-box text-center justify-content-arround ">
-                <p class="bold p-0">
-                    Urgences restant à traiter</p>
-                    <span class="location-label"></span>
-                    <p class=" verybig bold figure counter pt-3"></p>
+                <p class="big-font figure red counter"></p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height">
-            <div id="encours-litige-box" class="dashboard-box text-center justify-content-arround">
-                <p class="bold p-0">
-                    Lignes en litiges</p>
+            <div id="encours-urgence-box" class="dashboard-box text-center justify-content-around">
+                <p class="p-0">
+                    Urgences restant à traiter<br>
                     <span class="location-label"></span>
-                    <p  class="verybig bold figure counter pt-3"></p>
+                </p>
+                <p class="big-font figure counter"></p>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="dashboard-box-wrapper fourth-height">
-            <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-arround">
-                <p class="bold p-0">
-                    Colis en attente de dédouanement</p>
+            <div id="encours-litige-box" class="dashboard-box text-center justify-content-around">
+                <p class="p-0">
+                    Lignes en litiges<br>
                     <span class="location-label"></span>
-                    <p class="verybig bold figure counter has-tooltip pt-3"></p>
+                </p>
+                <p class="big-font figure counter"></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="dashboard-box-wrapper fourth-height">
+            <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-around">
+                <p class="p-0">
+                    Colis en attente de dédouanement<br>
+                   <span class="location-label"></span>
+                </p>
+                <p class="big-font figure counter"></p>
             </div>
         </div>
     </div>
