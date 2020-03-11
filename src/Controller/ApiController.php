@@ -1170,35 +1170,84 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     private function getDataArray($user, UserService $userService)
     {
-        $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
-        $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
 
-        /// livraisons
-        $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
-        $livraisonsIds = array_map(function ($livraisonArray) {
-            return $livraisonArray['id'];
-        }, $livraisons);
-        $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
-        $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
+        $rights = $this->getMenuRights($user, $userService);
 
-        /// preparations
-        $preparations = $this->preparationRepository->getAvailablePreparations($user);
+        if ($rights['inventoryManager']) {
+            $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
+            $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
+        }
+        else {
+            $refAnomalies = [];
+            $artAnomalies = [];
+        }
 
-        /// collecte
-        $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
-        $collectesIds = array_map(function ($collecteArray) {
-            return $collecteArray['id'];
-        }, $collectes);
-        $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
-        $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
+        if ($rights['stock']) {
+            // livraisons
+            $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
-        // get article linked to a ReferenceArticle where type_quantite === 'article'
-        $articlesPrepaByRefArticle = $this->articleRepository->getArticlePrepaForPickingByUser($user);
+            $livraisonsIds = array_map(function ($livraisonArray) {
+                return $livraisonArray['id'];
+            }, $livraisons);
 
-        $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
-        $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
+            $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
+            $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
-        $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+            /// preparations
+            $preparations = $this->preparationRepository->getAvailablePreparations($user);
+
+            /// collecte
+            $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+            $collectesIds = array_map(function ($collecteArray) {
+                return $collecteArray['id'];
+            }, $collectes);
+            $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
+            $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
+
+            // get article linked to a ReferenceArticle where type_quantite === 'article'
+            $articlesPrepaByRefArticle = $this->articleRepository->getArticlePrepaForPickingByUser($user);
+
+            // inventory
+            $articlesInventory = $this->inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
+            $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
+        }
+        else {
+            // livraisons
+            $livraisons = [];
+            $articlesLivraison = [];
+            $refArticlesLivraison = [];
+
+            /// preparations
+            $preparations = [];
+
+            /// collecte
+            $collectes = [];
+            $articlesCollecte = [];
+            $refArticlesCollecte = [];
+
+            // get article linked to a ReferenceArticle where type_quantite === 'article'
+            $articlesPrepaByRefArticle = [];
+
+            // inventory
+            $articlesInventory = [];
+            $refArticlesInventory = [];
+        }
+
+        if ($rights['demande']) {
+            $manutentions = $this->manutentionRepository->findByStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+        }
+        else {
+            $manutentions = [];
+        }
+
+        if ($rights['tracking']) {
+            $trackingTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
+            $stockTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
+        }
+        else {
+            $trackingTaking = [];
+            $stockTaking = [];
+        }
 
         return [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
@@ -1213,10 +1262,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
 
-            'trackingTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT),
-            'stockTaking' => $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK),
+            'trackingTaking' => $trackingTaking,
+            'stockTaking' => $stockTaking,
 
-            'rights' => $this->getMenuRights($user, $userService)
+            'rights' => $rights
         ];
     }
 
@@ -1236,7 +1285,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
             $dataResponse['data'] = $this->getDataArray($nomadUser, $userService);
-        } else {
+        }
+        else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
             $dataResponse['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -1429,12 +1479,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $this->referenceArticleRepository->getByPreparationsIds($preparationsIds)
         );
     }
+
     private function getMenuRights($user, UserService $userService) {
         return [
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT, $user),
-            'isInventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
+            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
         ];
     }
 
