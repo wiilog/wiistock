@@ -296,7 +296,7 @@ class RefArticleDataService
             ];
         }
 
-        $view = $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
+        $view = $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => $refArticle->getStatut()->getNom(),
             'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
@@ -310,11 +310,16 @@ class RefArticleDataService
         return $view;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param string[] $data
-     * @return RedirectResponse
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param string[] $data
+	 * @return RedirectResponse
+	 * @throws DBALException
+	 * @throws LoaderError
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function editRefArticle($refArticle, $data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {

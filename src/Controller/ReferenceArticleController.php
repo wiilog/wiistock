@@ -1129,7 +1129,7 @@ class ReferenceArticleController extends AbstractController
             //reponse Vue + data
 
             if ($refArticle) {
-                $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
+                $view =  $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
                     'articleRef' => $refArticle,
                     'statut' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : null,
                     'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,

@@ -31,7 +31,7 @@
     <div class="form-group col-3">
         <div class="reference">
             <label for="prix">Prix Unitaire (€)</label>
-            <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ article.prixUnitaire }}">
+            <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ article.prixUnitaire }}" {{ disabled }}>
         </div>
     </div>
     <div class="form-group col-6 w-100">
@@ -45,7 +45,7 @@
 </div>
 <div class="row">
     <div class="form-group col-4">
-        {% if editable and not isADemand %}
+        {% if not isADemand %}
             <label for="statut" class="mtb-auto mr-2">Statut</label>
             <div class="btn-group radio-btn">
                 {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
@@ -53,19 +53,19 @@
                 {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
                 {% set isStatusEditable = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) %}
                 {% if isStatusEditable or actif == 'active' %}
-                    <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                    <span class="btn {{ actif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
                           {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
                     </span>
                 {% endif %}
                 {% if isStatusEditable or inactif == 'active' %}
-                    <span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                    <span class="btn {{ inactif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
                           {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
                     </span>
                 {% endif %}
                 {% if isStatusEditable or transit == 'active' %}
-                    <span class="btn {{ transit }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
+                    <span class="btn {{ transit }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
                             {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
                     </span>
@@ -77,9 +77,17 @@
     <div class="form-group col-2">
         <label>Anomalie</label>
         <label class="switch">
-            <input {{ disabled }} class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
+            <input {{ disabled }} class="checkbox" type="checkbox" name="conform" {{ article.conform ? '' : 'checked'}}>
             <span class="slider round"></span>
         </label>
+    </div>
+    <div class="form-group col-3">
+        <label>Catégorie d'inventaire</label>
+        <input disabled class="form-control" type="text" value="{{ invCategory ? invCategory.label }}">
+    </div>
+    <div class="form-group col-3">
+        <label>Date dernier inventaire</label>
+        <input name="categorie" class="form-control" disabled value="{{ article.dateLastInventory | date('d/m/Y') }}">
     </div>
 </div>
 <div class="row">

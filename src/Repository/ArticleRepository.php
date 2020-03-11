@@ -44,6 +44,7 @@ class ArticleRepository extends ServiceEntityRepository
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Code barre' => 'barCode',
+        'Dernier inventaire' => 'dateLastInventory',
     ];
 
     private const linkChampLibreLabelToField = [
