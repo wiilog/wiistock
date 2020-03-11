@@ -306,16 +306,12 @@ class Collecte
         return $this;
     }
 
-    public function getOrdreCollecte(): ?OrdreCollecte
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getOrdresCollecte(): Collection
     {
         return $this->ordreCollecte;
-    }
-
-    public function setOrdreCollecte(?OrdreCollecte $ordreCollecte): self
-    {
-        $this->ordreCollecte = $ordreCollecte;
-
-        return $this;
     }
 
     public function getValidationDate(): ?\DateTimeInterface

@@ -18,10 +18,10 @@
                 {% include 'accueil/dashboardArrival.html.twig' %}
             </div>
             <div class="carousel-item">
-                {% include 'accueil/dashboardDockReception.html.twig' %}
+                {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
             </div>
             <div class="carousel-item">
-                {% include 'accueil/dashboardAdminReception.html.twig' %}
+                {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
             </div>
         </div>
         <div class="row">

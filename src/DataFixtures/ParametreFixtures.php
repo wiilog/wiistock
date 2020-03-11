@@ -86,6 +86,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL => [
+                'default' => false,
+                SpecificService::CLIENT_SAFRAN_ED => true
+            ],
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],

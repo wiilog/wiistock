@@ -23,14 +23,14 @@ class RefArticleQuantityNotifier
 
     public function postUpdate(ReferenceArticle $referenceArticle)
     {
-        $referenceArticle->treatAlert();
+    	$this->refArticleService->treatAlert($referenceArticle);
         $this->entityManager->flush();
     }
 
     public function postPersist(ReferenceArticle $referenceArticle)
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $referenceArticle->treatAlert();
+            $this->refArticleService->treatAlert($referenceArticle);
             $this->entityManager->flush();
         }
     }

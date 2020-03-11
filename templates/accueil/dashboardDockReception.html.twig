@@ -10,9 +10,13 @@
                 <p class="title">
                     Arrivages quotidiens<br>
                 </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
+                    </div>
+                {% endif %}
                 <div style="height: 70% !important;">
                     <canvas id="chartDailyArrival" width="300" height="90"></canvas>
                 </div>
@@ -25,9 +29,13 @@
                 <p class="title">
                     Arrivages hebdomadaires<br>
                 </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre de colis réceptionnés par semaine."></i>
+                    </div>
+                {% endif %}
                 <div style="height: 70% !important;">
                     <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
                 </div>
@@ -61,7 +69,7 @@
         </div>
         <div class="col-3 dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-dock" class="dashboard-box text-center">
-                <p>Urgences restantes à recevoir<br>
+                <p>Urgences restant à recevoir<br>
                     <span class="figure red counter">-</span>
                 </p>
             </div>
@@ -77,11 +85,15 @@
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
                 <p class="title">
-                    Nombre de colis distribués en Dropzone<br>
+                    Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                 </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="{{ 'arrivage.colis'|trans|capitalize }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
+                    </div>
+                {% endif %}
                 <div class="h-100">
                     <canvas id="chartColis" width="300" height="90"></canvas>
                 </div>
@@ -95,9 +107,13 @@
                 <p class="title">
                     Suivi des transporteurs<br>
                 </p>
-                <div class="points">
-                    {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
-                </div>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+                    </div>
+                {% endif %}
                 <div class="little-font" id="statistics-arrival-carriers"></div>
             </div>
         </div>
