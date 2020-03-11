@@ -768,61 +768,29 @@ function saveFilters(page, tableSelector, callback) {
         $filterDateMaxPicker.format('YYYY-MM-DD');
     }
 
-    const paramsToSend = {
-        input: [
-            'filter-date-min',
-            'filter-date-max',
-            'filter-type',
-            'filter-num-arrivage',
-            'filter-anomaly',
-            'filter-colis',
-            'filter-litige-origin',
-            'filter-arrivage-string',
-            'filter-reception-string',
-            'filter-command'
-        ],
-        select2: [
-            'filter-status',
-            'filter-user',
-            'filter-provider',
-            'filter-carrier',
-            'filter-reference',
-            'filter-location',
-            'filter-demand',
-            'filter-natures'
-        ],
-        checkbox: [
-            'filter-checkbox'
-        ]
-    };
-
     const valFunction = {
-        input: ($input) => ($input.val() || '').trim(),
-        select2: ($input) => ($input.select2('data') || [])
+        'filter-input': ($input) => ($input.val() || '').trim(),
+        'filter-select2': ($input) => ($input.select2('data') || [])
             .filter(({id, text}) => (id.trim() && text.trim()))
             .map(({id, text}) => ({id, text})),
-        checkbox: ($input) => $input.is(':checked')
+        'filter-checkbox': ($input) => $input.is(':checked')
     };
 
     let params = {
         page,
-        ...(Object.keys(paramsToSend).reduce((acc, key) => ({
-            ...acc,
-            ...(
-                paramsToSend[key]
-                    ? paramsToSend[key].reduce((acc, className) => {
-                        const $field = $('.filters-container').find(`.${className}`);
+        ...(Object.keys(valFunction).reduce((acc, key) => {
+            const $fields = $('.filters-container').find(`.${key}`);
+            const values = {};
+            $fields.each(function() {
+                const $elem = $(this);
+                values[$elem.attr('name')] = valFunction[key]($elem);
+            });
 
-                        return ({
-                            ...acc,
-                            ...($field.length > 0
-                                ? {[$field.attr('name')]: valFunction[key]($field)}
-                                : {})
-                        });
-                    }, {})
-                    : {}
-            )
-        }), {}))
+            return ({
+                ...acc,
+                ...values
+            })
+        }, {}))
     };
 
     if ($filterDateMinPicker) {
@@ -1244,11 +1212,12 @@ function displayFiltersSup(data) {
                 break;
 
             case 'emergency':
+            case 'duty':
+            case 'frozen':
                 if (element.value === '1') {
-                    $('#urgence-filter').attr('checked', 'checked');
+                    $('#' + element.field + '-filter').attr('checked', 'checked');
                 }
                 break;
-
 
             case 'litigeOrigin':
                 const text = element.value || '';
@@ -1411,6 +1380,12 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     }
 
     $alertModal.modal('show');
+}
+
+function initTooltips($elements) {
+    $elements.each(function() {
+        $(this).tooltip();
+    });
 }
 
 function managePrintButtonTooltip(active, $button) {

@@ -6,6 +6,8 @@ use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,14 +45,16 @@ class ArrivageDataService
         $this->mailerService = $mailerService;
     }
 
-    /**
-     * @param array $params
-     * @param int|null $userId
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @param array $params
+	 * @param int|null $userId
+	 * @return array
+	 * @throws LoaderError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function getDataForDatatable($params = null, $userId)
     {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
@@ -60,59 +64,62 @@ class ArrivageDataService
 
         $queryResult = $arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
 
-		$arrivages = $queryResult['data'];
+        $arrivages = $queryResult['data'];
 
-		$rows = [];
-		foreach ($arrivages as $arrivage) {
-			$rows[] = $this->dataRowArrivage($arrivage);
-		}
-		return [
-			'data' => $rows,
-			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total'],
-		];
+        $rows = [];
+        foreach ($arrivages as $arrivage) {
+            $rows[] = $this->dataRowArrivage($arrivage);
+        }
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Arrivage $arrivage
+	 * @return array
+	 * @throws LoaderError
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
     public function dataRowArrivage($arrivage)
     {
-		$url = $this->router->generate('arrivage_show', [
-			'id' => $arrivage->getId(),
-		]);
+        $url = $this->router->generate('arrivage_show', [
+            'id' => $arrivage->getId(),
+        ]);
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
 
-		$acheteursUsernames = [];
-		foreach ($arrivage->getAcheteurs() as $acheteur) {
-			$acheteursUsernames[] = $acheteur->getUsername();
-		}
+        $acheteursUsernames = [];
+        foreach ($arrivage->getAcheteurs() as $acheteur) {
+            $acheteursUsernames[] = $acheteur->getUsername();
+        }
 
-		$row = [
-			'id' => $arrivage->getId(),
-			'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
-			'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-			'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
-			'NoTracking' => $arrivage->getNoTracking() ?? '',
-			'NumeroBL' => $arrivage->getNumeroBL() ?? '',
-			'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
+        $row = [
+            'id' => $arrivage->getId(),
+            'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
+            'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
+            'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
+            'NoTracking' => $arrivage->getNoTracking() ?? '',
+            'NumeroBL' => $arrivage->getNumeroBL() ?? '',
+            'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
+			'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
+			'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
 			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
-			'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-			'Acheteurs' => implode(', ', $acheteursUsernames),
-			'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
-			'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
-			'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-			'Actions' => $this->templating->render(
-				'arrivage/datatableArrivageRow.html.twig',
-				['url' => $url, 'arrivage' => $arrivage]
-			),
-		];
+            'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
+            'Acheteurs' => implode(', ', $acheteursUsernames),
+            'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+            'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
+            'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
+            'Actions' => $this->templating->render(
+                'arrivage/datatableArrivageRow.html.twig',
+                ['url' => $url, 'arrivage' => $arrivage]
+            ),
+        ];
 
         return $row;
     }
@@ -121,7 +128,8 @@ class ArrivageDataService
      * @param Arrivage $arrivage
      * @param Urgence[] $emergencies
      */
-    public function addBuyersToArrivage(Arrivage $arrivage, array $emergencies): void {
+    public function addBuyersToArrivage(Arrivage $arrivage, array $emergencies): void
+    {
         foreach ($emergencies as $emergency) {
             $emergencyBuyer = $emergency->getBuyer();
             if (isset($emergencyBuyer) &&
@@ -131,8 +139,8 @@ class ArrivageDataService
         }
     }
 
-    public function sendArrivageUrgentEmail(Arrivage $arrivage, array $emergencies): void {
-
+    public function sendArrivageEmail(Arrivage $arrivage, array $emergencies = []): void
+    {
         $posts = array_reduce(
             $emergencies,
             function (array $carry, Urgence $emergency) {
@@ -145,11 +153,11 @@ class ArrivageDataService
         );
 
         $this->mailerService->sendMail(
-            'FOLLOW GT // Arrivage urgent',
+            ('FOLLOW GT // Arrivage') . (count($emergencies) > 0 ? ' urgent' : ''),
             $this->templating->render(
-                'mails/mailArrivageUrgent.html.twig',
+                'mails/mailArrivage' . (count($emergencies) > 0 ? 'Urgent' : 'Regular') . '.html.twig',
                 [
-                    'title' => 'Arrivage urgent',
+                    'title' => 'Arrivage ' . (count($emergencies) > 0 ? 'urgent ' : '') . 'reçu',
                     'arrivage' => $arrivage,
                     'posts' => $posts
                 ]
@@ -163,19 +171,20 @@ class ArrivageDataService
         );
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @param Urgence[] $emergencies
-	 */
-    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void {
+    /**
+     * @param Arrivage $arrivage
+     * @param Urgence[] $emergencies
+     */
+    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
+    {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
             foreach ($emergencies as $emergency) {
-            	$emergency->setLastArrival($arrivage);
-			}
+                $emergency->setLastArrival($arrivage);
+            }
             $this->addBuyersToArrivage($arrivage, $emergencies);
             $this->entityManager->flush();
-			$this->sendArrivageUrgentEmail($arrivage, $emergencies);
-		}
+            $this->sendArrivageEmail($arrivage, $emergencies);
+        }
     }
 }

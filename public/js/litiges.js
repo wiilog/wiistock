@@ -45,7 +45,7 @@ function initDatatableLitiges() {
             "type": "POST",
             'dataSrc': function (json) {
                 json.columnHidden.forEach(element => {
-                    tableLitiges.column(element+':name').visible(false);
+                    tableLitiges.column(element).visible(false);
                 });
                 return json.data;
             }
@@ -98,7 +98,7 @@ function initColVisParam() {
         let data = {};
         $buttons.each((index, elem) => {
             let $elem = $(elem);
-            data[$elem.text()] = $elem.hasClass('active');
+            data[$elem.data('cv-idx')] = $elem.hasClass('active');
         });
        $.post(Routing.generate('save_column_hidden_for_litiges'), data);
     });

@@ -321,3 +321,19 @@ function finishPrepa() {
         $('#btnFinishPrepa').click();
     }
 }
+function printPrepaBarCodes() {
+    const lengthPrintButton = $('.print-button').length;
+
+    if (lengthPrintButton > 0) {
+        window.location.href = Routing.generate(
+            'preparation_bar_codes_print',
+            {
+                preparation: $('#prepa-id').val()
+            },
+            true
+        );
+    }
+    else {
+        alertErrorMsg("Il n'y a aucun article à imprimer.");
+    }
+}

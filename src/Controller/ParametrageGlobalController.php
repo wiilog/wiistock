@@ -125,6 +125,7 @@ class ParametrageGlobalController extends AbstractController
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'location' => $emplacementArrivage,
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                 ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
@@ -547,6 +548,38 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/send-mail-switch",
+	 *     name="active_desactive_send_mail",
+	 *     options={"expose"=true},
+	 *     methods="GET|POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function toggleSendMail(Request $request,
+								   ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+		$parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+		$em = $this->getDoctrine()->getManager();
+
+		if (empty($parametrageGlobal)) {
+			$parametrage = new ParametrageGlobal();
+			$parametrage->setLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+			$em->persist($parametrage);
+		}
+
+		$parametrageGlobal->setValue($data['val']);
+		$em->flush();
+
+		return new JsonResponse(true);
     }
 
     /**

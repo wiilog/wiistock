@@ -1,6 +1,6 @@
 <div class="minw-150px select2-overflow">
     <div class="input-group w-100 cursor-default">
-        <select class="form-control data minw-150px cursor-default filter-carrier" name="carriers" id="carriers" multiple="multiple" >
+        <select class="form-control data minw-150px cursor-default filter-select2" name="carriers" id="carriers" multiple="multiple" >
             {% for carrier in carriers %}
                 <option value="{{ carrier.id }}">{{ carrier.label }}</option>
             {% endfor %}
