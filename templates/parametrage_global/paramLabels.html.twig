@@ -34,9 +34,9 @@
         </select>
     </div>
     <div class="form-group w-fit-content">
-        <label for="logo">Logo</label>
+        <label for="logo">Logo (Image valide)</label>
         <button class="btn btn-primary" onclick="$('#logo')[0].click();">Choisir un fichier</button>
-        <input type="file" id="logo" name="logo" accept="image/png, image/jpeg" hidden>
+        <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
         <div class="row justify-content-center">
             <img id="chosenLogo"
                  src="/uploads/attachements/{{ logo }}"

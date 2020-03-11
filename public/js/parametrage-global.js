@@ -1,3 +1,4 @@
+let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
 let tableDays = $('#tableDays').DataTable({
     "language": {
@@ -299,12 +300,19 @@ function editReceptionStatus() {
 
 function fileToImagePreview($fileInput) {
     if ($fileInput[0].files && $fileInput[0].files[0]) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            let $chosenLogo = $('#chosenLogo');
-            $chosenLogo.attr('src', e.target.result);
-            $chosenLogo.removeClass('d-none');
-        };
-        reader.readAsDataURL($fileInput[0].files[0]);
+        let fileNameWithExtension = $fileInput[0].files[0].name.split('.');
+        let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
+        console.log(extension);
+        if (allowedLogoExtensions.indexOf(extension) !== -1) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let $chosenLogo = $('#chosenLogo');
+                $chosenLogo.attr('src', e.target.result);
+                $chosenLogo.removeClass('d-none');
+            };
+            reader.readAsDataURL($fileInput[0].files[0]);
+        } else {
+            alertErrorMsg('Veuillez choisir une image valide (png, jpeg, jpg).', true)
+        }
     }
 }
