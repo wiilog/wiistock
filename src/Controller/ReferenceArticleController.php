@@ -1129,15 +1129,14 @@ class ReferenceArticleController extends AbstractController
             //reponse Vue + data
 
             if ($refArticle) {
-                $view =  $this->templating->render('reference_article/modalShowRefArticleContent.html.twig', [
+                $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $refArticle,
-                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'statut' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : null,
                     'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                     'typeChampsLibres' => $typeChampLibre,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity'],
                     'articles' => $articlesFournisseur,
-
                 ]);
 
                 $json = $view;
@@ -1202,7 +1201,8 @@ class ReferenceArticleController extends AbstractController
                 'seuil alerte',
                 'prix unitaire',
                 'code barre',
-				'catégorie inventaire'
+				'catégorie inventaire',
+				'date dernier inventaire'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1247,6 +1247,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
