@@ -20,7 +20,11 @@
     {% endif %}
     <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
     <br/>
-    <p>La réception de cette commande sera effectuée sous deux heures.</p>
+    {% if arrivage.duty %}
+        <p class="bold">La réception de cette commande sera effectuée après dédouanement.</p>
+    {% else %}
+        <p>La réception de cette commande sera effectuée sous deux heures.</p>
+    {% endif %}
     <br/>
     <br/>
 {% endblock %}
