@@ -34,7 +34,8 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
 			Menu::ORDRE,
 			Menu::STOCK,
 			Menu::REFERENTIEL,
-			Menu::PARAM
+			Menu::PARAM,
+            Menu::NOMADE
 		];
 
 		foreach ($menuLabels as $menuLabel) {
