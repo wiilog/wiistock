@@ -52,15 +52,14 @@ class DashboardService
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
             $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[$dayCounterKey] = 0;
+            $rows[intval($dayCounterKey)] = 0;
         }
 
         $receptionTracas = $receptionTracaRepository->countByDays($firstDay, $lastDay);
         foreach ($receptionTracas as $qttPerDay) {
             $dayCounterKey = $qttPerDay['date']->format('d');
-            $rows[$dayCounterKey] += $qttPerDay['count'];
+            $rows[intval($dayCounterKey)] += $qttPerDay['count'];
         }
-
         return [
             'data' => $rows,
             'firstDay' => date("d/m/y", $firstDayTime),
@@ -91,7 +90,7 @@ class DashboardService
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
             $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[$dayCounterKey] = [
+            $rows[intval($dayCounterKey)] = [
                 'count' => 0,
                 'conform' => null
             ];
@@ -99,7 +98,7 @@ class DashboardService
 
         $arrivages = $arrivageRepository->countByDays($firstDay, $lastDay);
         foreach ($arrivages as $qttPerDay) {
-            $dayCounterKey = $qttPerDay['date']->format('d');
+            $dayCounterKey = intval($qttPerDay['date']->format('d'));
             if (!isset($rows[$dayCounterKey])) {
                 $rows[$dayCounterKey] = ['count' => 0];
             }
