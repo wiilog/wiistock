@@ -17,63 +17,67 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
 </head>
 <body>
-<table class="body-wrap">
-    <tr>
-        <td class="container" width="600">
-            <div class="content">
-                <table class="main" width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="content-wrap">
-                            <table  cellpadding="0" cellspacing="0">
-                                {% if title is defined %}
+<div class="container-fluid">
+    <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ asset('img/gtlogistics.jpg') }}" alt="GT Logistics"/>
+    <table class="body-wrap">
+        <tr>
+            <td class="container" width="600">
+                <div class="content">
+                    <table class="main" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="content-wrap">
+                                <table  cellpadding="0" cellspacing="0">
+                                    {% if title is defined %}
+                                        <tr>
+                                            <td class="content-block">
+                                                <h3>{{ title }}</h3>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                    <img src="{{ logo }}"  alt="logo GT logistics">
                                     <tr>
                                         <td class="content-block">
-                                            <h3>{{ title }}</h3>
+                                            {% block content %}
+                                            {% endblock %}
                                         </td>
                                     </tr>
-                                {% endif %}
-                                <tr>
-                                    <td class="content-block">
-                                        {% block content %}
-                                        {% endblock %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        L'équipe GT Logistics
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td>
+                                            L'équipe GT Logistics
+                                        </td>
+                                    </tr>
 
-                                <tr>
-                                    {% if urlSuffix is not defined %}
-                                        {% set urlSuffix = '' %}
-                                    {% endif %}
-                                    <td class="content-block aligncenter">
-                                        <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}" class="btn-primary">
-                                            {% if buttonText is defined %}
-                                                {{ buttonText }}
-                                            {% else %}
-                                                Cliquez ici pour accéder à Follow GT
-                                            {% endif %}
-                                        </a>
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        {% if urlSuffix is not defined %}
+                                            {% set urlSuffix = '' %}
+                                        {% endif %}
+                                        <td class="content-block aligncenter">
+                                            <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}" class="btn-primary">
+                                                {% if buttonText is defined %}
+                                                    {{ buttonText }}
+                                                {% else %}
+                                                    Cliquez ici pour accéder à Follow GT
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
 
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                <div class="footer">
-                    <table width="100%">
-                        <tr>
-                            <td class="aligncenter content-block"><a href="http://www.wiilog.fr">Wiilog</a></td>
+                                </table>
+                            </td>
                         </tr>
                     </table>
+                    <div class="footer">
+                        <table width="100%">
+                            <tr>
+                                <td class="aligncenter content-block"><a href="http://www.wiilog.fr">Wiilog</a></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        </td>
-    </tr>
-</table>
+            </td>
+        </tr>
+    </table>
+</div>
 </body>
 </html>
 
