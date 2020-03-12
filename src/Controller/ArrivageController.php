@@ -341,8 +341,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-				->setDuty($data['duty'])
-				->setFrozen($data['frozen'])
+				->setDuty($data['duty'] == 'true')
+				->setFrozen($data['frozen'] == 'true')
                 ->setCommentaire($data['commentaire'] ?? null);
             $entityManager->persist($arrivage);
             if (!empty($data['fournisseur'])) {
@@ -363,7 +363,7 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
-            $noBL = $data['noBL'];
+            $noBL = $data['noBL'] ?? '';
             $urgencesMatching = [];
             if (!empty($data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
@@ -403,7 +403,7 @@ class ArrivageController extends AbstractController
             if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
-            if ($data['printArrivage'] === 'true') {
+            if (isset($data['printArrivage']) && $data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
 
