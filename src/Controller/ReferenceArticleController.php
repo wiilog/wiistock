@@ -361,6 +361,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Prix unitaire',
 					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Dernier inventaire',
+					"data" => 'Dernier inventaire',
+					'name' => 'Dernier inventaire',
+					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -636,6 +642,11 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Prix unitaire',
             'id' => 0,
             'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
@@ -1118,15 +1129,14 @@ class ReferenceArticleController extends AbstractController
             //reponse Vue + data
 
             if ($refArticle) {
-                $view =  $this->templating->render('reference_article/modalShowRefArticleContent.html.twig', [
+                $view =  $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
                     'articleRef' => $refArticle,
-                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'statut' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : null,
                     'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                     'typeChampsLibres' => $typeChampLibre,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity'],
                     'articles' => $articlesFournisseur,
-
                 ]);
 
                 $json = $view;
@@ -1191,7 +1201,8 @@ class ReferenceArticleController extends AbstractController
                 'seuil alerte',
                 'prix unitaire',
                 'code barre',
-				'catégorie inventaire'
+				'catégorie inventaire',
+				'date dernier inventaire'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1236,6 +1247,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {

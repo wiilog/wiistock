@@ -271,6 +271,24 @@
                     {% endif %}
                 </div>
 
+                <div class="row">
+                    <div class="form-group col-2">
+                        <label>{{ 'arrivage.douane'|trans|capitalize }}</label>
+                        <label class="switch d-block-switch mt-2">
+                            <input class="checkbox no-clear" type="checkbox" name="duty">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group col-2">
+                        <label>{{ 'arrivage.congelé'|trans|capitalize }}</label>
+                        <label class="switch d-block-switch mt-2">
+                            <input class="checkbox no-clear" type="checkbox" name="frozen">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="row champsLibresBlock">
                     {% include 'arrivage/champsLibresArrivage.html.twig' %}
                 </div>

@@ -27,7 +27,13 @@ InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArtic
 let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
 let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
-InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle);
+InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle, handleRemovalErrors);
+
+function handleRemovalErrors(data) {
+    if (!data.success) {
+        alertErrorMsg(data.msg, true)
+    }
+}
 
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");

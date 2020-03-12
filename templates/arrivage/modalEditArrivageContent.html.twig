@@ -101,6 +101,30 @@
 </div>
 
 <div class="row">
+    {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
+        <div class="form-group col-2">
+            <label>{{ 'arrivage.douane'|trans|capitalize }}</label>
+            <label class="switch d-block-switch mt-2">
+                {% set checked =  arrivage.duty ? 'checked' : '' %}
+                <input class="checkbox no-clear" type="checkbox" name="duty" {{ checked }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
+        <div class="form-group col-2">
+            <label>{{ 'arrivage.congelé'|trans|capitalize }}</label>
+            <label class="switch d-block-switch mt-2">
+                {% set checked =  arrivage.frozen ? 'checked' : '' %}
+                <input class="checkbox no-clear" type="checkbox" name="frozen" {{ checked }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
     {% include 'arrivage/champsLibresArrivage.html.twig' with {'edit': true} %}
 </div>
 

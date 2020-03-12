@@ -20,6 +20,7 @@ use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
+use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -108,8 +109,13 @@ class ParametrageGlobalController extends AbstractController
         $emplacementArrivage = isset($emplacementArrivageId)
             ? $emplacementRepository->find($emplacementArrivageId)
             : null;
+        $logoParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+        $logo = ($logoParam && file_exists(getcwd() . "/uploads/attachements/" . $logoParam)
+            ? $logoParam
+            : null);
         return $this->render('parametrage_global/index.html.twig',
             [
+                'logo' => $logo,
             	'dimensions_etiquettes' => $dimensions,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
@@ -125,6 +131,7 @@ class ParametrageGlobalController extends AbstractController
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'location' => $emplacementArrivage,
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+                    'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                 ],
                 'mailerServer' => $mailerServer,
                 'wantsBL' => $wantBL ? $wantBL->getValue() : false,
@@ -150,9 +157,10 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
+     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param UserService $userService
+     * @param AttachmentService $attachmentService
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
      * @return Response
@@ -160,48 +168,58 @@ class ParametrageGlobalController extends AbstractController
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  UserService $userService,
+                                                 AttachmentService $attachmentService,
                                                  ParametrageGlobalRepository $parametrageGlobalRepository,
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-                return $this->redirectToRoute('access_denied');
-            }
+		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
+			return $this->redirectToRoute('access_denied');
+		}
+		$data = $request->request->all();
+		$em = $this->getDoctrine()->getManager();
 
-            $em = $this->getDoctrine()->getManager();
+		$dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
+		if (!$dimensions) {
+			$dimensions = new DimensionsEtiquettes();
+			$em->persist($dimensions);
+		}
+		$dimensions
+			->setHeight(intval($data['height']))
+			->setWidth(intval($data['width']));
 
-            $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
-            if (!$dimensions) {
-                $dimensions = new DimensionsEtiquettes();
-                $em->persist($dimensions);
-            }
-            $dimensions
-                ->setHeight(intval($data['height']))
-                ->setWidth(intval($data['width']));
+		$parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+		if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+			$em->persist($parametrageGlobal);
+		}
+		$parametrageGlobal->setValue($data['param-bl-etiquette']);
+		$parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
-            if (empty($parametrageGlobal)) {
-                $parametrageGlobal = new ParametrageGlobal();
-				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                $em->persist($parametrageGlobal);
-            }
-            $parametrageGlobal->setValue($data['param-bl-etiquette']);
-            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+		if (empty($parametrageGlobal128)) {
+			$parametrageGlobal128 = new ParametrageGlobal();
+			$parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+			$em->persist($parametrageGlobal128);
+		}
+		$parametrageGlobal128->setValue($data['param-type-etiquette']);
 
-            if (empty($parametrageGlobal128)) {
-                $parametrageGlobal128 = new ParametrageGlobal();
-                $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                $em->persist($parametrageGlobal128);
-            }
-            $parametrageGlobal128->setValue($data['param-type-etiquette']);
+		$parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 
-            $em->flush();
+		if (!empty($request->files->all())) {
+			$fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LOGO_FOR_LABEL);
+			if (empty($parametrageGlobalLogo)) {
+				$parametrageGlobalLogo = new ParametrageGlobal();
+				$parametrageGlobalLogo
+					->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
+				$em->persist($parametrageGlobalLogo);
+			}
+			$parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
+		}
+		$em->flush();
 
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
+		return new JsonResponse($data);
+	}
 
     /**
      * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST")
@@ -547,6 +565,38 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/send-mail-switch",
+	 *     name="active_desactive_send_mail",
+	 *     options={"expose"=true},
+	 *     methods="GET|POST",
+	 *     condition="request.isXmlHttpRequest()"
+	 * )
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function toggleSendMail(Request $request,
+								   ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+		$parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+		$em = $this->getDoctrine()->getManager();
+
+		if (empty($parametrageGlobal)) {
+			$parametrage = new ParametrageGlobal();
+			$parametrage->setLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+			$em->persist($parametrage);
+		}
+
+		$parametrageGlobal->setValue($data['val']);
+		$em->flush();
+
+		return new JsonResponse(true);
     }
 
     /**

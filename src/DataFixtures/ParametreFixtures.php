@@ -86,6 +86,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL => [
+                'default' => false,
+                SpecificService::CLIENT_SAFRAN_ED => true
+            ],
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],
@@ -118,7 +122,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => [],
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
-		];
+            ParametrageGlobal::FILE_FOR_LOGO => [],
+        ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {
 			$globalParam = $this->parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);

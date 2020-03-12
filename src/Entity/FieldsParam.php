@@ -45,6 +45,8 @@ class FieldsParam
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
+    const FIELD_CODE_DUTY_ARRIVAGE = 'duty';
+    const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -56,6 +58,8 @@ class FieldsParam
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
     const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
+	const FIELD_LABEL_DUTY_ARRIVAGE = 'douane';
+	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
 
 	/**
      * @ORM\Id()

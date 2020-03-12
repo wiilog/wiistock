@@ -32,6 +32,8 @@ class ArrivageRepository extends ServiceEntityRepository
         'NbUM' => 'nbUM',
         'Statut' => 'statut',
         'Utilisateur' => 'utilisateur',
+        'Duty' => 'duty',
+        'Frozen' => 'frozen',
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -256,6 +258,16 @@ class ArrivageRepository extends ServiceEntityRepository
                     $qb
                         ->andWhere('a.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
+                    break;
+                case 'duty':
+                    $qb
+                        ->andWhere('a.duty = :value')
+                        ->setParameter('value', $filter['value']);
+                    break;
+                case 'frozen':
+                    $qb
+                        ->andWhere('a.frozen = :value')
+                        ->setParameter('value', $filter['value']);
                     break;
                 case 'numArrivage':
                     $qb

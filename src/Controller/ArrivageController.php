@@ -262,15 +262,16 @@ class ArrivageController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
+	/**
+	 * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
+	 * @param Request $request
+	 * @return Response
+	 * @throws LoaderError
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 * @throws RuntimeError
+	 * @throws SyntaxError
+	 */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -324,6 +325,7 @@ class ArrivageController extends AbstractController
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
@@ -335,6 +337,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
+				->setDuty($data['duty'] == 'true')
+				->setFrozen($data['frozen'] == 'true')
                 ->setCommentaire($data['commentaire'] ?? null);
 
             if (!empty($data['fournisseur'])) {
@@ -397,7 +401,7 @@ class ArrivageController extends AbstractController
             if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
-            if ($data['printArrivage'] === 'true') {
+            if (isset($data['printArrivage']) && $data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
 
@@ -410,11 +414,10 @@ class ArrivageController extends AbstractController
                         ->addArrivage($arrivage)
                         ->setChampLibre($champLibreRepository->find($champs));
                     $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
                     $arrivage->addValeurChampLibre($valeurChampLibre);
                 }
             }
-
+            $entityManager->flush();
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
             $statutConformeId = $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
@@ -481,11 +484,11 @@ class ArrivageController extends AbstractController
                 ];
             }
 
-            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-                $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
-            } else {
-                $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
-            }
+			if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
+				$status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
+			} else {
+				$status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
+			}
 
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
@@ -581,6 +584,8 @@ class ArrivageController extends AbstractController
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $this->statutRepository->find($statutId) : null)
+				->setDuty($post->get('duty') == 'true')
+				->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($destinataireId ? $this->utilisateurRepository->find($destinataireId) : null);
 
             $acheteurs = $post->get('acheteurs');
@@ -881,7 +886,7 @@ class ArrivageController extends AbstractController
             $headers = [];
             // en-têtes champs fixes
             $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'statut', 'commentaire', 'date', 'utilisateur']);
+                'n° commande/BL', 'acheteurs', 'douane', 'congelé', 'statut', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
@@ -906,6 +911,8 @@ class ArrivageController extends AbstractController
                     $acheteurData[] = $acheteur->getUsername();
                 }
                 $arrivageData[] = implode(' / ', $acheteurData);
+                $arrivageData[] = $arrivage->getDuty() ? 'oui' : 'non';
+                $arrivageData[] = $arrivage->getFrozen() ? 'oui' : 'non';
                 $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
@@ -1085,7 +1092,6 @@ class ArrivageController extends AbstractController
             }
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
-
 
             $natures = array_reduce(
                 array_keys($data),
@@ -1368,7 +1374,6 @@ class ArrivageController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-//*
 
     /**
      * @Route(
@@ -1394,8 +1399,7 @@ class ArrivageController extends AbstractController
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
                                                PDFGeneratorService $PDFGeneratorService,
-                                               Colis $colis = null): Response
-    {
+                                               Colis $colis = null): Response {
         $barcodeConfigs = [];
 
         if (!isset($colis)) {
@@ -1411,7 +1415,8 @@ class ArrivageController extends AbstractController
                     'code' => $arrivage->getNumeroArrivage()
                 ];
             }
-        } else {
+        }
+        else {
             if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
                 throw new NotFoundHttpException("404");
             }
@@ -1446,8 +1451,7 @@ class ArrivageController extends AbstractController
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
-                                       PDFGeneratorService $PDFGeneratorService)
-    {
+                                       PDFGeneratorService $PDFGeneratorService) {
         return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
 
     }
@@ -1470,8 +1474,8 @@ class ArrivageController extends AbstractController
             'labels' => [
                 ($buyersCounter === 1)
                     ? ($buyers->first()->getDropzone()
-                    ? $buyers->first()->getDropzone()->getLabel()
-                    : '')
+                        ? $buyers->first()->getDropzone()->getLabel()
+                        : '')
                     : ''
             ]
         ];

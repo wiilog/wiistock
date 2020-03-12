@@ -11,6 +11,7 @@ class ParametrageGlobal
 {
 	// arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
+    const SEND_MAIL_AFTER_NEW_ARRIVAL = 'SEND MAIL AFTER NEW ARRIVAL';
     const DEFAULT_STATUT_LITIGE_ARR = 'DEFAULT_STATUT_LITIGE_ARR';
     const AUTO_PRINT_COLIS = 'AUTO PRINT COLIS';
 
@@ -47,6 +48,7 @@ class ParametrageGlobal
 	// étiquettes
 	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
     const BARCODE_TYPE_IS_128 = 'barcode type';
+    const FILE_FOR_LOGO = 'FILE FOR LOGO';
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code'

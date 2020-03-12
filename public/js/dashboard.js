@@ -46,6 +46,7 @@ $(function () {
     refreshIndicatorsReceptionDock();
     refreshIndicatorsReceptionAdmin();
     updateCarriers();
+    initTooltips($('.has-tooltip'));
 
     let reloadFrequency = 1000 * 60 * 15;
     setInterval(reloadDashboards, reloadFrequency);
@@ -255,10 +256,9 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
                 }
 
                 const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                    previous[currentKeys] = (data.data[currentKeys].count || 0);
+                    previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
                     return previous;
                 }, {});
-
                 updateSimpleChartData(chart, chartData);
                 resolve(chart);
             });
@@ -276,10 +276,10 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                 $('#totalForChart' + chartNumber).text(data.total);
 
                 if (!chart) {
-                    chart = newChart($canvas, true);
+                    chart = newChart($canvas, true, true);
                 }
 
-                updateMultipleChartData(chart, data.data, chartNumber !== 1 && (data.chartColors || {}));
+                updateMultipleChartData(chart, data.data, (data.chartColors || {}));
                 resolve(chart);
             });
         }
@@ -304,7 +304,7 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false) {
+function newChart($canvasId, showLegend = false, redForLastData = false) {
     if ($canvasId.length) {
         const chart = new Chart($canvasId, {
             type: 'bar',
@@ -341,57 +341,7 @@ function newChart($canvasId, showLegend = false) {
                 hover: {mode: null},
                 animation: {
                     onComplete() {
-                        let ctx = (this.chart.ctx);
-                        ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
-
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'top';
-                        ctx.strokeStyle = 'black';
-                        ctx.shadowColor = '#999';
-
-                        // on récupère la fontSize de font (format [X]px Arial)
-                        const fontArray = (ctx.font || '').split(' ');
-
-                        const fontSize = Number(fontArray[0].substr(0, fontArray[0].length > 2 ? (fontArray[0].length - 2) : 0) || 12);
-                        const figurePaddingHorizontal = 8;
-                        const figurePaddingVertical = 4;
-                        const figureColor = '#666666';
-                        const rectColor = '#FFFFFF';
-
-                        const self = this;
-                        this.data.datasets.forEach(function (dataset, index) {
-                            if (self.isDatasetVisible(index)) {
-                                for (let i = 0; i < dataset.data.length; i++) {
-                                    for (let key in dataset._meta) {
-                                        if (parseInt(dataset.data[i]) > 0) {
-                                            let {x, y} = dataset._meta[key].data[i]._model;
-                                            y -= 23;
-                                            const figure = dataset.data[i];
-                                            const {width} = ctx.measureText(figure);
-                                            const rectX = x - (width / 2) - figurePaddingHorizontal;
-                                            const rectY = y - figurePaddingVertical;
-                                            const rectWidth = width + (figurePaddingHorizontal * 2);
-                                            const rectHeight = fontSize + (figurePaddingVertical * 2);
-
-                                            // context only for rect
-                                            ctx.shadowBlur = 2;
-                                            ctx.shadowOffsetX = 1;
-                                            ctx.shadowOffsetY = 1;
-                                            ctx.fillStyle = rectColor;
-                                            ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-
-
-                                            // context only for text
-                                            ctx.shadowBlur = 0;
-                                            ctx.shadowOffsetX = 0;
-                                            ctx.shadowOffsetY = 0;
-                                            ctx.fillStyle = figureColor;
-                                            ctx.fillText(figure, x, y);
-                                        }
-                                    }
-                                }
-                            }
-                        });
+                        buildLabelOnBarChart(this, redForLastData);
                     }
                 }
             }
@@ -463,7 +413,7 @@ function refreshCounter($counterCountainer, data) {
     if (typeof data === 'object') {
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
-        $counterCountainer.find('.location-label').text(label);
+        $counterCountainer.find('.location-label').text('(' + label + ')');
     }
     else {
         counter = data;
@@ -479,5 +429,58 @@ function updateCarriers() {
         $container.append(
             ...((data || []).map((carrier) => ($('<p/>', {text: carrier}))))
         );
+    });
+}
+
+function buildLabelOnBarChart(chartInstance, redForFirstData) {
+    let ctx = (chartInstance.chart.ctx);
+    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontFamily, 'bold', Chart.defaults.global.defaultFontFamily);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.strokeStyle = 'black';
+    ctx.shadowColor = '#999';
+
+    // on récupère la fontSize de font (format [X]px Arial)
+    const fontArray = (ctx.font || '').split(' ');
+
+    const fontSize = Number(fontArray[0].substr(0, fontArray[0].length > 2 ? (fontArray[0].length - 2) : 0) || 12);
+    const figurePaddingHorizontal = 8;
+    const figurePaddingVertical = 4;
+    const figureColor = '#666666';
+    const rectColor = '#FFFFFF';
+
+    chartInstance.data.datasets.forEach(function (dataset, index) {
+        if (chartInstance.isDatasetVisible(index)) {
+            for (let i = 0; i < dataset.data.length; i++) {
+                for (let key in dataset._meta) {
+                    if (parseInt(dataset.data[i]) > 0) {
+                        let {x, y} = dataset._meta[key].data[i]._model;
+                        y -= 23;
+                        const figure = dataset.data[i];
+                        const {width} = ctx.measureText(figure);
+                        const rectX = x - (width / 2) - figurePaddingHorizontal;
+                        const rectY = y - figurePaddingVertical;
+                        const rectWidth = width + (figurePaddingHorizontal * 2);
+                        const rectHeight = fontSize + (figurePaddingVertical * 2);
+
+                        // context only for rect
+                        ctx.shadowBlur = 2;
+                        ctx.shadowOffsetX = 1;
+                        ctx.shadowOffsetY = 1;
+                        ctx.fillStyle = rectColor;
+                        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+
+                        // context only for text
+                        ctx.shadowBlur = 0;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        const applyRedFont = (redForFirstData && (i === 0));
+                        ctx.fillStyle = applyRedFont ? 'red' : figureColor;
+                        ctx.fillText(figure, x, y);
+                    }
+                }
+            }
+        }
     });
 }

@@ -58,6 +58,8 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
         {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
+        {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
+        {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
         {"data": 'urgent', 'name': 'urgent', 'title': 'urgent', visible: false},
