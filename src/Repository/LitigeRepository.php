@@ -249,6 +249,7 @@ class LitigeRepository extends ServiceEntityRepository
 			// litiges sur réceptions
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
+			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
 			->addSelect('r.numeroReception')
 			->addSelect('r.id as receptionId')
@@ -334,7 +335,8 @@ class LitigeRepository extends ServiceEntityRepository
 						s.nom LIKE :value OR
 						lh.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
-						rFourn.nom LIKE :value
+						rFourn.nom LIKE :value OR
+						ra.reference LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
