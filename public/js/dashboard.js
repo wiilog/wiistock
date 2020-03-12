@@ -256,10 +256,9 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
                 }
 
                 const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                    previous[currentKeys] = (data.data[currentKeys].count || 0);
+                    previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
                     return previous;
                 }, {});
-
                 updateSimpleChartData(chart, chartData);
                 resolve(chart);
             });
