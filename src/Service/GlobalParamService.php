@@ -44,7 +44,6 @@ Class GlobalParamService
 	 * @param bool $includeNullDimensions
 	 * @return array
 	 * @throws NonUniqueResultException
-	 * @throws NoResultException
 	 */
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
 		$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
@@ -69,7 +68,6 @@ Class GlobalParamService
 
 	/**
 	 * @return array|null
-	 * @throws NoResultException
 	 * @throws NonUniqueResultException
 	 */
 	public function getReceptionDefaultLocation() {

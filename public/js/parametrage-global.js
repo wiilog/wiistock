@@ -302,7 +302,7 @@ function fileToImagePreview($fileInput) {
     if ($fileInput[0].files && $fileInput[0].files[0]) {
         let fileNameWithExtension = $fileInput[0].files[0].name.split('.');
         let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
-        console.log(extension);
+
         if (allowedLogoExtensions.indexOf(extension) !== -1) {
             let reader = new FileReader();
             reader.onload = function(e) {

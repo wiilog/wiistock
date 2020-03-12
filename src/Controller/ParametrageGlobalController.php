@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\PieceJointe;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
@@ -158,7 +157,7 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
+     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param UserService $userService
      * @param AttachmentService $attachmentService
@@ -173,56 +172,54 @@ class ParametrageGlobalController extends AbstractController
                                                  ParametrageGlobalRepository $parametrageGlobalRepository,
                                                  DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $data = $request->request->all();
-            $em = $this->getDoctrine()->getManager();
+		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
+			return $this->redirectToRoute('access_denied');
+		}
+		$data = $request->request->all();
+		$em = $this->getDoctrine()->getManager();
 
-            $dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
-            if (!$dimensions) {
-                $dimensions = new DimensionsEtiquettes();
-                $em->persist($dimensions);
-            }
-            $dimensions
-                ->setHeight(intval($data['height']))
-                ->setWidth(intval($data['width']));
+		$dimensions =  $dimensionsEtiquettesRepository->findOneDimension();
+		if (!$dimensions) {
+			$dimensions = new DimensionsEtiquettes();
+			$em->persist($dimensions);
+		}
+		$dimensions
+			->setHeight(intval($data['height']))
+			->setWidth(intval($data['width']));
 
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+		$parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
-            if (empty($parametrageGlobal)) {
-                $parametrageGlobal = new ParametrageGlobal();
-				$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                $em->persist($parametrageGlobal);
-            }
-            $parametrageGlobal->setValue($data['param-bl-etiquette']);
-            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+		if (empty($parametrageGlobal)) {
+			$parametrageGlobal = new ParametrageGlobal();
+			$parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+			$em->persist($parametrageGlobal);
+		}
+		$parametrageGlobal->setValue($data['param-bl-etiquette']);
+		$parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
-            if (empty($parametrageGlobal128)) {
-                $parametrageGlobal128 = new ParametrageGlobal();
-                $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-                $em->persist($parametrageGlobal128);
-            }
-            $parametrageGlobal128->setValue($data['param-type-etiquette']);
+		if (empty($parametrageGlobal128)) {
+			$parametrageGlobal128 = new ParametrageGlobal();
+			$parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+			$em->persist($parametrageGlobal128);
+		}
+		$parametrageGlobal128->setValue($data['param-type-etiquette']);
 
-            $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+		$parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 
-            if (!empty($request->files->all())) {
-                $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LOGO_FOR_LABEL);
-                if (empty($parametrageGlobalLogo)) {
-                    $parametrageGlobalLogo = new ParametrageGlobal();
-                    $parametrageGlobalLogo
-                        ->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
-                }
-                $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
-            }
-            $em->flush();
+		if (!empty($request->files->all())) {
+			$fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LOGO_FOR_LABEL);
+			if (empty($parametrageGlobalLogo)) {
+				$parametrageGlobalLogo = new ParametrageGlobal();
+				$parametrageGlobalLogo
+					->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
+				$em->persist($parametrageGlobalLogo);
+			}
+			$parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
+		}
+		$em->flush();
 
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
+		return new JsonResponse($data);
+	}
 
     /**
      * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST")

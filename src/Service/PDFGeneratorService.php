@@ -3,8 +3,6 @@
 
 namespace App\Service;
 
-use App\Entity\ParametrageGlobal;
-use App\Repository\ParametrageGlobalRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
@@ -43,8 +41,7 @@ Class PDFGeneratorService
      * @param array $barcodeConfigs Array of ['code' => string, 'labels' => array]. labels optional
      * @return string
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+	 * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
