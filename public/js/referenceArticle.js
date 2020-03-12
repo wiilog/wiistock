@@ -350,7 +350,7 @@ let recupIdRefArticle = function (div) {
     let id = div.data('id');
     $('#submitPlusDemande').val(id);
     $('.editChampLibre').html('');
-    ('.boutonCreationDemande').addClass('d-none');
+    $('.boutonCreationDemande').addClass('d-none');
 };
 
 let ajaxPlusDemandeContent = function (button, demande) {
