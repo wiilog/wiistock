@@ -39,8 +39,8 @@
         <input type="file" id="logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
         <div class="row justify-content-center">
             <img id="chosenLogo"
-                 src="/uploads/attachements/{{ logo }}"
-                 alt="Logo choisi" width="50px" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+                 src="{{ logo ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo) : '' }}"
+                 alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
         </div>
     </div>
 </div>

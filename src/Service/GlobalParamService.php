@@ -49,11 +49,11 @@ Class GlobalParamService
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
 		$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
 		$response = [];
+		$response['logo'] = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
 		{
 			$response['height'] = $dimension->getHeight();
 			$response['width'] = $dimension->getWidth();
-
 			$response['exists'] = true;
 		} else {
 			if($includeNullDimensions) {

@@ -110,9 +110,13 @@ class ParametrageGlobalController extends AbstractController
         $emplacementArrivage = isset($emplacementArrivageId)
             ? $emplacementRepository->find($emplacementArrivageId)
             : null;
+        $logoParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+        $logo = ($logoParam && file_exists(getcwd() . "/uploads/attachements/" . $logoParam)
+            ? $logoParam
+            : null);
         return $this->render('parametrage_global/index.html.twig',
             [
-                'logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO),
+                'logo' => $logo,
             	'dimensions_etiquettes' => $dimensions,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
