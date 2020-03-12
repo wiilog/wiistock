@@ -240,7 +240,8 @@ class LitigeRepository extends ServiceEntityRepository
             ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
-			->leftJoin('a.acheteurs', 'ach')
+            ->leftJoin('a.acheteurs', 'ach')
+            ->leftJoin('l.buyers', 'buyers')
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
@@ -248,8 +249,10 @@ class LitigeRepository extends ServiceEntityRepository
 			// litiges sur réceptions
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
+			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
 			->addSelect('r.numeroReception')
+			->addSelect('r.reference')
 			->addSelect('r.id as receptionId')
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
@@ -328,10 +331,13 @@ class LitigeRepository extends ServiceEntityRepository
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
 						ach.username LIKE :value OR
+						ach.email LIKE :value OR
+						buyers.email LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
-						rFourn.nom LIKE :value
+						rFourn.nom LIKE :value OR
+						ra.reference LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -344,6 +350,7 @@ class LitigeRepository extends ServiceEntityRepository
                     if (!empty($order))
                     {
                         $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+
                         if ($column === 'type') {
                             $qb
                                 ->addOrderBy('t.label', $order);

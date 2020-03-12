@@ -75,13 +75,13 @@ function initPage() {
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
-    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
-    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
+    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', false, 0, 0);
+    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false, 23, 59);
     let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
-    let dateStart = $dateStartInput.data('date');
+    let dateStart = $dateStartInput.attr('data-date');
 
     let $dateEndInput = $('#modalEditUrgence').find('.dateEnd');
-    let dateEnd = $dateEndInput.data('date');
+    let dateEnd = $dateEndInput.attr('data-date');
 
     $dateStartInput.val(moment(dateStart, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));

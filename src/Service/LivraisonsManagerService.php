@@ -25,7 +25,8 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
  * Class LivraisonsManagerService
  * @package App\Service
  */
-class LivraisonsManagerService {
+class LivraisonsManagerService
+{
 
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
@@ -43,13 +44,15 @@ class LivraisonsManagerService {
      */
     public function __construct(EntityManagerInterface $entityManager,
                                 MailerService $mailerService,
-                                Twig_Environment $templating) {
+                                Twig_Environment $templating)
+    {
         $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
     }
 
-    public function setEntityManager(EntityManagerInterface $entityManager): self {
+    public function setEntityManager(EntityManagerInterface $entityManager): self
+    {
         $this->entityManager = $entityManager;
         return $this;
     }
@@ -68,7 +71,8 @@ class LivraisonsManagerService {
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
-                                    ?Emplacement $emplacementTo): void {
+                                    ?Emplacement $emplacementTo): void
+    {
         if (($livraison->getStatut() && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER) ||
             $livraison->getUtilisateur() && ($livraison->getUtilisateur()->getId() === $user->getId())) {
 
@@ -86,9 +90,9 @@ class LivraisonsManagerService {
                 ->setDateFin($dateEnd);
 
             $demande = $livraison->getDemande();
-            $demandeIsPartial = ($demande->getPreparations()->filter(function(Preparation $preparation) {
-                return $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
-            })->count() > 0);
+            $demandeIsPartial = ($demande->getPreparations()->filter(function (Preparation $preparation) {
+                    return $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+                })->count() > 0);
             foreach ($demande->getPreparations() as $preparation) {
                 if ($preparation->getLivraison() &&
                     ($preparation->getLivraison()->getStatut()->getNom() === Livraison::STATUT_A_TRAITER)) {
@@ -110,14 +114,12 @@ class LivraisonsManagerService {
             }
 
             // quantités gérées à l'article
-            $articles = $demande->getArticles();
+            $articles = $preparation->getArticles();
 
             foreach ($articles as $article) {
-                if ($article->getQuantite() !== 0) {
-                    $article
-                        ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
-                        ->setEmplacement($demande->getDestination());
-                }
+                $article
+                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+                    ->setEmplacement($demande->getDestination());
             }
 
             // on termine les mouvements de livraison
@@ -138,8 +140,7 @@ class LivraisonsManagerService {
                 ]),
                 $demande->getUtilisateur()->getEmail()
             );
-        }
-        else {
+        } else {
             throw new Exception(self::LIVRAISON_ALREADY_BEGAN);
         }
     }
