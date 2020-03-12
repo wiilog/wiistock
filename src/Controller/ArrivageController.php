@@ -341,8 +341,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-				->setDuty($data['duty'])
-				->setFrozen($data['frozen'])
+				->setDuty($data['duty'] == 'true')
+				->setFrozen($data['frozen'] == 'true')
                 ->setCommentaire($data['commentaire'] ?? null);
             $entityManager->persist($arrivage);
             if (!empty($data['fournisseur'])) {
