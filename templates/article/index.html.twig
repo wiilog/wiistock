@@ -60,7 +60,7 @@
     {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
     <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
 {#TODO#}
-    {% include "article/modalModifyArticle.html.twig" %}
+    {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}
     {% include "article/modalNewArticle.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}

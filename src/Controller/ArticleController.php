@@ -275,6 +275,11 @@ class ArticleController extends AbstractController
             'id' => 0,
             'typage' => 'number'
         ];
+        $champF[] = [
+            'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
+        ];
         $champsFText = [];
 
         $champsFText[] = [
@@ -335,6 +340,11 @@ class ArticleController extends AbstractController
             'label' => 'Prix unitaire',
             'id' => 0,
             'typage' => 'number'
+        ];
+        $champsFText[] = [
+            'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
         ];
         $champsLText = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
         $champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
@@ -491,6 +501,12 @@ class ArticleController extends AbstractController
 					'name' => 'Prix unitaire',
 					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Dernier inventaire',
+					"data" => 'Dernier inventaire',
+					'name' => 'Dernier inventaire',
+					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -543,11 +559,14 @@ class ArticleController extends AbstractController
                     'champsLibres' => $champsLibres,
                 ];
             if ($article) {
-                $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
+                $view = $this->templating->render('article/modalArticleContent.html.twig', [
                     'typeChampsLibres' => $typeChampLibre,
                     'typeArticle' => $typeArticleLabel,
-                    'article' => $article,
-                    'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+					'typeArticleId' => $typeArticle->getId(),
+					'article' => $article,
+                    'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
+					'isADemand' => false,
+					'invCategory' => $refArticle->getCategory(),
                 ]);
                 $json = $view;
             } else {
@@ -886,7 +905,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre', 'date dernier inventaire'];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
@@ -903,7 +922,6 @@ class ArticleController extends AbstractController
      */
     public function buildInfos(Article $article, $listTypes, $headers)
     {
-
         $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
         $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
         $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
@@ -912,6 +930,7 @@ class ArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
         $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
         $refData[] = $this->CSVExportService->escapeCSV($article->getBarCode());
+        $refData[] = $this->CSVExportService->escapeCSV($article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '');
         $champsLibres = [];
         foreach ($listTypes as $type) {
             $typeArticle = $this->typeRepository->find($type['id']);
