@@ -15,22 +15,23 @@
                               id="libelle">
     </div>
     <div class="form-group col-6">
-        {% if editable and not isADemand %}
-        <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Statut</label>
-            <div>
-                {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
-                {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
-                <span class="btn {{ actif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
-                </span><span class="btn {{ inactif }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
-                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
-                </span>
+        {% if isADemand is not defined or not isADemand %}
+            <div class="input-group radio-btn">
+                <label for="statut" class="mtb-auto mr-2">Statut</label>
+                <div>
+                    {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                    {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+
+                    <span class="btn {{ actif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                          {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                        {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                    </span><span class="btn {{ inactif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                          {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                        {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
+                    </span>
+                </div>
+                <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
             </div>
-            <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
-        </div>
         {% endif %}
     </div>
 </div>
@@ -52,31 +53,39 @@
         </select>
     </div>
     <div class="form-group col-4">
-        <label for="categorie">Catégorie d'inventaire</label>
-        <select name="categorie" class="form-control data">
-            {% set selectedCat = articleRef.category is null ? 'selected' : '' %}
-            <option {{ selectedCat }} value=''> </option>
-            {% for category in categories %}
-                {% set selectedCat = '' %}
-                {% if articleRef.category is not null %}{% set selectedCat = articleRef.category.id == category.id ? 'selected' : '' %}{% endif %}
-                <option {{ selectedCat }} value="{{ category.id }}">{{ category.label }}</option>
-            {% endfor %}
-        </select>
+        <label>Catégorie d'inventaire</label>
+        {% if editable %}
+            <select name="categorie" class="form-control data {{ disabled }}">
+                {% set selectedCat = articleRef.category is null ? 'selected' : '' %}
+                <option {{ selectedCat }} value=''> </option>
+                {% if categories is defined %}
+                    {% for category in categories %}
+                        {% set selectedCat = '' %}
+                        {% if articleRef.category is not null %}{% set selectedCat = articleRef.category.id == category.id ? 'selected' : '' %}{% endif %}
+                        <option {{ selectedCat }} value="{{ category.id }}">{{ category.label }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        {% else %}
+            <input {{ disabled }} class="form-control" type="text" value="{{ articleRef.category ? articleRef.category.label }}">
+        {% endif %}
+    </div>
+    <div class="form-group col-4">
+        <label>Date dernier inventaire</label>
+        <input name="categorie" class="form-control" disabled value="{{ articleRef.dateLastInventory | date('d/m/Y') }}">
     </div>
 </div>
 <div class="row">
     <div class="form-group col-12">
         <div class="">
             <label>Nomenclature</label>
-            <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
-                value='{{articleRef.commentaire}}'>
-            {% if isADemand %}
-            <div class="form-control editor-container-edit comment" style="background-color:#e9ecef">
+            <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{articleRef.commentaire}}'>
+
+            {% set disableNomenclature = (isADemand is defined and isADemand) or disabled ? 'disabled' %}
+            <div class="form-control editor-container-edit comment {{ disableNomenclature }}">
                 {{articleRef.commentaire|raw}}
             </div>
-            {% else %}
-            <div class="form-control editor-container-edit comment">{{articleRef.commentaire|raw}}</div>
-            {% endif %}
+
         </div>
     </div>
 </div>
@@ -84,16 +93,16 @@
 {% set dnoneRef = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
 {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
 <div class="row mt-4 mb-3">
-    {% if editable and not isADemand %}
+    {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4">
             <div class="radio-btn">
                 <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
-                <div onclick="updateQuantityDisplay($(this))">
-                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}"
+                <div {% if editable %}onclick="updateQuantityDisplay($(this))"{% endif %}>
+                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} {{ disabled }}"
                         data-toggle="type_quantite" data-title="reference"
                         {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
                         référence</span><span
-                        class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}"
+                        class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}  {{ disabled }}"
                         data-toggle="type_quantite" data-title="article"
                         {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
                         article</span>
@@ -121,18 +130,16 @@
         {% set emplacementId = (articleRef.emplacement is null) ? '' : articleRef.emplacement.id %}
         {% set emplacementLabel = (articleRef.emplacement is null) ? '': articleRef.emplacement.label %}
 
-        <div class="input-group w-100">
-            <label>Emplacement*</label>
-            <select {{ disabled }} name="emplacement" id="emplacement" class="form-control ajax-autocompleteEmplacement-edit data {{ dnoneRef == 'd-none' ? '' : 'needed' }}">
-                <option value="{{ emplacementId}}">{{ emplacementLabel }}</option>
-            </select>
-        </div>
+        <label>Emplacement*</label>
+        <select {{ disabled }} name="emplacement" id="emplacement" class="form-control ajax-autocompleteEmplacement-edit data {{ dnoneRef == 'd-none' ? '' : 'needed' }}">
+            <option value="{{ emplacementId}}">{{ emplacementLabel }}</option>
+        </select>
     </div>
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
         <label class="mtb-auto mr-2" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
-        {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
+        {% set disabledOnDemand = isADemand is defined and isADemand ? 'disabled' : disabled %}
         <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
             name="quantite" id="quantite">
     </div>
@@ -144,14 +151,14 @@
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
         <label for="prix">Prix Unitaire (€)</label>
-        <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}">
+        <input class="form-control data" type="number" name="prix" min="0" step="0.01" value="{{ articleRef.prixUnitaire }}" {{ disabled }}>
     </div>
 
     <div class="form-group col-4">
         <div class="form-group w-100">
             <div>
                 <label for="limitWarning">Seuil d'alerte</label>
-                <input class="form-control data" type="number" name="limitWarning" min="0" value="{{ articleRef.limitWarning }}">
+                <input class="form-control data" type="number" name="limitWarning" min="0" value="{{ articleRef.limitWarning }}" {{ disabled }}>
             </div>
         </div>
     </div>
@@ -159,7 +166,7 @@
         <div class="form-group w-100">
             <div>
                 <label for="limitSecurity">Seuil de sécurité</label>
-                <input class="form-control data" type="number" name="limitSecurity" min="0" value="{{ articleRef.limitSecurity }}">
+                <input class="form-control data" type="number" name="limitSecurity" min="0" value="{{ articleRef.limitSecurity }}" {{ disabled }}>
             </div>
         </div>
     </div>
@@ -283,9 +290,11 @@
         </h3>
     </div>
     <div class="form-group blocVisible col-12 d-none">
-        <div class="form-group col-1">
-            <span class="btn btn-primary" onclick="addFournisseurEdit($(this))"><i class="fa fa-plus"></i></span>
-        </div>
+        {% if editable %}
+            <div class="form-group col-1">
+                <span class="btn btn-primary" onclick="addFournisseurEdit($(this))"><i class="fa fa-plus"></i></span>
+            </div>
+        {% endif %}
         <div class="form-group col-12 d-block" id='articleFournisseursEdit'>
             {% include 'reference_article/fournisseurArticleContent.html.twig' %}
         </div>
