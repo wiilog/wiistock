@@ -240,7 +240,8 @@ class LitigeRepository extends ServiceEntityRepository
             ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
-			->leftJoin('a.acheteurs', 'ach')
+            ->leftJoin('a.acheteurs', 'ach')
+            ->leftJoin('l.buyers', 'buyers')
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
@@ -328,6 +329,8 @@ class LitigeRepository extends ServiceEntityRepository
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
 						ach.username LIKE :value OR
+						ach.email LIKE :value OR
+						buyers.email LIKE :value OR
 						s.nom LIKE :value OR
 						lh.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
