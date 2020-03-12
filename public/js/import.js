@@ -40,33 +40,38 @@ let tableImport = $('#tableImport').DataTable({
     }
 });
 
-let $modalNewImportFirst = $("#modalNewImportFirst");
-let $submitNewFournisseurFirst = $("#submitNewImportFirst");
+let $modalNewImport = $("#modalNewImport");
+let $submitNewImport = $("#submitNewImport");
 let urlNewImportFirst = Routing.generate('import_new', true);
-initModalWithAttachments($modalNewImportFirst, $submitNewFournisseurFirst, urlNewImportFirst, tableImport, displaySecondModal, false);
+initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
 
-let $modalNewImportSecond = $('#modalNewImportSecond');
-let $submitNewFournisseurSecond = $("#submitNewImportSecond");
-let urlNewImportSecond= Routing.generate('import_links', true);
-InitialiserModal($modalNewImportSecond, $submitNewFournisseurSecond, urlNewImportSecond, null, displayConfirmationModal);
+function displayFirstModal() {
+    let $modal = $('#modalNewImport');
 
-let $modalNewImportConfirm = $('#modalNewImportConfirm');
-let $submitNewImportConfirm = $('#submitNewImportConfirm');
-let urlNewImportConfirm = Routing.generate('import_confirm', true);
-InitialiserModal($modalNewImportConfirm, $submitNewImportConfirm, urlNewImportConfirm, tableImport);
+    $.post(Routing.generate('get_first_modal_content'), function(resp) {
+        $modal.find('.modal-body').html(resp);
+        $modal.modal('show');
+    })
+}
 
 function displaySecondModal(data) {
     //TODO CG vérification 1 seul fichier + format csv
     if (data.success) {
-        $modalNewImportSecond.find('tbody').html(data.html);
-        $modalNewImportSecond.find('#submitNewImportSecond').val(data.importId);
-        $('#openModalNewImportSecond').click();
-        $modalNewImportFirst.find('.close').click();
+        $modalNewImport.find('.modal-body').html(data.html);
+        $modalNewImport.find('[name="importId"]').val(data.importId);
+        $submitNewImport.off();
+
+        let urlNewImportSecond = Routing.generate('import_links', true);
+        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, displayConfirmationModal, false);
     }
 }
 
 function displayConfirmationModal(data) {
-    $modalNewImportConfirm.find('#submitNewImportConfirm').val(data.importId);
-    $('#openModalNewImportConfirm').click();
-    $modalNewImportSecond.find('.close').click();
+    if (data.success) {
+        $modalNewImport.find('.modal-body').html(data.html);
+        $submitNewImport.off();
+
+        let urlNewImportConfirm = Routing.generate('import_confirm', true);
+        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport);
+    }
 }

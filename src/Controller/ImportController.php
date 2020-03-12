@@ -141,7 +141,7 @@ class ImportController extends AbstractController
 		return new JsonResponse([
 			'success' => true,
 			'importId' => $import->getId(),
-			'html' => $this->renderView('import/modalNewImportSecondContent.html.twig', [
+			'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
 				'data' => $data,
 				'fields' => $fields
 			])
@@ -164,7 +164,10 @@ class ImportController extends AbstractController
 		$import->setColumnToField($data);
 		$this->getDoctrine()->getManager()->flush();
 
-		return new JsonResponse(['importId' => $importId]);
+		return new JsonResponse([
+			'success' => true,
+			'html' => $this->renderView('import/modalNewImportConfirm.html.twig')
+		]);
 	}
 
 	/**
@@ -192,5 +195,13 @@ class ImportController extends AbstractController
 		}
 
 		return new JsonResponse($resp);
+	}
+
+	/**
+	 * @Route("/modale-une", name="get_first_modal_content", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 */
+	public function getFirstModalContent()
+	{
+		return new JsonResponse($this->renderView('import/modalNewImportFirst.html.twig'));
 	}
 }
