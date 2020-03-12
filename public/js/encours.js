@@ -7,6 +7,7 @@ $(function () {
     let params = JSON.stringify(PAGE_ENCOURS);
     $.post(path, params, function (data) {
         displayFiltersSup(data);
+        reloadDatatables();
     }, 'json');
 
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
