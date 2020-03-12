@@ -252,6 +252,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
 			->addSelect('r.numeroReception')
+			->addSelect('r.reference')
 			->addSelect('r.id as receptionId')
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
@@ -349,6 +350,7 @@ class LitigeRepository extends ServiceEntityRepository
                     if (!empty($order))
                     {
                         $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
+
                         if ($column === 'type') {
                             $qb
                                 ->addOrderBy('t.label', $order);
