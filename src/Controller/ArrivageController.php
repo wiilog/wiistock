@@ -297,13 +297,14 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param AttachmentService $attachmentService
      * @param UserService $userService
-     * @param SpecificService $specificService
      * @param ArrivageDataService $arrivageDataService
      * @param ColisService $colisService
      * @return Response
+     * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws Exception
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -372,10 +373,6 @@ class ArrivageController extends AbstractController
 
             $attachmentService->addAttachements($request->files, $arrivage);
 
-            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-
-
-            $entityManager->flush();
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -394,16 +391,7 @@ class ArrivageController extends AbstractController
                 ]);
             }
             $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
-            $entityManager->flush();
 
-            $printColis = null;
-            $printArrivage = null;
-            if (isset($data['printColis']) && $data['printColis'] === 'true') {
-                $printColis = true;
-            }
-            if (isset($data['printArrivage']) && $data['printArrivage'] === 'true') {
-                $printArrivage = true;
-            }
 
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champs) {
@@ -417,6 +405,10 @@ class ArrivageController extends AbstractController
                     $arrivage->addValeurChampLibre($valeurChampLibre);
                 }
             }
+
+            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+            $arrivageDataService->sendArrivalEmails($arrivage);
+
             $entityManager->flush();
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
             $statutConformeId = $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
@@ -425,8 +417,8 @@ class ArrivageController extends AbstractController
                 "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
                     ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                     : null,
-                'printColis' => $printColis,
-                'printArrivage' => $printArrivage,
+                'printColis' => (isset($data['printColis']) && $data['printColis'] === 'true'),
+                'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
                 'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [

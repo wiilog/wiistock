@@ -131,30 +131,12 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendArrivageUrgentEmail(Arrivage $arrival, array $emergencies): void {
+    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
 
-        /*
-         * TODO AB
-            ('FOLLOW GT // Arrivage') . (count($emergencies) > 0 ? ' urgent' : ''),
-            $this->templating->render(
-                'mails/mailArrivage' . (count($emergencies) > 0 ? 'Urgent' : 'Regular') . '.html.twig',
-                [
-                    'title' => 'Arrivage ' . (count($emergencies) > 0 ? 'urgent ' : '') . 'reçu',
-                    'arrivage' => $arrivage,
-                    'posts' => $posts
-         */
+        $isUrgentArrival = !empty($emergencies);
 
-        $this->mailerService->sendMail(
-            'FOLLOW GT // Arrivage urgent',
-            $this->templating->render(
-                'mails/mailArrivageUrgent.html.twig',
-                [
-                    'title' => 'Arrivage urgent',
-                    'arrival' => $arrival,
-                    'emergencies' => $emergencies
-                ]
-            ),
-            array_reduce(
+        if ($isUrgentArrival) {
+            $senders = array_reduce(
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
                     $email = $emergency->getBuyer()->getEmail();
@@ -164,7 +146,24 @@ class ArrivageDataService
                     return $carry;
                 },
                 []
-            )
+            );
+        }
+        else {
+            $senders = $arrival->getInitialAcheteurs();
+        }
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
+            $this->templating->render(
+                'mails/mailArrivage.html.twig',
+                [
+                    'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
+                    'arrival' => $arrival,
+                    'emergencies' => $emergencies,
+                    'isUrgentArrival' => $isUrgentArrival
+                ]
+            ),
+            $senders
         );
     }
 
@@ -182,7 +181,7 @@ class ArrivageDataService
             	$emergency->setLastArrival($arrivage);
 			}
             $this->entityManager->flush();
-			$this->sendArrivageUrgentEmail($arrivage, $emergencies);
+			$this->sendArrivalEmails($arrivage, $emergencies);
 		}
     }
 
