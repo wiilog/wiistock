@@ -19,6 +19,7 @@ class Menu
 	const STOCK = 'stock';
 	const REFERENTIEL = 'référentiel';
 	const PARAM = 'paramétrage';
+	const NOMADE = 'nomade';
 
     /**
      * @ORM\Id()
