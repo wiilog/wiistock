@@ -33,6 +33,7 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\FiltreSupRepository;
+use App\Repository\InventoryCategoryRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -168,7 +169,12 @@ class ArticleDataService
      */
     private $filtreSupRepository;
 
-    public function __construct(FiltreSupRepository $filtreSupRepository,
+	/**
+	 * @var InventoryCategoryRepository
+	 */
+	private $inventoryCategoryRepository;
+
+	public function __construct(FiltreSupRepository $filtreSupRepository,
                                 ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
                                 MailerService $mailerService,
                                 ParametreRoleRepository $parametreRoleRepository,
@@ -189,7 +195,8 @@ class ArticleDataService
                                 ChampLibreRepository $champLibreRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage)
+                                TokenStorageInterface $tokenStorage,
+								InventoryCategoryRepository $inventoryCategoryRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -213,6 +220,7 @@ class ArticleDataService
         $this->mailerService = $mailerService;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->filtreSupRepository = $filtreSupRepository;
+        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
     }
 
 	/**
@@ -408,7 +416,7 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-        $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+		$champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
@@ -433,13 +441,14 @@ class ArticleDataService
 
         $statut = $article->getStatut()->getNom();
 
-        return $this->templating->render('article/modalModifyArticleContent.html.twig', [
+        return $this->templating->render('article/modalArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampsLibres,
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
             'statut' => $statut,
-            'isADemand' => $isADemand
+            'isADemand' => $isADemand,
+			'invCategory' => $refArticle->getCategory()
         ]);
     }
 
@@ -626,7 +635,7 @@ class ArticleDataService
         $articles = $ligne->getArticles();
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowRefArticle($article);
+            $rows[] = $this->dataRowArticle($article);
         }
         return ['data' => $rows];
     }
@@ -664,7 +673,7 @@ class ArticleDataService
 
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowRefArticle(is_array($article) ? $article[0] : $article);
+            $rows[] = $this->dataRowArticle(is_array($article) ? $article[0] : $article);
         }
 
         return [
@@ -683,7 +692,7 @@ class ArticleDataService
      * @throws Twig_Error_Syntax
      * @throws DBALException
      */
-    public function dataRowRefArticle($article)
+    public function dataRowArticle($article)
     {
         $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByArticle($article);
         $rowCL = [];
@@ -720,9 +729,10 @@ class ArticleDataService
             'Quantité' => $article->getQuantite() ?? 0,
 			'Type' => $article->getType() ? $article->getType()->getLabel() : '',
 			'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
-			'Commentaire' => $article->getCommentaire(),
+			'Commentaire' => $article->getCommentaire() ?? '',
 			'Prix unitaire' => $article->getPrixUnitaire(),
 			'Code barre' => $article->getBarCode() ?? 'Non défini',
+			"Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
 			'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
 				'url' => $url,
 				'articleId' => $article->getId(),
