@@ -68,7 +68,7 @@ class PasswordService
             dump($logo);
 			$this->mailerService->sendMail(
 				'FOLLOW GT // Mot de passe oublié',
-				$this->templating->render('mails/template.html.twig', [
+				$this->templating->render('mails/mjml/template.html.twig', [
 					'title' => 'Renouvellement de votre mot de passe Follow GT.',
 					'urlSuffix' => 'change-password?token=' . $token,
 					'buttonText' => 'Cliquez ici pour modifier votre mot de passe',

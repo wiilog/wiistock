@@ -1,4 +1,4 @@
-{% extends 'mails/template.html.twig' %}
+{% extends 'mails/mjml/template.html.twig' %}
 
 {% block content %}
     <p>Bonjour,</p>
@@ -19,7 +19,6 @@
         <p>N° tracking transporteur : {{ arrivage.noTracking }}</p>
     {% endif %}
     <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
-    <br/>
     <br/>
     <br/>
 {% endblock %}
