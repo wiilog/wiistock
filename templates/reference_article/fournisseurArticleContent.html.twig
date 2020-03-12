@@ -11,10 +11,10 @@
         <input class="form-control needed" disabled type="text" value="{{articleF.reference}}">
     </div>
     <div class="form-group col-3">
-        <label for="reference">Label</label>
+        <label for="reference">Libellé</label>
         <input class="form-control needed" type="text" disabled value="{{articleF.label}}">
     </div>
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
+    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) and (editable is not defined or editable) %}
     <div class="col-1">
         <span class="btn btn-primary mt-3" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
             data-title="{{articleRef.id}}" onclick="passArgsToModal(this)">

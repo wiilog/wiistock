@@ -414,7 +414,7 @@ function refreshCounter($counterCountainer, data) {
     if (typeof data === 'object') {
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
-        $counterCountainer.find('.location-label').text(label);
+        $counterCountainer.find('.location-label').text('(' + label + ')');
     }
     else {
         counter = data;
