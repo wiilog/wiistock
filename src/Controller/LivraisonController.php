@@ -39,7 +39,6 @@ use Twig\Error\SyntaxError as Twig_Error_Syntax;
  */
 class LivraisonController extends AbstractController
 {
-
     /**
      * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
      * @param DemandeRepository $demandeRepository
@@ -263,11 +262,12 @@ class LivraisonController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     * @param Request $request
-     * @return Response
-     */
+	/**
+	 * @Route("/infos", name="get_ordres_livraison_for_csv", options={"expose"=true}, methods={"GET","POST"})
+	 * @param Request $request
+	 * @param EntityManagerInterface $entityManager
+	 * @return Response
+	 */
     public function getOrdreLivraisonIntels(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
