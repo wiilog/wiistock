@@ -183,7 +183,7 @@ function editRowArrivage(button) {
         originalText = quillEdit.getText();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
-        initSelect2WithTags('.select2-tag');
+        initFreeSelect2('.select2-free');
     }, 'json');
 
     modal.find(submit).attr('value', id);

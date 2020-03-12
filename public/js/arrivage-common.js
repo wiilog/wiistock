@@ -16,7 +16,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, {alertConfigs: nextAlertConfigs, ...response}, isCreation);
+                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, {alertConfigs: nextAlertConfigs, ...response}, isCreation);
                         }
                     }
                     else {
@@ -69,19 +69,21 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
     }
 }
 
-function setArrivalUrgent(newArrivalId, arrivalResponseCreation, isCreation) {
+function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation) {
     const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
+    console.log(arrivalResponseCreation);
     $.ajax({
         type: 'PATCH',
         url: patchArrivalUrgentUrl,
+        data: {numeroCommande},
         success: (secondResponse) => {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
                 arrivalCallback(isCreation, {
+                    ...arrivalResponseCreation,
                     alertConfigs: arrivalResponseCreation.alertConfigs.length > 0
                         ? arrivalResponseCreation.alertConfigs
                         : secondResponse.alertConfigs,
-                    ...arrivalResponseCreation
                 });
                 $('.zone-entete').html(secondResponse.entete);
             }
@@ -111,6 +113,7 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
         $('.list-multiple').select2();
         $modalNewArrivage.find('#statut').val(statutConformeId);
+
         let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
         $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
 

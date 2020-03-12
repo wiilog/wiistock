@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
@@ -149,8 +150,14 @@ class ArrivageDataService
             );
         }
         else {
-            $senders = $arrival->getInitialAcheteurs();
+            $senders = $arrival
+                ->getInitialAcheteurs()
+                ->map(function (Utilisateur $acheteur) {
+                    return $acheteur->getEmail();
+                })
+                ->toArray();
         }
+        dump($senders);
 
         $this->mailerService->sendMail(
             'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
@@ -187,16 +194,16 @@ class ArrivageDataService
 
     /**
      * @param Arrivage $arrivage
-     * @param bool $isSEDCurrentClient
+     * @param bool $askQuestion
      * @param Urgence[] $urgences
      * @return array
      */
     public function createArrivalAlertConfig(Arrivage $arrivage,
-                                             bool $isSEDCurrentClient,
+                                             bool $askQuestion,
                                              array $urgences = []): array {
         $isArrivalUrgent = count($urgences);
 
-        if ($isSEDCurrentClient && $isArrivalUrgent) {
+        if ($askQuestion && $isArrivalUrgent) {
             $numeroCommande = $urgences[0]->getCommande();
 
             $posts = array_map(
@@ -225,17 +232,21 @@ class ArrivageDataService
                 }
             }
         }
+        else {
+            $numeroCommande = null;
+        }
 
         return [
-            'autoHide' => (!$isSEDCurrentClient && !$isArrivalUrgent),
+            'autoHide' => (!$askQuestion && !$isArrivalUrgent),
             'message' => ($isArrivalUrgent
-                ? (!$isSEDCurrentClient
+                ? (!$askQuestion
                     ? 'Arrivage URGENT enregistré avec succès.'
                     : ($msgSedUrgent ?? ''))
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
-            'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
+            'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
             'emergencyAlert' => $isArrivalUrgent,
+            'numeroCommande' => $numeroCommande,
             'arrivalId' => $arrivage->getId()
         ];
     }
@@ -247,7 +258,7 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function processEmergenciesOnArrival(Arrivage $arrival): array {
+    public function processEmergenciesOnArrival(Arrivage $arrival, bool $diferForSED = false): array {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
@@ -267,7 +278,6 @@ class ArrivageDataService
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
-                        break;
                     }
                     else {
                         $alertConfigs[] = $this->createArrivalAlertConfig(

@@ -50,7 +50,7 @@
         <div class="form-group col-4">
             <label for="numeroCommandeList">N° commande / BL{{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToModify') ? '*' : ''}}</label>
             <select id="numeroCommandeList"
-                    class="form-control input-sm data select2-tag w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
+                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
                     name="numeroCommandeList" multiple="multiple">
                 {% for numeroCommande in arrivage.numeroCommandeList %}
                     <option value="{{ numeroCommande }}" selected>{{ numeroCommande }}</option>

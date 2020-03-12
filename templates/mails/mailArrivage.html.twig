@@ -1,28 +1,41 @@
 {% extends 'mails/template.html.twig' %}
 
-{% set isUrgentArrival %}
 {% block content %}
     <p>Bonjour,</p>
     <br/>
+
     <p>Votre commande {{ isUrgentArrival ? 'urgente ' }}est arrivée : </p>
     <br/>
-    <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrivage.numeroArrivage }}</p>
-    {% if emergencies[0].commande %}
-        <p>N° commande : {{ emergencies[0].commande }}</p>
+
+    <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrival.numeroArrivage }}</p>
+
+    {% set numeroCommandeList = (
+        (emergencies|length > 0 and emergencies[0].commande)
+            ? [emergencies[0].commande]
+            : arrival.numeroCommandeList
+    ) %}
+    {% if numeroCommandeList|length > 0 %}
+        <p>N° commande{{ numeroCommandeList|length > 1 ? 's' }} : {{ numeroCommandeList|join(', ') }}</p>
     {% endif %}
-    {% if posts|length > 0 %}
-        <p>Poste{{ posts|length > 1 ? 's' }} : {{ posts|map((emergency) => emergency.postNb)|join(', ') }}</p>
+
+    {% set emergenciesLength = (emergencies|length) %}
+    {% if emergenciesLength > 0 %}
+        <p>Poste{{ emergenciesLength > 1 ? 's' }} : {{ emergencies|map((emergency) => emergency.postNb)|join(', ') }}</p>
     {% endif %}
-    {% if arrivage.fournisseur %}
-        <p>Intitulé fournisseur : {{ arrivage.fournisseur.nom }}</p>
+
+    {% if arrival.fournisseur %}
+        <p>Intitulé fournisseur : {{ arrival.fournisseur.nom }}</p>
     {% endif %}
-    {% if arrivage.noTracking %}
-        <p>N° tracking transporteur : {{ arrivage.noTracking }}</p>
+
+    {% if arrival.noTracking %}
+        <p>N° tracking transporteur : {{ arrival.noTracking }}</p>
     {% endif %}
-    <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
+
+    <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrival.date|date('d/m/Y H:i') }}</p>
     <br/>
+
     {% if isUrgentArrival %}
-        {% if arrivage.duty %}
+        {% if arrival.duty %}
             <p style="font-weight: bold">La réception de cette commande sera effectuée après dédouanement.</p>
         {% else %}
             <p>La réception de cette commande sera effectuée sous deux heures.</p>

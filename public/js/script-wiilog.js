@@ -678,7 +678,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {
@@ -1405,7 +1405,7 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function initSelect2WithTags(selector) {
+function initFreeSelect2(selector) {
     $(selector).select2({
         tags: true,
         "language": {

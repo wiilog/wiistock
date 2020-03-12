@@ -20,6 +20,7 @@ use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
+use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArrivageRepository;
@@ -407,7 +408,9 @@ class ArrivageController extends AbstractController
             }
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-            $arrivageDataService->sendArrivalEmails($arrivage);
+            if ($sendMail) {
+                $arrivageDataService->sendArrivalEmails($arrivage);
+            }
 
             $entityManager->flush();
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -524,18 +527,35 @@ class ArrivageController extends AbstractController
      * @throws SyntaxError
      */
     public function patchUrgentArrival(Arrivage $arrival,
+                                       Request $request,
                                        ArrivageDataService $arrivageDataService,
                                        EntityManagerInterface $entityManager): Response {
-        $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrival);
-        $success = !empty($alertConfigs) && $alertConfigs[0]['emergencyAlert'];
+        $urgenceRepository = $entityManager->getRepository(Urgence::class);
+        $numeroCommande = $request->request->get('numeroCommande');
+
+        $urgencesMatching = !empty($numeroCommande)
+            ? $urgenceRepository->findUrgencesMatching(
+                $arrival->getDate(),
+                $arrival->getFournisseur(),
+                $numeroCommande,
+                true
+            )
+            : [];
+
+        $success = !empty($urgencesMatching);
+
+        if ($success) {
+            $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
+        }
+
         $entityManager->flush();
 
-        $response = $this->getResponseReloadArrivage($arrival->getId());
-
-        $response['success'] = $success;
-        $response['alertConfigs'] = $success
-            ? $alertConfigs
-            : null;
+        $response = [
+            'success' => $success,
+            'alertConfigs' => $success
+                ? [$arrivageDataService->createArrivalAlertConfig($arrival, false, $urgencesMatching)]
+                : null
+        ];
 
         return new JsonResponse($response);
     }
