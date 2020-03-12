@@ -403,7 +403,7 @@ class ArrivageController extends AbstractController
             if (isset($data['printColis']) && $data['printColis'] === 'true') {
                 $printColis = true;
             }
-            if ($data['printArrivage'] === 'true') {
+            if (isset($data['printArrivage']) && $data['printArrivage'] === 'true') {
                 $printArrivage = true;
             }
 
