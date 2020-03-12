@@ -20,13 +20,23 @@
                 <td class="td" rowspan="{{ litige.colis|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
 
                 {% set firstColis = litige.colis|first %}
-                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.arrivage.numeroBL }}</td>
+                <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">
+                    {% for numeroBL in firstColis.arrivage.numeroCommandeList %}
+                        {{ numeroBL }}
+                        {% if loop.last %}<br/>{% endif %}
+                    {% endfor %}
+                </td>
                 <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ firstColis.code }}</td>
             </tr>
             {% for colis in litige.colis %}
                 {% if not loop.first %}
                     <tr>
-                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.arrivage.numeroBL }}</td>
+                        <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">
+                            {% for numeroBL in colis.arrivage.numeroCommandeList %}
+                                {{ numeroBL }}
+                                {% if loop.last %}<br/>{% endif %}
+                            {% endfor %}
+                        </td>
                         <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">{{ colis.code }}</td>
                     </tr>
                 {% endif %}

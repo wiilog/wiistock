@@ -253,7 +253,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('r.id as receptionId')
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
-			->addSelect('(CASE WHEN a.numeroBL IS NOT NULL THEN a.numeroBL ELSE r.reference END) as numCommandeBl');
+			->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl');
 
 		$countTotal = count($qb->getQuery()->getResult());
 

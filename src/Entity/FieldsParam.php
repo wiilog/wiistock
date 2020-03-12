@@ -39,7 +39,7 @@ class FieldsParam
     const FIELD_CODE_CARRIER_ARRIVAGE = 'transporteur';
     const FIELD_CODE_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
-    const FIELD_CODE_NUM_BL_ARRIVAGE = 'numeroBL';
+    const FIELD_CODE_NUM_COMMANDE_ARRIVAGE = 'numeroCommandeList';
     const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
@@ -50,7 +50,7 @@ class FieldsParam
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
     const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE = 'numéro tracking transporteur';
-    const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande/ BL';
+    const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande / BL';
     const FIELD_LABEL_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_LABEL_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';

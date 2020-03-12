@@ -1,40 +1,40 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+            <div class="form-group col">
+                <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
+                <select class="form-control data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
+                    <option {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'disabled' }} selected></option>
+                    {% for fournisseur in fournisseurs %}
+                        {% set selected = (((arrivage.fournisseur is not empty) and (fournisseur.id == arrivage.fournisseur.id)) ? 'selected' : '') %}
+                        <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
         <div class="form-group col">
-            <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
-            <select class="form-control data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
-                <option {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'disabled' }} selected></option>
-                {% for fournisseur in fournisseurs %}
-                    {% set selected = (((arrivage.fournisseur is not empty) and (fournisseur.id == arrivage.fournisseur.id)) ? 'selected' : '') %}
-                    <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+            <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
+            <select class="form-control data {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
+                <option {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'disabled' }} selected></option>
+                {% for transporteur in transporteurs %}
+                    {% set selected = (((arrivage.transporteur is not empty) and (transporteur.id == arrivage.transporteur.id)) ? 'selected' : '') %}
+                    <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
                 {% endfor %}
             </select>
         </div>
     {% endif %}
-    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
-    <div class="form-group col">
-        <label for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? '*' : '' }}</label>
-        <select class="form-control data {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'needed' : '' }}" id="transporteur" name="transporteur">
-            <option {{ fieldsParam|isFieldRequired('transporteur', 'mustToModify') ? 'disabled' }} selected></option>
-            {% for transporteur in transporteurs %}
-                {% set selected = (((arrivage.transporteur is not empty) and (transporteur.id == arrivage.transporteur.id)) ? 'selected' : '') %}
-                <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    {% endif %}
     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
-    <div class="form-group col">
-        <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? '*' : '' }}</label>
-        <select class="form-control data {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
-            <option {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'disabled' }} selected></option>
-            {% for chauffeur in chauffeurs %}
-                {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
-                <option
-                    value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
-            {% endfor %}
-        </select>
-    </div>
+        <div class="form-group col">
+            <label for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? '*' : '' }}</label>
+            <select class="form-control data {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'needed' : '' }}" id="chauffeur" name="chauffeur">
+                <option {{ fieldsParam|isFieldRequired('chauffeur', 'mustToModify') ? 'disabled' }} selected></option>
+                {% for chauffeur in chauffeurs %}
+                    {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
+                    <option
+                        value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
+                {% endfor %}
+            </select>
+        </div>
     {% endif %}
 </div>
 
@@ -46,14 +46,14 @@
                    value="{{ arrivage.noTracking }}">
         </div>
     {% endif %}
-    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
+    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
         <div class="form-group col-4">
-            <label for="noBL">N° commande / BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToModify') ? '*' : ''}}</label>
-            <select id="noBL"
-                    class="form-control input-sm data select2-tag w-100 {{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? 'needed' : '' }}"
-                    name="noBL" multiple="multiple">
-                {% for bl in arrivage.numeroBL | split(',') %}
-                    <option value="{{ bl }}" selected>{{ bl }}</option>
+            <label for="numeroCommandeList">N° commande / BL{{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToModify') ? '*' : ''}}</label>
+            <select id="numeroCommandeList"
+                    class="form-control input-sm data select2-tag w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
+                    name="numeroCommandeList" multiple="multiple">
+                {% for numeroCommande in arrivage.numeroCommandeList %}
+                    <option value="{{ numeroCommande }}" selected>{{ numeroCommande }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -86,17 +86,17 @@
     </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
-    <div class="form-group w-100 col-4">
-        <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
-        <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
-                id="acheteursEdit">
-            {% for utilisateur in utilisateurs %}
-                <option value="{{ utilisateur.username }}">
-                    {{ utilisateur.username }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <div class="form-group w-100 col-4">
+            <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
+            <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
+                    id="acheteursEdit">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.username }}">
+                        {{ utilisateur.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
     {% endif %}
 </div>
 

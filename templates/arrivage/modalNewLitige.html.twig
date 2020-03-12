@@ -56,10 +56,18 @@
                         <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige" value="{{ arrivage.numeroArrivage }}" disabled>
                     </div>
 
-                    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
                         <div class="form-group col-4">
-                            <label for="noBLLitige">N° commande / BL</label>
-                            <input type="text" id="noBLLitige" class="form-control data" name="noBLLitige" value="{{ arrivage.numeroBL }}" disabled>
+                            <label for="numeroCommandeListLitige">N° commande / BL</label>
+                            <select id="numeroCommandeListLitige"
+                                    class="form-control input-sm data select2-tag w-100"
+                                    name="numeroCommandeListLitige"
+                                    multiple="multiple"
+                                    disabled>
+                                {% for numeroCommande in arrivage.numeroCommandeList %}
+                                    <option value="{{ numeroCommande }}" selected>{{ numeroCommande }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     {% endif %}
 

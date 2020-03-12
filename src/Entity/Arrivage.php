@@ -39,9 +39,9 @@ class Arrivage
     private $noTracking;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="json")
      */
-    private $numeroBL;
+    private $numeroCommandeList;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesDestinataire")
@@ -126,6 +126,7 @@ class Arrivage
         $this->valeurChampLibre = new ArrayCollection();
         $this->urgences = new ArrayCollection();
         $this->mouvementsTraca = new ArrayCollection();
+        $this->numeroCommandeList = [];
     }
 
     public function getId(): ?int
@@ -191,14 +192,45 @@ class Arrivage
         return $this;
     }
 
-    public function getNumeroBL(): ?string
+    public function getNumeroCommandeList(): array
     {
-        return $this->numeroBL;
+        return $this->numeroCommandeList;
     }
 
-    public function setNumeroBL(?string $numeroBL): self
+    public function setNumeroCommandeList(array $numeroCommandeList): self
     {
-        $this->numeroBL = $numeroBL;
+        $this->numeroCommandeList = array_reduce(
+            $numeroCommandeList,
+            function(array $result, string $numeroCommande){
+                $trimmed = trim($numeroCommande);
+                if (!empty($trimmed)) {
+                    $result[] = $trimmed;
+                }
+                return $result;
+            },
+            []
+        );
+
+        return $this;
+    }
+
+    public function addNumeroCommande(string $numeroCommande): self
+    {
+        $trimmed = trim($numeroCommande);
+        if (!empty($trimmed)) {
+            $this->numeroCommandeList[] = $trimmed;
+        }
+
+        return $this;
+    }
+
+    public function removeNumeroCommande(string $numeroCommande): self
+    {
+        $index = array_search($numeroCommande, $this->numeroCommandeList);
+
+        if ($index !== false) {
+            array_splice($this->numeroCommandeList, $index, 1);
+        }
 
         return $this;
     }
@@ -218,8 +250,30 @@ class Arrivage
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getAcheteurs(): Collection
-    {
+    public function getAcheteurs(): Collection {
+        return new ArrayCollection(array_merge(
+            $this->acheteurs->toArray(),
+            $this->getUrgencesAcheteurs()->toArray()
+        ));
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUrgencesAcheteurs(): Collection {
+        return $emergencyBuyers = $this->urgences
+            ->map(function (Urgence $urgence) {
+                return $urgence->getBuyer();
+            })
+            ->filter(function (Utilisateur $user) {
+                return !$this->acheteurs->contains($user);
+            });
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getInitialAcheteurs(): Collection {
         return $this->acheteurs;
     }
 

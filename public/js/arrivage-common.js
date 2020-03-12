@@ -1,60 +1,72 @@
 let arrivageUrgentLoading = false;
 
-function arrivalCallback(isCreation, {alertConfig = {}, ...response}) {
-    const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
+function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
+    if (alertConfigs.length > 0) {
+        const alertConfig = alertConfigs[0];
+        const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
+        const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
 
-    const buttonConfigs = [
-        {
-            class: 'btn btn-success m-0 btn-action-on-hide',
-            text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
-            action: ($modal) => {
-                if (modalType === 'yes-no-question') {
-                    if (!arrivageUrgentLoading) {
-                        arrivageUrgentLoading = true;
-                        $modal.find('.modal-footer-wrapper').addClass('d-none');
-                        loadSpinner($modal.find('.spinner'));
-                        setArrivalUrgent(arrivalId, response, isCreation);
+        const buttonConfigs = [
+            {
+                class: 'btn btn-success m-0 btn-action-on-hide',
+                text: (modalType === 'yes-no-question' ? 'Oui' : 'Continuer'),
+                action: ($modal) => {
+                    if (modalType === 'yes-no-question') {
+                        if (!arrivageUrgentLoading) {
+                            arrivageUrgentLoading = true;
+                            $modal.find('.modal-footer-wrapper').addClass('d-none');
+                            loadSpinner($modal.find('.spinner'));
+                            setArrivalUrgent(arrivalId, {alertConfigs: nextAlertConfigs, ...response}, isCreation);
+                        }
                     }
-                }
-                else {
-                    if (isCreation) {
-                        treatArrivalCreation(response);
+                    else {
+                        // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
+                        if (nextAlertConfigs.length === 0) {
+                            if (isCreation) {
+                                treatArrivalCreation(response);
+                            }
+                            $modal.modal('hide')
+                        }
+                        else {
+                            arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response});
+                        }
                     }
-                    $modal.modal('hide')
                 }
             }
+        ];
+
+        if (modalType === 'yes-no-question') {
+            buttonConfigs.unshift({
+                class: 'btn btn-secondary m-0',
+                text: 'Non',
+                action: () => {
+                    arrivalCallback(isCreation, {
+                        alertConfigs: nextAlertConfigs.length > 0
+                            ? nextAlertConfigs
+                            : [{
+                                    autoHide: false,
+                                    message: 'Arrivage enregistré avec succès',
+                                    modalType: 'info',
+                                    iconType: 'success',
+                                    arrivalId
+                                }],
+                        ...response
+                    });
+                }
+            });
         }
-    ];
 
-    if (modalType === 'yes-no-question') {
-        buttonConfigs.unshift({
-            class: 'btn btn-secondary m-0',
-            text: 'Non',
-            action: () => {
-                arrivalCallback(isCreation, {
-                    alertConfig: {
-                        autoHide: false,
-                        message: 'Arrivage enregistré avec succès',
-                        modalType: 'info',
-                        iconType: 'success',
-                        arrivalId
-                    },
-                    ...response
-                });
-            }
-        });
+        displayAlertModal(
+            undefined,
+            $('<div/>', {
+                class: 'text-center',
+                html: message
+            }),
+            buttonConfigs,
+            iconType,
+            autoHide
+        );
     }
-
-    displayAlertModal(
-        undefined,
-        $('<div/>', {
-            class: 'text-center',
-            html: message
-        }),
-        buttonConfigs,
-        iconType,
-        autoHide
-    );
 }
 
 function setArrivalUrgent(newArrivalId, arrivalResponseCreation, isCreation) {
@@ -66,7 +78,9 @@ function setArrivalUrgent(newArrivalId, arrivalResponseCreation, isCreation) {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
                 arrivalCallback(isCreation, {
-                    alertConfig: secondResponse.alertConfig,
+                    alertConfigs: arrivalResponseCreation.alertConfigs.length > 0
+                        ? arrivalResponseCreation.alertConfigs
+                        : secondResponse.alertConfigs,
                     ...arrivalResponseCreation
                 });
                 $('.zone-entete').html(secondResponse.entete);

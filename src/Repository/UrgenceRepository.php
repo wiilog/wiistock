@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 
@@ -34,21 +35,24 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @param bool $excludeTriggered
-	 * @return Urgence[]
-	 */
-    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
+    /**
+     * @param DateTime $arrivalDate
+     * @param Fournisseur $arrivalProvider
+     * @param string $numeroCommande
+     * @param bool $excludeTriggered
+     * @return Urgence[]
+     */
+    public function findUrgencesMatching(DateTime $arrivalDate,
+                                         Fournisseur $arrivalProvider,
+                                         string $numeroCommande,
+                                         $excludeTriggered = false): array {
         $queryBuilder = $this->createQueryBuilder('u')
             ->where(':date BETWEEN u.dateStart AND u.dateEnd')
-            ->andWhere('u.commande IN (:commande)')
+            ->andWhere('u.commande = :numeroCommande')
             ->andWhere('u.provider IS NULL OR u.provider = :provider')
-            ->setParameters([
-                'date' => $arrivage->getDate(),
-                'commande' => explode(',', $arrivage->getNumeroBL()),
-                'provider' => $arrivage->getFournisseur()
-            ]);
+            ->setParameter('date', $arrivalDate)
+            ->setParameter('provider', $arrivalProvider)
+            ->setParameter('numeroCommande', $numeroCommande);
 
         if ($excludeTriggered) {
             $queryBuilder->andWhere('u.lastArrival IS NULL');

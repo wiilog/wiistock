@@ -53,7 +53,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
+        {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
         {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
         {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
