@@ -1265,10 +1265,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'manutentions' => $manutentions,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
-
             'trackingTaking' => $trackingTaking,
             'stockTaking' => $stockTaking,
-
             'rights' => $rights
         ];
     }

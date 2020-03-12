@@ -75,8 +75,8 @@ class Action
 
 	// menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
-    const MODULE_ACCESS_TRACA = 'Accès traçabilité';
-    const MODULE_ACCESS_MANUT = 'Accès demande';
+    const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
+    const MODULE_ACCESS_MANUT = 'Accès Demande';
 
     /**
      * @ORM\Id()
