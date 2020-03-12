@@ -13,9 +13,9 @@ use Symfony\Component\HttpFoundation\FileBag;
 
 class AttachmentService
 {
-
     private const ATTACHMENT_DIRECTORY = '../public/uploads/attachements/';
-    const LOGO_FOR_LABEL = '6YsuaY2Ghsav9NKfjQqZY4YHrrwD9VhBBsZb6kYA';
+    const LOGO_FOR_LABEL = 'logo_for_label';
+
 	/**
 	 * @var EntityManagerInterface
 	 */
