@@ -363,7 +363,7 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
-            $noBL = $data['noBL'];
+            $noBL = $data['noBL'] ?? '';
             $urgencesMatching = [];
             if (!empty($data['noBL'])) {
                 $arrivage->setNumeroBL(substr($noBL, 0, 64));
