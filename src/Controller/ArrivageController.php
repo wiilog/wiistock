@@ -61,6 +61,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
@@ -1436,6 +1437,10 @@ class ArrivageController extends AbstractController
             $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getAcheteurs());
         }
 
+        if (empty($barcodeConfigs)) {
+            throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
+        }
+
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
 
         return new PdfResponse(
@@ -1465,7 +1470,6 @@ class ArrivageController extends AbstractController
                                        Request $request,
                                        PDFGeneratorService $PDFGeneratorService) {
         return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
-
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage)

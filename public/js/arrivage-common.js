@@ -124,13 +124,15 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
         $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
 
-        let params = {
-            arrivage: arrivageId,
-            printColis: printColis ? 1 : 0,
-            printArrivage: printArrivage ? 1 : 0
-        };
+        if (printArrivage || printColis) {
+            let params = {
+                arrivage: arrivageId,
+                printColis: printColis ? 1 : 0,
+                printArrivage: printArrivage ? 1 : 0
+            };
 
-        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+        }
     }
     else {
         const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
