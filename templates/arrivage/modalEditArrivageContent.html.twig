@@ -70,7 +70,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="form-group col-4">
-        <label for="destinataire">{{ 'arrivage.destinataire'|trans|capitalize }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
+        <label for="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
         <select class="form-control data {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
             <option disabled selected></option>
             {% for utilisateur in utilisateurs %}
@@ -82,7 +82,7 @@
     {% endif %}
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="form-group w-100 col-4">
-        <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans|capitalize }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
+        <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? '*' : '' }}</label>
         <select type="text" class="form-control data select2 {{ fieldsParam|isFieldRequired('acheteurs', 'mustToModify') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                 id="acheteursEdit">
             {% for utilisateur in utilisateurs %}

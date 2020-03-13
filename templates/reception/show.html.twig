@@ -1,12 +1,12 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'réception.réception'|trans|capitalize }}{% endblock %}
+{% block title %}{{ 'réception.réception'|trans }}{% endblock %}
 {% block page_content %}
 
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
 
     <div class="row">
         <div class="col">
-            <h1 title="réception">{{ 'réception.réception'|trans|capitalize }}</h1>
+            <h1 title="réception">{{ 'réception.réception'|trans }}</h1>
             <input id="receptionId" value="{{ reception.id }}" type="hidden">
         </div>
         <div class="col text-right">
@@ -25,7 +25,7 @@
                     <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
                        class="btn btn-primary btn-action ml-auto" title="réception">
-                        {{ 'réception.réception'|trans|capitalize }}</a>
+                        {{ 'réception.réception'|trans }}</a>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
