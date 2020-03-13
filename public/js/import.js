@@ -42,15 +42,15 @@ let tableImport = $('#tableImport').DataTable({
 
 let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");
+
+function displayFirstModal() {
+    $submitNewImport.off();
 let urlNewImportFirst = Routing.generate('import_new', true);
 initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
 
-function displayFirstModal() {
-    let $modal = $('#modalNewImport');
-
-    $.post(Routing.generate('get_first_modal_content'), function(resp) {
-        $modal.find('.modal-body').html(resp);
-        $modal.modal('show');
+    $.get(Routing.generate('get_first_modal_content'), function(resp) {
+        $modalNewImport.find('.modal-body').html(resp);
+        $modalNewImport.modal('show');
     })
 }
 
@@ -72,6 +72,11 @@ function displayConfirmationModal(data) {
         $submitNewImport.off();
 
         let urlNewImportConfirm = Routing.generate('import_confirm', true);
-        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport);
+        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport, launchImport);
     }
+}
+
+function launchImport(data) {
+    alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
+    $.post(Routing.generate('import_launch'), {importId: data.importId});
 }

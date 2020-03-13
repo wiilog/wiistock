@@ -49,14 +49,14 @@ class PieceJointe
     private $mouvementTraca;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="csvFile")
+     * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="csvFile")
      * @ORM\JoinColumn(name="import_csv_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=true)
      */
     private $importCsv;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="logFile")
+     * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="logFile")
      * @ORM\JoinColumn(name="import_log_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=true)
      */

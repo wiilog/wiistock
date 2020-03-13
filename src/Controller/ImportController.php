@@ -194,7 +194,7 @@ class ImportController extends AbstractController
 			$resp = false;
 		}
 
-		return new JsonResponse($resp);
+		return new JsonResponse(['success' => $resp, 'importId' => $data['importId']]);
 	}
 
 	/**
@@ -203,5 +203,19 @@ class ImportController extends AbstractController
 	public function getFirstModalContent()
 	{
 		return new JsonResponse($this->renderView('import/modalNewImportFirst.html.twig'));
+	}
+
+	/**
+	 * @Route("/lancer-import", name="import_launch", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+	 * @param Request $request
+	 * @param ImportService $importService
+	 * @return JsonResponse
+	 */
+	public function launchImport(Request $request, ImportService $importService)
+	{
+		$importId = $request->request->get('importId');
+		$importService->loadData($importId);
+
+		return new JsonResponse();
 	}
 }

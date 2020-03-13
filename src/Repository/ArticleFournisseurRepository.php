@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -235,5 +237,24 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+	/**
+	 * @param string $reference
+	 * @return int
+	 * @throws NoResultException
+	 * @throws NonUniqueResultException
+	 */
+	public function countByReference($reference)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(f)
+          FROM App\Entity\ArticleFournisseur af
+          WHERE af.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->getSingleScalarResult();
+	}
 
 }

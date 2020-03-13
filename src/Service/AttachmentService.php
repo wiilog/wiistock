@@ -64,7 +64,7 @@ class AttachmentService
 				} elseif ($entity instanceof MouvementTraca) {
 					$entity->addAttachement($pj);
 				} elseif ($entity instanceof Import) {
-					$entity->addCsvFile($pj);
+					$entity->setCsvFile($pj);
 				}
 
                 $this->em->flush();

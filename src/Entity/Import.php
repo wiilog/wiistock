@@ -54,7 +54,7 @@ class Import
     private $entity;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="importCsv")
+     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importCsv")
      */
     private $csvFile;
 
@@ -94,7 +94,7 @@ class Import
     private $endDate;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="importLog")
+	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importLog")
 	 */
     private $logFile;
 
@@ -104,10 +104,7 @@ class Import
     private $columnToField;
 
     public function __construct()
-    {
-        $this->csvFile = new ArrayCollection();
-        $this->logFile = new ArrayCollection();
-    }
+    {}
 
 
     public function getId(): ?int
@@ -256,50 +253,10 @@ class Import
     {
         $this->logFile = $logFile;
 
-        return $this;
-    }
-
-    public function addCsvFile(PieceJointe $csvFile): self
-    {
-        if (!$this->csvFile->contains($csvFile)) {
-            $this->csvFile[] = $csvFile;
-            $csvFile->setImportCsv($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCsvFile(PieceJointe $csvFile): self
-    {
-        if ($this->csvFile->contains($csvFile)) {
-            $this->csvFile->removeElement($csvFile);
-            // set the owning side to null (unless already changed)
-            if ($csvFile->getImportCsv() === $this) {
-                $csvFile->setImportCsv(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addLogFile(PieceJointe $logFile): self
-    {
-        if (!$this->logFile->contains($logFile)) {
-            $this->logFile[] = $logFile;
-            $logFile->setImportLog($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLogFile(PieceJointe $logFile): self
-    {
-        if ($this->logFile->contains($logFile)) {
-            $this->logFile->removeElement($logFile);
-            // set the owning side to null (unless already changed)
-            if ($logFile->getImportLog() === $this) {
-                $logFile->setImportLog(null);
-            }
+        // set (or unset) the owning side of the relation if necessary
+        $newImportLog = null === $logFile ? null : $this;
+        if ($logFile->getImportLog() !== $newImportLog) {
+            $logFile->setImportLog($newImportLog);
         }
 
         return $this;
