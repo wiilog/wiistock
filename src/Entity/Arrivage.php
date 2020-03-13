@@ -261,23 +261,23 @@ class Arrivage
      * @return Collection|Utilisateur[]
      */
     public function getAcheteurs(): Collection {
-        return new ArrayCollection(array_merge(
-            $this->acheteurs->toArray(),
+        $buyers = array_merge(
+            $this->getInitialAcheteurs()->toArray(),
             $this->getUrgencesAcheteurs()->toArray()
-        ));
+        );
+        return new ArrayCollection(array_unique($buyers));
     }
 
     /**
      * @return Collection|Utilisateur[]
      */
     public function getUrgencesAcheteurs(): Collection {
-        return $emergencyBuyers = $this->urgences
+        $emergencyBuyer = $this->urgences
             ->map(function (Urgence $urgence) {
                 return $urgence->getBuyer();
-            })
-            ->filter(function (Utilisateur $user) {
-                return !$this->acheteurs->contains($user);
             });
+
+        return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
     }
 
     /**
