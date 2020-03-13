@@ -84,7 +84,7 @@
     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
     <div class="col-4">
         <p title="douane">
-            <strong>{{ 'arrivage.douane'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.douane'|trans }} :</strong>
             {{ arrivage.duty ? 'oui' : 'non' }}
         </p>
     </div>
@@ -92,7 +92,7 @@
     {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
     <div class="col-4">
         <p title="congelé">
-            <strong>{{ 'arrivage.congelé'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.congelé'|trans }} :</strong>
             {{ arrivage.frozen ? 'oui' : 'non' }}
         </p>
     </div>

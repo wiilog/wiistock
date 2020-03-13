@@ -98,7 +98,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
         <div class="form-group col-2">
-            <label>{{ 'arrivage.douane'|trans|capitalize }}</label>
+            <label>{{ 'arrivage.douane'|trans }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.duty ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="duty" {{ checked }}>
@@ -109,7 +109,7 @@
 
     {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
         <div class="form-group col-2">
-            <label>{{ 'arrivage.congelé'|trans|capitalize }}</label>
+            <label>{{ 'arrivage.congelé'|trans }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.frozen ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="frozen" {{ checked }}>
