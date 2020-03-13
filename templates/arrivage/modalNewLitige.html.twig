@@ -3,6 +3,7 @@
         <div class="modal-content">
 
             <input type="text" id="acheteursLitigeHidden" name="" value="{{ acheteurs | join(',')}}" hidden/>
+            <input type="text" id="numeroCommandeListLitigeHidden" name="" value="{{ arrivage.numeroCommandeList | join(',')}}" hidden/>
 
             <div class="modal-header">
                 <h5 class="modal-title">Nouveau litige</h5>
@@ -57,16 +58,13 @@
                     </div>
 
                     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
-                        <div class="form-group col-4">
+                        <div class="form-group w-100 col-4">
                             <label for="numeroCommandeListLitige">N° commande / BL</label>
                             <select id="numeroCommandeListLitige"
-                                    class="form-control input-sm data select2-free w-100"
+                                    class="form-control data"
                                     name="numeroCommandeListLitige"
                                     multiple="multiple"
                                     disabled>
-                                {% for numeroCommande in arrivage.numeroCommandeList %}
-                                    <option value="{{ numeroCommande }}" selected>{{ numeroCommande }}</option>
-                                {% endfor %}
                             </select>
                         </div>
                     {% endif %}
@@ -85,8 +83,11 @@
                     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
                         <div class="form-group w-100 col-4">
                             <label for="acheteursLitige">Acheteur(s)</label>
-                            <select class="form-control data" name="acheteursLitige" multiple="multiple"
-                                    id="acheteursLitige" disabled>
+                            <select class="form-control data"
+                                    name="acheteursLitige"
+                                    multiple="multiple"
+                                    id="acheteursLitige"
+                                    disabled>
                             </select>
                         </div>
                     {% endif %}

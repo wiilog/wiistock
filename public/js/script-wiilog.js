@@ -1401,11 +1401,14 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
-function initFreeSelect2(selector) {
-    $(selector).select2({
-        tags: true,
-        "language": {
-            "noResults": function () { return 'Ajoutez des éléments'; }
-        },
-    })
+function initFreeSelect2($selects) {
+    $selects.each(function () {
+        const $self = $(this);
+        $self.select2({
+            tags: true,
+            "language": {
+                "noResults": function () { return 'Ajoutez des éléments'; }
+            },
+        });
+    });
 }

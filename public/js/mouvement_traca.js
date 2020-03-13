@@ -133,7 +133,7 @@ function initNewMvtTracaEditor(modalSelector) {
             $modalBody.removeClass('d-none');
         }
         ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'));
-        initFreeSelect2('.select2-free');
+        initFreeSelect2($('.select2-free'));
     });
 };
 
@@ -159,7 +159,7 @@ function switchMvtCreationType($input) {
             $input.closest('.modal').find('.new-mvt-common-body').removeClass('d-none');
             $input.closest('.modal').find('.more-body-new-mvt-traca').removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-            initFreeSelect2('.select2-free');
+            initFreeSelect2($('.select2-free'));
         }
     });
 }

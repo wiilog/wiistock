@@ -137,5 +137,5 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
-    initFreeSelect2('.select2-free');
+    initFreeSelect2($('.select2-free'));
 }
