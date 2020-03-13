@@ -766,23 +766,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getCalculatedStockQuantity(): int
-    {
-        $totalQuantity = 0;
-        if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
-                        $totalQuantity += $article->getQuantite();
-                    }
-                }
-            }
-        }
-        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
-            ? $this->getQuantiteStock()
-            : $totalQuantity;
-    }
-
     public function getDateEmergencyTriggered(): ?\DateTimeInterface
     {
         return $this->dateEmergencyTriggered;

@@ -15,6 +15,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -28,14 +29,14 @@ use Doctrine\Persistence\ManagerRegistry;
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
     private const DtToDbLabels = [
-		'Label' => 'libelle',
-		'Libellé' => 'libelle',
+        'Label' => 'libelle',
+        'Libellé' => 'libelle',
         'Référence' => 'reference',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
-        'Quantité' => 'quantiteStock',
-        'QuantiteStock' => 'quantiteStock',
+        'Quantité disponible' => 'quantiteDisponible',
+        'Quantité stock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -43,7 +44,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Code barre' => 'barCode',
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
-		'Dernier inventaire' => 'dateLastInventory'
+        'Dernier inventaire' => 'dateLastInventory'
     ];
 
     public function __construct(ManagerRegistry $registry)
@@ -170,12 +171,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
-			'Code barre' => ['field' => 'barCode', 'typage' => 'text']
+            'Code barre' => ['field' => 'barCode', 'typage' => 'text']
         ];
 
-        $qb->from('App\Entity\ReferenceArticle', 'ra');
-
-		foreach ($filters as $filter) {
+        $qb
+            ->from('App\Entity\ReferenceArticle', 'ra');
+        foreach ($filters as $filter) {
             $index++;
 
             if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
@@ -232,7 +233,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         ->select('ra' . $index . '.id')
                         ->from('App\Entity\ReferenceArticle', 'ra' . $index)
                         ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
-
                         ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
                         ->setParameter($champLibreLabelAlias, $filter['champLibre']);
                     switch ($filter['typage']) {
@@ -263,13 +263,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 );
                             break;
                         case ChampLibre::TYPE_DATE:
-						case ChampLibre::TYPE_DATETIME:
-							$date = explode('/', $filter['value']);
-							$formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
-							$qbSub
-								->andWhere("vcl$index.valeur LIKE :value$index")
+                        case ChampLibre::TYPE_DATETIME:
+                            $date = explode('/', $filter['value']);
+                            $formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
+                            $qbSub
+                                ->andWhere("vcl$index.valeur LIKE :value$index")
                                 ->setParameter("value$index", $formattedDated);
-							break;
+                            break;
                     }
                     $subQueries[] = $qbSub->getQuery()->getResult();
                 }
@@ -401,12 +401,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->leftJoin('ra.statut', 's')
                                 ->orderBy('s.nom', $order);
                             break;
-						case 'Quantité stock':
-							//TODO
-							break;
-						case 'Quantité disponible':
-							//TODO
-							break;
                         default:
                             if (property_exists(ReferenceArticle::class, $column)) {
                                 $qb
@@ -432,7 +426,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-        $qb->select('ra');
+        $qb
+            ->select('ra');
         if ($needCLOrder) {
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
@@ -444,9 +439,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ->setParameters($paramsQuery);
         }
         return [
-        	'data' => $qb->getQuery()->getResult(),
-			'count' => $countQuery
-		];
+            'data' => $qb->getQuery()->getResult(),
+            'count' => $countQuery
+        ];
     }
 
     public function countByType($typeId)
@@ -554,41 +549,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getTotalQuantityReservedByRefArticle($refArticle)
-    {
-        $em = $this->getEntityManager();
-        return $em->createQuery(
-            'SELECT SUM(l.quantite)
-                  FROM App\Entity\LigneArticle l
-                  JOIN l.demande d
-                  JOIN d.statut s
-                  WHERE l.reference = :refArticle AND s.nom = :statut'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => Demande::STATUT_A_TRAITER
-        ])->getSingleScalarResult();
-    }
-
-    public function getTotalQuantityReservedWithoutLigne($refArticle, $ligneArticle, $statut)
-    {
-        $em = $this->getEntityManager();
-        return $em->createQuery(
-            'SELECT SUM(l.quantite)
-                  FROM App\Entity\LigneArticle l
-                  JOIN l.demande d
-                  WHERE l.reference = :refArticle AND l.id != :id AND d.statut = :statut'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'id' => $ligneArticle->getId(),
-            'statut' => $statut
-        ])->getSingleScalarResult();
-    }
-
     public function getByPreparationsIds($preparationsIds)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT
                     ra.reference,
                     ra.typeQuantite as type_quantite,
                     e.label as location,
@@ -633,30 +598,31 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     }
 
     public function getByOrdreCollectesIds($collectesIds)
-	{
+    {
 
-		$em = $this->getEntityManager();
-		$query = $em
-			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id IN (:collectesIds)")
             ->setParameter('collectesIds', $collectesIds, Connection::PARAM_STR_ARRAY);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
-    public function getByOrdreCollecteId($collecteId) {
+    public function getByOrdreCollecteId($collecteId)
+    {
 
-		$em = $this->getEntityManager();
-		$query = $em
-			->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id = :id")
-			->setParameter('id', $collecteId);
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery($this->getRefArticleCollecteQuery() . " WHERE oc.id = :id")
+            ->setParameter('id', $collecteId);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
-	private function getRefArticleCollecteQuery()
-	{
-		return (/** @lang DQL */
-			"SELECT ra.reference,
+    private function getRefArticleCollecteQuery()
+    {
+        return (/** @lang DQL */
+        "SELECT ra.reference,
                          e.label as location,
                          ra.libelle as label,
                          ocr.quantite as quantity,
@@ -668,7 +634,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN ra.ordreCollecteReferences ocr
 			JOIN ocr.ordreCollecte oc
 			JOIN oc.statut s");
-	}
+    }
 
     public function countByEmplacement($emplacementId)
     {
@@ -967,9 +933,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 }
             }
 
-			$countFiltered = count($qb->getQuery()->getResult());
+            $countFiltered = count($qb->getQuery()->getResult());
 
-			if (!empty($params->get('order'))) {
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
@@ -978,19 +944,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             $qb
                                 ->join('ra.type', 't2')
                                 ->orderBy('t2.label', $order);
-						case 'quantiteStock':
-							$qb
-								->leftJoin('ra.articlesFournisseur', 'af')
-								->leftJoin('af.articles', 'a')
-								->addSelect('(CASE
+                        case 'quantiteStock':
+                            $qb
+                                ->leftJoin('ra.articlesFournisseur', 'af')
+                                ->leftJoin('af.articles', 'a')
+                                ->addSelect('(CASE
 								WHEN ra.typeQuantite = :typeQteArt
 								THEN (SUM(a.quantite))
 								ELSE ra.quantiteStock
 								END) as quantity')
-								->groupBy('ra.id')
-								->orderBy('quantity', $order)
-								->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
-							break;
+                                ->groupBy('ra.id')
+                                ->orderBy('quantity', $order)
+                                ->setParameter('typeQteArt', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
+                            break;
                         default:
                             $qb->orderBy('ra.' . $column, $order);
                             break;
@@ -1013,38 +979,29 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ];
     }
 
-	/**
-	 * @param ReferenceArticle $referenceArticle
-	 * @return int
-	 * @throws DBALException
-	 */
-	public function getTotalAvailableQuantityArticlesByRefArticle(ReferenceArticle $referenceArticle): int
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getStockQuantityForRef(ReferenceArticle $referenceArticle): int
     {
         $em = $this->getEntityManager();
-        $totalQuantity = intval(
-            $em
-            ->getConnection()
-            ->executeQuery(
-                'SELECT
-                        @quantityReserved := (
-                            SELECT SUM(ligne_article.quantite)
-                            FROM ligne_article
-                            INNER JOIN demande d on ligne_article.demande_id = d.id
-                            INNER JOIN statut s on d.statut_id = s.id
-                            WHERE ligne_article.reference_id = :refId AND s.nom = :statut
-                        ),
-                        @quantity := IF(@quantityReserved IS NULL, SUM(article.quantite), SUM(article.quantite) - @quantityReserved)
-                        FROM article
-                        INNER JOIN article_fournisseur af on article.article_fournisseur_id = af.id
-                        INNER JOIN statut s2 on article.statut_id = s2.id
-                        WHERE s2.nom = :active AND af.reference_article_id = :refId',
-                [
-                    'active' => Article::STATUT_ACTIF,
-                    'refId' => $referenceArticle->getId(),
-                    'statut' => Demande::STATUT_A_TRAITER
-                ])
-            ->fetchColumn(1));
-        return $totalQuantity >= 0 ? $totalQuantity : 0;
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT SUM(a.quantite)
+			FROM App\Entity\ReferenceArticle ra
+			JOIN ra.articlesFournisseur af
+			JOIN af.articles a
+			JOIN a.statut s
+			WHERE s.nom = :activ AND ra = :refArt
+			")
+            ->setParameters([
+                'refArt' => $referenceArticle->getId(),
+                'activ' => Article::STATUT_ACTIF
+            ]);
+        return $query->getSingleScalarResult() ?? 0;
     }
 
     public function countAlert()
@@ -1152,7 +1109,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getReferenceByBarCodeAndLocation(string $barCode, string $location) {
+    public function getReferenceByBarCodeAndLocation(string $barCode, string $location)
+    {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
             ->select('referenceArticle.reference as reference')
@@ -1162,7 +1120,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-    public function findReferenceByBarCodeAndLocation(string $barCode, string $location) {
+    public function findReferenceByBarCodeAndLocation(string $barCode, string $location)
+    {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
             ->select('referenceArticle');
@@ -1170,7 +1129,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder
+    {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         return $queryBuilder
             ->join('referenceArticle.emplacement', 'emplacement')
@@ -1185,13 +1145,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
     }
 
-	public function getRefTypeQtyArticleByReception($id)
-	{
-	    /** @var EntityManagerInterface $entityManager */
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			"SELECT ra.reference as reference,
+    public function getRefTypeQtyArticleByReception($id)
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT ra.reference as reference,
                          rra.commande as commande
             FROM App\Entity\ReferenceArticle ra
             JOIN ra.receptionReferenceArticles rra
@@ -1199,10 +1159,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             WHERE r.id = :id
               AND (rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)
               AND ra.typeQuantite = :typeQty"
-		)->setParameters([
-			'id' => $id,
-			'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
-		]);
-		return $query->execute();
-	}
+        )->setParameters([
+            'id' => $id,
+            'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+        ]);
+        return $query->execute();
+    }
 }

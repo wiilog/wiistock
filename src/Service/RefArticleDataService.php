@@ -38,6 +38,7 @@ use App\Repository\EmplacementRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -208,9 +209,7 @@ class RefArticleDataService
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
-
         $refs = $queryResult['data'];
-
         $rows = [];
         foreach ($refs as $refArticle) {
             $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
@@ -236,7 +235,7 @@ class RefArticleDataService
         } else {
             $valeurChampLibre = [];
         }
-        $totalQuantity = $this->getAvailableQuantityForRef($articleRef);
+        $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
                 function (array $carry, ArticleFournisseur $articleFournisseur) {
@@ -424,8 +423,8 @@ class RefArticleDataService
             $rowCL[$row['label']] = $row['valeur'];
         }
 
-		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
-		$quantityStock = $refArticle->getCalculatedStockQuantity();
+        $availableQuantity = $refArticle->getQuantiteDisponible();
+		$quantityStock = $refArticle->getQuantiteStock();
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -433,7 +432,7 @@ class RefArticleDataService
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité disponible" => $availableQuantity,
+            "Quantité disponible" => $availableQuantity ?? 0,
 			"Quantité stock" => $quantityStock ?? 0,
 			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => $refArticle->getCommentaire() ?? '',
@@ -558,7 +557,7 @@ class RefArticleDataService
 	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        $quantity = $this->getAvailableQuantityForRef($referenceArticle);
+        $quantity = $referenceArticle->getQuantiteDisponible();
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
@@ -614,27 +613,22 @@ class RefArticleDataService
     }
 
     /**
-     * @param ReferenceArticle|array $referenceArticle
-     * @return int
-     * @throws DBALException
+     * @param ReferenceArticle $referenceArticle
+     * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function getAvailableQuantityForRef($referenceArticle): int
-    {
-        $referenceArticle = is_array($referenceArticle) ? $this->referenceArticleRepository->find($referenceArticle['id']) : $referenceArticle;
-        return
-            $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
-                ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
-                : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
+    public function recalculateAndUpdateStockQuantityForRef(ReferenceArticle $referenceArticle): void {
+        $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantityForRef($referenceArticle));
     }
 
     /**
      * @param ReferenceArticle $refArticle
-     * @throws DBALException
      * @throws Exception
      */
 	public function treatAlert(ReferenceArticle $refArticle): void
 	{
-		$calculedAvailableQuantity = $this->getAvailableQuantityForRef($refArticle);
+	    $calculedAvailableQuantity = $refArticle->getQuantiteDisponible();
 		$limitToCompare = empty($refArticle->getLimitWarning())
 			? empty($refArticle->getLimitSecurity())
 				? 0

@@ -241,13 +241,21 @@ class PreparationsManagerService
                     ? $ligneArticlePreparation->getQuantite() - $selectedQuantityForPreviousLigne
                     : $ligneArticlePreparation->getQuantite();
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $ligneArticlePreparation->setQuantite($ligneArticlePreparation->getQuantitePrelevee());
+                    $ligneArticlePreparation->setQuantite($ligneArticlePreparation->getQuantitePrelevee() ?? 0);
                 }
                 $newLigneArticle
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
                     ->setQuantite($newQuantity);
                 $this->entityManager->persist($newLigneArticle);
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $quantityPickedWithArticles = array_reduce($preparation->getArticles()->filter(function (Article $article) use ($refArticle) {
+                        return $article->getArticleFournisseur()->getReferenceArticle() === $refArticle;
+                    })->toArray(), function (int $carry, Article $article) {
+                        return $carry + $article->getQuantitePrelevee();
+                    }, 0);
+                    $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $quantityPickedWithArticles);
+                }
             }
         }
         $this->entityManager->persist($newPreparation);
@@ -389,7 +397,6 @@ class PreparationsManagerService
             // si on a ajouté de la quantité à l'article : on enlève la ajoute à la quantité de la ligne article
             // si rien a changé on touche pas à la quantité de la ligne article
             $ligneArticle->setQuantite($ligneArticle->getQuantite() + ($article->getQuantitePrelevee() - $quantite));
-
             $article->setQuantiteAPrelever($quantite);
             $article->setQuantitePrelevee($quantite);
         }
@@ -482,7 +489,6 @@ class PreparationsManagerService
         // création des mouvements de préparation pour les articles de référence
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $articleRef = $ligneArticle->getReference();
-
             $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved && !empty($ligneArticle->getQuantitePrelevee())) {
                 $mouvement = new MouvementStock();
@@ -494,8 +500,8 @@ class PreparationsManagerService
                     ->setType(MouvementStock::TYPE_TRANSFERT)
                     ->setPreparationOrder($preparation);
                 $this->entityManager->persist($mouvement);
-                $this->entityManager->flush();
             }
+            $this->entityManager->flush();
         }
 
         if (!$preparation->getStatut() || !$preparation->getUtilisateur()) {

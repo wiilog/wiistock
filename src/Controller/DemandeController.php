@@ -193,7 +193,7 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
+                $totalQuantity = $refArticle->getQuantiteDisponible();
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['stock'] = $treshHold;
@@ -223,9 +223,8 @@ class DemandeController extends AbstractController
                         return new JsonResponse($response);
                     }
                 } else {
-                    $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                     $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF);
-                    $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
+                    $totalQuantity -= $ligne->getReference()->getQuantiteReservee();
                     if ($ligne->getQuantite() > $totalQuantity) {
                         $response['stock'] = $totalQuantity;
                         return new JsonResponse($response);
@@ -274,14 +273,16 @@ class DemandeController extends AbstractController
             }
             $lignesArticles = $demande->getLigneArticle();
             foreach ($lignesArticles as $ligneArticle) {
+                $referenceArticle = $ligneArticle->getReference();
                 $lignesArticlePreparation = new LigneArticlePreparation();
                 $lignesArticlePreparation
                     ->setToSplit($ligneArticle->getToSplit())
                     ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
                     ->setQuantite($ligneArticle->getQuantite())
-                    ->setReference($ligneArticle->getReference())
+                    ->setReference($referenceArticle)
                     ->setPreparation($preparation);
                 $em->persist($lignesArticlePreparation);
+                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
                 $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }
             $em->flush();
@@ -566,7 +567,7 @@ class DemandeController extends AbstractController
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
-                $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
+                $availableQuantity = $articleRef->getQuantiteDisponible();
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
@@ -785,7 +786,7 @@ class DemandeController extends AbstractController
 					$demandeData = [];
 					$articleRef = $ligneArticle->getReference();
 
-                    $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
+                    $availableQuantity = $articleRef->getQuantiteDisponible();
 
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';

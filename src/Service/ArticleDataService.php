@@ -281,8 +281,8 @@ class ArticleDataService
                     'reference' => 'aucun article disponible',
                 ];
             }
-            $quantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
-			if ($byRef && $demande == 'demande') {
+            $quantity = $refArticle->getQuantiteDisponible();
+            if ($byRef && $demande == 'demande') {
 				$json = $this->templating->render('demande/choiceContent.html.twig', [
 					'maximum' => $quantity
 				]);
@@ -339,7 +339,7 @@ class ArticleDataService
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-    public function getLivraisonArticlesByRefArticle($refArticle)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -363,7 +363,7 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-            $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
+            $availableQuantity = $refArticle->getQuantiteDisponible();
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
             	$data = [
