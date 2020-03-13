@@ -1,6 +1,6 @@
 let arrivageUrgentLoading = false;
 
-function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
+function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
         const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
@@ -16,14 +16,14 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, {alertConfigs: nextAlertConfigs, ...response}, isCreation);
+                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
                         }
                     }
                     else {
                         // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
                         if (nextAlertConfigs.length === 0) {
                             if (isCreation) {
-                                treatArrivalCreation(response);
+                                treatArrivalCreation(response, arrivalsDatatable);
                             }
                             $modal.modal('hide')
                         }
@@ -69,7 +69,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}) {
     }
 }
 
-function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation) {
+function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation, arrivalsDatatable) {
     const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
     console.log(arrivalResponseCreation);
     $.ajax({
@@ -79,12 +79,15 @@ function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation,
         success: (secondResponse) => {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
-                arrivalCallback(isCreation, {
-                    ...arrivalResponseCreation,
-                    alertConfigs: arrivalResponseCreation.alertConfigs.length > 0
-                        ? arrivalResponseCreation.alertConfigs
-                        : secondResponse.alertConfigs,
-                });
+                arrivalCallback(
+                    isCreation, {
+                        ...arrivalResponseCreation,
+                        alertConfigs: arrivalResponseCreation.alertConfigs.length > 0
+                            ? arrivalResponseCreation.alertConfigs
+                            : secondResponse.alertConfigs,
+                    },
+                    arrivalsDatatable
+                );
                 $('.zone-entete').html(secondResponse.entete);
             }
             else {
@@ -108,8 +111,12 @@ function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation,
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, champsLibresBlock, statutConformeId}) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, champsLibresBlock, statutConformeId}, arrivalsDatatable) {
     if (!redirectAfterAlert) {
+        if (arrivalsDatatable) {
+            arrivalsDatatable.ajax.reload();
+        }
+
         $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
         $('.list-multiple').select2();
         $modalNewArrivage.find('#statut').val(statutConformeId);

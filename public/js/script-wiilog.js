@@ -186,11 +186,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 $('.zone-entete').html(data.entete)
             }
             if (table) {
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                }, false);
+                table.ajax.reload(null, false);
             }
 
             if (clear) {
