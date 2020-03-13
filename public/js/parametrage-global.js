@@ -1,3 +1,4 @@
+let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
 let tableDays = $('#tableDays').DataTable({
     "language": {
@@ -36,7 +37,9 @@ $(function () {
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
     $('#receptionLocation').on('change', editDefaultLocationValue);
-
+    $('#logo').change(function() {
+        fileToImagePreview($(this));
+    });
     // config tableau de bord : emplacements
     initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
     initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
@@ -95,24 +98,29 @@ function ajaxMailerServer() {
 }
 
 function ajaxDims() {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.');
-        }
-    };
-    let data = $('#dimsForm').find('.data');
-    let json = {};
-    data.each(function () {
+    let $fileInput = $('#logo');
+    let data = new FormData();
+    let dataInputs = $('#dimsForm').find('.data');
+    dataInputs.each(function () {
         let val = $(this).attr('type') === 'checkbox' ? $(this).is(':checked') : $(this).val();
         let name = $(this).attr("name");
-        json[name] = val;
+        data.append(name, val);
     });
-    let Json = JSON.stringify(json);
-    let path = Routing.generate('ajax_dimensions_etiquettes', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
-    //TODO passer en jquery
+    if ($fileInput[0].files && $fileInput[0].files[0]) {
+        data.append('logo', $fileInput[0].files[0]);
+    }
+    $.ajax({
+        url: Routing.generate('ajax_dimensions_etiquettes', true),
+        data: data,
+        type: 'post',
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: 'json',
+        success: () => {
+            alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.');
+        }
+    });
 }
 
 function updatePrefixDemand() {
@@ -287,4 +295,24 @@ function editReceptionStatus() {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour des statuts de réception.");
         }
     });
+}
+
+
+function fileToImagePreview($fileInput) {
+    if ($fileInput[0].files && $fileInput[0].files[0]) {
+        let fileNameWithExtension = $fileInput[0].files[0].name.split('.');
+        let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
+
+        if (allowedLogoExtensions.indexOf(extension) !== -1) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let $chosenLogo = $('#chosenLogo');
+                $chosenLogo.attr('src', e.target.result);
+                $chosenLogo.removeClass('d-none');
+            };
+            reader.readAsDataURL($fileInput[0].files[0]);
+        } else {
+            alertErrorMsg('Veuillez choisir une image valide (png, jpeg, jpg).', true)
+        }
+    }
 }

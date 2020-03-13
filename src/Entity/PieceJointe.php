@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class PieceJointe
 {
-	const MAIN_PATH = '/uploads/attachements/';
+    const MAIN_PATH = '/uploads/attachements/';
 	const TEMP_PATH = self::MAIN_PATH . 'temp/';
     /**
      * @ORM\Id()
