@@ -28,7 +28,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             $modal.modal('hide')
                         }
                         else {
-                            arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response});
+                            arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
                         }
                     }
                 }
@@ -40,18 +40,22 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                 class: 'btn btn-secondary m-0',
                 text: 'Non',
                 action: () => {
-                    arrivalCallback(isCreation, {
-                        alertConfigs: nextAlertConfigs.length > 0
-                            ? nextAlertConfigs
-                            : [{
-                                    autoHide: false,
-                                    message: 'Arrivage enregistré avec succès',
-                                    modalType: 'info',
-                                    iconType: 'success',
-                                    arrivalId
-                                }],
-                        ...response
-                    });
+                    arrivalCallback(
+                        isCreation,
+                        {
+                            alertConfigs: nextAlertConfigs.length > 0
+                                ? nextAlertConfigs
+                                : [{
+                                        autoHide: false,
+                                        message: 'Arrivage enregistré avec succès',
+                                        modalType: 'info',
+                                        iconType: 'success',
+                                        arrivalId
+                                    }],
+                            ...response
+                        },
+                        arrivalsDatatable
+                    );
                 }
             });
         }
@@ -71,7 +75,6 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
 
 function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation, arrivalsDatatable) {
     const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
-    console.log(arrivalResponseCreation);
     $.ajax({
         type: 'PATCH',
         url: patchArrivalUrgentUrl,
@@ -133,6 +136,8 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
 
             window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
         }
+
+        clearModal($modalNewArrivage);
     }
     else {
         const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);

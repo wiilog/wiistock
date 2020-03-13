@@ -116,7 +116,7 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, null, (params) => arrivalCallback(true, params, tableArrivage), redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, null, (params) => arrivalCallback(true, params, tableArrivage), redirectAfterArrival === 1, false);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
