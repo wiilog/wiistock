@@ -27,11 +27,11 @@ function loadPage() {
 
         if (noFilter
             || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
-            $blockEncours.show();
+            $blockEncours.removeClass('d-none');
             loadEncoursDatatable($tableEncours);
         }
         else {
-            $blockEncours.hide();
+            $blockEncours.addClass('d-none');
         }
 
     });
