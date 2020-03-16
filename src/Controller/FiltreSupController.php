@@ -51,6 +51,8 @@ class FiltreSupController extends AbstractController
                 'commande' => FiltreSup::FIELD_COMMANDE,
                 'numArrivage' => FiltreSup::FIELD_NUM_ARRIVAGE,
                 'anomaly' => FiltreSup::FIELD_ANOMALY,
+                'duty' => FiltreSup::FIELD_DUTY,
+                'frozen' => FiltreSup::FIELD_FROZEN,
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {

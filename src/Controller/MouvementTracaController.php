@@ -378,7 +378,7 @@ class MouvementTracaController extends AbstractController
                 	$attachmentsNames[] = $attachment->getOriginalName();
 				}
                 $mouvementData[] = implode(", ", $attachmentsNames);
-                $colis = $this->colisRepository->findOneByCode($mouvement->getColis());
+                $colis = $this->colisRepository->findOneBy(['code' => $mouvement->getColis()]);
                 if ($colis) {
                     $arrivage = $colis->getArrivage();
                     $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');

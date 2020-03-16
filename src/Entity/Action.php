@@ -73,6 +73,11 @@ class Action
 	const DISPLAY_NATU_COLI = 'afficher nature colis';
 	const DISPLAY_CF = 'afficher champs fixes';
 
+	// menu nomade
+    const MODULE_ACCESS_STOCK = 'Accès Stock';
+    const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
+    const MODULE_ACCESS_MANUT = 'Accès Demande';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
