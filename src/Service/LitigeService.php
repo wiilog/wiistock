@@ -111,7 +111,9 @@ class LitigeService
 		$commands = $this->litigeRepository->getCommandesByLitigeId($litigeId);
 
 		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
-
+		$numerosBL = $litige['numCommandeBl']
+            ? implode(',', json_decode($litige['numCommandeBl']))
+            : '';
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
 				'litigeId' => $litige['id'],
@@ -127,7 +129,7 @@ class LitigeService
 			]),
             'references' => $references,
 			'command' => $commands,
-			'numCommandeBl' => $litige['numCommandeBl'] ?? '',
+			'numCommandeBl' => $numerosBL,
 			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
 			'provider' => $litige['provider'] ?? '',
 			'lastHistoric' => $lastHistoricStr,

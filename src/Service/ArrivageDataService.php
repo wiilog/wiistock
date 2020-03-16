@@ -105,7 +105,7 @@ class ArrivageDataService
             'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
             'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
             'NoTracking' => $arrivage->getNoTracking() ?? '',
-            'NumeroCommandeList' => $arrivage->getNumeroCommandeList(),
+            'NumeroCommandeList' => implode(',', $arrivage->getNumeroCommandeList()),
             'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
 			'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
 			'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',

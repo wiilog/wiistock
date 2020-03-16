@@ -293,16 +293,16 @@ class ArrivageRepository extends ServiceEntityRepository
                         ->leftJoin('a.destinataire', 'd3')
                         ->leftJoin('a.acheteurs', 'ach3')
                         ->leftJoin('a.utilisateur', 'u3')
-                        ->andWhere('
+                        ->andWhere('(
 						a.numeroArrivage LIKE :value
 						OR t3.label LIKE :value
 						OR ch3.nom LIKE :value
 						OR a.noTracking LIKE :value
-						OR :value a.numeroCommandeList
+						OR a.numeroCommandeList LIKE :value
 						OR f3.nom LIKE :value
 						OR d3.username LIKE :value
 						OR ach3.username LIKE :value
-						OR u3.username LIKE :value')
+						OR u3.username LIKE :value)')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

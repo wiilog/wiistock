@@ -337,7 +337,8 @@ class LitigeRepository extends ServiceEntityRepository
 						lh.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
 						rFourn.nom LIKE :value OR
-						ra.reference LIKE :value
+						ra.reference LIKE :value OR
+						a.numeroCommandeList LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -371,7 +372,7 @@ class LitigeRepository extends ServiceEntityRepository
                                 ->addOrderBy('provider', $order);
                         } else if ($column === 'numCommandeBl') {
                             $qb
-                                ->addOrderBy('r.reference', $order);
+                                ->addOrderBy('a.numeroCommandeList', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);
