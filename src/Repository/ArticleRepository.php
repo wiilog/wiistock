@@ -364,8 +364,8 @@ class ArticleRepository extends ServiceEntityRepository
 			  AND ra = :refArticle
 			  AND a.quantite IS NOT NULL
 			  AND a.quantite > 0
-			  AND(a.preparation IS NULL OR a.preparation = :prepa)
-			  AND(a.demande IS NULL OR a.demande = :dem OR s.nom = :draft)
+			  AND (a.preparation IS NULL OR a.preparation = :prepa)
+			  AND (a.demande IS NULL OR a.demande = :dem OR s.nom = :draft)
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
