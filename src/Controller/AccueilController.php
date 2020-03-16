@@ -43,7 +43,6 @@ use App\Repository\ReferenceArticleRepository;
 class AccueilController extends AbstractController
 {
 
-
     /**
      * @var CollecteRepository
      */

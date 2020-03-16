@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col">
-        <h1><span title="arrivage">{{ 'arrivage.arrivage'|trans|capitalize }}</span> {{ arrivage.numeroarrivage }}</h1>
+        <h1><span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span> {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
         <input hidden value="{{ arrivage.numeroarrivage  }}" id="numeroArrivage">
         <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
@@ -68,7 +68,7 @@
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
     <div class="col-4">
         <p title="destinataire">
-            <strong>{{ 'arrivage.destinataire'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.destinataire'|trans }} :</strong>
             {{ arrivage.destinataire ? arrivage.destinataire.username : '' }}
         </p>
     </div>
@@ -76,7 +76,7 @@
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
     <div class="col-4">
         <p title="acheteurs">
-            <strong>{{ 'arrivage.acheteurs'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.acheteurs'|trans }} :</strong>
             {{ arrivage.acheteurs|join(', ') }}
         </p>
     </div>
@@ -84,7 +84,7 @@
     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
     <div class="col-4">
         <p title="douane">
-            <strong>{{ 'arrivage.douane'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.douane'|trans }} :</strong>
             {{ arrivage.duty ? 'oui' : 'non' }}
         </p>
     </div>
@@ -92,7 +92,7 @@
     {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
     <div class="col-4">
         <p title="congelé">
-            <strong>{{ 'arrivage.congelé'|trans|capitalize }} :</strong>
+            <strong>{{ 'arrivage.congelé'|trans }} :</strong>
             {{ arrivage.frozen ? 'oui' : 'non' }}
         </p>
     </div>
@@ -109,7 +109,7 @@
             {% set value = champLibre.valeurChampLibre.valeur %}
         {% endif %}
         {% if value is not null %}
-            <p><strong>{{ champLibre.label|capitalize }} :</strong> {{ value }}</p>
+            <p><strong>{{ champLibre.label }} :</strong> {{ value }}</p>
         {% endif %}
     </div>
 {% endfor %}
@@ -137,6 +137,6 @@
 
 {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
     <div class="urgence-row row ml-2">
-        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans|capitalize }}</span> est à traiter en URGENCE.</h1>
+        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans }}</span> est à traiter en URGENCE.</h1>
     </div>
 {% endif %}

@@ -1,11 +1,11 @@
-{% extends 'mails/template.html.twig' %}
+{% extends 'mails/mjml/template.html.twig' %}
 
 {% block content %}
     <p>Bonjour,</p>
     <br/>
     <p>Votre commande est arrivée : </p>
     <br/>
-    <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrivage.numeroArrivage }}</p>
+    <p>{{ "arrivage.n° d'arrivage"|trans }} : {{ arrivage.numeroArrivage }}</p>
     {% if arrivage.numeroBL %}
         <p>N° commande : {{ arrivage.numeroBL }}</p>
     {% endif %}
@@ -21,6 +21,5 @@
     <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrivage.date|date('d/m/Y H:i') }}</p>
     <br/>
     <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>
-    <br/>
     <br/>
 {% endblock %}
