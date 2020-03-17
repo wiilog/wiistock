@@ -27,7 +27,7 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postUpdate(Article $article) {
-        $this->treatAlert($article);
+            $this->treatAlert($article);
     }
 
     /**
@@ -35,7 +35,7 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postPersist(Article $article) {
-        $this->treatAlert($article);
+            $this->treatAlert($article);
     }
 
     /**
@@ -43,15 +43,17 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postRemove(Article $article) {
-        $this->treatAlert($article);
+            $this->treatAlert($article);
     }
 
     private function treatAlert(Article $article) {
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
-			$this->refArticleService->treatAlert($referenceArticle);
-            $this->entityManager->flush();
+			if ($referenceArticle) {
+			    $this->refArticleService->treatAlert($referenceArticle);
+                $this->entityManager->flush();
+            }
         }
     }
 }

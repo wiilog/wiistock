@@ -117,15 +117,25 @@ class ImportController extends AbstractController
 			'quantiteReservee'];
 		$fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
 
+		switch ($entity) {
+			case Import::ENTITY_ART:
+				$categoryCL = CategorieCL::ARTICLE;
+				$fieldsToAdd = ['type', 'référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+				$fieldNames = array_merge($fieldNames, $fieldsToAdd);
+				break;
+			case Import::ENTITY_REF:
+				$categoryCL = CategorieCL::REFERENCE_ARTICLE;
+				$fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire'];
+				$fieldNames = array_merge($fieldNames, $fieldsToAdd);
+				break;
+            case Import::ENTITY_ART_FOU:
+                $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
+                $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+        }
+
 		$fields = [];
 		foreach ($fieldNames as $fieldName) {
 			$fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
-		}
-
-		if ($entity == Import::ENTITY_ART) {
-			$categoryCL = CategorieCL::ARTICLE;
-		} else if ($entity == Import::ENTITY_REF) {
-			$categoryCL = CategorieCL::REFERENCE_ARTICLE;
 		}
 
 		if (isset($categoryCL)) {
