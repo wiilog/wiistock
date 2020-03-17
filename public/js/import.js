@@ -45,8 +45,8 @@ let $submitNewImport = $("#submitNewImport");
 
 function displayFirstModal() {
     $submitNewImport.off();
-let urlNewImportFirst = Routing.generate('import_new', true);
-initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
+    let urlNewImportFirst = Routing.generate('import_new', true);
+    initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
 
     $.get(Routing.generate('get_first_modal_content'), function(resp) {
         $modalNewImport.find('.modal-body').html(resp);
@@ -64,6 +64,7 @@ function displaySecondModal(data) {
         let urlNewImportSecond = Routing.generate('import_links', true);
         InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, displayConfirmationModal, false);
     }
+    displayError($modalNewImport, data.msg, data.success);
 }
 
 function displayConfirmationModal(data) {
