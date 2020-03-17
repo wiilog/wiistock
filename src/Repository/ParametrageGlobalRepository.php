@@ -38,7 +38,7 @@ class ParametrageGlobalRepository extends ServiceEntityRepository
 
 	/**
 	 * @param $label
-	 * @return ParametrageGlobal
+	 * @return string
 	 * @throws NonUniqueResultException
 	 */
     public function getOneParamByLabel($label) {

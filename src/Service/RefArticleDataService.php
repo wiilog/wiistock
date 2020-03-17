@@ -579,24 +579,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @return array Field barcode and barcodeLabel
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array
-    {
-        return [
-            'barcode' => $referenceArticle->getBarCode(),
-            'barcodeLabel' => $this->templating->render('reference_article/barcodeLabel.html.twig', [
-                'refRef' => $referenceArticle->getReference(),
-                'refLabel' => $referenceArticle->getLibelle(),
-            ])
-        ];
-    }
-
-    /**
-     * @param ReferenceArticle $referenceArticle
      * @return array ['code' => string, 'labels' => string[]]
      */
     public function getBarcodeConfig(ReferenceArticle $referenceArticle): array

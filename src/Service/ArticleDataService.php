@@ -18,6 +18,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Reception;
@@ -34,6 +35,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\InventoryCategoryRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -762,11 +764,19 @@ class ArticleDataService
 		return $newBarcode;
 	}
 
-    public function getBarcodeConfig(Article $article, bool $wantBL = false): array {
+    /**
+     * @param Article $article
+     * @param bool $wantBL
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return array
+     * @throws NonUniqueResultException
+     */
+    public function getBarcodeConfig(Article $article, bool $wantBL = false, ParametrageGlobalRepository $parametrageGlobalRepository): array {
         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
+        $champLibreWanted = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
         $wantedIndex = 0;
         foreach ($articles as $key => $articleWithCL) {
-            if ($articleWithCL['cl'] === ChampLibre::SPECIC_COLLINS_BL) {
+            if ($articleWithCL['cl'] === $champLibreWanted) {
                 $wantedIndex = $key;
                 break;
             }
@@ -778,7 +788,7 @@ class ArticleDataService
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
         $labelArticle = $article->getLabel();
-        $blLabel = (($wantBL && ($articleArray['cl'] === ChampLibre::SPECIC_COLLINS_BL))
+        $blLabel = (($wantBL && ($articleArray['cl'] === $champLibreWanted))
             ? $articleArray['bl']
             : '');
 
@@ -786,7 +796,7 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            !empty($blLabel) ? ('BL : ' . $blLabel) : ''
+            !empty($blLabel) ? ($champLibreWanted  . ' : ' . $blLabel) : ''
         ];
         return [
             'code' => $article->getBarCode(),

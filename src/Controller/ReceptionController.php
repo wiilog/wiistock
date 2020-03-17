@@ -1591,7 +1591,7 @@ class ReceptionController extends AbstractController
                             $carry,
                             ...array_map(
                                 function (Article $article) use ($articleDataService, $wantBL) {
-                                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue(), $this->paramGlobalRepository);
                                 },
                                 $articlesReception
                             )

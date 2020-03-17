@@ -35,6 +35,7 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -953,25 +954,26 @@ class ArticleController extends AbstractController
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function printArticlesBarCodes(Request $request,
+                                          EntityManagerInterface $entityManager,
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $listArticles = explode(',', $request->query->get('listArticles') ?? '');
-        $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
         $barcodeConfigs = array_slice(
             array_map(
-                function (Article $article) use ($articleDataService, $wantBL) {
-                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                function (Article $article) use ($articleDataService, $wantBL, $parametrageGlobalRepository) {
+                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue(), $parametrageGlobalRepository);
                 },
                 $this->articleRepository->findByIds($listArticles)
             ),
@@ -990,21 +992,21 @@ class ArticleController extends AbstractController
      * @Route("/{article}/etiquette", name="article_single_bar_code_print", options={"expose"=true})
      * @param Article $article
      * @param ArticleDataService $articleDataService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,
-                                            ParametrageGlobalRepository $parametrageGlobalRepository,
+                                            EntityManagerInterface $entityManager,
                                             PDFGeneratorService $PDFGeneratorService): Response {
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue())];
+        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue(), $parametrageGlobalRepository)];
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
         return new PdfResponse(
