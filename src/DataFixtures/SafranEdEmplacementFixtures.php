@@ -27,12 +27,13 @@ class SafranEdEmplacementFixtures extends Fixture implements FixtureGroupInterfa
     {
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
             $emplacementRepository = $manager->getRepository(Emplacement::class);
-            $ecsArg = $emplacementRepository->findOneByLabel(SpecificService::ECS_ARG_LOCATION);
+            $ecsArg = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
             if (!isset($ecsArg)) {
+                dump('Création de l\'emplacement spécifique');
                 $ecsArg = new Emplacement();
                 $ecsArg
                     ->setIsActive(true)
-                    ->setLabel(SpecificService::ECS_ARG_LOCATION);
+                    ->setLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
                 $manager->persist($ecsArg);
                 $manager->flush();
             }
